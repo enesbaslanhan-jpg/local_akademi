@@ -46,7 +46,9 @@ async function build() {
         paths: ['req.headers.authorization', 'req.headers.cookie', 'body.password', 'body.token', 'body.apiKey', 'body.secret'],
         censor: '[REDACTED]'
       }
-    }
+    },
+    bodyLimit: 1048576,
+    trustProxy: true
   })
 
   const corsOriginRaw = process.env.CORS_ORIGIN || (isProduction ? 'http://localhost:5173' : true)
@@ -56,10 +58,21 @@ async function build() {
   console.log('[CORS] raw:', corsOriginRaw, '| parsed:', JSON.stringify(corsOrigin))
   await server.register(cors, { origin: corsOrigin, credentials: true })
 
+  server.addHook('onSend', async (_request, reply, payload) => {
+    reply.header('X-Content-Type-Options', 'nosniff')
+    reply.header('X-Frame-Options', 'DENY')
+    reply.header('Referrer-Policy', 'strict-origin-when-cross-origin')
+    reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+    if (isProduction) {
+      reply.header('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
+    }
+    return payload
+  })
+
   await server.register(rateLimit, {
-    global: false,
-    max: 100,
-    timeWindow: '1 minute'
+    global: true,
+    max: 300,
+    timeWindow: '15 minutes'
   })
 
   registerJwtPlugin(server)
@@ -73,7 +86,7 @@ async function build() {
     })
   }
 
-  server.get('/health', async () => ({ status: 'ok', version: '1.0.0', timestamp: new Date().toISOString() }))
+  server.get('/health', { config: { rateLimit: false } }, async () => ({ status: 'ok', version: '1.0.0', timestamp: new Date().toISOString() }))
 
   server.register(authRoutes, { prefix: '/auth' })
   server.register(courseRoutes, { prefix: '/courses' })
@@ -105,6 +118,16 @@ async function build() {
   if (process.env.ENABLE_MEMORY_API === 'true') {
     server.register(memoryRoutes, { prefix: '/api/memory' })
   }
+
+  server.setErrorHandler((error: Error, request, reply) => {
+    request.log.error(error)
+    const err = error as any
+    const statusCode = err.statusCode || 500
+    const message = isProduction && statusCode === 500
+      ? 'Internal server error'
+      : error.message ?? 'Internal server error'
+    reply.status(statusCode).send({ error: message })
+  })
 
   return server
 }
