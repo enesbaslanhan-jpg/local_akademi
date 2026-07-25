@@ -160,6 +160,24 @@ const ALLOWED_ROLES_EXPERT = ['admin', 'subject_expert']
 const ALLOWED_ROLES_ADMIN = ['admin']
 const HIGH_GATES = ['requires_professional_approval', 'requires_current_official_source_and_legal_approval']
 
+// Select all scalar fields except embedding for list queries
+const KO_LIST_SELECT = {
+  id: true, code: true, slug: true, type: true, title: true,
+  content: true,
+  metadata: true, status: true, verificationStatus: true, reviewGate: true, isDemo: true,
+  publishedAt: true, archivedAt: true, reviewDue: true,
+  categoryId: true, currentVersionId: true,
+  createdAt: true, updatedAt: true,
+  applySteps: true, learnSteps: true, problem: true, quickAnswer: true,
+  seeAlso: true, summary: true, task: true, warning: true,
+  category: true
+}
+
+const KO_TOPIC_SELECT = {
+  ...KO_LIST_SELECT,
+  sources: { include: { source: true } }
+}
+
 // ---------------------------------------------------------------------------
 // v2 Knowledge Routes
 // ---------------------------------------------------------------------------
@@ -187,7 +205,7 @@ export async function knowledgeV2Routes(fastify: FastifyInstance) {
     const orderBy = parseSort(query)
 
     const [results, total] = await Promise.all([
-      prisma.knowledgeObject.findMany({ where, skip, take, orderBy, include: { category: true } }),
+      prisma.knowledgeObject.findMany({ where, skip, take, orderBy, select: KO_LIST_SELECT }),
       prisma.knowledgeObject.count({ where })
     ])
     return {
@@ -290,7 +308,7 @@ export async function knowledgeV2Routes(fastify: FastifyInstance) {
 
     const kos = await prisma.knowledgeObject.findMany({
       where,
-      include: { category: true, sources: { include: { source: true } } },
+      select: KO_TOPIC_SELECT,
       orderBy: { createdAt: 'desc' }
     })
 
@@ -355,7 +373,7 @@ export async function knowledgeV2Routes(fastify: FastifyInstance) {
 
     const kos = await prisma.knowledgeObject.findMany({
       where: { status: 'published', isDemo: false },
-      include: { category: true, sources: { include: { source: true } } },
+      select: KO_TOPIC_SELECT,
       orderBy: { createdAt: 'desc' }
     })
 
@@ -761,7 +779,7 @@ export async function knowledgeV2Routes(fastify: FastifyInstance) {
     const { skip, take } = parsePagination(query)
 
     const [results, total] = await Promise.all([
-      prisma.knowledgeObject.findMany({ where, skip, take, orderBy: { createdAt: 'desc' }, include: { category: true } }),
+      prisma.knowledgeObject.findMany({ where, skip, take, orderBy: { createdAt: 'desc' }, select: KO_LIST_SELECT }),
       prisma.knowledgeObject.count({ where })
     ])
     return {
