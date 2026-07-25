@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../lib/prisma.js'
 
 import type { AiProvider, ChatMessage, TokenUsage } from './ai-provider'
 import {
@@ -12,7 +12,6 @@ import { streamSlotManager } from './stream-manager'
 import { extractAndStoreMemories, buildExtractionPrompt } from './memory/memory-extractor'
 import { updateConversationSummary } from './memory/summary-service'
 
-const prisma = new PrismaClient()
 const MAX_TITLE_LENGTH = 120
 const MAX_MESSAGE_LENGTH = 8000
 const CONTEXT_MESSAGE_LIMIT = 6

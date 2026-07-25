@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../lib/prisma.js'
 import { randomUUID } from 'crypto'
 import { z } from 'zod'
 import { createAuditLog, queryAuditLogs } from './audit.js'
@@ -18,7 +18,6 @@ import {
   LocalAiQueueFullError,
 } from './local-ai-job-queue.js'
 
-const prisma = new PrismaClient()
 const reviewerHumanAuditSchema = z.object({
   telemetryId: z.string().uuid(),
   verdict: z.enum([

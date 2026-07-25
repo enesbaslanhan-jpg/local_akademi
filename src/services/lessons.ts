@@ -1,7 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '../lib/prisma.js'
 
 export async function lessonRoutes(fastify: FastifyInstance) {
   fastify.get('/:id', async (request, reply) => {

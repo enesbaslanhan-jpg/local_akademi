@@ -1,7 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '../lib/prisma.js'
 
 export async function knowledgeRoutes(fastify: FastifyInstance) {
   // @deprecated — use /api/v2/knowledge-objects instead

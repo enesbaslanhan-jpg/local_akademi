@@ -1,7 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '../lib/prisma.js'
 
 const PILOT_KO_IDS = [
   6, 7, 8, 9, 10,

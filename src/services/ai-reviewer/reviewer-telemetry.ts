@@ -1,4 +1,5 @@
-import { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '@prisma/client'
+import { prisma } from '../../lib/prisma.js'
 import type { RiskLevel } from '../review-gate'
 import type {
   AiReviewerDecision,
@@ -6,8 +7,6 @@ import type {
   AiReviewerIssueCode,
   AiReviewerOutcome,
 } from './types'
-
-const prisma = new PrismaClient()
 const MAX_QUERY_EVENTS = 10000
 
 export interface ReviewerTelemetryEvent {

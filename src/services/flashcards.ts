@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma.js';
 import { computeNextReview } from './spaced-repetition';
 import { recomputeLessonAndEnrollment } from './course-progress';
-
-const prisma = new PrismaClient();
 
 export async function getFlashcardsByKoId(koId: number, userId: number) {
   const ko = await prisma.knowledgeObject.findUnique({

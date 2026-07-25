@@ -1,8 +1,6 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../lib/prisma.js'
 import manifest from '../../content/learning-pilot-v1.json'
-
-const prisma = new PrismaClient()
 
 const PILOT_CATEGORIES = [
   'Temel Finans', 'Maliyet ve Fiyatlandırma', 'E-Ticaret',

@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma.js';
 import * as crypto from 'crypto';
-
-const prisma = new PrismaClient();
 
 interface GeneratedQuestion {
   questionText: string;

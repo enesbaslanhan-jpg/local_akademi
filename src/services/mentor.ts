@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../lib/prisma.js'
 import { randomUUID } from 'crypto'
 import { z } from 'zod'
 import { AiChatProvider, RealAiChatProvider, GatewayConfigError, GatewayProviderError } from './ai-chat-provider'
@@ -9,8 +9,6 @@ const chatRequestSchema = z.object({
   sessionId: z.string().uuid().optional(),
   code: z.string().max(50).regex(/^[A-Za-z0-9_-]+$/, 'Geçersiz kod formatı').optional(),
 })
-
-const prisma = new PrismaClient()
 
 const MAX_CONTEXT_MESSAGES = 20
 const MAX_KO_CONTEXT = 5

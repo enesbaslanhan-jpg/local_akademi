@@ -1,11 +1,9 @@
 import bcrypt from 'bcryptjs'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../lib/prisma.js'
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import jwt from '@fastify/jwt'
 import { z } from 'zod'
 import { createAuditLog } from './audit.js'
-
-const prisma = new PrismaClient()
 
 const registerSchema = z.object({
   email: z.string().email().max(254).transform(value => value.trim().toLowerCase()),

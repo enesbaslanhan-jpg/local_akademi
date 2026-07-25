@@ -1,10 +1,8 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../lib/prisma.js'
 import { createAuditLog } from './audit.js'
 import { enforceTransition, InvalidTransitionError } from './state-machine.js'
 import { scheduleKnowledgeObjectEmbedding } from './retrieval/knowledge-embedding-indexer.js'
-
-const prisma = new PrismaClient()
 
 // ---------------------------------------------------------------------------
 // Helpers

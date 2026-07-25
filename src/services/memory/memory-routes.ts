@@ -1,13 +1,11 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../../lib/prisma.js'
 import {
   listMemories, getMemory, createMemory, updateMemory,
   softDeleteMemory, clearAllMemories
 } from './memory-repository'
 import { extractAndStoreMemories, buildExtractionPrompt, parseExtractionJson } from './memory-extractor'
 import { isValidMemoryType, isValidMemoryStatus, type MemoryType, type SourceType, type ValidationStatus } from './memory-types'
-
-const prisma = new PrismaClient()
 
 function parseId(id: string): number | null {
   const n = parseInt(id, 10)

@@ -1,10 +1,9 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../lib/prisma.js'
 import { createKnowledgeRetriever, formatKnowledgeContext as retrievalFormatContext } from './retrieval/index.js'
 import type { KnowledgeObjectResult } from './retrieval/types.js'
 import type { Citation } from './ai-gateway.js'
 import type { ReviewerEvidence } from './ai-reviewer/index.js'
 
-const prisma = new PrismaClient()
 const retriever = createKnowledgeRetriever(prisma)
 
 export type AiProvider = 'nvidia' | 'openai' | 'deepseek'

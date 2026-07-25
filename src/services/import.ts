@@ -1,9 +1,7 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../lib/prisma.js'
 import { randomUUID } from 'crypto'
 import { createAuditLog } from './audit.js'
-
-const prisma = new PrismaClient()
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
 const MAX_KO_COUNT = 1000

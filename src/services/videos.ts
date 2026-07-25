@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../lib/prisma.js'
 import { FastifyInstance } from 'fastify'
 import { recomputeLessonAndEnrollment } from './course-progress'
-
-const prisma = new PrismaClient()
 
 const VIDEO_PROVIDERS = new Set(['local', 'youtube', 'vimeo'])
 

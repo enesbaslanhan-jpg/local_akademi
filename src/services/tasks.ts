@@ -1,8 +1,6 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../lib/prisma.js'
 import { recomputeLessonAndEnrollment } from './course-progress'
-
-const prisma = new PrismaClient()
 
 export async function taskRoutes(fastify: FastifyInstance) {
   // List user's task assignments

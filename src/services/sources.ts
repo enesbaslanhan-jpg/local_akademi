@@ -1,8 +1,6 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../lib/prisma.js'
 import { createAuditLog } from './audit.js'
-
-const prisma = new PrismaClient()
 
 const ALLOWED_ROLES = ['admin', 'content_editor']
 

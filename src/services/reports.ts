@@ -1,11 +1,10 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../lib/prisma.js'
 import { randomUUID } from 'crypto'
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { createZip } from './zipHelper'
 
-const prisma = new PrismaClient()
 const REPORT_DIR = join(process.cwd(), 'reports')
 
 export async function reportRoutes(fastify: FastifyInstance) {
