@@ -130,7 +130,18 @@ export function registerJwtPlugin(fastify: FastifyInstance) {
     try {
       await request.jwtVerify()
     } catch {
-      reply.status(401).send({ error: 'Unauthorized' })
+      return reply.status(401).send({ error: 'Unauthorized' })
     }
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: request.user.id },
+      select: { id: true, email: true, role: true }
+    })
+    if (!dbUser) {
+      return reply.status(401).send({ error: 'Unauthorized' })
+    }
+
+    request.user.email = dbUser.email
+    request.user.role = dbUser.role
   })
 }
