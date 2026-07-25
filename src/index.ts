@@ -31,6 +31,7 @@ import { flashcardRoutes } from './services/flashcard-routes'
 import { videoRoutes } from './services/videos'
 import { communityRoutes } from './services/community'
 import { deleteExpiredReviewerTelemetry } from './services/ai-reviewer'
+import { disconnectPrisma } from './lib/prisma'
 import { existsSync } from 'fs'
 import { join } from 'path'
 
@@ -134,9 +135,12 @@ export function createShutdownHandler(server: FastifyInstance) {
     try {
       await server.close()
       server.log.info({ signal }, 'Server closed gracefully')
+      await disconnectPrisma()
+      server.log.info('Prisma disconnected')
       process.exit(0)
     } catch (err) {
       server.log.error({ err, signal }, 'Server close failed')
+      await disconnectPrisma()
       process.exit(1)
     }
   }
