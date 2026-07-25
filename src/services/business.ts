@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '@prisma/client'
+import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { z } from 'zod'
 
 const profileUpdateSchema = z.object({
@@ -26,7 +27,7 @@ function parseJsonArray(val: string | string[]): string[] {
 }
 
 export async function businessRoutes(fastify: FastifyInstance, opts?: { prisma?: PrismaClient }) {
-  const prisma = opts?.prisma || new PrismaClient()
+  const prisma = opts?.prisma ?? sharedPrisma
 
   fastify.get('/business-profile', {
     preHandler: [fastify.authenticate]

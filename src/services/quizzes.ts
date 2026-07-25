@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '@prisma/client'
+import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { z } from 'zod'
 import { recomputeLessonAndEnrollment } from './course-progress'
 
@@ -31,7 +32,7 @@ function parseSessionContext(raw: string): { role: string; content: string }[] {
 }
 
 export async function quizRoutes(fastify: FastifyInstance, opts?: { prisma?: PrismaClient }) {
-  const prisma = opts?.prisma || new PrismaClient()
+  const prisma = opts?.prisma ?? sharedPrisma
 
   // GET /quizzes/history — user's attempt history (must be before /:koId to avoid capture)
   fastify.get('/history', {

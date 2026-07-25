@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '@prisma/client'
+import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { z } from 'zod'
 
 const domains = [
@@ -65,7 +66,7 @@ function generateRecommendations(scores: Record<string, number>) {
 }
 
 export async function assessmentRoutes(fastify: FastifyInstance, opts?: { prisma?: PrismaClient }) {
-  const prisma = opts?.prisma || new PrismaClient()
+  const prisma = opts?.prisma ?? sharedPrisma
 
   fastify.get('/assessment/questions', { preHandler: [fastify.authenticate] }, async () => ({
     questions: ASSESSMENT_QUESTIONS, totalSteps: ASSESSMENT_QUESTIONS.length,

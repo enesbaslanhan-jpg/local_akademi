@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '@prisma/client'
+import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { z } from 'zod'
 
 const BUSINESS_STAGES = ['startup', 'growth', 'mature'] as const
@@ -28,7 +29,7 @@ const completeSchema = z.object({
 })
 
 export async function onboardingRoutes(fastify: FastifyInstance, opts?: { prisma?: PrismaClient }) {
-  const prisma = opts?.prisma || new PrismaClient()
+  const prisma = opts?.prisma ?? sharedPrisma
 
   fastify.get('/onboarding/status', {
     preHandler: [fastify.authenticate]

@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '@prisma/client'
+import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { z } from 'zod'
 import { recomputeLessonAndEnrollment } from './course-progress'
 
@@ -13,7 +14,7 @@ const progressSchema = z.object({
 })
 
 export async function learningRoutes(fastify: FastifyInstance, opts?: { prisma?: PrismaClient }) {
-  const prisma = opts?.prisma || new PrismaClient()
+  const prisma = opts?.prisma ?? sharedPrisma
 
   fastify.post('/learning/start', {
     preHandler: [fastify.authenticate]

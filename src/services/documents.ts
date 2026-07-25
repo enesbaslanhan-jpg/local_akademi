@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '@prisma/client'
+import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { writeFile, mkdir, unlink } from 'fs/promises'
 import { join, resolve, normalize } from 'path'
 import { randomUUID } from 'crypto'
@@ -26,7 +27,7 @@ function getUserQuotaBytes(): number {
 }
 
 export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?: PrismaClient }) {
-  const prisma = opts?.prisma || new PrismaClient()
+  const prisma = opts?.prisma ?? sharedPrisma
 
   await fastify.register(fastifyMultipart, {
     limits: { fileSize: MAX_FILE_SIZE }
