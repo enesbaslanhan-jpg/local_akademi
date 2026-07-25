@@ -15,7 +15,7 @@ LocalAkademi is a monolithic Fastify + Prisma (SQLite) server that serves both a
 
 **Overall Status: NOT READY FOR DEPLOYMENT**
 
-The application requires 19 findings (5 Critical, 4 High) to be resolved before production deployment is safe or reliable. **FAZ 5B resolved 2 Critical findings:** OPS-CFG-001 (JWT_SECRET validation) and OPS-DKR-001 (`.dockerignore`). The remaining blocking gaps are: dev dependencies in runtime image (OPS-DKR-002), SQLite as the database (OPS-DB-001), and real SPA not deployed (OPS-FNT-001). The CI/CD pipeline is well-structured for validation but does not build or deploy Docker images.
+The application requires 19 findings (5 Critical, 4 High) to be resolved before production deployment is safe or reliable. **FAZ 5B resolved 2 Critical findings:** OPS-CFG-001 (JWT_SECRET validation) and OPS-DKR-001 (`.dockerignore`). **FAZ 5C resolved 2 more Critical findings:** OPS-DKR-002 (dev deps in runtime image) and OPS-FNT-001 (SPA not deployed). The single remaining blocking gap is SQLite as the database (OPS-DB-001). The CI/CD pipeline is well-structured for validation but does not build or deploy Docker images.
 
 ---
 
@@ -412,15 +412,22 @@ exec node dist/server.js
 - **Severity:** Critical
 - **Confidence:** High
 - **Category:** Docker
-- **Affected files:** `Dockerfile` (line 21-22)
+- **Affected files:** `Dockerfile`, `package.json`
 - **Evidence:** Runtime stage runs `npm ci` without `--production` flag. All devDependencies (`tsx`, `vitest`, `typescript`, `prisma`, `@types/*`) are installed in the final image.
 - **Failure scenario:** Increased attack surface (test runners, compilers, type definitions), image size bloat (~300MB extra), slower container startup.
 - **Impact:** Security risk + operational overhead.
 - **Recommended fix:** Change `npm ci` to `npm ci --production` in the runtime stage. Move `prisma` CLI from devDependencies to dependencies, or install it separately for migration step.
 - **Verification:** `docker images` shows ~300MB reduction in image size.
-- **Estimated scope:** 1 line change
+- **Estimated scope:** 1 line change + dependency adjustment
 - **Breaking risk:** Medium — `prisma` CLI must be moved to dependencies or handled differently
 - **Priority:** P0
+- **Status:** ✅ RESOLVED (FAZ 5C)
+- **Resolution:**
+  - `package.json`: Moved `prisma` from `devDependencies` to `dependencies` so `npm ci --production` includes it for `prisma migrate deploy` in the entrypoint.
+  - `Dockerfile`: Runtime stage changed from `npm ci` to `npm ci --production` with `npm cache clean --force`.
+  - `Dockerfile`: Refactored to 3 stages: `backend-build`, `frontend-build`, `runtime`.
+  - `frontend/package.json`, `frontend/vite.config.js`, `frontend/src/`: All present in build context for frontend build stage.
+  - Tests in `tests/production-readiness.test.ts` verify `package.json` structure and Dockerfile stage layout.
 
 ### OPS-DB-001 — SQLite unsuitable for production multi-instance
 
@@ -442,15 +449,21 @@ exec node dist/server.js
 - **Severity:** Critical
 - **Confidence:** High
 - **Category:** Configuration
-- **Affected files:** `Dockerfile`
+- **Affected files:** `Dockerfile`, `src/index.ts`
 - **Evidence:** Dockerfile copies `src/public/` to `dist/public`. The actual React SPA is in `frontend/` and is not built or copied.
 - **Failure scenario:** Production deployment serves API test page instead of the real application. All frontend routes return the test page.
 - **Impact:** Application completely unusable from browser.
-- **Recommended fix:** Add frontend build step to Dockerfile: `WORKDIR /frontend`, `COPY frontend/ .`, `RUN npm ci && npm run build`, then `COPY --from=build /frontend/dist /app/dist/public`. Remove or rename `src/public/`.
+- **Recommended fix:** Add frontend build step to Dockerfile, then serve the built SPA via `@fastify/static`. Add `setNotFoundHandler` for client-side routing.
 - **Verification:** `docker build .` → container serves React SPA with all routes.
-- **Estimated scope:** Dockerfile changes, possibly `src/public/index.html` removal
+- **Estimated scope:** Dockerfile changes + SPA fallback
 - **Breaking risk:** Low — only affects Docker deployment
 - **Priority:** P0
+- **Status:** ✅ RESOLVED (FAZ 5C)
+- **Resolution:**
+  - `Dockerfile`: Added `frontend-build` stage that runs `npm ci && npm run build` from `frontend/`. Output copied to `/app/dist/public` in the runtime stage.
+  - `src/index.ts`: Added `setNotFoundHandler` that serves `index.html` from the public directory for any unmatched route.
+  - `PRODUCTION_READINESS_AUDIT.md`: This document updated to reflect resolved status.
+  - Tests in `tests/production-readiness.test.ts` verify Dockerfile structure, SPA fallback registration, and frontend build integrity.
 
 ### OPS-HTH-001 — No readiness endpoint
 
@@ -672,9 +685,9 @@ exec node dist/server.js
 |----|-------|-------|--------|
 | OPS-CFG-001 | Missing JWT_SECRET startup validation | 1 file, ~30 lines | ✅ RESOLVED (FAZ 5B) |
 | OPS-DKR-001 | Missing .dockerignore | 1 file, ~25 lines | ✅ RESOLVED (FAZ 5B) |
-| OPS-DKR-002 | Dev deps in runtime image | 1 line + dependency adjustment | ⬜ OPEN |
+| OPS-DKR-002 | Dev deps in runtime image | 1 line + dependency adjustment | ✅ RESOLVED (FAZ 5C) |
 | OPS-DB-001 | SQLite → PostgreSQL migration | Large (schema + config + migration) | ⬜ OPEN |
-| OPS-FNT-001 | SPA not deployed in Docker | Dockerfile changes | ⬜ OPEN |
+| OPS-FNT-001 | SPA not deployed in Docker | Dockerfile + server changes | ✅ RESOLVED (FAZ 5C) |
 
 ### P1 — Before First Production Release
 
@@ -748,14 +761,15 @@ exec node dist/server.js
 
 **NOT READY FOR DEPLOYMENT**
 
-**FAZ 5B resolved 2 of 5 Critical findings.** The remaining blocking issues are:
+**FAZ 5B resolved 2 of 5 Critical findings. FAZ 5C resolved 2 more.** The remaining blocking issue is:
 
 1. **SQLite database** (OPS-DB-001) — must be migrated to PostgreSQL before any production deployment. SQLite cannot handle multi-instance or concurrent write workloads.
-2. **Docker image hygiene** (OPS-DKR-002) — dev dependencies in the runtime image create security and bloat issues. (`.dockerignore` resolved in FAZ 5B ✅)
-3. **Real SPA not deployed** (OPS-FNT-001) — the Dockerfile serves a test page instead of the React application.
-4. **JWT_SECRET validation** (OPS-CFG-001) — **RESOLVED** in FAZ 5B with centralized `validateJwtSecret()` fail-fast ✅
+2. **Docker image hygiene** (OPS-DKR-002) — **RESOLVED** in FAZ 5C with `npm ci --production` in runtime stage ✅
+3. **Real SPA not deployed** (OPS-FNT-001) — **RESOLVED** in FAZ 5C with frontend build stage and SPA fallback ✅
+4. **JWT_SECRET validation** (OPS-CFG-001) — **RESOLVED** in FAZ 5B ✅
+5. **Missing .dockerignore** (OPS-DKR-001) — **RESOLVED** in FAZ 5B ✅
 
-Once the remaining 3 P0 items are resolved, the application reaches **READY WITH REQUIRED FIXES** status.
+Once the remaining 1 P0 item (OPS-DB-001) is resolved, the application reaches **READY WITH REQUIRED FIXES** status.
 
 ---
 
@@ -763,20 +777,20 @@ Once the remaining 3 P0 items are resolved, the application reaches **READY WITH
 
 | Metric | Value |
 |--------|-------|
-| **Total findings** | 22 (2 resolved) |
-| **Critical** | 5 (2 resolved: OPS-CFG-001 ✅, OPS-DKR-001 ✅; 3 open: OPS-DKR-002, OPS-DB-001, OPS-FNT-001) |
+| **Total findings** | 22 (4 resolved) |
+| **Critical** | 5 (4 resolved: OPS-CFG-001 ✅, OPS-DKR-001 ✅, OPS-DKR-002 ✅, OPS-FNT-001 ✅; 1 open: OPS-DB-001) |
 | **High** | 4 (all open) |
 | **Medium** | 8 |
 | **Low** | 3 |
 | **Informational** | 2 |
-| **P0 items** | 5 (2 resolved, 3 open) |
+| **P0 items** | 5 (4 resolved, 1 open) |
 | **P1 items** | 5 |
-| **Deployment verdict** | NOT READY FOR DEPLOYMENT (3 Critical P0 items still open) |
-| **Source code changed?** | Yes — `src/index.ts` (JWT_SECRET validation) |
-| **New files** | `.dockerignore`, `tests/production-readiness.test.ts` |
-| **Test results** | 770/772 pass (31 new production-readiness tests; 2 pre-existing retrieval failures) |
-| **Working tree** | Modified: `src/index.ts`, `PRODUCTION_READINESS_AUDIT.md` |
-| **Recommended next phase** | FAZ 5C — Runtime Image Optimization (OPS-DKR-002) or FAZ 5D — Database Migration (OPS-DB-001) |
+| **Deployment verdict** | NOT READY FOR DEPLOYMENT (1 Critical P0 item still open: OPS-DB-001) |
+| **Source code changed?** | Yes — `src/index.ts` (JWT_SECRET validation, SPA fallback), `package.json` (prisma moved to deps) |
+| **New / modified files** | `.dockerignore` (new), `tests/production-readiness.test.ts` (new + extended), `Dockerfile` (rewritten: 3-stage build) |
+| **Test results** | 810/812 pass (49+ production-readiness tests; 2 pre-existing retrieval failures) |
+| **Working tree** | Modified: `src/index.ts`, `package.json`, `Dockerfile`, `PRODUCTION_READINESS_AUDIT.md`, `tests/production-readiness.test.ts` |
+| **Recommended next phase** | FAZ 5D — Database Migration (OPS-DB-001) |
 
 ### Recommended Commit Message (for FAZ 5B)
 ```

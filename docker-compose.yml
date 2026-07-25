@@ -28,23 +28,28 @@ services:
     networks:
       - localakademi-network
 
-  # PostgreSQL + pgvector (future - for vector search)
+  # PostgreSQL 16 with pgvector extension
   postgres:
     image: pgvector/pgvector:pg16
     container_name: localakademi-postgres
     restart: unless-stopped
+    shm_size: 256mb
     environment:
       - POSTGRES_USER=localakademi
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-localakademi}
       - POSTGRES_DB=localakademi
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U localakademi -d localakademi"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - localakademi-network
-    profiles:
-      - with-pgvector
 
   # Redis for caching (future)
   redis:

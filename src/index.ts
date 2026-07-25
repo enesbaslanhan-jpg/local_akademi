@@ -113,7 +113,8 @@ async function build() {
   registerJwtPlugin(server)
 
   const publicPath = join(__dirname, 'public')
-  if (existsSync(publicPath)) {
+  const hasPublicDir = existsSync(publicPath)
+  if (hasPublicDir) {
     await server.register(fastifyStatic, {
       root: publicPath,
       prefix: '/',
@@ -153,6 +154,13 @@ async function build() {
   if (process.env.ENABLE_MEMORY_API === 'true') {
     server.register(memoryRoutes, { prefix: '/api/memory' })
   }
+
+  server.setNotFoundHandler(async (request, reply) => {
+    if (hasPublicDir) {
+      return reply.sendFile('index.html', publicPath)
+    }
+    return reply.status(404).send({ error: 'Route not found' })
+  })
 
   server.setErrorHandler((error: Error, request, reply) => {
     request.log.error(error)
