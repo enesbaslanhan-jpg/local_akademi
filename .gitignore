@@ -8,3 +8,4 @@ BACKUPS/
 *.log
 .video-tools/
 .video-work/
+uploads/
