@@ -39,6 +39,7 @@ export default defineConfig({
         ...backendProxy
       },
       '/courses': backendProxy,
+      '/community': backendProxy,
       '/lessons': backendProxy,
       '/enrollments': backendProxy,
       '/knowledge': backendProxy,
