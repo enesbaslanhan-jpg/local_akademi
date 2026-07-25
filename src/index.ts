@@ -39,7 +39,42 @@ const isProduction = process.env.NODE_ENV === 'production'
   || process.env.BETA_MODE === 'true'
   || process.env.BETA_MODE === 'invite_only'
 
+const UNSAFE_JWT_SECRETS = [
+  'secret', 'password', 'changeme', 'jwt_secret',
+  'your-secret-key', 'default', '12345678901234567890123456789012',
+]
+
+export function validateJwtSecret(): void {
+  const secret = process.env.JWT_SECRET
+
+  if (!secret || typeof secret !== 'string') {
+    throw new Error(
+      'JWT_SECRET environment variable is required. Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
+    )
+  }
+
+  if (secret.trim().length === 0) {
+    throw new Error(
+      'JWT_SECRET must not be empty or whitespace-only. Generate a strong random value.'
+    )
+  }
+
+  if (Buffer.byteLength(secret, 'utf8') < 32) {
+    throw new Error(
+      'JWT_SECRET must be at least 32 bytes (256 bits). Use a strong random value.'
+    )
+  }
+
+  if (UNSAFE_JWT_SECRETS.includes(secret.toLowerCase().trim())) {
+    throw new Error(
+      'JWT_SECRET contains an insecure default value. Generate a strong random secret.'
+    )
+  }
+}
+
 async function build() {
+  validateJwtSecret()
+
   const server = Fastify({
     logger: {
       redact: {

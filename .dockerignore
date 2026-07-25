@@ -1,0 +1,55 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+.github/
+
+# Environment and secrets
+.env
+.env.*
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build output
+dist/
+frontend/dist/
+coverage/
+
+# Local databases
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Uploaded files
+uploads/
+
+# Backups and reports
+BACKUPS/
+outputs/
+reports/
+*.report.json
+.agents/
+
+# Logs
+*.log
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Temporary and cache
+.video-tools/
+.video-work/
+*.tsbuildinfo
+.cache/
+tmp/
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
