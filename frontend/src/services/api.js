@@ -215,7 +215,7 @@ export const api = {
   },
 
   conversation: {
-    BASE: '/api/mentor/conversations',
+    BASE: '/mentor/conversations',
     async getList() { return api.request(`${api.conversation.BASE}`); },
     async create(title) { return api.request(`${api.conversation.BASE}`, { method: 'POST', body: JSON.stringify({ title }) }); },
     async getById(id) { return api.request(`${api.conversation.BASE}/${id}`); },
