@@ -1,0 +1,32 @@
+{
+  "startedAt": "2026-07-23T20:11:38.157Z",
+  "updatedAt": "2026-07-23T20:26:43.168Z",
+  "requested": 3,
+  "items": [
+    {
+      "koId": 6,
+      "code": "CUR-001-01",
+      "status": "created",
+      "quizId": "5c0ef908-a0c3-41f3-8ad5-f5e43fe3b120",
+      "qualityScore": 1
+    },
+    {
+      "koId": 636,
+      "code": "KBX-OPS-001-B",
+      "status": "created",
+      "quizId": "5fa9fc7f-d765-449c-b463-8424a92998bb",
+      "qualityScore": 1
+    },
+    {
+      "koId": 816,
+      "code": "KBX-CYB-001-B",
+      "status": "created",
+      "quizId": "f2d564a0-638b-4827-b7f8-ef0ccceec5f5",
+      "qualityScore": 1
+    }
+  ],
+  "contentStoredInReport": false,
+  "allCreatedQuizzesRemainDraft": true,
+  "pass": true,
+  "completedAt": "2026-07-23T20:26:43.168Z"
+}

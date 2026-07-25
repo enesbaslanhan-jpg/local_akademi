@@ -1,0 +1,271 @@
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.backBtn:hover {
+  background: var(--bg);
+}
+
+.headerInfo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+  color: var(--text);
+}
+
+.headerStats {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cardCounter {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-light);
+  white-space: nowrap;
+}
+
+.cardArea {
+  perspective: 1000px;
+  margin: 1.5rem 0;
+  cursor: pointer;
+  min-height: 320px;
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  min-height: 320px;
+  transition: transform 0.5s ease;
+  transform-style: preserve-3d;
+}
+
+.card.flipped {
+  transform: rotateX(180deg);
+}
+
+.cardFace {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 320px;
+  backface-visibility: hidden;
+  border-radius: var(--radius);
+  background: var(--white);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 2rem;
+  text-align: center;
+}
+
+.cardBack {
+  transform: rotateX(180deg);
+}
+
+.cardLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-light);
+  margin-bottom: 1rem;
+}
+
+.cardText {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-relaxed);
+  color: var(--text);
+  max-width: 100%;
+  word-break: break-word;
+  white-space: pre-line;
+}
+
+.cardHint {
+  margin-top: 1rem;
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
+  font-style: italic;
+}
+
+.tapHint {
+  margin-top: 1.5rem;
+  font-size: var(--font-size-xs);
+  color: var(--text-light);
+  opacity: 0.6;
+}
+
+.ratingArea {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.ratingLabel {
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
+  margin-bottom: 1rem;
+}
+
+.ratingButtons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.ratingBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text);
+}
+
+.ratingBtn:hover {
+  background: var(--btn-bg);
+  border-color: var(--btn-color);
+}
+
+.ratingBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ratingLabelText {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--btn-color);
+}
+
+.ratingShortcut {
+  font-size: var(--font-size-xs);
+  color: var(--text-light);
+  opacity: 0.6;
+}
+
+.sessionBar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.sessionStat {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
+}
+
+.sessionComplete {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.completeIcon {
+  color: var(--success);
+  margin-bottom: 1rem;
+}
+
+.completeTitle {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  margin: 0 0 0.5rem;
+  color: var(--text);
+}
+
+.completeSub {
+  color: var(--text-light);
+  margin: 0 0 2rem;
+}
+
+.completeStats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.completeStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 140px;
+}
+
+.completeStatValue {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text);
+}
+
+.completeStatLabel {
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
+}
+
+.completeActions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.errorContainer {
+  text-align: center;
+  padding: 3rem;
+}
+
+.errorText {
+  color: var(--danger);
+  margin-bottom: 1rem;
+}

@@ -1,0 +1,112 @@
+name: Release Gate
+
+on:
+  push:
+    branches: [main, master, beta, develop]
+  pull_request:
+    branches: [main, master, beta]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  JWT_SECRET: ci-secret-that-is-at-least-32-bytes-long-for-testing
+  JWT_EXPIRES_IN: 1h
+  AI_PROVIDER: nvidia
+  NVIDIA_API_URL: http://127.0.0.1:9999/v1/chat/completions
+  NVIDIA_API_KEY: ci-mock-key
+  NVIDIA_MODEL: ci-mock-model
+  AI_REVIEW_GATE_ENABLED: 'false'
+  AI_REQUEST_TIMEOUT_MS: '10000'
+  BETA_MODE: 'true'
+  ENABLE_MEMORY_API: 'false'
+  # Prisma uses SQLite for CI — no PostgreSQL service needed
+  DATABASE_URL: file:./prisma/ci.db
+
+jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Prisma validate
+        run: npx prisma validate
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Prisma migrate (CI)
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: file:./prisma/ci.db
+
+      - name: Seed database
+        run: npx tsx prisma/seed.ts
+        env:
+          DATABASE_URL: file:./prisma/ci.db
+
+      - name: Unit tests
+        run: npm test
+        env:
+          DATABASE_URL: file:./prisma/ci.db
+
+      - name: E2E tests
+        run: npm run test:e2e
+        env:
+          DATABASE_URL: file:./prisma/ci.db
+
+      - name: Secret scan
+        run: npm run secret:scan
+
+      - name: Migration validation
+        run: npm run validate:migrations
+        env:
+          DATABASE_URL: file:./prisma/ci.db
+
+      - name: Full release gate
+        run: npm run verify:release
+        env:
+          DATABASE_URL: file:./prisma/ci.db
+          SKIP_NPM_INSTALL: 'true'
+
+      - name: Frontend smoke test
+        run: |
+          npx tsx src/server.ts &
+          SERVER_PID=$!
+          sleep 5
+          node scripts/frontend-smoke.js || true
+          kill $SERVER_PID 2>/dev/null || true
+        env:
+          DATABASE_URL: file:./prisma/ci.db
+          PORT: '3000'
+
+      - name: Release report
+        run: npm run release:report
+        env:
+          DATABASE_URL: file:./prisma/ci.db
+
+      - name: Upload release report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-report
+          path: release-report.json
+
+      - name: Upload release gate report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-gate-report
+          path: release-gate-report.json

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalAkademi API Test</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: #eee; min-height: 100vh; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        h1 { color: #00d4ff; text-align: center; margin-bottom: 30px; }
+        .section { background: #16213e; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+        .section h2 { color: #00d4ff; margin-bottom: 15px; font-size: 1.2rem; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #aaa; }
+        input, textarea, select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #333; background: #0f0f23; color: #fff; }
+        textarea { height: 80px; font-family: monospace; }
+        button { background: #00d4ff; color: #000; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-right: 10px; }
+        button:hover { background: #00b8e6; }
+        button:disabled { background: #555; cursor: not-allowed; }
+        .btn-secondary { background: #e94560; }
+        .btn-secondary:hover { background: #d63040; }
+        .result { margin-top: 15px; padding: 15px; background: #0f0f23; border-radius: 5px; font-family: monospace; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+        .token-display { background: #0f0f23; padding: 10px; border-radius: 5px; margin-bottom: 15px; word-break: break-all; }
+        .token-display strong { color: #00d4ff; }
+        .nav { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .nav button { background: #16213e; color: #fff; border: 1px solid #00d4ff; }
+        .nav button.active { background: #00d4ff; color: #000; }
+        .hidden { display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #333; }
+        th { color: #00d4ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 LocalAkademi API Test</h1>
+        
+        <div class="section">
+            <h2>🔐 Token Yönetimi</h2>
+            <div id="tokenDisplay" class="token-display">
+                <strong>Token:</strong> <span id="tokenValue">Henüz giriş yapılmadı</span>
+            </div>
+            <button onclick="showSection('auth')">Giriş Yap / Kayıt Ol</button>
+            <button onclick="clearToken()" class="btn-secondary">Token Temizle</button>
+        </div>
+
+        <div class="nav">
+            <button onclick="showSection('courses')" class="active">📚 Kurslar</button>
+            <button onclick="showSection('enrollments')">📝 Kayıtlar</button>
+            <button onclick="showSection('knowledge')">📖 Bilgi</button>
+            <button onclick="showSection('mentor')">🤖 AI Mentor</button>
+            <button onclick="showSection('learning')">🛤️ Öğrenme Yolu</button>
+        </div>
+
+        <div id="auth" class="section">
+            <h2>🔐 Kimlik Doğrulama</h2>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="authEmail" value="student@localakademi.com">
+            </div>
+            <div class="form-group">
+                <label>Şifre</label>
+                <input type="password" id="authPassword" value="student123">
+            </div>
+            <div class="form-group">
+                <label>İsim (Sadece kayıt için)</label>
+                <input type="text" id="authName" placeholder="Yeni kullanıcı adı">
+            </div>
+            <button onclick="login()">Giriş Yap</button>
+            <button onclick="register()">Kayıt Ol</button>
+            <button onclick="getMe()">Beni Göster</button>
+            <div id="authResult" class="result"></div>
+        </div>
+
+        <div id="courses" class="section">
+            <h2>📚 Kurslar</h2>
+            <button onclick="getCourses()">Tüm Kursları Getir</button>
+            <button onclick="getCourseById()">ID ile Getir</button>
+            <div class="form-group" style="margin-top: 10px;">
+                <label>Kurs ID</label>
+                <input type="number" id="courseId" placeholder="1">
+            </div>
+            <div id="coursesResult" class="result"></div>
+        </div>
+
+        <div id="enrollments" class="section">
+            <h2>📝 Kayıtlar</h2>
+            <button onclick="getMyEnrollments()">Kayıtlarımı Getir</button>
+            <button onclick="enrollCourse()">Kurse Kayıt Ol</button>
+            <div class="form-group" style="margin-top: 10px;">
+                <label>Kurs ID</label>
+                <input type="number" id="enrollCourseId" placeholder="1">
+            </div>
+            <button onclick="updateProgress()">İlerleme Güncelle</button>
+            <div class="form-group">
+                <label>Kayıt ID</label>
+                <input type="number" id="enrollmentId" placeholder="1">
+            </div>
+            <div class="form-group">
+                <label>Yeni İlerleme (%)</label>
+                <input type="number" id="progressValue" placeholder="50">
+            </div>
+            <div id="enrollmentsResult" class="result"></div>
+        </div>
+
+        <div id="knowledge" class="section">
+            <h2>📖 Bilgi Nesneleri</h2>
+            <button onclick="searchKnowledge()">Ara</button>
+            <div class="form-group">
+                <label>Arama Terimi</label>
+                <input type="text" id="searchQuery" placeholder="değişken">
+            </div>
+            <div class="form-group">
+                <label>Tip (concept, fact, procedure, principle)</label>
+                <input type="text" id="searchType" placeholder="concept">
+            </div>
+            <button onclick="getKnowledgeById()">ID ile Getir</button>
+            <div class="form-group">
+                <label>Bilgi ID</label>
+                <input type="number" id="knowledgeId" placeholder="1">
+            </div>
+            <div id="knowledgeResult" class="result"></div>
+        </div>
+
+        <div id="mentor" class="section">
+            <h2>🤖 AI Mentor</h2>
+            <button onclick="getChatHistory()">Sohbet Geçmişi</button>
+            <button onclick="clearChatHistory()">Geçmişi Temizle</button>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Oturum ID (devam etmek için)</label>
+                <input type="text" id="sessionId" placeholder="Boş bırak = yeni oturum">
+            </div>
+            <div class="form-group">
+                <label>Mesajınız</label>
+                <textarea id="mentorMessage" placeholder="Mentora bir soru sorun...">Python'da değişken nedir?</textarea>
+            </div>
+            <button onclick="sendToMentor()">Gönder</button>
+            <div id="mentorResult" class="result"></div>
+        </div>
+
+        <div id="learning" class="section">
+            <h2>🛤️ Öğrenme Yolu</h2>
+            <button onclick="getCurrentPath()">Mevcut Yol</button>
+            <button onclick="generatePath()">Yeni Yol Oluştur</button>
+            <div class="form-group" style="margin-top: 10px;">
+                <label>Yol Başlığı</label>
+                <input type="text" id="pathTitle" value="Yeni Öğrenme Yolum">
+            </div>
+            <div class="form-group">
+                <label>Path Data (JSON)</label>
+                <textarea id="pathData">{"steps": [1, 2, 3]}</textarea>
+            </div>
+            <div id="learningResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:3000';
+        let token = localStorage.getItem('token') || '';
+
+        if (token) {
+            document.getElementById('tokenValue').textContent = token.substring(0, 50) + '...';
+        }
+
+        function showSection(name) {
+            document.querySelectorAll('.section, .nav button').forEach(el => {
+                if (!el.classList.contains('nav')) {
+                    el.classList.add('hidden');
+                }
+            });
+            document.getElementById(name).classList.remove('hidden');
+            document.querySelectorAll('.nav button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.nav button[onclick="showSection('${name}')"]`)?.classList.add('active');
+        }
+
+        function clearToken() {
+            token = '';
+            localStorage.removeItem('token');
+            document.getElementById('tokenValue').textContent = 'Henüz giriş yapılmadı';
+        }
+
+        async function request(endpoint, method = 'GET', body = null) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            
+            const options = { method, headers };
+            if (body) options.body = JSON.stringify(body);
+            
+            const res = await fetch(`${API_URL}${endpoint}`, options);
+            const text = await res.text();
+            try {
+                return { status: res.status, data: JSON.parse(text) };
+            } catch {
+                return { status: res.status, data: text };
+            }
+        }
+
+        function displayResult(elementId, result) {
+            const el = document.getElementById(elementId);
+            el.textContent = `Status: ${result.status}\n\n${JSON.stringify(result.data, null, 2)}`;
+        }
+
+        async function login() {
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            const result = await request('/auth/login', 'POST', { email, password });
+            if (result.status === 200) {
+                token = result.data.token;
+                localStorage.setItem('token', token);
+                document.getElementById('tokenValue').textContent = token.substring(0, 50) + '...';
+            }
+            displayResult('authResult', result);
+        }
+
+        async function register() {
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            const name = document.getElementById('authName').value;
+            if (!name) return alert('İsim gerekli');
+            const result = await request('/auth/register', 'POST', { email, password, name });
+            if (result.status === 201) {
+                token = result.data.token;
+                localStorage.setItem('token', token);
+                document.getElementById('tokenValue').textContent = token.substring(0, 50) + '...';
+            }
+            displayResult('authResult', result);
+        }
+
+        async function getMe() {
+            const result = await request('/auth/me');
+            displayResult('authResult', result);
+        }
+
+        async function getCourses() {
+            const result = await request('/courses');
+            displayResult('coursesResult', result);
+        }
+
+        async function getCourseById() {
+            const id = document.getElementById('courseId').value;
+            if (!id) return alert('Kurs ID gerekli');
+            const result = await request(`/courses/${id}`);
+            displayResult('coursesResult', result);
+        }
+
+        async function getMyEnrollments() {
+            const result = await request('/enrollments/my');
+            displayResult('enrollmentsResult', result);
+        }
+
+        async function enrollCourse() {
+            const courseId = parseInt(document.getElementById('enrollCourseId').value);
+            if (!courseId) return alert('Kurs ID gerekli');
+            const result = await request('/enrollments', 'POST', { courseId });
+            displayResult('enrollmentsResult', result);
+        }
+
+        async function updateProgress() {
+            const id = document.getElementById('enrollmentId').value;
+            const progress = parseInt(document.getElementById('progressValue').value);
+            if (!id || isNaN(progress)) return alert('Kayıt ID ve ilerleme gerekli');
+            const result = await request(`/enrollments/${id}/progress`, 'PUT', { progress });
+            displayResult('enrollmentsResult', result);
+        }
+
+        async function searchKnowledge() {
+            const q = document.getElementById('searchQuery').value;
+            const type = document.getElementById('searchType').value;
+            const params = new URLSearchParams();
+            if (q) params.append('q', q);
+            if (type) params.append('type', type);
+            const query = params.toString() ? `?${params.toString()}` : '';
+            const result = await request(`/knowledge/search${query}`);
+            displayResult('knowledgeResult', result);
+        }
+
+        async function getKnowledgeById() {
+            const id = document.getElementById('knowledgeId').value;
+            if (!id) return alert('Bilgi ID gerekli');
+            const result = await request(`/knowledge/${id}`);
+            displayResult('knowledgeResult', result);
+        }
+
+        async function sendToMentor() {
+            const message = document.getElementById('mentorMessage').value;
+            const sessionId = document.getElementById('sessionId').value || undefined;
+            if (!message) return alert('Mesaj gerekli');
+            const result = await request('/mentor/chat', 'POST', { message, sessionId });
+            if (result.status === 200 && result.data.sessionId) {
+                document.getElementById('sessionId').value = result.data.sessionId;
+            }
+            displayResult('mentorResult', result);
+        }
+
+        async function getChatHistory() {
+            const result = await request('/mentor/history');
+            displayResult('mentorResult', result);
+        }
+
+        async function clearChatHistory() {
+            const sessionId = document.getElementById('sessionId').value;
+            const query = sessionId ? `?sessionId=${sessionId}` : '';
+            const result = await request(`/mentor/history${query}`, 'DELETE');
+            displayResult('mentorResult', result);
+        }
+
+        async function getCurrentPath() {
+            const result = await request('/learning-path/current');
+            displayResult('learningResult', result);
+        }
+
+        async function generatePath() {
+            const title = document.getElementById('pathTitle').value;
+            const pathData = document.getElementById('pathData').value;
+            if (!title || !pathData) return alert('Başlık ve path data gerekli');
+            try {
+                JSON.parse(pathData);
+            } catch {
+                return alert('Path Data geçerli JSON olmalı');
+            }
+            const result = await request('/learning-path/generate', 'POST', { title, pathData });
+            displayResult('learningResult', result);
+        }
+
+        showSection('auth');
+    </script>
+</body>
+</html>

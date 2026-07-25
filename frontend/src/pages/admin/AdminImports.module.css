@@ -1,0 +1,272 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h2 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Drop Zone */
+.dropZone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-8);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  background: var(--white);
+}
+
+.dropZone:hover,
+.dragOver {
+  border-color: var(--primary);
+  background: #f7faff;
+}
+
+.dragOver {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.hasFile {
+  border-style: solid;
+  border-color: var(--border);
+  padding: var(--space-4) var(--space-5);
+  cursor: default;
+}
+
+.dropContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text-light);
+}
+
+.dropContent p {
+  font-size: var(--font-size-sm);
+}
+
+.dropContent small {
+  font-size: var(--font-size-xs);
+  opacity: 0.7;
+}
+
+.fileInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: left;
+  color: var(--text);
+}
+
+.fileName {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+}
+
+.fileMeta {
+  font-size: var(--font-size-xs);
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+/* Stats Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-3);
+}
+
+.statCard {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  text-align: center;
+}
+
+.statCard small {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--text-light);
+  margin-bottom: var(--space-1);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.statCard b {
+  font-size: var(--font-size-xl);
+  color: var(--text);
+}
+
+.statOk { border-left: 3px solid var(--success); }
+.statBad { border-left: 3px solid var(--danger); }
+.statWarn { border-left: 3px solid var(--warning); }
+
+/* Issue Filters */
+.issueFilters {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.issueFilters select,
+.issueFilters input {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid #cfd6e2;
+  border-radius: 6px;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family);
+}
+
+.issueFilters input {
+  flex: 1;
+  min-width: 140px;
+}
+
+.issueFilters select:focus,
+.issueFilters input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Issue Table */
+.issuesDesktop {
+  overflow-x: auto;
+}
+
+.issuesMobile {
+  display: none;
+}
+
+.smallCode {
+  font-size: var(--font-size-xs);
+  background: var(--bg);
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: var(--text-light);
+}
+
+.issueTitle {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.issueMessage {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.errorCode {
+  color: var(--text-light);
+  font-size: 10px;
+}
+
+/* Mobile Issues */
+.mobileIssueCard {
+  border-bottom: 1px solid var(--border);
+}
+
+.mobileIssueHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+}
+
+.mobileIssueHead:hover {
+  background: var(--bg);
+}
+
+.mobileIssueBody {
+  padding: 0 var(--space-4) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+}
+
+.mobileIssueBody small {
+  color: var(--text-light);
+  display: inline;
+}
+
+/* Commit Area */
+.commitArea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.commitSuccess {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--success);
+  padding: var(--space-4) 0;
+}
+
+.commitSuccess h3 {
+  color: var(--success);
+  font-size: var(--font-size-lg);
+}
+
+.jobSummary {
+  display: flex;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--text-light);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.sectionHeader h3 {
+  font-size: var(--font-size-base);
+  color: var(--text);
+}
+
+@media (max-width: 768px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .issuesDesktop {
+    display: none;
+  }
+
+  .issuesMobile {
+    display: block;
+  }
+
+  .issueFilters {
+    flex-direction: column;
+  }
+
+  .issueFilters select,
+  .issueFilters input {
+    width: 100%;
+  }
+}

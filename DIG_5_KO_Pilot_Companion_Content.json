@@ -1,0 +1,123 @@
+{
+  "description": "Quiz, TaskTemplate ve Formula verileri — KO code üzerinden ilişkilendirilir. Henüz DB'ye commit edilmeyecek, pilot import sonrası manuel veya ayrı bir endpoint ile eklenebilir.",
+  "companionData": [
+    {
+      "koCode": "DIG-MATURITY-001",
+      "quizzes": [
+        {
+          "title": "Dijital Olgunluk Değerlendirmesi Quiz",
+          "passScore": 70,
+          "questions": [
+            {
+              "questionText": "Dijital olgunluk değerlendirmesi hangi amaçla yapılır?",
+              "options": ["İşletmenin kârlılığını ölçmek", "Mevcut dijital yetkinlik seviyesini belirlemek", "Çalışan memnuniyetini ölçmek", "Pazar payını hesaplamak"],
+              "correctAnswer": "Mevcut dijital yetkinlik seviyesini belirlemek",
+              "explanation": "Dijital olgunluk değerlendirmesi, işletmenin dijital dönüşüm yolculuğunda nerede olduğunu anlamak için kullanılır.",
+              "order": 1
+            },
+            {
+              "questionText": "Aşağıdakilerden hangisi dijital olgunluk değerlendirme boyutlarından biri değildir?",
+              "options": ["Dijital strateji ve liderlik", "Operasyonel süreçler", "Hisse senedi performansı", "Veri yönetimi ve analitik"],
+              "correctAnswer": "Hisse senedi performansı",
+              "explanation": "Hisse senedi performansı bir olgunluk boyutu değildir. Olgunluk boyutları strateji, süreç, müşteri, veri, insan ve teknoloji alanlarını kapsar.",
+              "order": 2
+            }
+          ]
+        }
+      ],
+      "taskTemplates": [
+        {
+          "title": "İşletme Dijital Olgunluk Öz Değerlendirmesi",
+          "description": "Kendi işletmenizin veya örnek bir KOBİ'nin dijital olgunluk seviyesini değerlendirin. Her boyut için 1-5 arası puan verin ve bir yol haritası oluşturun.",
+          "estimatedTime": 30
+        }
+      ]
+    },
+    {
+      "koCode": "DIG-TOOL-001",
+      "quizzes": [
+        {
+          "title": "Dijital Araç Seçimi Quiz",
+          "passScore": 70,
+          "questions": [
+            {
+              "questionText": "Dijital araç seçiminde en kritik adım hangisidir?",
+              "options": ["En pahalı aracı seçmek", "İhtiyaç analizi yapmak", "Rakiplerin kullandığı aracı seçmek", "En popüler aracı seçmek"],
+              "correctAnswer": "İhtiyaç analizi yapmak",
+              "explanation": "Doğru araç seçimi için önce işletmenin gerçek ihtiyaçlarını belirlemek gerekir.",
+              "order": 1
+            }
+          ]
+        }
+      ],
+      "taskTemplates": [
+        {
+          "title": "Dijital Araç Karşılaştırma Tablosu",
+          "description": "Bir iş süreci belirleyin (ör: müşteri takibi, muhasebe, proje yönetimi). En az 3 alternatif aracı ihtiyaçlar, maliyet ve özellikler açısından karşılaştıran bir tablo oluşturun.",
+          "estimatedTime": 45
+        }
+      ]
+    },
+    {
+      "koCode": "DIG-DATA-001",
+      "quizzes": [
+        {
+          "title": "Veri Yönetişimi Quiz",
+          "passScore": 70,
+          "questions": [
+            {
+              "questionText": "Veri yönetişiminin temel amacı nedir?",
+              "options": ["Tüm verileri silmek", "Veri varlıklarını etkin yönetmek", "Verileri sadece IT ekibine emanet etmek", "Verileri ücretsiz dağıtmak"],
+              "correctAnswer": "Veri varlıklarını etkin yönetmek",
+              "explanation": "Veri yönetişimi, verinin kalitesini, güvenliğini ve kullanılabilirliğini sağlamak için süreç ve politikalar bütünüdür.",
+              "order": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "koCode": "DIG-CYBER-001",
+      "quizzes": [
+        {
+          "title": "Siber Güvenlik Temelleri Quiz",
+          "passScore": 70,
+          "questions": [
+            {
+              "questionText": "3-2-1 yedekleme kuralı nedir?",
+              "options": ["3 yedek, 2 farklı ortam, 1 yedek dışarıda", "3 kopya, 2 saat arayla, 1 gün saklama", "3 dosya, 2 kez yedekle, 1 hafta bekle", "3 cihaz, 2 farklı ağ, 1 şifre"],
+              "correctAnswer": "3 yedek, 2 farklı ortam, 1 yedek dışarıda",
+              "explanation": "3-2-1 kuralı: Verinin 3 kopyasını al, 2 farklı ortamda sakla, 1 kopyayı fiziksel olarak farklı lokasyonda tut.",
+              "order": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "koCode": "DIG-AI-001",
+      "quizzes": [
+        {
+          "title": "Yapay Zeka Fırsatları Quiz",
+          "passScore": 70,
+          "questions": [
+            {
+              "questionText": "KOBİ'ler için yapay zeka projelerine başlarken en doğru yaklaşım nedir?",
+              "options": ["Büyük bir YZ dönüşüm projesiyle başlamak", "Küçük ve düşük riskli bir pilot projeyle başlamak", "YZ'yi tamamen görmezden gelmek", "Tüm süreçleri otomatikleştirmeye çalışmak"],
+              "correctAnswer": "Küçük ve düşük riskli bir pilot projeyle başlamak",
+              "explanation": "YZ yolculuğuna küçük, yönetilebilir ve ölçülebilir bir pilot projeyle başlamak en başarılı yaklaşımdır.",
+              "order": 1
+            }
+          ]
+        }
+      ],
+      "taskTemplates": [
+        {
+          "title": "YZ Fırsat Analizi",
+          "description": "İşletmenizdeki süreçleri gözden geçirin ve yapay zeka ile iyileştirilebilecek en az 3 alan belirleyin. Her alan için potansiyel fayda ve uygulama maliyetini değerlendirin.",
+          "estimatedTime": 30
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "sources": [
+    {
+      "title": "TÜBİTAK - Dijital Olgunluk Değerlendirme Raporu",
+      "url": "https://www.tubitak.gov.tr/dijital-olgunluk",
+      "authorityLevel": "high"
+    },
+    {
+      "title": "Sanayi ve Teknoloji Bakanlığı - Dijital Dönüşüm Stratejisi",
+      "url": "https://www.sanayi.gov.tr/dijital-donusum",
+      "authorityLevel": "high"
+    },
+    {
+      "title": "KOSGEB - Dijital Dönüşüm Destek Programları",
+      "url": "https://www.kosgeb.gov.tr/dijital-donusum",
+      "authorityLevel": "high"
+    },
+    {
+      "title": "ISO - Dijital Araç Seçim Kılavuzu",
+      "url": "https://www.iso.org/dijital-araclar",
+      "authorityLevel": "medium"
+    },
+    {
+      "title": "TÜBİTAK BİLGEM - Veri Yönetişim Rehberi",
+      "url": "https://bilgem.tubitak.gov.tr/veri-yonetisim",
+      "authorityLevel": "high"
+    },
+    {
+      "title": "Türkiye Cumhuriyeti Cumhurbaşkanlığı Dijital Dönüşüm Ofisi",
+      "url": "https://cbddo.gov.tr/",
+      "authorityLevel": "high"
+    },
+    {
+      "title": "ENISA - Siber Güvenlik Rehberi",
+      "url": "https://www.enisa.europa.eu/siber-guvenlik",
+      "authorityLevel": "high"
+    },
+    {
+      "title": "ISO/IEC 27001 Bilgi Güvenliği Yönetim Sistemi Standardı",
+      "url": "https://www.iso.org/isoiec-27001",
+      "authorityLevel": "high"
+    },
+    {
+      "title": "Avrupa Komisyonu - Yapay Zeka Etik Rehberi",
+      "url": "https://ec.europa.eu/ai-ethics",
+      "authorityLevel": "high"
+    },
+    {
+      "title": "OECD - Yapay Zeka ve KOBİ Rehberi",
+      "url": "https://www.oecd.org/ai-smes",
+      "authorityLevel": "high"
+    }
+  ]
+}

@@ -1,0 +1,450 @@
+{
+  "version": "1.0",
+  "generatedAt": "2026-07-21T19:28:16.486Z",
+  "totalKos": 30,
+  "categories": [
+    "Temel Finans",
+    "Maliyet ve Fiyatlandırma",
+    "E-Ticaret",
+    "Girişimcilik",
+    "Dijital Ekonomi",
+    "Finansman ve Yatırım"
+  ],
+  "kos": [
+    {
+      "koId": 6,
+      "code": "CUR-001-01",
+      "title": "Nakit Akışı",
+      "category": "Temel Finans",
+      "topicKey": "Temel Finans",
+      "lessonId": 34,
+      "courseId": 4,
+      "courseTitle": "Nakit Yönetimi",
+      "sourceCodes": [
+        "KGK — TFRS 2026 Seti (Mavi Kitap)",
+        "KGK — BOBİ FRS Modül 2: Nakit Akış Tablosu"
+      ]
+    },
+    {
+      "koId": 7,
+      "code": "CUR-001-02",
+      "title": "Nakit Akışı",
+      "category": "Temel Finans",
+      "topicKey": "Temel Finans",
+      "lessonId": 36,
+      "courseId": 4,
+      "courseTitle": "Nakit Yönetimi",
+      "sourceCodes": [
+        "KGK — TFRS 2026 Seti (Mavi Kitap)",
+        "KGK — BOBİ FRS Modül 2: Nakit Akış Tablosu"
+      ]
+    },
+    {
+      "koId": 8,
+      "code": "CUR-001-03",
+      "title": "Nakit Akışı",
+      "category": "Temel Finans",
+      "topicKey": "Temel Finans",
+      "lessonId": 37,
+      "courseId": 4,
+      "courseTitle": "Nakit Yönetimi",
+      "sourceCodes": [
+        "KGK — TFRS 2026 Seti (Mavi Kitap)",
+        "KGK — BOBİ FRS Modül 2: Nakit Akış Tablosu"
+      ]
+    },
+    {
+      "koId": 9,
+      "code": "CUR-001-04",
+      "title": "Nakit Akışı",
+      "category": "Temel Finans",
+      "topicKey": "Temel Finans",
+      "lessonId": 35,
+      "courseId": 4,
+      "courseTitle": "Nakit Yönetimi",
+      "sourceCodes": [
+        "KGK — TFRS 2026 Seti (Mavi Kitap)",
+        "KGK — BOBİ FRS Modül 2: Nakit Akış Tablosu"
+      ]
+    },
+    {
+      "koId": 10,
+      "code": "CUR-001-05",
+      "title": "Nakit Akışı",
+      "category": "Temel Finans",
+      "topicKey": "Temel Finans",
+      "lessonId": 38,
+      "courseId": 4,
+      "courseTitle": "Nakit Yönetimi",
+      "sourceCodes": [
+        "KGK — TFRS 2026 Seti (Mavi Kitap)",
+        "KGK — BOBİ FRS Modül 2: Nakit Akış Tablosu"
+      ]
+    },
+    {
+      "koId": 106,
+      "code": "CUR-021-01",
+      "title": "Gerçek Birim Maliyet",
+      "category": "Maliyet ve Fiyatlandırma",
+      "topicKey": "Maliyet ve Fiyatlandırma",
+      "lessonId": 137,
+      "courseId": 24,
+      "courseTitle": "Birim Maliyet",
+      "sourceCodes": [
+        "KGK — TFRS 2026 Seti (Mavi Kitap)",
+        "FDIC/SBA — Money Smart for Small Business",
+        "U.S. SBA — Break-even Point"
+      ]
+    },
+    {
+      "koId": 107,
+      "code": "CUR-021-02",
+      "title": "Gerçek Birim Maliyet",
+      "category": "Maliyet ve Fiyatlandırma",
+      "topicKey": "Maliyet ve Fiyatlandırma",
+      "lessonId": 138,
+      "courseId": 24,
+      "courseTitle": "Birim Maliyet",
+      "sourceCodes": [
+        "KGK — TFRS 2026 Seti (Mavi Kitap)",
+        "FDIC/SBA — Money Smart for Small Business",
+        "U.S. SBA — Break-even Point"
+      ]
+    },
+    {
+      "koId": 108,
+      "code": "CUR-021-03",
+      "title": "Gerçek Birim Maliyet",
+      "category": "Maliyet ve Fiyatlandırma",
+      "topicKey": "Maliyet ve Fiyatlandırma",
+      "lessonId": 134,
+      "courseId": 24,
+      "courseTitle": "Birim Maliyet",
+      "sourceCodes": [
+        "KGK — TFRS 2026 Seti (Mavi Kitap)",
+        "FDIC/SBA — Money Smart for Small Business",
+        "U.S. SBA — Break-even Point"
+      ]
+    },
+    {
+      "koId": 109,
+      "code": "CUR-021-04",
+      "title": "Gerçek Birim Maliyet",
+      "category": "Maliyet ve Fiyatlandırma",
+      "topicKey": "Maliyet ve Fiyatlandırma",
+      "lessonId": 135,
+      "courseId": 24,
+      "courseTitle": "Birim Maliyet",
+      "sourceCodes": [
+        "KGK — TFRS 2026 Seti (Mavi Kitap)",
+        "FDIC/SBA — Money Smart for Small Business",
+        "U.S. SBA — Break-even Point"
+      ]
+    },
+    {
+      "koId": 110,
+      "code": "CUR-021-05",
+      "title": "Gerçek Birim Maliyet",
+      "category": "Maliyet ve Fiyatlandırma",
+      "topicKey": "Maliyet ve Fiyatlandırma",
+      "lessonId": 136,
+      "courseId": 24,
+      "courseTitle": "Birim Maliyet",
+      "sourceCodes": [
+        "KGK — TFRS 2026 Seti (Mavi Kitap)",
+        "FDIC/SBA — Money Smart for Small Business",
+        "U.S. SBA — Break-even Point"
+      ]
+    },
+    {
+      "koId": 206,
+      "code": "CUR-041-01",
+      "title": "Pazar Yeri Seçimi",
+      "category": "E-Ticaret",
+      "topicKey": "E-Ticaret",
+      "lessonId": 234,
+      "courseId": 44,
+      "courseTitle": "Satış Kanalları",
+      "sourceCodes": [
+        "Ticaret Bakanlığı — Elektronik Ticaret Mevzuatı",
+        "Ticaret Bakanlığı — E-Ticaret Akademisi"
+      ]
+    },
+    {
+      "koId": 207,
+      "code": "CUR-041-02",
+      "title": "Pazar Yeri Seçimi",
+      "category": "E-Ticaret",
+      "topicKey": "E-Ticaret",
+      "lessonId": 238,
+      "courseId": 44,
+      "courseTitle": "Satış Kanalları",
+      "sourceCodes": [
+        "Ticaret Bakanlığı — Elektronik Ticaret Mevzuatı",
+        "Ticaret Bakanlığı — E-Ticaret Akademisi"
+      ]
+    },
+    {
+      "koId": 208,
+      "code": "CUR-041-03",
+      "title": "Pazar Yeri Seçimi",
+      "category": "E-Ticaret",
+      "topicKey": "E-Ticaret",
+      "lessonId": 235,
+      "courseId": 44,
+      "courseTitle": "Satış Kanalları",
+      "sourceCodes": [
+        "Ticaret Bakanlığı — Elektronik Ticaret Mevzuatı",
+        "Ticaret Bakanlığı — E-Ticaret Akademisi"
+      ]
+    },
+    {
+      "koId": 209,
+      "code": "CUR-041-04",
+      "title": "Pazar Yeri Seçimi",
+      "category": "E-Ticaret",
+      "topicKey": "E-Ticaret",
+      "lessonId": 236,
+      "courseId": 44,
+      "courseTitle": "Satış Kanalları",
+      "sourceCodes": [
+        "Ticaret Bakanlığı — Elektronik Ticaret Mevzuatı",
+        "Ticaret Bakanlığı — E-Ticaret Akademisi"
+      ]
+    },
+    {
+      "koId": 210,
+      "code": "CUR-041-05",
+      "title": "Pazar Yeri Seçimi",
+      "category": "E-Ticaret",
+      "topicKey": "E-Ticaret",
+      "lessonId": 237,
+      "courseId": 44,
+      "courseTitle": "Satış Kanalları",
+      "sourceCodes": [
+        "Ticaret Bakanlığı — Elektronik Ticaret Mevzuatı",
+        "Ticaret Bakanlığı — E-Ticaret Akademisi"
+      ]
+    },
+    {
+      "koId": 406,
+      "code": "CUR-081-01",
+      "title": "İş Fikri Geliştirme",
+      "category": "Girişimcilik",
+      "topicKey": "Girişimcilik",
+      "lessonId": 436,
+      "courseId": 84,
+      "courseTitle": "İş Modeli",
+      "sourceCodes": [
+        "KOSGEB — Girişimcilik El Kitabı"
+      ]
+    },
+    {
+      "koId": 407,
+      "code": "CUR-081-02",
+      "title": "İş Fikri Geliştirme",
+      "category": "Girişimcilik",
+      "topicKey": "Girişimcilik",
+      "lessonId": 437,
+      "courseId": 84,
+      "courseTitle": "İş Modeli",
+      "sourceCodes": [
+        "KOSGEB — Girişimcilik El Kitabı"
+      ]
+    },
+    {
+      "koId": 408,
+      "code": "CUR-081-03",
+      "title": "İş Fikri Geliştirme",
+      "category": "Girişimcilik",
+      "topicKey": "Girişimcilik",
+      "lessonId": 435,
+      "courseId": 84,
+      "courseTitle": "İş Modeli",
+      "sourceCodes": [
+        "KOSGEB — Girişimcilik El Kitabı"
+      ]
+    },
+    {
+      "koId": 409,
+      "code": "CUR-081-04",
+      "title": "İş Fikri Geliştirme",
+      "category": "Girişimcilik",
+      "topicKey": "Girişimcilik",
+      "lessonId": 438,
+      "courseId": 84,
+      "courseTitle": "İş Modeli",
+      "sourceCodes": [
+        "KOSGEB — Girişimcilik El Kitabı"
+      ]
+    },
+    {
+      "koId": 410,
+      "code": "CUR-081-05",
+      "title": "İş Fikri Geliştirme",
+      "category": "Girişimcilik",
+      "topicKey": "Girişimcilik",
+      "lessonId": 434,
+      "courseId": 84,
+      "courseTitle": "İş Modeli",
+      "sourceCodes": [
+        "KOSGEB — Girişimcilik El Kitabı"
+      ]
+    },
+    {
+      "koId": 846,
+      "code": "KBX-AIR-001-B",
+      "title": "AI Kullanım Senaryosu Seçimi",
+      "category": "Dijital Ekonomi",
+      "topicKey": "Dijital Ekonomi",
+      "lessonId": 844,
+      "courseId": 194,
+      "courseTitle": "Yapay Zekâ ve Risk Yönetimi",
+      "sourceCodes": [
+        "OECD — The Digital Transformation of SMEs",
+        "OECD — AI Adoption by Small and Medium-sized Enterprises",
+        "NIST — Artificial Intelligence Risk Management Framework 1.0",
+        "NIST — Risk Management Framework Small Enterprise Quick Start Guide"
+      ]
+    },
+    {
+      "koId": 848,
+      "code": "KBX-AIR-001-I",
+      "title": "AI Kullanım Senaryosu Seçimi",
+      "category": "Dijital Ekonomi",
+      "topicKey": "Dijital Ekonomi",
+      "lessonId": 846,
+      "courseId": 194,
+      "courseTitle": "Yapay Zekâ ve Risk Yönetimi",
+      "sourceCodes": [
+        "OECD — The Digital Transformation of SMEs",
+        "OECD — AI Adoption by Small and Medium-sized Enterprises",
+        "NIST — Artificial Intelligence Risk Management Framework 1.0",
+        "NIST — Risk Management Framework Small Enterprise Quick Start Guide"
+      ]
+    },
+    {
+      "koId": 847,
+      "code": "KBX-AIR-001-O",
+      "title": "AI Kullanım Senaryosu Seçimi",
+      "category": "Dijital Ekonomi",
+      "topicKey": "Dijital Ekonomi",
+      "lessonId": 845,
+      "courseId": 194,
+      "courseTitle": "Yapay Zekâ ve Risk Yönetimi",
+      "sourceCodes": [
+        "OECD — The Digital Transformation of SMEs",
+        "OECD — AI Adoption by Small and Medium-sized Enterprises",
+        "NIST — Artificial Intelligence Risk Management Framework 1.0",
+        "NIST — Risk Management Framework Small Enterprise Quick Start Guide"
+      ]
+    },
+    {
+      "koId": 816,
+      "code": "KBX-CYB-001-B",
+      "title": "Siber Risk Yönetişimi",
+      "category": "Dijital Ekonomi",
+      "topicKey": "Dijital Ekonomi",
+      "lessonId": 814,
+      "courseId": 184,
+      "courseTitle": "Siber Güvenlik ve Veri",
+      "sourceCodes": [
+        "ENISA — Cybersecurity Guide for SMEs: 12 Steps",
+        "NIST — CSF 2.0 Small Business Quick-Start Guide",
+        "ISO/IEC 27001:2022 — Information Security Management Systems",
+        "KVKK — Aydınlatma Yükümlülüğü"
+      ]
+    },
+    {
+      "koId": 818,
+      "code": "KBX-CYB-001-I",
+      "title": "Siber Risk Yönetişimi",
+      "category": "Dijital Ekonomi",
+      "topicKey": "Dijital Ekonomi",
+      "lessonId": 816,
+      "courseId": 184,
+      "courseTitle": "Siber Güvenlik ve Veri",
+      "sourceCodes": [
+        "ENISA — Cybersecurity Guide for SMEs: 12 Steps",
+        "NIST — CSF 2.0 Small Business Quick-Start Guide",
+        "ISO/IEC 27001:2022 — Information Security Management Systems",
+        "KVKK — Aydınlatma Yükümlülüğü"
+      ]
+    },
+    {
+      "koId": 726,
+      "code": "KBX-EXP-001-B",
+      "title": "İhracata Hazırlık Analizi",
+      "category": "Finansman ve Yatırım",
+      "topicKey": "Finansman ve Yatırım",
+      "lessonId": 724,
+      "courseId": 154,
+      "courseTitle": "İhracat ve E-İhracat",
+      "sourceCodes": [
+        "Ticaret Bakanlığı — İhracat Akademisi",
+        "Ticaret Bakanlığı — E-Ticaret Akademisi",
+        "European Commission Access2Markets — Guide for Export of Goods"
+      ]
+    },
+    {
+      "koId": 728,
+      "code": "KBX-EXP-001-I",
+      "title": "İhracata Hazırlık Analizi",
+      "category": "Finansman ve Yatırım",
+      "topicKey": "Finansman ve Yatırım",
+      "lessonId": 726,
+      "courseId": 154,
+      "courseTitle": "İhracat ve E-İhracat",
+      "sourceCodes": [
+        "Ticaret Bakanlığı — İhracat Akademisi",
+        "Ticaret Bakanlığı — E-Ticaret Akademisi",
+        "European Commission Access2Markets — Guide for Export of Goods"
+      ]
+    },
+    {
+      "koId": 727,
+      "code": "KBX-EXP-001-O",
+      "title": "İhracata Hazırlık Analizi",
+      "category": "Finansman ve Yatırım",
+      "topicKey": "Finansman ve Yatırım",
+      "lessonId": 725,
+      "courseId": 154,
+      "courseTitle": "İhracat ve E-İhracat",
+      "sourceCodes": [
+        "Ticaret Bakanlığı — İhracat Akademisi",
+        "Ticaret Bakanlığı — E-Ticaret Akademisi",
+        "European Commission Access2Markets — Guide for Export of Goods"
+      ]
+    },
+    {
+      "koId": 696,
+      "code": "KBX-SAL-001-B",
+      "title": "Satış Hunisi",
+      "category": "Finansman ve Yatırım",
+      "topicKey": "Finansman ve Yatırım",
+      "lessonId": 694,
+      "courseId": 144,
+      "courseTitle": "Satış ve Müşteri Yönetimi",
+      "sourceCodes": [
+        "Ticaret Bakanlığı — E-Ticaret Akademisi",
+        "Ticaret Bakanlığı — Elektronik Ticaret Mevzuatı",
+        "Google Ads — Return on Investment"
+      ]
+    },
+    {
+      "koId": 698,
+      "code": "KBX-SAL-001-I",
+      "title": "Satış Hunisi",
+      "category": "Finansman ve Yatırım",
+      "topicKey": "Finansman ve Yatırım",
+      "lessonId": 696,
+      "courseId": 144,
+      "courseTitle": "Satış ve Müşteri Yönetimi",
+      "sourceCodes": [
+        "Ticaret Bakanlığı — E-Ticaret Akademisi",
+        "Ticaret Bakanlığı — Elektronik Ticaret Mevzuatı",
+        "Google Ads — Return on Investment"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "1.0",
+  "batch": "finance-batch-01",
+  "reviewedAt": "2026-07-21",
+  "items": [
+    {
+      "code": "FIN-CASHFLOW-001",
+      "slug": "nakit-akisi",
+      "title": "Nakit Akışı",
+      "type": "concept",
+      "level": "Başlangıç",
+      "estimatedMinutes": 12,
+      "reviewGate": "standard",
+      "sourceKeys": ["SRC-FIN-002", "SRC-FIN-003"],
+      "content": "## Öğrenme hedefleri\n\nBu bölüm sonunda nakit akışını kârdan ayırabilecek, nakit giriş ve çıkışlarını sınıflandırabilecek ve kısa bir nakit planı oluşturabileceksiniz.\n\n## Nakit akışı nedir?\n\nNakit akışı, belirli bir dönemde işletmeye giren ve işletmeden çıkan paranın hareketidir. Satış tahsilatları, sermaye ve kredi kullanımı nakit girişi; tedarikçi, ücret, vergi, kira ve kredi ödemeleri nakit çıkışıdır. Bir satışın kaydedilmesi ile parasının tahsil edilmesi aynı gün olmayabilir. Bu nedenle kârlı görünen bir işletme ödeme gününde yeterli nakde sahip olmayabilir.\n\n## Nasıl izlenir?\n\n1. Dönem başı kullanılabilir nakdi yazın.\n2. Tahsil edilmesi beklenen tutarları, gerçekçi tahsil tarihleriyle listeleyin.\n3. Zorunlu ve isteğe bağlı ödemeleri vade tarihleriyle listeleyin.\n4. Dönem sonu nakdi `başlangıç nakdi + girişler - çıkışlar` olarak hesaplayın.\n5. Sonuç negatife düşüyorsa tahsilatı hızlandırma, harcamayı erteleme veya finansman seçeneklerini ödeme gününden önce değerlendirin.\n\n## Örnek\n\nAy başında 40.000 TL nakit, ay içinde 90.000 TL tahsilat ve 105.000 TL ödeme varsa dönem sonu tahmini nakit 25.000 TL'dir. Henüz tahsil edilmemiş satışlar bu hesaba tahsil edilmiş gibi eklenmez.\n\n## Uygulama\n\nÖnünüzdeki 13 hafta için haftalık bir tablo kurun. Tahmin ile gerçekleşeni ayrı sütunlarda tutun ve her hafta sapmanın nedenini kaydedin.\n\n> Bu içerik genel eğitim amaçlıdır; muhasebe veya finansman danışmanlığı değildir."
+    },
+    {
+      "code": "FIN-REVENUE-001",
+      "slug": "ciro-nedir",
+      "title": "Ciro Nedir?",
+      "type": "concept",
+      "level": "Başlangıç",
+      "estimatedMinutes": 8,
+      "reviewGate": "standard",
+      "sourceKeys": ["SRC-FIN-001"],
+      "content": "## Öğrenme hedefleri\n\nCiroyu kâr ve tahsilattan ayırabilecek, dönem karşılaştırmalarında doğru soruları sorabileceksiniz.\n\n## Tanım\n\nGünlük iş dilinde ciro, işletmenin belirli bir dönemde mal veya hizmet satışlarından elde ettiği toplam satış tutarını anlatır. Ciro tek başına işletmenin kazancını göstermez. Satılan ürünün maliyeti ve faaliyet giderleri düşülmediği için ciro ile kâr aynı şey değildir. Vadeli bir satış ciroya dâhil olabilir; fakat para henüz kasaya girmediği için tahsilat ve nakit akışı farklı olabilir.\n\n## Birlikte izlenecek göstergeler\n\n- Satış adedi ve ortalama satış fiyatı\n- İade ve indirimler\n- Brüt ve net kâr\n- Tahsil edilen tutar ve açık alacaklar\n- Kanal, ürün ve müşteri bazında satış dağılımı\n\n## Örnek\n\n100 ürün 1.000 TL'den satıldıysa brüt satış tutarı 100.000 TL'dir. 5.000 TL iade ve indirim varsa analizde 95.000 TL net satış dikkate alınır. Ürün maliyeti ve diğer giderler ayrıca düşülmeden kâr bulunamaz.\n\n## Kontrol sorusu\n\nCiro artarken kâr azalıyor mu? Böyleyse indirimler, ürün karması, birim maliyet, komisyon ve reklam giderlerindeki değişimi inceleyin.\n\n> Finansal tablolardaki teknik hasılat ölçümü işletmenin raporlama çerçevesine göre değerlendirilmelidir."
+    },
+    {
+      "code": "FIN-GROSS-PROFIT-001",
+      "slug": "brut-kar",
+      "title": "Brüt Kâr",
+      "type": "procedure",
+      "level": "Başlangıç",
+      "estimatedMinutes": 10,
+      "reviewGate": "standard",
+      "sourceKeys": ["SRC-FIN-001", "SRC-FIN-004"],
+      "content": "## Öğrenme hedefleri\n\nBrüt kârı hesaplayabilecek ve ürün fiyatı ile doğrudan maliyet ilişkisinde kullanabileceksiniz.\n\n## Tanım ve formül\n\nBrüt kâr, net satışlardan satılan mal veya hizmetin maliyetinin çıkarılmasıyla bulunan tutardır. Basit formül: `Brüt kâr = Net satışlar - Satışların maliyeti`. Brüt kâr oranı ise `Brüt kâr / Net satışlar × 100` şeklinde hesaplanır.\n\n## Örnek\n\nNet satışlar 200.000 TL, satılan ürünlerin maliyeti 130.000 TL ise brüt kâr 70.000 TL ve brüt kâr oranı yüzde 35'tir. Bu tutardan kira, yönetim, pazarlama ve finansman gibi diğer giderler henüz düşülmemiştir.\n\n## Doğru kullanım\n\nAynı tanımı her dönemde tutarlı kullanın. İade ve indirimleri net satışta; ürünle doğrudan ilişkili maliyetleri satışların maliyetinde izleyin. Kanal komisyonu veya kargonun hangi gruba yazıldığı işletmenin raporlama yaklaşımına göre değişebileceğinden, karşılaştırma yaparken sınıflandırmayı not edin.\n\n## Uyarı işaretleri\n\nSatış artarken brüt kâr oranı düşüyorsa fiyat indirimi, maliyet artışı, düşük marjlı ürün karması veya kayıp/iadeler etkili olabilir. Her ürünü ve kanalı ayrı inceleyin.\n\n> Vergi ve resmî finansal raporlama sınıflandırmaları için mali müşavir görüşü alın."
+    },
+    {
+      "code": "FIN-NET-PROFIT-001",
+      "slug": "net-kar",
+      "title": "Net Kâr",
+      "type": "concept",
+      "level": "Başlangıç",
+      "estimatedMinutes": 10,
+      "reviewGate": "standard",
+      "sourceKeys": ["SRC-FIN-001", "SRC-FIN-003"],
+      "content": "## Öğrenme hedefleri\n\nNet kârı brüt kârdan ayırabilecek ve sonucu oluşturan giderleri analiz edebileceksiniz.\n\n## Tanım\n\nNet kâr, bir dönemin gelirlerinden ilgili maliyet ve giderler çıkarıldıktan sonra kalan sonuçtur. Yönetim amaçlı basit bir köprü şöyledir: net satışlar eksi satışların maliyeti brüt kârı; brüt kâr eksi faaliyet, finansman ve vergi etkileri net sonucu verir. Teknik sunum, kullanılan muhasebe standardına göre farklılaşabilir.\n\n## Örnek\n\n200.000 TL net satıştan 130.000 TL satış maliyeti çıkarıldığında 70.000 TL brüt kâr kalır. 45.000 TL faaliyet ve diğer gider ile 5.000 TL vergi etkisi varsa örnekte net kâr 20.000 TL'dir; net kâr oranı yüzde 10'dur.\n\n## Analiz adımları\n\n1. Sonucu önceki dönem ve bütçe ile karşılaştırın.\n2. Farkı fiyat, satış adedi, ürün karması ve maliyet değişimine ayırın.\n3. Tek seferlik gelir veya giderleri işaretleyin.\n4. Net kâr ile faaliyetlerden gelen nakdi birlikte kontrol edin.\n\n## Yaygın hata\n\nİşletme sahibinin kasadaki parayı net kâr sayması yanlıştır. Kredi girişi nakdi artırır ama satış geliri değildir; vadeli satış ise kârı etkileyebilir fakat henüz nakit yaratmamış olabilir.\n\n> Bu örnek yönetim eğitimi içindir; yasal kayıt ve vergi hesabı değildir."
+    },
+    {
+      "code": "FIN-PROFITABILITY-001",
+      "slug": "karlilik-orani",
+      "title": "Kârlılık Oranı",
+      "type": "procedure",
+      "level": "Başlangıç",
+      "estimatedMinutes": 10,
+      "reviewGate": "standard",
+      "sourceKeys": ["SRC-FIN-001", "SRC-FIN-003"],
+      "content": "## Öğrenme hedefleri\n\nBrüt ve net kârlılık oranlarını hesaplayıp doğru karşılaştırma tabanını seçebileceksiniz.\n\n## Temel oranlar\n\n`Brüt kâr oranı = Brüt kâr / Net satışlar × 100`\n\n`Net kâr oranı = Net kâr / Net satışlar × 100`\n\nOran, her 100 TL'lik net satışın ne kadarının ilgili kâr seviyesinde kaldığını gösterir. Brüt oran ürün ekonomisini, net oran ise işletmenin tüm gelir ve giderlerinin birleşik sonucunu okumaya yardım eder.\n\n## Örnek\n\nNet satış 500.000 TL, brüt kâr 175.000 TL ve net kâr 40.000 TL ise brüt kârlılık yüzde 35, net kârlılık yüzde 8'dir.\n\n## Sağlıklı karşılaştırma\n\nAynı işletmenin dönemlerini aynı muhasebe sınıflandırmasıyla karşılaştırın. Ürün, kanal ve müşteri bazında oranları ayırın. Sektör karşılaştırmalarında iş modeli, ölçek, vergi ve maliyet yapısının farklı olabileceğini belirtin. Tek seferlik kalemleri ayrıca gösterin.\n\n## Karar kullanımı\n\nOran düşüyorsa fiyat, indirim, ürün karması, satın alma maliyeti, komisyon, iade ve faaliyet giderlerini ayrı ayrı test edin. Yalnızca ciro büyümesine bakmak sorunun kaynağını gizleyebilir.\n\n> Bir oran tek başına işletmenin finansal sağlığını kanıtlamaz; nakit, borç ve büyüme göstergeleriyle birlikte değerlendirilir."
+    },
+    {
+      "code": "FIN-CASH-GROWTH-001",
+      "slug": "nakit-buyume-orani",
+      "title": "Nakit Büyüme Oranı",
+      "type": "procedure",
+      "level": "Orta",
+      "estimatedMinutes": 10,
+      "reviewGate": "standard",
+      "sourceKeys": ["SRC-FIN-002", "SRC-FIN-003"],
+      "content": "## Öğrenme hedefleri\n\nDönemler arası nakit değişimini hesaplayabilecek ve değişimin kaynağını yorumlayabileceksiniz.\n\n## Hesaplama\n\nYönetim amaçlı basit büyüme oranı `((Dönem sonu nakdi - Önceki dönem sonu nakdi) / Önceki dönem sonu nakdi) × 100` formülüyle hesaplanabilir. Önceki değer sıfır veya negatifse yüzde değişim yanıltıcıdır; tutarsal farkı ve nedenleri açıklayın.\n\n## Örnek\n\nNakit 80.000 TL'den 100.000 TL'ye çıktıysa artış 20.000 TL, büyüme oranı yüzde 25'tir. Ancak bu artış satış tahsilatından değil yeni krediden geldiyse operasyonel güçlenme olarak yorumlanmamalıdır.\n\n## Yorumlama\n\nNakit değişimini faaliyet, yatırım ve finansman hareketlerine ayırın. Satış tahsilatı ile kredi girişini; stok alımı ile ekipman yatırımını farklı nedenler olarak gösterin. Mevsimsellik nedeniyle aylık sonuçları aynı ayın geçmiş yılıyla da karşılaştırın.\n\n## Uygulama\n\nNakit büyüme oranının yanına şu üç bilgiyi ekleyin: faaliyetlerden net nakit, yeni borçlanma ve büyük yatırım ödemeleri. Böylece tek yüzde yerine açıklanabilir bir nakit köprüsü elde edilir.\n\n> Nakit artışı her zaman kârlılık artışı, nakit düşüşü de her zaman zarar anlamına gelmez."
+    },
+    {
+      "code": "FIN-COLLECTION-DAYS-001",
+      "slug": "tahsilat-suresi",
+      "title": "Tahsilat Süresi",
+      "type": "procedure",
+      "level": "Orta",
+      "estimatedMinutes": 12,
+      "reviewGate": "standard",
+      "sourceKeys": ["SRC-FIN-002", "SRC-FIN-003"],
+      "content": "## Öğrenme hedefleri\n\nAlacakların ortalama tahsil süresini hesaplayıp müşteri ve vade politikasıyla ilişkilendirebileceksiniz.\n\n## Tanım ve yaklaşık formül\n\nTahsilat süresi, vadeli satışlardan doğan ticari alacakların ortalama kaç günde nakde döndüğünü gösterir. Yaklaşık hesap `Ortalama ticari alacak / Dönemin vadeli net satışları × Dönem gün sayısı` biçimindedir. Peşin satışlar paydaya eklenirse sonuç olduğundan iyi görünebilir.\n\n## Örnek\n\nOrtalama ticari alacak 150.000 TL, 90 günlük dönemde vadeli net satış 450.000 TL ise tahsilat süresi yaklaşık 30 gündür. Sözleşme vadesi 20 günse gecikme nedenleri ayrıca incelenmelidir.\n\n## İyileştirme adımları\n\n- Fatura doğruluğunu ve müşteriye ulaşma tarihini kontrol edin.\n- Vade yaklaşmadan hatırlatma yapın.\n- Geciken alacakları tutar ve gün aralığına göre yaşlandırın.\n- Müşteri bazında kredi limiti ve ödeme davranışı izleyin.\n- İndirimli erken ödeme teklifinin maliyetini finansman maliyetiyle karşılaştırın.\n\n## Uyarı\n\nOrtalama değer büyük, eski bir alacağı gizleyebilir. Bu nedenle süreyi alacak yaşlandırma tablosu ve en büyük müşteri yoğunlaşmasıyla birlikte okuyun.\n\n> Tahsilat uygulamalarında sözleşme ve mevzuata uygun hareket edilmelidir."
+    },
+    {
+      "code": "FIN-PAYMENT-DAYS-001",
+      "slug": "odeme-suresi",
+      "title": "Ödeme Süresi",
+      "type": "procedure",
+      "level": "Orta",
+      "estimatedMinutes": 12,
+      "reviewGate": "standard",
+      "sourceKeys": ["SRC-FIN-002", "SRC-FIN-003"],
+      "content": "## Öğrenme hedefleri\n\nTedarikçi ödeme süresini hesaplayıp nakit planı ve tedarikçi ilişkisi açısından değerlendirebileceksiniz.\n\n## Tanım ve yaklaşık formül\n\nÖdeme süresi, ticari borçların ortalama kaç günde ödendiğini gösterir. Yaklaşık hesap `Ortalama ticari borç / Dönemin kredili alışları × Dönem gün sayısı` biçimindedir. Kredili alış verisi yoksa satışların maliyetiyle yapılan hesap yalnızca yaklaşık sonuç verir ve bu varsayım açıkça belirtilmelidir.\n\n## Örnek\n\nOrtalama ticari borç 120.000 TL, 90 günlük dönemde kredili alış 360.000 TL ise ortalama ödeme süresi yaklaşık 30 gündür. Bu sonuç sözleşmedeki vadelerle karşılaştırılır.\n\n## Yönetim ilkeleri\n\nÖdemeleri mümkün olduğunca nakit giriş takvimine uyarlayın; ancak vadeyi izinsiz aşmayı finansman yöntemi saymayın. Erken ödeme indiriminin getirisi, nakdi elde tutmanın faydasıyla karşılaştırılmalıdır. Kritik tedarikçileri yalnızca tutara göre değil, ikame edilebilirlik ve teslimat riskiyle de sınıflandırın.\n\n## Birlikte izleyin\n\nTahsilat süresi ödeme süresinden uzunsa aradaki günler işletme sermayesi ihtiyacı yaratabilir. Stokta bekleme süresi de eklendiğinde nakit dönüşümünün tamamı görülür.\n\n> Vade değişikliği tedarikçiyle mutabakat ve sözleşmeye uygunluk gerektirir."
+    },
+    {
+      "code": "FIN-BUDGET-001",
+      "slug": "isletme-butcesi",
+      "title": "İşletme Bütçesi",
+      "type": "procedure",
+      "level": "Başlangıç",
+      "estimatedMinutes": 15,
+      "reviewGate": "standard",
+      "sourceKeys": ["SRC-FIN-002", "SRC-FIN-003"],
+      "content": "## Öğrenme hedefleri\n\nBasit gelir, gider ve nakit bütçesi kurabilecek; gerçekleşen sonuçlarla sapma analizi yapabileceksiniz.\n\n## Bütçe nedir?\n\nBütçe, işletmenin belirli bir döneme ilişkin gelir, maliyet, gider ve nakit beklentilerini sayısallaştıran yönetim planıdır. Tahmin bir kehanet değil, açık varsayımlara dayalı karar aracıdır. Kâr bütçesi ile nakit bütçesi ayrı tutulmalıdır; satışın kaydedildiği ve tahsil edildiği tarihler farklı olabilir.\n\n## Kurulum\n\n1. Satış adedi, fiyat, iade ve tahsilat varsayımlarını yazın.\n2. Değişken maliyetleri satış hacmiyle ilişkilendirin.\n3. Sabit giderleri ve ödeme tarihlerini ekleyin.\n4. Vergi, kredi, yatırım ve tek seferlik hareketleri ayrı satırlarda gösterin.\n5. Temel, iyimser ve olumsuz olmak üzere en az üç senaryo oluşturun.\n6. Her ay bütçe-gerçekleşen farkını tutar, yüzde ve neden olarak kaydedin.\n\n## Örnek karar\n\nSatış bütçenin yüzde 10 altında kaldığında hangi giderlerin otomatik azalacağını ve hangilerinin sabit kalacağını önceden tanımlayın. Böylece nakit açığı ortaya çıktıktan sonra değil, senaryoda görülür.\n\n## Kalite kontrolü\n\nVarsayımların sahibi ve güncelleme tarihi belli olmalı; toplamlar alt planlarla tutarlı olmalı; nakit dönem sonu bakiyesi bir sonraki dönemin başlangıcına taşınmalıdır.\n\n> Bütçeyi en az aylık, hızlı değişen işletmelerde haftalık nakit görünümüyle güncelleyin."
+    },
+    {
+      "code": "FIN-EMERGENCY-RESERVE-001",
+      "slug": "acil-durum-rezervi",
+      "title": "Acil Durum Rezervi",
+      "type": "principle",
+      "level": "Başlangıç",
+      "estimatedMinutes": 10,
+      "reviewGate": "standard",
+      "sourceKeys": ["SRC-FIN-003"],
+      "content": "## Öğrenme hedefleri\n\nİşletmenize uygun rezerv hedefini risk ve zorunlu ödemeler üzerinden belirleyebileceksiniz.\n\n## Tanım\n\nAcil durum rezervi, beklenmeyen gelir kesintisi veya zorunlu gider karşısında işletmenin temel yükümlülüklerini sürdürebilmesi için ayrılan kolay erişilebilir kaynaktır. Tek bir evrensel ay sayısı yoktur; hedef, işletmenin nakit akışı oynaklığına, sabit giderlerine, müşteri yoğunlaşmasına, borç vadelerine ve alternatif finansmana erişimine göre belirlenir.\n\n## Hedef belirleme\n\n1. Ücret, kira, kritik tedarik, vergi ve borç ödemeleri gibi ertelenmesi zor aylık nakit çıkışlarını hesaplayın.\n2. Gelir kaybı, büyük müşteri gecikmesi ve ekipman arızası gibi senaryoları test edin.\n3. Her senaryoda ihtiyaç duyulan süre ve tutarı bulun.\n4. Rezerv hedefi ile mevcut kolay erişilebilir kaynağın farkını aylık katkı planına çevirin.\n\n## Kullanım kuralı\n\nRezervin hangi olaylarda kullanılabileceğini, harcama yetkisini ve yeniden tamamlama planını yazılı tutun. Günlük açıkları sürekli rezervden kapatmak, iş modelindeki yapısal sorunu gizleyebilir.\n\n## Uyarı\n\nRezervi stok veya uzun vadeli varlık gibi hızla nakde çevrilemeyen kalemlerle eşitlemeyin. İşletme ve kişisel rezervleri ayrı izleyin.\n\n> Rezerv hedefi düzenli gözden geçirilmeli; yüksek enflasyon ve gider artışı hedef tutarı hızla eskitebilir."
+    }
+  ]
+}

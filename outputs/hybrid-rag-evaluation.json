@@ -1,0 +1,51 @@
+{
+  "generatedAt": "2026-07-23T20:04:40.985Z",
+  "corpus": "published_non_demo",
+  "caseCount": 50,
+  "queryLanguage": "tr",
+  "topK": 3,
+  "lexicalHitAt3": 0.9,
+  "hybridHitAt3": 0.9,
+  "hybridDelta": 0,
+  "exactCodeCases": 50,
+  "exactCodeHitAt1": 1,
+  "gates": {
+    "noMaterialRegression": true,
+    "minimumHybridHitAt3": true,
+    "exactCodePriority": true
+  },
+  "failedCaseIds": [
+    {
+      "id": "tr-007",
+      "lexicalHit": false,
+      "hybridHit": false
+    },
+    {
+      "id": "tr-009",
+      "lexicalHit": false,
+      "hybridHit": false
+    },
+    {
+      "id": "tr-010",
+      "lexicalHit": true,
+      "hybridHit": false
+    },
+    {
+      "id": "tr-013",
+      "lexicalHit": false,
+      "hybridHit": false
+    },
+    {
+      "id": "tr-030",
+      "lexicalHit": false,
+      "hybridHit": false
+    },
+    {
+      "id": "tr-046",
+      "lexicalHit": false,
+      "hybridHit": true
+    }
+  ],
+  "queryTextStoredInReport": false,
+  "pass": true
+}

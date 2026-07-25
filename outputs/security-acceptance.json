@@ -1,0 +1,24 @@
+{
+  "generatedAt": "2026-07-23T21:45:17.390Z",
+  "automatedPass": true,
+  "productionReady": true,
+  "automatedGates": {
+    "highConfidenceSecretsOutsideEnv": true,
+    "envIgnored": true,
+    "databasesIgnored": true,
+    "backupsIgnored": true,
+    "archiveFound": true,
+    "archiveEnvExcluded": true,
+    "archiveNodeModulesExcluded": true,
+    "jwtSecretConfigured": true
+  },
+  "findings": [],
+  "archive": {
+    "found": true,
+    "name": "LocalAkademi_ollama_2026-07-24.zip",
+    "envExcluded": true,
+    "nodeModulesExcluded": true
+  },
+  "externalActions": [],
+  "secretsPrinted": false
+}

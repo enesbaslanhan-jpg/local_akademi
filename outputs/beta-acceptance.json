@@ -1,0 +1,48 @@
+{
+  "generatedAt": "2026-07-23T21:55:15.211Z",
+  "betaReady": true,
+  "productionReady": false,
+  "gates": {
+    "automatedSecurity": true,
+    "ragQuality": true,
+    "quizPilotDraftOnly": true,
+    "officialPilotDrafts": true,
+    "communityModeration": true,
+    "automaticBackup": true,
+    "reviewerRemainsControlled": true
+  },
+  "counts": {
+    "officialDrafts": 5,
+    "openCommunityReports": 0,
+    "humanAuditTotal": 0,
+    "criticalMisses": 0,
+    "automaticBackups": 1
+  },
+  "reviewer": {
+    "readyForHumanAudit": false,
+    "readyForDisclaimerOnly": false,
+    "progress": {
+      "sampled": 2,
+      "target": 200,
+      "percent": 1
+    },
+    "gates": {
+      "sampleSize": false,
+      "availability": false,
+      "latency": true,
+      "humanAudit": false,
+      "criticalMissAudit": false
+    },
+    "observed": {
+      "availability": 0.5,
+      "p95LatencyMs": 30022
+    },
+    "pendingActions": [
+      "198 ek shadow sonucu topla",
+      "Reviewer kullanılabilirliğini en az 98% seviyesine getir",
+      "20 ek içeriksiz insan denetimi kaydet ve açık onayı ver",
+      "Kritik güvenlik kaçırması olmadığını insan denetimiyle doğrula"
+    ]
+  },
+  "externalActions": []
+}

@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "1.0",
+  "domains": [
+    { "code": "OPS", "name": "Operasyon ve Kalite", "sources": ["SRC-OPS-001", "SRC-OPS-002"], "topics": [
+      ["Süreç Haritalama", "Bir işin başlangıç, adım, karar, sorumlu ve çıktılarının görünür hale getirilmesi"],
+      ["Standart İş Tanımı", "Tekrarlanan işlerin güvenli ve tutarlı uygulanması için en iyi bilinen yöntemin kaydı"],
+      ["Darboğaz Analizi", "Toplam akışı sınırlayan kapasite veya bekleme noktasının belirlenmesi"],
+      ["Kapasite Planlama", "Talep ile insan, ekipman ve zaman kapasitesinin dengelenmesi"],
+      ["Kalite Kontrol Planı", "Kritik özellik, ölçüm yöntemi, sıklık, sorumlu ve tepki planının tanımlanması"],
+      ["Kök Neden Analizi", "Belirtiyi geçici olarak gidermek yerine sorunu oluşturan sistem nedenlerinin araştırılması"],
+      ["Düzeltici Faaliyet", "Tespit edilen uygunsuzluğun tekrarını önlemek için neden odaklı eylem yönetimi"],
+      ["Sürekli İyileştirme", "Küçük ve ölçülebilir değişikliklerle süreç performansının düzenli geliştirilmesi"],
+      ["Operasyon KPI Tasarımı", "Hız, kalite, maliyet, teslimat ve güvenlik göstergelerinin dengeli seçimi"],
+      ["Görsel Yönetim", "İşin durumu, standart ve sapmaların çalışma alanında kolay anlaşılır gösterimi"]
+    ]},
+    { "code": "HR", "name": "İnsan ve İş Sağlığı", "sources": ["SRC-OPS-001", "SRC-HR-001", "SRC-HR-002", "SRC-LAW-006"], "topics": [
+      ["Rol ve Sorumluluk Tasarımı", "Her rolün amacı, yetkisi, temel çıktısı ve iş birliği sınırlarının açıklanması"],
+      ["Yetkinlik Matrisi", "İşlerin gerektirdiği beceriler ile çalışanların mevcut seviyelerinin karşılaştırılması"],
+      ["İşe Uyum Programı", "Yeni çalışanın güvenli, üretken ve kültüre uyumlu başlangıç sürecinin tasarlanması"],
+      ["Performans Görüşmesi", "Beklenti, kanıt, geri bildirim ve gelişim aksiyonunun yapılandırılmış görüşülmesi"],
+      ["Etkili Geri Bildirim", "Davranış ve etkisine odaklanan, zamanında ve uygulanabilir iletişim kurulması"],
+      ["Çalışan Öneri Sistemi", "İşi yapan kişilerin iyileştirme fikirlerini toplama, değerlendirme ve sonuçlandırma düzeni"],
+      ["İSG Tehlike Belirleme", "İşyerinde yaralanma veya sağlık zararı yaratabilecek kaynakların sistematik tespiti"],
+      ["İSG Risk Değerlendirmesi", "Tehlikelerin olasılık, şiddet ve maruziyet yönünden önceliklendirilmesi"],
+      ["Ramak Kala Yönetimi", "Zarar oluşmadan atlatılan olayların öğrenme ve önleme amacıyla incelenmesi"],
+      ["Güvenlik Kültürü", "Güvenli davranışın liderlik, katılım, öğrenme ve tutarlı uygulamayla desteklenmesi"]
+    ]},
+    { "code": "SAL", "name": "Satış ve Müşteri Yönetimi", "sources": ["SRC-ECOM-001", "SRC-LAW-003", "SRC-MKT-001"], "topics": [
+      ["Satış Hunisi", "Potansiyel müşteriden tamamlanan satışa kadar aşamaların ve dönüşümlerin izlenmesi"],
+      ["Müşteri Adayı Nitelendirme", "İhtiyaç, uygunluk, yetki, zaman ve değer potansiyelinin değerlendirilmesi"],
+      ["İhtiyaç Analizi Görüşmesi", "Çözüm sunmadan önce müşterinin bağlam, sorun, etki ve beklentisinin anlaşılması"],
+      ["Değer Önerisi Sunumu", "Ürün özelliğini müşterinin ölçülebilir ihtiyacı ve sonucu ile ilişkilendirme"],
+      ["Teklif Hazırlama", "Kapsam, fiyat, varsayım, teslimat, sorumluluk ve geçerlilik koşullarının açıklanması"],
+      ["Satış Tahmini", "Fırsatların aşama, olasılık, tutar ve beklenen kapanış tarihine göre öngörülmesi"],
+      ["CRM Veri Kalitesi", "Müşteri ve fırsat kayıtlarının tam, güncel, tekil ve karar vermeye uygun tutulması"],
+      ["Müşteri Şikâyeti Yönetimi", "Şikâyetin kayıt, çözüm, iletişim, kök neden ve öğrenme döngüsüyle ele alınması"],
+      ["Müşteri Memnuniyeti Ölçümü", "Deneyimin uygun yöntemle ölçülmesi ve sonuçların aksiyona çevrilmesi"],
+      ["Müşteri Kaybı Analizi", "Ayrılan müşterilerin zaman, segment, neden ve ekonomik etki açısından incelenmesi"]
+    ]},
+    { "code": "EXP", "name": "İhracat ve E-İhracat", "sources": ["SRC-EXP-001", "SRC-ECOM-001", "SRC-EXP-003"], "topics": [
+      ["İhracata Hazırlık Analizi", "Ürün, kapasite, finans, ekip ve uyum açısından dış pazara hazırlığın değerlendirilmesi"],
+      ["İhracat Hedef Pazarı", "Talep, rekabet, erişim, risk ve uyum ölçütleriyle ülke veya bölge önceliklendirme"],
+      ["GTİP Sınıflandırmasına Giriş", "Ürünün gümrük işlemlerinde kullanılan sınıflandırmasının doğru belirlenme süreci"],
+      ["Menşe Kurallarına Giriş", "Ürünün ekonomik milliyetini ve tercihli ticaret koşullarını etkileyen kuralların anlaşılması"],
+      ["İhracat Belge Kontrolü", "Ticari, taşıma, gümrük ve ürün uygunluk belgelerinin işlem bazında yönetimi"],
+      ["Uluslararası Teslim Şekilleri", "Satıcı ve alıcının masraf, risk ve görev paylaşımının sözleşmede açıklanması"],
+      ["İhracatta Ödeme Riskleri", "Ödeme yöntemi, karşı taraf, ülke ve kur risklerinin birlikte değerlendirilmesi"],
+      ["Sınır Ötesi Lojistik", "Taşıma, paketleme, gümrük, teslimat görünürlüğü ve iade sürecinin tasarlanması"],
+      ["E-İhracatta Lokalizasyon", "Dil, para birimi, içerik, ödeme, teslimat ve kültürel beklentilerin pazara uyarlanması"],
+      ["İhracat Sonrası Performans", "Pazar, müşteri, ürün, marj, tahsilat ve teslimat sonuçlarının düzenli izlenmesi"]
+    ]},
+    { "code": "SUS", "name": "Sürdürülebilirlik ve Kaynak Verimliliği", "sources": ["SRC-SUS-001", "SRC-OPS-001"], "topics": [
+      ["Sürdürülebilirlik Önceliklendirmesi", "İşletme ve paydaşlar açısından en önemli çevresel, sosyal ve yönetişim konularının seçimi"],
+      ["Enerji Tüketimi Takibi", "Enerji kullanımının kaynak, süreç, dönem ve üretim miktarıyla ilişkilendirilmesi"],
+      ["Su Tüketimi Takibi", "Su kullanımının ölçülmesi, kaçak ve verimsizliklerin belirlenmesi"],
+      ["Atık Envanteri", "Atık türü, miktarı, kaynağı, tehlike durumu ve yönetim yolunun kaydı"],
+      ["Kaynak Verimliliği", "Aynı veya daha yüksek çıktının daha az malzeme, enerji ve kayıpla elde edilmesi"],
+      ["Karbon Ayak İzine Giriş", "Faaliyetlerden doğan sera gazı kaynaklarının sınır ve veri kalitesiyle birlikte tanınması"],
+      ["Sürdürülebilir Tedarik", "Tedarikçi seçiminde fiyat ve kalite yanında çevresel ve sosyal risklerin değerlendirilmesi"],
+      ["Yeşil İddialarda Kanıt", "Çevresel pazarlama ifadelerinin açık, ölçülebilir ve doğrulanabilir kanıta dayanması"],
+      ["KOBİ Sürdürülebilirlik Göstergeleri", "İşletme ölçeğine uygun az sayıda karar odaklı göstergenin belirlenmesi"],
+      ["Sürdürülebilirlik İyileştirme Planı", "Başlangıç, hedef, sorumlu, kaynak, tarih ve sonuç göstergesi içeren eylem planı"]
+    ]},
+    { "code": "SCM", "name": "Tedarik Zinciri", "sources": ["SRC-OPS-001", "SRC-CYB-004"], "topics": [
+      ["Tedarikçi Seçim Kriterleri", "Fiyat, kalite, teslimat, kapasite, uyum ve risk ölçütleriyle tedarikçi değerlendirme"],
+      ["Tedarikçi Performans Kartı", "Tedarikçi sonuçlarının az sayıda tutarlı göstergeyle dönemsel izlenmesi"],
+      ["Satın Alma Talep Süreci", "İhtiyaç, onay, şartname, teklif ve sipariş adımlarının kontrollü yönetimi"],
+      ["Tek Kaynak Riski", "Kritik bir ürün veya hizmette tek tedarikçiye bağımlılığın belirlenmesi ve azaltılması"],
+      ["Emniyet Stoku", "Talep ve tedarik belirsizliğine karşı hizmet seviyesini koruyacak stok tamponunun yönetimi"],
+      ["Yeniden Sipariş Noktası", "Tüketim hızı, tedarik süresi ve emniyet stokuna göre sipariş zamanının belirlenmesi"],
+      ["Tedarik Süresi Analizi", "Siparişten kullanılabilir teslimata kadar geçen sürenin bileşenlerine ayrılması"],
+      ["Talep Tahmini Temelleri", "Geçmiş veri, bilinen olay ve belirsizlikle gelecekteki ihtiyacın öngörülmesi"],
+      ["Tedarik Zinciri Görünürlüğü", "Sipariş, stok, sevkiyat, risk ve sorumluluk bilgisinin uçtan uca izlenmesi"],
+      ["Tedarik Kesintisi Senaryosu", "Kritik tedarik durduğunda alternatif, stok, iletişim ve karar adımlarının önceden planlanması"]
+    ]},
+    { "code": "CYB", "name": "Siber Güvenlik ve Veri", "sources": ["SRC-CYB-001", "SRC-CYB-004", "SRC-CYB-003", "SRC-LAW-004"], "topics": [
+      ["Siber Risk Yönetişimi", "Siber risk sahipliği, karar yetkisi, öncelik ve kaynak tahsisinin işletme yönetimine bağlanması"],
+      ["Dijital Varlık Envanteri", "Cihaz, yazılım, hesap, veri ve dış hizmetlerin sahiplik ve kritiklik bilgisiyle kaydı"],
+      ["Çok Faktörlü Kimlik Doğrulama", "Parola dışında ek kanıt kullanarak hesap ele geçirme riskinin azaltılması"],
+      ["En Az Yetki İlkesi", "Kullanıcılara yalnızca iş için gereken erişimin gereken süre boyunca verilmesi"],
+      ["Yama ve Güncelleme Yönetimi", "Güvenlik güncellemelerinin envanter, öncelik, test ve kanıtla uygulanması"],
+      ["Güvenli Yedekleme", "Kritik verinin ayrı, korunmuş ve geri yüklemesi test edilmiş kopyalarının tutulması"],
+      ["Oltalama Farkındalığı", "Şüpheli mesaj, bağlantı, ek ve ödeme taleplerinin tanınması ve bildirilmesi"],
+      ["Siber Olay Müdahale Planı", "Olay sırasında rol, iletişim, sınırlama, kanıt, kurtarma ve öğrenme adımlarının tanımı"],
+      ["Tedarikçi Siber Riski", "Dış hizmet ve yazılım sağlayıcılarının erişim, veri, süreklilik ve güvenlik risklerinin değerlendirilmesi"],
+      ["Veri Sınıflandırma", "Verinin hassasiyet, iş değeri ve yükümlülüğe göre korunma seviyelerine ayrılması"]
+    ]},
+    { "code": "AIR", "name": "Yapay Zekâ ve Risk Yönetimi", "sources": ["SRC-AI-001", "SRC-AI-002", "SRC-AI-003", "SRC-RSK-001"], "topics": [
+      ["AI Kullanım Senaryosu Seçimi", "İş problemi, kullanıcı, veri, fayda ve risk üzerinden uygun yapay zekâ fırsatının seçilmesi"],
+      ["AI Hazırlık Değerlendirmesi", "Veri, süreç, insan, teknoloji ve yönetişim kapasitesinin kullanım öncesi incelenmesi"],
+      ["AI Risk Kaydı", "Yapay zekâ kullanımındaki hata, önyargı, gizlilik, güvenlik ve iş etkilerinin izlenmesi"],
+      ["İnsan Gözetimi Tasarımı", "Yapay zekâ çıktısının hangi durumda kim tarafından kontrol veya geçersiz kılınacağının belirlenmesi"],
+      ["AI Çıktısı Doğrulama", "Üretilen sonucun doğruluk, kaynak, kapsam ve kullanım amacına uygunluk açısından kontrolü"],
+      ["AI Veri Kalitesi", "Model veya uygulamada kullanılan verinin doğruluk, temsil, güncellik ve izin yönünden değerlendirilmesi"],
+      ["AI Tedarikçi Değerlendirmesi", "Dış AI hizmetinin veri kullanımı, güvenlik, performans, süreklilik ve sözleşme açısından incelenmesi"],
+      ["AI Pilot Tasarımı", "Sınırlı kapsam, başarı ölçütü, kontrol grubu, risk sınırı ve durdurma kuralıyla deneme yapılması"],
+      ["AI Fayda Ölçümü", "Zaman, maliyet, kalite, gelir ve risk değişiminin başlangıç değerine göre ölçülmesi"],
+      ["Sorumlu AI Kullanım Politikası", "İzin verilen kullanım, yasaklar, veri kuralları, insan sorumluluğu ve olay bildiriminin açıklanması"]
+    ]}
+  ]
+}

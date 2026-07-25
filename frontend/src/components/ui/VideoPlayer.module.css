@@ -1,0 +1,58 @@
+.container {
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text, #111827);
+  flex: 1;
+}
+
+.playerWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.transcript {
+  margin-top: 12px;
+}
+
+.transcriptToggle {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--primary, #2563eb);
+  cursor: pointer;
+}
+
+.transcriptText {
+  margin-top: 8px;
+  padding: 12px;
+  background: var(--bg-subtle, #f9fafb);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow-y: auto;
+  color: var(--text, #374151);
+}

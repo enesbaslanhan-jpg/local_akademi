@@ -1,0 +1,146 @@
+.container {
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text, #111827);
+  flex: 1;
+}
+
+.cardArea {
+  perspective: 800px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  min-height: 140px;
+}
+
+.cardInner {
+  position: relative;
+  width: 100%;
+  min-height: 140px;
+  transition: transform 0.4s;
+  transform-style: preserve-3d;
+}
+
+.cardFlipped {
+  transform: rotateX(180deg);
+}
+
+.cardFace {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: #f8faff;
+  border: 1px solid #d0e3f7;
+  border-radius: 10px;
+  min-height: 140px;
+}
+
+.cardBack {
+  transform: rotateX(180deg);
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.faceLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-light, #6b7280);
+  margin-bottom: 8px;
+}
+
+.cardText {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text, #111827);
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-light, #6b7280);
+  margin-top: 10px;
+  font-style: italic;
+}
+
+.tapHint {
+  font-size: 0.7rem;
+  color: var(--text-light, #9ca3af);
+  margin-top: 12px;
+}
+
+.ratingRow {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.ratingBtn {
+  flex: 1;
+  padding: 8px 4px;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.ratingBtn:hover { opacity: 0.85; }
+
+.sessionDone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.doneIcon { color: #22c55e; }
+
+.doneText {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text, #111827);
+  margin: 0;
+}
+
+.sessionStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--text-light, #6b7280);
+  justify-content: center;
+}
+
+.emptyText {
+  font-size: 0.85rem;
+  color: var(--text-light, #9ca3af);
+  text-align: center;
+  padding: 20px 0;
+  margin: 0;
+}

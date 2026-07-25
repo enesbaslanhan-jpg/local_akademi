@@ -1,0 +1,104 @@
+{
+  "version": 2,
+  "preparedAt": "2026-07-21T00:00:00.000Z",
+  "knowledgeObjects": [
+    {
+      "code": "DIG-MATURITY-001",
+      "title": "Dijital Olgunluk Değerlendirmesi",
+      "type": "concept",
+      "reviewGate": "standard",
+      "sourceKeys": ["SRC-DIG-001", "SRC-DIG-002"],
+      "content": "Dijital olgunluk değerlendirmesi, işletmenin dijitalleşme düzeyini kanıta dayalı biçimde görmesini ve sonraki yatırımlarını önceliklendirmesini sağlayan bir başlangıç çalışmasıdır. Avrupa Komisyonu EDIH Dijital Olgunluk Değerlendirme Aracı; dijital iş stratejisi, dijital hazırlık, insan odaklı dijitalleşme, veri yönetimi, otomasyon ve yapay zekâ ile yeşil dijitalleşme boyutlarını ele alır.\n\nUygulama:\n1. Her boyutta mevcut araç, süreç, sorumlu kişi ve ölçülebilir sonucu kaydet.\n2. Varsayımlar yerine fatura, sistem kaydı, rapor veya süreç örneği gibi kanıt kullan.\n3. En büyük iş etkisi ile en düşük uygulama güçlüğünü birlikte değerlendir.\n4. İlk 90 gün için en fazla üç iyileştirme seç.\n5. Her iyileştirmeye sahip, tarih ve başarı ölçütü ata.\n6. Aynı değerlendirmeyi düzenli aralıkla tekrarlayıp değişimi karşılaştır.\n\nÖrnek başarı ölçütleri: sipariş işleme süresi, hatalı veri oranı, manuel işlem sayısı ve dijital kanaldan gelen satış payı. Değerlendirme bir sertifika veya garanti değildir; karar vermek için mevcut durum fotoğrafıdır.",
+      "metadata": {
+        "category": "dijitallesme-teknoloji",
+        "subcategory": "Dijital Dönüşüm Stratejisi",
+        "level": "Başlangıç",
+        "duration": 20,
+        "summary": "KOBİ'nin dijital durumunu kanıtlarla değerlendirmesi ve 90 günlük öncelik planı çıkarması",
+        "learningOutcomes": ["EDIH dijital olgunluk boyutlarını tanır", "Kanıta dayalı mevcut durum analizi yapar", "Ölçülebilir 90 günlük iyileştirme planı kurar"],
+        "sourceKeys": ["SRC-DIG-001", "SRC-DIG-002"],
+        "contentVersion": 2,
+        "verifiedOn": "2026-07-21"
+      }
+    },
+    {
+      "code": "DIG-TOOL-001",
+      "title": "KOBİ'ler için Dijital Araç Seçimi",
+      "type": "procedure",
+      "reviewGate": "standard",
+      "sourceKeys": ["SRC-DIG-001", "SRC-CYB-003", "SRC-AI-001"],
+      "content": "Doğru dijital araç, popüler olan değil; tanımlanmış iş problemini kabul edilebilir maliyet ve riskle çözen araçtır. Seçime ürün adıyla değil ihtiyaçla başlanmalıdır.\n\nSeçim adımları:\n1. Problemi ve mevcut süreci yaz: kim, hangi işi, ne kadar sürede yapıyor?\n2. Zorunlu gereksinimleri ve tercihleri ayır.\n3. Toplam maliyeti hesapla: lisans, kurulum, veri taşıma, eğitim, destek ve çıkış maliyeti.\n4. Entegrasyon, veri dışa aktarma, erişim yetkileri, yedekleme ve tedarikçi desteğini kontrol et.\n5. Kişisel veya kritik veri işlenecekse güvenlik ve mevzuat koşullarını sözleşmede doğrula.\n6. En az iki alternatifi aynı örnek senaryoyla küçük bir pilotta dene.\n7. Pilot sonunda süre, hata, kullanım ve maliyet ölçütleriyle karar ver.\n\nKırmızı bayraklar: veriyi dışa aktaramama, belirsiz fiyat artışı, ortak hesap kullanımı, yetersiz yetkilendirme, sözleşmesiz veri işleme ve ölçülemeyen fayda. Marka örnekleri geçici olabilir; seçim matrisi kalıcı olmalıdır.",
+      "metadata": {
+        "category": "dijitallesme-teknoloji",
+        "subcategory": "Dijital Araç Seçimi",
+        "level": "Orta",
+        "duration": 25,
+        "summary": "İhtiyaç, toplam maliyet, entegrasyon, veri taşınabilirliği ve güvenlik üzerinden tarafsız araç seçimi",
+        "learningOutcomes": ["İş problemini gereksinime dönüştürür", "Toplam sahip olma maliyetini değerlendirir", "Ölçülebilir pilot ve seçim matrisi hazırlar"],
+        "sourceKeys": ["SRC-DIG-001", "SRC-CYB-003", "SRC-AI-001"],
+        "contentVersion": 2,
+        "verifiedOn": "2026-07-21"
+      }
+    },
+    {
+      "code": "DIG-DATA-001",
+      "title": "Veri Yönetişimi ve Veri Odaklı Karar Alma",
+      "type": "concept",
+      "reviewGate": "requires_professional_approval",
+      "sourceKeys": ["SRC-DIG-001", "SRC-CYB-003", "SRC-LAW-004", "SRC-LAW-005"],
+      "content": "Veri yönetişimi; işletmedeki verinin kim tarafından, hangi amaçla, hangi kalite ve erişim kurallarıyla yönetileceğini belirleyen sorumluluk sistemidir. Amaç daha çok veri toplamak değil, karar için gerekli veriyi güvenilir ve kontrollü tutmaktır.\n\nAsgari uygulama:\n1. Veri envanteri çıkar: veri türü, bulunduğu sistem, sahibi, kullanım amacı ve erişen kişiler.\n2. Kritik alanlar için kalite kuralları belirle: doğruluk, tamlık, güncellik ve tekilleştirme.\n3. Rol bazlı erişim uygula; herkesin her veriye erişmesini engelle.\n4. Saklama, yedekleme, silme ve olay müdahale süreçlerini yazılı hale getir.\n5. Kişisel veri toplanıyorsa aydınlatma yükümlülüğü ile işleme şartlarını ayrı ayrı değerlendir.\n6. Karar raporlarında veri kaynağını, dönemi ve sınırlamaları göster.\n\nBaşlangıç ölçütleri: eksik kayıt oranı, yinelenen müşteri oranı, rapor hazırlama süresi ve yetkisiz erişim olayı sayısı. KVKK uyumu işletmenin özel durumuna bağlıdır; bu içerik hukuki görüş yerine geçmez ve profesyonel inceleme gerektirir.",
+      "metadata": {
+        "category": "dijitallesme-teknoloji",
+        "subcategory": "Veri Yönetimi",
+        "level": "Orta",
+        "duration": 30,
+        "summary": "Veri envanteri, sahiplik, kalite, erişim ve yaşam döngüsüyle güvenilir karar altyapısı kurma",
+        "learningOutcomes": ["Veri sahipliği ve kalite kurallarını tanımlar", "Rol bazlı erişim ve yaşam döngüsü planlar", "Kişisel veri konularında uzman incelemesi gereken noktaları ayırır"],
+        "sourceKeys": ["SRC-DIG-001", "SRC-CYB-003", "SRC-LAW-004", "SRC-LAW-005"],
+        "contentVersion": 2,
+        "verifiedOn": "2026-07-21",
+        "professionalReviewRequired": true
+      }
+    },
+    {
+      "code": "DIG-CYBER-001",
+      "title": "KOBİ'ler için Temel Siber Güvenlik Önlemleri",
+      "type": "procedure",
+      "reviewGate": "requires_professional_approval",
+      "sourceKeys": ["SRC-CYB-001", "SRC-CYB-002", "SRC-CYB-003"],
+      "content": "KOBİ siber güvenliği tek bir ürün değil; riskleri yönetmek için insanlar, süreçler ve teknolojinin birlikte çalışmasıdır. NIST CSF 2.0 yaklaşımı çalışmaları Yönetişim, Tanımlama, Koruma, Tespit, Müdahale ve Kurtarma başlıklarında düzenler.\n\nİlk önlemler:\n1. Cihaz, hesap, yazılım ve kritik veri envanteri çıkar; sorumluları belirle.\n2. Yönetici ve kritik hesaplarda çok faktörlü kimlik doğrulamayı etkinleştir; ortak hesapları kaldır.\n3. İşletim sistemi, uygulama ve ağ cihazlarını düzenli güncelle.\n4. Kritik verilerin geri yüklenebilir yedeklerini tut ve geri dönüş testini kaydet.\n5. En az ayrıcalık ilkesini uygula; ayrılan çalışanların erişimini hemen kapat.\n6. Kimlik avı ve şüpheli ödeme talebi için çalışan doğrulama prosedürü oluştur.\n7. Olayda aranacak kişiler, izolasyon, bildirim ve geri dönüş adımlarını yazılı hale getir.\n\nBaşarı ölçütleri: MFA kapsamı, güncel cihaz oranı, son başarılı geri yükleme testi ve kapatılması bekleyen kritik açık sayısı. Risk düzeyi işletmeye göre değişir; yüksek riskli sistemlerde uzman değerlendirmesi gerekir.",
+      "metadata": {
+        "category": "dijitallesme-teknoloji",
+        "subcategory": "Siber Güvenlik",
+        "level": "Başlangıç",
+        "duration": 25,
+        "summary": "NIST, ENISA ve ISO temelli asgari KOBİ siber güvenlik uygulamaları",
+        "learningOutcomes": ["Temel varlık ve risk envanteri çıkarır", "MFA, güncelleme, yedek ve erişim önlemlerini uygular", "Basit olay müdahale planı hazırlar"],
+        "sourceKeys": ["SRC-CYB-001", "SRC-CYB-002", "SRC-CYB-003"],
+        "contentVersion": 2,
+        "verifiedOn": "2026-07-21",
+        "professionalReviewRequired": true
+      }
+    },
+    {
+      "code": "DIG-AI-001",
+      "title": "KOBİ'ler için Yapay Zeka Fırsatları",
+      "type": "concept",
+      "reviewGate": "requires_professional_approval",
+      "sourceKeys": ["SRC-AI-001", "SRC-AI-002"],
+      "content": "Yapay zekâ KOBİ'lerde metin taslağı, sınıflandırma, müşteri talebi yönlendirme, talep tahmini ve tekrar eden işlerin desteklenmesi gibi alanlarda kullanılabilir. OECD çalışmaları verimlilik ve yenilik potansiyeline dikkat çekerken KOBİ'lerde benimsemenin büyük işletmelere göre daha düşük olduğunu; beceri, veri, maliyet ve risk yönetimi engellerinin değerlendirilmesi gerektiğini belirtir.\n\nGüvenli başlangıç:\n1. Tek bir iş problemi ve mevcut performans ölçütü seç.\n2. Kişisel, gizli veya ticari sır veriyi modele göndermeden önce veri kullanım koşullarını belirle.\n3. Düşük riskli ve geri alınabilir bir pilot kur.\n4. Çıktıların doğruluğunu insan tarafından kontrol et; kritik kararı otomatikleştirme.\n5. Süre, maliyet, hata ve kullanıcı memnuniyetini pilot öncesiyle karşılaştır.\n6. Hata eşiği, sorumlu kişi ve durdurma koşulu belirle.\n\nBaşarı ölçütü yalnızca üretilen içerik sayısı değildir; doğruluk, kazanılan süre, düzeltme yükü ve oluşan risk birlikte izlenmelidir. Hukuk, vergi, sağlık, finans ve kişisel veri kararlarında uzman ve insan denetimi zorunlu tutulmalıdır.",
+      "metadata": {
+        "category": "dijitallesme-teknoloji",
+        "subcategory": "Yapay Zeka",
+        "level": "Başlangıç",
+        "duration": 20,
+        "summary": "KOBİ'lerde düşük riskli, ölçülebilir ve insan denetimli yapay zekâ pilotu kurma",
+        "learningOutcomes": ["Uygun AI kullanım alanını iş probleminden türetir", "Veri ve insan denetimi gereksinimlerini belirler", "Pilotun başarı ve durdurma ölçütlerini kurar"],
+        "sourceKeys": ["SRC-AI-001", "SRC-AI-002"],
+        "contentVersion": 2,
+        "verifiedOn": "2026-07-21",
+        "professionalReviewRequired": true
+      }
+    }
+  ]
+}

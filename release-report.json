@@ -1,0 +1,196 @@
+{
+  "reportType": "release",
+  "timestamp": "2026-07-20T21:21:55.473Z",
+  "overall": "RELEASE_READY",
+  "sections": [
+    {
+      "section": "Metadata",
+      "checks": [
+        {
+          "key": "timestamp",
+          "value": "2026-07-20T21:21:22.086Z"
+        },
+        {
+          "key": "node_version",
+          "value": "v24.18.0"
+        },
+        {
+          "key": "platform",
+          "value": "win32"
+        },
+        {
+          "key": "cwd",
+          "value": "C:\\Users\\bugrz\\Documents\\Codex\\2026-07-19\\new-chat\\outputs\\LocalAkademi_fixed"
+        },
+        {
+          "key": "env.NODE_ENV",
+          "value": "(not set)"
+        },
+        {
+          "key": "env.BETA_MODE",
+          "value": "(not set)"
+        }
+      ]
+    },
+    {
+      "section": "Package",
+      "checks": [
+        {
+          "key": "name",
+          "value": "localakademi-server"
+        },
+        {
+          "key": "version",
+          "value": "1.0.0"
+        },
+        {
+          "key": "scripts",
+          "value": "dev, build, start, db:generate, db:migrate, db:push, db:seed, test, test:watch, test:e2e, verify:release, validate:migrations, secret:scan, release:report, test:frontend-smoke, admin:bootstrap, verify:all"
+        },
+        {
+          "key": "dependencies",
+          "value": "11"
+        },
+        {
+          "key": "devDependencies",
+          "value": "6"
+        }
+      ]
+    },
+    {
+      "section": "Build Status",
+      "checks": [
+        {
+          "status": "pass",
+          "label": "TypeScript (tsc --noEmit)",
+          "detail": ""
+        },
+        {
+          "status": "pass",
+          "label": "Prisma validate",
+          "detail": "Environment variables loaded from .env; Prisma schema loaded from prisma\\schema.prisma; The schema at prisma\\schema.prisma is valid 🚀"
+        },
+        {
+          "status": "pass",
+          "label": "Prisma generate",
+          "detail": "Environment variables loaded from .env; Prisma schema loaded from prisma\\schema.prisma; ; ✔ Generated Prisma Client (v5.22.0) to .\\node_modules\\@prisma\\client in 256ms; "
+        },
+        {
+          "status": "pass",
+          "label": "Unit tests",
+          "detail": "{\"level\":30,\"time\":1784582504527,\"pid\":21704,\"hostname\":\"DESKTOP-GLI97HB\",\"reqId\":\"req-1\",\"req\":{\"method\":\"POST\",\"url\":\"/auth/login\",\"host\":\"localhost:80\",\"remoteAddress\":\"127.0.0.1\"},\"msg\":\"incoming request\"}; {\"level\":30,\"time\":1784582504662,\"pid\":21704,\"hostname\":\"DESKTOP-GLI97HB\",\"reqId\":\"req-1\",\"res\":{\"statusCode\":200},\"responseTime\":133.52040000000034,\"msg\":\"request completed\"}; {\"level\":30,\"time\":1784582504663,\"pid\":21704,\"hostname\":\"DESKTOP-GLI97HB\",\"reqId\":\"req-2\",\"req\":{\"method\":\"POST\",\"url\":\"/auth/login\",\"host\":\"localhost:80\",\"remoteAddress\":\"127.0.0.1\"},\"msg\":\"incoming request\"}; {\"level\":30,\"time\":1784582504778,\"pid\":21704,\"hostname\":\"DESKTOP-GLI97HB\",\"reqId\":\"req-2\",\"res\":{\"statusCode\":200},\"responseTime\":114.89359999999942,\"msg\":\"request completed\"}; {\"level\":30,\"time\":1784582504785,\"pid\":21704,\"hostname\":\"DESKTOP-GLI97HB\",\"reqId\":\"req-3\",\"req\":{\"method\":\"GET\",\"url\":\"/health\",\"host\":\"localhost:80\",\"remoteAddress\":\"127.0.0.1\"},\"msg\":\"incoming request\"}"
+        }
+      ]
+    },
+    {
+      "section": "Frontend",
+      "checks": [
+        {
+          "status": "pass",
+          "label": "Frontend build",
+          "detail": "> localakademi-server@1.0.0 build; > tsc"
+        },
+        {
+          "key": "dist/index.html",
+          "value": "exists"
+        }
+      ]
+    },
+    {
+      "section": "Docker",
+      "checks": [
+        {
+          "key": "docker-compose.yml",
+          "value": "exists"
+        },
+        {
+          "key": "Dockerfile",
+          "value": "exists"
+        },
+        {
+          "key": "docker-daemon",
+          "value": "available"
+        },
+        {
+          "status": "pass",
+          "label": "docker compose config",
+          "detail": "name: localakademi_fixed; services:;   server:;     build:;       context: C:\\Users\\bugrz\\Documents\\Codex\\2026-07-19\\new-chat\\outputs\\LocalAkademi_fixed"
+        }
+      ]
+    },
+    {
+      "section": "Migrations",
+      "checks": [
+        {
+          "key": "migrations_dir",
+          "value": "exists"
+        },
+        {
+          "key": "Migration status",
+          "value": "SKIPPED (no DATABASE_URL)",
+          "status": "skipped"
+        }
+      ]
+    },
+    {
+      "section": "Codebase Stats",
+      "checks": [
+        {
+          "key": "src_files",
+          "value": "41"
+        },
+        {
+          "key": "src_lines",
+          "value": "8192"
+        },
+        {
+          "key": "test_files",
+          "value": "16"
+        },
+        {
+          "key": "test_lines",
+          "value": "5446"
+        },
+        {
+          "key": "script_files",
+          "value": "7"
+        },
+        {
+          "key": "script_lines",
+          "value": "1345"
+        },
+        {
+          "key": "total_files",
+          "value": "64"
+        },
+        {
+          "key": "total_lines",
+          "value": "14983"
+        }
+      ]
+    },
+    {
+      "section": "Config Audit",
+      "checks": [
+        {
+          "key": ".env.example",
+          "value": "exists"
+        },
+        {
+          "key": ".gitignore",
+          "value": "exists"
+        },
+        {
+          "key": ".env present",
+          "value": "WARN: present"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "totalChecks": 34,
+    "passed": 34,
+    "failed": 0,
+    "unverified": 0
+  }
+}

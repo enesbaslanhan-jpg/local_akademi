@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+*.db
+*.db-journal
+BACKUPS/
+.DS_Store
+*.log
+.video-tools/
+.video-work/

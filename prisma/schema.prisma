@@ -1,0 +1,780 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      Int                      @id @default(autoincrement())
+  email                   String                   @unique
+  password                String
+  name                    String
+  role                    String                   @default("student")
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  activityEvents          ActivityEvent[]
+  businessAssessments     BusinessAssessment[]
+  businessProfile         BusinessProfile?
+  moderatedCommunityPosts CommunityPost[]          @relation("CommunityPostModerator")
+  communityPosts          CommunityPost[]          @relation("CommunityPostAuthor")
+  communityReports        CommunityReport[]
+  conversations           Conversation[]
+  conversationSummaries   ConversationSummary[]
+  documentConversations   DocumentConversation[]
+  enrollments             Enrollment[]
+  flashcardProgress       FlashcardProgress[]
+  flashcardReviews        FlashcardReview[]
+  formulaCalculations     FormulaCalculation[]
+  generatedReports        GeneratedReport[]
+  createdVersions         KnowledgeObjectVersion[]
+  knowledgeProgress       KnowledgeProgress[]
+  learningPaths           LearningPath[]
+  lessonProgress          LessonProgress[]
+  mentorSessions          MentorSession[]
+  publicationEvents       PublicationEvent[]
+  quizAttempts            QuizAttempt[]
+  reviewRecords           ReviewRecord[]
+  taskAssignments         TaskAssignment[]
+  uploadedDocuments       UploadedDocument[]
+  memories                UserMemory[]
+  userPreference          UserPreference?
+  videoProgress           VideoProgress[]
+}
+
+model CommunityPost {
+  id                String            @id @default(uuid())
+  authorId          Int?
+  moderatedById     Int?
+  postType          String
+  title             String
+  summary           String
+  sourceUrl         String?
+  sourceTitle       String?
+  sourcePublishedAt DateTime?
+  status            String            @default("pending")
+  moderationReason  String?
+  publishedAt       DateTime?
+  moderatedAt       DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  moderatedBy       User?             @relation("CommunityPostModerator", fields: [moderatedById], references: [id])
+  author            User?             @relation("CommunityPostAuthor", fields: [authorId], references: [id])
+  reports           CommunityReport[]
+
+  @@index([status, publishedAt])
+  @@index([postType, status])
+  @@index([authorId, createdAt])
+}
+
+model CommunityReport {
+  id           String        @id @default(uuid())
+  postId       String
+  reporterId   Int
+  reason       String
+  details      String?
+  status       String        @default("open")
+  resolution   String?
+  resolvedById Int?
+  resolvedAt   DateTime?
+  createdAt    DateTime      @default(now())
+  reporter     User          @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  post         CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, reporterId])
+  @@index([status, createdAt])
+  @@index([postId, status])
+}
+
+model QuizAttempt {
+  id        String   @id @default(uuid())
+  userId    Int
+  koId      Int
+  score     Int
+  passed    Boolean
+  feedback  String
+  createdAt DateTime @default(now())
+  quizId    String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TaskAssignment {
+  id              String        @id @default(uuid())
+  userId          Int
+  taskId          String
+  koId            Int
+  taskTemplateId  String?
+  status          String        @default("assigned")
+  progressPercent Int           @default(0)
+  answers         String        @default("{}")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  reviewStatus    String?       @default("pending")
+  feedback        String?
+  submittedAt     DateTime?
+  reviewedAt      DateTime?
+  taskTemplate    TaskTemplate? @relation(fields: [taskTemplateId], references: [id])
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskTemplateId])
+  @@index([reviewStatus])
+}
+
+model UploadedDocument {
+  id            String                 @id @default(uuid())
+  userId        Int
+  originalName  String
+  storedName    String
+  mimeType      String
+  sizeBytes     Int
+  extractedText String                 @default("")
+  analysis      String                 @default("{}")
+  status        String                 @default("pending")
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  conversations DocumentConversation[]
+  user          User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BusinessProfile {
+  id                    Int      @id @default(autoincrement())
+  userId                Int      @unique
+  name                  String   @default("")
+  sector                String   @default("")
+  city                  String   @default("")
+  currency              String   @default("TRY")
+  monthlySales          Float    @default(0)
+  monthlyExpenses       Float    @default(0)
+  cashBalance           Float    @default(0)
+  debtBalance           Float    @default(0)
+  businessStage         String?
+  employeeCount         Int?
+  salesChannels         String   @default("[]")
+  primaryGoal           String?
+  weeklyLearningMinutes Int?
+  challenges            String   @default("[]")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BusinessAssessment {
+  id              String   @id @default(uuid())
+  userId          Int
+  version         Int      @default(1)
+  answers         String
+  scores          String
+  priorityDomains String
+  recommendations String
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model KnowledgeProgress {
+  id              String          @id @default(uuid())
+  userId          Int
+  koId            Int
+  status          String          @default("not_started")
+  progressPercent Int             @default(0)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  lastViewedAt    DateTime?
+  createdAt       DateTime        @default(now())
+  knowledgeObject KnowledgeObject @relation(fields: [koId], references: [id], onDelete: Cascade)
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, koId])
+  @@index([userId, status])
+}
+
+model FormulaCalculation {
+  id          String   @id @default(uuid())
+  userId      Int
+  formulaId   String
+  formulaName String
+  inputs      String
+  result      String
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ActivityEvent {
+  id        String   @id @default(uuid())
+  userId    Int
+  eventType String
+  title     String
+  detail    String   @default("{}")
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GeneratedReport {
+  id         String   @id @default(uuid())
+  userId     Int
+  reportType String
+  title      String
+  format     String
+  storedName String
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DocumentConversation {
+  id         String           @id @default(uuid())
+  userId     Int
+  documentId String
+  question   String
+  answer     String
+  evidence   String           @default("[]")
+  aiMode     String           @default("local_extractive")
+  createdAt  DateTime         @default(now())
+  document   UploadedDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserPreference {
+  id                  Int      @id @default(autoincrement())
+  userId              Int      @unique
+  onboardingCompleted Boolean  @default(false)
+  defaultCurrency     String   @default("TRY")
+  compactMode         Boolean  @default(false)
+  activityLimit       Int      @default(50)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Course {
+  id               Int          @id @default(autoincrement())
+  title            String
+  description      String
+  category         String
+  level            String       @default("beginner")
+  slug             String?      @unique
+  estimatedMinutes Int          @default(0)
+  outcomes         String       @default("[]")
+  sourceType       String       @default("legacy")
+  published        Boolean      @default(false)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  enrollments      Enrollment[]
+  lessons          Lesson[]
+}
+
+model Lesson {
+  id                Int              @id @default(autoincrement())
+  courseId          Int
+  title             String
+  content           String
+  order             Int
+  knowledgeObjectId Int?
+  estimatedMinutes  Int              @default(10)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  knowledgeObject   KnowledgeObject? @relation(fields: [knowledgeObjectId], references: [id])
+  course            Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress          LessonProgress[]
+
+  @@index([knowledgeObjectId])
+}
+
+model LessonProgress {
+  id               Int       @id @default(autoincrement())
+  userId           Int
+  lessonId         Int
+  status           String    @default("not_started")
+  readingPercent   Int       @default(0)
+  quizPercent      Int       @default(0)
+  taskPercent      Int       @default(0)
+  overallPercent   Int       @default(0)
+  startedAt        DateTime?
+  completedAt      DateTime?
+  lastViewedAt     DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  flashcardPercent Int       @default(0)
+  videoPercent     Int       @default(0)
+  lesson           Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId, status])
+}
+
+model Enrollment {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  courseId  Int
+  progress  Int      @default(0)
+  status    String   @default("not_started")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}
+
+model KnowledgeObject {
+  id                 Int                      @id @default(autoincrement())
+  code               String?                  @unique
+  slug               String?                  @unique
+  type               String
+  title              String
+  content            String
+  embedding          String
+  metadata           String
+  status             String                   @default("draft")
+  verificationStatus String                   @default("unverified")
+  reviewGate         String                   @default("standard")
+  isDemo             Boolean                  @default(false)
+  publishedAt        DateTime?
+  archivedAt         DateTime?
+  reviewDue          DateTime?
+  categoryId         Int?
+  currentVersionId   Int?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  applySteps         String?
+  learnSteps         String?
+  problem            String?
+  quickAnswer        String?
+  seeAlso            String?
+  summary            String?
+  task               String?
+  warning            String?
+  flashcards         Flashcard[]
+  flashcardProgress  FlashcardProgress[]
+  currentVersion     KnowledgeObjectVersion?  @relation("CurrentVersion", fields: [currentVersionId], references: [id])
+  category           Category?                @relation(fields: [categoryId], references: [id])
+  sources            KnowledgeObjectSource[]
+  versions           KnowledgeObjectVersion[] @relation("VersionHistory")
+  knowledgeProgress  KnowledgeProgress[]
+  videos             LearningVideo?
+  courseLessons      Lesson[]
+  publicationEvents  PublicationEvent[]
+  quizzes            Quiz[]
+  reviews            ReviewRecord[]
+  taskTemplates      TaskTemplate[]
+}
+
+model Category {
+  id               Int               @id @default(autoincrement())
+  name             String            @unique
+  slug             String?           @unique
+  description      String?
+  isActive         Boolean           @default(true)
+  parentId         Int?
+  createdAt        DateTime          @default(now())
+  parent           Category?         @relation("SubCategories", fields: [parentId], references: [id])
+  children         Category[]        @relation("SubCategories")
+  knowledgeObjects KnowledgeObject[]
+}
+
+model KnowledgeObjectVersion {
+  id              Int               @id @default(autoincrement())
+  koId            Int
+  versionNumber   Int
+  changes         String
+  createdBy       Int
+  createdAt       DateTime          @default(now())
+  currentFor      KnowledgeObject[] @relation("CurrentVersion")
+  creator         User              @relation(fields: [createdBy], references: [id])
+  knowledgeObject KnowledgeObject   @relation("VersionHistory", fields: [koId], references: [id], onDelete: Cascade)
+}
+
+model Source {
+  id             String                  @id @default(uuid())
+  title          String
+  url            String?
+  authorityLevel String                  @default("medium")
+  lastChecked    DateTime?
+  createdAt      DateTime                @default(now())
+  koSources      KnowledgeObjectSource[]
+}
+
+model KnowledgeObjectSource {
+  id              String          @id @default(uuid())
+  koId            Int
+  sourceId        String
+  relation        String          @default("references")
+  note            String?
+  createdAt       DateTime        @default(now())
+  source          Source          @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  knowledgeObject KnowledgeObject @relation(fields: [koId], references: [id], onDelete: Cascade)
+}
+
+model ReviewRecord {
+  id              String          @id @default(uuid())
+  koId            Int
+  reviewerId      Int
+  status          String          @default("pending")
+  notes           String?
+  reviewedAt      DateTime?
+  createdAt       DateTime        @default(now())
+  reviewer        User            @relation(fields: [reviewerId], references: [id])
+  knowledgeObject KnowledgeObject @relation(fields: [koId], references: [id], onDelete: Cascade)
+}
+
+model Quiz {
+  id              String          @id @default(uuid())
+  koId            Int
+  title           String
+  passScore       Int             @default(70)
+  createdAt       DateTime        @default(now())
+  status          String          @default("published")
+  knowledgeObject KnowledgeObject @relation(fields: [koId], references: [id], onDelete: Cascade)
+  questions       QuizQuestion[]
+
+  @@index([koId, status])
+}
+
+model QuizQuestion {
+  id            String   @id @default(uuid())
+  quizId        String
+  questionText  String
+  options       String
+  correctAnswer String
+  explanation   String?
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+}
+
+model TaskTemplate {
+  id              String           @id @default(uuid())
+  koId            Int
+  title           String
+  description     String
+  estimatedTime   Int              @default(10)
+  createdAt       DateTime         @default(now())
+  instructions    String?
+  exampleOutput   String?
+  checklist       String?
+  rubric          String?
+  assignments     TaskAssignment[]
+  knowledgeObject KnowledgeObject  @relation(fields: [koId], references: [id], onDelete: Cascade)
+}
+
+model Formula {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  formulaText String?
+  inputs      String
+  outputs     String?
+  assumptions String?
+  warning     String?
+  createdAt   DateTime @default(now())
+}
+
+model PublicationEvent {
+  id              String          @id @default(uuid())
+  koId            Int
+  action          String
+  performedBy     Int
+  note            String?
+  timestamp       DateTime        @default(now())
+  performer       User            @relation(fields: [performedBy], references: [id])
+  knowledgeObject KnowledgeObject @relation(fields: [koId], references: [id], onDelete: Cascade)
+}
+
+model ImportJob {
+  id          String           @id @default(uuid())
+  type        String           @default("ko_import")
+  koCode      String?
+  status      String           @default("pending")
+  totalRows   Int              @default(0)
+  processedAt DateTime?
+  createdAt   DateTime         @default(now())
+  errors      ImportJobError[]
+}
+
+model ImportJobError {
+  id          Int       @id @default(autoincrement())
+  importJobId String
+  row         Int
+  field       String?
+  message     String
+  createdAt   DateTime  @default(now())
+  importJob   ImportJob @relation(fields: [importJobId], references: [id], onDelete: Cascade)
+}
+
+model LearningPath {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  title     String
+  pathData  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MentorSession {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  sessionId String   @unique
+  context   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id            Int                   @id @default(autoincrement())
+  userId        Int
+  title         String                @default("Yeni Sohbet")
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  archivedAt    DateTime?
+  deletedAt     DateTime?
+  lastMessageAt DateTime?
+  model         String?
+  provider      String?
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages      ConversationMessage[]
+  summary       ConversationSummary?
+}
+
+model ConversationMessage {
+  id                       Int                   @id @default(autoincrement())
+  conversationId           Int
+  role                     String
+  content                  String
+  citations                String?
+  knowledgeObjects         String?
+  toolCalls                String?
+  tokenUsage               String?
+  error                    String?
+  generationStatus         String                @default("completed")
+  regeneratedFromMessageId Int?
+  editedFromMessageId      Int?
+  createdAt                DateTime              @default(now())
+  updatedAt                DateTime?
+  editedFrom               ConversationMessage?  @relation("EditedMessages", fields: [editedFromMessageId], references: [id])
+  editedMessages           ConversationMessage[] @relation("EditedMessages")
+  regeneratedFrom          ConversationMessage?  @relation("RegeneratedMessages", fields: [regeneratedFromMessageId], references: [id])
+  regeneratedMessages      ConversationMessage[] @relation("RegeneratedMessages")
+  conversation             Conversation          @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  memorySources            UserMemory[]
+}
+
+model UserMemory {
+  id               Int                  @id @default(autoincrement())
+  userId           Int
+  type             String
+  key              String?
+  value            String
+  normalizedValue  String?
+  summary          String?
+  sourceType       String
+  sourceMessageId  Int?
+  conversationId   Int?
+  importance       Float                @default(0.5)
+  confidence       Float                @default(0.5)
+  status           String               @default("active")
+  validationStatus String               @default("inferred")
+  validFrom        DateTime             @default(now())
+  validUntil       DateTime?
+  lastUsedAt       DateTime?
+  usageCount       Int                  @default(0)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  deletedAt        DateTime?
+  sourceMessage    ConversationMessage? @relation(fields: [sourceMessageId], references: [id])
+  user             User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([userId, type])
+  @@index([userId, key])
+  @@index([userId, type, status])
+}
+
+model ConversationSummary {
+  id             Int          @id @default(autoincrement())
+  conversationId Int          @unique
+  userId         Int
+  summary        String
+  keyFacts       String?
+  decisions      String?
+  openQuestions  String?
+  messageCount   Int          @default(0)
+  lastMessageId  Int?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  action     String
+  entityType String
+  entityId   String?
+  actorId    Int
+  actorName  String?
+  metadata   String   @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model LearningVideo {
+  id              String               @id @default(uuid())
+  koId            Int                  @unique
+  title           String
+  description     String?
+  durationTarget  Int                  @default(300)
+  script          String?
+  storyboard      String?
+  transcript      String?
+  webvttContent   String?
+  thumbnailSpec   String?
+  outputKey       String?
+  voiceGuidance   String?
+  playbackUrl     String?
+  status          String               @default("script_ready")
+  checksum        String?
+  publishedAt     DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  provider        String?
+  knowledgeObject KnowledgeObject      @relation(fields: [koId], references: [id], onDelete: Cascade)
+  productionJobs  VideoProductionJob[]
+  userProgress    VideoProgress[]
+
+  @@index([status])
+}
+
+model VideoProgress {
+  id                  String        @id @default(uuid())
+  userId              Int
+  videoId             String
+  progressPercent     Int           @default(0)
+  completed           Boolean       @default(false)
+  lastWatchedAt       DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  watchedSeconds      Int           @default(0)
+  furthestSecond      Int           @default(0)
+  lastPositionSeconds Int           @default(0)
+  video               LearningVideo @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+  @@index([userId])
+}
+
+model VideoProductionJob {
+  id              String        @id @default(uuid())
+  videoId         String
+  jobType         String        @default("render")
+  status          String        @default("pending")
+  progressPercent Int           @default(0)
+  outputKey       String?
+  errorMessage    String?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  provider        String?
+  externalJobId   String?
+  outputUrl       String?
+  video           LearningVideo @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([videoId])
+}
+
+model Flashcard {
+  id              String            @id @default(uuid())
+  koId            Int
+  front           String
+  back            String
+  hint            String?
+  order           Int
+  status          String            @default("draft")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  knowledgeObject KnowledgeObject   @relation(fields: [koId], references: [id], onDelete: Cascade)
+  reviews         FlashcardReview[]
+
+  @@unique([koId, order])
+  @@index([koId, status])
+}
+
+model FlashcardReview {
+  id           String    @id @default(uuid())
+  userId       Int
+  flashcardId  String
+  rating       String
+  intervalDays Int
+  easeFactor   Float
+  repetition   Int
+  dueAt        DateTime
+  reviewedAt   DateTime
+  flashcard    Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dueAt])
+}
+
+model FlashcardProgress {
+  id              String          @id @default(uuid())
+  userId          Int
+  koId            Int
+  seenCount       Int             @default(0)
+  masteredCount   Int             @default(0)
+  percent         Int             @default(0)
+  lastReviewedAt  DateTime?
+  knowledgeObject KnowledgeObject @relation(fields: [koId], references: [id], onDelete: Cascade)
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, koId])
+  @@index([userId])
+}
+
+model AiReviewerTelemetry {
+  id                  String                @id @default(uuid())
+  status              String
+  decision            String?
+  failureCode         String?
+  riskLevel           String
+  issueCodes          String                @default("[]")
+  requiresHumanReview Boolean               @default(false)
+  groundednessScore   Float?
+  pedagogicalScore    Float?
+  confidence          Float?
+  latencyMs           Int?
+  model               String?
+  createdAt           DateTime              @default(now())
+  humanAudit          AiReviewerHumanAudit?
+
+  @@index([createdAt])
+  @@index([status, createdAt])
+  @@index([decision, createdAt])
+  @@index([failureCode, createdAt])
+}
+
+model AiReviewerHumanAudit {
+  id           String              @id @default(uuid())
+  telemetryId  String              @unique
+  reviewerId   Int
+  verdict      String
+  criticalMiss Boolean             @default(false)
+  notes        String?
+  createdAt    DateTime            @default(now())
+  telemetry    AiReviewerTelemetry @relation(fields: [telemetryId], references: [id], onDelete: Cascade)
+
+  @@index([verdict, createdAt])
+  @@index([criticalMiss, createdAt])
+  @@index([reviewerId, createdAt])
+}

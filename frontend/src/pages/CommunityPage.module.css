@@ -1,0 +1,42 @@
+.page { max-width: 1120px; margin: 0 auto; padding: 28px; color: #16231d; }
+.header { display: flex; justify-content: space-between; gap: 24px; align-items: center; padding: 30px; border-radius: 22px; color: white; background: linear-gradient(135deg, #153b2d, #237355); }
+.header h1 { margin: 5px 0 8px; font-size: clamp(1.8rem, 4vw, 2.7rem); }
+.header p { margin: 0; max-width: 700px; color: #dff5e9; }
+.eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: .75rem; color: #a9e8c7; }
+.notice, .error { margin: 18px 0; padding: 13px 16px; border-radius: 12px; }
+.notice { background: #eaf8ef; color: #17643e; }
+.error { background: #fff0f0; color: #a12a2a; }
+.composer, .adminPanel { margin-top: 24px; padding: 22px; border: 1px solid #dce8e1; border-radius: 18px; background: white; box-shadow: 0 8px 30px rgba(27, 66, 49, .07); }
+.composer > div { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; }
+.composer > div p { grid-column: 2; margin: 0; color: #617269; }
+.composer h2, .adminPanel h2 { margin: 0; }
+.form { display: grid; gap: 14px; margin-top: 18px; }
+.form label { display: grid; gap: 7px; font-weight: 650; }
+.form input, .form textarea { width: 100%; box-sizing: border-box; border: 1px solid #bacbc1; border-radius: 11px; padding: 11px 12px; font: inherit; resize: vertical; }
+.form input:focus, .form textarea:focus { outline: 3px solid rgba(50, 145, 103, .2); border-color: #329167; }
+.form button, .queueItem button, .filters button { border: 0; border-radius: 10px; padding: 10px 14px; cursor: pointer; font: inherit; font-weight: 700; }
+.form button { justify-self: start; display: inline-flex; gap: 8px; align-items: center; color: white; background: #237355; }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 26px 0 16px; }
+.filters button { background: #edf3ef; color: #34463d; }
+.filters .active { background: #153b2d; color: white; }
+.feed { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.card { padding: 20px; border: 1px solid #dce8e1; border-radius: 16px; background: white; }
+.card h2 { margin: 12px 0 10px; font-size: 1.15rem; }
+.card p { line-height: 1.65; color: #43564c; }
+.card a { display: inline-flex; gap: 6px; align-items: center; color: #176b49; font-weight: 700; }
+.reportButton { display: block; margin-top: 14px; padding: 7px 10px; border: 1px solid #cad7cf; border-radius: 9px; background: #fff; color: #6a403f; cursor: pointer; }
+.cardMeta { display: flex; justify-content: space-between; color: #6d7e75; font-size: .82rem; }
+.official, .user { padding: 4px 8px; border-radius: 20px; font-weight: 750; }
+.official { background: #e4f4ea; color: #17643e; }
+.user { background: #edf0fa; color: #374d8a; }
+.queue { display: grid; gap: 10px; }
+.aiDraft { margin-top: 24px; padding: 18px; border-radius: 14px; background: #f3f7f4; }
+.aiDraft textarea { width: 100%; box-sizing: border-box; padding: 11px; border: 1px solid #bacbc1; border-radius: 10px; font: inherit; }
+.aiDraft button { margin-top: 10px; padding: 10px 14px; border: 0; border-radius: 10px; color: white; background: #237355; font-weight: 700; cursor: pointer; }
+.aiDraft button:disabled { opacity: .55; cursor: not-allowed; }
+.queueItem { padding: 14px; border: 1px solid #dce8e1; border-radius: 12px; }
+.queueItem span { margin-left: 10px; color: #6d7e75; font-size: .8rem; }
+.queueItem button { margin-right: 8px; color: white; background: #237355; }
+.queueItem .reject { background: #9b3737; }
+.empty { grid-column: 1 / -1; padding: 35px; text-align: center; border-radius: 16px; background: #f3f7f4; color: #617269; }
+@media (max-width: 640px) { .page { padding: 16px; } .header { padding: 22px; } .header svg { display: none; } }

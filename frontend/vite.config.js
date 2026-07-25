@@ -1,0 +1,62 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+const backendProxy = {
+  target: 'http://localhost:3000',
+  changeOrigin: true
+}
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
+  },
+  server: {
+    proxy: {
+      '/api/memory': {
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      },
+      '/api/v2': {
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      },
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      },
+      '/mentor': {
+        ...backendProxy
+      },
+      '/auth': {
+        ...backendProxy
+      },
+      '/courses': backendProxy,
+      '/lessons': backendProxy,
+      '/enrollments': backendProxy,
+      '/knowledge': backendProxy,
+      '/learning-path': backendProxy,
+      '/learning': backendProxy,
+      '/onboarding': backendProxy,
+      '/assessment': backendProxy,
+      '/admin': backendProxy,
+      '/dashboard': backendProxy,
+      '/quizzes': backendProxy,
+      '/tasks': backendProxy,
+      '/flashcards': backendProxy,
+      '/videos': backendProxy,
+      '/documents': backendProxy,
+      '/business': backendProxy,
+      '/formulas': backendProxy,
+      '/formula-calculations': backendProxy,
+      '/reports': backendProxy
+    }
+  }
+})

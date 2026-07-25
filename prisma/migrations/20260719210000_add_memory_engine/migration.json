@@ -1,0 +1,9 @@
+{
+  "version": "5.2",
+  "steps": [
+    {
+      "tag": "CreateMigration",
+      "migration_name": "20260719210000_add_memory_engine"
+    }
+  ]
+}

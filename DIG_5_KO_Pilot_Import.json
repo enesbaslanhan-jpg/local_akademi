@@ -1,0 +1,274 @@
+{
+  "knowledgeObjects": [
+    {
+      "code": "DIG-MATURITY-001",
+      "slug": "dijital-olgunluk-degerlendirme",
+      "title": "Dijital Olgunluk Değerlendirmesi",
+      "type": "concept",
+      "content": "Dijital olgunluk değerlendirmesi, bir işletmenin mevcut dijital yetkinliklerini ve teknoloji kullanım seviyesini sistematik olarak ölçme sürecidir. KOBİ'lerin dijital dönüşüm yolculuğunda nerede olduklarını anlamalarını sağlayan bu değerlendirme, stratejik yol haritasının ilk adımıdır.\n\nDeğerlendirme tipik olarak şu boyutları kapsar:\n- Dijital strateji ve liderlik\n- Operasyonel süreçlerin dijitalleşme düzeyi\n- Müşteri deneyimi ve kanal entegrasyonu\n- Veri yönetimi ve analitik yetkinlik\n- İnsan kaynağı dijital becerileri\n- Teknoloji altyapısı ve güvenlik\n\nDünya Ekonomik Forumu ve TÜBİTAK gibi kuruluşlar tarafından geliştirilen çeşitli olgunluk modelleri bulunmaktadır. Her model farklı sektör ve büyüklükteki işletmelere uygun ölçüm kriterleri sunar.",
+      "metadata": {
+        "category": "dijitallesme-teknoloji",
+        "subcategory": "Dijital Dönüşüm Stratejisi",
+        "level": "Başlangıç",
+        "duration": 20,
+        "summary": "KOBİ'lerin dijital olgunluk seviyelerini belirlemek için kullanılan değerlendirme yöntemleri ve modelleri",
+        "problem": "KOBİ'ler dijital dönüşüme nereden başlayacağını bilemez, mevcut durumlarını nesnel olarak değerlendiremez",
+        "learningOutcomes": [
+          "Dijital olgunluk kavramını ve boyutlarını tanımlar",
+          "Farklı olgunluk modellerini karşılaştırır",
+          "Kendi işletmesinin dijital olgunluk seviyesini belirler"
+        ],
+        "examples": [
+          "TÜBİTAK Dijital Olgunluk Değerlendirme Aracı ile 50 soruluk anket sonucu 5 seviyeli olgunluk skoru",
+          "KOSGEB Dijital Dönüşüm Destek Programı başvurusu öncesi öz değerlendirme formu"
+        ],
+        "steps": [
+          "1. Değerlendirme boyutlarını belirle (strateji, süreç, müşteri, veri, insan, teknoloji)",
+          "2. Her boyut için mevcut durumu 1-5 arası puanla",
+          "3. Boyut bazında ortalama puanları hesapla",
+          "4. Genel olgunluk seviyesini (Başlangıç/Gelişmekte/Olgun/İleri/Lider) belirle",
+          "5. Zayıf boyutları önceliklendirerek yol haritası oluştur"
+        ],
+        "checklist": [
+          "Dijital strateji belgesi mevcut mu?",
+          "Temel iş süreçleri dijital ortama taşınmış mı?",
+          "Müşteri verileri düzenli toplanıyor ve analiz ediliyor mu?",
+          "Çalışanlar temel dijital becerilere sahip mi?"
+        ]
+      },
+      "categorySlug": "dijitallesme-teknoloji",
+      "reviewGate": "standard",
+      "status": "draft",
+      "isDemo": false,
+      "verificationStatus": "source_verified",
+      "version": 1,
+      "publishedAt": null,
+      "sources": [
+        {
+          "sourceId": "0ef5171d-6238-429e-aa19-6e28453cdaf5"
+        },
+        {
+          "sourceId": "093337cf-1841-4b17-9c3a-1f4380f393fd"
+        },
+        {
+          "sourceId": "073b2d29-753a-4990-87e2-78c719b491ef"
+        }
+      ]
+    },
+    {
+      "code": "DIG-TOOL-001",
+      "slug": "dijital-arac-secimi",
+      "title": "KOBİ'ler için Dijital Araç Seçimi",
+      "type": "procedure",
+      "content": "KOBİ'lerin dijital dönüşüm sürecinde doğru araçları seçmesi, kaynakların verimli kullanılması ve dönüşümden maksimum fayda sağlanması açısından kritiktir. Piyasada binlerce dijital araç bulunmakla birlikte, her araç her işletme için uygun değildir.\n\nAraç seçiminde dikkat edilmesi gereken temel kriterler:\n- İşletme büyüklüğüne uygunluk\n- Bütçe ve toplam sahip olma maliyeti\n- Mevcut sistemlerle entegrasyon kolaylığı\n- Kullanıcı dostu arayüz ve Türkçe destek\n- Ölçeklenebilirlik ve gelecekteki ihtiyaçları karşılama\n- Satıcı desteği ve topluluk büyüklüğü\n- Veri güvenliği ve yerel mevzuata uygunluk",
+      "metadata": {
+        "category": "dijitallesme-teknoloji",
+        "subcategory": "Dijital Araç Seçimi",
+        "level": "Orta",
+        "duration": 25,
+        "summary": "KOBİ'lerin ihtiyaçlarına uygun dijital araçları seçme kriterleri ve yöntemleri",
+        "problem": "KOBİ'ler yüzlerce dijital araç arasından kendilerine uygun olanı seçmekte zorlanır, yanlış seçimler kaynak israfına yol açar",
+        "learningOutcomes": [
+          "Dijital araç seçim kriterlerini sıralar",
+          "İşletme ihtiyaç analizi yapar",
+          "Araç karşılaştırma tablosu oluşturur"
+        ],
+        "examples": [
+          "İhtiyaç: Müşteri takibi → CRM araçları karşılaştırması (HubSpot, Zoho, Monday.com)",
+          "İhtiyaç: Muhasebe → Ön muhasebe araçları (Paraşüt, Mikro, Logo)"
+        ],
+        "steps": [
+          "1. Mevcut süreçleri ve ihtiyaçları belirle",
+          "2. İhtiyaç listesini önceliklendir",
+          "3. Potansiyel araçları araştır ve kısa listeye indirge",
+          "4. Demo sürümlerini test et",
+          "5. Toplam sahip olma maliyetini hesapla",
+          "6. Referans işletmelerle görüş",
+          "7. Pilot kullanımla araçları değerlendir"
+        ],
+        "checklist": [
+          "İhtiyaç analizi yapıldı mı?",
+          "En az 3 alternatif araç belirlendi mi?",
+          "Demo sürümleri test edildi mi?",
+          "Maliyet analizi yapıldı mı?"
+        ]
+      },
+      "categorySlug": "dijitallesme-teknoloji",
+      "reviewGate": "standard",
+      "status": "draft",
+      "isDemo": false,
+      "verificationStatus": "source_verified",
+      "version": 1,
+      "publishedAt": null,
+      "sources": [
+        {
+          "sourceId": "2ea46dea-c04d-473f-920b-3e7b3a715eda"
+        },
+        {
+          "sourceId": "073b2d29-753a-4990-87e2-78c719b491ef"
+        }
+      ]
+    },
+    {
+      "code": "DIG-DATA-001",
+      "slug": "veri-yonetisimi",
+      "title": "Veri Yönetişimi ve Veri Odaklı Karar Alma",
+      "type": "concept",
+      "content": "Veri yönetişimi, bir kuruluşun veri varlıklarını yönetmek için kullandığı süreçler, politikalar, standartlar ve kontroller bütünüdür. KOBİ'lerin rekabet avantajı elde etmesinde veri odaklı karar alma kritik bir rol oynar.\n\nVeri yönetişiminin temel bileşenleri:\n- Veri sahipliği ve sorumluluklar\n- Veri kalite standartları\n- Veri güvenliği ve gizlilik politikaları\n- Veri yaşam döngüsü yönetimi\n- Veri sınıflandırma ve kataloglama\n- KVKK ve diğer yasal uyumluluk\n\nDoğru veri yönetişimi ile KOBİ'ler müşteri davranışlarını daha iyi analiz edebilir, operasyonel verimliliği artırabilir ve stratejik kararları veriye dayalı alabilir.",
+      "metadata": {
+        "category": "dijitallesme-teknoloji",
+        "subcategory": "Veri Yönetimi",
+        "level": "Orta",
+        "duration": 30,
+        "summary": "KOBİ'lerde veri yönetişimi prensipleri ve veri odaklı karar alma kültürü",
+        "problem": "KOBİ'ler veriyi düzenli yönetemez, veri kalitesi düşüktür ve kararlar içgüdüye dayanır",
+        "learningOutcomes": [
+          "Veri yönetişimi prensiplerini açıklar",
+          "Temel veri kalite kriterlerini uygular",
+          "Veri odaklı karar alma süreci tasarlar"
+        ],
+        "examples": [
+          "Müşteri verilerinin segmentasyonu ve satış stratejisi belirleme",
+          "Stok verileri analizi ile talep tahmini yapma"
+        ],
+        "steps": [
+          "1. Veri envanteri çıkar (hangi veriler var, nerede duruyor)",
+          "2. Veri sahiplerini belirle",
+          "3. Veri kalite standartlarını tanımla",
+          "4. Veri toplama ve saklama politikaları oluştur",
+          "5. Temel analitik araçları belirle",
+          "6. Düzenli raporlama takvimi oluştur"
+        ],
+        "formulas": [
+          "Müşteri Edinme Maliyeti = Toplam Pazarlama Harcaması / Yeni Müşteri Sayısı",
+          "Müşteri Yaşam Boyu Değeri = Ortalama Sipariş Değeri x Yıllık Sipariş Sayısı x Ortalama Müşteri Süresi"
+        ],
+        "checklist": [
+          "Veri envanteri çıkarıldı mı?",
+          "Veri sahipleri belirlendi mi?",
+          "KVKK uyumluluk kontrolü yapıldı mı?",
+          "Düzenli raporlama takvimi oluşturuldu mu?"
+        ]
+      },
+      "categorySlug": "dijitallesme-teknoloji",
+      "reviewGate": "requires_professional_approval",
+      "status": "draft",
+      "isDemo": false,
+      "verificationStatus": "source_verified",
+      "version": 1,
+      "publishedAt": null,
+      "sources": [
+        {
+          "sourceId": "c90e8e59-6e1a-45be-b83a-b63b49e7f5eb"
+        },
+        {
+          "sourceId": "ba7efa7d-206b-4250-b4fd-3c4b2a5eae42"
+        }
+      ]
+    },
+    {
+      "code": "DIG-CYBER-001",
+      "slug": "siber-guvenlik-temelleri",
+      "title": "KOBİ'ler için Temel Siber Güvenlik Önlemleri",
+      "type": "procedure",
+      "content": "Siber güvenlik, KOBİ'ler için genellikle göz ardı edilen ancak hayati önem taşıyan bir alandır. Küçük işletmeler siber saldırganlar için kolay hedef haline gelmiştir. KOBİ'lerin yarısından fazlası bir siber saldırıya maruz kalmakta ve önemli bir kısmı saldırı sonrası 6 ay içinde faaliyetlerine devam edememektedir.\n\nTemel siber güvenlik önlemleri:\n- Güçlü parola politikaları ve çok faktörlü kimlik doğrulama\n- Düzenli yedekleme (3-2-1 kuralı: 3 kopya, 2 farklı ortam, 1 yedek dışarıda)\n- Güncel antivirüs ve güvenlik duvarı kullanımı\n- Personel farkındalık eğitimleri\n- Kritik sistemler için erişim kontrolü\n- Düzenli güvenlik güncellemeleri ve yama yönetimi\n- Ağ segmentasyonu ve misafir ağı kullanımı\n- Olay müdahale planı hazırlığı",
+      "metadata": {
+        "category": "dijitallesme-teknoloji",
+        "subcategory": "Siber Güvenlik",
+        "level": "Başlangıç",
+        "duration": 25,
+        "summary": "KOBİ'lerin uygulaması gereken temel siber güvenlik önlemleri ve en iyi uygulamalar",
+        "problem": "KOBİ'ler siber güvenlik konusunda yeterli bilgiye sahip değildir ve saldırılara karşı savunmasızdır",
+        "learningOutcomes": [
+          "Temel siber tehditleri tanır",
+          "Kritik güvenlik önlemlerini uygular",
+          "Olay müdahale planı hazırlar"
+        ],
+        "examples": [
+          "Kötü amaçlı e-posta (phishing) örneği ve tanıma yöntemleri",
+          "Günlük yedekleme otomasyonu kurulumu"
+        ],
+        "steps": [
+          "1. Mevcut sistem envanterini çıkar",
+          "2. Erişim kontrol listelerini güncelle",
+          "3. Parola politikası oluştur ve MFA'yı etkinleştir",
+          "4. Yedekleme sistemi kur",
+          "5. Personel farkındalık eğitimi düzenle",
+          "6. Olay müdahale planı hazırla"
+        ],
+        "checklist": [
+          "Tüm cihazlarda güncel antivirüs var mı?",
+          "Veriler düzenli yedekleniyor mu?",
+          "Çalışanlar siber güvenlik eğitimi aldı mı?",
+          "MFA kullanılıyor mu?"
+        ]
+      },
+      "categorySlug": "dijitallesme-teknoloji",
+      "reviewGate": "requires_professional_approval",
+      "status": "draft",
+      "isDemo": false,
+      "verificationStatus": "source_verified",
+      "version": 1,
+      "publishedAt": null,
+      "sources": [
+        {
+          "sourceId": "99aa1d66-59e9-4044-90e0-50977119ab41"
+        },
+        {
+          "sourceId": "3daca327-b00a-4f5a-9de6-ed8b90f11690"
+        }
+      ]
+    },
+    {
+      "code": "DIG-AI-001",
+      "slug": "yapay-zeka-kobi-firsatlari",
+      "title": "KOBİ'ler için Yapay Zeka Fırsatları",
+      "type": "concept",
+      "content": "Yapay zeka (YZ) teknolojileri, büyük ölçekli şirketlerin yanı sıra KOBİ'ler için de önemli fırsatlar sunmaktadır. Bulut tabanlı YZ hizmetleri ve düşük maliyetli araçlar sayesinde KOBİ'ler de yapay zekanın avantajlarından yararlanabilir.\n\nKOBİ'lerin yapay zekadan faydalanabileceği alanlar:\n- Müşteri hizmetleri: YZ destekli chatbotlar\n- Pazarlama: Kişiselleştirilmiş öneri sistemleri, hedefleme\n- Operasyon: Talep tahmini, stok optimizasyonu\n- Finans: Otomatik faturalandırma, anomali tespiti\n- İK: Özgeçmiş tarama, yetenek analizi\n- Satış: Müşteri segmentasyonu, satış tahmini\n\nYapay zeka projelerine başlarken etik prensiplere ve veri gizliliğine dikkat edilmelidir. Şeffaflık, hesap verebilirlik ve insan denetimi temel etik ilkeler arasındadır.",
+      "metadata": {
+        "category": "dijitallesme-teknoloji",
+        "subcategory": "Yapay Zeka",
+        "level": "Başlangıç",
+        "duration": 20,
+        "summary": "KOBİ'lerin yapay zeka teknolojilerinden nasıl faydalanabileceği ve başlangıç stratejileri",
+        "problem": "KOBİ'ler yapay zekayı pahalı ve ulaşılmaz görür, oysa uygun maliyetli çözümler mevcuttur",
+        "learningOutcomes": [
+          "YZ teknolojilerinin KOBİ uygulamalarını sıralar",
+          "YZ projesi başlatma adımlarını planlar",
+          "YZ etik prensiplerini değerlendirir"
+        ],
+        "examples": [
+          "Müşteri hizmetleri chatbot'u ile 7/24 destek sağlama",
+          "Satış verilerini kullanarak talep tahmini modeli oluşturma"
+        ],
+        "steps": [
+          "1. İş süreçlerinde YZ fırsatlarını belirle",
+          "2. Küçük ve düşük riskli bir projeyle başla",
+          "3. Hazır YZ araçlarını ve API'leri değerlendir",
+          "4. Pilot projeyi uygula ve sonuçları ölç",
+          "5. Başarılı pilotu diğer alanlara yaygınlaştır"
+        ],
+        "checklist": [
+          "YZ ile çözülebilecek bir iş problemi tanımlandı mı?",
+          "Kullanılacak veri seti belirlendi mi?",
+          "YZ etik ilkeleri gözden geçirildi mi?"
+        ]
+      },
+      "categorySlug": "dijitallesme-teknoloji",
+      "reviewGate": "requires_professional_approval",
+      "status": "draft",
+      "isDemo": false,
+      "verificationStatus": "source_verified",
+      "version": 1,
+      "publishedAt": null,
+      "sources": [
+        {
+          "sourceId": "96aa503b-c9fb-4c14-abce-47c2cb207097"
+        },
+        {
+          "sourceId": "f8d55a70-6696-4498-8263-50bed2f90a7a"
+        }
+      ]
+    }
+  ]
+}

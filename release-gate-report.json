@@ -1,0 +1,63 @@
+{
+  "timestamp": "2026-07-21T15:33:11.363Z",
+  "duration": "85.1s",
+  "summary": {
+    "passed": 11,
+    "failed": 0,
+    "skipped": 0,
+    "unverified": 1,
+    "total": 12
+  },
+  "gates": [
+    {
+      "status": "pass",
+      "message": "npm install"
+    },
+    {
+      "status": "pass",
+      "message": "Unit tests (vitest)"
+    },
+    {
+      "status": "pass",
+      "message": "TypeScript (backend) check"
+    },
+    {
+      "status": "pass",
+      "message": "Frontend build (npm run build)"
+    },
+    {
+      "status": "pass",
+      "message": "Frontend dist/index.html exists"
+    },
+    {
+      "status": "pass",
+      "message": "Prisma schema validation"
+    },
+    {
+      "status": "pass",
+      "message": "Migration files detected (13 directories under prisma/migrations)"
+    },
+    {
+      "status": "pass",
+      "message": "docker compose config valid"
+    },
+    {
+      "status": "pass",
+      "message": "Dockerfile static: FROM instruction, EXPOSE/PORT"
+    },
+    {
+      "status": "unverified",
+      "message": "Docker daemon not available — image build & container healthcheck skipped"
+    },
+    {
+      "status": "pass",
+      "message": ".gitignore has .env and node_modules entries"
+    },
+    {
+      "status": "pass",
+      "message": ".env.example exists"
+    }
+  ],
+  "exitCode": 0,
+  "verdict": "PARTIAL"
+}

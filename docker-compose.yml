@@ -1,0 +1,71 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: localakademi-server
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # JWT_SECRET is REQUIRED — set in .env or shell environment
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_URL=file:/app/prisma/dev.db
+      # CORS_ORIGIN is REQUIRED for production — set to your frontend URL
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY:-}
+      - NVIDIA_MODEL=${NVIDIA_MODEL:-deepseek-ai/deepseek-v4-flash}
+      - AI_PROVIDER=${AI_PROVIDER:-nvidia}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-5}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-v4-flash}
+    volumes:
+      - server-data:/app/prisma
+      - server-uploads:/app/uploads
+    networks:
+      - localakademi-network
+
+  # PostgreSQL + pgvector (future - for vector search)
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: localakademi-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=localakademi
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-}
+      - POSTGRES_DB=localakademi
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - localakademi-network
+    profiles:
+      - with-pgvector
+
+  # Redis for caching (future)
+  redis:
+    image: redis:7-alpine
+    container_name: localakademi-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - localakademi-network
+    profiles:
+      - with-redis
+
+volumes:
+  server-data:
+  server-uploads:
+  postgres-data:
+  redis-data:
+
+networks:
+  localakademi-network:
+    driver: bridge
