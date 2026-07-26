@@ -156,7 +156,7 @@ async function build() {
   }
 
   server.setNotFoundHandler(async (request, reply) => {
-    if (hasPublicDir) {
+    if (hasPublicDir && process.env.NODE_ENV !== 'test') {
       return reply.sendFile('index.html', publicPath)
     }
     return reply.status(404).send({ error: 'Route not found' })

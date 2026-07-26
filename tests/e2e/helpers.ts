@@ -84,8 +84,6 @@ export async function createFullTestContext(originalDir: string): Promise<TestCo
     streamingChunks: ['E2E ', 'test ', 'yanıt ', 'parçaları.']
   })
 
-  applyMigrations(dbUrl)
-
   const prisma = new PrismaClient({
     datasources: { db: { url: dbUrl } }
   })

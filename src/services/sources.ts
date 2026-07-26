@@ -104,8 +104,8 @@ export async function sourceRoutes(fastify: FastifyInstance) {
     const where: any = {}
     if (search) {
       where.OR = [
-        { title: { contains: search } },
-        { url: { contains: search } }
+        { title: { contains: search, mode: 'insensitive' } },
+        { url: { contains: search, mode: 'insensitive' } }
       ]
     }
     if (authorityFilter && VALID_AUTHORITY_LEVELS.includes(authorityFilter)) {

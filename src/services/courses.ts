@@ -11,12 +11,12 @@ export async function courseRoutes(fastify: FastifyInstance) {
 
     const where: any = { published: true }
 
-    if (query.category) where.category = { contains: query.category }
+    if (query.category) where.category = { contains: query.category, mode: 'insensitive' }
     if (query.level) where.level = query.level
     if (query.search) {
       where.OR = [
-        { title: { contains: query.search } },
-        { description: { contains: query.search } },
+        { title: { contains: query.search, mode: 'insensitive' } },
+        { description: { contains: query.search, mode: 'insensitive' } },
       ]
     }
     if (query.knowledgeObjectId !== undefined) {

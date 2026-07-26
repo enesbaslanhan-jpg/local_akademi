@@ -130,6 +130,21 @@ async function main() {
   console.log(`\nTotal: ${totalSource} source rows → ${totalTarget} target rows`)
   console.log(`Tables: ${results.length} total, ${failed} failed`)
 
+  // Sync PostgreSQL sequences after data migration
+  const seqTables = [
+    'User', 'BusinessProfile', 'UserPreference', 'Course', 'Lesson',
+    'LessonProgress', 'Enrollment', 'KnowledgeObject', 'Category',
+    'KnowledgeObjectVersion', 'ImportJobError', 'LearningPath',
+    'MentorSession', 'Conversation', 'ConversationMessage', 'UserMemory',
+    'ConversationSummary', 'AuditLog',
+  ]
+  console.log('\n=== Syncing sequences ===')
+  for (const table of seqTables) {
+    const sql = `SELECT setval('"${table}_id_seq"', COALESCE((SELECT MAX(id) FROM "${table}"), 0) + 1, false) AS next_val`
+    const result = await pg.$queryRawUnsafe<Array<{ next_val: bigint }>>(sql)
+    console.log(`  ✓ ${table} → next id: ${result[0]?.next_val ?? '?'}`)
+  }
+
   await sqlite.$disconnect()
   await pg.$disconnect()
 

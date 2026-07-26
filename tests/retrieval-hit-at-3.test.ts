@@ -125,24 +125,16 @@ describe('Hit@3 aggregate', () => {
 
   it('integration test covers real candidate filtering', async () => {
     const { execSync } = await import('child_process')
-    const { mkdtempSync, rmSync, existsSync } = await import('fs')
-    const { join } = await import('path')
-    const { tmpdir } = await import('os')
     const { PrismaClient } = await import('@prisma/client')
 
-    const tmpDir = mkdtempSync(join(tmpdir(), 'hit3-'))
-    const dbPath = join(tmpDir, 'test.db')
-    const dbUrl = `file:${dbPath.replace(/\\/g, '/')}`
+    const schemaName = `hit3_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+    const baseUrl = 'postgresql://localakademi:localakademi@127.0.0.1:5432/localakademi_test'
+    const dbUrl = `${baseUrl}?schema=${schemaName}`
 
-    process.env.DATABASE_URL = dbUrl
-    try {
-      execSync('npx prisma db push --skip-generate --accept-data-loss --schema prisma/schema.prisma', {
-        cwd: process.cwd(), stdio: 'pipe', timeout: 60000,
-        env: { ...process.env, RUST_LOG: 'info' },
-      })
-    } finally {
-      delete process.env.DATABASE_URL
-    }
+    execSync(`npx prisma db push --skip-generate --accept-data-loss --schema prisma/schema.prisma`, {
+      cwd: process.cwd(), stdio: 'pipe', timeout: 60000,
+      env: { ...process.env, DATABASE_URL: dbUrl, RUST_LOG: 'info' },
+    })
 
     const prisma = new PrismaClient({ datasources: { db: { url: dbUrl } } })
     try {
@@ -215,7 +207,7 @@ describe('Hit@3 aggregate', () => {
       expect(dbPct).toBeGreaterThanOrEqual(0.80)
     } finally {
       await prisma.$disconnect()
-      if (existsSync(tmpDir)) rmSync(tmpDir, { recursive: true, force: true })
+      await prisma.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`)
     }
-  }, 15_000)
+  }, 30_000)
 })

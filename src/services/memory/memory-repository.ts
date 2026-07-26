@@ -103,9 +103,9 @@ export async function listMemories(
   if (status && isValidMemoryStatus(status)) where.status = status
   if (search) {
     where.OR = [
-      { value: { contains: search } },
-      { key: { contains: search } },
-      { summary: { contains: search } }
+      { value: { contains: search, mode: 'insensitive' } },
+      { key: { contains: search, mode: 'insensitive' } },
+      { summary: { contains: search, mode: 'insensitive' } }
     ]
   }
 

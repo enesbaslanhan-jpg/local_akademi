@@ -264,13 +264,13 @@ export class LexicalKnowledgeRetriever implements Retriever {
 
     const priorityOR: Array<Record<string, unknown>> = []
     for (const v of allVariants) {
-      priorityOR.push({ code: { contains: v } })
-      priorityOR.push({ title: { contains: v } })
-      priorityOR.push({ category: { name: { contains: v } } })
-      priorityOR.push({ sources: { some: { source: { title: { contains: v } } } } })
+      priorityOR.push({ code: { contains: v, mode: 'insensitive' } })
+      priorityOR.push({ title: { contains: v, mode: 'insensitive' } })
+      priorityOR.push({ category: { name: { contains: v, mode: 'insensitive' } } })
+      priorityOR.push({ sources: { some: { source: { title: { contains: v, mode: 'insensitive' } } } } })
     }
     if (nq.phrase) {
-      priorityOR.push({ title: { contains: nq.phrase } })
+      priorityOR.push({ title: { contains: nq.phrase, mode: 'insensitive' } })
     }
 
     const priorityCandidates = await this.prisma.knowledgeObject.findMany({
@@ -282,10 +282,10 @@ export class LexicalKnowledgeRetriever implements Retriever {
 
     const contentOR: Array<Record<string, unknown>> = []
     for (const v of allVariants) {
-      contentOR.push({ content: { contains: v } })
+      contentOR.push({ content: { contains: v, mode: 'insensitive' } })
     }
     if (nq.phrase) {
-      contentOR.push({ content: { contains: nq.phrase } })
+      contentOR.push({ content: { contains: nq.phrase, mode: 'insensitive' } })
     }
 
     const contentCandidates = await this.prisma.knowledgeObject.findMany({

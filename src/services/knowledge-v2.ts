@@ -21,7 +21,7 @@ function parseFilters(query: any) {
     }
   }
   if (query.level) {
-    filters.metadata = { contains: query.level }
+    filters.metadata = { contains: query.level, mode: 'insensitive' }
   }
   if (query.type) filters.type = query.type
   if (query.status) filters.status = query.status
@@ -30,13 +30,13 @@ function parseFilters(query: any) {
   if (query.isDemo !== undefined) filters.isDemo = query.isDemo === 'true'
   if (query.search) {
     filters.OR = [
-      { title: { contains: query.search } },
-      { summary: { contains: query.search } },
-      { problem: { contains: query.search } },
-      { quickAnswer: { contains: query.search } },
-      { content: { contains: query.search } },
-      { code: { contains: query.search } },
-      { slug: { contains: query.search } }
+      { title: { contains: query.search, mode: 'insensitive' } },
+      { summary: { contains: query.search, mode: 'insensitive' } },
+      { problem: { contains: query.search, mode: 'insensitive' } },
+      { quickAnswer: { contains: query.search, mode: 'insensitive' } },
+      { content: { contains: query.search, mode: 'insensitive' } },
+      { code: { contains: query.search, mode: 'insensitive' } },
+      { slug: { contains: query.search, mode: 'insensitive' } }
     ]
   }
   return filters
@@ -297,10 +297,10 @@ export async function knowledgeV2Routes(fastify: FastifyInstance) {
     if (query.category) where.category = { name: query.category }
     if (query.search) {
       where.OR = [
-        { title: { contains: query.search } },
-        { summary: { contains: query.search } },
-        { content: { contains: query.search } },
-        { code: { contains: query.search } }
+        { title: { contains: query.search, mode: 'insensitive' } },
+        { summary: { contains: query.search, mode: 'insensitive' } },
+        { content: { contains: query.search, mode: 'insensitive' } },
+        { code: { contains: query.search, mode: 'insensitive' } }
       ]
     }
 
