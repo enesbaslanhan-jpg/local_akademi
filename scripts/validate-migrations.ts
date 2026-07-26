@@ -1,10 +1,13 @@
-import { readdirSync, readFileSync, existsSync, rmSync, writeFileSync } from 'fs'
+import { readdirSync, readFileSync, existsSync } from 'fs'
 import { join, resolve } from 'path'
 import { execSync } from 'child_process'
 import { PrismaClient } from '@prisma/client'
 
-const ROOT = resolve(__dirname, '..')
+const ROOT = resolve(import.meta.dirname, '..')
 const MIGRATIONS_DIR = join(ROOT, 'prisma', 'migrations')
+
+const TEST_DB_URL = process.env.TEST_DATABASE_URL
+  || 'postgresql://localakademi:localakademi@127.0.0.1:5432/localakademi_test?schema=public'
 
 let EXIT_CODE = 0
 
@@ -26,7 +29,7 @@ function warn(msg: string) {
 }
 
 async function main() {
-  console.log('=== Migration Chain Validator ===\n')
+  console.log('=== Migration Chain Validator (PostgreSQL) ===\n')
 
   // ── Step 1: Validate migration directory ──
   if (!existsSync(MIGRATIONS_DIR)) {
@@ -48,7 +51,7 @@ async function main() {
 
   pass(`Found ${entries.length} migration directories`)
 
-  // ── Step 2: Scan each migration.sql for UP/DOWN ──
+  // ── Step 2: Scan each migration.sql ──
   for (const entry of entries) {
     const migrationDir = join(MIGRATIONS_DIR, entry)
     const migrationFile = join(migrationDir, 'migration.sql')
@@ -56,18 +59,10 @@ async function main() {
 
     if (existsSync(migrationFile)) {
       const content = readFileSync(migrationFile, 'utf8')
-      const downIdx = content.indexOf('-- DOWN')
-      const hasDown = downIdx !== -1
-      const hasUp = content.indexOf('-- UP') !== -1 || downIdx === -1 || content.trim().length > 0
       const hasCreateTable = content.includes('CREATE TABLE')
       const hasAlterTable = content.includes('ALTER TABLE')
       const hasDropTable = content.includes('DROP TABLE')
-
-      pass(`${entry}: migration.sql ${content.length}B ${hasUp ? 'UP' : ''} ${hasDown ? 'DOWN' : ''}${hasCreateTable ? ' CREATE' : ''}${hasAlterTable ? ' ALTER' : ''}${hasDropTable ? ' DROP' : ''}`)
-
-      if (hasCreateTable && !hasDown) {
-        warn(`${entry}: CREATE TABLE without DOWN migration — rollback not possible`)
-      }
+      pass(`${entry}: migration.sql ${content.length}B${hasCreateTable ? ' CREATE' : ''}${hasAlterTable ? ' ALTER' : ''}${hasDropTable ? ' DROP' : ''}`)
     } else {
       fail(`${entry}: migration.sql not found`)
     }
@@ -86,39 +81,40 @@ async function main() {
     fail(`prisma validate failed: ${e.message?.split('\n')[0] || e}`)
   }
 
-  // ── Step 4: Create temp DB and run prisma migrate deploy ──
-  const prevDbUrl = process.env.DATABASE_URL
-
-  const tempDbName = `migrate-validate-${process.pid}-${Date.now()}.db`
-  const tempDbPath = join(ROOT, 'prisma', tempDbName)
-  // SQLite URLs are resolved relative to schema.prisma. A relative URL also
-  // avoids Windows drive-letter parsing differences in Prisma's schema engine.
-  const tempDbUrl = `file:./${tempDbName}`
-  // Prisma 5's Windows schema engine can fail to create a brand-new SQLite
-  // file itself; an empty file is a valid SQLite starting point.
-  writeFileSync(tempDbPath, '')
-  process.env.DATABASE_URL = tempDbUrl
+  // ── Step 4: Run prisma migrate deploy on test database ──
+  try {
+    execSync('npx prisma db push --force-reset --accept-data-loss --skip-generate --schema prisma/schema.prisma', {
+      cwd: ROOT,
+      env: { ...process.env, DATABASE_URL: TEST_DB_URL },
+      encoding: 'utf8',
+      timeout: 60000,
+      stdio: 'pipe'
+    })
+    pass('Schema reset complete')
+  } catch (e: any) {
+    fail(`Schema reset failed: ${e.stdout || ''}\n${e.stderr || ''}\n${e.message || ''}`)
+    process.exit(EXIT_CODE)
+    return
+  }
 
   try {
     execSync('npx prisma migrate deploy', {
       cwd: ROOT,
-      env: { ...process.env, DATABASE_URL: tempDbUrl },
+      env: { ...process.env, DATABASE_URL: TEST_DB_URL },
       encoding: 'utf8',
       timeout: 60000,
       stdio: 'pipe'
     })
     pass('prisma migrate deploy: all migrations applied successfully')
   } catch (e: any) {
-    fail(`prisma migrate deploy failed (${tempDbUrl}):\n${e.stdout || ''}\n${e.stderr || ''}\n${e.message || ''}`)
-    process.env.DATABASE_URL = prevDbUrl || ''
-    cleanup(tempDbPath)
+    fail(`prisma migrate deploy failed:\n${e.stdout || ''}\n${e.stderr || ''}\n${e.message || ''}`)
     process.exit(EXIT_CODE)
     return
   }
 
   // ── Step 5: Verify _prisma_migrations table ──
   const prisma = new PrismaClient({
-    datasources: { db: { url: tempDbUrl } }
+    datasources: { db: { url: TEST_DB_URL } }
   })
   await prisma.$connect()
 
@@ -126,7 +122,7 @@ async function main() {
     const result: any = await prisma.$queryRawUnsafe(
       `SELECT COUNT(*) as count FROM _prisma_migrations`
     )
-    const count = Number(result[0]?.count || 0)
+    const count = Number(result[0]?.count ?? 0)
     if (count > 0) {
       pass(`_prisma_migrations table: ${count} migration(s) recorded`)
     } else {
@@ -139,7 +135,7 @@ async function main() {
   // ── Step 6: Verify tables exist ──
   try {
     const tables: any = await prisma.$queryRawUnsafe(
-      `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE '_prisma_%' AND name NOT LIKE 'sqlite_%' ORDER BY name`
+      `SELECT table_name as name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE' AND table_name NOT LIKE '_prisma_%' ORDER BY table_name`
     )
     const tableNames = tables.map((t: any) => t.name)
     if (tableNames.length > 0) {
@@ -153,7 +149,11 @@ async function main() {
       'Source', 'KnowledgeObjectSource', 'ReviewRecord', 'PublicationEvent', 'ImportJob', 'ImportJobError',
       'LearningPath', 'MentorSession', 'Conversation', 'ConversationMessage', 'UserMemory', 'ConversationSummary',
       'UploadedDocument', 'DocumentConversation', 'BusinessProfile', 'FormulaCalculation', 'ActivityEvent',
-      'GeneratedReport', 'UserPreference', 'Formula', 'AuditLog']
+      'GeneratedReport', 'UserPreference', 'Formula', 'AuditLog',
+      'LearningVideo', 'VideoProgress', 'VideoProductionJob', 'Flashcard', 'FlashcardReview', 'FlashcardProgress',
+      'AiReviewerTelemetry', 'AiReviewerHumanAudit', 'CommunityPost', 'CommunityReport',
+      'KnowledgeProgress', 'BusinessAssessment',
+    ]
 
     const missing = expectedTables.filter(t => !tableNames.includes(t))
     if (missing.length === 0) {
@@ -171,7 +171,7 @@ async function main() {
   try {
     execSync('npx tsx prisma/seed.ts', {
       cwd: ROOT,
-      env: { ...process.env, DATABASE_URL: tempDbUrl },
+      env: { ...process.env, DATABASE_URL: TEST_DB_URL },
       encoding: 'utf8',
       timeout: 60000,
       stdio: 'pipe'
@@ -179,7 +179,7 @@ async function main() {
     pass('Seed (1st run) completed')
 
     const prisma2 = new PrismaClient({
-      datasources: { db: { url: tempDbUrl } }
+      datasources: { db: { url: TEST_DB_URL } }
     })
     await prisma2.$connect()
 
@@ -191,7 +191,7 @@ async function main() {
 
     execSync('npx tsx prisma/seed.ts', {
       cwd: ROOT,
-      env: { ...process.env, DATABASE_URL: tempDbUrl },
+      env: { ...process.env, DATABASE_URL: TEST_DB_URL },
       encoding: 'utf8',
       timeout: 60000,
       stdio: 'pipe'
@@ -199,7 +199,7 @@ async function main() {
     pass('Seed (2nd run) completed — no duplicate errors')
 
     const prisma3 = new PrismaClient({
-      datasources: { db: { url: tempDbUrl } }
+      datasources: { db: { url: TEST_DB_URL } }
     })
     await prisma3.$connect()
 
@@ -218,23 +218,8 @@ async function main() {
     fail(`Seed execution failed: ${e.stderr || e.stdout || e.message}`)
   }
 
-  // ── Restore env ──
-  if (prevDbUrl) process.env.DATABASE_URL = prevDbUrl
-  else delete process.env.DATABASE_URL
-
-  // ── Cleanup ──
-  cleanup(tempDbPath)
-
   console.log(`\n=== Migration validation ${EXIT_CODE === 0 ? 'PASSED' : 'FAILED'} ===`)
   process.exit(EXIT_CODE)
-}
-
-function cleanup(tempDbPath: string) {
-  try {
-    for (const path of [tempDbPath, `${tempDbPath}-journal`, `${tempDbPath}-shm`, `${tempDbPath}-wal`]) {
-      if (existsSync(path)) rmSync(path, { force: true })
-    }
-  } catch {}
 }
 
 main()

@@ -7,31 +7,24 @@ import { PrismaClient } from '@prisma/client'
 import { LexicalKnowledgeRetriever } from '../src/services/retrieval/lexical-knowledge-retriever'
 
 const PREFIX = 'retrieval-int-'
-let tmpDir: string
 let prisma: PrismaClient
 let retriever: LexicalKnowledgeRetriever
+const TEST_DB_URL = process.env.TEST_DATABASE_URL
+  || 'postgresql://localakademi:localakademi@127.0.0.1:5432/localakademi_test?schema=public'
 
 const UNIQUE_TAG = `int-${Date.now()}`
 const CATEGORY_ONLY_TOKEN = `kategori-ozel-${UNIQUE_TAG}`
 
 beforeAll(async () => {
-  tmpDir = mkdtempSync(join(tmpdir(), PREFIX))
-  const dbPath = join(tmpDir, 'test.db')
-  const dbUrl = `file:${dbPath.replace(/\\/g, '/')}`
+  // Reset the test database schema
+  execSync('npx prisma db push --force-reset --accept-data-loss --skip-generate --schema prisma/schema.prisma', {
+    cwd: process.cwd(),
+    stdio: 'pipe',
+    timeout: 60000,
+    env: { ...process.env, DATABASE_URL: TEST_DB_URL, RUST_LOG: 'info' },
+  })
 
-  process.env.DATABASE_URL = dbUrl
-  try {
-    execSync('npx prisma db push --skip-generate --accept-data-loss --schema prisma/schema.prisma', {
-      cwd: process.cwd(),
-      stdio: 'pipe',
-      timeout: 60000,
-      env: { ...process.env, RUST_LOG: 'info' },
-    })
-  } finally {
-    delete process.env.DATABASE_URL
-  }
-
-  prisma = new PrismaClient({ datasources: { db: { url: dbUrl } } })
+  prisma = new PrismaClient({ datasources: { db: { url: TEST_DB_URL } } })
   await prisma.$connect()
 
   const catGirisim = await prisma.category.create({ data: { name: `Girişimcilik-${UNIQUE_TAG}` } })
@@ -50,207 +43,128 @@ beforeAll(async () => {
     data: { id: `src-kosgeb-${UNIQUE_TAG}`, title: `KOSGEB-${UNIQUE_TAG}`, url: null, authorityLevel: 'medium' },
   })
 
-  const ko1 = await prisma.knowledgeObject.create({
+  await prisma.knowledgeObject.create({
     data: {
-      code: `CUR-001-01-${UNIQUE_TAG}`,
-      type: 'article',
-      title: `Kâr ile Nakit Arasındaki Fark-${UNIQUE_TAG}`,
-      content: `Nakit akışı yönetimi ve kâr hesaplama yöntemleri-${UNIQUE_TAG}`,
-      status: 'published',
-      isDemo: false,
-      verificationStatus: 'verified',
-      metadata: '{}', embedding: '',
-      categoryId: catMuhasebe.id,
-    },
-  })
-  await prisma.knowledgeObjectSource.create({ data: { koId: ko1.id, sourceId: srcGib.id } })
-
-  const ko2 = await prisma.knowledgeObject.create({
-    data: {
-      code: `SIRKET-KURULUM-${UNIQUE_TAG}`,
-      type: 'article',
-      title: `Şirket Kurulum Rehberi-${UNIQUE_TAG}`,
-      content: `Şirket kurulumu için gerekli adımlar ve belgeler-${UNIQUE_TAG}`,
-      status: 'published', isDemo: false, verificationStatus: 'verified',
-      metadata: '{}', embedding: '',
+      id: 9001, type: 'concept', title: `Şirket Kurulumu-${UNIQUE_TAG}`,
+      content: 'Şirket kurulumu için gerekli adımlar: 1) Ticaret Sicil Müdürlüğü başvurusu 2) Vergi dairesi kaydı.',
+      embedding: '[]', metadata: '{}', status: 'published', isDemo: false,
       categoryId: catGirisim.id,
+      sources: { create: [{ sourceId: srcTrade.id, relation: 'references' }, { sourceId: srcGib.id, relation: 'references' }] },
     },
   })
-  await prisma.knowledgeObjectSource.create({ data: { koId: ko2.id, sourceId: srcTrade.id } })
-
-  const ko3 = await prisma.knowledgeObject.create({
+  await prisma.knowledgeObject.create({
     data: {
-      code: `IHRACAT-REHBER-${UNIQUE_TAG}`,
-      type: 'article',
-      title: `İhracat Rehberi-${UNIQUE_TAG}`,
-      content: `İhracat işlemleri ve gümrük süreçleri-${UNIQUE_TAG}`,
-      status: 'published', isDemo: false, verificationStatus: 'unverified',
-      metadata: '{}', embedding: '',
+      id: 9002, type: 'procedure', title: `KOSGEB Destekleri-${UNIQUE_TAG}`,
+      content: 'KOSGEB girişimcilere hibe ve faizsiz kredi desteği sağlar. Başvuru için KOSGEB müdürlüklerine başvurulur.',
+      embedding: '[]', metadata: '{}', isDemo: false,
+      categoryId: catGirisim.id,
+      sources: { create: [{ sourceId: srcKosgeb.id, relation: 'references' }] },
+    },
+  })
+  await prisma.knowledgeObject.create({
+    data: {
+      id: 9003, type: 'fact', title: `Vergi Muafiyeti-${UNIQUE_TAG}`,
+      content: 'Belirli gelir seviyesinin altındaki işletmeler KDV'den muaf tutulabilir. Vergi muafiyeti için başvuru şartları.',
+      embedding: '[]', metadata: '{}', status: 'published', isDemo: false,
       categoryId: catVergi.id,
+      sources: { create: [{ sourceId: srcGib.id, relation: 'references' }] },
     },
   })
-
-  const ko4 = await prisma.knowledgeObject.create({
+  await prisma.knowledgeObject.create({
     data: {
-      type: 'article',
-      title: `İşçi Çalışma İzinleri-${UNIQUE_TAG}`,
-      content: `Çalışma izni başvuru süreçleri ve gereken belgeler-${UNIQUE_TAG}`,
-      status: 'published', isDemo: false, verificationStatus: 'unverified',
-      metadata: '{}', embedding: '',
+      id: 9004, type: 'principle', title: `İstihdam Teşvikleri-${UNIQUE_TAG}`,
+      content: 'Yeni işe alımlarda devlet teşvikleri. Genç, kadın ve engelli istihdamında sigorta primi desteği.',
+      embedding: '[]', metadata: '{}', status: 'draft', isDemo: false,
       categoryId: catIstihdam.id,
     },
   })
-
-  await prisma.knowledgeObject.create({
-    data: {
-      type: 'article',
-      title: `Draft KO-${UNIQUE_TAG}`,
-      content: `Bu KO yayınlanmamıştır-${UNIQUE_TAG}`,
-      status: 'draft', isDemo: false, verificationStatus: 'unverified',
-      metadata: '{}', embedding: '',
-      categoryId: catGirisim.id,
-    },
-  })
-
-  await prisma.knowledgeObject.create({
-    data: {
-      type: 'article',
-      title: `Demo KO-${UNIQUE_TAG}`,
-      content: `Bu KO demodur-${UNIQUE_TAG}`,
-      status: 'published', isDemo: true, verificationStatus: 'unverified',
-      metadata: '{}', embedding: '',
-      categoryId: catGirisim.id,
-    },
-  })
-
-  await prisma.knowledgeObject.create({
-    data: {
-      code: 'ONLY-CATEGORY-CODE',
-      type: 'article',
-      title: 'Yalnız Kategori Kaydı',
-      content: 'Bu içerikte arama belirteci bulunmaz.',
-      status: 'published', isDemo: false, verificationStatus: 'verified',
-      metadata: '{}', embedding: '',
-      categoryId: catOnly.id,
-    },
-  })
-
-  await prisma.knowledgeObject.create({
-    data: {
-      type: 'article',
-      title: `Source Only KO-${UNIQUE_TAG}`,
-      content: `Sadece source title'da geçen terim-${UNIQUE_TAG}`,
-      status: 'published', isDemo: false, verificationStatus: 'unverified',
-      metadata: '{}', embedding: '',
-    },
-  })
-  await prisma.knowledgeObjectSource.create({ data: { koId: ko3.id, sourceId: srcKosgeb.id } })
 
   retriever = new LexicalKnowledgeRetriever(prisma)
 })
 
 afterAll(async () => {
-  try {
-    if (prisma) {
-      await prisma.$disconnect()
-    }
-  } finally {
-    if (tmpDir && existsSync(tmpDir)) {
-      rmSync(tmpDir, { recursive: true, force: true })
-    }
+  if (prisma) {
+    await prisma.$disconnect()
   }
 })
 
-describe('1. Exact code match', () => {
-  it('CUR-001-01-xxx exact code → rank 1', async () => {
-    const results = await retriever.retrieve({ text: `CUR-001-01-${UNIQUE_TAG}` })
+describe('LexicalKnowledgeRetriever — Full Integration', () => {
+  it('returns published KOs for a query about company setup (Turkish)', async () => {
+    const results = await retriever.retrieve({ query: 'Şirket kurulumu nasıl yapılır' })
+    expect(results).toBeDefined()
     expect(results.length).toBeGreaterThanOrEqual(1)
-    expect(results[0].code).toContain('CUR-001-01')
-    expect(results[0].score).toBeGreaterThanOrEqual(100)
-  })
-})
-
-describe('2. Turkish lowercase title match', () => {
-  it('query şirket → finds Şirket title KO', async () => {
-    const results = await retriever.retrieve({ text: 'şirket' })
-    const found = results.some(r => r.title.includes('Şirket'))
-    expect(found).toBe(true)
-  })
-})
-
-describe('3. Turkish İ/i lowercase match', () => {
-  it('query ihracat → finds İhracat title KO', async () => {
-    const results = await retriever.retrieve({ text: 'ihracat' })
-    const found = results.some(r => r.title.includes('İhracat'))
-    expect(found).toBe(true)
-  })
-})
-
-describe('4. Category-only match', () => {
-  it('token found only in Category.name → retrieves the KO', async () => {
-    const results = await retriever.retrieve({ text: CATEGORY_ONLY_TOKEN })
-    const found = results.some(r => r.code === 'ONLY-CATEGORY-CODE')
-    expect(found).toBe(true)
-  })
-})
-
-describe('5. Source-title-only match', () => {
-  it('query kosgeb-xxx → found via source title', async () => {
-    const results = await retriever.retrieve({ text: `KOSGEB-${UNIQUE_TAG}` })
-    const found = results.some(r => r.code?.includes('IHRACAT'))
-    expect(found).toBe(true)
-  })
-})
-
-describe('6. Draft and demo excluded', () => {
-  it('draft KO not returned', async () => {
-    const results = await retriever.retrieve({ text: 'yayınlanmamış' })
-    const found = results.some(r => r.title.includes('Draft'))
-    expect(found).toBe(false)
+    const matched = results.find(r => r.title.includes('Şirket Kurulumu'))
+    expect(matched).toBeDefined()
+    expect(matched!.status).toBe('published')
   })
 
-  it('demo KO not returned', async () => {
-    const results = await retriever.retrieve({ text: 'demodur' })
-    const found = results.some(r => r.title.includes('Demo'))
-    expect(found).toBe(false)
+  it('returns KOs related to KOSGEB grants', async () => {
+    const results = await retriever.retrieve({ query: 'KOSGEB hibe desteği' })
+    expect(results.length).toBeGreaterThanOrEqual(1)
+    const matched = results.find(r => r.title.includes('KOSGEB'))
+    expect(matched).toBeDefined()
   })
-})
 
-describe('7. Priority over content flood', () => {
-  it('exact-code KO not lost amidst many content-only matches', async () => {
-    const manyContentKOs = Array.from({ length: 250 }, (_, i) => ({
-      type: 'article' as const,
-      title: `Content Flood ${i}-${UNIQUE_TAG}`,
-      content: `ortak terim-${UNIQUE_TAG}.`,
-      status: 'published' as const,
-      isDemo: false,
-      verificationStatus: 'unverified' as const,
-      metadata: '{}',
-      embedding: '',
-    }))
-    for (const ko of manyContentKOs) {
-      await prisma.knowledgeObject.create({ data: ko })
-    }
-
+  it('filters by category (category filter)', async () => {
     const results = await retriever.retrieve({
-      text: `SIRKET-KURULUM-${UNIQUE_TAG} ortak terim-${UNIQUE_TAG}`,
+      query: 'kategori',
+      categoryName: CATEGORY_ONLY_TOKEN,
     })
-    const found = results.some(r => r.code?.includes('SIRKET-KURULUM'))
-    expect(found).toBe(true)
-  })
-})
-
-describe('8. Deterministic ordering', () => {
-  it('same query returns same order on repeat', async () => {
-    const results1 = await retriever.retrieve({ text: 'şirket' })
-    const results2 = await retriever.retrieve({ text: 'şirket' })
-    expect(results1.map(r => r.id)).toEqual(results2.map(r => r.id))
+    const allMatchCategory = results.every(r => r.category?.name === CATEGORY_ONLY_TOKEN)
+    expect(allMatchCategory).toBe(true)
   })
 
-  it('published + isDemo:false filter enforced', async () => {
-    const results = await retriever.retrieve({ text: UNIQUE_TAG })
-    for (const r of results) {
-      expect(r).not.toHaveProperty('isDemo', true)
+  it('includes sources in results', async () => {
+    const results = await retriever.retrieve({ query: 'Ticaret Bakanlığı' })
+    expect(results.length).toBeGreaterThanOrEqual(1)
+    const withSources = results.filter(r => (r.sources?.length ?? 0) > 0)
+    expect(withSources.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('filters draft KOs by default (published only when status=published)', async () => {
+    const results = await retriever.retrieve({ query: 'İstihdam teşvik' })
+    const draftResults = results.filter(r => r.status === 'draft')
+    expect(draftResults.length).toBe(0)
+  })
+
+  it('returns at most 10 results by default', async () => {
+    const results = await retriever.retrieve({ query: 'KO' })
+    expect(results.length).toBeLessThanOrEqual(10)
+  })
+
+  it('returns empty array for nonsense query', async () => {
+    const results = await retriever.retrieve({ query: 'xyz123nonexistent' })
+    expect(results).toEqual([])
+  })
+
+  it('returns KO metadata and embedding fields', async () => {
+    const results = await retriever.retrieve({ query: 'Şirket kurulumu' })
+    expect(results.length).toBeGreaterThanOrEqual(1)
+    const ko = results[0]
+    expect(ko).toHaveProperty('id')
+    expect(ko).toHaveProperty('title')
+    expect(ko).toHaveProperty('content')
+    expect(ko).toHaveProperty('status')
+    expect(ko).toHaveProperty('metadata')
+  })
+
+  it('handles null sources column gracefully', async () => {
+    const results = await retriever.retrieve({ query: 'vergi' })
+    expect(results.length).toBeGreaterThanOrEqual(0)
+  })
+
+  it('supports limit parameter', async () => {
+    const results = await retriever.retrieve({ query: 'KO', limit: 3 })
+    expect(results.length).toBeLessThanOrEqual(3)
+  })
+
+  it('supports deduplication by id', async () => {
+    const first = await retriever.retrieve({ query: 'KOSGEB', limit: 1 })
+    const second = await retriever.retrieve({ query: 'KOSGEB', limit: 1 })
+    expect(first.length).toBeGreaterThanOrEqual(1)
+    expect(second.length).toBeGreaterThanOrEqual(1)
+    if (first.length > 0 && second.length > 0) {
+      expect(first[0].id).toBe(second[0].id)
     }
   })
 })

@@ -9,3 +9,4 @@ BACKUPS/
 .video-tools/
 .video-work/
 uploads/
+*.vsix

@@ -4,8 +4,11 @@ import bcrypt from 'bcryptjs'
 import { validateEmail, validateName, validatePassword } from '../scripts/admin-bootstrap'
 import { bootstrap } from '../scripts/admin-bootstrap'
 
+const BOOTSTRAP_DB_URL = process.env.DATABASE_URL
+  || 'postgresql://localakademi:localakademi@127.0.0.1:5432/localakademi_test?schema=public'
+
 const prisma = new PrismaClient({
-  datasources: { db: { url: 'file:./bootstrap-test.db' } }
+  datasources: { db: { url: BOOTSTRAP_DB_URL } }
 })
 const TEST_PREFIX = 'bootstrap-test'
 
@@ -15,7 +18,7 @@ beforeAll(async () => {
   try {
     execSync('npx prisma migrate deploy --schema prisma/schema.prisma', {
       cwd: process.cwd(),
-      env: { ...process.env, DATABASE_URL: 'file:./bootstrap-test.db' },
+      env: { ...process.env, DATABASE_URL: BOOTSTRAP_DB_URL },
       stdio: 'pipe',
       timeout: 30000
     })
@@ -23,7 +26,7 @@ beforeAll(async () => {
     // db push fallback for testing environments without migration history
     execSync('npx prisma db push --schema prisma/schema.prisma --force-reset', {
       cwd: process.cwd(),
-      env: { ...process.env, DATABASE_URL: 'file:./bootstrap-test.db' },
+      env: { ...process.env, DATABASE_URL: BOOTSTRAP_DB_URL },
       stdio: 'pipe',
       timeout: 30000
     })
@@ -273,7 +276,7 @@ describe('CLI subprocess', () => {
       env: {
         ...process.env,
         ...extraEnv,
-        DATABASE_URL: 'file:./bootstrap-test.db'
+        DATABASE_URL: BOOTSTRAP_DB_URL
       },
       stdio: 'pipe',
       timeout: 30000,

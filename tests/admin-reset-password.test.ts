@@ -3,8 +3,11 @@ import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { resetPassword } from '../scripts/admin-reset-password'
 
+const RESET_DB_URL = process.env.DATABASE_URL
+  || 'postgresql://localakademi:localakademi@127.0.0.1:5432/localakademi_test?schema=public'
+
 const prisma = new PrismaClient({
-  datasources: { db: { url: 'file:./reset-password-test.db' } }
+  datasources: { db: { url: RESET_DB_URL } }
 })
 const TEST_PREFIX = 'reset-test'
 
@@ -13,14 +16,14 @@ beforeAll(async () => {
   try {
     execSync('npx prisma migrate deploy --schema prisma/schema.prisma', {
       cwd: process.cwd(),
-      env: { ...process.env, DATABASE_URL: 'file:./reset-password-test.db' },
+      env: { ...process.env, DATABASE_URL: RESET_DB_URL },
       stdio: 'pipe',
       timeout: 30000
     })
   } catch {
     execSync('npx prisma db push --schema prisma/schema.prisma --force-reset', {
       cwd: process.cwd(),
-      env: { ...process.env, DATABASE_URL: 'file:./reset-password-test.db' },
+      env: { ...process.env, DATABASE_URL: RESET_DB_URL },
       stdio: 'pipe',
       timeout: 30000
     })
@@ -186,7 +189,7 @@ describe('CLI subprocess', () => {
       env: {
         ...process.env,
         ...extraEnv,
-        DATABASE_URL: 'file:./reset-password-test.db'
+        DATABASE_URL: RESET_DB_URL
       },
       stdio: 'pipe',
       timeout: 30000,

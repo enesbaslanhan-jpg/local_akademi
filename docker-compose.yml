@@ -12,7 +12,7 @@ services:
       - PORT=3000
       # JWT_SECRET is REQUIRED — set in .env or shell environment
       - JWT_SECRET=${JWT_SECRET}
-      - DATABASE_URL=file:/app/prisma/dev.db
+      - DATABASE_URL=postgresql://localakademi:${DB_PASSWORD:-localakademi}@postgres:5432/localakademi?schema=public
       # CORS_ORIGIN is REQUIRED for production — set to your frontend URL
       - CORS_ORIGIN=${CORS_ORIGIN}
       - NVIDIA_API_KEY=${NVIDIA_API_KEY:-}
@@ -25,6 +25,9 @@ services:
     volumes:
       - server-data:/app/prisma
       - server-uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - localakademi-network
 

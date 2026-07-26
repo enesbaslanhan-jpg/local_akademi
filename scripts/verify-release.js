@@ -146,7 +146,7 @@ async function main() {
         execSync([
           'docker', 'run', '--rm', '-d',
           '--name', containerName,
-          '-e', 'DATABASE_URL=file:/app/prisma/dev.db',
+          '-e', 'DATABASE_URL=postgresql://localakademi:localakademi@host.docker.internal:5432/localakademi_ci?schema=public',
           '-e', 'JWT_SECRET=e2e-docker-secret-key-min-32-bytes-long!!',
           '-e', 'JWT_EXPIRES_IN=1h',
           '-e', 'NODE_ENV=production',

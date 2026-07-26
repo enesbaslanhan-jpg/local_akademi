@@ -19,13 +19,28 @@ env:
   AI_REQUEST_TIMEOUT_MS: '10000'
   BETA_MODE: 'true'
   ENABLE_MEMORY_API: 'false'
-  # Prisma uses SQLite for CI — no PostgreSQL service needed
-  DATABASE_URL: file:./prisma/ci.db
+  DATABASE_URL: postgresql://localakademi:localakademi@localhost:5432/localakademi_ci?schema=public
+  DB_PASSWORD: localakademi
 
 jobs:
   release-gate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: localakademi
+          POSTGRES_PASSWORD: localakademi
+          POSTGRES_DB: localakademi_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready -U localakademi -d localakademi_ci
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - uses: actions/checkout@v4
@@ -49,36 +64,25 @@ jobs:
 
       - name: Prisma migrate (CI)
         run: npx prisma migrate deploy
-        env:
-          DATABASE_URL: file:./prisma/ci.db
 
       - name: Seed database
         run: npx tsx prisma/seed.ts
-        env:
-          DATABASE_URL: file:./prisma/ci.db
 
       - name: Unit tests
         run: npm test
-        env:
-          DATABASE_URL: file:./prisma/ci.db
 
       - name: E2E tests
         run: npm run test:e2e
-        env:
-          DATABASE_URL: file:./prisma/ci.db
 
       - name: Secret scan
         run: npm run secret:scan
 
       - name: Migration validation
         run: npm run validate:migrations
-        env:
-          DATABASE_URL: file:./prisma/ci.db
 
       - name: Full release gate
         run: npm run verify:release
         env:
-          DATABASE_URL: file:./prisma/ci.db
           SKIP_NPM_INSTALL: 'true'
 
       - name: Frontend smoke test
@@ -89,13 +93,10 @@ jobs:
           node scripts/frontend-smoke.js || true
           kill $SERVER_PID 2>/dev/null || true
         env:
-          DATABASE_URL: file:./prisma/ci.db
           PORT: '3000'
 
       - name: Release report
         run: npm run release:report
-        env:
-          DATABASE_URL: file:./prisma/ci.db
 
       - name: Upload release report
         uses: actions/upload-artifact@v4

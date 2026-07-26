@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto'
-import { mkdtempSync, rmSync, existsSync, mkdirSync } from 'fs'
-import { join, relative } from 'path'
+import { mkdtempSync, rmSync, existsSync } from 'fs'
+import { join } from 'path'
 import { tmpdir } from 'os'
 import { PrismaClient } from '@prisma/client'
 import { execSync } from 'child_process'
@@ -38,23 +38,16 @@ export function createTempDir(prefix: string): string {
 }
 
 export function applyMigrations(dbUrl: string) {
-  const prev = process.env.DATABASE_URL
-  process.env.DATABASE_URL = dbUrl
   try {
-    const env = { ...process.env }
-    // Prisma's Windows schema engine can exit before its RPC channel is ready
-    // when output is fully piped. Info logging avoids that startup race.
-    if (process.platform === 'win32') env.RUST_LOG = 'info'
-    try {
-      execSync('npx prisma migrate deploy', { stdio: 'pipe', timeout: 60000, env })
-    } catch (error: any) {
-      const stdout = error?.stdout?.toString?.().trim() || ''
-      const stderr = error?.stderr?.toString?.().trim() || ''
-      throw new Error(`Prisma migrate deploy failed for ${dbUrl}\n${stdout}\n${stderr}`.trim())
-    }
-  } finally {
-    if (prev) process.env.DATABASE_URL = prev
-    else delete process.env.DATABASE_URL
+    execSync('npx prisma migrate deploy', {
+      env: { ...process.env, DATABASE_URL: dbUrl },
+      stdio: 'pipe',
+      timeout: 60000
+    })
+  } catch (error: any) {
+    const stdout = error?.stdout?.toString?.().trim() || ''
+    const stderr = error?.stderr?.toString?.().trim() || ''
+    throw new Error(`Prisma migrate deploy failed for ${dbUrl}\n${stdout}\n${stderr}`.trim())
   }
 }
 
@@ -74,13 +67,16 @@ export async function cleanupTestContext(ctx: TestContext) {
 }
 
 export async function createFullTestContext(originalDir: string): Promise<TestContext> {
-  const prismaDir = join(originalDir, 'prisma')
-  mkdirSync(prismaDir, { recursive: true })
-  const tmpDir = mkdtempSync(join(prismaDir, 'e2e-test-'))
-  const dbPath = join(tmpDir, 'test.db')
-  const relativeDbPath = relative(prismaDir, dbPath).replace(/\\/g, '/')
-  const dbUrl = `file:./${relativeDbPath}`
+  const tmpDir = createTempDir('e2e-test-')
+  const dbUrl = 'postgresql://localakademi:localakademi@127.0.0.1:5432/localakademi_test?schema=public'
   const fakeProviderPort = await getRandomPort(4000, 5000)
+
+  // Reset the test database schema to get a clean state
+  execSync('npx prisma db push --force-reset --accept-data-loss --skip-generate --schema prisma/schema.prisma', {
+    env: { ...process.env, DATABASE_URL: dbUrl },
+    stdio: 'pipe',
+    timeout: 60000
+  })
 
   const fakeProvider = await startFakeProvider({
     port: fakeProviderPort,

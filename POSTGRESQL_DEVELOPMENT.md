@@ -98,18 +98,63 @@ npm run db:up            # Starts fresh PostgreSQL
 PostgreSQL is exposed on `127.0.0.1:5432` (loopback only).
 Remote access is not possible unless the port mapping is changed.
 
-## Current Status
+## Initializing the Schema
 
-This phase sets up only the PostgreSQL container infrastructure.
-The following are NOT yet in place:
+After starting PostgreSQL:
 
-- Prisma provider still uses `sqlite` (FAZ 6C)
-- PostgreSQL baseline migration (FAZ 6C)
-- Data migration from SQLite (FAZ 6D)
-- Test infrastructure on PostgreSQL (FAZ 6E)
-- Production cutover (FAZ 6F)
-- The application still runs on SQLite during development
-- SQLite database files are preserved and unchanged
+```bash
+# Apply migrations
+npx prisma migrate deploy
+
+# Verify migration status
+npx prisma migrate status
+
+# Generate Prisma client
+npx prisma generate
+
+# Seed demo data
+npx tsx prisma/seed.ts
+```
+
+## Test Database
+
+The test suite requires the `localakademi_test` database:
+
+```bash
+docker compose exec postgres psql -U localakademi -d localakademi -c "CREATE DATABASE localakademi_test"
+```
+
+This is created once and reused across all tests. Each test that requires a clean state uses `prisma db push --force-reset` to drop and recreate its schema. Tests run sequentially (`fileParallelism: false`) to avoid interference.
+
+## Running Tests
+
+```bash
+# Ensure PostgreSQL is running
+npm run db:up
+
+# Run tests
+npm test
+```
+
+## Migrating Data from SQLite
+
+If you have existing data in `prisma/dev.db`, migrate it to PostgreSQL:
+
+```bash
+# Ensure PostgreSQL is running
+npm run db:up
+
+# Run migration script
+npx tsx scripts/migrate-sqlite-to-postgres.ts
+```
+
+The script reads all data from SQLite and upserts it into PostgreSQL.
+
+## Migration History
+
+- Old SQLite migrations are archived in `prisma/migrations-archive/`
+- PostgreSQL uses a single baseline migration: `prisma/migrations/20260726000000_postgresql_baseline/`
+- The baseline creates all 45 tables from the current Prisma schema
 
 ## Troubleshooting
 
