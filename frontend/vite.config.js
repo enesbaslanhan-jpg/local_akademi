@@ -55,6 +55,7 @@ export default defineConfig({
       '/videos': backendProxy,
       '/documents': backendProxy,
       '/business': backendProxy,
+      '/workspaces': backendProxy,
       '/formulas': backendProxy,
       '/formula-calculations': backendProxy,
       '/reports': backendProxy
