@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 470" role="img" aria-labelledby="title desc">
+  <title id="title">Maliyet üzerine ek oran ile satış marjı karşılaştırması</title>
+  <desc id="desc">100 lira maliyete yüzde 25 eklemek 125 lira fiyat ve yüzde 20 satış marjı üretir.</desc>
+  <rect width="960" height="470" rx="24" fill="#f8fafc"/>
+  <text x="56" y="62" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="#172554">“%25 ekledim” ile “marjım %25” aynı değildir</text>
+  <g transform="translate(56 120)">
+    <rect width="390" height="250" rx="18" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+    <text x="28" y="45" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#1e3a8a">Maliyet üzerine ek oran</text>
+    <text x="28" y="88" font-family="Arial,sans-serif" font-size="18" fill="#334155">100 TL × (1 + %25)</text>
+    <text x="28" y="135" font-family="Arial,sans-serif" font-size="36" font-weight="700" fill="#2563eb">125 TL</text>
+    <text x="28" y="183" font-family="Arial,sans-serif" font-size="17" fill="#475569">Kazanç: 25 TL</text>
+    <text x="28" y="217" font-family="Arial,sans-serif" font-size="15" fill="#64748b">Oranın tabanı maliyettir.</text>
+  </g>
+  <g transform="translate(514 120)">
+    <rect width="390" height="250" rx="18" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
+    <text x="28" y="45" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#14532d">Satış marjı</text>
+    <text x="28" y="88" font-family="Arial,sans-serif" font-size="18" fill="#334155">(125 − 100) ÷ 125</text>
+    <text x="28" y="135" font-family="Arial,sans-serif" font-size="36" font-weight="700" fill="#16a34a">%20</text>
+    <text x="28" y="183" font-family="Arial,sans-serif" font-size="17" fill="#475569">Aynı işlem, farklı oran</text>
+    <text x="28" y="217" font-family="Arial,sans-serif" font-size="15" fill="#64748b">Oranın tabanı satış fiyatıdır.</text>
+  </g>
+  <rect x="56" y="402" width="848" height="42" rx="10" fill="#fef3c7"/>
+  <text x="76" y="429" font-family="Arial,sans-serif" font-size="16" fill="#78350f">Hedef marj %25 ise fiyat: 100 ÷ (1 − 0,25) = 133,33 TL olmalıdır.</text>
+</svg>

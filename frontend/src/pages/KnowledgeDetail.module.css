@@ -471,6 +471,15 @@
 .markdown th, .markdown td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
 .markdown th { background: #f9fafb; font-weight: 600; }
 .markdown a { color: #2563eb; }
+.markdown img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 18px auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
 
 /* ---------- Sidebar ---------- */
 .sideSection {

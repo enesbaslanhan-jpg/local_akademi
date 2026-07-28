@@ -262,6 +262,15 @@
   color: #6b7280;
 }
 .markdown a { color: #2563eb; }
+.markdown img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 18px auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
 
 .outcomeList {
   list-style: none;

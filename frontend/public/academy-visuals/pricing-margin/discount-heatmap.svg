@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 500" role="img" aria-labelledby="title desc">
+  <title id="title">İndirimin birim katkıya etkisi</title>
+  <desc id="desc">300 lira fiyat ve 180 lira değişken maliyette indirim arttıkça birim katkının 120 liradan 30 liraya düşmesi.</desc>
+  <rect width="960" height="500" rx="24" fill="#f8fafc"/>
+  <text x="56" y="62" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="#172554">İndirim küçük görünür, katkı kaybı büyük olabilir</text>
+  <text x="56" y="98" font-family="Arial,sans-serif" font-size="17" fill="#475569">Normal fiyat 300 TL, ilgili değişken maliyet 180 TL varsayımı.</text>
+  <g font-family="Arial,sans-serif" transform="translate(56 138)">
+    <rect width="848" height="54" rx="10" fill="#e2e8f0"/>
+    <text x="28" y="34" font-size="16" font-weight="700" fill="#334155">İndirim</text>
+    <text x="235" y="34" font-size="16" font-weight="700" fill="#334155">Yeni fiyat</text>
+    <text x="455" y="34" font-size="16" font-weight="700" fill="#334155">Birim katkı</text>
+    <text x="670" y="34" font-size="16" font-weight="700" fill="#334155">Aynı toplam katkı için adet</text>
+    <g transform="translate(0 66)">
+      <rect width="848" height="58" rx="8" fill="#dcfce7"/>
+      <text x="28" y="36" font-size="18" fill="#14532d">%0</text><text x="235" y="36" font-size="18" fill="#14532d">300 TL</text><text x="455" y="36" font-size="18" font-weight="700" fill="#14532d">120 TL</text><text x="670" y="36" font-size="18" fill="#14532d">100</text>
+    </g>
+    <g transform="translate(0 136)">
+      <rect width="848" height="58" rx="8" fill="#fef9c3"/>
+      <text x="28" y="36" font-size="18" fill="#713f12">%10</text><text x="235" y="36" font-size="18" fill="#713f12">270 TL</text><text x="455" y="36" font-size="18" font-weight="700" fill="#713f12">90 TL</text><text x="670" y="36" font-size="18" fill="#713f12">134</text>
+    </g>
+    <g transform="translate(0 206)">
+      <rect width="848" height="58" rx="8" fill="#ffedd5"/>
+      <text x="28" y="36" font-size="18" fill="#7c2d12">%20</text><text x="235" y="36" font-size="18" fill="#7c2d12">240 TL</text><text x="455" y="36" font-size="18" font-weight="700" fill="#7c2d12">60 TL</text><text x="670" y="36" font-size="18" fill="#7c2d12">200</text>
+    </g>
+    <g transform="translate(0 276)">
+      <rect width="848" height="58" rx="8" fill="#fee2e2"/>
+      <text x="28" y="36" font-size="18" fill="#7f1d1d">%30</text><text x="235" y="36" font-size="18" fill="#7f1d1d">210 TL</text><text x="455" y="36" font-size="18" font-weight="700" fill="#7f1d1d">30 TL</text><text x="670" y="36" font-size="18" fill="#7f1d1d">400</text>
+    </g>
+  </g>
+  <text x="56" y="476" font-family="Arial,sans-serif" font-size="15" fill="#64748b">Adetler yukarı yuvarlanmıştır; sabit gider, kapasite ve ek kampanya maliyetleri ayrıca değerlendirilir.</text>
+</svg>

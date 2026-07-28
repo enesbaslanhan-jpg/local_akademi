@@ -10,7 +10,56 @@ interface FormulaDef {
   warning?: string
 }
 
+function round2(value: number) {
+  return Math.round(value * 100) / 100
+}
+
+export function calculatePriceArchitecture(inputs: Record<string, number>) {
+  const directCost = inputs.dogrudan_maliyet
+  const fulfilmentCost = inputs.operasyon_maliyeti
+  const fixedCostShare = inputs.sabit_gider_payi
+  const returnRisk = inputs.iade_risk_payi
+  const commissionRate = inputs.komisyon_orani / 100
+  const paymentRate = inputs.odeme_orani / 100
+  const targetMarginRate = inputs.hedef_marj / 100
+  const totalRate = commissionRate + paymentRate + targetMarginRate
+
+  if (totalRate >= 1) {
+    throw new Error('Komisyon, ödeme kesintisi ve hedef marj toplamı %100’den küçük olmalıdır')
+  }
+
+  const unitCost = directCost + fulfilmentCost + fixedCostShare + returnRisk
+  const netSalesPrice = unitCost / (1 - totalRate)
+  const commissionAmount = netSalesPrice * commissionRate
+  const paymentAmount = netSalesPrice * paymentRate
+  const contribution = netSalesPrice - unitCost - commissionAmount - paymentAmount
+
+  return {
+    gercek_birim_maliyet: round2(unitCost),
+    onerilen_kdv_haric_fiyat: round2(netSalesPrice),
+    komisyon_tutari: round2(commissionAmount),
+    odeme_kesintisi: round2(paymentAmount),
+    birim_katki: round2(contribution),
+    gerceklesen_marj: round2(netSalesPrice > 0 ? (contribution / netSalesPrice) * 100 : 0),
+  }
+}
+
 const formulas: FormulaDef[] = [
+  {
+    id: 'fiyat_mimarisi',
+    name: 'Fiyat Mimarisi ve Hedef Marj',
+    inputs: [
+      { name: 'dogrudan_maliyet', label: 'Doğrudan ürün/hizmet maliyeti', unit: 'TRY', min: 0 },
+      { name: 'operasyon_maliyeti', label: 'Ambalaj, kargo ve operasyon', unit: 'TRY', min: 0 },
+      { name: 'sabit_gider_payi', label: 'Birim sabit gider payı', unit: 'TRY', min: 0 },
+      { name: 'iade_risk_payi', label: 'Birim iade/hasar risk payı', unit: 'TRY', min: 0 },
+      { name: 'komisyon_orani', label: 'Satış kanalı komisyonu', unit: '%', min: 0, max: 99 },
+      { name: 'odeme_orani', label: 'Ödeme kuruluşu kesintisi', unit: '%', min: 0, max: 99 },
+      { name: 'hedef_marj', label: 'Hedef satış marjı', unit: '%', min: 0, max: 99 },
+    ],
+    calculate: calculatePriceArchitecture,
+    warning: 'Sonuç KDV hariç bir yönetim fiyatıdır. Oranları tahminle değil güncel sözleşme ve gerçekleşen işletme verinizle girin; vergi ve hukuki kararlar için meslek uzmanınıza danışın.',
+  },
   {
     id: 'kar_hesabi',
     name: 'Kâr ve Kâr Marjı',
@@ -271,8 +320,8 @@ export async function formulaRoutes(fastify: FastifyInstance) {
       if (inp.min !== undefined && val < inp.min) {
         return reply.status(422).send({ error: `${inp.label} en az ${inp.min} olmalıdır` })
       }
-      if (inp.name === 'indirim_oran' && val > 100) {
-        return reply.status(422).send({ error: 'İndirim oranı %100\'ü geçemez' })
+      if (inp.max !== undefined && val > inp.max) {
+        return reply.status(422).send({ error: `${inp.label} en fazla ${inp.max} olmalıdır` })
       }
     }
 

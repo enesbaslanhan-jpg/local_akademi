@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { api } from '@/services/api'
 import { Card, Badge, Button, Loading } from '@/components/ui'
 import { Calculator, History, TrendingUp, DollarSign, PieChart, BarChart3, Percent, Users, ShoppingCart, CreditCard, Globe } from 'lucide-react'
@@ -17,9 +18,11 @@ const ICONS = {
   indirim_kar: Percent,
   kredi_maliyeti: CreditCard,
   ihracat_maliyet: Globe,
+  fiyat_mimarisi: PieChart,
 }
 
 export default function ToolsPage() {
+  const [searchParams] = useSearchParams()
   const [formulas, setFormulas] = useState([])
   const [selected, setSelected] = useState(null)
   const [inputs, setInputs] = useState({})
@@ -35,8 +38,11 @@ export default function ToolsPage() {
       api.formulas.list(),
       api.formulas.getHistory().catch(() => ([])),
     ]).then(([f, h]) => {
-      setFormulas(Array.isArray(f) ? f : f.formulas || [])
+      const loadedFormulas = Array.isArray(f) ? f : f.formulas || []
+      setFormulas(loadedFormulas)
       setHistory(Array.isArray(h) ? h : [])
+      const requestedFormula = loadedFormulas.find(item => item.id === searchParams.get('tool'))
+      if (requestedFormula) handleSelect(requestedFormula)
     }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
@@ -97,6 +103,12 @@ export default function ToolsPage() {
       birim_maliyet_try: 'Birim Maliyet (TRY)',
       birim_maliyet_usd: 'Birim Maliyet (USD)',
       toplam_maliyet: 'Toplam Maliyet (TRY)',
+      gercek_birim_maliyet: 'Gerçek Birim Maliyet (TRY)',
+      onerilen_kdv_haric_fiyat: 'Önerilen KDV Hariç Fiyat (TRY)',
+      komisyon_tutari: 'Kanal Komisyonu (TRY)',
+      odeme_kesintisi: 'Ödeme Kesintisi (TRY)',
+      birim_katki: 'Birim Katkı (TRY)',
+      gerceklesen_marj: 'Gerçekleşen Marj (%)',
     }
     return labels[key] || key
   }
