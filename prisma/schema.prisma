@@ -46,6 +46,11 @@ model User {
   memories                UserMemory[]
   userPreference          UserPreference?
   videoProgress           VideoProgress[]
+  assignedBusinessRecords BusinessRecord[]         @relation("AssignedBusinessRecords")
+  createdBusinessRecords  BusinessRecord[]         @relation("CreatedBusinessRecords")
+  updatedBusinessRecords  BusinessRecord[]         @relation("UpdatedBusinessRecords")
+  businessReminders       BusinessReminder[]
+  businessNotifications   BusinessNotification[]
 }
 
 model CommunityPost {
@@ -127,19 +132,169 @@ model TaskAssignment {
 }
 
 model UploadedDocument {
-  id            String                 @id @default(uuid())
-  userId        Int
-  originalName  String
-  storedName    String
-  mimeType      String
-  sizeBytes     Int
-  extractedText String                 @default("")
-  analysis      String                 @default("{}")
-  status        String                 @default("pending")
-  createdAt     DateTime               @default(now())
-  updatedAt     DateTime               @updatedAt
-  conversations DocumentConversation[]
-  user          User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String                   @id @default(uuid())
+  userId          Int
+  originalName    String
+  storedName      String
+  mimeType        String
+  sizeBytes       Int
+  extractedText   String                   @default("")
+  analysis        String                   @default("{}")
+  status          String                   @default("pending")
+  workspaceId     String?
+  category        String?
+  documentDate    DateTime?
+  dueDate         DateTime?
+  contactId       String?
+  analysisStatus  String                   @default("pending")
+  archivedAt      DateTime?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  conversations   DocumentConversation[]
+  user            User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace       BusinessWorkspace?       @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  contact         BusinessContact?         @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  recordDocuments BusinessRecordDocument[]
+  suggestions     DocumentSuggestion[]
+
+  @@index([workspaceId, archivedAt])
+  @@index([workspaceId, category])
+  @@index([contactId])
+}
+
+model BusinessRecord {
+  id             String                   @id @default(uuid())
+  workspaceId    String
+  type           String
+  title          String
+  description    String?
+  direction      String                   @default("neutral")
+  amount         Decimal?                 @db.Decimal(18, 2)
+  currency       String                   @default("TRY")
+  status         String                   @default("open")
+  priority       String                   @default("normal")
+  dueAt          DateTime?
+  originalDueAt  DateTime?
+  completedAt    DateTime?
+  cancelledAt    DateTime?
+  contactId      String?
+  assignedToId   Int?
+  createdById    Int
+  updatedById    Int?
+  recurrenceRule String?
+  parentRecordId String?
+  metadata       String                   @default("{}")
+  archivedAt     DateTime?
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  workspace      BusinessWorkspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contact        BusinessContact?         @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  assignedTo     User?                    @relation("AssignedBusinessRecords", fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdBy      User                     @relation("CreatedBusinessRecords", fields: [createdById], references: [id])
+  updatedBy      User?                    @relation("UpdatedBusinessRecords", fields: [updatedById], references: [id], onDelete: SetNull)
+  parentRecord   BusinessRecord?          @relation("ChildBusinessRecords", fields: [parentRecordId], references: [id], onDelete: SetNull)
+  childRecords   BusinessRecord[]         @relation("ChildBusinessRecords")
+  history        BusinessRecordHistory[]
+  reminders      BusinessReminder[]
+  notifications  BusinessNotification[]
+  documents      BusinessRecordDocument[]
+
+  @@index([workspaceId, type])
+  @@index([workspaceId, status])
+  @@index([workspaceId, dueAt])
+  @@index([workspaceId, assignedToId])
+  @@index([workspaceId, contactId])
+  @@index([workspaceId, archivedAt])
+}
+
+model BusinessRecordHistory {
+  id           String            @id @default(uuid())
+  workspaceId  String
+  recordId     String
+  actorId      Int?
+  action       String
+  previousData String?
+  newData      String?
+  reason       String?
+  createdAt    DateTime          @default(now())
+  workspace    BusinessWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  record       BusinessRecord    @relation(fields: [recordId], references: [id], onDelete: Cascade)
+
+  @@index([recordId, createdAt])
+  @@index([workspaceId, createdAt])
+}
+
+model BusinessReminder {
+  id          String            @id @default(uuid())
+  workspaceId String
+  recordId    String
+  recipientId Int
+  channel     String            @default("in_app")
+  scheduledAt DateTime
+  status      String            @default("pending")
+  sentAt      DateTime?
+  dedupeKey   String            @unique
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  workspace   BusinessWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  record      BusinessRecord    @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  recipient   User              @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, status])
+  @@index([scheduledAt, status])
+}
+
+model BusinessNotification {
+  id          String            @id @default(uuid())
+  workspaceId String
+  userId      Int
+  recordId    String?
+  type        String
+  title       String
+  body        String
+  readAt      DateTime?
+  createdAt   DateTime          @default(now())
+  workspace   BusinessWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  record      BusinessRecord?   @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, userId, readAt])
+  @@index([workspaceId, userId, createdAt])
+}
+
+model BusinessRecordDocument {
+  id           String            @id @default(uuid())
+  workspaceId  String
+  recordId     String
+  documentId   String
+  attachedById Int
+  createdAt    DateTime          @default(now())
+  workspace    BusinessWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  record       BusinessRecord    @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  document     UploadedDocument  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([recordId, documentId])
+  @@index([workspaceId])
+  @@index([documentId])
+}
+
+model DocumentSuggestion {
+  id             String            @id @default(uuid())
+  workspaceId    String
+  documentId     String
+  suggestionType String
+  payload        String
+  confidence     Float
+  evidence       String?
+  status         String            @default("proposed")
+  reviewedById   Int?
+  reviewedAt     DateTime?
+  createdAt      DateTime          @default(now())
+  workspace      BusinessWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  document       UploadedDocument  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, documentId])
+  @@index([status])
 }
 
 model BusinessProfile {
@@ -255,35 +410,42 @@ model UserPreference {
 }
 
 model BusinessWorkspace {
-  id              String               @id @default(uuid())
+  id              String                   @id @default(uuid())
   name            String
   legalName       String?
   slug            String?
-  sector          String               @default("")
-  city            String               @default("")
-  country         String               @default("TR")
-  currency        String               @default("TRY")
+  sector          String                   @default("")
+  city            String                   @default("")
+  country         String                   @default("TR")
+  currency        String                   @default("TRY")
   businessStage   String?
   employeeCount   Int?
-  salesChannels   String               @default("[]")
+  salesChannels   String                   @default("[]")
   primaryGoal     String?
-  challenges      String               @default("[]")
-  monthlySales    Float                @default(0)
-  monthlyExpenses Float                @default(0)
-  cashBalance     Float                @default(0)
-  debtBalance     Float                @default(0)
-  status          String               @default("active")
+  challenges      String                   @default("[]")
+  monthlySales    Float                    @default(0)
+  monthlyExpenses Float                    @default(0)
+  cashBalance     Float                    @default(0)
+  debtBalance     Float                    @default(0)
+  status          String                   @default("active")
   createdById     Int
   archivedAt      DateTime?
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-  createdBy       User                 @relation(fields: [createdById], references: [id])
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  createdBy       User                     @relation(fields: [createdById], references: [id])
   members         BusinessMember[]
   invitations     BusinessInvitation[]
   contacts        BusinessContact[]
   settings        BusinessSetting?
   activities      WorkspaceActivity[]
-  userPreferences UserPreference[]     @relation("ActiveWorkspace")
+  userPreferences UserPreference[]         @relation("ActiveWorkspace")
+  documents       UploadedDocument[]
+  records         BusinessRecord[]
+  recordHistory   BusinessRecordHistory[]
+  reminders       BusinessReminder[]
+  notifications   BusinessNotification[]
+  recordDocuments BusinessRecordDocument[]
+  suggestions     DocumentSuggestion[]
 
   @@unique([slug])
 }
@@ -323,9 +485,9 @@ model BusinessInvitation {
 }
 
 model BusinessContact {
-  id            String            @id @default(uuid())
+  id            String             @id @default(uuid())
   workspaceId   String
-  type          String            @default("customer")
+  type          String             @default("customer")
   name          String
   legalName     String?
   contactPerson String?
@@ -334,13 +496,15 @@ model BusinessContact {
   city          String?
   address       String?
   notes         String?
-  status        String            @default("active")
+  status        String             @default("active")
   createdById   Int
   archivedAt    DateTime?
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  workspace     BusinessWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  createdBy     User              @relation(fields: [createdById], references: [id])
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  workspace     BusinessWorkspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy     User               @relation(fields: [createdById], references: [id])
+  documents     UploadedDocument[]
+  records       BusinessRecord[]
 
   @@index([workspaceId])
 }

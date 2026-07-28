@@ -134,9 +134,13 @@ function buildQuery(params) {
 
 export const api = {
   async request(path, options = {}, includeAuth = true) {
+    const headers = { ...getHeaders(includeAuth), ...options.headers };
+    if (typeof FormData !== 'undefined' && options.body instanceof FormData) {
+      delete headers['Content-Type'];
+    }
     const response = await fetch(`${API_URL}${path}`, {
       ...options,
-      headers: { ...getHeaders(includeAuth), ...options.headers }
+      headers
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
@@ -656,6 +660,67 @@ export const api = {
       async list(workspaceId, params = {}) {
         const q = buildQuery(params)
         return api.request(`/workspaces/${workspaceId}/activity${q}`)
+      }
+    },
+    tracker: {
+      async summary(workspaceId) {
+        return api.request(`/workspaces/${workspaceId}/tracker/summary`)
+      },
+      async list(workspaceId, filters = {}) {
+        const q = buildQuery(filters)
+        return api.request(`/workspaces/${workspaceId}/records${q}`)
+      },
+      async get(workspaceId, recordId) {
+        return api.request(`/workspaces/${workspaceId}/records/${recordId}`)
+      },
+      async create(workspaceId, data) {
+        return api.request(`/workspaces/${workspaceId}/records`, {
+          method: 'POST', body: JSON.stringify(data)
+        })
+      },
+      async update(workspaceId, recordId, data) {
+        return api.request(`/workspaces/${workspaceId}/records/${recordId}`, {
+          method: 'PATCH', body: JSON.stringify(data)
+        })
+      },
+      async defer(workspaceId, recordId, data) {
+        return api.request(`/workspaces/${workspaceId}/records/${recordId}/defer`, {
+          method: 'POST', body: JSON.stringify(data)
+        })
+      },
+      async archive(workspaceId, recordId) {
+        return api.request(`/workspaces/${workspaceId}/records/${recordId}`, { method: 'DELETE' })
+      },
+      async addReminder(workspaceId, recordId, data) {
+        return api.request(`/workspaces/${workspaceId}/records/${recordId}/reminders`, {
+          method: 'POST', body: JSON.stringify(data)
+        })
+      },
+      async attachDocument(workspaceId, recordId, documentId) {
+        return api.request(`/workspaces/${workspaceId}/records/${recordId}/documents/${documentId}`, {
+          method: 'POST'
+        })
+      }
+    },
+    documents: {
+      async list(workspaceId) {
+        return api.request(`/workspaces/${workspaceId}/documents`)
+      },
+      async upload(workspaceId, file, metadata = {}) {
+        const form = new FormData()
+        form.append('file', file)
+        const uploaded = await api.request('/documents/upload', { method: 'POST', body: form })
+        return api.request(`/workspaces/${workspaceId}/documents/${uploaded.id}`, {
+          method: 'PATCH', body: JSON.stringify(metadata)
+        })
+      },
+      async update(workspaceId, documentId, metadata) {
+        return api.request(`/workspaces/${workspaceId}/documents/${documentId}`, {
+          method: 'PATCH', body: JSON.stringify(metadata)
+        })
+      },
+      async archive(workspaceId, documentId) {
+        return api.request(`/workspaces/${workspaceId}/documents/${documentId}`, { method: 'DELETE' })
       }
     }
   },
