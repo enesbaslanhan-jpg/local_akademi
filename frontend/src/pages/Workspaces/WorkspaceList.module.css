@@ -1,0 +1,19 @@
+.container { padding: 24px; max-width: 960px; margin: 0 auto; }
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.header h1 { margin: 0; font-size: 1.5rem; }
+.grid { display: flex; flex-direction: column; gap: 12px; }
+.card { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: box-shadow 0.2s; }
+.card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.cardInfo { flex: 1; }
+.cardName { font-weight: 600; margin-bottom: 4px; }
+.cardMeta { font-size: 0.85rem; color: var(--text-secondary); display: flex; gap: 16px; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; background: var(--accent-bg); color: var(--accent); }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.dialog { background: var(--card-bg); border-radius: 12px; padding: 24px; width: 90%; max-width: 480px; }
+.dialog h2 { margin: 0 0 16px; }
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 0.85rem; margin-bottom: 4px; color: var(--text-secondary); }
+.field input { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--input-bg); color: var(--text); font-size: 0.9rem; box-sizing: border-box; }
+.actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+.empty { text-align: center; padding: 48px 24px; color: var(--text-secondary); }
+.empty p { margin: 0 0 16px; }

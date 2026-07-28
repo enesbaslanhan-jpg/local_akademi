@@ -595,6 +595,71 @@ export const api = {
     },
   },
 
+  workspace: {
+    async list() { return api.request('/workspaces') },
+    async create(data) {
+      return api.request('/workspaces', { method: 'POST', body: JSON.stringify(data) })
+    },
+    async get(workspaceId) { return api.request(`/workspaces/${workspaceId}`) },
+    async update(workspaceId, data) {
+      return api.request(`/workspaces/${workspaceId}`, { method: 'PUT', body: JSON.stringify(data) })
+    },
+    async archive(workspaceId) {
+      return api.request(`/workspaces/${workspaceId}`, { method: 'DELETE' })
+    },
+    async switchWorkspace(workspaceId) {
+      return api.request('/workspaces/switch', { method: 'POST', body: JSON.stringify({ workspaceId }) })
+    },
+    async syncLegacyProfile() {
+      return api.request('/workspaces/sync-legacy-profile', { method: 'POST' })
+    },
+    members: {
+      async list(workspaceId) { return api.request(`/workspaces/${workspaceId}/members`) },
+      async updateRole(workspaceId, memberId, role) {
+        return api.request(`/workspaces/${workspaceId}/members/${memberId}/role`, { method: 'PUT', body: JSON.stringify({ role }) })
+      },
+      async remove(workspaceId, memberId) {
+        return api.request(`/workspaces/${workspaceId}/members/${memberId}`, { method: 'DELETE' })
+      }
+    },
+    invitations: {
+      async list(workspaceId) { return api.request(`/workspaces/${workspaceId}/invitations`) },
+      async create(workspaceId, data) {
+        return api.request(`/workspaces/${workspaceId}/invitations`, { method: 'POST', body: JSON.stringify(data) })
+      },
+      async cancel(workspaceId, invitationId) {
+        return api.request(`/workspaces/${workspaceId}/invitations/${invitationId}`, { method: 'DELETE' })
+      },
+      async accept(token) {
+        return api.request('/workspaces/invitations/accept', { method: 'POST', body: JSON.stringify({ token }) })
+      }
+    },
+    contacts: {
+      async list(workspaceId) { return api.request(`/workspaces/${workspaceId}/contacts`) },
+      async create(workspaceId, data) {
+        return api.request(`/workspaces/${workspaceId}/contacts`, { method: 'POST', body: JSON.stringify(data) })
+      },
+      async update(workspaceId, contactId, data) {
+        return api.request(`/workspaces/${workspaceId}/contacts/${contactId}`, { method: 'PUT', body: JSON.stringify(data) })
+      },
+      async archive(workspaceId, contactId) {
+        return api.request(`/workspaces/${workspaceId}/contacts/${contactId}`, { method: 'DELETE' })
+      }
+    },
+    settings: {
+      async get(workspaceId) { return api.request(`/workspaces/${workspaceId}/settings`) },
+      async update(workspaceId, data) {
+        return api.request(`/workspaces/${workspaceId}/settings`, { method: 'PUT', body: JSON.stringify(data) })
+      }
+    },
+    activity: {
+      async list(workspaceId, params = {}) {
+        const q = buildQuery(params)
+        return api.request(`/workspaces/${workspaceId}/activity${q}`)
+      }
+    }
+  },
+
   quizzes: {
     async getByKoId(koId) {
       return api.request(`/quizzes/${koId}`);

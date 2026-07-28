@@ -1,0 +1,16 @@
+.section { margin-bottom: 24px; }
+.sectionHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.sectionHeader h3 { margin: 0; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+.table th { font-weight: 600; color: var(--text-secondary); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; background: var(--accent-bg); color: var(--accent); }
+.actions { display: flex; gap: 6px; }
+.select { padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--input-bg); color: var(--text); font-size: 0.85rem; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.dialog { background: var(--card-bg); border-radius: 12px; padding: 24px; width: 90%; max-width: 440px; }
+.dialog h3 { margin: 0 0 16px; }
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 0.85rem; margin-bottom: 4px; color: var(--text-secondary); }
+.field input, .field select { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--input-bg); color: var(--text); font-size: 0.9rem; box-sizing: border-box; }
+.actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }

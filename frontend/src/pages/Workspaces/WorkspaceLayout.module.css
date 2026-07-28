@@ -1,0 +1,11 @@
+.container { padding: 24px; max-width: 960px; margin: 0 auto; }
+.back { margin-bottom: 16px; }
+.back button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.9rem; padding: 0; }
+.back button:hover { text-decoration: underline; }
+.header { margin-bottom: 24px; }
+.header h1 { margin: 0 0 4px; font-size: 1.5rem; }
+.headerMeta { font-size: 0.85rem; color: var(--text-secondary); display: flex; gap: 16px; }
+.tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 24px; }
+.tab { padding: 10px 20px; background: none; border: none; cursor: pointer; font-size: 0.9rem; color: var(--text-secondary); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color 0.2s, border-color 0.2s; }
+.tab:hover { color: var(--text); }
+.tabActive { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }

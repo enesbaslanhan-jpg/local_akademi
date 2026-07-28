@@ -1,9 +1,11 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
+import { useWorkspace } from '@/context/WorkspaceContext'
 import {
   LayoutDashboard, BookOpen, Lightbulb, Bot,
   GraduationCap, Map, Settings, Shield,
-  Users, Database, X, Calculator, Brain, HelpCircle, Newspaper
+  Users, Database, X, Calculator, Brain, HelpCircle, Newspaper,
+  Building2
 } from 'lucide-react'
 import styles from './Sidebar.module.css'
 
@@ -32,6 +34,7 @@ const adminLinks = [
 
 export default function Sidebar({ open, onClose }) {
   const { isAdmin, user } = useAuth()
+  const { activeWorkspaceId } = useWorkspace()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -78,6 +81,22 @@ export default function Sidebar({ open, onClose }) {
               </button>
             )
           })}
+
+          <div className={styles.divider} />
+          <div className={styles.sectionLabel}>İşletmem</div>
+          {(() => {
+            const wsActive = isActive('/app/workspaces')
+            return (
+              <button
+                className={`${styles.navItem} ${wsActive ? styles.active : ''}`}
+                onClick={() => handleNavigate('/app/workspaces')}
+                aria-current={wsActive ? 'page' : undefined}
+              >
+                <Building2 size={20} />
+                <span>İşletmelerim</span>
+              </button>
+            )
+          })()}
 
           {isAdmin && (
             <>

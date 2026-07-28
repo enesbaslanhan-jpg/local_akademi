@@ -14,6 +14,7 @@ import { quizRoutes } from './services/quizzes'
 import { taskRoutes } from './services/tasks'
 import { documentRoutes } from './services/documents'
 import { businessRoutes } from './services/business'
+import { workspaceRoutes } from './services/workspace'
 import { formulaRoutes } from './services/formulas'
 import { adminRoutes } from './services/admin'
 import { reportRoutes } from './services/reports'
@@ -136,6 +137,7 @@ async function build() {
   server.register(taskRoutes, { prefix: '/tasks' })
   server.register(documentRoutes, { prefix: '/documents' })
   server.register(businessRoutes, { prefix: '/business' })
+  server.register(workspaceRoutes, { prefix: '/workspaces' })
   server.register(formulaRoutes)
   server.register(adminRoutes, { prefix: '/admin' })
   server.register(reportRoutes, { prefix: '/reports' })

@@ -1,0 +1,7 @@
+.list { display: flex; flex-direction: column; gap: 8px; }
+.item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; }
+.icon { flex-shrink: 0; margin-top: 2px; }
+.action { font-weight: 600; }
+.time { font-size: 0.8rem; color: var(--text-secondary); margin-left: auto; white-space: nowrap; }
+.meta { font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px; }
+.empty { text-align: center; padding: 48px; color: var(--text-secondary); }

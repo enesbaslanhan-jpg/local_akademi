@@ -3,6 +3,90 @@ import type { PrismaClient } from '@prisma/client'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { z } from 'zod'
 
+async function ensureWorkspace(prisma: PrismaClient, userId: number, name?: string): Promise<string> {
+  const existing = await prisma.businessMember.findFirst({
+    where: { userId, status: 'active' },
+    include: { workspace: true }
+  })
+  if (existing) return existing.workspaceId
+
+  const ws = await prisma.$transaction(async (tx) => {
+    const workspace = await tx.businessWorkspace.create({
+      data: {
+        name: name || 'My Business',
+        createdById: userId
+      }
+    })
+    await tx.businessMember.create({
+      data: { workspaceId: workspace.id, userId, role: 'owner', status: 'active' }
+    })
+    await tx.businessSetting.create({
+      data: { workspaceId: workspace.id }
+    })
+    await tx.workspaceActivity.create({
+      data: {
+        workspaceId: workspace.id,
+        actorId: userId,
+        action: 'workspace.created',
+        entityType: 'workspace',
+        entityId: workspace.id,
+        metadata: JSON.stringify({ source: 'onboarding' })
+      }
+    })
+    return workspace
+  })
+
+  await prisma.userPreference.upsert({
+    where: { userId },
+    update: { activeWorkspaceId: ws.id },
+    create: { userId, activeWorkspaceId: ws.id }
+  })
+
+  return ws.id
+}
+
+async function syncWorkspaceToLegacyProfile(prisma: PrismaClient, userId: number, workspaceId?: string): Promise<void> {
+  let wsId = workspaceId
+  if (!wsId) {
+    const pref = await prisma.userPreference.findUnique({ where: { userId } })
+    wsId = pref?.activeWorkspaceId ?? undefined
+  }
+  if (!wsId) {
+    const member = await prisma.businessMember.findFirst({
+      where: { userId, status: 'active' },
+      orderBy: { joinedAt: 'desc' }
+    })
+    if (!member) return
+    wsId = member.workspaceId
+  }
+
+  const ws = await prisma.businessWorkspace.findUnique({ where: { id: wsId } })
+  if (!ws) return
+
+  const existing = await prisma.businessProfile.findUnique({ where: { userId } })
+  const data = {
+    name: ws.name || '',
+    sector: ws.sector || '',
+    city: ws.city || '',
+    currency: ws.currency || 'TRY',
+    monthlySales: ws.monthlySales,
+    monthlyExpenses: ws.monthlyExpenses,
+    cashBalance: ws.cashBalance,
+    debtBalance: ws.debtBalance,
+    businessStage: ws.businessStage,
+    employeeCount: ws.employeeCount,
+    salesChannels: ws.salesChannels || '[]',
+    primaryGoal: ws.primaryGoal,
+    challenges: ws.challenges || '[]'
+  }
+
+  if (existing) {
+    await prisma.businessProfile.update({ where: { userId }, data })
+  } else {
+    await prisma.businessProfile.create({ data: { userId, ...data } })
+  }
+}
+
 const BUSINESS_STAGES = ['startup', 'growth', 'mature'] as const
 const SALES_CHANNELS = ['retail_store', 'ecommerce', 'wholesale', 'marketplace', 'export', 'service', 'other'] as const
 const CHALLENGES = ['digital_skills', 'cash_flow', 'customer_acquisition', 'cost_control', 'employee_finding', 'competition', 'technology_adoption', 'regulation', 'other'] as const
@@ -130,6 +214,8 @@ export async function onboardingRoutes(fastify: FastifyInstance, opts?: { prisma
       }
     })
 
+    await syncWorkspaceToLegacyProfile(prisma, user.id)
+
     return reply.status(200).send({
       name: profile.name, sector: profile.sector, city: profile.city,
       currency: profile.currency, monthlySales: profile.monthlySales,
@@ -163,9 +249,11 @@ export async function onboardingRoutes(fastify: FastifyInstance, opts?: { prisma
       return reply.status(422).send({ error: 'Profile must have at least name or sector before completing onboarding' })
     }
 
+    await ensureWorkspace(prisma, user.id, profile.name || undefined)
+
     await prisma.userPreference.upsert({
       where: { userId: user.id },
-      create: { userId: user.id, onboardingCompleted: true },
+      create: { userId: user.id, onboardingCompleted: true, activeWorkspaceId: undefined },
       update: { onboardingCompleted: true }
     })
 

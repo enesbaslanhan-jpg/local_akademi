@@ -8,9 +8,15 @@ vi.mock('@/context/AuthContext', () => ({
   useAuth: () => mockUseAuth(),
 }))
 
+const mockUseWorkspace = vi.fn()
+vi.mock('@/context/WorkspaceContext', () => ({
+  useWorkspace: () => mockUseWorkspace(),
+}))
+
 describe('Sidebar', () => {
   beforeEach(() => {
     mockUseAuth.mockReturnValue({ isAdmin: false, user: { role: 'learner' } })
+    mockUseWorkspace.mockReturnValue({ activeWorkspaceId: null, hasWorkspaces: false })
   })
 
   afterEach(() => {
@@ -62,5 +68,15 @@ describe('Sidebar', () => {
     )
 
     expect(screen.getByLabelText('Ana navigasyon')).toBeInTheDocument()
+  })
+
+  it('shows workspace link', () => {
+    render(
+      <MemoryRouter initialEntries={['/app/dashboard']}>
+        <Sidebar open={true} onClose={() => {}} />
+      </MemoryRouter>
+    )
+
+    expect(screen.getByText('İşletmelerim')).toBeInTheDocument()
   })
 })

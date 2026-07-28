@@ -1,0 +1,8 @@
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.cardTitle { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; }
+.cardValue { font-size: 1.5rem; font-weight: 700; }
+.fullWidth { grid-column: 1 / -1; }
+.row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+.row:last-child { border-bottom: none; }
+.label { color: var(--text-secondary); }

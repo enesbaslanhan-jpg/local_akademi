@@ -1,0 +1,8 @@
+.card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 600px; }
+.field { margin-bottom: 18px; }
+.field label { display: block; font-size: 0.85rem; margin-bottom: 4px; color: var(--text-secondary); font-weight: 500; }
+.field input, .field select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--input-bg); color: var(--text); font-size: 0.9rem; box-sizing: border-box; }
+.actions { margin-top: 24px; }
+.message { padding: 8px 12px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; }
+.success { background: #d4edda; color: #155724; }
+.error { background: #f8d7da; color: #721c24; }

@@ -24,6 +24,13 @@ const QuizDashboardPage = lazy(() => import('@/pages/QuizDashboardPage'))
 const QuizTakePage = lazy(() => import('@/pages/QuizTakePage'))
 const PilotLearningPathPage = lazy(() => import('@/pages/PilotLearningPathPage'))
 const CommunityPage = lazy(() => import('@/pages/CommunityPage'))
+const WorkspaceList = lazy(() => import('@/pages/Workspaces/index'))
+const WorkspaceLayout = lazy(() => import('@/pages/Workspaces/WorkspaceLayout'))
+const WorkspaceOverview = lazy(() => import('@/pages/Workspaces/Overview'))
+const WorkspaceTeam = lazy(() => import('@/pages/Workspaces/Team'))
+const WorkspaceContacts = lazy(() => import('@/pages/Workspaces/Contacts'))
+const WorkspaceSettings = lazy(() => import('@/pages/Workspaces/Settings'))
+const WorkspaceActivity = lazy(() => import('@/pages/Workspaces/Activity'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
 const Unauthorized = lazy(() => import('@/pages/Unauthorized'))
 
@@ -72,6 +79,15 @@ export default function AppRoutes() {
             <Route path="quiz" element={<SuspenseWrapper><QuizDashboardPage /></SuspenseWrapper>} />
             <Route path="quiz/take/:koId" element={<SuspenseWrapper><QuizTakePage /></SuspenseWrapper>} />
             <Route path="settings" element={<SuspenseWrapper><SettingsPage /></SuspenseWrapper>} />
+            <Route path="workspaces" element={<SuspenseWrapper><WorkspaceList /></SuspenseWrapper>} />
+            <Route path="workspaces/:workspaceId" element={<SuspenseWrapper><WorkspaceLayout /></SuspenseWrapper>}>
+              <Route index element={<Navigate to="overview" replace />} />
+              <Route path="overview" element={<SuspenseWrapper><WorkspaceOverview /></SuspenseWrapper>} />
+              <Route path="team" element={<SuspenseWrapper><WorkspaceTeam /></SuspenseWrapper>} />
+              <Route path="contacts" element={<SuspenseWrapper><WorkspaceContacts /></SuspenseWrapper>} />
+              <Route path="settings" element={<SuspenseWrapper><WorkspaceSettings /></SuspenseWrapper>} />
+              <Route path="activity" element={<SuspenseWrapper><WorkspaceActivity /></SuspenseWrapper>} />
+            </Route>
           </Route>
         </Route>
 
