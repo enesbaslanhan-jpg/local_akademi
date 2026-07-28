@@ -6,11 +6,12 @@ import { join, resolve, normalize } from 'path'
 import { randomUUID } from 'crypto'
 import fastifyMultipart from '@fastify/multipart'
 import mammoth from 'mammoth'
+import { PDFParse } from 'pdf-parse'
 import { z } from 'zod'
 import {
-  MAX_FILE_SIZE, MAX_EXTRACTED_TEXT_LENGTH, ALLOWED_EXTENSIONS, ALLOWED_MIME_MAP,
+  MAX_FILE_SIZE, MAX_EXTRACTED_TEXT_LENGTH, MAX_PDF_PAGES, ALLOWED_EXTENSIONS, ALLOWED_MIME_MAP,
   questionSchema, detectFileType, validateTextFile, validateJsonFile, inspectZip,
-  FileValidationError
+  validatePdfFile, FileValidationError
 } from './documentSecurity'
 
 const UPLOAD_DIR = join(process.cwd(), 'uploads')
@@ -86,7 +87,7 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
 
     const ext = (filename.split('.').pop() || '').toLowerCase()
     if (!ALLOWED_EXTENSIONS.has(ext)) {
-      return reply.status(415).send({ error: 'Desteklenmeyen dosya türü. TXT, MD, CSV, JSON veya DOCX yükleyin.' })
+      return reply.status(415).send({ error: 'Desteklenmeyen dosya türü. TXT, MD, CSV, JSON, DOCX veya PDF yükleyin.' })
     }
 
     const expectedMime = ALLOWED_MIME_MAP[ext]
@@ -112,6 +113,10 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
       return reply.status(415).send({ error: 'DOCX içeriği .docx uzantısıyla yüklenmelidir' })
     }
 
+    if ((ext === 'pdf') !== (contentCheck.detectedType === 'pdf')) {
+      return reply.status(415).send({ error: 'PDF uzantısı ile dosya içeriği uyuşmuyor' })
+    }
+
     if (ext === 'docx') {
       const zipInfo = inspectZip(buffer)
       if (!zipInfo.valid) {
@@ -122,7 +127,18 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
       }
     }
 
-    if (ext === 'tx' || ext === 'md' || ext === 'csv') {
+    if (ext === 'pdf') {
+      try {
+        validatePdfFile(buffer)
+      } catch (e) {
+        if (e instanceof FileValidationError) {
+          return reply.status(e.statusCode).send({ error: e.message })
+        }
+        throw e
+      }
+    }
+
+    if (ext === 'txt' || ext === 'md' || ext === 'csv') {
       try {
         validateTextFile(buffer)
       } catch (e) {
@@ -175,14 +191,31 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
       if (ext === 'docx') {
         const result = await mammoth.extractRawText({ buffer })
         extractedText = result.value
+      } else if (ext === 'pdf') {
+        const parser = new PDFParse({ data: buffer })
+        try {
+          const result = await parser.getText()
+          if (result.total > MAX_PDF_PAGES) {
+            throw new FileValidationError(`PDF en fazla ${MAX_PDF_PAGES} sayfa olabilir`, 422)
+          }
+          extractedText = result.text
+        } finally {
+          await parser.destroy()
+        }
       } else {
         extractedText = buffer.toString('utf-8')
       }
       extractedText = extractedText.substring(0, MAX_EXTRACTED_TEXT_LENGTH)
+      if (ext === 'pdf' && !extractedText.trim()) {
+        throw new FileValidationError('Bu PDF görüntü/tarama içeriyor; okunabilir metin bulunamadı', 422)
+      }
     } catch (error) {
       request.log.error({ userId: user.id }, 'Metin çıkarımı başarısız')
       await unlink(tempPath).catch(() => {})
-      return reply.status(422).send({ error: 'Dosyadan metin çıkarılamadı. Bozuk veya şifreli dosya olabilir.' })
+      const message = error instanceof FileValidationError
+        ? error.message
+        : 'Dosyadan metin çıkarılamadı. Bozuk, şifreli veya yalnızca görüntü içeren bir dosya olabilir.'
+      return reply.status(422).send({ error: message })
     }
 
     const finalPath = join(UPLOAD_DIR, storedFilename)

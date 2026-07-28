@@ -249,6 +249,7 @@ model BusinessNotification {
   workspaceId String
   userId      Int
   recordId    String?
+  dedupeKey   String?           @unique
   type        String
   title       String
   body        String

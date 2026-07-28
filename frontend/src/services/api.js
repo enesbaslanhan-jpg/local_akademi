@@ -721,6 +721,30 @@ export const api = {
       },
       async archive(workspaceId, documentId) {
         return api.request(`/workspaces/${workspaceId}/documents/${documentId}`, { method: 'DELETE' })
+      },
+      async suggestions(workspaceId, documentId) {
+        return api.request(`/workspaces/${workspaceId}/documents/${documentId}/suggestions`)
+      },
+      async acceptSuggestion(workspaceId, suggestionId, overrides = {}) {
+        return api.request(`/workspaces/${workspaceId}/document-suggestions/${suggestionId}/accept`, {
+          method: 'POST', body: JSON.stringify(overrides)
+        })
+      },
+      async rejectSuggestion(workspaceId, suggestionId) {
+        return api.request(`/workspaces/${workspaceId}/document-suggestions/${suggestionId}/reject`, {
+          method: 'POST'
+        })
+      }
+    },
+    notifications: {
+      async list(workspaceId) {
+        return api.request(`/workspaces/${workspaceId}/notifications`)
+      },
+      async read(workspaceId, notificationId) {
+        return api.request(`/workspaces/${workspaceId}/notifications/${notificationId}/read`, { method: 'PATCH' })
+      },
+      async readAll(workspaceId) {
+        return api.request(`/workspaces/${workspaceId}/notifications/read-all`, { method: 'POST' })
       }
     }
   },

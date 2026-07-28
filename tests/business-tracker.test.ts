@@ -98,6 +98,22 @@ describe('Business tracker API', () => {
     expect(response.statusCode).toBe(201)
     expect(response.json().amount).toBe(12500)
     recordId = response.json().id
+    expect(await prisma.businessReminder.count({
+      where: { recordId, dedupeKey: { startsWith: `auto:${recordId}:` } }
+    })).toBe(1)
+  })
+
+  it('turns due reminders into deduplicated, user-scoped notifications', async () => {
+    const first = await inject('GET', `/workspaces/${workspaceId}/notifications`, ownerToken)
+    expect(first.statusCode).toBe(200)
+    expect(first.json().unreadCount).toBe(1)
+    const notification = first.json().notifications[0]
+
+    const second = await inject('GET', `/workspaces/${workspaceId}/notifications`, ownerToken)
+    expect(second.json().notifications).toHaveLength(1)
+    expect((await inject('PATCH', `/workspaces/${workspaceId}/notifications/${notification.id}/read`, viewerToken)).statusCode).toBe(404)
+    expect((await inject('PATCH', `/workspaces/${workspaceId}/notifications/${notification.id}/read`, ownerToken)).statusCode).toBe(200)
+    expect((await inject('POST', `/workspaces/${workspaceId}/notifications/read-all`, ownerToken)).statusCode).toBe(200)
   })
 
   it('lists only workspace records', async () => {
@@ -138,7 +154,7 @@ describe('Business tracker API', () => {
     const second = await inject('POST', `/workspaces/${workspaceId}/records/${recordId}/reminders`, ownerToken, payload)
     expect(first.statusCode).toBe(201)
     expect(second.statusCode).toBe(201)
-    expect(await prisma.businessReminder.count({ where: { recordId } })).toBe(1)
+    expect(await prisma.businessReminder.count({ where: { dedupeKey: `${recordId}:${ownerId}:${payload.scheduledAt}:in_app` } })).toBe(1)
   })
 
   it('attaches a legacy personal document without empty-string foreign keys', async () => {
@@ -148,13 +164,36 @@ describe('Business tracker API', () => {
         originalName: 'senet.pdf',
         storedName: 'tracker-test-senet.pdf',
         mimeType: 'application/pdf',
-        sizeBytes: 100
+        sizeBytes: 100,
+        extractedText: 'Senet tutarı 12.500,00 TL. Vade tarihi 15.09.2026.'
       }
     })
     documentId = document.id
     const response = await inject('POST', `/workspaces/${workspaceId}/records/${recordId}/documents/${documentId}`, ownerToken)
     expect(response.statusCode).toBe(201)
     expect((await prisma.uploadedDocument.findUnique({ where: { id: documentId } }))?.workspaceId).toBe(workspaceId)
+  })
+
+  it('proposes a record from a document but creates it only after explicit approval', async () => {
+    const before = await prisma.businessRecord.count({ where: { workspaceId } })
+    const update = await inject('PATCH', `/workspaces/${workspaceId}/documents/${documentId}`, ownerToken, {
+      category: 'promissory_note'
+    })
+    expect(update.statusCode).toBe(200)
+    expect(await prisma.businessRecord.count({ where: { workspaceId } })).toBe(before)
+
+    const list = await inject('GET', `/workspaces/${workspaceId}/documents/${documentId}/suggestions`, ownerToken)
+    expect(list.statusCode).toBe(200)
+    const suggestion = list.json().suggestions[0]
+    expect(suggestion.payload.amount).toBe(12500)
+    expect(suggestion.status).toBe('proposed')
+    expect((await inject('POST', `/workspaces/${otherWorkspaceId}/document-suggestions/${suggestion.id}/accept`, otherToken, {})).statusCode).toBe(404)
+
+    const accepted = await inject('POST', `/workspaces/${workspaceId}/document-suggestions/${suggestion.id}/accept`, ownerToken, {})
+    expect(accepted.statusCode).toBe(201)
+    expect(accepted.json().type).toBe('promissory_note')
+    expect(await prisma.businessRecord.count({ where: { workspaceId } })).toBe(before + 1)
+    expect((await inject('POST', `/workspaces/${workspaceId}/document-suggestions/${suggestion.id}/accept`, ownerToken, {})).statusCode).toBe(409)
   })
 
   it('defers a record and keeps an audit reason', async () => {
@@ -186,6 +225,6 @@ describe('Business tracker API', () => {
 
     expect((await inject('DELETE', `/workspaces/${workspaceId}/records/${recordId}`, ownerToken)).statusCode).toBe(200)
     const list = await inject('GET', `/workspaces/${workspaceId}/records`, ownerToken)
-    expect(list.json().records).toHaveLength(0)
+    expect(list.json().records.some((record: any) => record.id === recordId)).toBe(false)
   })
 })

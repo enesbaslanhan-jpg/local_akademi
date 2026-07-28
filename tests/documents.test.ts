@@ -6,6 +6,7 @@ import { writeFile, mkdir, unlink } from 'fs/promises'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { normalize, resolve } from 'path'
+import { detectFileType, validatePdfFile } from '../src/services/documentSecurity'
 
 const realPrisma = new PrismaClient()
 
@@ -308,6 +309,17 @@ describe('Başarılı yüklemeler', () => {
 })
 
 describe('Dosya türü güvenliği', () => {
+  it('PDF imzasını tanır ve geçerli temel yapıyı kabul eder', () => {
+    const buffer = Buffer.from('%PDF-1.7\n1 0 obj\n<<>>\nendobj\n%%EOF')
+    expect(detectFileType(buffer).detectedType).toBe('pdf')
+    expect(() => validatePdfFile(buffer)).not.toThrow()
+  })
+
+  it('şifreli veya eksik PDF yapısını reddeder', () => {
+    expect(() => validatePdfFile(Buffer.from('%PDF-1.7\n/Encrypt 4 0 R\n%%EOF'))).toThrow(/Şifreli PDF/)
+    expect(() => validatePdfFile(Buffer.from('%PDF-1.7\n1 0 obj'))).toThrow(/bozuk PDF/)
+  })
+
   it('.docx uzantılı düz metin reddedilir', async () => {
     const res = await simulateUpload({
       filename: 'fake.docx',

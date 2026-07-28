@@ -16,6 +16,7 @@ import { documentRoutes } from './services/documents'
 import { businessRoutes } from './services/business'
 import { workspaceRoutes } from './services/workspace'
 import { businessTrackerRoutes } from './services/business-tracker'
+import { startBusinessReminderWorker } from './services/business-reminder-worker'
 import { formulaRoutes } from './services/formulas'
 import { adminRoutes } from './services/admin'
 import { reportRoutes } from './services/reports'
@@ -222,12 +223,20 @@ export async function start() {
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error('PORT must be an integer between 1 and 65535')
   }
+  let stopReminderWorker = () => {}
+  server.addHook('onClose', async () => {
+    stopReminderWorker()
+  })
   try {
     await server.listen({ port, host: process.env.HOST || '0.0.0.0' })
   } catch (err) {
     server.log.error(err)
     process.exit(1)
   }
+
+  stopReminderWorker = startBusinessReminderWorker(undefined, {
+    onError: error => server.log.error({ error }, 'Business reminder worker failed')
+  })
 
   void deleteExpiredReviewerTelemetry().catch(() => {
     server.log.warn(

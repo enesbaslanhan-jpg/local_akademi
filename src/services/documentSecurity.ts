@@ -7,14 +7,16 @@ export const MAX_ZIP_ENTRIES = 100
 export const MAX_TOTAL_UNCOMPRESSED = 100 * 1024 * 1024
 export const MAX_SINGLE_ENTRY_UNCOMPRESSED = 50 * 1024 * 1024
 export const MAX_COMPRESSION_RATIO = 100
+export const MAX_PDF_PAGES = 200
 
-export const ALLOWED_EXTENSIONS = new Set(['txt', 'md', 'csv', 'json', 'docx'])
+export const ALLOWED_EXTENSIONS = new Set(['txt', 'md', 'csv', 'json', 'docx', 'pdf'])
 export const ALLOWED_MIME_MAP: Record<string, string> = {
   'txt': 'text/plain',
   'md': 'text/markdown',
   'csv': 'text/csv',
   'json': 'application/json',
-  'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'pdf': 'application/pdf'
 }
 
 export const questionSchema = z.object({
@@ -39,6 +41,10 @@ export function detectFileType(buffer: Buffer): FileTypeCheckResult {
     return { valid: true, detectedType: 'docx' }
   }
 
+  if (isPdf(buffer)) {
+    return { valid: true, detectedType: 'pdf' }
+  }
+
   if (isJson(buffer)) {
     return { valid: true, detectedType: 'json' }
   }
@@ -59,6 +65,23 @@ export function detectFileType(buffer: Buffer): FileTypeCheckResult {
 function isZip(buffer: Buffer): boolean {
   return buffer.length >= 4 && buffer[0] === 0x50 && buffer[1] === 0x4B &&
     buffer[2] === 0x03 && buffer[3] === 0x04
+}
+
+function isPdf(buffer: Buffer): boolean {
+  return buffer.length >= 5 && buffer.subarray(0, 5).toString('ascii') === '%PDF-'
+}
+
+export function validatePdfFile(buffer: Buffer): void {
+  if (!isPdf(buffer)) {
+    throw new FileValidationError('Geçersiz PDF imzası', 415)
+  }
+  const structuralSample = buffer.toString('latin1')
+  if (/\/Encrypt\b/.test(structuralSample)) {
+    throw new FileValidationError('Şifreli PDF dosyaları desteklenmez', 422)
+  }
+  if (!/%%EOF\s*$/.test(structuralSample.trimEnd())) {
+    throw new FileValidationError('Eksik veya bozuk PDF yapısı', 422)
+  }
 }
 
 function isJson(buffer: Buffer): boolean {

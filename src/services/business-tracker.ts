@@ -2,6 +2,8 @@ import type { FastifyInstance } from 'fastify'
 import type { Prisma, PrismaClient } from '@prisma/client'
 import { z } from 'zod'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
+import { processDueBusinessReminders, syncAutomaticReminder } from './business-reminder-worker.js'
+import { buildDocumentSuggestion } from './document-suggestions.js'
 
 const RECORD_TYPES = [
   'payment', 'receivable', 'promissory_note', 'purchase',
@@ -262,6 +264,7 @@ export async function businessTrackerRoutes(
       await tx.workspaceActivity.create({
         data: { workspaceId, actorId: user.id, action: 'record.created', entityType: 'business_record', entityId: created.id }
       })
+      await syncAutomaticReminder(tx, created)
       return created
     })
     return reply.status(201).send(recordJson(record))
@@ -325,6 +328,7 @@ export async function businessTrackerRoutes(
           reason: input.reason
         }
       })
+      await syncAutomaticReminder(tx, result)
       return result
     })
     return recordJson(updated)
@@ -354,6 +358,7 @@ export async function businessTrackerRoutes(
           reason: parsed.data.reason
         }
       })
+      await syncAutomaticReminder(tx, result)
       return result
     })
     return recordJson(updated)
@@ -387,6 +392,50 @@ export async function businessTrackerRoutes(
     return reply.status(201).send(reminder)
   })
 
+  fastify.get('/:workspaceId/notifications', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId } = request.params as { workspaceId: string }
+    if (!await access(prisma, user.id, workspaceId, reply)) return
+    await processDueBusinessReminders(prisma).catch(error => {
+      request.log.error({ error }, 'Due reminder processing failed')
+    })
+    const [notifications, unreadCount] = await prisma.$transaction([
+      prisma.businessNotification.findMany({
+        where: { workspaceId, userId: user.id },
+        include: { record: { select: { id: true, title: true, type: true, dueAt: true, status: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 100
+      }),
+      prisma.businessNotification.count({ where: { workspaceId, userId: user.id, readAt: null } })
+    ])
+    return { notifications, unreadCount }
+  })
+
+  fastify.patch('/:workspaceId/notifications/:notificationId/read', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId, notificationId } = request.params as { workspaceId: string; notificationId: string }
+    if (!await access(prisma, user.id, workspaceId, reply)) return
+    const notification = await prisma.businessNotification.findUnique({ where: { id: notificationId } })
+    if (!notification || notification.workspaceId !== workspaceId || notification.userId !== user.id) {
+      return reply.status(404).send({ error: 'Notification not found' })
+    }
+    return prisma.businessNotification.update({
+      where: { id: notificationId },
+      data: { readAt: notification.readAt ?? new Date() }
+    })
+  })
+
+  fastify.post('/:workspaceId/notifications/read-all', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId } = request.params as { workspaceId: string }
+    if (!await access(prisma, user.id, workspaceId, reply)) return
+    const result = await prisma.businessNotification.updateMany({
+      where: { workspaceId, userId: user.id, readAt: null },
+      data: { readAt: new Date() }
+    })
+    return { updated: result.count }
+  })
+
   fastify.post('/:workspaceId/records/:recordId/documents/:documentId', async (request, reply) => {
     const user = request.user as { id: number }
     const { workspaceId, recordId, documentId } = request.params as { workspaceId: string, recordId: string, documentId: string }
@@ -415,6 +464,7 @@ export async function businessTrackerRoutes(
       where: { workspaceId, archivedAt: null },
       include: {
         contact: { select: { id: true, name: true } },
+        suggestions: { orderBy: { createdAt: 'desc' } },
         _count: { select: { recordDocuments: true } }
       },
       orderBy: { createdAt: 'desc' }
@@ -429,6 +479,11 @@ export async function businessTrackerRoutes(
         documentDate: document.documentDate,
         dueDate: document.dueDate,
         analysisStatus: document.analysisStatus,
+        suggestions: document.suggestions.map(suggestion => ({
+          ...suggestion,
+          payload: parseJson(suggestion.payload),
+          evidence: parseJson(suggestion.evidence)
+        })),
         contact: document.contact,
         linkedRecordCount: document._count.recordDocuments,
         createdAt: document.createdAt
@@ -447,17 +502,144 @@ export async function businessTrackerRoutes(
     const parsed = documentMetadataInput.safeParse(request.body)
     if (!parsed.success) return reply.status(422).send({ error: 'Validation failed', details: parsed.error.errors })
     if (!await validateReferences(prisma, workspaceId, parsed.data.contactId, undefined, reply)) return
-    const updated = await prisma.uploadedDocument.update({
-      where: { id: documentId },
-      data: {
-        workspaceId,
-        ...(parsed.data.category !== undefined ? { category: parsed.data.category } : {}),
-        ...(parsed.data.documentDate !== undefined ? { documentDate: parsed.data.documentDate ? new Date(parsed.data.documentDate) : null } : {}),
-        ...(parsed.data.dueDate !== undefined ? { dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : null } : {}),
-        ...(parsed.data.contactId !== undefined ? { contactId: parsed.data.contactId } : {})
+    const updated = await prisma.$transaction(async tx => {
+      const result = await tx.uploadedDocument.update({
+        where: { id: documentId },
+        data: {
+          workspaceId,
+          ...(parsed.data.category !== undefined ? { category: parsed.data.category } : {}),
+          ...(parsed.data.documentDate !== undefined ? { documentDate: parsed.data.documentDate ? new Date(parsed.data.documentDate) : null } : {}),
+          ...(parsed.data.dueDate !== undefined ? { dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : null } : {}),
+          ...(parsed.data.contactId !== undefined ? { contactId: parsed.data.contactId } : {})
+        }
+      })
+      const existing = await tx.documentSuggestion.findFirst({
+        where: { workspaceId, documentId, suggestionType: 'business_record', status: 'proposed' }
+      })
+      const generated = buildDocumentSuggestion(result)
+      if (!existing && generated) {
+        await tx.documentSuggestion.create({
+          data: {
+            workspaceId,
+            documentId,
+            suggestionType: generated.suggestionType,
+            payload: JSON.stringify(generated.payload),
+            confidence: generated.confidence,
+            evidence: JSON.stringify(generated.evidence),
+            status: 'proposed'
+          }
+        })
       }
+      await tx.uploadedDocument.update({
+        where: { id: documentId },
+        data: { analysisStatus: existing || generated ? 'review_required' : 'no_suggestion' }
+      })
+      return result
     })
     return updated
+  })
+
+  fastify.get('/:workspaceId/documents/:documentId/suggestions', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId, documentId } = request.params as { workspaceId: string; documentId: string }
+    if (!await access(prisma, user.id, workspaceId, reply)) return
+    const document = await prisma.uploadedDocument.findUnique({ where: { id: documentId } })
+    if (!document || document.workspaceId !== workspaceId || document.archivedAt) {
+      return reply.status(404).send({ error: 'Document not found' })
+    }
+    const suggestions = await prisma.documentSuggestion.findMany({
+      where: { workspaceId, documentId },
+      orderBy: { createdAt: 'desc' }
+    })
+    return {
+      suggestions: suggestions.map(suggestion => ({
+        ...suggestion,
+        payload: parseJson(suggestion.payload),
+        evidence: parseJson(suggestion.evidence)
+      }))
+    }
+  })
+
+  fastify.post('/:workspaceId/document-suggestions/:suggestionId/accept', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId, suggestionId } = request.params as { workspaceId: string; suggestionId: string }
+    if (!await access(prisma, user.id, workspaceId, reply, true)) return
+    const suggestion = await prisma.documentSuggestion.findUnique({
+      where: { id: suggestionId },
+      include: { document: true }
+    })
+    if (!suggestion || suggestion.workspaceId !== workspaceId || suggestion.document.workspaceId !== workspaceId) {
+      return reply.status(404).send({ error: 'Suggestion not found' })
+    }
+    if (suggestion.status !== 'proposed') {
+      return reply.status(409).send({ error: 'Suggestion was already reviewed' })
+    }
+    const overrides = recordInput.partial().safeParse(request.body ?? {})
+    if (!overrides.success) return reply.status(422).send({ error: 'Validation failed', details: overrides.error.errors })
+    const merged = recordInput.safeParse({ ...parseJson(suggestion.payload), ...overrides.data })
+    if (!merged.success) return reply.status(422).send({ error: 'Suggestion is incomplete', details: merged.error.errors })
+    if (!await validateReferences(prisma, workspaceId, merged.data.contactId, merged.data.assignedToId, reply)) return
+
+    const record = await prisma.$transaction(async tx => {
+      const claimed = await tx.documentSuggestion.updateMany({
+        where: { id: suggestionId, workspaceId, status: 'proposed' },
+        data: { status: 'accepted', reviewedById: user.id, reviewedAt: new Date() }
+      })
+      if (claimed.count !== 1) throw new Error('SUGGESTION_ALREADY_REVIEWED')
+      const input = merged.data
+      const created = await tx.businessRecord.create({
+        data: {
+          workspaceId,
+          type: input.type,
+          title: input.title,
+          description: input.description ?? null,
+          direction: input.direction,
+          amount: input.amount ?? null,
+          currency: input.currency.toUpperCase(),
+          priority: input.priority,
+          dueAt: input.dueAt ? new Date(input.dueAt) : null,
+          originalDueAt: input.dueAt ? new Date(input.dueAt) : null,
+          contactId: input.contactId ?? null,
+          assignedToId: input.assignedToId ?? null,
+          createdById: user.id,
+          metadata: JSON.stringify({ ...(input.metadata ?? {}), sourceSuggestionId: suggestion.id })
+        }
+      })
+      await tx.businessRecordDocument.create({
+        data: { workspaceId, recordId: created.id, documentId: suggestion.documentId, attachedById: user.id }
+      })
+      await tx.businessRecordHistory.create({
+        data: { workspaceId, recordId: created.id, actorId: user.id, action: 'created.from_document_suggestion', newData: JSON.stringify(recordJson(created)) }
+      })
+      await tx.uploadedDocument.update({ where: { id: suggestion.documentId }, data: { analysisStatus: 'accepted' } })
+      await syncAutomaticReminder(tx, created)
+      return created
+    }).catch(error => {
+      if (error instanceof Error && error.message === 'SUGGESTION_ALREADY_REVIEWED') return null
+      throw error
+    })
+    if (!record) return reply.status(409).send({ error: 'Suggestion was already reviewed' })
+    return reply.status(201).send(recordJson(record))
+  })
+
+  fastify.post('/:workspaceId/document-suggestions/:suggestionId/reject', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId, suggestionId } = request.params as { workspaceId: string; suggestionId: string }
+    if (!await access(prisma, user.id, workspaceId, reply, true)) return
+    const suggestion = await prisma.documentSuggestion.findUnique({ where: { id: suggestionId } })
+    if (!suggestion || suggestion.workspaceId !== workspaceId) {
+      return reply.status(404).send({ error: 'Suggestion not found' })
+    }
+    const result = await prisma.documentSuggestion.updateMany({
+      where: { id: suggestionId, workspaceId, status: 'proposed' },
+      data: { status: 'rejected', reviewedById: user.id, reviewedAt: new Date() }
+    })
+    if (result.count !== 1) return reply.status(409).send({ error: 'Suggestion was already reviewed' })
+    await prisma.uploadedDocument.update({
+      where: { id: suggestion.documentId },
+      data: { analysisStatus: 'rejected' }
+    })
+    return { rejected: true }
   })
 
   fastify.delete('/:workspaceId/documents/:documentId', async (request, reply) => {
