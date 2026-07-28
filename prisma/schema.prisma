@@ -182,7 +182,7 @@ model BusinessRecord {
   createdById    Int
   updatedById    Int?
   recurrenceRule String?
-  parentRecordId String?
+  parentRecordId String?                  @unique
   metadata       String                   @default("{}")
   archivedAt     DateTime?
   createdAt      DateTime                 @default(now())

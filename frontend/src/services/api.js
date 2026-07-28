@@ -666,6 +666,10 @@ export const api = {
       async summary(workspaceId) {
         return api.request(`/workspaces/${workspaceId}/tracker/summary`)
       },
+      async calendar(workspaceId, from, to) {
+        const q = buildQuery({ from, to })
+        return api.request(`/workspaces/${workspaceId}/tracker/calendar${q}`)
+      },
       async list(workspaceId, filters = {}) {
         const q = buildQuery(filters)
         return api.request(`/workspaces/${workspaceId}/records${q}`)

@@ -10,6 +10,7 @@ const RECORD_TYPES = [
   'shipment', 'task', 'deferred', 'other'
 ] as const
 const RECORD_STATUSES = ['open', 'in_progress', 'completed', 'cancelled', 'deferred'] as const
+const RECURRENCE_RULES = ['weekly', 'monthly', 'quarterly', 'yearly'] as const
 const WRITE_ROLES = new Set(['owner', 'manager', 'staff', 'accountant', 'admin'])
 
 const nullableText = z.string().trim().max(4000).nullable().optional()
@@ -26,6 +27,7 @@ const recordInput = z.object({
   dueAt: optionalDate,
   contactId: z.string().uuid().nullable().optional(),
   assignedToId: z.number().int().positive().nullable().optional(),
+  recurrenceRule: z.enum(RECURRENCE_RULES).nullable().optional(),
   metadata: z.record(z.unknown()).optional()
 })
 
@@ -142,6 +144,66 @@ function updateDates(status: typeof RECORD_STATUSES[number]) {
   return { completedAt: null, cancelledAt: null }
 }
 
+function nextRecurringDate(current: Date, rule: typeof RECURRENCE_RULES[number]) {
+  if (rule === 'weekly') return new Date(current.getTime() + 7 * 86400000)
+  const months = rule === 'monthly' ? 1 : rule === 'quarterly' ? 3 : 12
+  const year = current.getUTCFullYear()
+  const month = current.getUTCMonth() + months
+  const day = current.getUTCDate()
+  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
+  return new Date(Date.UTC(
+    new Date(Date.UTC(year, month, 1)).getUTCFullYear(),
+    new Date(Date.UTC(year, month, 1)).getUTCMonth(),
+    Math.min(day, lastDay),
+    current.getUTCHours(),
+    current.getUTCMinutes(),
+    current.getUTCSeconds(),
+    current.getUTCMilliseconds()
+  ))
+}
+
+async function createNextRecurringRecord(
+  tx: Prisma.TransactionClient,
+  record: any,
+  actorId: number
+) {
+  if (!record.dueAt || !RECURRENCE_RULES.includes(record.recurrenceRule)) return null
+  const existing = await tx.businessRecord.findFirst({ where: { parentRecordId: record.id } })
+  if (existing) return existing
+  const dueAt = nextRecurringDate(record.dueAt, record.recurrenceRule)
+  const created = await tx.businessRecord.create({
+    data: {
+      workspaceId: record.workspaceId,
+      type: record.type,
+      title: record.title,
+      description: record.description,
+      direction: record.direction,
+      amount: record.amount,
+      currency: record.currency,
+      priority: record.priority,
+      dueAt,
+      originalDueAt: dueAt,
+      contactId: record.contactId,
+      assignedToId: record.assignedToId,
+      createdById: actorId,
+      recurrenceRule: record.recurrenceRule,
+      parentRecordId: record.id,
+      metadata: record.metadata
+    }
+  })
+  await tx.businessRecordHistory.create({
+    data: {
+      workspaceId: record.workspaceId,
+      recordId: created.id,
+      actorId,
+      action: 'generated.recurrence',
+      newData: JSON.stringify(recordJson(created))
+    }
+  })
+  await syncAutomaticReminder(tx, created)
+  return created
+}
+
 export async function businessTrackerRoutes(
   fastify: FastifyInstance,
   opts?: { prisma?: PrismaClient }
@@ -183,6 +245,43 @@ export async function businessTrackerRoutes(
       },
       nextThirtyDays: { payable, receivable, net: receivable - payable },
       upcoming: records.slice(0, 10).map(recordJson)
+    }
+  })
+
+  fastify.get('/:workspaceId/tracker/calendar', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId } = request.params as { workspaceId: string }
+    if (!await access(prisma, user.id, workspaceId, reply)) return
+    const parsed = z.object({
+      from: z.string().datetime(),
+      to: z.string().datetime()
+    }).safeParse(request.query)
+    if (!parsed.success) return reply.status(422).send({ error: 'Invalid calendar range', details: parsed.error.errors })
+    const from = new Date(parsed.data.from)
+    const to = new Date(parsed.data.to)
+    if (to <= from || to.getTime() - from.getTime() > 366 * 86400000) {
+      return reply.status(422).send({ error: 'Calendar range must be between 1 and 366 days' })
+    }
+    const records = await prisma.businessRecord.findMany({
+      where: { workspaceId, archivedAt: null, dueAt: { gte: from, lte: to } },
+      include: { contact: { select: { id: true, name: true } } },
+      orderBy: [{ dueAt: 'asc' }, { priority: 'desc' }]
+    })
+    const days: Record<string, ReturnType<typeof recordJson>[]> = {}
+    for (const record of records) {
+      const key = record.dueAt!.toISOString().slice(0, 10)
+      ;(days[key] ??= []).push(recordJson(record))
+    }
+    const activeFinancialRecords = records.filter(record => !['completed', 'cancelled'].includes(record.status))
+    return {
+      from,
+      to,
+      days,
+      totals: {
+        records: records.length,
+        payable: activeFinancialRecords.filter(record => record.direction === 'payable').reduce((sum, record) => sum + Number(record.amount ?? 0), 0),
+        receivable: activeFinancialRecords.filter(record => record.direction === 'receivable').reduce((sum, record) => sum + Number(record.amount ?? 0), 0)
+      }
     }
   })
 
@@ -254,6 +353,7 @@ export async function businessTrackerRoutes(
           originalDueAt: input.dueAt ? new Date(input.dueAt) : null,
           contactId: input.contactId ?? null,
           assignedToId: input.assignedToId ?? null,
+          recurrenceRule: input.recurrenceRule ?? null,
           createdById: user.id,
           metadata: JSON.stringify(input.metadata ?? {})
         }
@@ -310,6 +410,7 @@ export async function businessTrackerRoutes(
       ...(input.dueAt !== undefined ? { dueAt: input.dueAt ? new Date(input.dueAt) : null } : {}),
       ...(input.contactId !== undefined ? { contact: input.contactId ? { connect: { id: input.contactId } } : { disconnect: true } } : {}),
       ...(input.assignedToId !== undefined ? { assignedTo: input.assignedToId ? { connect: { id: input.assignedToId } } : { disconnect: true } } : {}),
+      ...(input.recurrenceRule !== undefined ? { recurrenceRule: input.recurrenceRule } : {}),
       ...(input.metadata !== undefined ? { metadata: JSON.stringify(input.metadata) } : {}),
       ...(input.status !== undefined ? { status: input.status, ...updateDates(input.status) } : {}),
       updatedBy: { connect: { id: user.id } }
@@ -329,6 +430,9 @@ export async function businessTrackerRoutes(
         }
       })
       await syncAutomaticReminder(tx, result)
+      if (input.status === 'completed') {
+        await createNextRecurringRecord(tx, result, user.id)
+      }
       return result
     })
     return recordJson(updated)
@@ -479,6 +583,8 @@ export async function businessTrackerRoutes(
         documentDate: document.documentDate,
         dueDate: document.dueDate,
         analysisStatus: document.analysisStatus,
+        analysis: parseJson(document.analysis),
+        extractedText: document.extractedText.substring(0, 20000),
         suggestions: document.suggestions.map(suggestion => ({
           ...suggestion,
           payload: parseJson(suggestion.payload),

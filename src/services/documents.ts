@@ -7,14 +7,36 @@ import { randomUUID } from 'crypto'
 import fastifyMultipart from '@fastify/multipart'
 import mammoth from 'mammoth'
 import { PDFParse } from 'pdf-parse'
+import { createWorker, OEM } from 'tesseract.js'
 import { z } from 'zod'
 import {
   MAX_FILE_SIZE, MAX_EXTRACTED_TEXT_LENGTH, MAX_PDF_PAGES, ALLOWED_EXTENSIONS, ALLOWED_MIME_MAP,
   questionSchema, detectFileType, validateTextFile, validateJsonFile, inspectZip,
-  validatePdfFile, FileValidationError
+  validatePdfFile, validateImageFile, FileValidationError
 } from './documentSecurity'
 
 const UPLOAD_DIR = join(process.cwd(), 'uploads')
+const MAX_OCR_PAGES = 5
+const turData = require('@tesseract.js-data/tur') as { code: string; gzip: boolean; langPath: string }
+
+async function recognizeTurkishPages(pages: Array<{ data: Uint8Array }>) {
+  const worker = await createWorker(turData.code, OEM.LSTM_ONLY, {
+    langPath: turData.langPath,
+    gzip: turData.gzip,
+    cacheMethod: 'none',
+    logger: () => {}
+  })
+  try {
+    const text: string[] = []
+    for (const page of pages.slice(0, MAX_OCR_PAGES)) {
+      const result = await worker.recognize(Buffer.from(page.data))
+      if (result.data.text.trim()) text.push(result.data.text.trim())
+    }
+    return text.join('\n\n')
+  } finally {
+    await worker.terminate()
+  }
+}
 
 function getUserQuotaBytes(): number {
   const envVal = process.env.DOCUMENT_USER_QUOTA_BYTES
@@ -87,7 +109,7 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
 
     const ext = (filename.split('.').pop() || '').toLowerCase()
     if (!ALLOWED_EXTENSIONS.has(ext)) {
-      return reply.status(415).send({ error: 'Desteklenmeyen dosya türü. TXT, MD, CSV, JSON, DOCX veya PDF yükleyin.' })
+      return reply.status(415).send({ error: 'Desteklenmeyen dosya türü. TXT, MD, CSV, JSON, DOCX, PDF, PNG veya JPEG yükleyin.' })
     }
 
     const expectedMime = ALLOWED_MIME_MAP[ext]
@@ -117,6 +139,12 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
       return reply.status(415).send({ error: 'PDF uzantısı ile dosya içeriği uyuşmuyor' })
     }
 
+    const imageExtension = ext === 'png' ? 'png' : ['jpg', 'jpeg'].includes(ext) ? 'jpeg' : null
+    if ((imageExtension !== null || ['png', 'jpeg'].includes(contentCheck.detectedType || '')) &&
+        imageExtension !== contentCheck.detectedType) {
+      return reply.status(415).send({ error: 'Görsel uzantısı ile dosya içeriği uyuşmuyor' })
+    }
+
     if (ext === 'docx') {
       const zipInfo = inspectZip(buffer)
       if (!zipInfo.valid) {
@@ -130,6 +158,17 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
     if (ext === 'pdf') {
       try {
         validatePdfFile(buffer)
+      } catch (e) {
+        if (e instanceof FileValidationError) {
+          return reply.status(e.statusCode).send({ error: e.message })
+        }
+        throw e
+      }
+    }
+
+    if (imageExtension) {
+      try {
+        validateImageFile(buffer, imageExtension)
       } catch (e) {
         if (e instanceof FileValidationError) {
           return reply.status(e.statusCode).send({ error: e.message })
@@ -187,6 +226,7 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
     }
 
     let extractedText = ''
+    let extractionMethod = 'native_text'
     try {
       if (ext === 'docx') {
         const result = await mammoth.extractRawText({ buffer })
@@ -199,15 +239,28 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
             throw new FileValidationError(`PDF en fazla ${MAX_PDF_PAGES} sayfa olabilir`, 422)
           }
           extractedText = result.text
+          if (!extractedText.trim()) {
+            const screenshots = await parser.getScreenshot({
+              first: Math.min(result.total, MAX_OCR_PAGES),
+              desiredWidth: 1800,
+              imageBuffer: true,
+              imageDataUrl: false
+            })
+            extractedText = await recognizeTurkishPages(screenshots.pages)
+            extractionMethod = 'ocr_tur'
+          }
         } finally {
           await parser.destroy()
         }
+      } else if (['png', 'jpg', 'jpeg'].includes(ext)) {
+        extractedText = await recognizeTurkishPages([{ data: buffer }])
+        extractionMethod = 'ocr_tur'
       } else {
         extractedText = buffer.toString('utf-8')
       }
       extractedText = extractedText.substring(0, MAX_EXTRACTED_TEXT_LENGTH)
-      if (ext === 'pdf' && !extractedText.trim()) {
-        throw new FileValidationError('Bu PDF görüntü/tarama içeriyor; okunabilir metin bulunamadı', 422)
+      if (['pdf', 'png', 'jpg', 'jpeg'].includes(ext) && !extractedText.trim()) {
+        throw new FileValidationError('Belge üzerinde OCR tamamlandı ancak okunabilir metin bulunamadı', 422)
       }
     } catch (error) {
       request.log.error({ userId: user.id }, 'Metin çıkarımı başarısız')
@@ -228,7 +281,11 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
       return reply.status(500).send({ error: 'Dosya kaydedilemedi' })
     }
 
-    const analysis = analyzeText(extractedText, filename)
+    const analysis = {
+      ...analyzeText(extractedText, filename),
+      extraction_method: extractionMethod,
+      ...(extractionMethod === 'ocr_tur' ? { ocr_pages_limit: MAX_OCR_PAGES } : {})
+    }
 
     let doc: { id: string; originalName: string; sizeBytes: number; status: string; analysis: string }
     try {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Check, FileText, Trash2, Upload, X } from 'lucide-react'
+import { Check, Eye, FileText, Trash2, Upload, X } from 'lucide-react'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
 import styles from './Documents.module.css'
@@ -30,6 +30,7 @@ export default function Documents() {
   const [documents, setDocuments] = useState([])
   const [category, setCategory] = useState('other')
   const [uploading, setUploading] = useState(false)
+  const [preview, setPreview] = useState(null)
 
   const load = useCallback(async () => {
     try {
@@ -99,12 +100,12 @@ export default function Documents() {
           <button onClick={() => inputRef.current?.click()} disabled={uploading}>
             <Upload size={17} /> {uploading ? 'Yükleniyor…' : 'Belge yükle'}
           </button>
-          <input ref={inputRef} hidden type="file" accept=".txt,.md,.csv,.json,.docx,.pdf" onChange={uploadFile} />
+          <input ref={inputRef} hidden type="file" accept=".txt,.md,.csv,.json,.docx,.pdf,.png,.jpg,.jpeg" onChange={uploadFile} />
         </div>
       </div>
 
       <div className={styles.note}>
-        TXT, MD, CSV, JSON, DOCX ve metin içeren PDF desteklenir. Taranmış/görüntü PDF'lerinden henüz metin çıkarılmaz.
+        TXT, MD, CSV, JSON, DOCX, PDF, PNG ve JPEG desteklenir. Taranmış belgeler yerel Türkçe OCR ile okunur; dış servise gönderilmez.
       </div>
 
       {documents.length === 0 ? (
@@ -119,7 +120,9 @@ export default function Documents() {
                   <h3>{document.originalName}</h3>
                   <p>{categories[document.category] || 'Sınıflandırılmamış'} · {(document.sizeBytes / 1024).toFixed(1)} KB</p>
                   <span>{document.linkedRecordCount} takip kaydına bağlı</span>
+                  {document.analysis?.extraction_method === 'ocr_tur' && <span className={styles.ocrBadge}>Yerel OCR ile okundu</span>}
                 </div>
+                <button className={styles.previewButton} onClick={() => setPreview(document)}><Eye size={17} /> İçerik</button>
                 <button className={styles.delete} aria-label="Arşivle" onClick={() => archive(document.id)}><Trash2 size={17} /></button>
               </div>
               {document.suggestions?.filter(item => item.status === 'proposed').map(suggestion => (
@@ -141,6 +144,18 @@ export default function Documents() {
               ))}
             </article>
           ))}
+        </div>
+      )}
+
+      {preview && (
+        <div className={styles.overlay} onMouseDown={() => setPreview(null)}>
+          <div className={styles.preview} onMouseDown={event => event.stopPropagation()}>
+            <div className={styles.previewHeading}>
+              <div><h3>{preview.originalName}</h3><p>{preview.analysis?.extraction_method === 'ocr_tur' ? 'Türkçe OCR sonucu' : 'Belgeden çıkarılan metin'}</p></div>
+              <button aria-label="Kapat" onClick={() => setPreview(null)}><X /></button>
+            </div>
+            <pre>{preview.extractedText || 'Bu belgeden gösterilebilir metin çıkarılmadı.'}</pre>
+          </div>
         </div>
       )}
     </section>

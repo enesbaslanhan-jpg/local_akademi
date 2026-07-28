@@ -7,6 +7,7 @@ import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { normalize, resolve } from 'path'
 import { detectFileType, validatePdfFile } from '../src/services/documentSecurity'
+import { createCanvas } from '@napi-rs/canvas'
 
 const realPrisma = new PrismaClient()
 
@@ -249,6 +250,25 @@ function simulateUpload(file: { filename: string; buffer: Buffer; mime: string }
 }
 
 describe('Başarılı yüklemeler', () => {
+  it('PNG belgeyi yerel Türkçe OCR ile okur', async () => {
+    const canvas = createCanvas(1200, 300)
+    const context = canvas.getContext('2d')
+    context.fillStyle = 'white'
+    context.fillRect(0, 0, 1200, 300)
+    context.fillStyle = 'black'
+    context.font = 'bold 72px Arial'
+    context.fillText('FATURA 8450 TL', 70, 180)
+    const res = await simulateUpload({
+      filename: 'fatura.png',
+      buffer: canvas.toBuffer('image/png'),
+      mime: 'image/png'
+    }, userToken)
+    expect(res.statusCode).toBe(200)
+    const body = JSON.parse(res.body)
+    expect(body.analysis.extraction_method).toBe('ocr_tur')
+    expect(body.analysis.summary.toLocaleLowerCase('tr-TR')).toContain('fatura')
+  }, 30000)
+
   it('geçerli TXT yüklenir', async () => {
     const file = makeTextFile('Hello World Test İçerik')
     const res = await simulateUpload(file, userToken)

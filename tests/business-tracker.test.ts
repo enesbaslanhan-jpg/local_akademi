@@ -208,7 +208,23 @@ describe('Business tracker API', () => {
     expect(history?.reason).toContain('Tedarikçi')
   })
 
-  it('completes a record and exposes it in history', async () => {
+  it('returns workspace-scoped records in a valid calendar range', async () => {
+    const from = new Date(Date.now() - 86400000).toISOString()
+    const tooFar = new Date(Date.now() + 400 * 86400000).toISOString()
+    expect((await inject('GET', `/workspaces/${workspaceId}/tracker/calendar?from=${encodeURIComponent(from)}&to=${encodeURIComponent(tooFar)}`, ownerToken)).statusCode).toBe(422)
+
+    const to = new Date(Date.now() + 30 * 86400000).toISOString()
+    const response = await inject('GET', `/workspaces/${workspaceId}/tracker/calendar?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, ownerToken)
+    expect(response.statusCode).toBe(200)
+    expect(response.json().totals.records).toBeGreaterThan(0)
+    expect(response.json().totals.payable).toBeGreaterThan(0)
+    expect((await inject('GET', `/workspaces/${otherWorkspaceId}/tracker/calendar?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, ownerToken)).statusCode).toBe(403)
+  })
+
+  it('completes a recurring record, creates the next period once and exposes history', async () => {
+    expect((await inject('PATCH', `/workspaces/${workspaceId}/records/${recordId}`, ownerToken, {
+      recurrenceRule: 'monthly'
+    })).statusCode).toBe(200)
     const response = await inject('PATCH', `/workspaces/${workspaceId}/records/${recordId}`, ownerToken, {
       status: 'completed'
     })
@@ -216,6 +232,14 @@ describe('Business tracker API', () => {
     expect(response.json().completedAt).toBeTruthy()
     const detail = await inject('GET', `/workspaces/${workspaceId}/records/${recordId}`, ownerToken)
     expect(detail.json().history.some((item: any) => item.action === 'status.completed')).toBe(true)
+    const children = await prisma.businessRecord.findMany({ where: { parentRecordId: recordId } })
+    expect(children).toHaveLength(1)
+    expect(children[0].recurrenceRule).toBe('monthly')
+    expect(children[0].status).toBe('open')
+    expect((await inject('PATCH', `/workspaces/${workspaceId}/records/${recordId}`, ownerToken, {
+      status: 'completed'
+    })).statusCode).toBe(200)
+    expect(await prisma.businessRecord.count({ where: { parentRecordId: recordId } })).toBe(1)
   })
 
   it('returns workspace summary and archives records softly', async () => {

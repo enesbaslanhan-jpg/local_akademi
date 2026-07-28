@@ -6,6 +6,7 @@ import styles from './WorkspaceLayout.module.css'
 
 const tabs = [
   { id: 'tracker', label: 'İşletme Takibi', path: 'tracker' },
+  { id: 'calendar', label: 'Takvim', path: 'calendar' },
   { id: 'documents', label: 'Belgeler', path: 'documents' },
   { id: 'notifications', label: 'Bildirimler', path: 'notifications' },
   { id: 'overview', label: 'Genel Bakış', path: 'overview' },

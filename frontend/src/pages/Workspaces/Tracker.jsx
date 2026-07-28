@@ -13,7 +13,8 @@ const emptyForm = {
   amount: '',
   currency: 'TRY',
   priority: 'normal',
-  dueAt: ''
+  dueAt: '',
+  recurrenceRule: ''
 }
 
 const typeLabels = {
@@ -85,7 +86,8 @@ export default function Tracker() {
       await api.workspace.tracker.create(workspaceId, {
         ...form,
         amount: form.amount === '' ? null : Number(form.amount),
-        dueAt: form.dueAt ? new Date(form.dueAt).toISOString() : null
+        dueAt: form.dueAt ? new Date(form.dueAt).toISOString() : null,
+        recurrenceRule: form.recurrenceRule || null
       })
       setForm(emptyForm)
       setShowForm(false)
@@ -211,6 +213,15 @@ export default function Tracker() {
                   <input type="datetime-local" value={form.dueAt} onChange={event => setForm(current => ({ ...current, dueAt: event.target.value }))} />
                 </label>
               </div>
+              <label>Tekrarlama
+                <select value={form.recurrenceRule} onChange={event => setForm(current => ({ ...current, recurrenceRule: event.target.value }))}>
+                  <option value="">Tekrarlanmaz</option>
+                  <option value="weekly">Her hafta</option>
+                  <option value="monthly">Her ay</option>
+                  <option value="quarterly">Her 3 ayda</option>
+                  <option value="yearly">Her yıl</option>
+                </select>
+              </label>
               <div className={styles.actions}>
                 <button type="button" className={styles.secondary} onClick={() => setShowForm(false)}>Vazgeç</button>
                 <button type="submit" className={styles.primary} disabled={saving}>{saving ? 'Kaydediliyor…' : 'Kaydı oluştur'}</button>

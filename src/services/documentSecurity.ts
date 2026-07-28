@@ -8,15 +8,19 @@ export const MAX_TOTAL_UNCOMPRESSED = 100 * 1024 * 1024
 export const MAX_SINGLE_ENTRY_UNCOMPRESSED = 50 * 1024 * 1024
 export const MAX_COMPRESSION_RATIO = 100
 export const MAX_PDF_PAGES = 200
+export const MAX_IMAGE_PIXELS = 25_000_000
 
-export const ALLOWED_EXTENSIONS = new Set(['txt', 'md', 'csv', 'json', 'docx', 'pdf'])
+export const ALLOWED_EXTENSIONS = new Set(['txt', 'md', 'csv', 'json', 'docx', 'pdf', 'png', 'jpg', 'jpeg'])
 export const ALLOWED_MIME_MAP: Record<string, string> = {
   'txt': 'text/plain',
   'md': 'text/markdown',
   'csv': 'text/csv',
   'json': 'application/json',
   'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'pdf': 'application/pdf'
+  'pdf': 'application/pdf',
+  'png': 'image/png',
+  'jpg': 'image/jpeg',
+  'jpeg': 'image/jpeg'
 }
 
 export const questionSchema = z.object({
@@ -45,6 +49,14 @@ export function detectFileType(buffer: Buffer): FileTypeCheckResult {
     return { valid: true, detectedType: 'pdf' }
   }
 
+  if (isPng(buffer)) {
+    return { valid: true, detectedType: 'png' }
+  }
+
+  if (isJpeg(buffer)) {
+    return { valid: true, detectedType: 'jpeg' }
+  }
+
   if (isJson(buffer)) {
     return { valid: true, detectedType: 'json' }
   }
@@ -71,6 +83,14 @@ function isPdf(buffer: Buffer): boolean {
   return buffer.length >= 5 && buffer.subarray(0, 5).toString('ascii') === '%PDF-'
 }
 
+function isPng(buffer: Buffer): boolean {
+  return buffer.length >= 8 && buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))
+}
+
+function isJpeg(buffer: Buffer): boolean {
+  return buffer.length >= 4 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[buffer.length - 2] === 0xff && buffer[buffer.length - 1] === 0xd9
+}
+
 export function validatePdfFile(buffer: Buffer): void {
   if (!isPdf(buffer)) {
     throw new FileValidationError('Geçersiz PDF imzası', 415)
@@ -81,6 +101,33 @@ export function validatePdfFile(buffer: Buffer): void {
   }
   if (!/%%EOF\s*$/.test(structuralSample.trimEnd())) {
     throw new FileValidationError('Eksik veya bozuk PDF yapısı', 422)
+  }
+}
+
+export function validateImageFile(buffer: Buffer, type: 'png' | 'jpeg'): void {
+  let width = 0
+  let height = 0
+  if (type === 'png' && isPng(buffer) && buffer.length >= 24) {
+    width = buffer.readUInt32BE(16)
+    height = buffer.readUInt32BE(20)
+  } else if (type === 'jpeg' && isJpeg(buffer)) {
+    let offset = 2
+    while (offset + 9 < buffer.length) {
+      if (buffer[offset] !== 0xff) { offset += 1; continue }
+      const marker = buffer[offset + 1]
+      const length = buffer.readUInt16BE(offset + 2)
+      if ([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf].includes(marker)) {
+        height = buffer.readUInt16BE(offset + 5)
+        width = buffer.readUInt16BE(offset + 7)
+        break
+      }
+      if (length < 2) break
+      offset += 2 + length
+    }
+  }
+  if (!width || !height) throw new FileValidationError('Görsel boyutları okunamadı', 422)
+  if (width > 10_000 || height > 10_000 || width * height > MAX_IMAGE_PIXELS) {
+    throw new FileValidationError('Görsel çözünürlüğü güvenli OCR sınırını aşıyor', 422)
   }
 }
 

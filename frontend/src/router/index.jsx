@@ -28,6 +28,7 @@ const WorkspaceList = lazy(() => import('@/pages/Workspaces/index'))
 const WorkspaceLayout = lazy(() => import('@/pages/Workspaces/WorkspaceLayout'))
 const WorkspaceOverview = lazy(() => import('@/pages/Workspaces/Overview'))
 const WorkspaceTracker = lazy(() => import('@/pages/Workspaces/Tracker'))
+const WorkspaceCalendar = lazy(() => import('@/pages/Workspaces/Calendar'))
 const WorkspaceDocuments = lazy(() => import('@/pages/Workspaces/Documents'))
 const WorkspaceNotifications = lazy(() => import('@/pages/Workspaces/Notifications'))
 const WorkspaceTeam = lazy(() => import('@/pages/Workspaces/Team'))
@@ -87,6 +88,7 @@ export default function AppRoutes() {
               <Route index element={<Navigate to="overview" replace />} />
               <Route path="overview" element={<SuspenseWrapper><WorkspaceOverview /></SuspenseWrapper>} />
               <Route path="tracker" element={<SuspenseWrapper><WorkspaceTracker /></SuspenseWrapper>} />
+              <Route path="calendar" element={<SuspenseWrapper><WorkspaceCalendar /></SuspenseWrapper>} />
               <Route path="documents" element={<SuspenseWrapper><WorkspaceDocuments /></SuspenseWrapper>} />
               <Route path="notifications" element={<SuspenseWrapper><WorkspaceNotifications /></SuspenseWrapper>} />
               <Route path="team" element={<SuspenseWrapper><WorkspaceTeam /></SuspenseWrapper>} />

@@ -1,0 +1,23 @@
+.page { display: grid; gap: 18px; }
+.heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; }
+.heading h2 { margin: 0 0 6px; }
+.heading p { margin: 0; color: var(--text-secondary); }
+.navigation { display: flex; align-items: center; gap: 10px; text-transform: capitalize; }
+.navigation button { border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); border-radius: 9px; padding: 7px; cursor: pointer; }
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.metrics span { display: grid; gap: 4px; padding: 13px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 11px; }
+.metrics small { color: var(--text-secondary); }
+.calendar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
+.weekday { padding: 9px; text-align: center; font-size: .8rem; font-weight: 700; color: var(--text-secondary); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.day, .blank { min-height: 135px; padding: 8px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--bg-secondary); }
+.blank { background: var(--bg-primary); }
+.events { display: grid; gap: 5px; margin-top: 7px; }
+.event { min-width: 0; display: grid; padding: 5px 6px; border-radius: 7px; background: var(--bg-tertiary); border-left: 3px solid var(--text-secondary); }
+.event.payable { border-left-color: #dc2626; }
+.event.receivable { border-left-color: #16a34a; }
+.event small, .event b { font-size: .68rem; color: var(--text-secondary); }
+.event span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .76rem; color: var(--text-primary); }
+.more { color: var(--text-secondary); }
+.empty { min-height: 120px; display: grid; place-items: center; align-content: center; gap: 8px; color: var(--text-secondary); border: 1px dashed var(--border); border-radius: 12px; }
+@media (max-width: 900px) { .metrics { grid-template-columns: 1fr 1fr; } .calendar { overflow-x: auto; grid-template-columns: repeat(7, minmax(130px, 1fr)); } }
+@media (max-width: 650px) { .heading { flex-direction: column; } }
