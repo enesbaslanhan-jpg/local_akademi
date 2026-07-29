@@ -5,7 +5,7 @@ import {
   LayoutDashboard, BookOpen, Lightbulb, Bot,
   GraduationCap, Map, Settings, Shield,
   Users, Database, X, Calculator, Brain, HelpCircle, Newspaper,
-  Building2, CalendarDays, FileText, ListChecks
+  Building2, CalendarDays, FileText, ListChecks, FlaskConical
 } from 'lucide-react'
 import styles from './Sidebar.module.css'
 
@@ -21,6 +21,7 @@ const learnerLinks = [
   { id: 'flashcards', label: 'Flashcard', icon: Brain, path: '/app/flashcards' },
   { id: 'quiz', label: 'Quiz', icon: HelpCircle, path: '/app/quiz' },
   { id: 'tools', label: 'Finans Merkezi', icon: Calculator, path: '/app/tools' },
+  { id: 'financial-models', label: 'Model Laboratuvarı', icon: FlaskConical, path: '/app/finance/models' },
   { id: 'settings', label: 'Ayarlar', icon: Settings, path: '/app/settings' }
 ]
 

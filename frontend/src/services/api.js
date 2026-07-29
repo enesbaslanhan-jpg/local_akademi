@@ -272,6 +272,36 @@ export const api = {
     async getHistory() { return api.request('/formula-calculations'); }
   },
 
+  financialModels: {
+    async list() { return api.request('/financial-models'); },
+    async get(code) { return api.request(`/financial-models/${encodeURIComponent(code)}`); },
+    async recommend(data) {
+      return api.request('/financial-models/recommend', { method: 'POST', body: JSON.stringify(data) });
+    },
+    async validate(code, data) {
+      return api.request(`/financial-models/${encodeURIComponent(code)}/validate`, { method: 'POST', body: JSON.stringify(data) });
+    },
+    async run(workspaceId, code, data) {
+      return api.request(`/workspaces/${workspaceId}/financial-models/${encodeURIComponent(code)}/runs`, { method: 'POST', body: JSON.stringify(data) });
+    },
+    async runs(workspaceId, modelCode = '') {
+      return api.request(`/workspaces/${workspaceId}/financial-model-runs${modelCode ? `?modelCode=${encodeURIComponent(modelCode)}` : ''}`);
+    },
+    async getRun(workspaceId, runId) {
+      return api.request(`/workspaces/${workspaceId}/financial-model-runs/${runId}`);
+    },
+    async compare(workspaceId, runIds) {
+      return api.request(`/workspaces/${workspaceId}/financial-model-runs/compare`, { method: 'POST', body: JSON.stringify({ runIds }) });
+    },
+    async saveDecision(workspaceId, data) {
+      return api.request(`/workspaces/${workspaceId}/decision-journal`, { method: 'POST', body: JSON.stringify(data) });
+    },
+    async reviewDecision(workspaceId, entryId, data) {
+      return api.request(`/workspaces/${workspaceId}/decision-journal/${entryId}/outcome`, { method: 'PATCH', body: JSON.stringify(data) });
+    },
+    async cases() { return api.request('/financial-cases'); }
+  },
+
   learningPath: {
     async getCurrent() { return api.request('/learning-path/current'); },
     async generate(title, pathData) {

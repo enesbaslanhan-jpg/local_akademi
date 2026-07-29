@@ -18,6 +18,8 @@ const LearningPathPage = lazy(() => import('@/pages/LearningPathPage'))
 const MentorPage = lazy(() => import('@/pages/MentorPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
 const ToolsPage = lazy(() => import('@/pages/ToolsPage'))
+const FinancialModelLibrary = lazy(() => import('@/pages/FinancialModelLibrary'))
+const FinancialModelWorkspace = lazy(() => import('@/pages/FinancialModelWorkspace'))
 const FlashcardDashboardPage = lazy(() => import('@/pages/FlashcardDashboardPage'))
 const FlashcardStudyPage = lazy(() => import('@/pages/FlashcardStudyPage'))
 const QuizDashboardPage = lazy(() => import('@/pages/QuizDashboardPage'))
@@ -77,6 +79,8 @@ export default function AppRoutes() {
             <Route path="mentor" element={<SuspenseWrapper><MentorPage /></SuspenseWrapper>} />
             <Route path="community" element={<SuspenseWrapper><CommunityPage /></SuspenseWrapper>} />
             <Route path="tools" element={<SuspenseWrapper><ToolsPage /></SuspenseWrapper>} />
+            <Route path="finance/models" element={<SuspenseWrapper><FinancialModelLibrary /></SuspenseWrapper>} />
+            <Route path="finance/models/:modelCode" element={<SuspenseWrapper><FinancialModelWorkspace /></SuspenseWrapper>} />
             <Route path="flashcards" element={<SuspenseWrapper><FlashcardDashboardPage /></SuspenseWrapper>} />
             <Route path="flashcards/study" element={<SuspenseWrapper><FlashcardStudyPage /></SuspenseWrapper>} />
             <Route path="flashcards/study/:koId" element={<SuspenseWrapper><FlashcardStudyPage /></SuspenseWrapper>} />
