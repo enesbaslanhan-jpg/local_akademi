@@ -51,6 +51,8 @@ model User {
   updatedBusinessRecords  BusinessRecord[]         @relation("UpdatedBusinessRecords")
   businessReminders       BusinessReminder[]
   businessNotifications   BusinessNotification[]
+  financialModelRuns      FinancialModelRun[]
+  decisionJournalEntries  DecisionJournalEntry[]
 }
 
 model CommunityPost {
@@ -132,30 +134,31 @@ model TaskAssignment {
 }
 
 model UploadedDocument {
-  id              String                   @id @default(uuid())
-  userId          Int
-  originalName    String
-  storedName      String
-  mimeType        String
-  sizeBytes       Int
-  extractedText   String                   @default("")
-  analysis        String                   @default("{}")
-  status          String                   @default("pending")
-  workspaceId     String?
-  category        String?
-  documentDate    DateTime?
-  dueDate         DateTime?
-  contactId       String?
-  analysisStatus  String                   @default("pending")
-  archivedAt      DateTime?
-  createdAt       DateTime                 @default(now())
-  updatedAt       DateTime                 @updatedAt
-  conversations   DocumentConversation[]
-  user            User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workspace       BusinessWorkspace?       @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
-  contact         BusinessContact?         @relation(fields: [contactId], references: [id], onDelete: SetNull)
-  recordDocuments BusinessRecordDocument[]
-  suggestions     DocumentSuggestion[]
+  id                 String                   @id @default(uuid())
+  userId             Int
+  originalName       String
+  storedName         String
+  mimeType           String
+  sizeBytes          Int
+  extractedText      String                   @default("")
+  analysis           String                   @default("{}")
+  status             String                   @default("pending")
+  workspaceId        String?
+  category           String?
+  documentDate       DateTime?
+  dueDate            DateTime?
+  contactId          String?
+  analysisStatus     String                   @default("pending")
+  archivedAt         DateTime?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  conversations      DocumentConversation[]
+  user               User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace          BusinessWorkspace?       @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  contact            BusinessContact?         @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  recordDocuments    BusinessRecordDocument[]
+  suggestions        DocumentSuggestion[]
+  financialModelRuns FinancialModelRun[]
 
   @@index([workspaceId, archivedAt])
   @@index([workspaceId, category])
@@ -411,42 +414,44 @@ model UserPreference {
 }
 
 model BusinessWorkspace {
-  id              String                   @id @default(uuid())
-  name            String
-  legalName       String?
-  slug            String?
-  sector          String                   @default("")
-  city            String                   @default("")
-  country         String                   @default("TR")
-  currency        String                   @default("TRY")
-  businessStage   String?
-  employeeCount   Int?
-  salesChannels   String                   @default("[]")
-  primaryGoal     String?
-  challenges      String                   @default("[]")
-  monthlySales    Float                    @default(0)
-  monthlyExpenses Float                    @default(0)
-  cashBalance     Float                    @default(0)
-  debtBalance     Float                    @default(0)
-  status          String                   @default("active")
-  createdById     Int
-  archivedAt      DateTime?
-  createdAt       DateTime                 @default(now())
-  updatedAt       DateTime                 @updatedAt
-  createdBy       User                     @relation(fields: [createdById], references: [id])
-  members         BusinessMember[]
-  invitations     BusinessInvitation[]
-  contacts        BusinessContact[]
-  settings        BusinessSetting?
-  activities      WorkspaceActivity[]
-  userPreferences UserPreference[]         @relation("ActiveWorkspace")
-  documents       UploadedDocument[]
-  records         BusinessRecord[]
-  recordHistory   BusinessRecordHistory[]
-  reminders       BusinessReminder[]
-  notifications   BusinessNotification[]
-  recordDocuments BusinessRecordDocument[]
-  suggestions     DocumentSuggestion[]
+  id                     String                   @id @default(uuid())
+  name                   String
+  legalName              String?
+  slug                   String?
+  sector                 String                   @default("")
+  city                   String                   @default("")
+  country                String                   @default("TR")
+  currency               String                   @default("TRY")
+  businessStage          String?
+  employeeCount          Int?
+  salesChannels          String                   @default("[]")
+  primaryGoal            String?
+  challenges             String                   @default("[]")
+  monthlySales           Float                    @default(0)
+  monthlyExpenses        Float                    @default(0)
+  cashBalance            Float                    @default(0)
+  debtBalance            Float                    @default(0)
+  status                 String                   @default("active")
+  createdById            Int
+  archivedAt             DateTime?
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  createdBy              User                     @relation(fields: [createdById], references: [id])
+  members                BusinessMember[]
+  invitations            BusinessInvitation[]
+  contacts               BusinessContact[]
+  settings               BusinessSetting?
+  activities             WorkspaceActivity[]
+  userPreferences        UserPreference[]         @relation("ActiveWorkspace")
+  documents              UploadedDocument[]
+  records                BusinessRecord[]
+  recordHistory          BusinessRecordHistory[]
+  reminders              BusinessReminder[]
+  notifications          BusinessNotification[]
+  recordDocuments        BusinessRecordDocument[]
+  suggestions            DocumentSuggestion[]
+  financialModelRuns     FinancialModelRun[]
+  decisionJournalEntries DecisionJournalEntry[]
 
   @@unique([slug])
 }
@@ -539,22 +544,24 @@ model WorkspaceActivity {
 }
 
 model Course {
-  id               Int          @id @default(autoincrement())
+  id               Int                    @id @default(autoincrement())
   title            String
   description      String
   category         String
-  level            String       @default("beginner")
-  slug             String?      @unique
-  estimatedMinutes Int          @default(0)
-  outcomes         String       @default("[]")
-  sourceType       String       @default("legacy")
-  sortOrder        Int          @default(0)
-  metadata         String       @default("{}")
-  published        Boolean      @default(false)
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  level            String                 @default("beginner")
+  slug             String?                @unique
+  estimatedMinutes Int                    @default(0)
+  outcomes         String                 @default("[]")
+  sourceType       String                 @default("legacy")
+  sortOrder        Int                    @default(0)
+  metadata         String                 @default("{}")
+  published        Boolean                @default(false)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
   enrollments      Enrollment[]
   lessons          Lesson[]
+  financialCases   FinancialCase[]
+  financialModels  FinancialModelCourse[]
 
   @@index([published, sortOrder])
 }
@@ -614,25 +621,25 @@ model Enrollment {
 }
 
 model KnowledgeObject {
-  id                 Int                      @id @default(autoincrement())
-  code               String?                  @unique
-  slug               String?                  @unique
+  id                 Int                             @id @default(autoincrement())
+  code               String?                         @unique
+  slug               String?                         @unique
   type               String
   title              String
   content            String
   embedding          String
   metadata           String
-  status             String                   @default("draft")
-  verificationStatus String                   @default("unverified")
-  reviewGate         String                   @default("standard")
-  isDemo             Boolean                  @default(false)
+  status             String                          @default("draft")
+  verificationStatus String                          @default("unverified")
+  reviewGate         String                          @default("standard")
+  isDemo             Boolean                         @default(false)
   publishedAt        DateTime?
   archivedAt         DateTime?
   reviewDue          DateTime?
   categoryId         Int?
   currentVersionId   Int?
-  createdAt          DateTime                 @default(now())
-  updatedAt          DateTime                 @updatedAt
+  createdAt          DateTime                        @default(now())
+  updatedAt          DateTime                        @updatedAt
   applySteps         String?
   learnSteps         String?
   problem            String?
@@ -643,10 +650,10 @@ model KnowledgeObject {
   warning            String?
   flashcards         Flashcard[]
   flashcardProgress  FlashcardProgress[]
-  currentVersion     KnowledgeObjectVersion?  @relation("CurrentVersion", fields: [currentVersionId], references: [id])
-  category           Category?                @relation(fields: [categoryId], references: [id])
+  currentVersion     KnowledgeObjectVersion?         @relation("CurrentVersion", fields: [currentVersionId], references: [id])
+  category           Category?                       @relation(fields: [categoryId], references: [id])
   sources            KnowledgeObjectSource[]
-  versions           KnowledgeObjectVersion[] @relation("VersionHistory")
+  versions           KnowledgeObjectVersion[]        @relation("VersionHistory")
   knowledgeProgress  KnowledgeProgress[]
   videos             LearningVideo?
   courseLessons      Lesson[]
@@ -654,6 +661,7 @@ model KnowledgeObject {
   quizzes            Quiz[]
   reviews            ReviewRecord[]
   taskTemplates      TaskTemplate[]
+  financialModels    FinancialModelKnowledgeObject[]
 }
 
 model Category {
@@ -740,18 +748,199 @@ model QuizQuestion {
 }
 
 model TaskTemplate {
-  id              String           @id @default(uuid())
+  id              String                       @id @default(uuid())
   koId            Int
   title           String
   description     String
-  estimatedTime   Int              @default(10)
-  createdAt       DateTime         @default(now())
+  estimatedTime   Int                          @default(10)
+  createdAt       DateTime                     @default(now())
   instructions    String?
   exampleOutput   String?
   checklist       String?
   rubric          String?
   assignments     TaskAssignment[]
-  knowledgeObject KnowledgeObject  @relation(fields: [koId], references: [id], onDelete: Cascade)
+  knowledgeObject KnowledgeObject              @relation(fields: [koId], references: [id], onDelete: Cascade)
+  financialModels FinancialModelTaskTemplate[]
+}
+
+model FinancialModel {
+  id                  String                          @id @default(uuid())
+  code                String                          @unique
+  name                String
+  category            String
+  purpose             String
+  description         String
+  engineType          String                          @default("deterministic")
+  engineVersion       String
+  policyVersion       String
+  status              String                          @default("active")
+  inputSchema         Json
+  outputSchema        Json
+  formulaDefinition   Json
+  interpretationRules Json
+  warningRules        Json
+  limitations         Json
+  createdAt           DateTime                        @default(now())
+  updatedAt           DateTime                        @updatedAt
+  versions            FinancialModelVersion[]
+  runs                FinancialModelRun[]
+  cases               FinancialCaseModel[]
+  courses             FinancialModelCourse[]
+  knowledgeObjects    FinancialModelKnowledgeObject[]
+  taskTemplates       FinancialModelTaskTemplate[]
+
+  @@index([category, status])
+}
+
+model FinancialModelVersion {
+  id                  String              @id @default(uuid())
+  financialModelId    String
+  version             String
+  formulaDefinition   Json
+  inputSchema         Json
+  outputSchema        Json
+  interpretationRules Json
+  warningRules        Json
+  changeSummary       String
+  createdAt           DateTime            @default(now())
+  financialModel      FinancialModel      @relation(fields: [financialModelId], references: [id], onDelete: Cascade)
+  runs                FinancialModelRun[]
+
+  @@unique([financialModelId, version])
+  @@index([financialModelId, createdAt])
+}
+
+model FinancialModelRun {
+  id               String                 @id @default(uuid())
+  modelId          String
+  modelVersionId   String
+  userId           Int
+  businessId       String
+  sourceDocumentId String?
+  caseId           String?
+  scenarioName     String                 @default("base")
+  inputs           Json
+  normalizedInputs Json
+  assumptions      Json
+  outputs          Json
+  checks           Json
+  warnings         Json
+  confidence       Json
+  calculationTrace Json
+  status           String                 @default("completed")
+  createdAt        DateTime               @default(now())
+  model            FinancialModel         @relation(fields: [modelId], references: [id])
+  modelVersion     FinancialModelVersion  @relation(fields: [modelVersionId], references: [id])
+  user             User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  business         BusinessWorkspace      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  sourceDocument   UploadedDocument?      @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+  case             FinancialCase?         @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  modelAssumptions ModelAssumption[]
+  decisions        DecisionJournalEntry[]
+
+  @@index([businessId, createdAt])
+  @@index([userId, createdAt])
+  @@index([modelId, businessId])
+  @@index([sourceDocumentId])
+  @@index([caseId])
+}
+
+model ModelAssumption {
+  id              String            @id @default(uuid())
+  runId           String
+  key             String
+  value           Json
+  unit            String?
+  sourceType      String
+  sourceReference String?
+  effectiveDate   DateTime?
+  confidence      Float             @default(0.5)
+  userVerified    Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  run             FinancialModelRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+}
+
+model FinancialCase {
+  id               String               @id @default(uuid())
+  code             String               @unique
+  title            String
+  courseId         Int?
+  difficulty       String
+  companyProfile   Json
+  problemStatement String
+  dataset          Json
+  evidence         Json
+  ethicalIssue     String?
+  expectedModels   Json
+  decisionContext  String
+  outcome          Json?
+  status           String               @default("draft")
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  course           Course?              @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  models           FinancialCaseModel[]
+  runs             FinancialModelRun[]
+
+  @@index([courseId, status])
+}
+
+model DecisionJournalEntry {
+  id              String            @id @default(uuid())
+  userId          Int
+  businessId      String
+  modelRunId      String
+  decision        String
+  expectedOutcome String
+  actualOutcome   String?
+  variance        String?
+  lessonLearned   String?
+  createdAt       DateTime          @default(now())
+  reviewedAt      DateTime?
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  business        BusinessWorkspace @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  modelRun        FinancialModelRun @relation(fields: [modelRunId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, createdAt])
+  @@index([userId, reviewedAt])
+  @@index([modelRunId])
+}
+
+model FinancialCaseModel {
+  caseId  String
+  modelId String
+  case    FinancialCase  @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  model   FinancialModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+
+  @@id([caseId, modelId])
+}
+
+model FinancialModelCourse {
+  modelId  String
+  courseId Int
+  model    FinancialModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  course   Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@id([modelId, courseId])
+}
+
+model FinancialModelKnowledgeObject {
+  modelId         String
+  koId            Int
+  model           FinancialModel  @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  knowledgeObject KnowledgeObject @relation(fields: [koId], references: [id], onDelete: Cascade)
+
+  @@id([modelId, koId])
+}
+
+model FinancialModelTaskTemplate {
+  modelId        String
+  taskTemplateId String
+  model          FinancialModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  taskTemplate   TaskTemplate   @relation(fields: [taskTemplateId], references: [id], onDelete: Cascade)
+
+  @@id([modelId, taskTemplateId])
 }
 
 model Formula {
