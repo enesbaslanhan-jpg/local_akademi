@@ -33,6 +33,8 @@ import { memoryRoutes } from './services/memory/memory-routes'
 import { flashcardRoutes } from './services/flashcard-routes'
 import { videoRoutes } from './services/videos'
 import { communityRoutes } from './services/community'
+import { financialModelRoutes } from './services/financial-models/routes'
+import { ensureFinancialModelCatalog } from './services/financial-models/catalog'
 import { deleteExpiredReviewerTelemetry } from './services/ai-reviewer'
 import { disconnectPrisma, prisma } from './lib/prisma'
 import { RELEASE_INFO } from './config/release'
@@ -196,6 +198,7 @@ async function build() {
   server.register(flashcardRoutes, { prefix: '/flashcards' })
   server.register(videoRoutes, { prefix: '/videos' })
   server.register(communityRoutes, { prefix: '/community' })
+  server.register(financialModelRoutes)
   if (process.env.ENABLE_MEMORY_API === 'true') {
     server.register(memoryRoutes, { prefix: '/api/memory' })
   }
@@ -263,6 +266,8 @@ export async function start() {
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error('PORT must be an integer between 1 and 65535')
   }
+
+  await ensureFinancialModelCatalog(prisma)
   let stopReminderWorker = () => {}
   server.addHook('onClose', async () => {
     stopReminderWorker()
