@@ -548,11 +548,15 @@ model Course {
   estimatedMinutes Int          @default(0)
   outcomes         String       @default("[]")
   sourceType       String       @default("legacy")
+  sortOrder        Int          @default(0)
+  metadata         String       @default("{}")
   published        Boolean      @default(false)
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
   enrollments      Enrollment[]
   lessons          Lesson[]
+
+  @@index([published, sortOrder])
 }
 
 model Lesson {

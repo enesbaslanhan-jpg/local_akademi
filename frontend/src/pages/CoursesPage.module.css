@@ -108,6 +108,24 @@
   overflow: hidden;
 }
 
+.promise {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 10px 11px;
+  margin: 0 0 12px;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.promise svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
 .meta {
   display: flex;
   gap: 16px;

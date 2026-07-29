@@ -32,7 +32,10 @@ export async function courseRoutes(fastify: FastifyInstance) {
         where,
         skip,
         take: pageSize,
-        orderBy: { createdAt: 'desc' },
+        orderBy: [
+          { sortOrder: 'asc' },
+          { title: 'asc' },
+        ],
         include: {
           _count: { select: { lessons: true } },
           enrollments: request.user
@@ -64,6 +67,10 @@ export async function courseRoutes(fastify: FastifyInstance) {
         lessonCount: c._count?.lessons ?? 0,
         estimatedMinutes: c.estimatedMinutes,
         sourceType: c.sourceType,
+        sortOrder: c.sortOrder,
+        metadata: (() => {
+          try { return JSON.parse(c.metadata || '{}') } catch { return {} }
+        })(),
         enrollment: enrollment ? {
           id: enrollment.id,
           status: enrollment.status,
@@ -175,6 +182,10 @@ export async function courseRoutes(fastify: FastifyInstance) {
         estimatedMinutes: course.estimatedMinutes,
         outcomes: JSON.parse(course.outcomes || '[]'),
         sourceType: course.sourceType,
+        sortOrder: course.sortOrder,
+        metadata: (() => {
+          try { return JSON.parse(course.metadata || '{}') } catch { return {} }
+        })(),
         lessonCount: course.lessons.length,
         lessons,
         enrollment: enrollment ? {

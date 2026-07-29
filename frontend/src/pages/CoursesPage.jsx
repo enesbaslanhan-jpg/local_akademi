@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '@/services/api'
-import { Card, Badge, Button, Loading, EmptyState, SearchBar, Select } from '@/components/ui'
-import { BookOpen, Clock, ChevronRight, Play, Filter, Search } from 'lucide-react'
+import { Card, Badge, Button, Loading, EmptyState } from '@/components/ui'
+import { BookOpen, Clock, ChevronRight, Play, Search, Target } from 'lucide-react'
 import styles from './CoursesPage.module.css'
 
 export default function CoursesPage() {
@@ -16,7 +16,7 @@ export default function CoursesPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
-  const pageSize = 20
+  const pageSize = 50
 
   useEffect(() => {
     loadCourses()
@@ -58,8 +58,8 @@ export default function CoursesPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Kurs Kataloğu</h1>
-        <p className={styles.subtitle}>Konu bazlı 200'den fazla kurs</p>
+        <h1 className={styles.title}>İşletme Akademisi</h1>
+        <p className={styles.subtitle}>10 alanda sıralanmış 40 uygulamalı kurs · 200 özgün ders</p>
       </div>
 
       <div className={styles.filters}>
@@ -75,15 +75,12 @@ export default function CoursesPage() {
           />
         </div>
         <select className={styles.select} value={category} onChange={e => { setCategory(e.target.value); setPage(1) }}>
-          <option value="">Tüm Kategoriler</option>
+          <option value="">Tüm alanlar</option>
           {categories.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
         <select className={styles.select} value={level} onChange={e => { setLevel(e.target.value); setPage(1) }}>
-          <option value="">Tüm Seviyeler</option>
-          <option value="Başlangıç">Başlangıç</option>
-          <option value="Orta">Orta</option>
-          <option value="İleri">İleri</option>
-          <option value="mixed">Karma</option>
+          <option value="">Tüm kurs türleri</option>
+          <option value="uygulamalı">Uygulamalı</option>
         </select>
       </div>
 
@@ -107,14 +104,18 @@ export default function CoursesPage() {
                   <div className={styles.cardHeader}>
                     <h3 className={styles.courseTitle}>{course.title}</h3>
                     <Badge variant={
-                      course.level === 'Başlangıç' ? 'success' :
-                      course.level === 'Orta' ? 'warning' :
-                      course.level === 'İleri' ? 'danger' : 'default'
+                      course.level === 'uygulamalı' ? 'success' : 'default'
                     }>
                       {course.level}
                     </Badge>
                   </div>
                   <p className={styles.description}>{course.description}</p>
+                  {course.metadata?.promise && (
+                    <p className={styles.promise}>
+                      <Target size={14} />
+                      <span><strong>Kurs çıktısı:</strong> {course.metadata.promise}</span>
+                    </p>
+                  )}
                   <div className={styles.meta}>
                     <span><BookOpen size={14} /> {course.lessonCount} ders</span>
                     <span><Clock size={14} /> {course.estimatedMinutes} dk</span>

@@ -13,6 +13,8 @@ describe('Courses DB structure', () => {
     expect(names).toContain('estimatedMinutes')
     expect(names).toContain('outcomes')
     expect(names).toContain('sourceType')
+    expect(names).toContain('sortOrder')
+    expect(names).toContain('metadata')
   })
 
   it('Lesson model has new fields', async () => {
@@ -47,12 +49,16 @@ describe('Courses DB structure', () => {
         category: 'test',
         slug: `test-slug-${Date.now()}`,
         sourceType: 'test',
+        sortOrder: 99,
+        metadata: JSON.stringify({ standard: 'test' }),
         outcomes: '[]',
       },
     })
     expect(course.id).toBeTruthy()
     expect(course.title).toBe('Test Course')
     expect(course.sourceType).toBe('test')
+    expect(course.sortOrder).toBe(99)
+    expect(JSON.parse(course.metadata).standard).toBe('test')
     await prisma.course.delete({ where: { id: course.id } })
   })
 
