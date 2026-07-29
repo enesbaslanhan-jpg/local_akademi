@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Check, Eye, FileText, Trash2, Upload, X } from 'lucide-react'
+import { Camera, Check, Eye, FileImage, FileText, ImagePlus, Trash2, Upload, X } from 'lucide-react'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
 import styles from './Documents.module.css'
@@ -26,10 +26,13 @@ const recordTypes = {
 export default function Documents() {
   const { workspaceId } = useParams()
   const toast = useToast()
-  const inputRef = useRef(null)
+  const fileInputRef = useRef(null)
+  const photoInputRef = useRef(null)
+  const cameraInputRef = useRef(null)
   const [documents, setDocuments] = useState([])
   const [category, setCategory] = useState('other')
   const [uploading, setUploading] = useState(false)
+  const [dragging, setDragging] = useState(false)
   const [preview, setPreview] = useState(null)
 
   const load = useCallback(async () => {
@@ -43,20 +46,29 @@ export default function Documents() {
 
   useEffect(() => { load() }, [load])
 
-  async function uploadFile(event) {
-    const file = event.target.files?.[0]
+  async function processFile(file) {
     if (!file) return
     setUploading(true)
     try {
       await api.workspace.documents.upload(workspaceId, file, { category })
-      toast.success('Belge işletme alanına yüklendi.')
+      toast.success('Belge okundu. Algılanan takip bilgilerini kontrol edin.')
       await load()
     } catch (error) {
       toast.error(error.message || 'Belge yüklenemedi.')
     } finally {
       setUploading(false)
-      event.target.value = ''
     }
+  }
+
+  async function uploadFile(event) {
+    await processFile(event.target.files?.[0])
+    event.target.value = ''
+  }
+
+  function dropFile(event) {
+    event.preventDefault()
+    setDragging(false)
+    if (!uploading) processFile(event.dataTransfer.files?.[0])
   }
 
   async function archive(documentId) {
@@ -91,21 +103,51 @@ export default function Documents() {
       <div className={styles.heading}>
         <div>
           <h2>İşletme Belgeleri</h2>
-          <p>Fatura, senet, sözleşme, alım ve kargo belgelerini işletmenizle birlikte saklayın.</p>
-        </div>
-        <div className={styles.uploadControls}>
-          <select value={category} onChange={event => setCategory(event.target.value)}>
-            {Object.entries(categories).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-          </select>
-          <button onClick={() => inputRef.current?.click()} disabled={uploading}>
-            <Upload size={17} /> {uploading ? 'Yükleniyor…' : 'Belge yükle'}
-          </button>
-          <input ref={inputRef} hidden type="file" accept=".txt,.md,.csv,.json,.docx,.pdf,.png,.jpg,.jpeg" onChange={uploadFile} />
+          <p>Belgeyi yükleyin veya fotoğrafını çekin; sistem metni okuyup takip kaydı önerisi hazırlasın.</p>
         </div>
       </div>
 
+      <div
+        className={`${styles.uploadPanel} ${dragging ? styles.dragging : ''}`}
+        onDragEnter={event => { event.preventDefault(); setDragging(true) }}
+        onDragOver={event => event.preventDefault()}
+        onDragLeave={event => {
+          if (!event.currentTarget.contains(event.relatedTarget)) setDragging(false)
+        }}
+        onDrop={dropFile}
+      >
+        <div className={styles.uploadIcon}><FileImage size={34} /></div>
+        <div className={styles.uploadText}>
+          <h3>{uploading ? 'Belge okunuyor ve analiz ediliyor…' : 'Belge veya fotoğraf ekleyin'}</h3>
+          <p>Dosyayı buraya sürükleyebilir ya da aşağıdaki seçeneklerden birini kullanabilirsiniz.</p>
+        </div>
+
+        <label className={styles.categoryField}>
+          Belge türü
+          <select value={category} onChange={event => setCategory(event.target.value)} disabled={uploading}>
+            {Object.entries(categories).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
+        </label>
+
+        <div className={styles.uploadActions}>
+          <button className={styles.primaryUpload} onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+            <Upload size={18} /> Dosya seç
+          </button>
+          <button onClick={() => photoInputRef.current?.click()} disabled={uploading}>
+            <ImagePlus size={18} /> Fotoğraf seç
+          </button>
+          <button onClick={() => cameraInputRef.current?.click()} disabled={uploading}>
+            <Camera size={18} /> Fotoğraf çek
+          </button>
+        </div>
+
+        <input ref={fileInputRef} hidden type="file" accept=".txt,.md,.csv,.json,.docx,.pdf,.png,.jpg,.jpeg" onChange={uploadFile} />
+        <input ref={photoInputRef} hidden type="file" accept="image/png,image/jpeg" onChange={uploadFile} />
+        <input ref={cameraInputRef} hidden type="file" accept="image/*" capture="environment" onChange={uploadFile} />
+      </div>
+
       <div className={styles.note}>
-        TXT, MD, CSV, JSON, DOCX, PDF, PNG ve JPEG desteklenir. Taranmış belgeler yerel Türkçe OCR ile okunur; dış servise gönderilmez.
+        PDF, DOCX, PNG, JPEG, CSV, JSON, TXT ve MD desteklenir. Fotoğraf ve taranmış belgeler yerel Türkçe OCR ile okunur; dış servise gönderilmez. Algılanan kayıt siz onaylamadan kesinleşmez.
       </div>
 
       {documents.length === 0 ? (
@@ -121,6 +163,9 @@ export default function Documents() {
                   <p>{categories[document.category] || 'Sınıflandırılmamış'} · {(document.sizeBytes / 1024).toFixed(1)} KB</p>
                   <span>{document.linkedRecordCount} takip kaydına bağlı</span>
                   {document.analysis?.extraction_method === 'ocr_tur' && <span className={styles.ocrBadge}>Yerel OCR ile okundu</span>}
+                  {document.analysisStatus === 'review_required' && <span className={styles.reviewBadge}>Veriler algılandı · onay bekliyor</span>}
+                  {document.analysisStatus === 'accepted' && <span className={styles.acceptedBadge}>Takip kaydı oluşturuldu</span>}
+                  {document.analysisStatus === 'no_suggestion' && <span className={styles.noSuggestionBadge}>Metin okundu · takip bilgisi bulunamadı</span>}
                 </div>
                 <button className={styles.previewButton} onClick={() => setPreview(document)}><Eye size={17} /> İçerik</button>
                 <button className={styles.delete} aria-label="Arşivle" onClick={() => archive(document.id)}><Trash2 size={17} /></button>

@@ -2,9 +2,19 @@
 .heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
 .heading h2 { margin: 0 0 6px; }
 .heading p { margin: 0; color: var(--text-secondary); }
-.uploadControls { display: flex; gap: 8px; }
-.uploadControls select, .uploadControls button { padding: 10px 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); }
-.uploadControls button { border-color: var(--accent); background: var(--accent); color: white; cursor: pointer; display: flex; gap: 7px; align-items: center; font-weight: 700; }
+.uploadPanel { min-height: 250px; display: grid; place-items: center; align-content: center; gap: 14px; padding: 28px; border: 2px dashed color-mix(in srgb, var(--primary, #2563eb) 40%, var(--border)); border-radius: 16px; background: color-mix(in srgb, var(--primary, #2563eb) 5%, var(--bg-secondary)); text-align: center; transition: .2s ease; }
+.dragging { border-color: var(--primary, #2563eb); background: color-mix(in srgb, var(--primary, #2563eb) 12%, var(--bg-secondary)); transform: scale(1.005); }
+.uploadIcon { width: 62px; height: 62px; display: grid; place-items: center; border-radius: 18px; color: var(--primary, #2563eb); background: color-mix(in srgb, var(--primary, #2563eb) 12%, white); }
+.uploadText h3 { margin: 0 0 5px; color: var(--text-primary); }
+.uploadText p { margin: 0; color: var(--text-secondary); }
+.categoryField { display: grid; gap: 5px; color: var(--text-secondary); font-size: .82rem; font-weight: 600; text-align: left; }
+.categoryField select { min-width: 220px; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); }
+.uploadActions { display: flex; justify-content: center; flex-wrap: wrap; gap: 9px; }
+.uploadActions button { padding: 10px 14px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; display: inline-flex; gap: 7px; align-items: center; justify-content: center; font-weight: 700; }
+.uploadActions button:hover { border-color: var(--primary, #2563eb); color: var(--primary, #2563eb); }
+.uploadActions button:disabled { cursor: wait; opacity: .6; }
+.uploadActions .primaryUpload { border-color: var(--primary, #2563eb); background: var(--primary, #2563eb); color: white; }
+.uploadActions .primaryUpload:hover { background: var(--primary-dark, #1d4ed8); color: white; }
 .note { padding: 11px 13px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 9%, transparent); color: var(--text-secondary); font-size: .88rem; }
 .empty { min-height: 230px; border: 1px dashed var(--border); border-radius: 14px; display: grid; place-items: center; align-content: center; text-align: center; color: var(--text-secondary); gap: 8px; }
 .empty h3, .empty p { margin: 0; }
@@ -17,6 +27,10 @@
 .delete { border: 0; background: transparent; color: var(--danger); cursor: pointer; }
 .previewButton { border: 0; background: var(--bg-tertiary); color: var(--text-primary); border-radius: 8px; padding: 7px 9px; cursor: pointer; display: flex; gap: 5px; align-items: center; }
 .ocrBadge { display: inline-block; width: fit-content; margin-top: 5px; padding: 3px 7px; border-radius: 99px; background: #dcfce7; color: #166534 !important; font-weight: 700; }
+.reviewBadge, .acceptedBadge, .noSuggestionBadge { display: block; width: fit-content; margin-top: 5px !important; padding: 3px 7px; border-radius: 99px; font-weight: 700; }
+.reviewBadge { background: #fef3c7; color: #92400e !important; }
+.acceptedBadge { background: #dcfce7; color: #166534 !important; }
+.noSuggestionBadge { background: #e2e8f0; color: #475569 !important; }
 .suggestion { border-top: 1px solid var(--border); padding-top: 12px; display: grid; gap: 10px; color: var(--text-primary); }
 .suggestion strong { font-size: .9rem; }
 .suggestion p { margin: 5px 0; color: var(--text-secondary); font-size: .85rem; }
@@ -33,7 +47,8 @@
 .previewHeading button { border: 0; background: transparent; color: var(--text-secondary); cursor: pointer; }
 .preview pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.55; padding: 14px; border-radius: 10px; background: var(--bg-primary); border: 1px solid var(--border); }
 @media (max-width: 760px) {
-  .heading, .uploadControls { flex-direction: column; }
-  .uploadControls, .uploadControls select, .uploadControls button { width: 100%; }
+  .heading { flex-direction: column; }
+  .uploadPanel { padding: 22px 16px; }
+  .uploadActions, .uploadActions button, .categoryField, .categoryField select { width: 100%; }
   .grid { grid-template-columns: 1fr; }
 }
