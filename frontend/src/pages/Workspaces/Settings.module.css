@@ -1,8 +1,103 @@
-.card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 600px; }
-.field { margin-bottom: 18px; }
-.field label { display: block; font-size: 0.85rem; margin-bottom: 4px; color: var(--text-secondary); font-weight: 500; }
-.field input, .field select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--input-bg); color: var(--text); font-size: 0.9rem; box-sizing: border-box; }
-.actions { margin-top: 24px; }
-.message { padding: 8px 12px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; }
-.success { background: #d4edda; color: #155724; }
-.error { background: #f8d7da; color: #721c24; }
+.page {
+  display: grid;
+  gap: 20px;
+  max-width: 960px;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.heading {
+  margin-bottom: 22px;
+}
+
+.heading h2 {
+  margin: 0 0 6px;
+  font-size: 1.15rem;
+}
+
+.heading p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 18px;
+}
+
+.field {
+  display: block;
+  margin-bottom: 18px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  margin-top: 5px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.field small {
+  display: block;
+  margin-top: 5px;
+  color: var(--text-light);
+  font-weight: 400;
+}
+
+.subheading {
+  margin: 6px 0 14px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  font-size: 1rem;
+}
+
+.actions {
+  margin-top: 6px;
+}
+
+.message {
+  padding: 10px 14px;
+  border-radius: 7px;
+  font-size: 0.9rem;
+}
+
+.success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.error {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.loading {
+  padding: 28px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 18px;
+  }
+}
