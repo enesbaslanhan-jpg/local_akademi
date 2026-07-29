@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
+  <title id="title">Emniyet Stoku karar haritası</title>
+  <desc id="desc">Emniyet Stoku, siparişin doğru ürün, doğru zaman ve kabul edilebilir toplam maliyetle tamamlanmasını yöneten operasyon akışıdır. Bu kursun sınırı “Tek Kaynak Riski” ile “Yeniden Sipariş Noktası” başlıkları arasında özellikle korunur: Emniyet Stoku, kendi karar anı ve çıktısıyla ele alınır. Dört aşama: gösterge, kanıt, karar eşiği ve çalışma çıktısı.</desc>
+  <rect width="1200" height="620" rx="28" fill="#f8fafc"/>
+  <rect x="42" y="42" width="1116" height="118" rx="20" fill="#0f766e"/>
+  <text x="78" y="94" font-family="Arial, sans-serif" font-size="31" font-weight="700" fill="white">Emniyet Stoku</text>
+  <text x="78" y="132" font-family="Arial, sans-serif" font-size="20" fill="white">Karar akışı · flow</text>
+  <rect x="56" y="230" width="244" height="190" rx="20" fill="#ccfbf1" stroke="#0f766e" stroke-width="3"/>
+    <circle cx="100" cy="274" r="22" fill="#0f766e"/><text x="100" y="282" text-anchor="middle" font-family="Arial" font-size="20" font-weight="700" fill="white">1</text>
+    <text x="178" y="335" text-anchor="middle" font-family="Arial" font-size="19" font-weight="700" fill="#0f172a">emniyet stoku için ilk seferde …</text>
+    <path d="M302 325 H334" stroke="#0f766e" stroke-width="5"/><path d="M326 314 L338 325 L326 336" fill="none" stroke="#0f766e" stroke-width="5"/>
+<rect x="340" y="230" width="244" height="190" rx="20" fill="#ccfbf1" stroke="#0f766e" stroke-width="3"/>
+    <circle cx="384" cy="274" r="22" fill="#0f766e"/><text x="384" y="282" text-anchor="middle" font-family="Arial" font-size="20" font-weight="700" fill="white">2</text>
+    <text x="462" y="335" text-anchor="middle" font-family="Arial" font-size="19" font-weight="700" fill="#0f172a">Kanıt</text>
+    <path d="M586 325 H618" stroke="#0f766e" stroke-width="5"/><path d="M610 314 L622 325 L610 336" fill="none" stroke="#0f766e" stroke-width="5"/>
+<rect x="624" y="230" width="244" height="190" rx="20" fill="#ccfbf1" stroke="#0f766e" stroke-width="3"/>
+    <circle cx="668" cy="274" r="22" fill="#0f766e"/><text x="668" y="282" text-anchor="middle" font-family="Arial" font-size="20" font-weight="700" fill="white">3</text>
+    <text x="746" y="335" text-anchor="middle" font-family="Arial" font-size="19" font-weight="700" fill="#0f172a">Karar eşiği</text>
+    <path d="M870 325 H902" stroke="#0f766e" stroke-width="5"/><path d="M894 314 L906 325 L894 336" fill="none" stroke="#0f766e" stroke-width="5"/>
+<rect x="908" y="230" width="244" height="190" rx="20" fill="#ccfbf1" stroke="#0f766e" stroke-width="3"/>
+    <circle cx="952" cy="274" r="22" fill="#0f766e"/><text x="952" y="282" text-anchor="middle" font-family="Arial" font-size="20" font-weight="700" fill="white">4</text>
+    <text x="1030" y="335" text-anchor="middle" font-family="Arial" font-size="19" font-weight="700" fill="#0f172a">Emniyet Stoku odaklı Emniyet St…</text>
+  <text x="600" y="510" text-anchor="middle" font-family="Arial, sans-serif" font-size="23" fill="#334155">hizmet seviyesi ile stok/işlem maliyeti arasındaki dengeyi kurmak; depo sorumlusu bu seçimi ilk yüz işlemde yaparken tek kaynak riski ve yeniden sipariş noktası kararlarını bunun yerine kullanmaz</text>
+  <text x="600" y="558" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" fill="#64748b">LocalAkademi · Kurs 178 · temsili karar görseli</text>
+</svg>
