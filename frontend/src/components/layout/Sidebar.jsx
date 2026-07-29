@@ -20,7 +20,7 @@ const learnerLinks = [
   { id: 'learning-pilot', label: 'Pilot Program', icon: Map, path: '/app/learning-path/pilot' },
   { id: 'flashcards', label: 'Flashcard', icon: Brain, path: '/app/flashcards' },
   { id: 'quiz', label: 'Quiz', icon: HelpCircle, path: '/app/quiz' },
-  { id: 'tools', label: 'Araçlar', icon: Calculator, path: '/app/tools' },
+  { id: 'tools', label: 'Finans Merkezi', icon: Calculator, path: '/app/tools' },
   { id: 'settings', label: 'Ayarlar', icon: Settings, path: '/app/settings' }
 ]
 

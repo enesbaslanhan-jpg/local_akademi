@@ -8,10 +8,75 @@ interface FormulaDef {
   inputs: { name: string; label: string; unit: string; min?: number; max?: number }[]
   calculate: (inputs: Record<string, number>) => Record<string, any>
   warning?: string
+  category?: 'daily' | 'cash' | 'sales' | 'stock' | 'growth'
+  description?: string
 }
 
 function round2(value: number) {
   return Math.round(value * 100) / 100
+}
+
+export function calculateVatAddition(inputs: Record<string, number>) {
+  const net = inputs.kdv_haric_tutar
+  const rate = inputs.kdv_orani / 100
+  return {
+    kdv_haric_tutar: round2(net),
+    kdv_tutari: round2(net * rate),
+    kdv_dahil_tutar: round2(net * (1 + rate)),
+  }
+}
+
+export function calculateCashClosing(inputs: Record<string, number>) {
+  const inflow = inputs.acilis_kasasi + inputs.nakit_satis + inputs.tahsilat + inputs.diger_giris
+  const outflow = inputs.gider_odeme + inputs.tedarikci_odeme + inputs.bankaya_yatirilan
+  return {
+    toplam_giris: round2(inflow),
+    toplam_cikis: round2(outflow),
+    beklenen_kasa: round2(inflow - outflow),
+    durum: inflow - outflow >= 0 ? 'Kasa pozitif' : 'Kasa açığı var',
+  }
+}
+
+export function calculateRunway(inputs: Record<string, number>) {
+  const burn = Math.max(0, inputs.aylik_nakit_cikisi - inputs.aylik_nakit_girisi)
+  const months = burn > 0 ? inputs.mevcut_nakit / burn : 99
+  return {
+    aylik_nakit_acigi: round2(burn),
+    dayanma_suresi_ay: round2(months),
+    durum: burn === 0 ? 'Nakit tüketimi yok' : months >= 6 ? '6 ay ve üzeri' : months >= 3 ? 'Yakından izleyin' : 'Kritik nakit riski',
+  }
+}
+
+export function calculateUnitCost(inputs: Record<string, number>) {
+  if (inputs.uretim_adedi <= 0) throw new Error('Üretim adedi sıfırdan büyük olmalıdır')
+  const total = inputs.hammadde + inputs.iscilik + inputs.genel_gider + inputs.ambalaj_kargo + inputs.fire_iade
+  return {
+    toplam_uretim_maliyeti: round2(total),
+    birim_maliyet: round2(total / inputs.uretim_adedi),
+  }
+}
+
+export function calculateTermDifference(inputs: Record<string, number>) {
+  const total = inputs.pesin_fiyat * Math.pow(1 + inputs.aylik_vade_orani / 100, inputs.vade_ay)
+  return {
+    vadeli_toplam: round2(total),
+    vade_farki: round2(total - inputs.pesin_fiyat),
+    aylik_esit_odeme: round2(inputs.vade_ay > 0 ? total / inputs.vade_ay : total),
+  }
+}
+
+export function calculateMarketplaceProfit(inputs: Record<string, number>) {
+  const commission = inputs.satis_fiyati * inputs.komisyon_orani / 100
+  const revenue = inputs.satis_fiyati
+  const totalCost = inputs.urun_maliyeti + commission + inputs.kargo + inputs.ambalaj + inputs.reklam_payi + inputs.iade_riski
+  const contribution = revenue - totalCost
+  return {
+    komisyon_tutari: round2(commission),
+    siparis_toplam_maliyeti: round2(totalCost),
+    siparis_katkisi: round2(contribution),
+    siparis_marji: round2(revenue > 0 ? contribution / revenue * 100 : 0),
+    durum: contribution > 0 ? 'Sipariş kârlı' : contribution < 0 ? 'Sipariş zarar ediyor' : 'Başa baş',
+  }
 }
 
 export function calculatePriceArchitecture(inputs: Record<string, number>) {
@@ -284,6 +349,92 @@ const formulas: FormulaDef[] = [
     },
     warning: 'Kur dalgalanmaları ve ek vergiler maliyeti etkileyebilir.',
   },
+  {
+    id: 'kdv_ekleme',
+    name: 'KDV Ekleme',
+    category: 'daily',
+    description: 'KDV hariç tutardan vergi ve KDV dahil toplamı hesaplar.',
+    inputs: [
+      { name: 'kdv_haric_tutar', label: 'KDV Hariç Tutar', unit: 'TRY', min: 0 },
+      { name: 'kdv_orani', label: 'Uygulanacak KDV Oranı', unit: '%', min: 0, max: 100 },
+    ],
+    calculate: calculateVatAddition,
+    warning: 'Güncel ve doğru KDV oranını kullanıcı girmelidir; bu sonuç vergi beyannamesi yerine geçmez.',
+  },
+  {
+    id: 'kasa_kapanis',
+    name: 'Günlük Kasa Kapanışı',
+    category: 'daily',
+    description: 'Gün içindeki nakit giriş ve çıkışlardan beklenen kasa bakiyesini bulur.',
+    inputs: [
+      { name: 'acilis_kasasi', label: 'Açılış Kasası', unit: 'TRY', min: 0 },
+      { name: 'nakit_satis', label: 'Nakit Satış', unit: 'TRY', min: 0 },
+      { name: 'tahsilat', label: 'Nakit Tahsilat', unit: 'TRY', min: 0 },
+      { name: 'diger_giris', label: 'Diğer Nakit Girişi', unit: 'TRY', min: 0 },
+      { name: 'gider_odeme', label: 'Gider Ödemeleri', unit: 'TRY', min: 0 },
+      { name: 'tedarikci_odeme', label: 'Tedarikçi Ödemeleri', unit: 'TRY', min: 0 },
+      { name: 'bankaya_yatirilan', label: 'Bankaya Yatırılan', unit: 'TRY', min: 0 },
+    ],
+    calculate: calculateCashClosing,
+  },
+  {
+    id: 'nakit_dayanim',
+    name: 'Nakit Dayanma Süresi',
+    category: 'cash',
+    description: 'Mevcut nakdin aylık nakit açığını kaç ay karşılayacağını gösterir.',
+    inputs: [
+      { name: 'mevcut_nakit', label: 'Mevcut Nakit', unit: 'TRY', min: 0 },
+      { name: 'aylik_nakit_girisi', label: 'Aylık Nakit Girişi', unit: 'TRY', min: 0 },
+      { name: 'aylik_nakit_cikisi', label: 'Aylık Nakit Çıkışı', unit: 'TRY', min: 0 },
+    ],
+    calculate: calculateRunway,
+    warning: 'Beklenmedik giderler ve tahsilat gecikmeleri ayrıca değerlendirilmelidir.',
+  },
+  {
+    id: 'birim_maliyet',
+    name: 'Gerçek Birim Maliyet',
+    category: 'stock',
+    description: 'Hammadde, işçilik, genel gider, kargo ve fireyi ürün başına dağıtır.',
+    inputs: [
+      { name: 'hammadde', label: 'Hammadde / Ürün Alımı', unit: 'TRY', min: 0 },
+      { name: 'iscilik', label: 'İşçilik', unit: 'TRY', min: 0 },
+      { name: 'genel_gider', label: 'Genel Gider Payı', unit: 'TRY', min: 0 },
+      { name: 'ambalaj_kargo', label: 'Ambalaj ve Kargo', unit: 'TRY', min: 0 },
+      { name: 'fire_iade', label: 'Fire ve İade Maliyeti', unit: 'TRY', min: 0 },
+      { name: 'uretim_adedi', label: 'Üretilen / Alınan Adet', unit: 'adet', min: 1 },
+    ],
+    calculate: calculateUnitCost,
+  },
+  {
+    id: 'vade_farki',
+    name: 'Vade Farkı',
+    category: 'cash',
+    description: 'Peşin fiyatın vadeli toplamını ve finansman farkını hesaplar.',
+    inputs: [
+      { name: 'pesin_fiyat', label: 'Peşin Fiyat', unit: 'TRY', min: 0 },
+      { name: 'aylik_vade_orani', label: 'Aylık Vade Oranı', unit: '%', min: 0, max: 100 },
+      { name: 'vade_ay', label: 'Vade', unit: 'ay', min: 1 },
+    ],
+    calculate: calculateTermDifference,
+    warning: 'Sözleşmedeki masraf, vergi ve komisyonlar ayrıca eklenmelidir.',
+  },
+  {
+    id: 'pazaryeri_siparis_kari',
+    name: 'Pazar Yeri Sipariş Kârlılığı',
+    category: 'sales',
+    description: 'Komisyon, kargo, reklam ve iade riskinden sonra sipariş katkısını gösterir.',
+    inputs: [
+      { name: 'satis_fiyati', label: 'Satış Fiyatı', unit: 'TRY', min: 0 },
+      { name: 'urun_maliyeti', label: 'Ürün Maliyeti', unit: 'TRY', min: 0 },
+      { name: 'komisyon_orani', label: 'Pazar Yeri Komisyonu', unit: '%', min: 0, max: 100 },
+      { name: 'kargo', label: 'Kargo', unit: 'TRY', min: 0 },
+      { name: 'ambalaj', label: 'Ambalaj', unit: 'TRY', min: 0 },
+      { name: 'reklam_payi', label: 'Sipariş Başına Reklam', unit: 'TRY', min: 0 },
+      { name: 'iade_riski', label: 'İade Risk Payı', unit: 'TRY', min: 0 },
+    ],
+    calculate: calculateMarketplaceProfit,
+    warning: 'KDV ve gelir/kurumlar vergisi etkisi işletmenin durumuna göre ayrıca değerlendirilmelidir.',
+  },
 ]
 
 export async function formulaRoutes(fastify: FastifyInstance) {
@@ -294,6 +445,8 @@ export async function formulaRoutes(fastify: FastifyInstance) {
       name: f.name,
       inputs: f.inputs,
       warning: f.warning,
+      category: f.category,
+      description: f.description,
     }))
   })
 

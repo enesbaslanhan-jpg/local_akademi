@@ -1,15 +1,20 @@
-import { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useMemo, useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '@/services/api'
-import { Card, Badge, Button, Loading } from '@/components/ui'
-import { Calculator, History, TrendingUp, DollarSign, PieChart, BarChart3, Percent, Users, ShoppingCart, CreditCard, Globe } from 'lucide-react'
+import { useWorkspace } from '@/context/WorkspaceContext'
+import { Badge, Button, Loading } from '@/components/ui'
+import {
+  BarChart3, Calculator, CalendarDays, CreditCard, FileText, Globe, History,
+  PackageCheck, Percent, PieChart, ReceiptText, Search, ShoppingCart,
+  Store, TrendingUp, Users, WalletCards
+} from 'lucide-react'
 import styles from './ToolsPage.module.css'
 
 const ICONS = {
   kar_hesabi: TrendingUp,
   basabas_noktasi: BarChart3,
-  nakit_pozisyonu: DollarSign,
-  isletme_sermayesi: DollarSign,
+  nakit_pozisyonu: WalletCards,
+  isletme_sermayesi: WalletCards,
   roi: TrendingUp,
   stok_devir: ShoppingCart,
   cac: Users,
@@ -19,10 +24,100 @@ const ICONS = {
   kredi_maliyeti: CreditCard,
   ihracat_maliyet: Globe,
   fiyat_mimarisi: PieChart,
+  kdv_ekleme: ReceiptText,
+  kasa_kapanis: Store,
+  nakit_dayanim: WalletCards,
+  birim_maliyet: PackageCheck,
+  vade_farki: CalendarDays,
+  pazaryeri_siparis_kari: ShoppingCart,
+}
+
+const CATEGORIES = {
+  all: 'Tümü',
+  daily: 'Günlük işlemler',
+  cash: 'Nakit ve vade',
+  sales: 'Satış ve fiyat',
+  stock: 'Stok ve maliyet',
+  growth: 'Büyüme',
+}
+
+const CATEGORY_FALLBACK = {
+  kar_hesabi: 'daily',
+  basabas_noktasi: 'sales',
+  nakit_pozisyonu: 'cash',
+  isletme_sermayesi: 'cash',
+  roi: 'growth',
+  stok_devir: 'stock',
+  cac: 'growth',
+  ltv: 'growth',
+  ltv_cac: 'growth',
+  indirim_kar: 'sales',
+  kredi_maliyeti: 'cash',
+  ihracat_maliyet: 'stock',
+  fiyat_mimarisi: 'sales',
+}
+
+const RESULT_LABELS = {
+  kar: 'Kâr',
+  kar_marji: 'Kâr marjı',
+  katki_payi: 'Katkı payı',
+  basabas_adet: 'Başabaş adedi',
+  basabas_gelir: 'Başabaş geliri',
+  net_pozisyon: 'Net nakit pozisyonu',
+  nakit_oran: 'Nakit oranı',
+  isletme_sermayesi: 'İşletme sermayesi',
+  net_kar: 'Net kâr',
+  roi_yuzde: 'ROI',
+  devir_hizi: 'Stok devir hızı',
+  stokta_kalma_gunu: 'Stokta kalma süresi',
+  cac: 'Müşteri edinme maliyeti',
+  ltv: 'Müşteri yaşam boyu değeri',
+  ltv_cac_orani: 'LTV/CAC oranı',
+  degerlendirme: 'Değerlendirme',
+  indirimli_fiyat: 'İndirimli fiyat',
+  normal_kar: 'Normal kâr',
+  kampanya_kar: 'Kampanya kârı',
+  kar_farki: 'Kâr farkı',
+  aylik_taksit: 'Aylık taksit',
+  toplam_odeme: 'Toplam ödeme',
+  toplam_faiz: 'Toplam faiz',
+  birim_maliyet_try: 'Birim maliyet (TRY)',
+  birim_maliyet_usd: 'Birim maliyet (USD)',
+  toplam_maliyet: 'Toplam maliyet',
+  gercek_birim_maliyet: 'Gerçek birim maliyet',
+  onerilen_kdv_haric_fiyat: 'Önerilen KDV hariç fiyat',
+  komisyon_tutari: 'Komisyon tutarı',
+  odeme_kesintisi: 'Ödeme kesintisi',
+  birim_katki: 'Birim katkı',
+  gerceklesen_marj: 'Gerçekleşen marj',
+  kdv_haric_tutar: 'KDV hariç tutar',
+  kdv_tutari: 'KDV tutarı',
+  kdv_dahil_tutar: 'KDV dahil tutar',
+  toplam_giris: 'Toplam kasa girişi',
+  toplam_cikis: 'Toplam kasa çıkışı',
+  beklenen_kasa: 'Beklenen kasa',
+  aylik_nakit_acigi: 'Aylık nakit açığı',
+  dayanma_suresi_ay: 'Nakit dayanma süresi (ay)',
+  toplam_uretim_maliyeti: 'Toplam üretim maliyeti',
+  birim_maliyet: 'Birim maliyet',
+  vadeli_toplam: 'Vadeli toplam',
+  vade_farki: 'Vade farkı',
+  aylik_esit_odeme: 'Aylık eşit ödeme',
+  siparis_toplam_maliyeti: 'Sipariş toplam maliyeti',
+  siparis_katkisi: 'Sipariş katkısı',
+  siparis_marji: 'Sipariş marjı',
+}
+
+function resultTone(status = '') {
+  if (/kârlı|pozitif|yeterli|sağlıklı|6 ay|tüketimi yok/i.test(status)) return 'success'
+  if (/kritik|zarar|negatif|yetersiz|açığı/i.test(status)) return 'danger'
+  return 'neutral'
 }
 
 export default function ToolsPage() {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const { activeWorkspaceId } = useWorkspace()
   const [formulas, setFormulas] = useState([])
   const [selected, setSelected] = useState(null)
   const [inputs, setInputs] = useState({})
@@ -31,224 +126,175 @@ export default function ToolsPage() {
   const [loading, setLoading] = useState(true)
   const [calculating, setCalculating] = useState(false)
   const [tab, setTab] = useState('calculator')
+  const [category, setCategory] = useState('all')
+  const [search, setSearch] = useState('')
   const [error, setError] = useState('')
 
   useEffect(() => {
     Promise.all([
       api.formulas.list(),
       api.formulas.getHistory().catch(() => ([])),
-    ]).then(([f, h]) => {
-      const loadedFormulas = Array.isArray(f) ? f : f.formulas || []
-      setFormulas(loadedFormulas)
-      setHistory(Array.isArray(h) ? h : [])
-      const requestedFormula = loadedFormulas.find(item => item.id === searchParams.get('tool'))
-      if (requestedFormula) handleSelect(requestedFormula)
-    }).catch(() => {}).finally(() => setLoading(false))
+    ]).then(([formulaResponse, historyResponse]) => {
+      const loaded = (Array.isArray(formulaResponse) ? formulaResponse : formulaResponse.formulas || [])
+        .map(formula => ({ ...formula, category: formula.category || CATEGORY_FALLBACK[formula.id] || 'daily' }))
+      setFormulas(loaded)
+      setHistory(Array.isArray(historyResponse) ? historyResponse : [])
+      const requested = loaded.find(item => item.id === searchParams.get('tool'))
+      if (requested) selectFormula(requested)
+    }).catch(() => setError('Finans Merkezi yüklenemedi.')).finally(() => setLoading(false))
   }, [])
 
-  function handleSelect(formula) {
+  const visibleFormulas = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase('tr-TR')
+    return formulas.filter(formula => {
+      const categoryMatches = category === 'all' || formula.category === category
+      const searchMatches = !query || `${formula.name} ${formula.description || ''}`.toLocaleLowerCase('tr-TR').includes(query)
+      return categoryMatches && searchMatches
+    })
+  }, [category, formulas, search])
+
+  function selectFormula(formula) {
     setSelected(formula)
-    const defaults = {}
-    formula.inputs?.forEach(inp => { defaults[inp.name] = '' })
-    setInputs(defaults)
+    setInputs(Object.fromEntries((formula.inputs || []).map(input => [input.name, ''])))
     setResult(null)
     setError('')
   }
 
-  async function handleCalculate() {
+  async function calculate() {
     if (!selected) return
     setCalculating(true)
     setError('')
     setResult(null)
     try {
-      const numericInputs = {}
-      selected.inputs?.forEach(inp => {
-        numericInputs[inp.name] = parseFloat(inputs[inp.name]) || 0
+      const numericInputs = Object.fromEntries(
+        (selected.inputs || []).map(input => [input.name, inputs[input.name] === '' ? 0 : Number(inputs[input.name])])
+      )
+      const response = await api.formulas.calculate(selected.id, numericInputs)
+      setResult({
+        ...(response.result || response),
+        warnings: response.warnings || response.result?.warnings || []
       })
-      const res = await api.formulas.calculate(selected.id, numericInputs)
-      setResult(res)
+      const freshHistory = await api.formulas.getHistory().catch(() => null)
+      if (Array.isArray(freshHistory)) setHistory(freshHistory)
     } catch (err) {
-      setError(err.message || 'Hesaplama hatası')
+      setError(err.message || 'Hesaplama yapılamadı.')
     } finally {
       setCalculating(false)
     }
   }
 
-  function formatLabel(key) {
-    const labels = {
-      kar: 'Kâr (TRY)',
-      kar_marji: 'Kâr Marjı (%)',
-      durum: 'Durum',
-      katki_payi: 'Katkı Payı (TRY)',
-      basabas_adet: 'Başabaş Noktası (adet)',
-      basabas_gelir: 'Başabaş Gelir (TRY)',
-      net_pozisyon: 'Net Nakit Pozisyonu (TRY)',
-      nakit_oran: 'Nakit Oranı',
-      isletme_sermayesi: 'İşletme Sermayesi (TRY)',
-      net_kar: 'Net Kâr (TRY)',
-      roi_yuzde: 'ROI (%)',
-      devir_hizi: 'Stok Devir Hızı',
-      stokta_kalma_gunu: 'Stokta Kalma Süresi (gün)',
-      cac: 'CAC (TRY)',
-      ltv: 'LTV (TRY)',
-      ltv_cac_orani: 'LTV/CAC Oranı',
-      degerlendirme: 'Değerlendirme',
-      indirimli_fiyat: 'İndirimli Fiyat (TRY)',
-      normal_kar: 'Normal Kâr (TRY)',
-      kampanya_kar: 'Kampanya Kârı (TRY)',
-      kar_farki: 'Kâr Farkı (TRY)',
-      aylik_taksit: 'Aylık Taksit (TRY)',
-      toplam_odeme: 'Toplam Ödeme (TRY)',
-      toplam_faiz: 'Toplam Faiz (TRY)',
-      birim_maliyet_try: 'Birim Maliyet (TRY)',
-      birim_maliyet_usd: 'Birim Maliyet (USD)',
-      toplam_maliyet: 'Toplam Maliyet (TRY)',
-      gercek_birim_maliyet: 'Gerçek Birim Maliyet (TRY)',
-      onerilen_kdv_haric_fiyat: 'Önerilen KDV Hariç Fiyat (TRY)',
-      komisyon_tutari: 'Kanal Komisyonu (TRY)',
-      odeme_kesintisi: 'Ödeme Kesintisi (TRY)',
-      birim_katki: 'Birim Katkı (TRY)',
-      gerceklesen_marj: 'Gerçekleşen Marj (%)',
-    }
-    return labels[key] || key
+  function workspaceRoute(section) {
+    navigate(activeWorkspaceId ? `/app/workspaces/${activeWorkspaceId}/${section}` : '/app/workspaces')
   }
 
-  if (loading) return <Loading text="Araçlar yükleniyor..." />
+  if (loading) return <Loading text="Finans Merkezi yükleniyor..." />
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Finansal Araçlar</h1>
-        <p className={styles.subtitle}>{formulas.length} hesaplama aracı</p>
-      </div>
+      <section className={styles.hero}>
+        <div>
+          <span className={styles.eyebrow}>GÜNLÜK İŞLETME YÖNETİMİ</span>
+          <h1>İşletme Finans Merkezi</h1>
+          <p>Kasa, gelir-gider, maliyet, fiyat, stok ve vadeli işlemleri tek yerde hesaplayın.</p>
+        </div>
+        <div className={styles.heroMetric}><strong>{formulas.length}</strong><span>hazır hesaplama</span></div>
+      </section>
+
+      <section className={styles.quickActions} aria-label="Ön muhasebe işlemleri">
+        <button onClick={() => workspaceRoute('tracker')}><WalletCards /><span><strong>Gelir, gider ve tahsilat</strong><small>Ödeme, alacak, senet ve işlem kaydı</small></span></button>
+        <button onClick={() => workspaceRoute('documents')}><FileText /><span><strong>Fatura ve belgeler</strong><small>Belge yükle, okut ve kayda dönüştür</small></span></button>
+        <button onClick={() => workspaceRoute('calendar')}><CalendarDays /><span><strong>Ödeme takvimi</strong><small>Vadeleri ve yaklaşan işlemleri gör</small></span></button>
+      </section>
 
       <div className={styles.tabs}>
         <button className={`${styles.tab} ${tab === 'calculator' ? styles.tabActive : ''}`} onClick={() => setTab('calculator')}>
-          <Calculator size={16} /> Hesaplama
+          <Calculator size={17} /> Hesaplamalar
         </button>
         <button className={`${styles.tab} ${tab === 'history' ? styles.tabActive : ''}`} onClick={() => setTab('history')}>
-          <History size={16} /> Geçmiş ({history.length})
+          <History size={17} /> Geçmiş <span>{history.length}</span>
         </button>
       </div>
 
       {tab === 'calculator' && (
-        <div className={styles.calcLayout}>
-          <div className={styles.formulaList}>
-            <h2 className={styles.sectionTitle}>Formüller</h2>
-            {formulas.map(f => {
-              const Icon = ICONS[f.id] || Calculator
-              return (
-                <div
-                  key={f.id}
-                  className={`${styles.formulaCard} ${selected?.id === f.id ? styles.formulaCardActive : ''}`}
-                  onClick={() => handleSelect(f)}
-                >
-                  <Icon size={20} />
-                  <div>
-                    <div className={styles.formulaName}>{f.name}</div>
-                    <div className={styles.formulaMeta}>{f.inputs?.length || 0} girdi</div>
-                  </div>
-                </div>
-              )
-            })}
+        <>
+          <div className={styles.filters}>
+            <label className={styles.search}><Search size={17} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="KDV, kasa, maliyet veya kârlılık ara…" /></label>
+            <div className={styles.categories}>
+              {Object.entries(CATEGORIES).map(([id, label]) => (
+                <button key={id} className={category === id ? styles.categoryActive : ''} onClick={() => setCategory(id)}>{label}</button>
+              ))}
+            </div>
           </div>
 
-          <div className={styles.calcPanel}>
-            {!selected ? (
-              <div className={styles.placeholder}>
-                <Calculator size={48} />
-                <p>Sol taraftan bir formül seçin</p>
-              </div>
-            ) : (
-              <>
-                <h2 className={styles.sectionTitle}>{selected.name}</h2>
-                {selected.warning && (
-                  <div className={styles.warning}>{selected.warning}</div>
-                )}
-                <div className={styles.inputGroup}>
-                  {selected.inputs?.map(inp => (
-                    <div key={inp.name} className={styles.inputField}>
-                      <label className={styles.inputLabel}>
-                        {inp.label} <span className={styles.inputUnit}>({inp.unit})</span>
+          <div className={styles.calcLayout}>
+            <div className={styles.formulaList}>
+              {visibleFormulas.map(formula => {
+                const Icon = ICONS[formula.id] || Calculator
+                return (
+                  <button key={formula.id} className={`${styles.formulaCard} ${selected?.id === formula.id ? styles.formulaCardActive : ''}`} onClick={() => selectFormula(formula)}>
+                    <span className={styles.formulaIcon}><Icon size={20} /></span>
+                    <span><strong>{formula.name}</strong><small>{formula.description || `${formula.inputs?.length || 0} bilgiyle hesaplanır`}</small></span>
+                  </button>
+                )
+              })}
+              {visibleFormulas.length === 0 && <div className={styles.noResults}>Aramanıza uygun hesaplama bulunamadı.</div>}
+            </div>
+
+            <div className={styles.calcPanel}>
+              {!selected ? (
+                <div className={styles.placeholder}><Calculator size={48} /><h2>Bir hesaplama seçin</h2><p>Günlük işletme kararınız için soldaki seçeneklerden başlayın.</p></div>
+              ) : (
+                <>
+                  <div className={styles.panelHeading}>
+                    <div><Badge variant="info">{CATEGORIES[selected.category]}</Badge><h2>{selected.name}</h2><p>{selected.description}</p></div>
+                  </div>
+                  {selected.warning && <div className={styles.warning}>{selected.warning}</div>}
+                  <div className={styles.inputGrid}>
+                    {selected.inputs?.map(input => (
+                      <label key={input.name} className={styles.inputField}>
+                        <span>{input.label}</span>
+                        <div className={styles.inputWrap}>
+                          <input type="number" value={inputs[input.name] ?? ''} onChange={event => setInputs(current => ({ ...current, [input.name]: event.target.value }))} placeholder="0" min={input.min} max={input.max} step="any" />
+                          <small>{input.unit}</small>
+                        </div>
                       </label>
-                      <input
-                        type="number"
-                        className={styles.input}
-                        value={inputs[inp.name] || ''}
-                        onChange={e => setInputs(prev => ({ ...prev, [inp.name]: e.target.value }))}
-                        placeholder="0"
-                        min={inp.min}
-                      />
-                    </div>
-                  ))}
-                </div>
-                <Button variant="primary" onClick={handleCalculate} disabled={calculating}>
-                  {calculating ? 'Hesaplanıyor...' : 'Hesapla'}
-                </Button>
+                    ))}
+                  </div>
+                  <Button variant="primary" onClick={calculate} disabled={calculating}>{calculating ? 'Hesaplanıyor…' : 'Sonucu Hesapla'}</Button>
+                  {error && <div className={styles.error}>{error}</div>}
 
-                {error && <div className={styles.error}>{error}</div>}
-
-                {result && (
-                  <div className={styles.resultBox}>
-                    <h3 className={styles.resultTitle}>Sonuç</h3>
-                    {result.durum && (
-                      <div className={`${styles.resultBadge} ${
-                        result.durum?.includes('Kârlı') || result.durum?.includes('Pozitif') || result.durum?.includes('Yeterli') || result.durum?.includes('Sağlıklı')
-                          ? styles.resultSuccess
-                          : result.durum?.includes('Başa baş') || result.durum?.includes('Kabul')
-                            ? styles.resultNeutral
-                            : styles.resultDanger
-                      }`}>
-                        {result.durum}
+                  {result && (
+                    <div className={styles.resultBox}>
+                      <div className={styles.resultHeading}>
+                        <h3>Hesaplama sonucu</h3>
+                        {result.durum && <span className={styles[resultTone(result.durum)]}>{result.durum}</span>}
                       </div>
-                    )}
-                    <div className={styles.resultGrid}>
-                      {Object.entries(result)
-                        .filter(([k]) => k !== 'assumptions' && k !== 'warnings' && k !== 'durum')
-                        .map(([k, v]) => (
-                          <div key={k} className={styles.resultItem}>
-                            <span className={styles.resultLabel}>{formatLabel(k)}</span>
-                            <span className={styles.resultValue}>
-                              {typeof v === 'number' ? v.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : String(v)}
-                            </span>
+                      <div className={styles.resultGrid}>
+                        {Object.entries(result).filter(([key]) => !['warnings', 'assumptions', 'durum'].includes(key)).map(([key, value]) => (
+                          <div key={key} className={styles.resultItem}>
+                            <span>{RESULT_LABELS[key] || key.replaceAll('_', ' ')}</span>
+                            <strong>{typeof value === 'number' ? value.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) : String(value)}</strong>
                           </div>
                         ))}
-                    </div>
-                    {result.warnings?.length > 0 && (
-                      <div className={styles.warnings}>
-                        {result.warnings.map((w, i) => <p key={i} className={styles.warning}>{w}</p>)}
                       </div>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
+                      {result.warnings?.map((warning, index) => <p key={index} className={styles.resultWarning}>{warning}</p>)}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {tab === 'history' && (
         <div className={styles.historyList}>
-          {history.length === 0 ? (
-            <p className={styles.emptyText}>Henüz hesaplama geçmişi yok.</p>
-          ) : (
-            history.map(h => (
-              <div key={h.id} className={styles.historyItem}>
-                <div className={styles.historyHeader}>
-                  <strong>{h.formulaName}</strong>
-                  <span className={styles.historyDate}>
-                    {new Date(h.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-                <div className={styles.historyDetail}>
-                  Girdi: {Object.entries(h.inputs || {}).map(([k, v]) => `${k}: ${v}`).join(', ')}
-                </div>
-                <div className={styles.historyDetail}>
-                  Sonuç: {Object.entries(h.result || {}).filter(([k]) => k !== 'durum').map(([k, v]) => `${k}: ${v}`).join(', ')}
-                </div>
-              </div>
-            ))
-          )}
+          {history.length === 0 ? <div className={styles.noResults}>Henüz hesaplama geçmişi yok.</div> : history.map(item => (
+            <article key={item.id} className={styles.historyItem}>
+              <div><strong>{item.formulaName}</strong><span>{new Date(item.createdAt).toLocaleString('tr-TR')}</span></div>
+              <p>{Object.entries(item.result || {}).filter(([key]) => key !== 'durum').slice(0, 4).map(([key, value]) => `${RESULT_LABELS[key] || key}: ${value}`).join(' · ')}</p>
+            </article>
+          ))}
         </div>
       )}
     </div>
