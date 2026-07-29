@@ -82,19 +82,28 @@ async function main() {
   }
 
   // ── Step 4: Run prisma migrate deploy on test database ──
-  try {
-    execSync('npx prisma db push --force-reset --accept-data-loss --skip-generate --schema prisma/schema.prisma', {
-      cwd: ROOT,
-      env: { ...process.env, DATABASE_URL: TEST_DB_URL },
-      encoding: 'utf8',
-      timeout: 60000,
-      stdio: 'pipe'
-    })
-    pass('Schema reset complete')
-  } catch (e: any) {
-    fail(`Schema reset failed: ${e.stdout || ''}\n${e.stderr || ''}\n${e.message || ''}`)
+  const testDatabaseName = new URL(TEST_DB_URL).pathname.replace(/^\//, '')
+  if (!testDatabaseName.endsWith('_test')) {
+    fail(`Refusing to reset non-test database: ${testDatabaseName}`)
     process.exit(EXIT_CODE)
     return
+  }
+
+  const resetPrisma = new PrismaClient({
+    datasources: { db: { url: TEST_DB_URL } }
+  })
+
+  try {
+    await resetPrisma.$connect()
+    await resetPrisma.$executeRawUnsafe('DROP SCHEMA IF EXISTS public CASCADE')
+    await resetPrisma.$executeRawUnsafe('CREATE SCHEMA public')
+    pass(`Empty test schema created in ${testDatabaseName}`)
+  } catch (e: any) {
+    fail(`Schema reset failed: ${e.message || e}`)
+    process.exit(EXIT_CODE)
+    return
+  } finally {
+    await resetPrisma.$disconnect()
   }
 
   try {

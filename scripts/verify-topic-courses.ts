@@ -5,6 +5,32 @@ const prisma = new PrismaClient()
 async function main() {
   let errors = 0
 
+  // 0. Minimum content sanity check — fail if data is missing
+  const minKo = 860
+  const minCourse = 203
+  const minLesson = 873
+  const totalKo = await prisma.knowledgeObject.count()
+  const totalCourse = await prisma.course.count()
+  const totalLesson = await prisma.lesson.count()
+  if (totalKo < minKo) {
+    console.error(`MINIMUM CONTENT FAIL: KnowledgeObject count ${totalKo} < expected minimum ${minKo}`)
+    errors++
+  } else {
+    console.log(`OK: KnowledgeObject count ${totalKo} >= minimum ${minKo}`)
+  }
+  if (totalCourse < minCourse) {
+    console.error(`MINIMUM CONTENT FAIL: Course count ${totalCourse} < expected minimum ${minCourse}`)
+    errors++
+  } else {
+    console.log(`OK: Course count ${totalCourse} >= minimum ${minCourse}`)
+  }
+  if (totalLesson < minLesson) {
+    console.error(`MINIMUM CONTENT FAIL: Lesson count ${totalLesson} < expected minimum ${minLesson}`)
+    errors++
+  } else {
+    console.log(`OK: Lesson count ${totalLesson} >= minimum ${minLesson}`)
+  }
+
   // 1. All published, non-demo KOs must belong to a topic course lesson
   const kos = await prisma.knowledgeObject.findMany({
     where: { status: 'published', isDemo: false, code: { not: null } },
