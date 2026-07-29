@@ -137,7 +137,7 @@ export async function getPersistentReviewerMetricsSnapshot(
     return {
       enabled: false,
       retention: {
-        storage: 'sqlite_content_free_events',
+        storage: 'postgresql_content_free_events',
         retentionDays: config.retentionDays,
         contentStored: false,
       },
@@ -199,7 +199,7 @@ export async function getPersistentReviewerMetricsSnapshot(
     generatedAt: new Date().toISOString(),
     windowStartedAt: since.toISOString(),
     retention: {
-      storage: 'sqlite_content_free_events',
+      storage: 'postgresql_content_free_events',
       retentionDays: config.retentionDays,
       queryEventLimit: MAX_QUERY_EVENTS,
       contentStored: false,

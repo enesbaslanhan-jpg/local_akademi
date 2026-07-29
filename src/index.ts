@@ -34,7 +34,8 @@ import { flashcardRoutes } from './services/flashcard-routes'
 import { videoRoutes } from './services/videos'
 import { communityRoutes } from './services/community'
 import { deleteExpiredReviewerTelemetry } from './services/ai-reviewer'
-import { disconnectPrisma } from './lib/prisma'
+import { disconnectPrisma, prisma } from './lib/prisma'
+import { RELEASE_INFO } from './config/release'
 import { existsSync } from 'fs'
 import { join } from 'path'
 
@@ -125,7 +126,46 @@ async function build() {
     })
   }
 
-  server.get('/health', { config: { rateLimit: false } }, async () => ({ status: 'ok', version: '1.0.0', timestamp: new Date().toISOString() }))
+  server.get('/health', { config: { rateLimit: false } }, async (_request, reply) => {
+    try {
+      const [publishedCourses, publishedLessons, publishedKnowledgeObjects] = await Promise.all([
+        prisma.course.count({ where: { published: true } }),
+        prisma.lesson.count({ where: { course: { published: true } } }),
+        prisma.knowledgeObject.count({ where: { status: 'published' } }),
+      ])
+      return {
+        status: 'ok',
+        version: RELEASE_INFO.version,
+        release: RELEASE_INFO,
+        database: {
+          provider: RELEASE_INFO.databaseProvider,
+          label: 'PostgreSQL + Prisma',
+          connected: true,
+          schema: 'public',
+        },
+        curriculum: {
+          standard: RELEASE_INFO.curriculumStandard,
+          publishedCourses,
+          publishedLessons,
+          publishedKnowledgeObjects,
+        },
+        timestamp: new Date().toISOString(),
+      }
+    } catch {
+      return reply.status(503).send({
+        status: 'degraded',
+        version: RELEASE_INFO.version,
+        release: RELEASE_INFO,
+        database: {
+          provider: RELEASE_INFO.databaseProvider,
+          label: 'PostgreSQL + Prisma',
+          connected: false,
+          schema: 'public',
+        },
+        timestamp: new Date().toISOString(),
+      })
+    }
+  })
 
   server.register(authRoutes, { prefix: '/auth' })
   server.register(courseRoutes, { prefix: '/courses' })

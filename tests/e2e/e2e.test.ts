@@ -107,7 +107,13 @@ describe('E2E: Health & API Contract', () => {
     expect(res.statusCode).toBe(200)
     const body = res.json()
     expect(body.status).toBe('ok')
-    expect(body.version).toBeDefined()
+    expect(body.version).toBe('2.0.0')
+    expect(body.database).toMatchObject({
+      provider: 'postgresql',
+      label: 'PostgreSQL + Prisma',
+      connected: true,
+    })
+    expect(body.curriculum.publishedCourses).toBeGreaterThanOrEqual(0)
   })
 
   it('Unknown routes return 404', async () => {

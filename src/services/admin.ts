@@ -184,7 +184,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
         unavailable: true,
         errorCode: 'REVIEWER_METRICS_READ_FAILED',
         retention: {
-          storage: 'sqlite_content_free_events',
+          storage: 'postgresql_content_free_events',
           contentStored: false,
         },
       }))

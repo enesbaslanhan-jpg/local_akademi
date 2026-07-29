@@ -7,11 +7,19 @@ export default function SettingsPage() {
   const { user } = useAuth()
   const [name, setName] = useState(user?.name || '')
   const [profile, setProfile] = useState(null)
+  const [systemInfo, setSystemInfo] = useState(null)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
 
   useEffect(() => {
     api.onboarding.getProfile().then(d => setProfile(d.profile)).catch(() => {})
+    api.system.health().then(setSystemInfo).catch(() => {
+      setSystemInfo({
+        status: 'unavailable',
+        version: '—',
+        database: { label: 'Bağlantı bilgisi alınamadı', connected: false },
+      })
+    })
   }, [])
 
   async function handleSave(e) {
@@ -62,7 +70,7 @@ export default function SettingsPage() {
           <h2>Uygulama Bilgisi</h2>
           <div className="stats-row">
             <small>Sürüm</small>
-            <b>1.0.0</b>
+            <b>{systemInfo?.version || 'Yükleniyor...'}</b>
           </div>
           <div className="stats-row">
             <small>Backend</small>
@@ -70,7 +78,19 @@ export default function SettingsPage() {
           </div>
           <div className="stats-row">
             <small>Veritabanı</small>
-            <b>SQLite + Prisma</b>
+            <b>{systemInfo?.database?.label || 'Yükleniyor...'}</b>
+          </div>
+          <div className="stats-row">
+            <small>Bağlantı</small>
+            <b>{systemInfo?.database?.connected ? 'PostgreSQL bağlı' : 'Kontrol ediliyor...'}</b>
+          </div>
+          <div className="stats-row">
+            <small>Yayınlanan müfredat</small>
+            <b>
+              {systemInfo?.curriculum
+                ? `${systemInfo.curriculum.publishedCourses} kurs · ${systemInfo.curriculum.publishedLessons} ders`
+                : 'Yükleniyor...'}
+            </b>
           </div>
         </div>
       </div>

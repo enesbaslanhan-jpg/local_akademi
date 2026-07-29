@@ -154,6 +154,12 @@ export const api = {
     return data;
   },
 
+  system: {
+    async health() {
+      return api.request('/health', {}, false);
+    }
+  },
+
   auth: {
     async login(email, password) {
       return api.request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }, false);
