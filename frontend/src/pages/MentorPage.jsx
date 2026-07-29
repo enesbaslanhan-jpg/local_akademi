@@ -71,6 +71,14 @@ export default function MentorPage() {
 
   const contextCode = searchParams.get('code') || ''
   const contextTitle = searchParams.get('title') || ''
+  const contextPrompt = searchParams.get('prompt') || ''
+
+  useEffect(() => {
+    if (contextPrompt) {
+      setInputValue(current => current || contextPrompt)
+      setTimeout(() => inputRef.current?.focus(), 100)
+    }
+  }, [contextPrompt])
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {

@@ -3,6 +3,7 @@ import type { MemoryRecord } from './memory-types'
 import { retrieveMemories } from './memory-retriever'
 import { touchMemories } from './memory-repository'
 import type { ChatMessage } from '../ai-provider'
+import { getMentorRunContext } from '../financial-models/mentor-tools'
 
 interface ContextBuilderInput {
   prisma: PrismaClient
@@ -111,7 +112,7 @@ export async function getActiveWorkspaceContext(
     } : {})
   }
 
-  let [records, documents] = await Promise.all([
+  let [records, documents, financialModelContext] = await Promise.all([
     prisma.businessRecord.findMany({
       where: {
         workspaceId: workspace.id,
@@ -145,7 +146,8 @@ export async function getActiveWorkspaceContext(
         analysisStatus: true,
         createdAt: true
       }
-    })
+    }),
+    getMentorRunContext(prisma, userId, workspace.id, userMessage)
   ])
 
   if (documents.length === 0 && terms.length > 0 && /\b(belge|dosya|fatura|senet|makbuz)[\p{L}]*/iu.test(userMessage)) {
@@ -217,6 +219,10 @@ export async function getActiveWorkspaceContext(
       lines.push(escapeXml(document.extractedText.slice(0, MAX_DOCUMENT_EXCERPT_CHARS)))
     }
     lines.push('</business_documents>')
+  }
+
+  if (financialModelContext) {
+    lines.push(financialModelContext)
   }
 
   return lines.join('\n').slice(0, MAX_WORKSPACE_CHARS)
