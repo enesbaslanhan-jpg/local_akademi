@@ -5,7 +5,7 @@ import {
   LayoutDashboard, BookOpen, Lightbulb, Bot,
   GraduationCap, Map, Settings, Shield,
   Users, Database, X, Calculator, Brain, HelpCircle, Newspaper,
-  Building2
+  Building2, CalendarDays, FileText, ListChecks
 } from 'lucide-react'
 import styles from './Sidebar.module.css'
 
@@ -33,10 +33,19 @@ const adminLinks = [
 ]
 
 export default function Sidebar({ open, onClose }) {
-  const { isAdmin, user } = useAuth()
+  const { isAdmin } = useAuth()
   const { activeWorkspaceId } = useWorkspace()
   const location = useLocation()
   const navigate = useNavigate()
+  const workspaceLinks = activeWorkspaceId
+    ? [
+        { id: 'workspace-tracker', label: 'İşletme Takibi', icon: ListChecks, path: `/app/workspaces/${activeWorkspaceId}/tracker` },
+        { id: 'workspace-calendar', label: 'İşletme Takvimi', icon: CalendarDays, path: `/app/workspaces/${activeWorkspaceId}/calendar` },
+        { id: 'workspace-documents', label: 'Belgelerim', icon: FileText, path: `/app/workspaces/${activeWorkspaceId}/documents` }
+      ]
+    : [
+        { id: 'workspace-create', label: 'İşletme Merkezi', icon: Building2, path: '/app/workspaces' }
+      ]
 
   function handleNavigate(path) {
     navigate(path)
@@ -65,6 +74,33 @@ export default function Sidebar({ open, onClose }) {
         </div>
 
         <nav className={styles.nav}>
+          <div className={styles.sectionLabel}>İşletmem</div>
+          {workspaceLinks.map(link => {
+            const Icon = link.icon
+            const active = isActive(link.path)
+            return (
+              <button
+                key={link.id}
+                className={`${styles.navItem} ${active ? styles.active : ''}`}
+                onClick={() => handleNavigate(link.path)}
+                aria-current={active ? 'page' : undefined}
+              >
+                <Icon size={20} />
+                <span>{link.label}</span>
+              </button>
+            )
+          })}
+          {activeWorkspaceId && (
+            <button
+              className={`${styles.navItem} ${location.pathname === '/app/workspaces' ? styles.active : ''}`}
+              onClick={() => handleNavigate('/app/workspaces')}
+            >
+              <Building2 size={20} />
+              <span>İşletmelerim</span>
+            </button>
+          )}
+
+          <div className={styles.divider} />
           <div className={styles.sectionLabel}>Öğrenme</div>
           {learnerLinks.map(link => {
             const Icon = link.icon
@@ -81,22 +117,6 @@ export default function Sidebar({ open, onClose }) {
               </button>
             )
           })}
-
-          <div className={styles.divider} />
-          <div className={styles.sectionLabel}>İşletmem</div>
-          {(() => {
-            const wsActive = isActive('/app/workspaces')
-            return (
-              <button
-                className={`${styles.navItem} ${wsActive ? styles.active : ''}`}
-                onClick={() => handleNavigate('/app/workspaces')}
-                aria-current={wsActive ? 'page' : undefined}
-              >
-                <Building2 size={20} />
-                <span>İşletmelerim</span>
-              </button>
-            )
-          })()}
 
           {isAdmin && (
             <>

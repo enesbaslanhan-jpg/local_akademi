@@ -70,13 +70,28 @@ describe('Sidebar', () => {
     expect(screen.getByLabelText('Ana navigasyon')).toBeInTheDocument()
   })
 
-  it('shows workspace link', () => {
+  it('shows a prominent workspace center link when no workspace exists', () => {
     render(
       <MemoryRouter initialEntries={['/app/dashboard']}>
         <Sidebar open={true} onClose={() => {}} />
       </MemoryRouter>
     )
 
+    expect(screen.getByText('İşletme Merkezi')).toBeInTheDocument()
+  })
+
+  it('shows direct tracker, calendar and document links for the active workspace', () => {
+    mockUseWorkspace.mockReturnValue({ activeWorkspaceId: 'workspace-1', hasWorkspaces: true })
+
+    render(
+      <MemoryRouter initialEntries={['/app/dashboard']}>
+        <Sidebar open={true} onClose={() => {}} />
+      </MemoryRouter>
+    )
+
+    expect(screen.getByText('İşletme Takibi')).toBeInTheDocument()
+    expect(screen.getByText('İşletme Takvimi')).toBeInTheDocument()
+    expect(screen.getByText('Belgelerim')).toBeInTheDocument()
     expect(screen.getByText('İşletmelerim')).toBeInTheDocument()
   })
 })

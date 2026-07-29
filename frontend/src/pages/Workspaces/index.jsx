@@ -22,7 +22,7 @@ export default function WorkspaceList() {
       const ws = await createWorkspace(form)
       setShowCreate(false)
       setForm({ name: '', sector: '', city: '', currency: 'TRY' })
-      navigate(`/app/workspaces/${ws.id}/overview`)
+      navigate(`/app/workspaces/${ws.id}/tracker`)
     } catch { }
     finally { setCreating(false) }
   }
@@ -45,7 +45,7 @@ export default function WorkspaceList() {
       ) : (
         <div className={styles.grid}>
           {workspaces.map(ws => (
-            <div key={ws.id} className={styles.card} onClick={() => navigate(`/app/workspaces/${ws.id}/overview`)}>
+            <div key={ws.id} className={styles.card} onClick={() => navigate(`/app/workspaces/${ws.id}/tracker`)}>
               <div className={styles.cardInfo}>
                 <div className={styles.cardName}>{ws.name}</div>
                 <div className={styles.cardMeta}>

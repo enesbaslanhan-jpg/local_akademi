@@ -18,13 +18,17 @@ const tabs = [
 
 export default function WorkspaceLayout() {
   const { workspaceId } = useParams()
-  const { refreshActiveWorkspace, activeWorkspace } = useWorkspace()
+  const { refreshActiveWorkspace, switchWorkspace, activeWorkspace } = useWorkspace()
   const navigate = useNavigate()
   const location = useLocation()
 
   useEffect(() => {
+    if (workspaceId && workspaceId !== activeWorkspace?.id) {
+      switchWorkspace(workspaceId)
+      return
+    }
     refreshActiveWorkspace()
-  }, [workspaceId, refreshActiveWorkspace])
+  }, [workspaceId, activeWorkspace?.id, refreshActiveWorkspace, switchWorkspace])
 
   const currentTab = tabs.find(t => location.pathname.endsWith(t.path))?.id || 'overview'
 
