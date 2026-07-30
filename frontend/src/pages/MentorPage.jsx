@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { api } from '@/services/api'
 import { Loading, EmptyState } from '@/components/ui'
 import MemoryPanel from '@/components/memory/MemoryPanel'
+import CitationBadge from '@/components/mentor/CitationBadge'
 
 function formatTime(dateStr) {
   if (!dateStr) return ''
@@ -570,9 +571,13 @@ export default function MentorPage() {
                                 <div className="mt-2 pt-2 border-t border-[var(--border)]">
                                   <p className="text-[11px] text-[var(--text-light)] font-medium mb-1">Kaynaklar:</p>
                                   {msg.knowledgeObjects.map((ko, i) => (
-                                    <span key={ko.id || i} className="inline-block text-[11px] bg-[var(--primary-light)] text-[var(--primary)] px-1.5 py-0.5 rounded mr-1 mb-1">
-                                      {ko.title}{ko.code ? ` (${ko.code})` : ''}
-                                    </span>
+                                    <CitationBadge
+                                      key={ko.id || i}
+                                      id={ko.id}
+                                      title={ko.title}
+                                      code={ko.code}
+                                      sourceRefs={ko.sourceRefs}
+                                    />
                                   ))}
                                 </div>
                               )}
