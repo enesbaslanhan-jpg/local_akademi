@@ -9,6 +9,7 @@
 .headerActions > button:first-child, .outputActions button { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 13px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; font-weight: 700; }
 .businessContext { display: flex; align-items: center; gap: 8px; margin: 13px 0 18px; padding: 10px 13px; border-radius: 11px; background: #ecfdf5; color: #14532d; }
 .businessContext span { color: #166534; }
+.documentNotice { display: flex; align-items: flex-start; gap: .65rem; padding: .85rem 1rem; margin-bottom: 1rem; border: 1px solid #e9b949; border-radius: .8rem; background: #fff9e8; color: #6f4e00; line-height: 1.45; }
 .tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--border); }
 .tabs button { flex: 0 0 auto; padding: 11px 13px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--text-secondary); cursor: pointer; }
 .tabs .activeTab { border-bottom-color: #0f766e; color: #0f766e; font-weight: 900; }

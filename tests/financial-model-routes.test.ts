@@ -105,6 +105,18 @@ describe('Phase 6 financial model routes', () => {
     expect(response.json().total).toBe(24)
   })
 
+  it('maps a tenant document to models but keeps every OCR field unverified', async () => {
+    await prisma.uploadedDocument.update({
+      where: { id: documentId },
+      data: { extractedText: 'Dönen Varlıklar: 200.000 TL\nKısa Vadeli Yükümlülükler: 100.000 TL\nStoklar: 40.000 TL' },
+    })
+    const response = await inject('GET', `/workspaces/${workspaceId}/documents/${documentId}/financial-model-suggestions`, ownerToken)
+    expect(response.statusCode).toBe(200)
+    const currentRatio = response.json().models.find((model: any) => model.code === 'CURRENT_RATIO')
+    expect(currentRatio.mappedInputs).toEqual({ currentAssets: 200000, currentLiabilities: 100000 })
+    expect(currentRatio.requiresUserVerification).toBe(true)
+  })
+
   it('does not allow a viewer to create a model run', async () => {
     const response = await inject('POST', `/workspaces/${workspaceId}/financial-models/CURRENT_RATIO/runs`, viewerToken, {
       inputs: { currentAssets: 200, currentLiabilities: 100 },

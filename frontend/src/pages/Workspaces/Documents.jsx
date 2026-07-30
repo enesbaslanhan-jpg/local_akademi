@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { Camera, Check, Eye, FileImage, FileText, ImagePlus, Trash2, Upload, X } from 'lucide-react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { BarChart3, Camera, Check, Eye, FileImage, FileText, ImagePlus, Trash2, Upload, X } from 'lucide-react'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
 import styles from './Documents.module.css'
@@ -25,6 +25,7 @@ const recordTypes = {
 
 export default function Documents() {
   const { workspaceId } = useParams()
+  const navigate = useNavigate()
   const toast = useToast()
   const fileInputRef = useRef(null)
   const photoInputRef = useRef(null)
@@ -34,6 +35,8 @@ export default function Documents() {
   const [uploading, setUploading] = useState(false)
   const [dragging, setDragging] = useState(false)
   const [preview, setPreview] = useState(null)
+  const [modelMappings, setModelMappings] = useState({})
+  const [mappingLoading, setMappingLoading] = useState(null)
 
   const load = useCallback(async () => {
     try {
@@ -95,6 +98,19 @@ export default function Documents() {
       await load()
     } catch (error) {
       toast.error(error.message || 'Öneri reddedilemedi.')
+    }
+  }
+
+  async function findFinancialModels(document) {
+    setMappingLoading(document.id)
+    try {
+      const data = await api.workspace.documents.financialModelSuggestions(workspaceId, document.id)
+      setModelMappings(current => ({ ...current, [document.id]: data }))
+      if (!data.models?.length) toast.info('Bu belgede finansal model girdisi olarak eşleşen alan bulunamadı.')
+    } catch (error) {
+      toast.error(error.message || 'Model eşleştirmesi yapılamadı.')
+    } finally {
+      setMappingLoading(null)
     }
   }
 
@@ -187,6 +203,22 @@ export default function Documents() {
                   </div>
                 </div>
               ))}
+              <div className={styles.modelMapping}>
+                <button onClick={() => findFinancialModels(document)} disabled={mappingLoading === document.id}>
+                  <BarChart3 size={17} /> {mappingLoading === document.id ? 'Alanlar eşleştiriliyor…' : 'Finansal model öner'}
+                </button>
+                {modelMappings[document.id] && (
+                  <div className={styles.modelResults}>
+                    <small>{modelMappings[document.id].warning}</small>
+                    {modelMappings[document.id].models?.slice(0, 4).map(model => (
+                      <button key={model.code} onClick={() => navigate(`/app/finance/models/${model.code}?documentId=${document.id}`)}>
+                        <span><strong>{model.name}</strong><small>%{Math.round(model.coverage * 100)} alan eşleşmesi · {model.missingFields.length} eksik alan</small></span>
+                        <BarChart3 size={16} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </article>
           ))}
         </div>

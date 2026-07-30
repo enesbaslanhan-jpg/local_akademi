@@ -5,6 +5,7 @@ import { runFinancialModel } from './engine.js'
 import { FINANCIAL_MODEL_REGISTRY, getFinancialModel } from './registry.js'
 import { recommendFinancialModels } from './suitability.js'
 import type { ModelAssumptionInput } from './types.js'
+import { mapDocumentToFinancialModels } from './document-mapping.js'
 
 const assumptionSchema = z.object({
   key: z.string().min(1).max(100),
@@ -183,6 +184,16 @@ export async function financialModelRoutes(fastify: FastifyInstance) {
       take: limit,
     })
     return { runs, total: runs.length }
+  })
+
+  fastify.get('/workspaces/:workspaceId/documents/:documentId/financial-model-suggestions', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId, documentId } = request.params as { workspaceId: string; documentId: string }
+    if (!await membership(user.id, workspaceId)) return reply.status(403).send({ error: 'Bu işletmeye erişiminiz yok.' })
+    const document = await prisma.uploadedDocument.findUnique({ where: { id: documentId } })
+    if (!document || document.workspaceId !== workspaceId || document.archivedAt) return reply.status(404).send({ error: 'Belge bulunamadı.' })
+    if (!document.extractedText.trim()) return { documentId, documentName: document.originalName, extractedFieldCount: 0, models: [], warning: 'Belgeden okunabilir finansal alan çıkarılamadı.' }
+    return { documentId, documentName: document.originalName, ...mapDocumentToFinancialModels(document.extractedText, document.originalName) }
   })
 
   fastify.get('/workspaces/:workspaceId/financial-model-runs/:runId', { preHandler: [fastify.authenticate] }, async (request, reply) => {

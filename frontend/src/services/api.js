@@ -765,6 +765,9 @@ export const api = {
       async suggestions(workspaceId, documentId) {
         return api.request(`/workspaces/${workspaceId}/documents/${documentId}/suggestions`)
       },
+      async financialModelSuggestions(workspaceId, documentId) {
+        return api.request(`/workspaces/${workspaceId}/documents/${documentId}/financial-model-suggestions`)
+      },
       async acceptSuggestion(workspaceId, suggestionId, overrides = {}) {
         return api.request(`/workspaces/${workspaceId}/document-suggestions/${suggestionId}/accept`, {
           method: 'POST', body: JSON.stringify(overrides)

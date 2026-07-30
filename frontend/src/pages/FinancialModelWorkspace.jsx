@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '@/services/api'
 import { useWorkspace } from '@/context/WorkspaceContext'
 import { Button, Loading } from '@/components/ui'
@@ -32,6 +32,8 @@ function titleFromKey(key) {
 
 export default function FinancialModelWorkspace() {
   const { modelCode } = useParams()
+  const [searchParams] = useSearchParams()
+  const sourceDocumentId = searchParams.get('documentId') || ''
   const navigate = useNavigate()
   const { activeWorkspaceId, activeWorkspace } = useWorkspace()
   const [model, setModel] = useState(null)
@@ -47,23 +49,29 @@ export default function FinancialModelWorkspace() {
   const [decisionOpen, setDecisionOpen] = useState(false)
   const [decision, setDecision] = useState({ decision: '', expectedOutcome: '' })
   const [decisionSaved, setDecisionSaved] = useState(false)
+  const [sourceDocumentName, setSourceDocumentName] = useState('')
 
   useEffect(() => {
     Promise.all([
       api.financialModels.get(modelCode),
       activeWorkspaceId ? api.financialModels.runs(activeWorkspaceId, modelCode).catch(() => ({ runs: [] })) : Promise.resolve({ runs: [] }),
-    ]).then(([modelData, runData]) => {
+      activeWorkspaceId && sourceDocumentId
+        ? api.workspace.documents.financialModelSuggestions(activeWorkspaceId, sourceDocumentId).catch(() => null)
+        : Promise.resolve(null),
+    ]).then(([modelData, runData, documentMapping]) => {
       setModel(modelData)
       setRuns(runData.runs || [])
-      setInputs(Object.fromEntries((modelData.inputs || []).map(input => [input.key, ''])))
+      const mappedModel = documentMapping?.models?.find(item => item.code === modelData.code)
+      setInputs(Object.fromEntries((modelData.inputs || []).map(input => [input.key, mappedModel?.mappedInputs?.[input.key] ?? ''])))
       setMetadata(Object.fromEntries((modelData.inputs || []).map(input => [input.key, {
-        sourceType: 'user',
-        sourceReference: '',
+        sourceType: mappedModel?.mappedInputs?.[input.key] !== undefined ? 'document' : 'user',
+        sourceReference: mappedModel?.mappedInputs?.[input.key] !== undefined ? documentMapping.documentName : '',
         effectiveDate: new Date().toISOString().slice(0, 10),
         userVerified: false,
       }])))
+      setSourceDocumentName(mappedModel ? documentMapping.documentName : '')
     }).catch(err => setError(err.message || 'Model yüklenemedi.')).finally(() => setLoading(false))
-  }, [modelCode, activeWorkspaceId])
+  }, [modelCode, activeWorkspaceId, sourceDocumentId])
 
   const outputDefinitions = useMemo(() => Object.fromEntries((model?.outputs || []).map(item => [item.key, item])), [model])
 
@@ -97,6 +105,7 @@ export default function FinancialModelWorkspace() {
         inputs: payloadInputs,
         assumptions,
         scenarioName: scenario,
+        ...(sourceDocumentName && sourceDocumentId ? { sourceDocumentId } : {}),
       })
       setCurrentRun(result)
       setRuns(current => [{ id: result.id, scenarioName: result.scenarioName, createdAt: result.createdAt, outputs: result.outputs, model: { code: model.code, name: model.name } }, ...current])
@@ -157,6 +166,12 @@ export default function FinancialModelWorkspace() {
           ? <><strong>{activeWorkspace.name}</strong><span>Sonuç bu işletmenin yetki alanına kaydedilir.</span></>
           : <><strong>İşletme seçilmedi</strong><span>Modeli çalıştırmak için işletme oluşturun veya seçin.</span></>}
       </div>
+      {sourceDocumentName && (
+        <div className={styles.documentNotice}>
+          <AlertTriangle size={17} />
+          <span><strong>{sourceDocumentName}</strong> belgesinden eşleşen alanlar forma taşındı. Her alanı belgeyle karşılaştırıp “kontrol ettim” kutusunu işaretlemeden çalıştırmayın.</span>
+        </div>
+      )}
 
       <nav className={styles.tabs}>
         {TABS.map(item => <button key={item} className={tab === item ? styles.activeTab : ''} onClick={() => setTab(item)}>{item}</button>)}

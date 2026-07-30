@@ -52,3 +52,53 @@
   .uploadActions, .uploadActions button, .categoryField, .categoryField select { width: 100%; }
   .grid { grid-template-columns: 1fr; }
 }
+
+.modelMapping {
+  border-top: 1px solid var(--border);
+  padding-top: .85rem;
+  margin-top: .85rem;
+}
+
+.modelMapping > button {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  border: 1px solid #b8c6f0;
+  background: #f4f7ff;
+  color: #29418a;
+  border-radius: .7rem;
+  padding: .62rem .8rem;
+  font-weight: 700;
+}
+
+.modelResults {
+  display: grid;
+  gap: .55rem;
+  margin-top: .7rem;
+}
+
+.modelResults > small {
+  color: var(--text-light);
+  line-height: 1.45;
+}
+
+.modelResults > button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: .75rem;
+  padding: .7rem .8rem;
+  background: white;
+}
+
+.modelResults > button span {
+  display: grid;
+  gap: .18rem;
+}
+
+.modelResults > button small {
+  color: var(--text-light);
+}
