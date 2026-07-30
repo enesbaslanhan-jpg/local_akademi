@@ -111,6 +111,37 @@ export async function* streamAiResponse(
   }
 }
 
+const MAX_KNOWLEDGE_OBJECT_CODE_LENGTH = 64
+
+export function normalizeKnowledgeObjectCode(code: unknown): string | undefined {
+  if (typeof code !== 'string') return undefined
+  const trimmed = code.trim()
+  if (trimmed.length === 0) return undefined
+  return trimmed
+}
+
+export function validateKnowledgeObjectCode(code: string): { valid: boolean; error?: { code: string; message: string } } {
+  if (code.length > MAX_KNOWLEDGE_OBJECT_CODE_LENGTH) {
+    return {
+      valid: false,
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: `Knowledge object code en fazla ${MAX_KNOWLEDGE_OBJECT_CODE_LENGTH} karakter olabilir`
+      }
+    }
+  }
+  if (!/^[A-Za-z0-9_\-./#]+$/.test(code)) {
+    return {
+      valid: false,
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Knowledge object code geçersiz karakterler içeriyor'
+      }
+    }
+  }
+  return { valid: true }
+}
+
 export async function getRelevantKnowledgeObjects(query: string): Promise<KnowledgeObjectResult[]> {
   return retriever.retrieve({ text: query })
 }
@@ -119,7 +150,90 @@ export function formatKnowledgeContext(kos: KnowledgeObjectResult[]): string {
   return retrievalFormatContext(kos)
 }
 
-export function buildSystemPrompt(user: { name: string; role: string }, knowledgeContext: string, koTitle?: string): string {
+function toKnowledgeObjectResult(ko: any): KnowledgeObjectResult {
+  return {
+    id: ko.id,
+    title: ko.title,
+    code: ko.code,
+    content: ko.content,
+    summary: ko.summary,
+    category: ko.category,
+    score: 0,
+    matchedTerms: ['selected:explicit'],
+    sourceRefs: ko.sources.map((s: any) => ({
+      sourceId: s.source.id,
+      title: s.source.title,
+      url: s.source.url,
+      authorityLevel: s.source.authorityLevel,
+    })),
+  }
+}
+
+export async function fetchSelectedKnowledgeObject(code: string): Promise<KnowledgeObjectResult | null> {
+  const ko = await prisma.knowledgeObject.findFirst({
+    where: {
+      code,
+      status: 'published',
+      isDemo: false,
+    },
+    include: {
+      category: { select: { name: true } },
+      sources: {
+        include: {
+          source: {
+            select: { id: true, title: true, url: true, authorityLevel: true },
+          },
+        },
+      },
+    },
+  })
+  if (!ko) return null
+  return toKnowledgeObjectResult(ko)
+}
+
+export async function resolveKnowledgeContext(
+  message: string,
+  knowledgeObjectCode?: string
+): Promise<{
+  selected: KnowledgeObjectResult | null
+  knowledgeObjects: KnowledgeObjectResult[]
+  knowledgeContext: string
+  koTitle: string | undefined
+  selectedKOTitle: string | undefined
+}> {
+  const [selected, retrieved] = await Promise.all([
+    knowledgeObjectCode ? fetchSelectedKnowledgeObject(knowledgeObjectCode) : Promise.resolve(null),
+    getRelevantKnowledgeObjects(message)
+  ])
+
+  const seenIds = new Set<number>()
+  const knowledgeObjects: KnowledgeObjectResult[] = []
+
+  if (selected) {
+    knowledgeObjects.push(selected)
+    seenIds.add(selected.id)
+  }
+
+  for (const ko of retrieved) {
+    if (!seenIds.has(ko.id)) {
+      knowledgeObjects.push(ko)
+      seenIds.add(ko.id)
+    }
+  }
+
+  const knowledgeContext = formatKnowledgeContext(knowledgeObjects)
+  const selectedKOTitle = selected ? selected.title : undefined
+  const koTitle = selectedKOTitle || (knowledgeObjects.length > 0 ? knowledgeObjects[0].title : undefined)
+
+  return { selected, knowledgeObjects, knowledgeContext, koTitle, selectedKOTitle }
+}
+
+export function buildSystemPrompt(
+  user: { name: string; role: string },
+  knowledgeContext: string,
+  koTitle?: string,
+  selectedKOTitle?: string
+): string {
   let prompt = `Sen LocalAkademi'nin KOBİ, esnaf ve girişimcilere destek veren yapay zeka iş mentorusun.
 
 Kurallar:
@@ -143,7 +257,9 @@ Kurallar:
 Kullanıcı: ${user.name}
 Rol: ${user.role}`
 
-  if (koTitle) {
+  if (selectedKOTitle) {
+    prompt += `\n\nKullanıcı şu içeriği seçerek soruyor: "${selectedKOTitle}". Öncelikle bu içeriğe dayanarak yanıt ver. İçerikte olmayan bilgiyi uydurma. Gerekirse aşağıdaki diğer yayımlanmış içerikleri yardımcı bağlam olarak kullan.`
+  } else if (koTitle) {
     prompt += `\nÖğrencinin sorusu şu içerikle ilgili: "${koTitle}"`
   }
 

@@ -1,28 +1,35 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest'
 import Fastify from 'fastify'
 import jwt from '@fastify/jwt'
 import { PrismaClient } from '@prisma/client'
+import type { KnowledgeObjectResult } from '../src/services/retrieval/types'
 
 process.env.AI_REQUEST_TIMEOUT_MS = '100'
 process.env.AI_PROVIDER = 'nvidia'
 process.env.NVIDIA_API_KEY = 'test-invalid-key'
 process.env.NVIDIA_API_URL = 'http://127.0.0.1:1/v1/chat/completions'
 
-const { mockCallAiProviderWithRetry, mockStreamAiResponse, mockGetKO, mockNeedsClarification } = vi.hoisted(() => ({
+const { mockCallAiProviderWithRetry, mockStreamAiResponse, mockGetKO, mockResolveContext, mockNeedsClarification } = vi.hoisted(() => ({
   mockCallAiProviderWithRetry: vi.fn(),
   mockStreamAiResponse: vi.fn(),
   mockGetKO: vi.fn(),
+  mockResolveContext: vi.fn(),
   mockNeedsClarification: vi.fn(),
 }))
 
-vi.mock('../src/services/ai-provider', () => ({
-  callAiProviderWithRetry: mockCallAiProviderWithRetry,
-  streamAiResponse: mockStreamAiResponse,
-  buildSystemPrompt: vi.fn(() => 'System prompt'),
-  getRelevantKnowledgeObjects: mockGetKO,
-  formatKnowledgeContext: vi.fn(() => '\n\n--- GÜVENİLMEYEN REFERANS VERİSİ ---\ncontext'),
-  needsClarification: mockNeedsClarification,
-}))
+vi.mock('../src/services/ai-provider', async (importOriginal) => {
+  const actual = await importOriginal() as any
+  return {
+    ...actual,
+    callAiProviderWithRetry: mockCallAiProviderWithRetry,
+    streamAiResponse: mockStreamAiResponse,
+    buildSystemPrompt: vi.fn(() => 'System prompt'),
+    getRelevantKnowledgeObjects: mockGetKO,
+    formatKnowledgeContext: vi.fn(() => '\n\n--- GÜVENİLMEYEN REFERANS VERİSİ ---\ncontext'),
+    needsClarification: mockNeedsClarification,
+    resolveKnowledgeContext: mockResolveContext,
+  }
+})
 
 const prisma = new PrismaClient()
 let app: FastifyInstance
@@ -44,6 +51,15 @@ function makeMockKO() {
   }
 }
 
+function makeSelectedKO(): KnowledgeObjectResult {
+  return {
+    id: 2, title: 'Selected KO', code: 'KO-SELECTED',
+    content: 'Selected content', category: { name: 'Selected Kategori' },
+    score: 0, matchedTerms: ['selected:explicit'],
+    sourceRefs: [{ sourceId: 'src-2', title: 'Selected Source', url: null, authorityLevel: 'medium' }],
+  }
+}
+
 function makeMockCitation() {
   return {
     id: 1, title: 'Test KO', code: 'KO-TEST',
@@ -51,6 +67,38 @@ function makeMockCitation() {
     sourceRefs: [{ sourceId: 'src-1', title: 'Test Source', url: null, authorityLevel: 'high' }],
   }
 }
+
+beforeEach(() => {
+  mockCallAiProviderWithRetry.mockReset()
+  mockStreamAiResponse.mockReset()
+  mockGetKO.mockReset()
+  mockResolveContext.mockReset()
+  mockNeedsClarification.mockReset()
+
+  mockResolveContext.mockImplementation(async (_message: string, code?: string) => {
+    const selected = code === 'KO-SELECTED' ? makeSelectedKO() : null
+    const retrieved = [makeMockKO()]
+    const knowledgeObjects: KnowledgeObjectResult[] = []
+    const seen = new Set<number>()
+    if (selected) {
+      knowledgeObjects.push(selected)
+      seen.add(selected.id)
+    }
+    for (const ko of retrieved) {
+      if (!seen.has(ko.id)) {
+        knowledgeObjects.push(ko)
+        seen.add(ko.id)
+      }
+    }
+    return {
+      selected,
+      knowledgeObjects,
+      knowledgeContext: 'context',
+      koTitle: selected ? selected.title : retrieved[0]?.title,
+      selectedKOTitle: selected ? selected.title : undefined,
+    }
+  })
+})
 
 beforeAll(async () => {
   app = Fastify()
@@ -252,5 +300,258 @@ describe('Edit-and-regenerate — streamAiResponse receives knowledgeObjects', (
     const thirdArg = mockStreamAiResponse.mock.calls[lastCall]?.[2]
     expect(thirdArg).toBeDefined()
     expect(editRes.body).toContain('"sourceRefs"')
+  })
+})
+
+describe('Selected knowledge object code — non-stream', () => {
+  it('includes selected KO as first citation when valid code is provided', async () => {
+    mockNeedsClarification.mockReturnValue(false)
+    mockCallAiProviderWithRetry.mockResolvedValue({
+      content: 'AI yanıtı',
+      usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      provider: 'nvidia', model: 'test',
+      citations: [makeMockCitation()],
+    })
+
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { title: 'Selected KO Test' },
+    })).body).conversation
+
+    const msgRes = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'merhaba', knowledgeObjectCode: 'KO-SELECTED' },
+    })
+
+    expect(msgRes.statusCode).toBe(200)
+    const body = msgRes.json()
+    expect(body.sources[0].code).toBe('KO-SELECTED')
+    expect(body.sources[1].code).toBe('KO-TEST')
+
+    expect(mockResolveContext).toHaveBeenCalledTimes(1)
+    expect(mockResolveContext).toHaveBeenCalledWith('merhaba', 'KO-SELECTED')
+
+    const koCall = mockCallAiProviderWithRetry.mock.calls.find(c => c.length >= 2 && Array.isArray(c[1]))
+    expect(koCall![1][0].code).toBe('KO-SELECTED')
+  })
+
+  it('deduplicates selected KO when it also appears in retrieval results', async () => {
+    mockNeedsClarification.mockReturnValue(false)
+    mockResolveContext.mockImplementation(async (_message: string, code?: string) => {
+      const selected = code === 'KO-SELECTED' ? makeSelectedKO() : null
+      const retrieved = [makeSelectedKO()]
+      const knowledgeObjects: KnowledgeObjectResult[] = []
+      const seen = new Set<number>()
+      if (selected) {
+        knowledgeObjects.push(selected)
+        seen.add(selected.id)
+      }
+      for (const ko of retrieved) {
+        if (!seen.has(ko.id)) {
+          knowledgeObjects.push(ko)
+          seen.add(ko.id)
+        }
+      }
+      return {
+        selected,
+        knowledgeObjects,
+        knowledgeContext: 'context',
+        koTitle: selected ? selected.title : retrieved[0]?.title,
+        selectedKOTitle: selected ? selected.title : undefined,
+      }
+    })
+    mockCallAiProviderWithRetry.mockResolvedValue({
+      content: 'AI yanıtı',
+      usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      provider: 'nvidia', model: 'test',
+      citations: [makeMockCitation()],
+    })
+
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { title: 'Duplicate KO Test' },
+    })).body).conversation
+
+    const msgRes = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'merhaba', knowledgeObjectCode: 'KO-SELECTED' },
+    })
+
+    expect(msgRes.statusCode).toBe(200)
+    const body = msgRes.json()
+    expect(body.sources.length).toBe(1)
+    expect(body.sources[0].code).toBe('KO-SELECTED')
+  })
+
+  it('falls back to normal retrieval when no code is provided', async () => {
+    mockNeedsClarification.mockReturnValue(false)
+    mockCallAiProviderWithRetry.mockResolvedValue({
+      content: 'AI yanıtı',
+      usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      provider: 'nvidia', model: 'test',
+      citations: [makeMockCitation()],
+    })
+
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { title: 'No Code Test' },
+    })).body).conversation
+
+    const msgRes = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'merhaba' },
+    })
+
+    expect(msgRes.statusCode).toBe(200)
+    const body = msgRes.json()
+    expect(body.sources[0].code).toBe('KO-TEST')
+    expect(mockResolveContext).toHaveBeenCalledWith('merhaba', undefined)
+  })
+
+  it('returns 404 for missing code without leaking existence', async () => {
+    mockResolveContext.mockImplementation(async (_message: string, code?: string) => {
+      const selected = code === 'KO-SELECTED' ? makeSelectedKO() : null
+      const retrieved = [makeMockKO()]
+      return {
+        selected,
+        knowledgeObjects: selected ? [selected] : retrieved,
+        knowledgeContext: 'context',
+        koTitle: selected ? selected.title : retrieved[0]?.title,
+        selectedKOTitle: selected ? selected.title : undefined,
+      }
+    })
+
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { title: 'Missing Code Test' },
+    })).body).conversation
+
+    const msgRes = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'merhaba', knowledgeObjectCode: 'KO-MISSING' },
+    })
+
+    expect(msgRes.statusCode).toBe(404)
+    expect(mockResolveContext).toHaveBeenCalledWith('merhaba', 'KO-MISSING')
+
+    const userMessageCount = await prisma.conversationMessage.count({ where: { conversationId: conv.id, role: 'user' } })
+    expect(userMessageCount).toBe(0)
+  })
+
+  it('returns 422 for invalid code format', async () => {
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { title: 'Invalid Code Test' },
+    })).body).conversation
+
+    const msgRes = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'merhaba', knowledgeObjectCode: 'KO-SELECTED<script>' },
+    })
+
+    expect(msgRes.statusCode).toBe(422)
+    expect(mockResolveContext).not.toHaveBeenCalled()
+  })
+
+  it('returns 404 for another user\'s conversation even with a valid code', async () => {
+    const otherUser = await prisma.user.create({
+      data: { email: `cit-other-${Date.now()}@test.com`, password: 'hashed_test', name: 'Other', role: 'learner' },
+    })
+    const otherToken = app.jwt.sign({ id: otherUser.id, email: otherUser.email, role: 'learner' })
+
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${otherToken}` },
+      body: { title: 'Ownership Test' },
+    })).body).conversation
+
+    const msgRes = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'merhaba', knowledgeObjectCode: 'KO-SELECTED' },
+    })
+
+    expect(msgRes.statusCode).toBe(404)
+    expect(mockResolveContext).not.toHaveBeenCalled()
+
+    await prisma.user.delete({ where: { id: otherUser.id } })
+  })
+})
+
+describe('Selected knowledge object code — stream', () => {
+  it('includes selected KO as first citation when valid code is provided', async () => {
+    mockNeedsClarification.mockReturnValue(false)
+
+    async function* mockGen() {
+      yield { type: 'provider' as const, provider: 'nvidia', model: 'test' }
+      yield { type: 'delta' as const, delta: 'Merhaba' }
+      yield { type: 'done' as const, tokenUsage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, citations: [makeMockCitation()], knowledgeObjects: [makeMockCitation()] }
+    }
+    mockStreamAiResponse.mockReturnValue(mockGen())
+
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { title: 'Stream Selected Test' },
+    })).body).conversation
+
+    const res = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages/stream`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'stream test', knowledgeObjectCode: 'KO-SELECTED' },
+    })
+
+    expect(res.statusCode).toBe(200)
+    expect(mockResolveContext).toHaveBeenCalledTimes(1)
+    expect(mockResolveContext).toHaveBeenCalledWith('stream test', 'KO-SELECTED')
+    expect(mockStreamAiResponse).toHaveBeenCalled()
+    const thirdArg = mockStreamAiResponse.mock.calls[0]?.[2]
+    expect(thirdArg).toBeDefined()
+    expect(thirdArg.length).toBe(2)
+    expect(thirdArg[0].code).toBe('KO-SELECTED')
+    expect(thirdArg[1].code).toBe('KO-TEST')
+    expect(res.body).toContain('"sourceRefs"')
+  })
+
+  it('returns 404 for missing code without leaking existence', async () => {
+    mockResolveContext.mockImplementation(async (_message: string, code?: string) => {
+      const selected = code === 'KO-SELECTED' ? makeSelectedKO() : null
+      const retrieved = [makeMockKO()]
+      return {
+        selected,
+        knowledgeObjects: selected ? [selected] : retrieved,
+        knowledgeContext: 'context',
+        koTitle: selected ? selected.title : retrieved[0]?.title,
+        selectedKOTitle: selected ? selected.title : undefined,
+      }
+    })
+
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { title: 'Stream Missing Code Test' },
+    })).body).conversation
+
+    const res = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages/stream`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'stream test', knowledgeObjectCode: 'KO-MISSING' },
+    })
+
+    expect(res.statusCode).toBe(404)
+    expect(mockResolveContext).toHaveBeenCalledWith('stream test', 'KO-MISSING')
+
+    const userMessageCount = await prisma.conversationMessage.count({ where: { conversationId: conv.id, role: 'user' } })
+    expect(userMessageCount).toBe(0)
   })
 })

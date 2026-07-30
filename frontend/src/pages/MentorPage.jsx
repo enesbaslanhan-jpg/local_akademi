@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { api } from '@/services/api'
 import { Loading, EmptyState } from '@/components/ui'
 import MemoryPanel from '@/components/memory/MemoryPanel'
@@ -44,6 +44,7 @@ function MessageActions({ msg, onCopy, onRegenerate, onStartEdit, isStreaming })
 
 export default function MentorPage() {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const [conversations, setConversations] = useState([])
   const [selectedId, setSelectedId] = useState(null)
   const [messages, setMessages] = useState([])
@@ -157,6 +158,9 @@ export default function MentorPage() {
       setMessages([])
       setSidebarOpen(false)
       await loadConversations()
+      if (contextCode || contextTitle || contextPrompt) {
+        navigate('/app/mentor', { replace: true })
+      }
       setTimeout(() => inputRef.current?.focus(), 200)
     } catch (err) {
       setError('Yeni sohbet oluşturulamadı')
@@ -215,9 +219,11 @@ export default function MentorPage() {
     })
   }
 
-  async function startStream(convId, streamFn) {
+  async function startStream(convId, streamFn, options = {}) {
     if (streamRequestedRef.current) return
     streamRequestedRef.current = true
+
+    const { clearContextOnDone } = options
 
     const abortController = new AbortController()
     abortControllerRef.current = abortController
@@ -246,6 +252,9 @@ export default function MentorPage() {
         streamingBufferRef.current = ''
         loadMessages(convId)
         loadConversations()
+        if (clearContextOnDone) {
+          navigate('/app/mentor', { replace: true })
+        }
       },
       onCancelled: (data) => {
         streamRequestedRef.current = false
@@ -295,7 +304,16 @@ export default function MentorPage() {
     }
 
     sendingLockRef.current = false
-    await startStream(convId, (opts) => api.conversation.streamMessage({ conversationId: convId, content: text, ...opts }))
+    await startStream(
+      convId,
+      (opts) => api.conversation.streamMessage({
+        conversationId: convId,
+        content: text,
+        knowledgeObjectCode: contextCode || undefined,
+        ...opts
+      }),
+      { clearContextOnDone: !!contextCode }
+    )
   }
 
   function handleRegenerate(messageId) {

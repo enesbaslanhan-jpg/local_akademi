@@ -2,9 +2,15 @@ import { FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma.js'
 
 import type { AiProvider, ChatMessage, TokenUsage } from './ai-provider'
+import type { KnowledgeObjectResult } from './retrieval/types'
 import {
   callAiProviderWithRetry, streamAiResponse, buildSystemPrompt,
-  getRelevantKnowledgeObjects, formatKnowledgeContext, needsClarification
+  resolveKnowledgeContext,
+  normalizeKnowledgeObjectCode,
+  validateKnowledgeObjectCode,
+  getRelevantKnowledgeObjects,
+  formatKnowledgeContext,
+  needsClarification
 } from './ai-provider'
 import type { Citation } from './ai-gateway'
 import { buildMemoryContext } from './memory/context-builder'
@@ -150,15 +156,19 @@ async function generateTitle(firstMessage: string): Promise<string> {
 interface BuildContextResult {
   chatMessages: ChatMessage[]
   systemMessage: ChatMessage
-  knowledgeObjects: Awaited<ReturnType<typeof getRelevantKnowledgeObjects>>
+  knowledgeObjects: KnowledgeObjectResult[]
   knowledgeContext: string
   koTitle: string | undefined
+  selectedKOTitle: string | undefined
 }
+
+type ResolvedContext = Awaited<ReturnType<typeof resolveKnowledgeContext>>
 
 async function buildContext(
   conversationId: number,
   user: { id: number; email: string; role: string },
   message: string,
+  resolvedContext?: ResolvedContext,
 ): Promise<BuildContextResult> {
   const recentMessages = await prisma.conversationMessage.findMany({
     where: { conversationId },
@@ -176,20 +186,26 @@ async function buildContext(
     })
     .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
 
-  const [dbUser, knowledgeObjects] = await Promise.all([
+  const [dbUser, ctx] = await Promise.all([
     prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } }),
-    getRelevantKnowledgeObjects(message)
+    resolvedContext ?? resolveKnowledgeContext(message)
   ])
-  const knowledgeContext = formatKnowledgeContext(knowledgeObjects)
-  const koTitle = knowledgeObjects.length > 0 ? knowledgeObjects[0].title : undefined
   const systemContent = buildSystemPrompt(
     { name: dbUser?.name || user.email, role: dbUser?.role || user.role },
-    knowledgeContext,
-    koTitle
+    ctx.knowledgeContext,
+    ctx.koTitle,
+    ctx.selectedKOTitle
   )
   const systemMessage: ChatMessage = { role: 'system', content: systemContent }
 
-  return { chatMessages, systemMessage, knowledgeObjects, knowledgeContext, koTitle }
+  return {
+    chatMessages,
+    systemMessage,
+    knowledgeObjects: ctx.knowledgeObjects,
+    knowledgeContext: ctx.knowledgeContext,
+    koTitle: ctx.koTitle,
+    selectedKOTitle: ctx.selectedKOTitle
+  }
 }
 
 function sendSSE(reply: any, event: string, data: Record<string, unknown>) {
@@ -313,7 +329,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
   fastify.post('/:id/messages', async (request, reply) => {
     const user = request.user
     const { id } = request.params as { id: string }
-    const { message } = request.body as { message: string }
+    const { message, knowledgeObjectCode: rawCode } = request.body as { message: string; knowledgeObjectCode?: string }
 
     const convId = parseId(id)
     if (!convId) return reply.status(400).send(validationError('VALIDATION_ERROR', 'Geçersiz sohbet ID'))
@@ -326,7 +342,20 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       return reply.status(422).send(validationError('VALIDATION_ERROR', `Mesaj en fazla ${MAX_MESSAGE_LENGTH} karakter olabilir`))
     }
 
+    const knowledgeObjectCode = normalizeKnowledgeObjectCode(rawCode)
+    if (knowledgeObjectCode) {
+      const codeValidation = validateKnowledgeObjectCode(knowledgeObjectCode)
+      if (!codeValidation.valid) {
+        return reply.status(422).send(validationError(codeValidation.error!.code, codeValidation.error!.message))
+      }
+    }
+
     const conv = await ensureOwnership(convId, user.id)
+
+    const resolvedContext = await resolveKnowledgeContext(cleanMessage, knowledgeObjectCode)
+    if (knowledgeObjectCode && !resolvedContext.selected) {
+      return reply.status(404).send(validationError('NOT_FOUND', 'Knowledge object not found'))
+    }
 
     await prisma.conversationMessage.create({
       data: { conversationId: convId, role: 'user', content: cleanMessage, generationStatus: 'completed' }
@@ -358,33 +387,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       }
     }
 
-    const recentMessages = await prisma.conversationMessage.findMany({
-      where: { conversationId: convId },
-      orderBy: { createdAt: 'desc' },
-      take: CONTEXT_MESSAGE_LIMIT
-    })
-    const chatMessages: ChatMessage[] = recentMessages
-      .reverse()
-      .filter(m => {
-        if (m.error) return false
-        if (m.role !== 'user' && m.role !== 'assistant') return false
-        if (!m.content) return false
-        if (/(?:\?{2,}|[A-Za-zÇĞİÖŞÜçğıöşü]\?[A-Za-zÇĞİÖŞÜçğıöşü])/.test(m.content)) return false
-        return true
-      })
-      .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
-
-    const [dbUserProfile, knowledgeObjects] = await Promise.all([
-      prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } }),
-      getRelevantKnowledgeObjects(cleanMessage)
-    ])
-    const knowledgeContext = formatKnowledgeContext(knowledgeObjects)
-    const koTitle = knowledgeObjects.length > 0 ? knowledgeObjects[0].title : undefined
-    const baseSystemPrompt = buildSystemPrompt(
-      { name: dbUserProfile?.name || user.email, role: dbUserProfile?.role || user.role },
-      knowledgeContext,
-      koTitle
-    )
+    const { chatMessages, systemMessage, knowledgeObjects } = await buildContext(convId, user, cleanMessage, resolvedContext)
 
     const memCtx = await buildMemoryContext({
       prisma,
@@ -394,7 +397,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       conversationId: convId,
       userMessage: cleanMessage,
       recentMessages: chatMessages,
-      systemPrompt: baseSystemPrompt
+      systemPrompt: systemMessage.content
     })
 
     let result: { content: string; usage: TokenUsage; provider: AiProvider; model: string; citations?: { id: number; title: string; code: string | null; category: { name: string } | null }[] }
@@ -472,7 +475,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
   fastify.post('/:id/messages/stream', async (request, reply) => {
     const user = request.user
     const { id } = request.params as { id: string }
-    const { message } = request.body as { message: string }
+    const { message, knowledgeObjectCode: rawCode } = request.body as { message: string; knowledgeObjectCode?: string }
 
     const convId = parseId(id)
     if (!convId) return reply.status(400).send(validationError('VALIDATION_ERROR', 'Geçersiz sohbet ID'))
@@ -485,9 +488,22 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       return reply.status(422).send(validationError('VALIDATION_ERROR', `Mesaj en fazla ${MAX_MESSAGE_LENGTH} karakter olabilir`))
     }
 
+    const knowledgeObjectCode = normalizeKnowledgeObjectCode(rawCode)
+    if (knowledgeObjectCode) {
+      const codeValidation = validateKnowledgeObjectCode(knowledgeObjectCode)
+      if (!codeValidation.valid) {
+        return reply.status(422).send(validationError(codeValidation.error!.code, codeValidation.error!.message))
+      }
+    }
+
     const conv = await ensureOwnership(convId, user.id)
     if (conv.archivedAt) {
       return reply.status(422).send(validationError('VALIDATION_ERROR', 'Arşivlenmiş sohbete mesaj gönderilemez'))
+    }
+
+    const resolvedContext = await resolveKnowledgeContext(cleanMessage, knowledgeObjectCode)
+    if (knowledgeObjectCode && !resolvedContext.selected) {
+      return reply.status(404).send(validationError('NOT_FOUND', 'Knowledge object not found'))
     }
 
     if (!streamSlotManager.checkRateLimit(user.id)) {
@@ -570,16 +586,14 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     }
     reply.raw.on('close', onRequestClose)
 
-    const [dbUserProfile, knowledgeObjects] = await Promise.all([
-      prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } }),
-      getRelevantKnowledgeObjects(cleanMessage)
-    ])
-    const knowledgeContext = formatKnowledgeContext(knowledgeObjects)
-    const koTitle = knowledgeObjects.length > 0 ? knowledgeObjects[0].title : undefined
+    const dbUserProfile = await prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } })
+    const knowledgeObjects = resolvedContext.knowledgeObjects
+    const knowledgeContext = resolvedContext.knowledgeContext
     const baseSystemPrompt = buildSystemPrompt(
       { name: dbUserProfile?.name || user.email, role: dbUserProfile?.role || user.role },
       knowledgeContext,
-      koTitle
+      resolvedContext.koTitle,
+      resolvedContext.selectedKOTitle
     )
 
     const recentMsgs = await prisma.conversationMessage.findMany({

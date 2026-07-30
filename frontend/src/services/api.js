@@ -231,13 +231,19 @@ export const api = {
     async getById(id) { return api.request(`${api.conversation.BASE}/${id}`); },
     async update(id, title) { return api.request(`${api.conversation.BASE}/${id}`, { method: 'PATCH', body: JSON.stringify({ title }) }); },
     async remove(id) { return api.request(`${api.conversation.BASE}/${id}`, { method: 'DELETE' }); },
-    async sendMessage(id, message) { return api.request(`${api.conversation.BASE}/${id}/messages`, { method: 'POST', body: JSON.stringify({ message }) }); },
+    async sendMessage(id, message, knowledgeObjectCode) {
+      const body = { message };
+      if (knowledgeObjectCode) body.knowledgeObjectCode = knowledgeObjectCode;
+      return api.request(`${api.conversation.BASE}/${id}/messages`, { method: 'POST', body: JSON.stringify(body) });
+    },
 
-    streamMessage({ conversationId, content, signal, onStart, onProvider, onDelta, onDone, onCancelled, onError }) {
+    streamMessage({ conversationId, content, knowledgeObjectCode, signal, onStart, onProvider, onDelta, onDone, onCancelled, onError }) {
+      const body = { message: content };
+      if (knowledgeObjectCode) body.knowledgeObjectCode = knowledgeObjectCode;
       return streamSSE({
         url: `${api.conversation.BASE}/${conversationId}/messages/stream`,
         method: 'POST',
-        body: JSON.stringify({ message: content }),
+        body: JSON.stringify(body),
         signal,
         onStart, onProvider, onDelta, onDone, onCancelled, onError
       });
