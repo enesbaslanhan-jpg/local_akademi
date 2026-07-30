@@ -142,6 +142,33 @@ export function validateKnowledgeObjectCode(code: string): { valid: boolean; err
   return { valid: true }
 }
 
+export function extractSelectedKnowledgeObjectCode(knowledgeObjects: unknown): string | undefined {
+  let parsed: unknown
+  try {
+    parsed = typeof knowledgeObjects === 'string' ? JSON.parse(knowledgeObjects) : knowledgeObjects
+  } catch {
+    return undefined
+  }
+  if (!Array.isArray(parsed)) return undefined
+
+  const candidates: { code: string; isExplicit: boolean }[] = []
+  for (const item of parsed) {
+    if (!item || typeof item !== 'object') continue
+    const rawCode = (item as any).code
+    const code = normalizeKnowledgeObjectCode(rawCode)
+    if (!code) continue
+    const validation = validateKnowledgeObjectCode(code)
+    if (!validation.valid) continue
+    const matchedTerms = (item as any).matchedTerms
+    const isExplicit = Array.isArray(matchedTerms) && matchedTerms.some((t: unknown) => t === 'selected:explicit')
+    candidates.push({ code, isExplicit })
+  }
+
+  if (candidates.length === 0) return undefined
+  const explicit = candidates.find(c => c.isExplicit)
+  return explicit ? explicit.code : candidates[0].code
+}
+
 export async function getRelevantKnowledgeObjects(query: string): Promise<KnowledgeObjectResult[]> {
   return retriever.retrieve({ text: query })
 }

@@ -3,6 +3,7 @@ import Fastify from 'fastify'
 import jwt from '@fastify/jwt'
 import { PrismaClient } from '@prisma/client'
 import type { KnowledgeObjectResult } from '../src/services/retrieval/types'
+import { streamSlotManager } from '../src/services/stream-manager'
 
 process.env.AI_REQUEST_TIMEOUT_MS = '100'
 process.env.AI_PROVIDER = 'nvidia'
@@ -68,12 +69,21 @@ function makeMockCitation() {
   }
 }
 
+function makeSelectedCitation() {
+  return {
+    id: 2, title: 'Selected KO', code: 'KO-SELECTED',
+    category: { name: 'Selected Kategori' },
+    sourceRefs: [{ sourceId: 'src-2', title: 'Selected Source', url: null, authorityLevel: 'medium' }],
+  }
+}
+
 beforeEach(() => {
   mockCallAiProviderWithRetry.mockReset()
   mockStreamAiResponse.mockReset()
   mockGetKO.mockReset()
   mockResolveContext.mockReset()
   mockNeedsClarification.mockReset()
+  streamSlotManager.reset()
 
   mockResolveContext.mockImplementation(async (_message: string, code?: string) => {
     const selected = code === 'KO-SELECTED' ? makeSelectedKO() : null
@@ -553,5 +563,345 @@ describe('Selected knowledge object code — stream', () => {
 
     const userMessageCount = await prisma.conversationMessage.count({ where: { conversationId: conv.id, role: 'user' } })
     expect(userMessageCount).toBe(0)
+  })
+})
+
+describe('Regenerate — preserves selected knowledge object context', () => {
+  it('restores selected KO code from previous assistant message', async () => {
+    mockNeedsClarification.mockReturnValue(false)
+    mockGetKO.mockResolvedValue([makeMockKO()])
+
+    async function* mockGen() {
+      yield { type: 'provider' as const, provider: 'nvidia', model: 'test' }
+      yield { type: 'delta' as const, delta: 'Yeniden' }
+      yield { type: 'done' as const, tokenUsage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, citations: [makeMockCitation()], knowledgeObjects: [makeMockCitation()] }
+    }
+    mockStreamAiResponse.mockReturnValue(mockGen())
+
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { title: 'Regenerate Preserve Test' },
+    })).body).conversation
+
+    const userMsg = await prisma.conversationMessage.create({
+      data: { conversationId: conv.id, role: 'user', content: 'test', generationStatus: 'completed' }
+    })
+    const assistantMsg = await prisma.conversationMessage.create({
+      data: {
+        conversationId: conv.id, role: 'assistant', content: 'İlk yanıt',
+        generationStatus: 'completed',
+        knowledgeObjects: JSON.stringify([makeSelectedCitation()])
+      }
+    })
+
+    const regenRes = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages/${assistantMsg.id}/regenerate`,
+      headers: { authorization: `Bearer ${userToken}` },
+    })
+
+    expect(regenRes.statusCode).toBe(200)
+    expect(mockResolveContext).toHaveBeenCalledTimes(1)
+    expect(mockResolveContext).toHaveBeenCalledWith('test', 'KO-SELECTED')
+
+    const lastCall = mockStreamAiResponse.mock.calls.length - 1
+    const thirdArg = mockStreamAiResponse.mock.calls[lastCall]?.[2]
+    expect(thirdArg).toBeDefined()
+    expect(thirdArg.length).toBe(2)
+    expect(thirdArg[0].code).toBe('KO-SELECTED')
+    expect(thirdArg[1].code).toBe('KO-TEST')
+  })
+
+  it('deduplicates selected KO when it also appears in retrieval results', async () => {
+    mockNeedsClarification.mockReturnValue(false)
+    mockResolveContext.mockImplementation(async (_message: string, code?: string) => {
+      const selected = code === 'KO-SELECTED' ? makeSelectedKO() : null
+      const retrieved = [makeSelectedKO()]
+      const knowledgeObjects: KnowledgeObjectResult[] = []
+      const seen = new Set<number>()
+      if (selected) {
+        knowledgeObjects.push(selected)
+        seen.add(selected.id)
+      }
+      for (const ko of retrieved) {
+        if (!seen.has(ko.id)) {
+          knowledgeObjects.push(ko)
+          seen.add(ko.id)
+        }
+      }
+      return {
+        selected,
+        knowledgeObjects,
+        knowledgeContext: 'context',
+        koTitle: selected ? selected.title : retrieved[0]?.title,
+        selectedKOTitle: selected ? selected.title : undefined,
+      }
+    })
+
+    async function* mockGen() {
+      yield { type: 'provider' as const, provider: 'nvidia', model: 'test' }
+      yield { type: 'delta' as const, delta: 'Yeniden' }
+      yield { type: 'done' as const, tokenUsage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, citations: [makeSelectedCitation()], knowledgeObjects: [makeSelectedCitation()] }
+    }
+    mockStreamAiResponse.mockReturnValue(mockGen())
+
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { title: 'Regenerate Dedup Test' },
+    })).body).conversation
+
+    const userMsg = await prisma.conversationMessage.create({
+      data: { conversationId: conv.id, role: 'user', content: 'test', generationStatus: 'completed' }
+    })
+    const assistantMsg = await prisma.conversationMessage.create({
+      data: {
+        conversationId: conv.id, role: 'assistant', content: 'İlk yanıt',
+        generationStatus: 'completed',
+        knowledgeObjects: JSON.stringify([makeSelectedCitation()])
+      }
+    })
+
+    const regenRes = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages/${assistantMsg.id}/regenerate`,
+      headers: { authorization: `Bearer ${userToken}` },
+    })
+
+    expect(regenRes.statusCode).toBe(200)
+    const lastCall = mockStreamAiResponse.mock.calls.length - 1
+    const thirdArg = mockStreamAiResponse.mock.calls[lastCall]?.[2]
+    expect(thirdArg.length).toBe(1)
+    expect(thirdArg[0].code).toBe('KO-SELECTED')
+  })
+
+  it('falls back to normal retrieval when previous knowledgeObjects is null', async () => {
+    mockNeedsClarification.mockReturnValue(false)
+    mockGetKO.mockResolvedValue([makeMockKO()])
+
+    async function* mockGen() {
+      yield { type: 'provider' as const, provider: 'nvidia', model: 'test' }
+      yield { type: 'delta' as const, delta: 'Yeniden' }
+      yield { type: 'done' as const, tokenUsage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, citations: [makeMockCitation()], knowledgeObjects: [makeMockCitation()] }
+    }
+    mockStreamAiResponse.mockReturnValue(mockGen())
+
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { title: 'Regenerate Null Test' },
+    })).body).conversation
+
+    const userMsg = await prisma.conversationMessage.create({
+      data: { conversationId: conv.id, role: 'user', content: 'test', generationStatus: 'completed' }
+    })
+    const assistantMsg = await prisma.conversationMessage.create({
+      data: {
+        conversationId: conv.id, role: 'assistant', content: 'İlk yanıt',
+        generationStatus: 'completed',
+        knowledgeObjects: null
+      }
+    })
+
+    const regenRes = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages/${assistantMsg.id}/regenerate`,
+      headers: { authorization: `Bearer ${userToken}` },
+    })
+
+    expect(regenRes.statusCode).toBe(200)
+    expect(mockResolveContext).toHaveBeenCalledWith('test', undefined)
+    const lastCall = mockStreamAiResponse.mock.calls.length - 1
+    const thirdArg = mockStreamAiResponse.mock.calls[lastCall]?.[2]
+    expect(thirdArg[0].code).toBe('KO-TEST')
+  })
+
+  it('falls back to normal retrieval when previous knowledgeObjects is malformed JSON', async () => {
+    mockNeedsClarification.mockReturnValue(false)
+    mockGetKO.mockResolvedValue([makeMockKO()])
+
+    async function* mockGen() {
+      yield { type: 'provider' as const, provider: 'nvidia', model: 'test' }
+      yield { type: 'delta' as const, delta: 'Yeniden' }
+      yield { type: 'done' as const, tokenUsage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, citations: [makeMockCitation()], knowledgeObjects: [makeMockCitation()] }
+    }
+    mockStreamAiResponse.mockReturnValue(mockGen())
+
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { title: 'Regenerate Malformed Test' },
+    })).body).conversation
+
+    const userMsg = await prisma.conversationMessage.create({
+      data: { conversationId: conv.id, role: 'user', content: 'test', generationStatus: 'completed' }
+    })
+    const assistantMsg = await prisma.conversationMessage.create({
+      data: {
+        conversationId: conv.id, role: 'assistant', content: 'İlk yanıt',
+        generationStatus: 'completed',
+        knowledgeObjects: '{invalid json'
+      }
+    })
+
+    const regenRes = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages/${assistantMsg.id}/regenerate`,
+      headers: { authorization: `Bearer ${userToken}` },
+    })
+
+    expect(regenRes.statusCode).toBe(200)
+    expect(mockResolveContext).toHaveBeenCalledWith('test', undefined)
+  })
+
+  it('ignores invalid code format in previous knowledgeObjects', async () => {
+    mockNeedsClarification.mockReturnValue(false)
+    mockGetKO.mockResolvedValue([makeMockKO()])
+
+    async function* mockGen() {
+      yield { type: 'provider' as const, provider: 'nvidia', model: 'test' }
+      yield { type: 'delta' as const, delta: 'Yeniden' }
+      yield { type: 'done' as const, tokenUsage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, citations: [makeMockCitation()], knowledgeObjects: [makeMockCitation()] }
+    }
+    mockStreamAiResponse.mockReturnValue(mockGen())
+
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { title: 'Regenerate Invalid Code Test' },
+    })).body).conversation
+
+    const userMsg = await prisma.conversationMessage.create({
+      data: { conversationId: conv.id, role: 'user', content: 'test', generationStatus: 'completed' }
+    })
+    const assistantMsg = await prisma.conversationMessage.create({
+      data: {
+        conversationId: conv.id, role: 'assistant', content: 'İlk yanıt',
+        generationStatus: 'completed',
+        knowledgeObjects: JSON.stringify([{ code: 'KO-INVALID<script>' }])
+      }
+    })
+
+    const regenRes = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages/${assistantMsg.id}/regenerate`,
+      headers: { authorization: `Bearer ${userToken}` },
+    })
+
+    expect(regenRes.statusCode).toBe(200)
+    expect(mockResolveContext).toHaveBeenCalledWith('test', undefined)
+  })
+
+  it('returns 404 for another user\'s assistant message', async () => {
+    const otherUser = await prisma.user.create({
+      data: { email: `cit-other-regen-${Date.now()}@test.com`, password: 'hashed_test', name: 'Other', role: 'learner' },
+    })
+    const otherToken = app.jwt.sign({ id: otherUser.id, email: otherUser.email, role: 'learner' })
+
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${otherToken}` },
+      body: { title: 'Ownership Regen Test' },
+    })).body).conversation
+
+    const assistantMsg = await prisma.conversationMessage.create({
+      data: {
+        conversationId: conv.id, role: 'assistant', content: 'İlk yanıt',
+        generationStatus: 'completed',
+        knowledgeObjects: JSON.stringify([makeSelectedCitation()])
+      }
+    })
+
+    const regenRes = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages/${assistantMsg.id}/regenerate`,
+      headers: { authorization: `Bearer ${userToken}` },
+    })
+
+    expect(regenRes.statusCode).toBe(404)
+    expect(mockResolveContext).not.toHaveBeenCalled()
+
+    await prisma.user.delete({ where: { id: otherUser.id } })
+  })
+})
+
+describe('Edit-and-regenerate — preserves selected knowledge object context', () => {
+  it('restores selected KO from the following assistant message', async () => {
+    mockNeedsClarification.mockReturnValue(false)
+    mockGetKO.mockResolvedValue([makeMockKO()])
+
+    async function* mockGen() {
+      yield { type: 'provider' as const, provider: 'nvidia', model: 'test' }
+      yield { type: 'delta' as const, delta: 'Düzenlenmiş' }
+      yield { type: 'done' as const, tokenUsage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, citations: [makeMockCitation()], knowledgeObjects: [makeMockCitation()] }
+    }
+    mockStreamAiResponse.mockReturnValue(mockGen())
+
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { title: 'Edit Regenerate Preserve Test' },
+    })).body).conversation
+
+    const userMsg = await prisma.conversationMessage.create({
+      data: { conversationId: conv.id, role: 'user', content: 'özgün', generationStatus: 'completed' }
+    })
+    await prisma.conversationMessage.create({
+      data: {
+        conversationId: conv.id, role: 'assistant', content: 'İlk yanıt',
+        generationStatus: 'completed',
+        knowledgeObjects: JSON.stringify([makeSelectedCitation()])
+      }
+    })
+
+    const editRes = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages/${userMsg.id}/edit-and-regenerate`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'düzenlenmiş' },
+    })
+
+    expect(editRes.statusCode).toBe(200)
+    expect(mockResolveContext).toHaveBeenCalledTimes(1)
+    expect(mockResolveContext).toHaveBeenCalledWith('düzenlenmiş', 'KO-SELECTED')
+
+    const lastCall = mockStreamAiResponse.mock.calls.length - 1
+    const thirdArg = mockStreamAiResponse.mock.calls[lastCall]?.[2]
+    expect(thirdArg).toBeDefined()
+    expect(thirdArg.length).toBe(2)
+    expect(thirdArg[0].code).toBe('KO-SELECTED')
+    expect(thirdArg[1].code).toBe('KO-TEST')
+  })
+
+  it('falls back to normal retrieval when following assistant has no knowledgeObjects', async () => {
+    mockNeedsClarification.mockReturnValue(false)
+    mockGetKO.mockResolvedValue([makeMockKO()])
+
+    async function* mockGen() {
+      yield { type: 'provider' as const, provider: 'nvidia', model: 'test' }
+      yield { type: 'delta' as const, delta: 'Düzenlenmiş' }
+      yield { type: 'done' as const, tokenUsage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, citations: [makeMockCitation()], knowledgeObjects: [makeMockCitation()] }
+    }
+    mockStreamAiResponse.mockReturnValue(mockGen())
+
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { title: 'Edit Regenerate Fallback Test' },
+    })).body).conversation
+
+    const userMsg = await prisma.conversationMessage.create({
+      data: { conversationId: conv.id, role: 'user', content: 'özgün', generationStatus: 'completed' }
+    })
+    await prisma.conversationMessage.create({
+      data: {
+        conversationId: conv.id, role: 'assistant', content: 'İlk yanıt',
+        generationStatus: 'completed',
+        knowledgeObjects: null
+      }
+    })
+
+    const editRes = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages/${userMsg.id}/edit-and-regenerate`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'düzenlenmiş' },
+    })
+
+    expect(editRes.statusCode).toBe(200)
+    expect(mockResolveContext).toHaveBeenCalledWith('düzenlenmiş', undefined)
   })
 })

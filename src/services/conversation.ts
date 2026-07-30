@@ -8,6 +8,7 @@ import {
   resolveKnowledgeContext,
   normalizeKnowledgeObjectCode,
   validateKnowledgeObjectCode,
+  extractSelectedKnowledgeObjectCode,
   getRelevantKnowledgeObjects,
   formatKnowledgeContext,
   needsClarification
@@ -851,16 +852,16 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       .filter(m => m.content)
       .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
 
-    const [dbUser, knowledgeObjects] = await Promise.all([
-      prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } }),
-      getRelevantKnowledgeObjects(priorMessages.filter(m => m.role === 'user').pop()?.content || ''),
-    ])
-    const knowledgeContext = formatKnowledgeContext(knowledgeObjects)
-    const koTitle = knowledgeObjects.length > 0 ? knowledgeObjects[0].title : undefined
+    const lastUserContent = priorMessages.filter(m => m.role === 'user').pop()?.content || ''
+    const selectedCode = extractSelectedKnowledgeObjectCode(targetMsg.knowledgeObjects)
+    const resolvedContext = await resolveKnowledgeContext(lastUserContent, selectedCode)
+
+    const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } })
     const systemContent = buildSystemPrompt(
       { name: dbUser?.name || user.email, role: dbUser?.role || 'learner' },
-      knowledgeContext,
-      koTitle,
+      resolvedContext.knowledgeContext,
+      resolvedContext.koTitle,
+      resolvedContext.selectedKOTitle
     )
     const systemMessage: ChatMessage = { role: 'system', content: systemContent }
 
@@ -877,7 +878,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     let finalModel = ''
 
     try {
-      const stream = streamAiResponse([systemMessage, ...chatMessages], abortController.signal, knowledgeObjects)
+      const stream = streamAiResponse([systemMessage, ...chatMessages], abortController.signal, resolvedContext.knowledgeObjects)
       for await (const event of stream) {
         if (finalized) break
         if (event.type === 'provider') {
@@ -1060,6 +1061,12 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       }
     })
 
+    const followingAssistant = await prisma.conversationMessage.findFirst({
+      where: { conversationId: convId, role: 'assistant', createdAt: { gt: targetMsg.createdAt } },
+      orderBy: { createdAt: 'asc' }
+    })
+    const selectedCode = extractSelectedKnowledgeObjectCode(followingAssistant?.knowledgeObjects)
+
     try {
     reply.raw.writeHead(200, {
       'Content-Type': 'text/event-stream',
@@ -1090,16 +1097,13 @@ export async function conversationRoutes(fastify: FastifyInstance) {
 
     chatMessages.push({ role: 'user', content: cleanNewMessage })
 
-    const [dbUser, knowledgeObjects] = await Promise.all([
-      prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } }),
-      getRelevantKnowledgeObjects(cleanNewMessage)
-    ])
-    const knowledgeContext = formatKnowledgeContext(knowledgeObjects)
-    const koTitle = knowledgeObjects.length > 0 ? knowledgeObjects[0].title : undefined
+    const resolvedContext = await resolveKnowledgeContext(cleanNewMessage, selectedCode)
+    const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } })
     const systemContent = buildSystemPrompt(
       { name: dbUser?.name || user.email, role: dbUser?.role || user.role },
-      knowledgeContext,
-      koTitle
+      resolvedContext.knowledgeContext,
+      resolvedContext.koTitle,
+      resolvedContext.selectedKOTitle
     )
     const systemMessage: ChatMessage = { role: 'system', content: systemContent }
 
@@ -1117,7 +1121,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     let finalModel = ''
 
     try {
-      const stream = streamAiResponse([systemMessage, ...chatMessages], abortController.signal, knowledgeObjects)
+      const stream = streamAiResponse([systemMessage, ...chatMessages], abortController.signal, resolvedContext.knowledgeObjects)
       for await (const event of stream) {
         if (finalized) break
         if (event.type === 'provider') {
