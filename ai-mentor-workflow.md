@@ -2,204 +2,138 @@
 
 ## Genel Bakış
 
-LocalAkademi'de AI Mentor, öğrenciye kişiselleştirilmiş rehberlik sağlayan yapay zeka destekli bir asistan sistemidir. NVIDIA API üzerinden Mistral modeli kullanılarak çalışır.
+LocalAkademi'de AI Mentor, öğrenciye kişiselleştirilmiş rehberlik sağlayan yapay zeka destekli asistan sistemidir. Üretimde birincil API'si `/mentor/conversations` altındaki **Conversation API**'dir. Eski `/mentor/chat` ve `/mentor/history` endpoint'leri **kullanımdan kaldırılmıştır (deprecated)**.
 
 ## Sistem Mimarisi
 
 ```
-Öğrenci → Client → API Server → NVIDIA API (Mistral)
+Öğrenci → Client → /mentor/conversations API → AI Gateway → AI Provider
                               ↓
-                        Context Builder
+                    Context Builder (KO retrieval, workspace context, memory)
                               ↓
-                        Knowledge Base
+                    Knowledge Base + Business Workspace + User Memory
 ```
 
-## Çalışma Akışı Adımları
+## Endpoint'ler
+
+### Birincil Conversation API
+
+| Method | Endpoint | Açıklama |
+|--------|----------|----------|
+| POST | `/mentor/conversations` | Yeni konuşma oluştur |
+| GET | `/mentor/conversations` | Konuşma listesi (`archived=true/false`) |
+| GET | `/mentor/conversations/:id` | Konuşma ve mesajları |
+| POST | `/mentor/conversations/:id/messages` | Mesaj gönder, asistan yanıtı al |
+| POST | `/mentor/conversations/:id/messages/stream` | SSE stream yanıtı |
+| POST | `/mentor/conversations/:id/messages/:messageId/regenerate` | Seçili mesajı yeniden üret |
+| POST | `/mentor/conversations/:id/messages/:messageId/edit-regenerate` | Mesajı düzenle ve yeniden üret |
+| PATCH | `/mentor/conversations/:id/archive` | Konuşmayı arşivle |
+| PATCH | `/mentor/conversations/:id/unarchive` | Konuşmayı arşivden çıkar |
+| DELETE | `/mentor/conversations/:id` | Konuşmayı sil (soft delete) |
+
+### Kullanımdan Kaldırılmış Legacy Endpoints
+
+| Method | Endpoint | Durum |
+|--------|----------|-------|
+| POST | `/mentor/chat` | ⚠️ Deprecated |
+| GET | `/mentor/history` | ⚠️ Deprecated |
+| DELETE | `/mentor/history` | ⚠️ Deprecated |
+
+Eski endpoint'ler mevcut istemcileri kırmamak için çalışmaya devam eder, ancak her yanıtta şu başlıkları döner:
+
+- `Deprecation: true`
+- `Warning: 299 - "Deprecated API: use /mentor/conversations instead"`
+- `Link: </mentor/conversations>; rel="successor-version"`
+
+Yeni geliştirmelerde `/mentor/conversations` API'si kullanılmalıdır.
+
+## Çalışma Akışı
 
 ### 1. Oturum Başlatma
 
 Öğrenci sohbete başladığında:
 
-1. **Session Oluşturma:** Benzersiz oturum ID'si oluşturulur
-2. **Context Yükleme:** Öğrencinin profili, ilerleme durumu ve hedefleri yüklenir
-3. **Vector Store Hazırlığı:** Semantic search için knowledge base hazırlanır
+1. **Konuşma Oluşturma:** `POST /mentor/conversations` ile başlık oluşturulur.
+2. **İlk Mesaj:** Aynı endpoint veya `POST /mentor/conversations/:id/messages` ile gönderilir.
+3. **Context Yükleme:** Kullanıcı rolü, aktif işletme profili, hafıza özeti ve knowledge context otomatik eklenir.
 
 ### 2. Mesaj İşleme
 
 ```
 Öğrenci Mesajı
       ↓
-  Intent Analysis (Amaç Tespiti)
-      ↓
-  ┌─────────────────────────────────┐
-  │ 1. Soru Soru (Question)          │
-  │ 2. Açıklama İste (Explanation)    │
-  │ 3. Egzersiz Yardımı (Exercise)   │
-  │ 4. Geri Bildirim (Feedback)      │
-  └─────────────────────────────────┘
+  POST /mentor/conversations/:id/messages
       ↓
   Knowledge Retrieval (Bilgi Çekme)
       ↓
-  Context Assembly (Bağlam Oluşturma)
+  Context Assembly (System prompt + chat history + KO context + workspace context + memory)
       ↓
-  NVIDIA API Call (Mistral)
+  AI Gateway → Provider (Ollama/NVIDIA/OpenAI/DeepSeek)
       ↓
-  Response Formatting (Yanıt Formatlama)
+  Response Formatting (Markdown, citation badges)
+      ↓
+  Background Memory Extraction + Summary Update
       ↓
   Öğrenciye Yanıt
 ```
 
-### 3. Intent Tespiti (Amaç Analizi)
+Stream modunda yanıt `POST /mentor/conversations/:id/messages/stream` üzerinden SSE olarak akar.
 
-Mesaj türü tespit edilir:
+### 3. Bilgi Çekme (Knowledge Retrieval)
 
-| Intent | Açıklama | Örnek |
-|--------|----------|-------|
-| `question` | Bilgi sorusu | "Recursion nedir?" |
-| `explanation` | Açıklama isteme | "Bunu daha detaylı açıklar mısın?" |
-| `exercise` | Egzersiz/ödev yardımı | "Bu problemi çözmeme yardım et" |
-| `feedback` | Geri bildirim isteme | "Kodumu incele" |
-| `recommendation` | Öneri isteme | "Ne öğrenmeliyim?" |
+Lexical retrieval katmanı:
 
-### 4. Bilgi Çekme (Knowledge Retrieval)
+- Sorgu Türkçe normalizasyon ve stop-word filtrelemeden geçer.
+- `published` ve `isDemo: false` KO'ler içinde skorlama yapılır.
+- En yüksek 3 KO bağlama eklenir.
+- Bulunan KO'ler yanıtla birlikte `citations` olarak döner ve tıklanabilir badge'lerle sunulur.
 
-Semantic search ile ilgili knowledge object'ler çekilir:
+Seçili KO modu: Kullanıcı bir bilgi nesnesini görüntülerken "Mentora sor" dediğinde, o KO'nun kodu istekle birlikte gönderilir ve bağlamda sabit tutulur.
 
-```typescript
-// Semantic search örneği
-const relatedKnowledge = await vectorStore.search(
-  queryEmbedding,
-  { topK: 5, threshold: 0.7 }
-)
-```
+### 4. Context Assembly
 
-Çekilen bilgiler:
-- İlgili kavramlar (concepts)
-- Prosedürler (procedures)
-- Gerçekler (facts)
-- Önceki ders içerikleri
+AI Gateway'e gönderilen prompt:
 
-### 5. Context Assembly (Bağlam Oluşturma)
+- **System prompt:** LocalAkademi rolü, kullanıcı adı/rolü.
+- **Knowledge context:** retrieval sonuçları veya seçili KO.
+- **Business workspace context:** aktif işletme kayıtları ve ilgili belgeler (sadece üyesi olunan workspace'ten).
+- **Memory context:** kullanıcı hafızalarından özet.
+- **Chat history:** son N mesaj.
 
-Mistral API'ye gönderilecek prompt oluşturulur:
+### 5. Yanıt Formatlama
 
-```
-<system>
-Sen LocalAkademi AI Mentor'usun. Öğrenciye yardımsever, sabırlı ve motivasyon verici ol.
-Kullanıcı: {öğrenci_adı}
-Seviye: {öğrenci_seviyesi}
-Hedef: {öğrenci_hedefi}
-</system>
+Asistan yanıtı:
 
-<context>
-İlgili Bilgiler:
-{knowledge_objects}
+- Markdown olarak işlenir.
+- Kod blokları vurgulanır.
+- Citation badge'leri içerir; her badge `/app/knowledge/:code` adresine bağlanır.
 
-Önceki Konuşma:
-{chat_history}
-</context>
+### 6. Hafıza ve Özet
 
-<question>
-{öğrenci_sorusu}
-</question>
-```
+Mesaj çifti kaydedildikten sonra arka planda:
 
-### 6. NVIDIA API Entegrasyonu
+- `extractAndStoreMemories`: kullanıcı tercihleri, hedefleri ve önemli gerçekler çıkarılır.
+- `updateConversationSummary`: konuşma özeti güncellenir.
 
-Mistral modeli çağrısı:
+Bu işlemler best-effort'tur; hatalar kullanıcı yanıtını engellemez.
 
-```typescript
-const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${process.env.NVIDIA_API_KEY}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    model: 'mistralai/mistral-7b-instruct-v0.3',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userMessage }
-    ],
-    temperature: 0.7,
-    max_tokens: 1024
-  })
-})
-```
+### 7. Arşivleme ve Yeniden Üretme
 
-### 7. Yanıt Formatlama
+- `PATCH .../archive`: Konuşma `archivedAt` alanı doldurularak listeden çıkar.
+- `PATCH .../unarchive`: Konuşma tekrar aktif listeye döner.
+- `POST .../regenerate`: Seçili asistan mesajı yeniden üretilir, önceki seçili KO bağlamı korunur.
+- `POST .../edit-regenerate`: Kullanıcı son mesajı düzenler ve asistan yanıtı yeniden üretilir.
 
-Gelen yanıt işlenir:
-- Markdown formatına çevrilir
-- Kod blokları vurgulanır
-- İlgili kaynaklar eklenir
-- Takip soruları önerilir
-
-### 8. Session Güncelleme
-
-Sohbet geçmişi saklanır:
-
-```typescript
-await prisma.mentorSession.update({
-  where: { sessionId },
-  data: {
-    context: JSON.stringify([
-      ...previousMessages,
-      { role: 'user', content: userMessage },
-      { role: 'assistant', content: response }
-    ])
-  }
-})
-```
-
-## Öğrenci Seviyesi Algoritması
-
-```
-Başlangıç Seviyesi: beginner
-      ↓
-İlerleme Kontrolü
-      ↓
-┌─────────────────────────────────────┐
-│ Başarı Oranı ≥ 80% → Seviye + 1     │
-│ Başarı Oranı ≥ 60% → Aynı Seviye    │
-│ Başarı Oranı < 60% → Seviye - 1     │
-└─────────────────────────────────────┘
-```
-
-## Geri Bildirim Döngüsü
-
-```
-Öğrenci Yanıt Aldı
-      ↓
-┌──────────────────────────┐
-│ Doğru cevap?             │
-│   ↓ Evet                 │
-│   Başarı +1              │
-│   → Bir sonraki seviye   │
-│                          │
-│   ↓ Hayır                │
-│   Geri bildirim ver      │
-│   → Aynı seviyede kal    │
-└──────────────────────────┘
-```
-
-## Hata Yönetimi
+### 8. Hata Yönetimi
 
 | Senaryo | Davranış |
 |---------|----------|
-| API timeout | "Şu anda bağlantı sorunu var, tekrar dene" |
-| Rate limit | "Biraz bekle, sonra tekrar sor" |
-| Geçersiz yanıt | Konuyu basitleştirerek yeniden dene |
-| Bilgi bulunamadı | "Bu konuda kaynak yok, farklı bir şekilde açıklayayım" |
+| Gateway timeout | `504` + "AI mentor yanıt vermedi. Lütfen tekrar deneyin." |
+| Rate limit | `429` + "Çok fazla istek gönderildi..." |
+| Empty response | `502` + "AI mentor boş yanıt döndü..." |
+| Network error | `502` + "AI mentor servisine bağlanılamadı..." |
+| Bilgi bulunamadı | Sistem prompt "Bu konuda kaynak yok..." mesajıyla devam eder, yanıt güvenlik çerçevesinde üretilir |
 
 ## Mevcut Durum
 
-**Durum:** Planlama aşamasında (henüz implement edilmedi)
-
-**Gerekli Geliştirmeler:**
-- [ ] `/mentor/chat` endpoint'i
-- [ ] NVIDIA API entegrasyonu
-- [ ] Context builder servisi
-- [ ] Session management
-- [ ] Knowledge retrieval sistemi
-- [ ] Prompt templates
+**Durum:** Üretimde aktif (`/mentor/conversations`). Eski `/mentor/chat` ve `/mentor/history` endpoint'leri deprecated olarak işaretlenmiştir.

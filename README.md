@@ -86,17 +86,48 @@ npm run test:e2e
 | POST | `/auth/login` | Giriş | ❌ |
 | GET | `/auth/me` | Token doğrulama | ✅ |
 
-### AI Mentor (`/mentor`) — *yerel Ollama veya yapılandırılmış bulut sağlayıcısıyla çalışır ve KO retrieval ile zenginleştirilir*
+### AI Mentor Conversation API (`/mentor/conversations`) — *primary*
+
+Yeni AI Mentor sohbet sistemi. Konuşma tabanlı context, oturum başlığı,
+seçili KO bağlamı, citation, stream, yeniden üretme (regenerate), düzenleme-sonra-yeniden-üretme,
+arkivleme ve arşivden çıkarma desteği sunar.
+
 | Method | Endpoint | Açıklama | Auth |
 |--------|----------|----------|------|
-| POST | `/mentor/chat` | Mentor ile sohbet (Ollama/NVIDIA/OpenAI/DeepSeek) + KO retrieval | ✅ |
-| GET | `/mentor/history` | Oturum geçmişi | ✅ |
-| DELETE | `/mentor/history` | Geçmiş temizleme | ✅ |
+| GET | `/mentor/conversations` | Kullanıcının konuşmaları (archived filtresi: `true`/`false`) | ✅ |
+| POST | `/mentor/conversations` | Yeni konuşma oluştur | ✅ |
+| GET | `/mentor/conversations/:id` | Konuşma mesajları | ✅ |
+| POST | `/mentor/conversations/:id/messages` | Mesaj gönder, asistan yanıtı al | ✅ |
+| POST | `/mentor/conversations/:id/messages/stream` | Asistan yanıtını SSE stream olarak al | ✅ |
+| POST | `/mentor/conversations/:id/messages/:messageId/regenerate` | Son mesajı yeniden üret | ✅ |
+| POST | `/mentor/conversations/:id/messages/:messageId/edit-regenerate` | Mesajı düzenle ve yeniden üret | ✅ |
+| PATCH | `/mentor/conversations/:id/archive` | Konuşmayı arşivle | ✅ |
+| PATCH | `/mentor/conversations/:id/unarchive` | Konuşmayı arşivden çıkar | ✅ |
+| DELETE | `/mentor/conversations/:id` | Konuşmayı sil (soft delete) | ✅ |
 
-> **Not:** Yerel kurulumda `AI_PROVIDER=ollama` önerilir. Gateway yalnızca
-> `127.0.0.1`, `localhost` veya `::1` Ollama adreslerini kabul eder ve API
-> anahtarı göndermez. Her sohbet mesajında ilgili Knowledge Object'ler bağlama
-> eklenir ve bulunan KO'lar citation olarak döndürülür.
+> **Not:** Bu endpoint grubu mevcut üretim istemcisinin (frontend) kullandığı
+> birincil AI Mentor API'sidir. Yerel kurulumda `AI_PROVIDER=ollama` önerilir.
+> Gateway yalnızca `127.0.0.1`, `localhost` veya `::1` Ollama adreslerini kabul
+> eder ve API anahtarı göndermez. Her sohbet mesajında ilgili Knowledge Object'ler
+> bağlama eklenir ve bulunan KO'lar citation olarak döndürülür.
+
+### AI Mentor Legacy Endpoints (`/mentor`) — *deprecated*
+
+Aşağıdaki endpoint'ler **kullanımdan kaldırılmıştır**. Mevcut istemcileri
+kırmamak için çalışmaya devam ederler, ancak her yanıtta `Deprecation`,
+`Warning` ve `Link` başlıkları dönerler. Yeni geliştirmeler
+`/mentor/conversations` API'sini kullanmalıdır.
+
+| Method | Endpoint | Durum | Auth |
+|--------|----------|-------|------|
+| POST | `/mentor/chat` | ⚠️ Deprecated | ✅ |
+| GET | `/mentor/history` | ⚠️ Deprecated | ✅ |
+| DELETE | `/mentor/history` | ⚠️ Deprecated | ✅ |
+
+> **Migration:** `/mentor/chat` yerine `POST /mentor/conversations/:id/messages`
+> veya stream karşılığı; `/mentor/history` yerine `GET /mentor/conversations`
+> kullanın. `Deprecation: true`, `Warning: 299` ve `Link: </mentor/conversations>; rel="successor-version"`
+> başlıkları her yanıtta döndürülür.
 
 ### AI Reviewer (Aşama 2 — shadow entegrasyonu)
 
@@ -181,11 +212,11 @@ LocalAkademi/
 │   ├── server.ts              # Giriş noktası
 │   ├── services/
 │   │   ├── auth.ts            # JWT kimlik doğrulama
-│   │   ├── mentor.ts          # AI Mentor (DI ile AiChatProvider)
+│   │   ├── mentor.ts          # Legacy AI Mentor endpoints (deprecated; DI ile AiChatProvider)
 │   │   ├── ai-gateway.ts      # AI gateway (Ollama/NVIDIA/OpenAI/DeepSeek + Citation)
 │   │   ├── ai-chat-provider.ts # AiChatProvider interface + mock
 │   │   ├── ai-provider.ts     # Provider yardımcıları (Citation mapping)
-│   │   ├── conversation.ts    # Sohbet yönetimi (4 flow + citation wiring)
+│   │   ├── conversation.ts    # Primary AI Mentor conversation API (messages, stream, regenerate, archive)
 │   │   ├── ai-reviewer/       # Reviewer sözleşmesi, provider, timeout ve karar politikası
 │   │   ├── quizzes.ts         # Quiz endpoint'leri
 │   │   ├── admin.ts           # Admin paneli

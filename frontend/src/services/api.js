@@ -213,17 +213,6 @@ export const api = {
     async getRelated(id) { return api.request(`/knowledge/related/${id}`); }
   },
 
-  mentor: {
-    async chat(message, sessionId, code, title) {
-      return api.request('/mentor/chat', { method: 'POST', body: JSON.stringify({ message, sessionId, code, title }) });
-    },
-    async getHistory() { return api.request('/mentor/history'); },
-    async clearHistory(sessionId) {
-      const query = sessionId ? `?sessionId=${sessionId}` : '';
-      return api.request(`/mentor/history${query}`, { method: 'DELETE' });
-    }
-  },
-
   conversation: {
     BASE: '/mentor/conversations',
     async getList(archived = false) {

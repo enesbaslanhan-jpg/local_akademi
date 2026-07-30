@@ -1,8 +1,20 @@
-import { FastifyInstance } from 'fastify'
+import { FastifyInstance, FastifyReply } from 'fastify'
 import { prisma } from '../lib/prisma.js'
 import { randomUUID } from 'crypto'
 import { z } from 'zod'
 import { AiChatProvider, RealAiChatProvider, GatewayConfigError, GatewayProviderError } from './ai-chat-provider'
+
+const DEPRECATION_LINK = '</mentor/conversations>; rel="successor-version"'
+
+function addDeprecationHeaders(reply: FastifyReply): void {
+  reply.header('Deprecation', 'true')
+  reply.header('Warning', '299 - "Deprecated API: use /mentor/conversations instead"')
+  reply.header('Link', DEPRECATION_LINK)
+}
+
+function logDeprecatedAccess(fastify: FastifyInstance, route: string): void {
+  fastify.log.warn(`[DEPRECATION] ${route} is deprecated. Use /mentor/conversations instead.`)
+}
 
 const chatRequestSchema = z.object({
   message: z.string().trim().min(1, 'Mesaj gerekli').max(8000, 'Mesaj en fazla 8000 karakter olabilir'),
@@ -142,6 +154,9 @@ export async function mentorRoutes(fastify: FastifyInstance, opts?: { aiProvider
     preHandler: [fastify.authenticate],
     config: { rateLimit: { max: 30, timeWindow: '1 minute' } }
   }, async (request, reply) => {
+    addDeprecationHeaders(reply)
+    logDeprecatedAccess(fastify, '/mentor/chat')
+
     const user = request.user
 
     const parsed = chatRequestSchema.safeParse(request.body)
@@ -279,8 +294,12 @@ export async function mentorRoutes(fastify: FastifyInstance, opts?: { aiProvider
 
   fastify.get('/history', {
     preHandler: [fastify.authenticate]
-  }, async (request) => {
+  }, async (request, reply) => {
+    addDeprecationHeaders(reply)
+    logDeprecatedAccess(fastify, '/mentor/history')
+
     const user = request.user
+
     const sessions = await prisma.mentorSession.findMany({
       where: { userId: user.id },
       orderBy: { updatedAt: 'desc' },
@@ -304,6 +323,9 @@ export async function mentorRoutes(fastify: FastifyInstance, opts?: { aiProvider
   fastify.delete('/history', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
+    addDeprecationHeaders(reply)
+    logDeprecatedAccess(fastify, '/mentor/history')
+
     const user = request.user
     const { sessionId } = request.query as { sessionId?: string }
 

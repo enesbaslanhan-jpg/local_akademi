@@ -124,34 +124,134 @@ Authorization: Bearer <TOKEN>
 | POST | `/enrollments` | Kursa kayıt ol | ✅ |
 | PUT | `/enrollments/:id/progress` | İlerleme güncelle | ✅ |
 
-### AI Mentor (`/mentor`)
+### AI Mentor Conversation API (`/mentor/conversations`) — Primary
 
 | Method | Endpoint | Açıklama | Auth |
 |--------|----------|----------|------|
-| POST | `/mentor/chat` | Mentor ile sohbet (NVIDIA/OpenAI/DeepSeek + KO retrieval) | ✅ |
-| GET | `/mentor/history` | Oturum geçmişi (messages + citations ile) | ✅ |
-| DELETE | `/mentor/history` | Geçmiş temizleme (tek veya tümü) | ✅ |
+| GET | `/mentor/conversations` | Kullanıcının konuşmalarını listele (`archived=true/false`) | ✅ |
+| POST | `/mentor/conversations` | Yeni konuşma oluştur | ✅ |
+| GET | `/mentor/conversations/:id` | Konuşma detayı ve mesajları | ✅ |
+| PATCH | `/mentor/conversations/:id` | Konuşma başlığını güncelle | ✅ |
+| DELETE | `/mentor/conversations/:id` | Konuşmayı sil (soft delete) | ✅ |
+| POST | `/mentor/conversations/:id/messages` | Mesaj gönder, asistan yanıtı al | ✅ |
+| POST | `/mentor/conversations/:id/messages/stream` | Asistan yanıtını SSE stream olarak al | ✅ |
+| POST | `/mentor/conversations/:id/messages/:messageId/regenerate` | Seçili mesajı yeniden üret | ✅ |
+| POST | `/mentor/conversations/:id/messages/:messageId/edit-and-regenerate` | Mesajı düzenle ve yeniden üret | ✅ |
+| PATCH | `/mentor/conversations/:id/archive` | Konuşmayı arşivle | ✅ |
+| PATCH | `/mentor/conversations/:id/unarchive` | Konuşmayı arşivden çıkar | ✅ |
 
-**POST `/mentor/chat` — Request:**
+**POST `/mentor/conversations` — Request:**
+```json
+{
+  "title": "Demo Sohbeti"
+}
+```
+
+**Response (201):**
+```json
+{
+  "conversation": {
+    "id": 1,
+    "title": "Demo Sohbeti",
+    "createdAt": "2026-07-23T...",
+    "updatedAt": "2026-07-23T...",
+    "lastMessageAt": null,
+    "model": null,
+    "provider": null,
+    "archivedAt": null,
+    "deletedAt": null
+  }
+}
+```
+
+**GET `/mentor/conversations` — Response:**
+```json
+{
+  "conversations": [
+    {
+      "id": 1,
+      "title": "Demo Sohbeti",
+      "createdAt": "2026-07-23T...",
+      "updatedAt": "2026-07-23T...",
+      "archivedAt": null,
+      "lastMessageAt": "2026-07-23T...",
+      "model": "deepseek-chat",
+      "provider": "deepseek",
+      "messageCount": 4,
+      "lastMessage": {
+        "content": "Yanıt özeti...",
+        "role": "assistant",
+        "createdAt": "2026-07-23T..."
+      }
+    }
+  ]
+}
+```
+
+**GET `/mentor/conversations/:id` — Response:**
+```json
+{
+  "conversation": {
+    "id": 1,
+    "title": "Demo Sohbeti",
+    "createdAt": "2026-07-23T...",
+    "updatedAt": "2026-07-23T...",
+    "lastMessageAt": "2026-07-23T...",
+    "model": "deepseek-chat",
+    "provider": "deepseek"
+  },
+  "messages": [
+    {
+      "id": 10,
+      "role": "user",
+      "content": "Python'da değişken nedir?",
+      "citations": null,
+      "knowledgeObjects": null,
+      "tokenUsage": null,
+      "error": null,
+      "generationStatus": "completed",
+      "regeneratedFromMessageId": null,
+      "editedFromMessageId": null,
+      "createdAt": "2026-07-23T...",
+      "updatedAt": "2026-07-23T..."
+    },
+    {
+      "id": 11,
+      "role": "assistant",
+      "content": "AI mentor yanıtı...",
+      "citations": [...],
+      "knowledgeObjects": [...],
+      "tokenUsage": { "promptTokens": 100, "completionTokens": 50, "totalTokens": 150 },
+      "error": null,
+      "generationStatus": "completed",
+      "createdAt": "2026-07-23T...",
+      "updatedAt": "2026-07-23T..."
+    }
+  ]
+}
+```
+
+**POST `/mentor/conversations/:id/messages` — Request:**
 ```json
 {
   "message": "İş danışmanlığı almak istiyorum",
-  "sessionId": "uuid-v4 (opsiyonel, yoksa yeni oturum)",
-  "code": "KO-123 (opsiyonel)"
+  "knowledgeObjectCode": "KO-123 (opsiyonel)"
 }
 ```
 
 **Response (200):**
 ```json
 {
-  "sessionId": "uuid-v4",
+  "messageId": 11,
   "reply": "AI mentor yanıtı...",
   "usage": {
     "promptTokens": 100,
     "completionTokens": 50,
     "totalTokens": 150
   },
-  "citations": [
+  "provider": "deepseek",
+  "model": "deepseek-chat",
+  "sources": [
     {
       "id": 1,
       "title": "Şirket Kurulum Rehberi",
@@ -162,27 +262,33 @@ Authorization: Bearer <TOKEN>
 }
 ```
 
-**Not:** Mentor her mesajda otomatik olarak ilgili Knowledge Object'leri (KO) lexical retrieval ile bulur.
+**Hatalar:**
+- `400`: Geçersiz sohbet ID
+- `404`: Sohbet bulunamadı veya kullanıcıya ait değil
+- `422`: Mesaj boş, çok uzun, arşivlenmiş sohbete yazma veya knowledge object kodu geçersiz
+
+**POST `/mentor/conversations/:id/messages/stream`:**
+SSE stream yanıtı döner. Event türleri: `start`, `provider`, `delta`, `done`, `cancelled`, `error`.
+
+**Not:** Conversation API her mesajda otomatik olarak ilgili Knowledge Object'leri (KO) lexical retrieval ile bulur.
 Retrieval akışı: mesaj → normalizasyon (Türkçe NFKC, stop-word) → multi-token OR query → skorlama
 (code +100, title phrase +40, title token +12, category +6, content token +3, authority bonus) →
 en yüksek 3 KO → güvenlik çerçevesi ile prompt'a ekle → AI yanıtı + citation dönüşü.
 
-**GET `/mentor/history` — Response:**
-```json
-{
-  "sessions": [
-    {
-      "sessionId": "uuid-v4",
-      "messages": [
-        { "role": "user", "content": "..." },
-        { "role": "assistant", "content": "..." }
-      ],
-      "createdAt": "2026-07-23T...",
-      "updatedAt": "2026-07-23T..."
-    }
-  ]
-}
-```
+### AI Mentor Legacy Endpoints (`/mentor`) — Deprecated
+
+| Method | Endpoint | Açıklama | Auth |
+|--------|----------|----------|------|
+| POST | `/mentor/chat` | Eski mentor sohbet endpoint'i | ✅ |
+| GET | `/mentor/history` | Eski oturum geçmişi | ✅ |
+| DELETE | `/mentor/history` | Eski geçmiş temizleme | ✅ |
+
+> ⚠️ **Bu endpoint'ler kullanımdan kaldırılmıştır.** Yeni geliştirmelerde kullanılmamalı,
+> yeni entegrasyonlar `/mentor/conversations` Conversation API'sini kullanmalıdır.
+> Mevcut istemcileri kırmamak için geçici olarak geriye dönük uyumluluk amacıyla
+> tutulmaktadır. Her yanıtta `Deprecation: true`, `Warning: 299` ve
+> `Link: </mentor/conversations>; rel="successor-version"` başlıkları döner.
+> Kaldırılması gelecek bakım fazına bırakılmıştır.
 
 ### Knowledge (`/knowledge`)
 
@@ -195,7 +301,7 @@ en yüksek 3 KO → güvenlik çerçevesi ile prompt'a ekle → AI yanıtı + ci
 
 ### Retrieval Katmanı (Internal)
 
-Mentor `/mentor/chat` endpoint'inde kullanılan lexical retrieval sistemi:
+Mentor Conversation API (`/mentor/conversations/:id/messages` ve stream) tarafından kullanılan lexical retrieval sistemi:
 
 | Bileşen | Dosya | Görevi |
 |---------|-------|--------|
@@ -228,7 +334,7 @@ Tüm hatalar standart formatta döner:
 Global rate limit: 100 istek/dakika (opsiyonel). Endpoint bazında:
 - Auth register: 5 istek/saat
 - Auth login: 10 istek/dakika
-- Mentor chat: 30 istek/dakika
+- Mentor conversation messages (non-stream): 30 istek/dakika
 - Topluluk paylaşımı: 5 istek/saat
 - Resmî güncelleme taslağı: 20 istek/saat
 - Yerel AI resmî özet taslağı: 10 istek/saat

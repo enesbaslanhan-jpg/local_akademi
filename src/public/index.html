@@ -126,17 +126,25 @@
 
         <div id="mentor" class="section">
             <h2>🤖 AI Mentor</h2>
-            <button onclick="getChatHistory()">Sohbet Geçmişi</button>
-            <button onclick="clearChatHistory()">Geçmişi Temizle</button>
+            <button onclick="loadConversations()">Konuşmaları Listele</button>
+            <button onclick="createConversation()">Yeni Konuşma</button>
+            <button onclick="clearChatHistory()" class="btn-secondary">Konuşmayı Sil</button>
             <div class="form-group" style="margin-top: 15px;">
-                <label>Oturum ID (devam etmek için)</label>
-                <input type="text" id="sessionId" placeholder="Boş bırak = yeni oturum">
+                <label>Aktif Konuşma</label>
+                <select id="conversationSelect" onchange="selectConversation()">
+                    <option value="">Konuşma seçin veya yeni oluşturun</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Konuşma ID (manuel)</label>
+                <input type="text" id="conversationId" placeholder="Boş bırak = listeden seçin">
             </div>
             <div class="form-group">
                 <label>Mesajınız</label>
                 <textarea id="mentorMessage" placeholder="Mentora bir soru sorun...">Python'da değişken nedir?</textarea>
             </div>
             <button onclick="sendToMentor()">Gönder</button>
+            <button onclick="getChatHistory()">Mesaj Geçmişini Yükle</button>
             <div id="mentorResult" class="result"></div>
         </div>
 
@@ -283,27 +291,94 @@
             displayResult('knowledgeResult', result);
         }
 
-        async function sendToMentor() {
-            const message = document.getElementById('mentorMessage').value;
-            const sessionId = document.getElementById('sessionId').value || undefined;
-            if (!message) return alert('Mesaj gerekli');
-            const result = await request('/mentor/chat', 'POST', { message, sessionId });
-            if (result.status === 200 && result.data.sessionId) {
-                document.getElementById('sessionId').value = result.data.sessionId;
+        let conversations = [];
+        let currentConversationId = null;
+
+        function updateConversationSelect() {
+            const select = document.getElementById('conversationSelect');
+            select.innerHTML = '<option value="">Konuşma seçin veya yeni oluşturun</option>';
+            conversations.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c.id;
+                option.textContent = `${c.title || 'Sohbet'} (#${c.id})`;
+                if (c.id === currentConversationId) option.selected = true;
+                select.appendChild(option);
+            });
+        }
+
+        function setCurrentConversationId(id) {
+            currentConversationId = id ? Number(id) || null : null;
+            document.getElementById('conversationId').value = currentConversationId || '';
+            updateConversationSelect();
+        }
+
+        function selectConversation() {
+            const select = document.getElementById('conversationSelect');
+            setCurrentConversationId(select.value);
+        }
+
+        async function loadConversations() {
+            const result = await request('/mentor/conversations?archived=false');
+            if (result.status === 200 && Array.isArray(result.data.conversations)) {
+                conversations = result.data.conversations;
+                if (conversations.length > 0 && !currentConversationId) {
+                    setCurrentConversationId(conversations[0].id);
+                } else {
+                    updateConversationSelect();
+                }
             }
             displayResult('mentorResult', result);
         }
 
+        async function createConversation() {
+            const result = await request('/mentor/conversations', 'POST', { title: 'Demo Sohbeti' });
+            if (result.status === 201 && result.data.conversation && result.data.conversation.id) {
+                setCurrentConversationId(result.data.conversation.id);
+                await loadConversations();
+            }
+            displayResult('mentorResult', result);
+        }
+
+        async function sendToMentor() {
+            const message = document.getElementById('mentorMessage').value;
+            if (!message) return alert('Mesaj gerekli');
+
+            let conversationId = currentConversationId || Number(document.getElementById('conversationId').value) || null;
+            if (!conversationId) {
+                const createResult = await request('/mentor/conversations', 'POST', { title: 'Demo Sohbeti' });
+                if (createResult.status !== 201 || !createResult.data.conversation || !createResult.data.conversation.id) {
+                    displayResult('mentorResult', createResult);
+                    return;
+                }
+                conversationId = createResult.data.conversation.id;
+                setCurrentConversationId(conversationId);
+                conversations.unshift(createResult.data.conversation);
+                updateConversationSelect();
+            }
+
+            const result = await request(`/mentor/conversations/${conversationId}/messages`, 'POST', { message });
+            displayResult('mentorResult', result);
+        }
+
         async function getChatHistory() {
-            const result = await request('/mentor/history');
+            const conversationId = currentConversationId || Number(document.getElementById('conversationId').value) || null;
+            if (!conversationId) return alert('Lütfen bir konuşma seçin veya ID girin');
+            const result = await request(`/mentor/conversations/${conversationId}`);
             displayResult('mentorResult', result);
         }
 
         async function clearChatHistory() {
-            const sessionId = document.getElementById('sessionId').value;
-            const query = sessionId ? `?sessionId=${sessionId}` : '';
-            const result = await request(`/mentor/history${query}`, 'DELETE');
-            displayResult('mentorResult', result);
+            const conversationId = currentConversationId || Number(document.getElementById('conversationId').value) || null;
+            if (!conversationId) return alert('Lütfen bir konuşma seçin veya ID girin');
+            const result = await request(`/mentor/conversations/${conversationId}`, 'DELETE');
+            if (result.status === 204) {
+                setCurrentConversationId(null);
+                conversations = conversations.filter(c => c.id !== conversationId);
+                updateConversationSelect();
+                displayResult('mentorResult', { status: 204, data: 'Konuşma silindi' });
+            } else {
+                displayResult('mentorResult', result);
+            }
         }
 
         async function getCurrentPath() {
