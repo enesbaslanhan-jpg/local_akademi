@@ -55,6 +55,7 @@ export default function MentorPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [editValue, setEditValue] = useState('')
+  const [showArchived, setShowArchived] = useState(false)
 
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
@@ -105,21 +106,21 @@ export default function MentorPage() {
   }, [])
 
   useEffect(() => {
-    loadConversations()
-  }, [])
+    loadConversations(showArchived)
+  }, [showArchived])
 
   useEffect(() => {
     if (selectedId) loadMessages(selectedId)
   }, [selectedId])
 
-  async function loadConversations() {
+  async function loadConversations(archived = showArchived) {
     try {
       setLoading(true)
-      const data = await api.conversation.getList()
+      const data = await api.conversation.getList(archived)
       const list = data.conversations || []
       setConversations(list)
       setError('')
-      if (!selectedId && list.length > 0) {
+      if (!selectedId && list.length > 0 && !archived) {
         setSelectedId(list[0].id)
       }
       if (list.length === 0) {
@@ -152,13 +153,16 @@ export default function MentorPage() {
 
   async function handleNew() {
     setError('')
+    if (showArchived) {
+      setShowArchived(false)
+    }
     try {
       const data = await api.conversation.create('Yeni Sohbet')
       const newId = data.conversation.id
       setSelectedId(newId)
       setMessages([])
       setSidebarOpen(false)
-      await loadConversations()
+      await loadConversations(false)
       if (contextCode || contextTitle || contextPrompt) {
         navigate('/app/mentor', { replace: true })
       }
@@ -200,6 +204,30 @@ export default function MentorPage() {
       await loadConversations()
     } catch (err) {
       setError('Sohbet silinemedi')
+    }
+  }
+
+  async function handleArchive(id) {
+    if (!window.confirm('Bu sohbeti arşivlemek istediğinize emin misiniz? Arşivlenen sohbetlere yeni mesaj gönderilemez.')) return
+    try {
+      await api.conversation.archive(id)
+      if (selectedId === id) {
+        const remaining = conversations.filter(c => c.id !== id && !c.archivedAt)
+        setSelectedId(remaining.length > 0 ? remaining[0].id : null)
+        if (remaining.length === 0) setMessages([])
+      }
+      await loadConversations(false)
+    } catch (err) {
+      setError('Sohbet arşivlenemedi')
+    }
+  }
+
+  async function handleUnarchive(id) {
+    try {
+      await api.conversation.unarchive(id)
+      await loadConversations(true)
+    } catch (err) {
+      setError('Sohbet arşivden çıkarılamadı')
     }
   }
 
@@ -399,6 +427,23 @@ export default function MentorPage() {
           </div>
         </div>
 
+        <div className="flex text-xs border-b border-[var(--border)]">
+          <button
+            onClick={() => setShowArchived(false)}
+            className={`flex-1 py-2 font-medium ${!showArchived ? 'bg-[var(--primary-light)] text-[var(--primary)] border-b-2 border-[var(--primary)]' : 'text-[var(--text-light)] hover:bg-gray-50'}`}
+            aria-label="Aktif sohbetler"
+          >
+            Aktif
+          </button>
+          <button
+            onClick={() => setShowArchived(true)}
+            className={`flex-1 py-2 font-medium ${showArchived ? 'bg-[var(--primary-light)] text-[var(--primary)] border-b-2 border-[var(--primary)]' : 'text-[var(--text-light)] hover:bg-gray-50'}`}
+            aria-label="Arşivlenmiş sohbetler"
+          >
+            Arşiv
+          </button>
+        </div>
+
         <div className="flex-1 overflow-y-auto">
           {conversations.length === 0 ? (
             <div className="p-4 text-center text-sm text-[var(--text-light)]">
@@ -442,13 +487,33 @@ export default function MentorPage() {
                     </div>
 
                     <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                      <button
-                        onClick={e => handleStartEdit(conv, e)}
-                        className="p-1 rounded hover:bg-gray-200 text-xs text-[var(--text-light)]"
-                        title="Düzenle"
-                      >
-                        ✏️
-                      </button>
+                      {!showArchived && (
+                        <>
+                          <button
+                            onClick={e => handleStartEdit(conv, e)}
+                            className="p-1 rounded hover:bg-gray-200 text-xs text-[var(--text-light)]"
+                            title="Düzenle"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={e => { e.stopPropagation(); handleArchive(conv.id) }}
+                            className="p-1 rounded hover:bg-gray-200 text-xs text-[var(--text-light)]"
+                            title="Arşivle"
+                          >
+                            Arşiv
+                          </button>
+                        </>
+                      )}
+                      {showArchived && (
+                        <button
+                          onClick={e => { e.stopPropagation(); handleUnarchive(conv.id) }}
+                          className="p-1 rounded hover:bg-gray-200 text-xs text-[var(--text-light)]"
+                          title="Arşivden çıkar"
+                        >
+                          Geri Al
+                        </button>
+                      )}
                       <button
                         onClick={e => { e.stopPropagation(); handleDelete(conv.id) }}
                         className="p-1 rounded hover:bg-gray-200 text-xs text-[var(--text-light)]"
@@ -510,18 +575,24 @@ export default function MentorPage() {
           {selectedId === null && messages.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center max-w-sm">
-                <h3 className="text-lg font-semibold text-[var(--text)] mb-2">AI Mentor'a Hoş Geldiniz</h3>
+                <h3 className="text-lg font-semibold text-[var(--text)] mb-2">
+                  {showArchived ? 'Arşivlenmiş Sohbetler' : "AI Mentor'a Hoş Geldiniz"}
+                </h3>
                 <p className="text-sm text-[var(--text-light)] mb-4">
-                  İşletmenizle ilgili sorular sorun, öneriler alın. KOBİ, esnaf ve girişimciler için yapay zeka destekli iş mentoru.
+                  {showArchived
+                    ? 'Arşivlediğiniz sohbetler burada listelenir. Geri almak için listeden bir sohbet seçin.'
+                    : 'İşletmenizle ilgili sorular sorun, öneriler alın. KOBİ, esnaf ve girişimciler için yapay zeka destekli iş mentoru.'}
                 </p>
-                <div className="flex flex-col gap-2">
-                  <button onClick={handleNew} className="btn btn-primary">
-                    Yeni Sohbet Başlat
-                  </button>
-                  {contextTitle && (
-                    <p className="text-xs text-[var(--text-light)]">Bağlam: {contextTitle}</p>
-                  )}
-                </div>
+                {!showArchived && (
+                  <div className="flex flex-col gap-2">
+                    <button onClick={handleNew} className="btn btn-primary">
+                      Yeni Sohbet Başlat
+                    </button>
+                    {contextTitle && (
+                      <p className="text-xs text-[var(--text-light)]">Bağlam: {contextTitle}</p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ) : messages.length === 0 && !isStreaming ? (
@@ -634,6 +705,7 @@ export default function MentorPage() {
           )}
         </div>
 
+        {!showArchived ? (
         <div className="px-4 py-3 border-t border-[var(--border)] bg-white">
           <div className="mx-auto max-w-3xl flex gap-2">
             <textarea
@@ -664,6 +736,11 @@ export default function MentorPage() {
             )}
           </div>
         </div>
+        ) : (
+        <div className="px-4 py-3 border-t border-[var(--border)] bg-gray-50 text-center text-sm text-[var(--text-light)]">
+          Arşivlenmiş sohbetlere yeni mesaj gönderilemez.
+        </div>
+        )}
       </main>
 
       <MemoryPanel visible={memoryPanelVisible} onClose={() => setMemoryPanelVisible(false)} />

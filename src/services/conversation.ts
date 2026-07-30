@@ -216,10 +216,21 @@ function sendSSE(reply: any, event: string, data: Record<string, unknown>) {
 export async function conversationRoutes(fastify: FastifyInstance) {
   fastify.addHook('preHandler', fastify.authenticate)
 
-  fastify.get('/', async (request) => {
+  fastify.get('/', async (request, reply) => {
     const user = request.user
+    const { archived } = request.query as { archived?: string }
+
+    let archivedAtFilter: { not: null } | null
+    if (archived === 'true') {
+      archivedAtFilter = { not: null }
+    } else if (archived === 'false' || archived === undefined) {
+      archivedAtFilter = null
+    } else {
+      return reply.status(400).send(validationError('VALIDATION_ERROR', 'Geçersiz archived parametresi'))
+    }
+
     const conversations = await prisma.conversation.findMany({
-      where: { userId: user.id, deletedAt: null, archivedAt: null },
+      where: { userId: user.id, deletedAt: null, archivedAt: archivedAtFilter },
       orderBy: [{ lastMessageAt: 'desc' }, { updatedAt: 'desc' }],
       include: {
         messages: {
@@ -236,6 +247,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
         title: c.title,
         createdAt: c.createdAt,
         updatedAt: c.updatedAt,
+        archivedAt: c.archivedAt,
         lastMessageAt: c.lastMessageAt,
         model: c.model,
         provider: c.provider,
@@ -327,6 +339,32 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     return reply.status(204).send()
   })
 
+  fastify.patch('/:id/archive', async (request, reply) => {
+    const user = request.user
+    const { id } = request.params as { id: string }
+    const convId = parseId(id)
+    if (!convId) return reply.status(400).send(validationError('VALIDATION_ERROR', 'Geçersiz sohbet ID'))
+    await ensureOwnership(convId, user.id)
+    const conversation = await prisma.conversation.update({
+      where: { id: convId },
+      data: { archivedAt: new Date() }
+    })
+    return { conversation }
+  })
+
+  fastify.patch('/:id/unarchive', async (request, reply) => {
+    const user = request.user
+    const { id } = request.params as { id: string }
+    const convId = parseId(id)
+    if (!convId) return reply.status(400).send(validationError('VALIDATION_ERROR', 'Geçersiz sohbet ID'))
+    await ensureOwnership(convId, user.id)
+    const conversation = await prisma.conversation.update({
+      where: { id: convId },
+      data: { archivedAt: null }
+    })
+    return { conversation }
+  })
+
   fastify.post('/:id/messages', async (request, reply) => {
     const user = request.user
     const { id } = request.params as { id: string }
@@ -352,6 +390,9 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     }
 
     const conv = await ensureOwnership(convId, user.id)
+    if (conv.archivedAt) {
+      return reply.status(422).send(validationError('VALIDATION_ERROR', 'Arşivlenmiş sohbete mesaj gönderilemez'))
+    }
 
     const resolvedContext = await resolveKnowledgeContext(cleanMessage, knowledgeObjectCode)
     if (knowledgeObjectCode && !resolvedContext.selected) {
@@ -807,6 +848,9 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     if (!conv) {
       return reply.status(404).send(validationError('NOT_FOUND', 'Conversation not found'))
     }
+    if (conv.archivedAt) {
+      return reply.status(422).send(validationError('VALIDATION_ERROR', 'Arşivlenmiş sohbete mesaj gönderilemez'))
+    }
 
     if (!streamSlotManager.checkRateLimit(user.id)) {
       return reply.status(429).send(validationError('RATE_LIMIT', 'Çok fazla istek gönderildi. Lütfen 1 dakika bekleyin.'))
@@ -1035,6 +1079,9 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     })
     if (!conv) {
       return reply.status(404).send(validationError('NOT_FOUND', 'Conversation not found'))
+    }
+    if (conv.archivedAt) {
+      return reply.status(422).send(validationError('VALIDATION_ERROR', 'Arşivlenmiş sohbete mesaj gönderilemez'))
     }
 
     if (!streamSlotManager.checkRateLimit(user.id)) {

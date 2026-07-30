@@ -226,11 +226,16 @@ export const api = {
 
   conversation: {
     BASE: '/mentor/conversations',
-    async getList() { return api.request(`${api.conversation.BASE}`); },
+    async getList(archived = false) {
+      const query = buildQuery({ archived: archived ? 'true' : 'false' });
+      return api.request(`${api.conversation.BASE}${query}`);
+    },
     async create(title) { return api.request(`${api.conversation.BASE}`, { method: 'POST', body: JSON.stringify({ title }) }); },
     async getById(id) { return api.request(`${api.conversation.BASE}/${id}`); },
     async update(id, title) { return api.request(`${api.conversation.BASE}/${id}`, { method: 'PATCH', body: JSON.stringify({ title }) }); },
     async remove(id) { return api.request(`${api.conversation.BASE}/${id}`, { method: 'DELETE' }); },
+    async archive(id) { return api.request(`${api.conversation.BASE}/${id}/archive`, { method: 'PATCH' }); },
+    async unarchive(id) { return api.request(`${api.conversation.BASE}/${id}/unarchive`, { method: 'PATCH' }); },
     async sendMessage(id, message, knowledgeObjectCode) {
       const body = { message };
       if (knowledgeObjectCode) body.knowledgeObjectCode = knowledgeObjectCode;

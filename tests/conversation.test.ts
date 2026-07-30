@@ -326,3 +326,201 @@ describe('Conversation API', () => {
     expect(typeof body.error).toBe('string')
   })
 })
+
+describe('Conversation archive/unarchive', () => {
+  async function createConversation(title: string) {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { title }
+    })
+    return JSON.parse(res.body).conversation.id as number
+  }
+
+  async function archiveConversation(id: number) {
+    return app.inject({
+      method: 'PATCH',
+      url: `/mentor/conversations/${id}/archive`,
+      headers: { authorization: `Bearer ${userToken}` }
+    })
+  }
+
+  async function unarchiveConversation(id: number) {
+    return app.inject({
+      method: 'PATCH',
+      url: `/mentor/conversations/${id}/unarchive`,
+      headers: { authorization: `Bearer ${userToken}` }
+    })
+  }
+
+  it('kullanıcı kendi konuşmasını arşivleyebilir', async () => {
+    const id = await createConversation('Arşivlenecek')
+    const res = await archiveConversation(id)
+    expect(res.statusCode).toBe(200)
+    const body = JSON.parse(res.body)
+    expect(body.conversation.archivedAt).not.toBeNull()
+  })
+
+  it('arşivlenen konuşma aktif listede görünmez', async () => {
+    const id = await createConversation('Aktif Görünmemeli')
+    await archiveConversation(id)
+
+    const res = await app.inject({
+      method: 'GET',
+      url: '/mentor/conversations?archived=false',
+      headers: { authorization: `Bearer ${userToken}` }
+    })
+    const body = JSON.parse(res.body)
+    expect(body.conversations.some((c: any) => c.id === id)).toBe(false)
+  })
+
+  it('archived=true listesinde görünür', async () => {
+    const id = await createConversation('Arşiv Listesi')
+    await archiveConversation(id)
+
+    const res = await app.inject({
+      method: 'GET',
+      url: '/mentor/conversations?archived=true',
+      headers: { authorization: `Bearer ${userToken}` }
+    })
+    const body = JSON.parse(res.body)
+    expect(body.conversations.some((c: any) => c.id === id)).toBe(true)
+  })
+
+  it('başka kullanıcı arşivleyemez', async () => {
+    const id = await createConversation('Başkasının Arşivi')
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/mentor/conversations/${id}/archive`,
+      headers: { authorization: `Bearer ${otherUserToken}` }
+    })
+    expect(res.statusCode).toBe(404)
+  })
+
+  it('arşivden çıkarma çalışır', async () => {
+    const id = await createConversation('Arşivden Çıkacak')
+    await archiveConversation(id)
+    const res = await unarchiveConversation(id)
+    expect(res.statusCode).toBe(200)
+    const body = JSON.parse(res.body)
+    expect(body.conversation.archivedAt).toBeNull()
+  })
+
+  it('arşivden çıkarılan konuşma tekrar aktif listede görünür', async () => {
+    const id = await createConversation('Tekrar Aktif')
+    await archiveConversation(id)
+    await unarchiveConversation(id)
+
+    const res = await app.inject({
+      method: 'GET',
+      url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` }
+    })
+    const body = JSON.parse(res.body)
+    expect(body.conversations.some((c: any) => c.id === id)).toBe(true)
+  })
+
+  it('silinmiş konuşma arşiv listesinde görünmez', async () => {
+    const id = await createConversation('Silinmiş Arşiv')
+    await archiveConversation(id)
+    await app.inject({
+      method: 'DELETE',
+      url: `/mentor/conversations/${id}`,
+      headers: { authorization: `Bearer ${userToken}` }
+    })
+
+    const res = await app.inject({
+      method: 'GET',
+      url: '/mentor/conversations?archived=true',
+      headers: { authorization: `Bearer ${userToken}` }
+    })
+    const body = JSON.parse(res.body)
+    expect(body.conversations.some((c: any) => c.id === id)).toBe(false)
+  })
+
+  it('arşivlenmiş konuşmaya non-stream mesaj gönderilemez', async () => {
+    const id = await createConversation('Arşiv Mesaj Engeli')
+    await archiveConversation(id)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/mentor/conversations/${id}/messages`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'bu mesaj gitmemeli' }
+    })
+    expect(res.statusCode).toBe(422)
+    const body = JSON.parse(res.body)
+    expect(body.error.code).toBe('VALIDATION_ERROR')
+  })
+
+  it('arşivlenmiş konuşmaya stream mesaj gönderilemez', async () => {
+    const id = await createConversation('Arşiv Stream Engeli')
+    await archiveConversation(id)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/mentor/conversations/${id}/messages/stream`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'bu stream gitmemeli' }
+    })
+    expect(res.statusCode).toBe(422)
+    const body = JSON.parse(res.body)
+    expect(body.error.code).toBe('VALIDATION_ERROR')
+  })
+
+  it('arşivlenmiş konuşmada regenerate çalışmaz', async () => {
+    const convId = await createConversation('Arşiv Regenerate Engeli')
+    const userMsg = await prisma.conversationMessage.create({
+      data: { conversationId: convId, role: 'user', content: 'test', generationStatus: 'completed' }
+    })
+    const assistantMsg = await prisma.conversationMessage.create({
+      data: { conversationId: convId, role: 'assistant', content: 'yanıt', generationStatus: 'completed' }
+    })
+    await archiveConversation(convId)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/mentor/conversations/${convId}/messages/${assistantMsg.id}/regenerate`,
+      headers: { authorization: `Bearer ${userToken}` }
+    })
+    expect(res.statusCode).toBe(422)
+  })
+
+  it('arşivlenmiş konuşmada edit-regenerate çalışmaz', async () => {
+    const convId = await createConversation('Arşiv Edit Regenerate Engeli')
+    const userMsg = await prisma.conversationMessage.create({
+      data: { conversationId: convId, role: 'user', content: 'test', generationStatus: 'completed' }
+    })
+    await archiveConversation(convId)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/mentor/conversations/${convId}/messages/${userMsg.id}/edit-and-regenerate`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'değiştirilmiş' }
+    })
+    expect(res.statusCode).toBe(422)
+  })
+
+  it('archive/unarchive idempotent davranır', async () => {
+    const id = await createConversation('Idempotent')
+    const first = await archiveConversation(id)
+    expect(first.statusCode).toBe(200)
+    const second = await archiveConversation(id)
+    expect(second.statusCode).toBe(200)
+
+    const firstUnarchive = await unarchiveConversation(id)
+    expect(firstUnarchive.statusCode).toBe(200)
+    const secondUnarchive = await unarchiveConversation(id)
+    expect(secondUnarchive.statusCode).toBe(200)
+
+    const res = await app.inject({
+      method: 'GET',
+      url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` }
+    })
+    const body = JSON.parse(res.body)
+    expect(body.conversations.some((c: any) => c.id === id)).toBe(true)
+  })
+})
