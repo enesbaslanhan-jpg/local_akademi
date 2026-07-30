@@ -608,12 +608,61 @@ async function* streamFromProvider(
   config: ProviderConfig,
   abortSignal: AbortSignal
 ): AsyncGenerator<GatewayStreamEvent> {
-  const { provider, apiUrl, apiKey, model } = config
+  const { provider, apiUrl, apiKey, model, timeout } = config
 
   yield { type: 'provider', provider, model }
 
+  // Combine user abort signal with an inactivity timeout.
+  // Timeout resets on every delta so actively streaming long responses
+  // are not cut off; a stuck provider that stops emitting data is aborted.
+  const controller = new AbortController()
+  let isTimeout = false
+  let inactivityTimer: ReturnType<typeof setTimeout> | null = null
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined
+
+  const clearInactivityTimer = () => {
+    if (inactivityTimer) {
+      clearTimeout(inactivityTimer)
+      inactivityTimer = null
+    }
+  }
+
+  const resetInactivityTimer = () => {
+    clearInactivityTimer()
+    inactivityTimer = setTimeout(() => {
+      isTimeout = true
+      controller.abort()
+    }, timeout)
+  }
+
+  const onUserAbort = () => {
+    clearInactivityTimer()
+    controller.abort()
+  }
+  abortSignal.addEventListener('abort', onUserAbort)
+  if (abortSignal.aborted) {
+    onUserAbort()
+  }
+
+  const cleanup = () => {
+    clearInactivityTimer()
+    abortSignal.removeEventListener('abort', onUserAbort)
+    reader?.releaseLock()
+  }
+
+  const handleAbortError = (err: unknown): never => {
+    if (err instanceof Error && err.name === 'AbortError') {
+      if (isTimeout) {
+        throw new GatewayProviderError('TIMEOUT', 'Provider timeout', provider, undefined, true)
+      }
+      throw new GatewayProviderError('ABORTED', 'Stream aborted', provider, undefined, false)
+    }
+    throw err
+  }
+
   let response: Response
   try {
+    resetInactivityTimer()
     response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -621,32 +670,34 @@ async function* streamFromProvider(
         ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {})
       },
       body: JSON.stringify(buildRequestBody(messages, config, true)),
-      signal: abortSignal
+      signal: controller.signal
     })
   } catch (err: unknown) {
-    if (err instanceof Error && err.name === 'AbortError') {
-      throw new GatewayProviderError('ABORTED', 'Stream aborted', provider, undefined, false)
-    }
-    throw new GatewayProviderError('NETWORK', err instanceof Error ? err.message : 'Network error', provider, undefined, true)
+    cleanup()
+    throw handleAbortError(err)
   }
 
   if (response.status === 429) {
+    cleanup()
     const retryAfter = response.headers.get('Retry-After')
     const delay = retryAfter ? parseInt(retryAfter, 10) * 1000 : RETRY_BASE_DELAY
     throw new GatewayProviderError('RATE_LIMITED', `Rate limited:${delay}`, provider, 429, true)
   }
 
   if (response.status >= 500) {
+    cleanup()
     throw new GatewayProviderError('SERVER_ERROR', `Server error:${response.status}`, provider, response.status, true)
   }
 
   if (!response.ok) {
+    cleanup()
     const errorText = await response.text().catch(() => 'unknown')
     throw new GatewayProviderError('PROVIDER_ERROR', `Provider error:${provider}:${response.status}`, provider, response.status, false)
   }
 
-  const reader = response.body?.getReader()
+  reader = response.body?.getReader()
   if (!reader) {
+    cleanup()
     throw new GatewayProviderError('EMPTY_RESPONSE', 'No response body', provider, undefined, false)
   }
 
@@ -687,10 +738,12 @@ async function* streamFromProvider(
 
         if (typeof deltaContent === 'string' && deltaContent.length > 0) {
           contentEmitted = true
+          resetInactivityTimer()
           yield { type: 'delta', delta: deltaContent }
         }
 
         if (finishReason === 'stop' || finishReason === 'length') {
+          clearInactivityTimer()
           const usageData = (parsed.usage || {}) as Record<string, number>
           yield {
             type: 'done',
@@ -705,12 +758,9 @@ async function* streamFromProvider(
       }
     }
   } catch (err: unknown) {
-    if (err instanceof Error && err.name === 'AbortError') {
-      throw new GatewayProviderError('ABORTED', 'Stream aborted', provider, undefined, false)
-    }
-    throw err
+    handleAbortError(err)
   } finally {
-    reader.releaseLock()
+    cleanup()
   }
 
   if (!contentEmitted) {

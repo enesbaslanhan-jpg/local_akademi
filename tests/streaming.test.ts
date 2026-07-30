@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vites
 import Fastify, { FastifyInstance } from 'fastify'
 import jwt from '@fastify/jwt'
 import { PrismaClient } from '@prisma/client'
+import { streamSlotManager } from '../src/services/stream-manager'
 
 const mockState = vi.hoisted(() => ({
   events: [] as Array<{ event: string; data: any }>,
@@ -72,6 +73,7 @@ beforeEach(() => {
   ]
   mockState.error = null
   mockState.abortSignal = null
+  streamSlotManager.reset()
 })
 
 async function createConversation(token: string, title = 'Test') {
@@ -247,6 +249,68 @@ describe('Streaming API', () => {
     const userMsgs = messages.filter((m: any) => m.role === 'user')
     expect(userMsgs.length).toBe(1)
     expect(userMsgs[0].content).toBe('hata testi')
+  })
+
+  it('provider timeout olunca SSE error eventi döner ve stream kapanır', async () => {
+    mockState.events = []
+    mockState.error = new Error('MENTOR_PROVIDER_ERROR:TIMEOUT')
+
+    const convId = await createConversation(userToken, 'Timeout Testi')
+    const res = await app.inject({
+      method: 'POST',
+      url: `/mentor/conversations/${convId}/messages/stream`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'timeout testi' }
+    })
+    expect(res.statusCode).toBe(200)
+
+    const events = parseSSE(res.body)
+    const errorEvent = events.find(e => e.event === 'error')
+    expect(errorEvent).toBeDefined()
+    expect(errorEvent!.data.error.code).toBe('AI_PROVIDER_ERROR')
+
+    const detailRes = await app.inject({
+      method: 'GET', url: `/mentor/conversations/${convId}`,
+      headers: { authorization: `Bearer ${userToken}` }
+    })
+    const messages = JSON.parse(detailRes.body).messages
+    const assistantMsgs = messages.filter((m: any) => m.role === 'assistant')
+    expect(assistantMsgs.length).toBe(1)
+    expect(assistantMsgs[0].generationStatus).toBe('failed')
+  })
+
+  it('timeout sonrasında concurrency slotu serbest kalır ve yeni stream kabul edilir', async () => {
+    mockState.events = []
+    mockState.error = new Error('MENTOR_PROVIDER_ERROR:TIMEOUT')
+
+    const convId = await createConversation(userToken, 'Slot Testi')
+    const timeoutRes = await app.inject({
+      method: 'POST',
+      url: `/mentor/conversations/${convId}/messages/stream`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'slot timeout testi' }
+    })
+    expect(timeoutRes.statusCode).toBe(200)
+
+    mockState.events = [
+      { event: 'provider', data: { provider: 'ollama', model: 'test-model' } },
+      { event: 'delta', data: { delta: 'Sonra ' } },
+      { event: 'delta', data: { delta: 'gelen.' } },
+      { event: 'done', data: { tokenUsage: { prompt_tokens: 1, completion_tokens: 2, total_tokens: 3 } } }
+    ]
+    mockState.error = null
+
+    const nextRes = await app.inject({
+      method: 'POST',
+      url: `/mentor/conversations/${convId}/messages/stream`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'yeni stream' }
+    })
+    expect(nextRes.statusCode).toBe(200)
+
+    const events = parseSSE(nextRes.body)
+    expect(events.find(e => e.event === 'delta')).toBeDefined()
+    expect(events.find(e => e.event === 'done')).toBeDefined()
   })
 
   it('delta parçaları tek assistant mesajında birleşir', async () => {
