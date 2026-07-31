@@ -14,6 +14,11 @@ process.env.DEEPSEEK_API_URL = 'http://127.0.0.1:1/v1/chat/completions'
 
 const testMessages = (content: string) => [{ role: 'user' as const, content }]
 
+function setEnv(key: string, value: string | undefined) {
+  if (value === undefined) delete process.env[key]
+  else process.env[key] = value
+}
+
 // ─── 1. GATEWAY ARCHITECTURE ───────────────────────────────────────────────
 
 describe('Gateway Architecture', () => {
@@ -33,12 +38,14 @@ describe('Gateway Architecture', () => {
       expect.fail('should have thrown')
     } catch (err) {
       expect(err instanceof GatewayConfigError || (err as Error).message.includes('INVALID_PROVIDER')).toBe(true)
+    } finally {
+      setEnv('AI_PROVIDER', prev)
     }
-    process.env.AI_PROVIDER = prev
   })
 
   it('eksik API key 503 eslenir', async () => {
     const prev = process.env.AI_PROVIDER
+    const prevOpenaiKey = process.env.OPENAI_API_KEY
     process.env.AI_PROVIDER = 'openai'
     delete process.env.OPENAI_API_KEY
     try {
@@ -47,8 +54,10 @@ describe('Gateway Architecture', () => {
       expect.fail('should have thrown')
     } catch (err) {
       expect(err instanceof GatewayConfigError && (err as Error).message.includes('API_KEY_MISSING')).toBe(true)
+    } finally {
+      setEnv('AI_PROVIDER', prev)
+      setEnv('OPENAI_API_KEY', prevOpenaiKey)
     }
-    process.env.AI_PROVIDER = prev
   })
 })
 
@@ -76,7 +85,7 @@ describe('Auto Provider Selection', () => {
   afterAll(() => {
     // Restore originals
     for (const [key, val] of Object.entries(origEnv)) {
-      if (val === undefined) delete process.env[key]
+      if (val === undefined || val === 'undefined') delete process.env[key]
       else process.env[key] = val
     }
   })
@@ -611,6 +620,27 @@ describe('Persistence & Isolation', () => {
 // ─── 8. MENTOR GATEWAY INTEGRATION ─────────────────────────────────────────
 
 describe('Mentor Gateway Integration', () => {
+  const mentorOrigEnv: Record<string, string | undefined> = {}
+
+  beforeAll(() => {
+    for (const key of ['AI_PROVIDER', 'NVIDIA_API_KEY', 'OPENAI_API_KEY', 'DEEPSEEK_API_KEY']) {
+      mentorOrigEnv[key] = process.env[key]
+    }
+  })
+
+  beforeEach(() => {
+    // Use explicit NVIDIA provider for all integration tests so they never rely
+    // on the outer .env or on auto-selection state left by other tests.
+    process.env.AI_PROVIDER = 'nvidia'
+  })
+
+  afterEach(() => {
+    for (const [key, val] of Object.entries(mentorOrigEnv)) {
+      if (val === undefined || val === 'undefined') delete process.env[key]
+      else process.env[key] = val
+    }
+  })
+
   it('mentor routes gecersiz provider icin 503 doner', () => {
     const err = new GatewayConfigError('MENTOR_API_KEY_MISSING:test')
     expect(err.message).toContain('API_KEY_MISSING')

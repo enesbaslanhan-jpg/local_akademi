@@ -4,8 +4,17 @@ import bcrypt from 'bcryptjs'
 import { validateEmail, validateName, validatePassword } from '../scripts/admin-bootstrap'
 import { bootstrap } from '../scripts/admin-bootstrap'
 
-const BOOTSTRAP_DB_URL = process.env.DATABASE_URL
-  || 'postgresql://localakademi:localakademi@127.0.0.1:5432/localakademi_test?schema=public'
+const BASE_DATABASE_URL = process.env.DATABASE_URL
+  || 'postgresql://localakademi:localakademi@127.0.0.1:5432/localakademi?schema=public'
+
+// Isolate admin-bootstrap tests in a unique Postgres schema so that other tests'
+// leftover admin records never cause `admin_exists` failures.
+const SCHEMA_NAME = `bootstrap_test_${process.pid}_${Date.now().toString(36)}`
+const BOOTSTRAP_DB_URL = (() => {
+  const url = new URL(BASE_DATABASE_URL)
+  url.searchParams.set('schema', SCHEMA_NAME)
+  return url.toString()
+})()
 
 const prisma = new PrismaClient({
   datasources: { db: { url: BOOTSTRAP_DB_URL } }
@@ -13,7 +22,15 @@ const prisma = new PrismaClient({
 const TEST_PREFIX = 'bootstrap-test'
 
 beforeAll(async () => {
-  // Apply migrations to the bootstrap test DB
+  // Create the isolated schema using a connection to the base database.
+  const tempPrisma = new PrismaClient({
+    datasources: { db: { url: BASE_DATABASE_URL } }
+  })
+  await tempPrisma.$connect()
+  await tempPrisma.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${SCHEMA_NAME}"`)
+  await tempPrisma.$disconnect()
+
+  // Apply migrations to the isolated schema.
   const { execSync } = await import('child_process')
   try {
     execSync('npx prisma migrate deploy --schema prisma/schema.prisma', {
@@ -36,6 +53,13 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await prisma.$disconnect()
+
+  const tempPrisma = new PrismaClient({
+    datasources: { db: { url: BASE_DATABASE_URL } }
+  })
+  await tempPrisma.$connect()
+  await tempPrisma.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${SCHEMA_NAME}" CASCADE`)
+  await tempPrisma.$disconnect()
 })
 
 beforeEach(async () => {
