@@ -81,6 +81,7 @@
     "reviewer:eval": "tsx scripts/evaluate-ai-reviewer.ts",
     "reviewer:eval:ollama": "node --env-file=.env --import tsx scripts/generate-ollama-reviewer-predictions.ts",
     "reviewer:pilot:status": "node --env-file=.env --import tsx scripts/report-ai-reviewer-pilot.ts",
+    "benchmark:mentor": "node --env-file=.env --import tsx scripts/benchmark-mentor.ts",
     "rag:embeddings:index": "node --env-file=.env --import tsx scripts/index-knowledge-embeddings.ts",
     "rag:embeddings:verify": "node --env-file=.env --import tsx scripts/verify-semantic-index.ts",
     "rag:eval:hybrid": "node --env-file=.env --import tsx scripts/evaluate-hybrid-retrieval.ts",

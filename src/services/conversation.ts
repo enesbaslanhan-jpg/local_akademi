@@ -18,6 +18,7 @@ import { buildMemoryContext } from './memory/context-builder'
 import { streamSlotManager } from './stream-manager'
 import { extractAndStoreMemories, buildExtractionPrompt } from './memory/memory-extractor'
 import { updateConversationSummary } from './memory/summary-service'
+import { getGlobalMentorTelemetryCollector } from './mentor-telemetry'
 
 const MAX_TITLE_LENGTH = 120
 const MAX_MESSAGE_LENGTH = 8000
@@ -94,6 +95,25 @@ function safeJsonParse(value: string | null | undefined): unknown {
 function safeJsonStringify(value: unknown): string | null {
   if (value === undefined || value === null) return null
   try { return JSON.stringify(value) } catch { return null }
+}
+
+function makeRequestId(raw: string): string {
+  return raw ? `req-${raw}` : `req-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+function startMentorTelemetry(
+  requestId: string,
+  conversationId: number | undefined,
+  stream: boolean,
+): import('./mentor-telemetry').MentorTelemetrySession | null {
+  const collector = getGlobalMentorTelemetryCollector()
+  if (!collector.isEnabled()) return null
+  return collector.createSession(makeRequestId(requestId), {
+    conversationId,
+    stream,
+    provider: 'unknown',
+    model: 'unknown',
+  })
 }
 
 function toConversationCitation(ko: Citation): Citation {
@@ -366,12 +386,15 @@ export async function conversationRoutes(fastify: FastifyInstance) {
   })
 
   fastify.post('/:id/messages', async (request, reply) => {
+    const requestStart = Date.now()
     const user = request.user
     const { id } = request.params as { id: string }
     const { message, knowledgeObjectCode: rawCode } = request.body as { message: string; knowledgeObjectCode?: string }
 
     const convId = parseId(id)
     if (!convId) return reply.status(400).send(validationError('VALIDATION_ERROR', 'Geçersiz sohbet ID'))
+
+    const telemetry = startMentorTelemetry(request.id, convId, false)
 
     const cleanMessage = message?.trim() || ''
     if (!cleanMessage) {
@@ -394,7 +417,9 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       return reply.status(422).send(validationError('VALIDATION_ERROR', 'Arşivlenmiş sohbete mesaj gönderilemez'))
     }
 
+    telemetry?.startStage('retrieval')
     const resolvedContext = await resolveKnowledgeContext(cleanMessage, knowledgeObjectCode)
+    telemetry?.endStage('retrieval', 'retrievalDurationMs')
     if (knowledgeObjectCode && !resolvedContext.selected) {
       return reply.status(404).send(validationError('NOT_FOUND', 'Knowledge object not found'))
     }
@@ -429,8 +454,11 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       }
     }
 
+    telemetry?.startStage('contextBuild')
     const { chatMessages, systemMessage, knowledgeObjects } = await buildContext(convId, user, cleanMessage, resolvedContext)
+    telemetry?.endStage('contextBuild', 'contextBuildDurationMs')
 
+    telemetry?.startStage('memory')
     const memCtx = await buildMemoryContext({
       prisma,
       userId: user.id,
@@ -441,12 +469,24 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       recentMessages: chatMessages,
       systemPrompt: systemMessage.content
     })
+    telemetry?.endStage('memory', 'memoryDurationMs')
+
+    telemetry?.setCounts(knowledgeObjects, !!resolvedContext.selected, memCtx.usedMemoryIds)
+    telemetry?.setPromptMetrics(memCtx.systemMessages)
 
     let result: { content: string; usage: TokenUsage; provider: AiProvider; model: string; citations?: { id: number; title: string; code: string | null; category: { name: string } | null }[] }
     try {
+      telemetry?.startStage('provider')
       result = await callAiProviderWithRetry(memCtx.systemMessages, knowledgeObjects)
+      telemetry?.endStage('provider', 'providerDurationMs')
     } catch (error: unknown) {
+      telemetry?.endStage('provider', 'providerDurationMs')
       const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+      const isTimeout = errorMsg.includes('TIMEOUT')
+      telemetry?.setError('AI_PROVIDER_ERROR', { timeout: isTimeout })
+      telemetry?.set('provider', 'unknown')
+      telemetry?.set('model', 'unknown')
+      telemetry?.emit(Date.now() - requestStart)
       const assistantMsg = await prisma.conversationMessage.create({
         data: { conversationId: convId, role: 'assistant', content: '', error: errorMsg, generationStatus: 'failed' }
       })
@@ -469,6 +509,11 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       }
     }
 
+    telemetry?.set('provider', result.provider)
+    telemetry?.set('model', result.model)
+    telemetry?.setResponseMetrics(result.content)
+
+    telemetry?.startStage('persistence')
     const assistantMsg = await prisma.conversationMessage.create({
       data: {
         conversationId: convId, role: 'assistant', content: result.content,
@@ -479,6 +524,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
           : null
       }
     })
+    telemetry?.endStage('persistence', 'persistenceDurationMs')
 
     const now = new Date()
     const updateData: Record<string, unknown> = {
@@ -492,6 +538,8 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       where: { id: convId },
       data: updateData as any
     })
+
+    telemetry?.emit(Date.now() - requestStart)
 
     if (result.content) {
       runBackgroundMemoryExtraction(
@@ -515,12 +563,15 @@ export async function conversationRoutes(fastify: FastifyInstance) {
   })
 
   fastify.post('/:id/messages/stream', async (request, reply) => {
+    const requestStart = Date.now()
     const user = request.user
     const { id } = request.params as { id: string }
     const { message, knowledgeObjectCode: rawCode } = request.body as { message: string; knowledgeObjectCode?: string }
 
     const convId = parseId(id)
     if (!convId) return reply.status(400).send(validationError('VALIDATION_ERROR', 'Geçersiz sohbet ID'))
+
+    const telemetry = startMentorTelemetry(request.id, convId, true)
 
     const cleanMessage = message?.trim() || ''
     if (!cleanMessage) {
@@ -543,7 +594,9 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       return reply.status(422).send(validationError('VALIDATION_ERROR', 'Arşivlenmiş sohbete mesaj gönderilemez'))
     }
 
+    telemetry?.startStage('retrieval')
     const resolvedContext = await resolveKnowledgeContext(cleanMessage, knowledgeObjectCode)
+    telemetry?.endStage('retrieval', 'retrievalDurationMs')
     if (knowledgeObjectCode && !resolvedContext.selected) {
       return reply.status(404).send(validationError('NOT_FOUND', 'Knowledge object not found'))
     }
@@ -628,6 +681,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     }
     reply.raw.on('close', onRequestClose)
 
+    telemetry?.startStage('contextBuild')
     const dbUserProfile = await prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } })
     const knowledgeObjects = resolvedContext.knowledgeObjects
     const knowledgeContext = resolvedContext.knowledgeContext
@@ -653,7 +707,9 @@ export async function conversationRoutes(fastify: FastifyInstance) {
         return true
       })
       .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
+    telemetry?.endStage('contextBuild', 'contextBuildDurationMs')
 
+    telemetry?.startStage('memory')
     const memCtx = await buildMemoryContext({
       prisma,
       userId: user.id,
@@ -664,14 +720,21 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       recentMessages: chatMessages,
       systemPrompt: baseSystemPrompt
     })
+    telemetry?.endStage('memory', 'memoryDurationMs')
     const systemMessages = memCtx.systemMessages
+
+    telemetry?.setCounts(knowledgeObjects, !!resolvedContext.selected, memCtx.usedMemoryIds)
+    telemetry?.setPromptMetrics(systemMessages)
 
     let assistantContent = ''
     let assistantId: number | null = null
     let finalProvider = ''
     let finalModel = ''
+    let firstTokenReported = false
 
     try {
+      telemetry?.startStage('provider')
+      const providerStartTime = Date.now()
       const stream = streamAiResponse(systemMessages, abortController.signal, knowledgeObjects)
       for await (const event of stream) {
         if (finalized) break
@@ -680,14 +743,24 @@ export async function conversationRoutes(fastify: FastifyInstance) {
           finalModel = event.model
           sendSSE(reply, 'provider', { type: 'provider', provider: event.provider, model: event.model })
         } else if (event.type === 'delta') {
+          if (!firstTokenReported) {
+            telemetry?.set('firstTokenMs', Date.now() - providerStartTime)
+            firstTokenReported = true
+          }
           assistantContent += event.delta
           sendSSE(reply, 'delta', { type: 'delta', delta: event.delta })
         } else if (event.type === 'done') {
           if (finalized) break
           finalized = true
+          telemetry?.endStage('provider', 'providerDurationMs')
           reply.raw.removeListener('close', onRequestClose)
 
+          telemetry?.set('provider', finalProvider)
+          telemetry?.set('model', finalModel)
+          telemetry?.setResponseMetrics(assistantContent)
+
           const citations = event.knowledgeObjects
+          telemetry?.startStage('persistence')
           const assistantMsg = await prisma.conversationMessage.create({
             data: {
               conversationId: convId, role: 'assistant', content: assistantContent,
@@ -698,6 +771,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
                 : null
             }
           })
+          telemetry?.endStage('persistence', 'persistenceDurationMs')
           assistantId = assistantMsg.id
 
           const now3 = new Date()
@@ -730,7 +804,13 @@ export async function conversationRoutes(fastify: FastifyInstance) {
 
       if (!finalized) {
         finalized = true
+        telemetry?.endStage('provider', 'providerDurationMs')
         reply.raw.removeListener('close', onRequestClose)
+
+        telemetry?.set('provider', finalProvider || 'unknown')
+        telemetry?.set('model', finalModel || 'unknown')
+        telemetry?.setResponseMetrics(assistantContent)
+        telemetry?.setError('GENERATION_CANCELLED', { aborted: true })
 
         const assistantMsg = await prisma.conversationMessage.create({
           data: {
@@ -761,11 +841,20 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     } catch (err: unknown) {
       if (finalized) return
       finalized = true
+      telemetry?.endStage('provider', 'providerDurationMs')
       reply.raw.removeListener('close', onRequestClose)
 
       const errorMsg = err instanceof Error ? err.message : 'Unknown error'
+      const isAbort = errorMsg === 'MENTOR_STREAM_ABORTED'
+      telemetry?.set('provider', finalProvider || 'unknown')
+      telemetry?.set('model', finalModel || 'unknown')
+      telemetry?.setResponseMetrics(assistantContent)
+      telemetry?.setError('AI_PROVIDER_ERROR', {
+        timeout: errorMsg.includes('TIMEOUT'),
+        aborted: isAbort,
+      })
 
-      if (errorMsg === 'MENTOR_STREAM_ABORTED') {
+      if (isAbort) {
         const assistantMsg = await prisma.conversationMessage.create({
           data: {
             conversationId: convId, role: 'assistant', content: assistantContent,
@@ -812,6 +901,8 @@ export async function conversationRoutes(fastify: FastifyInstance) {
         })
       }
     }
+
+    telemetry?.emit(Date.now() - requestStart)
 
     if (finalized && assistantId && assistantContent) {
       runBackgroundMemoryExtraction(

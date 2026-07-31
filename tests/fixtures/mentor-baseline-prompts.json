@@ -1,0 +1,37 @@
+[
+  { "id": "A1", "category": "greeting", "text": "Merhaba" },
+  { "id": "A2", "category": "greeting", "text": "Nasılsın?" },
+  { "id": "A3", "category": "greeting", "text": "Bana kısa cevap ver" },
+  { "id": "A4", "category": "greeting", "text": "Teşekkürler" },
+  { "id": "A5", "category": "greeting", "text": "Önceki cevabı özetle" },
+
+  { "id": "B1", "category": "technical", "text": "Hangi modelle çalışıyorsun?" },
+  { "id": "B2", "category": "technical", "text": "Ollama mı NVIDIA mı kullanıyorsun?" },
+  { "id": "B3", "category": "technical", "text": "Teknik AI sağlayıcını söyle" },
+  { "id": "B4", "category": "technical", "text": "Yerel model misin?" },
+  { "id": "B5", "category": "technical", "text": "İnternet olmadan çalışabilir misin?" },
+
+  { "id": "C1", "category": "business", "text": "Gelir modeli nasıl oluşturulur?" },
+  { "id": "C2", "category": "business", "text": "İş modeli Canvas nedir?" },
+  { "id": "C3", "category": "business", "text": "Müşteri segmenti nasıl belirlenir?" },
+  { "id": "C4", "category": "business", "text": "Sabit ve değişken maliyet farkı nedir?" },
+  { "id": "C5", "category": "business", "text": "Değer önerisi nasıl hazırlanır?" },
+
+  { "id": "D1", "category": "financial", "text": "Ciro ile kâr arasındaki fark nedir?" },
+  { "id": "D2", "category": "financial", "text": "Brüt kâr nasıl hesaplanır?" },
+  { "id": "D3", "category": "financial", "text": "Cari oran ne anlatır?" },
+  { "id": "D4", "category": "financial", "text": "Başabaş noktası nasıl bulunur?" },
+  { "id": "D5", "category": "financial", "text": "Nakit akışı neden önemlidir?" },
+
+  { "id": "E1", "category": "tax_legal", "text": "Şahıs işletmesi hangi vergileri öder?" },
+  { "id": "E2", "category": "tax_legal", "text": "KDV nedir?" },
+  { "id": "E3", "category": "tax_legal", "text": "Fatura kesmem gerekir mi?" },
+  { "id": "E4", "category": "tax_legal", "text": "Vergi levhası nasıl alınır?" },
+  { "id": "E5", "category": "tax_legal", "text": "Mali müşavire ne zaman ihtiyaç duyarım?" },
+
+  { "id": "F1", "category": "noisy", "text": "model ne" },
+  { "id": "F2", "category": "noisy", "text": "gelr modli anlat" },
+  { "id": "F3", "category": "noisy", "text": "bu nasıl oluyo" },
+  { "id": "F4", "category": "noisy", "text": "hangisi daha iyi" },
+  { "id": "F5", "category": "noisy", "text": "bana uygun olan ne" }
+]

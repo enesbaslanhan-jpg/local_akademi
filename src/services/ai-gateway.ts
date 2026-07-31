@@ -21,6 +21,7 @@ import {
   type ReviewerProviderResult,
   type ReviewerTransport,
 } from './ai-reviewer'
+import { getGlobalMentorTelemetryCollector } from './mentor-telemetry'
 
 export interface Citation {
   id: number
@@ -371,6 +372,10 @@ async function runGatewayShadowReview(params: {
   )
   if (outcome.status !== 'disabled') {
     recordAiReviewerOutcome(outcome, params.riskLevel)
+    getGlobalMentorTelemetryCollector().recordReviewerDuration(
+      params.requestId,
+      outcome.latencyMs,
+    )
     void persistReviewerTelemetry(
       telemetryEventFromOutcome(
         outcome,
