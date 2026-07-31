@@ -1,8 +1,15 @@
 import { prisma } from '../lib/prisma.js'
-import { createKnowledgeRetriever, formatKnowledgeContext as retrievalFormatContext } from './retrieval/index.js'
+import { createKnowledgeRetriever, formatKnowledgeContextForIntent } from './retrieval/index.js'
 import type { KnowledgeObjectResult } from './retrieval/types.js'
 import type { Citation } from './ai-gateway.js'
 import type { ReviewerEvidence } from './ai-reviewer/index.js'
+import type { MentorIntent } from './mentor-intent.js'
+import {
+  applyRelevanceGate,
+  buildCitations,
+  shouldFetchSelectedKnowledgeObject,
+  shouldRunKnowledgeRetrieval,
+} from './mentor-rag-gate.js'
 
 const retriever = createKnowledgeRetriever(prisma)
 
@@ -39,9 +46,17 @@ function toReviewerEvidence(
   }))
 }
 
+export interface ProviderCallOptions {
+  skipOutputReview?: boolean
+  skipInputReview?: boolean
+  skipMasking?: boolean
+  reviewerEvidence?: ReviewerEvidence[]
+}
+
 export async function callAiProviderWithRetry(
   messages: ChatMessage[],
   knowledgeObjects?: KnowledgeObjectResult[],
+  options: ProviderCallOptions = {},
 ): Promise<{ content: string; usage: TokenUsage; provider: AiProvider; model: string; citations?: Citation[] }> {
   const { generateCompletion } = await import('./ai-gateway.js')
   const citations: Citation[] | undefined = knowledgeObjects?.map(ko => ({
@@ -53,11 +68,11 @@ export async function callAiProviderWithRetry(
   }))
   const result = await generateCompletion({
     messages,
-    skipMasking: false,
-    skipInputReview: false,
-    skipOutputReview: false,
+    skipMasking: options.skipMasking ?? false,
+    skipInputReview: options.skipInputReview ?? false,
+    skipOutputReview: options.skipOutputReview ?? false,
     knowledgeObjects: citations,
-    reviewerEvidence: toReviewerEvidence(knowledgeObjects),
+    reviewerEvidence: options.reviewerEvidence ?? toReviewerEvidence(knowledgeObjects),
   })
   return {
     content: result.content,
@@ -72,6 +87,7 @@ export async function* streamAiResponse(
   messages: ChatMessage[],
   abortSignal?: AbortSignal,
   knowledgeObjects?: KnowledgeObjectResult[],
+  options: ProviderCallOptions = {},
 ): AsyncGenerator<AiStreamEvent> {
   const { generateStream } = await import('./ai-gateway.js')
   const citations: Citation[] | undefined = knowledgeObjects?.map(ko => ({
@@ -85,11 +101,11 @@ export async function* streamAiResponse(
   const stream = generateStream({
     messages,
     abortSignal,
-    skipMasking: false,
-    skipInputReview: false,
-    skipOutputReview: false,
+    skipMasking: options.skipMasking ?? false,
+    skipInputReview: options.skipInputReview ?? false,
+    skipOutputReview: options.skipOutputReview ?? false,
     knowledgeObjects: citations,
-    reviewerEvidence: toReviewerEvidence(knowledgeObjects),
+    reviewerEvidence: options.reviewerEvidence ?? toReviewerEvidence(knowledgeObjects),
   })
 
   for await (const event of stream) {
@@ -174,7 +190,7 @@ export async function getRelevantKnowledgeObjects(query: string): Promise<Knowle
 }
 
 export function formatKnowledgeContext(kos: KnowledgeObjectResult[]): string {
-  return retrievalFormatContext(kos)
+  return formatKnowledgeContextForIntent(kos, 'default')
 }
 
 function toKnowledgeObjectResult(ko: any): KnowledgeObjectResult {
@@ -184,8 +200,10 @@ function toKnowledgeObjectResult(ko: any): KnowledgeObjectResult {
     code: ko.code,
     content: ko.content,
     summary: ko.summary,
+    quickAnswer: ko.quickAnswer,
     category: ko.category,
-    score: 0,
+    score: 1,
+    confidence: 1,
     matchedTerms: ['selected:explicit'],
     sourceRefs: ko.sources.map((s: any) => ({
       sourceId: s.source.id,
@@ -220,7 +238,8 @@ export async function fetchSelectedKnowledgeObject(code: string): Promise<Knowle
 
 export async function resolveKnowledgeContext(
   message: string,
-  knowledgeObjectCode?: string
+  knowledgeObjectCode?: string,
+  intent: MentorIntent = 'general_chat',
 ): Promise<{
   selected: KnowledgeObjectResult | null
   knowledgeObjects: KnowledgeObjectResult[]
@@ -228,43 +247,66 @@ export async function resolveKnowledgeContext(
   koTitle: string | undefined
   selectedKOTitle: string | undefined
 }> {
+  const runRetrieval = shouldRunKnowledgeRetrieval(intent)
+  const selectedPromise = shouldFetchSelectedKnowledgeObject(intent, knowledgeObjectCode)
+    ? fetchSelectedKnowledgeObject(knowledgeObjectCode!)
+    : Promise.resolve(null)
+
   const [selected, retrieved] = await Promise.all([
-    knowledgeObjectCode ? fetchSelectedKnowledgeObject(knowledgeObjectCode) : Promise.resolve(null),
-    getRelevantKnowledgeObjects(message)
+    selectedPromise,
+    runRetrieval ? getRelevantKnowledgeObjects(message) : Promise.resolve([])
   ])
 
+  const merged: KnowledgeObjectResult[] = []
   const seenIds = new Set<number>()
-  const knowledgeObjects: KnowledgeObjectResult[] = []
 
   if (selected) {
-    knowledgeObjects.push(selected)
+    merged.push(selected)
     seenIds.add(selected.id)
   }
 
   for (const ko of retrieved) {
     if (!seenIds.has(ko.id)) {
-      knowledgeObjects.push(ko)
+      merged.push(ko)
       seenIds.add(ko.id)
     }
   }
 
-  const knowledgeContext = formatKnowledgeContext(knowledgeObjects)
+  const { accepted, rejected } = applyRelevanceGate(merged, intent)
+  const knowledgeObjects = buildCitations(accepted, intent)
+
+  const knowledgeContext = formatKnowledgeContextForIntent(knowledgeObjects, intent)
   const selectedKOTitle = selected ? selected.title : undefined
   const koTitle = selectedKOTitle || (knowledgeObjects.length > 0 ? knowledgeObjects[0].title : undefined)
 
   return { selected, knowledgeObjects, knowledgeContext, koTitle, selectedKOTitle }
 }
 
+export async function resolveKnowledgeContextLegacy(
+  message: string,
+  knowledgeObjectCode?: string
+): Promise<ReturnType<typeof resolveKnowledgeContext>> {
+  return resolveKnowledgeContext(message, knowledgeObjectCode, 'general_chat')
+}
+
 export function buildSystemPrompt(
   user: { name: string; role: string },
   knowledgeContext: string,
   koTitle?: string,
-  selectedKOTitle?: string
+  selectedKOTitle?: string,
+  intent: MentorIntent = 'general_chat',
 ): string {
   let prompt = `Sen LocalAkademi'nin KOBİ, esnaf ve girişimcilere destek veren yapay zeka iş mentorusun.
 
+Dil kuralları:
+- Kullanıcı Türkçe yazıyorsa doğal ve tutarlı TürkÇE kullan.
+- Yerleşik teknik terimler dışında gereksiz yabancı kelime kullanma.
+- Fransızca/İngilizce karışımı oluşturma.
+- Kullanıcının sorduğu kadar ayrıntı ver.
+- Basit soruya kısa cevap ver.
+- Bilmediğin sistem özelliğini uydurma.
+
 Kurallar:
-- Her zaman TÜRKÇE cevap ver. Sadece teknik terimler İngilizce olabilir.
 - Kullanıcının seviyesine uygun cevap ver (${user.role}).
 - Uygulanabilir, düşük bütçeli ve ölçülebilir öneriler sun.
 - Kesin bilmediğin bir konuda "Bilmiyorum" de, uydurma.
@@ -279,7 +321,7 @@ Kurallar:
 - Finansal oran, değerleme veya senaryo hesabını kendin üretme. Yalnızca deterministik Model Laboratuvarı sonucunu açıkla.
 - Model çalışma bloğundaki girdileri, çıktıları, sürümü, kontrolleri ve hesap izini değiştirme. Kayıt yoksa uygun modeli öner ve kullanıcıyı Model Laboratuvarına yönlendir.
 - Güven puanını istatistiksel doğruluk olasılığı gibi sunma; bunun veri tamlığı, güncellik, kaynak ve doğrulama bileşenlerinden oluşan bir kullanılabilirlik göstergesi olduğunu belirt.
-- Finansal model çıktılarının karar desteği olduğunu, yatırım veya kredi tavsiyesi olmadığını açıkça koru.
+- Finansal model çıktılarının karar desteği olduğunu, sermaye tahsisi veya kredi önerisi niteliği taşımadığını açıkça belirt.
 
 Kullanıcı: ${user.name}
 Rol: ${user.role}`

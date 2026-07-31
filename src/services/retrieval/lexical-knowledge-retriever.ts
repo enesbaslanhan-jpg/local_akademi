@@ -38,6 +38,7 @@ interface ScorableKo {
   title: string
   content: string
   summary: string | null
+  quickAnswer: string | null
   verificationStatus: string
   category: { name: string } | null
   sources: Array<{
@@ -208,8 +209,10 @@ function scoreAndRank(
     code: s.ko.code,
     content: s.ko.content,
     summary: s.ko.summary,
+    quickAnswer: s.ko.quickAnswer,
     category: s.ko.category,
     score: s.score,
+    confidence: Math.min(s.score / 100, 1),
     matchedTerms: Array.from(s.matchedTerms).sort(),
     sourceRefs: s.sourceRefs,
   }))

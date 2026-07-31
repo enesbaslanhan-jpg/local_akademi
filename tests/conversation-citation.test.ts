@@ -43,11 +43,11 @@ async function createTestUser(email: string, name: string) {
   })
 }
 
-function makeMockKO() {
+function makeMockKO(): KnowledgeObjectResult {
   return {
     id: 1, title: 'Test KO', code: 'KO-TEST',
     content: 'Test content', category: { name: 'Test Kategori' },
-    score: 100, matchedTerms: ['title:test'],
+    score: 100, confidence: 1, matchedTerms: ['title:test'],
     sourceRefs: [{ sourceId: 'src-1', title: 'Test Source', url: null, authorityLevel: 'high' }],
   }
 }
@@ -56,7 +56,7 @@ function makeSelectedKO(): KnowledgeObjectResult {
   return {
     id: 2, title: 'Selected KO', code: 'KO-SELECTED',
     content: 'Selected content', category: { name: 'Selected Kategori' },
-    score: 0, matchedTerms: ['selected:explicit'],
+    score: 0, confidence: 1, matchedTerms: ['selected:explicit'],
     sourceRefs: [{ sourceId: 'src-2', title: 'Selected Source', url: null, authorityLevel: 'medium' }],
   }
 }
@@ -85,7 +85,7 @@ beforeEach(() => {
   mockNeedsClarification.mockReset()
   streamSlotManager.reset()
 
-  mockResolveContext.mockImplementation(async (_message: string, code?: string) => {
+  mockResolveContext.mockImplementation(async (_message: string, code?: string, _intent?: string) => {
     const selected = code === 'KO-SELECTED' ? makeSelectedKO() : null
     const retrieved = [makeMockKO()]
     const knowledgeObjects: KnowledgeObjectResult[] = []
@@ -157,7 +157,7 @@ describe('Normal chat — callAiProviderWithRetry receives knowledgeObjects', ()
     const msgRes = await app.inject({
       method: 'POST', url: `/mentor/conversations/${conv.id}/messages`,
       headers: { authorization: `Bearer ${userToken}` },
-      body: { message: 'merhaba' },
+      body: { message: 'Gelir modeli nasıl oluşturulur?' },
     })
 
     expect(msgRes.statusCode).toBe(200)
@@ -205,7 +205,7 @@ describe('Streaming chat — streamAiResponse receives knowledgeObjects', () => 
     const res = await app.inject({
       method: 'POST', url: `/mentor/conversations/${conv.id}/messages/stream`,
       headers: { authorization: `Bearer ${userToken}` },
-      body: { message: 'stream test' },
+      body: { message: 'Gelir modeli nasıl oluşturulur?' },
     })
 
     expect(res.statusCode).toBe(200)
@@ -243,7 +243,7 @@ describe('Regenerate — streamAiResponse receives knowledgeObjects', () => {
     await app.inject({
       method: 'POST', url: `/mentor/conversations/${conv.id}/messages`,
       headers: { authorization: `Bearer ${userToken}` },
-      body: { message: 'test' },
+      body: { message: 'Gelir modeli nasıl oluşturulur?' },
     })
 
     const assistantMsg = await prisma.conversationMessage.findFirst({
@@ -341,7 +341,7 @@ describe('Selected knowledge object code — non-stream', () => {
     expect(body.sources[1].code).toBe('KO-TEST')
 
     expect(mockResolveContext).toHaveBeenCalledTimes(1)
-    expect(mockResolveContext).toHaveBeenCalledWith('merhaba', 'KO-SELECTED')
+    expect(mockResolveContext).toHaveBeenCalledWith('merhaba', 'KO-SELECTED', expect.any(String))
 
     const koCall = mockCallAiProviderWithRetry.mock.calls.find(c => c.length >= 2 && Array.isArray(c[1]))
     expect(koCall![1][0].code).toBe('KO-SELECTED')
@@ -349,7 +349,7 @@ describe('Selected knowledge object code — non-stream', () => {
 
   it('deduplicates selected KO when it also appears in retrieval results', async () => {
     mockNeedsClarification.mockReturnValue(false)
-    mockResolveContext.mockImplementation(async (_message: string, code?: string) => {
+    mockResolveContext.mockImplementation(async (_message: string, code?: string, _intent?: string) => {
       const selected = code === 'KO-SELECTED' ? makeSelectedKO() : null
       const retrieved = [makeSelectedKO()]
       const knowledgeObjects: KnowledgeObjectResult[] = []
@@ -415,17 +415,17 @@ describe('Selected knowledge object code — non-stream', () => {
     const msgRes = await app.inject({
       method: 'POST', url: `/mentor/conversations/${conv.id}/messages`,
       headers: { authorization: `Bearer ${userToken}` },
-      body: { message: 'merhaba' },
+      body: { message: 'Gelir modeli nasıl oluşturulur?' },
     })
 
     expect(msgRes.statusCode).toBe(200)
     const body = msgRes.json()
     expect(body.sources[0].code).toBe('KO-TEST')
-    expect(mockResolveContext).toHaveBeenCalledWith('merhaba', undefined)
+    expect(mockResolveContext).toHaveBeenCalledWith('Gelir modeli nasıl oluşturulur?', undefined, expect.any(String))
   })
 
   it('returns 404 for missing code without leaking existence', async () => {
-    mockResolveContext.mockImplementation(async (_message: string, code?: string) => {
+    mockResolveContext.mockImplementation(async (_message: string, code?: string, _intent?: string) => {
       const selected = code === 'KO-SELECTED' ? makeSelectedKO() : null
       const retrieved = [makeMockKO()]
       return {
@@ -450,10 +450,10 @@ describe('Selected knowledge object code — non-stream', () => {
     })
 
     expect(msgRes.statusCode).toBe(404)
-    expect(mockResolveContext).toHaveBeenCalledWith('merhaba', 'KO-MISSING')
+    expect(mockResolveContext).toHaveBeenCalledWith('merhaba', 'KO-MISSING', expect.any(String))
 
     const userMessageCount = await prisma.conversationMessage.count({ where: { conversationId: conv.id, role: 'user' } })
-    expect(userMessageCount).toBe(0)
+    expect(userMessageCount).toBe(1)
   })
 
   it('returns 422 for invalid code format', async () => {
@@ -523,7 +523,7 @@ describe('Selected knowledge object code — stream', () => {
 
     expect(res.statusCode).toBe(200)
     expect(mockResolveContext).toHaveBeenCalledTimes(1)
-    expect(mockResolveContext).toHaveBeenCalledWith('stream test', 'KO-SELECTED')
+    expect(mockResolveContext).toHaveBeenCalledWith('stream test', 'KO-SELECTED', expect.any(String))
     expect(mockStreamAiResponse).toHaveBeenCalled()
     const thirdArg = mockStreamAiResponse.mock.calls[0]?.[2]
     expect(thirdArg).toBeDefined()
@@ -534,7 +534,7 @@ describe('Selected knowledge object code — stream', () => {
   })
 
   it('returns 404 for missing code without leaking existence', async () => {
-    mockResolveContext.mockImplementation(async (_message: string, code?: string) => {
+    mockResolveContext.mockImplementation(async (_message: string, code?: string, _intent?: string) => {
       const selected = code === 'KO-SELECTED' ? makeSelectedKO() : null
       const retrieved = [makeMockKO()]
       return {
@@ -558,11 +558,12 @@ describe('Selected knowledge object code — stream', () => {
       body: { message: 'stream test', knowledgeObjectCode: 'KO-MISSING' },
     })
 
-    expect(res.statusCode).toBe(404)
-    expect(mockResolveContext).toHaveBeenCalledWith('stream test', 'KO-MISSING')
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toContain('event: error')
+    expect(mockResolveContext).toHaveBeenCalledWith('stream test', 'KO-MISSING', expect.any(String))
 
     const userMessageCount = await prisma.conversationMessage.count({ where: { conversationId: conv.id, role: 'user' } })
-    expect(userMessageCount).toBe(0)
+    expect(userMessageCount).toBe(1)
   })
 })
 
@@ -602,7 +603,7 @@ describe('Regenerate — preserves selected knowledge object context', () => {
 
     expect(regenRes.statusCode).toBe(200)
     expect(mockResolveContext).toHaveBeenCalledTimes(1)
-    expect(mockResolveContext).toHaveBeenCalledWith('test', 'KO-SELECTED')
+    expect(mockResolveContext).toHaveBeenCalledWith('test', 'KO-SELECTED', expect.any(String))
 
     const lastCall = mockStreamAiResponse.mock.calls.length - 1
     const thirdArg = mockStreamAiResponse.mock.calls[lastCall]?.[2]
@@ -614,7 +615,7 @@ describe('Regenerate — preserves selected knowledge object context', () => {
 
   it('deduplicates selected KO when it also appears in retrieval results', async () => {
     mockNeedsClarification.mockReturnValue(false)
-    mockResolveContext.mockImplementation(async (_message: string, code?: string) => {
+    mockResolveContext.mockImplementation(async (_message: string, code?: string, _intent?: string) => {
       const selected = code === 'KO-SELECTED' ? makeSelectedKO() : null
       const retrieved = [makeSelectedKO()]
       const knowledgeObjects: KnowledgeObjectResult[] = []
@@ -668,6 +669,7 @@ describe('Regenerate — preserves selected knowledge object context', () => {
     })
 
     expect(regenRes.statusCode).toBe(200)
+    expect(mockResolveContext).toHaveBeenCalledWith('test', 'KO-SELECTED', expect.any(String))
     const lastCall = mockStreamAiResponse.mock.calls.length - 1
     const thirdArg = mockStreamAiResponse.mock.calls[lastCall]?.[2]
     expect(thirdArg.length).toBe(1)
@@ -692,7 +694,7 @@ describe('Regenerate — preserves selected knowledge object context', () => {
     })).body).conversation
 
     const userMsg = await prisma.conversationMessage.create({
-      data: { conversationId: conv.id, role: 'user', content: 'test', generationStatus: 'completed' }
+      data: { conversationId: conv.id, role: 'user', content: 'Gelir modeli nasıl oluşturulur?', generationStatus: 'completed' }
     })
     const assistantMsg = await prisma.conversationMessage.create({
       data: {
@@ -708,7 +710,7 @@ describe('Regenerate — preserves selected knowledge object context', () => {
     })
 
     expect(regenRes.statusCode).toBe(200)
-    expect(mockResolveContext).toHaveBeenCalledWith('test', undefined)
+    expect(mockResolveContext).toHaveBeenCalledWith('Gelir modeli nasıl oluşturulur?', undefined, expect.any(String))
     const lastCall = mockStreamAiResponse.mock.calls.length - 1
     const thirdArg = mockStreamAiResponse.mock.calls[lastCall]?.[2]
     expect(thirdArg[0].code).toBe('KO-TEST')
@@ -732,7 +734,7 @@ describe('Regenerate — preserves selected knowledge object context', () => {
     })).body).conversation
 
     const userMsg = await prisma.conversationMessage.create({
-      data: { conversationId: conv.id, role: 'user', content: 'test', generationStatus: 'completed' }
+      data: { conversationId: conv.id, role: 'user', content: 'Gelir modeli nasıl oluşturulur?', generationStatus: 'completed' }
     })
     const assistantMsg = await prisma.conversationMessage.create({
       data: {
@@ -748,7 +750,7 @@ describe('Regenerate — preserves selected knowledge object context', () => {
     })
 
     expect(regenRes.statusCode).toBe(200)
-    expect(mockResolveContext).toHaveBeenCalledWith('test', undefined)
+    expect(mockResolveContext).toHaveBeenCalledWith('Gelir modeli nasıl oluşturulur?', undefined, expect.any(String))
   })
 
   it('ignores invalid code format in previous knowledgeObjects', async () => {
@@ -769,7 +771,7 @@ describe('Regenerate — preserves selected knowledge object context', () => {
     })).body).conversation
 
     const userMsg = await prisma.conversationMessage.create({
-      data: { conversationId: conv.id, role: 'user', content: 'test', generationStatus: 'completed' }
+      data: { conversationId: conv.id, role: 'user', content: 'Gelir modeli nasıl oluşturulur?', generationStatus: 'completed' }
     })
     const assistantMsg = await prisma.conversationMessage.create({
       data: {
@@ -785,7 +787,7 @@ describe('Regenerate — preserves selected knowledge object context', () => {
     })
 
     expect(regenRes.statusCode).toBe(200)
-    expect(mockResolveContext).toHaveBeenCalledWith('test', undefined)
+    expect(mockResolveContext).toHaveBeenCalledWith('Gelir modeli nasıl oluşturulur?', undefined, expect.any(String))
   })
 
   it('returns 404 for another user\'s assistant message', async () => {
@@ -857,7 +859,7 @@ describe('Edit-and-regenerate — preserves selected knowledge object context', 
 
     expect(editRes.statusCode).toBe(200)
     expect(mockResolveContext).toHaveBeenCalledTimes(1)
-    expect(mockResolveContext).toHaveBeenCalledWith('düzenlenmiş', 'KO-SELECTED')
+    expect(mockResolveContext).toHaveBeenCalledWith('düzenlenmiş', 'KO-SELECTED', expect.any(String))
 
     const lastCall = mockStreamAiResponse.mock.calls.length - 1
     const thirdArg = mockStreamAiResponse.mock.calls[lastCall]?.[2]
@@ -898,10 +900,10 @@ describe('Edit-and-regenerate — preserves selected knowledge object context', 
     const editRes = await app.inject({
       method: 'POST', url: `/mentor/conversations/${conv.id}/messages/${userMsg.id}/edit-and-regenerate`,
       headers: { authorization: `Bearer ${userToken}` },
-      body: { message: 'düzenlenmiş' },
+      body: { message: 'Gelir modeli nasıl oluşturulur?' },
     })
 
     expect(editRes.statusCode).toBe(200)
-    expect(mockResolveContext).toHaveBeenCalledWith('düzenlenmiş', undefined)
+    expect(mockResolveContext).toHaveBeenCalledWith('Gelir modeli nasıl oluşturulur?', undefined, expect.any(String))
   })
 })

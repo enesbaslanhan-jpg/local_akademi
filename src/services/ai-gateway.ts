@@ -109,6 +109,29 @@ export function getReviewMaxOutputChars(): number {
   return val
 }
 
+export interface AiRuntimeInfo {
+  provider: string
+  model: string
+  executionType: 'local' | 'cloud' | 'unknown'
+}
+
+export function getActiveAiRuntimeInfo(): AiRuntimeInfo {
+  try {
+    const config = getProviderConfig()
+    return {
+      provider: config.provider,
+      model: config.model,
+      executionType: config.provider === 'ollama' ? 'local' : 'cloud',
+    }
+  } catch {
+    return {
+      provider: 'unknown',
+      model: 'unknown',
+      executionType: 'unknown',
+    }
+  }
+}
+
 function selectAutoProvider(): AiProviderName {
   if (process.env.OLLAMA_API_URL || process.env.OLLAMA_MODEL) return 'ollama'
   if (process.env.NVIDIA_API_KEY) return 'nvidia'

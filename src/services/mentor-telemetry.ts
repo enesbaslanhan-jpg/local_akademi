@@ -16,6 +16,8 @@ export interface MentorTelemetryRecord {
   provider: string
   model: string
   stream: boolean
+  detectedIntent?: string
+  intentConfidence?: number
   totalDurationMs: number
   retrievalDurationMs?: number
   embeddingDurationMs?: number
@@ -30,10 +32,18 @@ export interface MentorTelemetryRecord {
   responseCharacterCount?: number
   estimatedResponseTokens?: number
   retrievedKnowledgeObjectCount: number
+  acceptedKnowledgeObjectCount?: number
+  rejectedKnowledgeObjectCount?: number
   selectedKnowledgeObjectPresent: boolean
   memoryItemCount: number
   citationCount: number
   fallbackOccurred: boolean
+  deterministicResponse?: boolean
+  retrievalRequested?: boolean
+  retrievalSkippedReason?: string
+  disclaimerAttached?: boolean
+  compressedContextCharacters?: number
+  estimatedCompressedContextTokens?: number
   errorCode?: string
   timeout: boolean
   aborted: boolean
@@ -126,6 +136,13 @@ export class MentorTelemetrySession {
     const chars = countChars(messages)
     this.record.promptCharacterCount = chars
     this.record.estimatedPromptTokens = estimateTokens(chars)
+  }
+
+  setCompressedContextMetrics(contextString: string): void {
+    if (!this.collector.isEnabled()) return
+    const chars = contextString.length
+    this.record.compressedContextCharacters = chars
+    this.record.estimatedCompressedContextTokens = estimateTokens(chars)
   }
 
   setResponseMetrics(content: string): void {

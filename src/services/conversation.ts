@@ -9,16 +9,26 @@ import {
   normalizeKnowledgeObjectCode,
   validateKnowledgeObjectCode,
   extractSelectedKnowledgeObjectCode,
-  getRelevantKnowledgeObjects,
-  formatKnowledgeContext,
   needsClarification
 } from './ai-provider'
 import type { Citation } from './ai-gateway'
+import { getActiveAiRuntimeInfo } from './ai-gateway'
 import { buildMemoryContext } from './memory/context-builder'
 import { streamSlotManager } from './stream-manager'
 import { extractAndStoreMemories, buildExtractionPrompt } from './memory/memory-extractor'
 import { updateConversationSummary } from './memory/summary-service'
 import { getGlobalMentorTelemetryCollector } from './mentor-telemetry'
+import { detectMentorIntent } from './mentor-intent'
+import type { MentorIntent, MentorIntentResult } from './mentor-intent'
+import { buildDeterministicResponse, buildPlatformHelpResponse, getStaticDisclaimerForIntent, appendDisclaimer } from './mentor-deterministic-responses'
+import {
+  shouldUseMemory,
+  shouldSkipOutputReview,
+  buildCitations,
+  resolveEffectiveIntent,
+  shouldFetchSelectedKnowledgeObject,
+  shouldRunKnowledgeRetrieval,
+} from './mentor-rag-gate'
 
 const MAX_TITLE_LENGTH = 120
 const MAX_MESSAGE_LENGTH = 8000
@@ -385,6 +395,46 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     return { conversation }
   })
 
+  async function persistDeterministicResponse(
+    convId: number,
+    user: { id: number; email: string; role: string },
+    cleanMessage: string,
+    content: string,
+    conv: { title: string | null },
+    telemetry: ReturnType<typeof startMentorTelemetry>,
+    requestStart: number,
+    options: { intent: MentorIntent; retrievalRequested: boolean; disclaimerAttached: boolean }
+  ) {
+    const assistantMsg = await prisma.conversationMessage.create({
+      data: { conversationId: convId, role: 'assistant', content, generationStatus: 'completed' }
+    })
+    const now = new Date()
+    const updateData: Record<string, unknown> = {
+      lastMessageAt: now, updatedAt: now, provider: 'system', model: 'intent-rule'
+    }
+    if (conv.title === 'Yeni Sohbet') {
+      updateData.title = await generateTitle(cleanMessage)
+    }
+    await prisma.conversation.update({
+      where: { id: convId },
+      data: updateData as any
+    })
+    telemetry?.set('deterministicResponse', true)
+    telemetry?.set('retrievalRequested', options.retrievalRequested)
+    telemetry?.set('disclaimerAttached', options.disclaimerAttached)
+    telemetry?.setResponseMetrics(content)
+    telemetry?.emit(Date.now() - requestStart)
+    runBackgroundSummaryUpdate(convId, user.id, assistantMsg.id)
+    return {
+      messageId: assistantMsg.id,
+      reply: content,
+      usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+      provider: 'system',
+      model: 'intent-rule',
+      sources: []
+    }
+  }
+
   fastify.post('/:id/messages', async (request, reply) => {
     const requestStart = Date.now()
     const user = request.user
@@ -417,12 +467,10 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       return reply.status(422).send(validationError('VALIDATION_ERROR', 'Arşivlenmiş sohbete mesaj gönderilemez'))
     }
 
-    telemetry?.startStage('retrieval')
-    const resolvedContext = await resolveKnowledgeContext(cleanMessage, knowledgeObjectCode)
-    telemetry?.endStage('retrieval', 'retrievalDurationMs')
-    if (knowledgeObjectCode && !resolvedContext.selected) {
-      return reply.status(404).send(validationError('NOT_FOUND', 'Knowledge object not found'))
-    }
+    const intentResult = detectMentorIntent(cleanMessage, { knowledgeObjectCode })
+    const intent = resolveEffectiveIntent(intentResult, !!knowledgeObjectCode)
+    telemetry?.set('detectedIntent', intent)
+    telemetry?.set('intentConfidence', intentResult.confidence)
 
     await prisma.conversationMessage.create({
       data: { conversationId: convId, role: 'user', content: cleanMessage, generationStatus: 'completed' }
@@ -430,54 +478,79 @@ export async function conversationRoutes(fastify: FastifyInstance) {
 
     if (needsClarification(cleanMessage)) {
       const clarification = 'Elbette. Hangi konuda öneri istiyorsun? Örneğin müşteri artırma, sosyal medya, satış, maliyet azaltma veya yeni iş fikri diyebilirsin.'
-      const assistantMsg = await prisma.conversationMessage.create({
-        data: { conversationId: convId, role: 'assistant', content: clarification, generationStatus: 'completed' }
+      return persistDeterministicResponse(convId, user, cleanMessage, clarification, conv, telemetry, requestStart, {
+        intent: 'clarification_needed',
+        retrievalRequested: false,
+        disclaimerAttached: false,
       })
-      const now = new Date()
-      const updateData: Record<string, unknown> = {
-        lastMessageAt: now, updatedAt: now, provider: 'system', model: 'clarification-rule'
+    }
+
+    if (intentResult.responseMode === 'deterministic' || intentResult.responseMode === 'clarification') {
+      let content: string | null = null
+      if (intent === 'greeting') {
+        content = buildDeterministicResponse('greeting', cleanMessage)
+      } else if (intent === 'system_capability') {
+        content = buildDeterministicResponse('system_capability', cleanMessage, getActiveAiRuntimeInfo())
+      } else if (intent === 'clarification_needed') {
+        content = buildDeterministicResponse('clarification_needed', cleanMessage)
+      } else if (intent === 'platform_help') {
+        content = buildPlatformHelpResponse(cleanMessage)
       }
-      if (conv.title === 'Yeni Sohbet') {
-        updateData.title = await generateTitle(cleanMessage)
-      }
-      await prisma.conversation.update({
-        where: { id: convId },
-        data: updateData as any
-      })
-      return {
-        messageId: assistantMsg.id,
-        reply: clarification,
-        usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-        provider: 'system',
-        model: 'clarification-rule',
-        sources: []
+      if (content) {
+        return persistDeterministicResponse(convId, user, cleanMessage, content, conv, telemetry, requestStart, {
+          intent,
+          retrievalRequested: false,
+          disclaimerAttached: false,
+        })
       }
     }
+
+    telemetry?.startStage('retrieval')
+    const resolvedContext = await resolveKnowledgeContext(cleanMessage, knowledgeObjectCode, intent)
+    telemetry?.endStage('retrieval', 'retrievalDurationMs')
+    if (knowledgeObjectCode && !resolvedContext.selected) {
+      return reply.status(404).send(validationError('NOT_FOUND', 'Knowledge object not found'))
+    }
+
+    telemetry?.set('retrievalRequested', shouldRunKnowledgeRetrieval(intent))
+    telemetry?.set('retrievalSkippedReason', shouldRunKnowledgeRetrieval(intent) ? undefined : `intent:${intent}`)
+    telemetry?.set('acceptedKnowledgeObjectCount', resolvedContext.knowledgeObjects.length)
+    const rejectedCount = resolvedContext.selected
+      ? 0
+      : Math.max(0, (resolvedContext.knowledgeObjects.length === 0 ? 0 : resolvedContext.knowledgeObjects.length) - resolvedContext.knowledgeObjects.length)
+    telemetry?.set('rejectedKnowledgeObjectCount', rejectedCount)
 
     telemetry?.startStage('contextBuild')
     const { chatMessages, systemMessage, knowledgeObjects } = await buildContext(convId, user, cleanMessage, resolvedContext)
     telemetry?.endStage('contextBuild', 'contextBuildDurationMs')
 
-    telemetry?.startStage('memory')
-    const memCtx = await buildMemoryContext({
-      prisma,
-      userId: user.id,
-      userEmail: user.email,
-      userRole: user.role,
-      conversationId: convId,
-      userMessage: cleanMessage,
-      recentMessages: chatMessages,
-      systemPrompt: systemMessage.content
-    })
-    telemetry?.endStage('memory', 'memoryDurationMs')
+    let memCtx = { systemMessages: [systemMessage], usedMemoryIds: [] as number[] }
+    if (shouldUseMemory(intent)) {
+      telemetry?.startStage('memory')
+      memCtx = await buildMemoryContext({
+        prisma,
+        userId: user.id,
+        userEmail: user.email,
+        userRole: user.role,
+        conversationId: convId,
+        userMessage: cleanMessage,
+        recentMessages: chatMessages,
+        systemPrompt: systemMessage.content
+      })
+      telemetry?.endStage('memory', 'memoryDurationMs')
+    }
 
     telemetry?.setCounts(knowledgeObjects, !!resolvedContext.selected, memCtx.usedMemoryIds)
     telemetry?.setPromptMetrics(memCtx.systemMessages)
+    telemetry?.setCompressedContextMetrics(resolvedContext.knowledgeContext)
+
+    const skipOutputReview = shouldSkipOutputReview(intent)
+    const staticDisclaimer = getStaticDisclaimerForIntent(intent)
 
     let result: { content: string; usage: TokenUsage; provider: AiProvider; model: string; citations?: { id: number; title: string; code: string | null; category: { name: string } | null }[] }
     try {
       telemetry?.startStage('provider')
-      result = await callAiProviderWithRetry(memCtx.systemMessages, knowledgeObjects)
+      result = await callAiProviderWithRetry(memCtx.systemMessages, knowledgeObjects, { skipOutputReview })
       telemetry?.endStage('provider', 'providerDurationMs')
     } catch (error: unknown) {
       telemetry?.endStage('provider', 'providerDurationMs')
@@ -509,9 +582,14 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       }
     }
 
+    if (staticDisclaimer) {
+      result.content = appendDisclaimer(result.content, staticDisclaimer)
+    }
+
     telemetry?.set('provider', result.provider)
     telemetry?.set('model', result.model)
     telemetry?.setResponseMetrics(result.content)
+    telemetry?.set('disclaimerAttached', !!staticDisclaimer)
 
     telemetry?.startStage('persistence')
     const assistantMsg = await prisma.conversationMessage.create({
@@ -541,10 +619,12 @@ export async function conversationRoutes(fastify: FastifyInstance) {
 
     telemetry?.emit(Date.now() - requestStart)
 
-    if (result.content) {
+    if (result.content && shouldUseMemory(intent)) {
       runBackgroundMemoryExtraction(
         user.id, convId, cleanMessage, result.content, assistantMsg.id
       )
+      runBackgroundSummaryUpdate(convId, user.id, assistantMsg.id)
+    } else if (result.content) {
       runBackgroundSummaryUpdate(convId, user.id, assistantMsg.id)
     }
 
@@ -594,12 +674,10 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       return reply.status(422).send(validationError('VALIDATION_ERROR', 'Arşivlenmiş sohbete mesaj gönderilemez'))
     }
 
-    telemetry?.startStage('retrieval')
-    const resolvedContext = await resolveKnowledgeContext(cleanMessage, knowledgeObjectCode)
-    telemetry?.endStage('retrieval', 'retrievalDurationMs')
-    if (knowledgeObjectCode && !resolvedContext.selected) {
-      return reply.status(404).send(validationError('NOT_FOUND', 'Knowledge object not found'))
-    }
+    const intentResult = detectMentorIntent(cleanMessage, { knowledgeObjectCode })
+    const intent = resolveEffectiveIntent(intentResult, !!knowledgeObjectCode)
+    telemetry?.set('detectedIntent', intent)
+    telemetry?.set('intentConfidence', intentResult.confidence)
 
     if (!streamSlotManager.checkRateLimit(user.id)) {
       return reply.status(429).send(validationError('RATE_LIMIT', 'Çok fazla istek gönderildi. Lütfen 1 dakika bekleyin.'))
@@ -629,27 +707,6 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       })
     }
 
-    if (needsClarification(cleanMessage)) {
-      const clarification = 'Elbette. Hangi konuda öneri istiyorsun? Örneğin müşteri artırma, sosyal medya, satış, maliyet azaltma veya yeni iş fikri diyebilirsin.'
-      const assistantMsg = await prisma.conversationMessage.create({
-        data: { conversationId: convId, role: 'assistant', content: clarification, generationStatus: 'completed' }
-      })
-      const now2 = new Date()
-      await prisma.conversation.update({
-        where: { id: convId },
-        data: { lastMessageAt: now2, updatedAt: now2, provider: 'system', model: 'clarification-rule' }
-      })
-      streamSlotManager.releaseSlot(user.id, slotId!)
-      return {
-        messageId: assistantMsg.id,
-        reply: clarification,
-        usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-        provider: 'system',
-        model: 'clarification-rule',
-        sources: []
-      }
-    }
-
     let slotReleased = false
     function ensureSlotReleased() {
       if (!slotReleased) {
@@ -660,129 +717,46 @@ export async function conversationRoutes(fastify: FastifyInstance) {
 
     try {
       reply.raw.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-      'X-Accel-Buffering': 'no'
-    })
-
-    sendSSE(reply, 'start', {
-      type: 'start',
-      conversationId: convId,
-      userMessageId: userMsg.id
-    })
-
-    const abortController = new AbortController()
-    let finalized = false
-
-    const onRequestClose = () => {
-      if (!finalized) abortController.abort()
-      ensureSlotReleased()
-    }
-    reply.raw.on('close', onRequestClose)
-
-    telemetry?.startStage('contextBuild')
-    const dbUserProfile = await prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } })
-    const knowledgeObjects = resolvedContext.knowledgeObjects
-    const knowledgeContext = resolvedContext.knowledgeContext
-    const baseSystemPrompt = buildSystemPrompt(
-      { name: dbUserProfile?.name || user.email, role: dbUserProfile?.role || user.role },
-      knowledgeContext,
-      resolvedContext.koTitle,
-      resolvedContext.selectedKOTitle
-    )
-
-    const recentMsgs = await prisma.conversationMessage.findMany({
-      where: { conversationId: convId },
-      orderBy: { createdAt: 'desc' },
-      take: CONTEXT_MESSAGE_LIMIT
-    })
-    const chatMessages: ChatMessage[] = recentMsgs
-      .reverse()
-      .filter(m => {
-        if (m.error) return false
-        if (m.role !== 'user' && m.role !== 'assistant') return false
-        if (!m.content) return false
-        if (/(?:\?{2,}|[A-Za-zÇĞİÖŞÜçğıöşü]\?[A-Za-zÇĞİÖŞÜçğıöşü])/.test(m.content)) return false
-        return true
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'X-Accel-Buffering': 'no'
       })
-      .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
-    telemetry?.endStage('contextBuild', 'contextBuildDurationMs')
 
-    telemetry?.startStage('memory')
-    const memCtx = await buildMemoryContext({
-      prisma,
-      userId: user.id,
-      userEmail: user.email,
-      userRole: user.role,
-      conversationId: convId,
-      userMessage: cleanMessage,
-      recentMessages: chatMessages,
-      systemPrompt: baseSystemPrompt
-    })
-    telemetry?.endStage('memory', 'memoryDurationMs')
-    const systemMessages = memCtx.systemMessages
+      sendSSE(reply, 'start', {
+        type: 'start',
+        conversationId: convId,
+        userMessageId: userMsg.id
+      })
 
-    telemetry?.setCounts(knowledgeObjects, !!resolvedContext.selected, memCtx.usedMemoryIds)
-    telemetry?.setPromptMetrics(systemMessages)
-
-    let assistantContent = ''
-    let assistantId: number | null = null
-    let finalProvider = ''
-    let finalModel = ''
-    let firstTokenReported = false
-
-    try {
-      telemetry?.startStage('provider')
-      const providerStartTime = Date.now()
-      const stream = streamAiResponse(systemMessages, abortController.signal, knowledgeObjects)
-      for await (const event of stream) {
-        if (finalized) break
-        if (event.type === 'provider') {
-          finalProvider = event.provider
-          finalModel = event.model
-          sendSSE(reply, 'provider', { type: 'provider', provider: event.provider, model: event.model })
-        } else if (event.type === 'delta') {
-          if (!firstTokenReported) {
-            telemetry?.set('firstTokenMs', Date.now() - providerStartTime)
-            firstTokenReported = true
-          }
-          assistantContent += event.delta
-          sendSSE(reply, 'delta', { type: 'delta', delta: event.delta })
-        } else if (event.type === 'done') {
-          if (finalized) break
-          finalized = true
-          telemetry?.endStage('provider', 'providerDurationMs')
-          reply.raw.removeListener('close', onRequestClose)
-
-          telemetry?.set('provider', finalProvider)
-          telemetry?.set('model', finalModel)
-          telemetry?.setResponseMetrics(assistantContent)
-
-          const citations = event.knowledgeObjects
-          telemetry?.startStage('persistence')
+      if (needsClarification(cleanMessage) || intentResult.responseMode === 'deterministic' || intentResult.responseMode === 'clarification') {
+        let content: string | null = null
+        if (needsClarification(cleanMessage)) {
+          content = 'Elbette. Hangi konuda öneri istiyorsun? Örneğin müşteri artırma, sosyal medya, satış, maliyet azaltma veya yeni iş fikri diyebilirsin.'
+        } else if (intent === 'greeting') {
+          content = buildDeterministicResponse('greeting', cleanMessage)
+        } else if (intent === 'system_capability') {
+          content = buildDeterministicResponse('system_capability', cleanMessage, getActiveAiRuntimeInfo())
+        } else if (intent === 'clarification_needed') {
+          content = buildDeterministicResponse('clarification_needed', cleanMessage)
+        } else if (intent === 'platform_help') {
+          content = buildPlatformHelpResponse(cleanMessage)
+        }
+        if (content) {
           const assistantMsg = await prisma.conversationMessage.create({
-            data: {
-              conversationId: convId, role: 'assistant', content: assistantContent,
-              generationStatus: 'completed',
-              tokenUsage: event.tokenUsage ? safeJsonStringify(event.tokenUsage) : null,
-              knowledgeObjects: citations && citations.length > 0
-                ? safeJsonStringify(citations.map(toConversationCitation))
-                : null
-            }
+            data: { conversationId: convId, role: 'assistant', content, generationStatus: 'completed' }
           })
-          telemetry?.endStage('persistence', 'persistenceDurationMs')
-          assistantId = assistantMsg.id
-
-          const now3 = new Date()
+          const now2 = new Date()
           await prisma.conversation.update({
             where: { id: convId },
-            data: {
-              lastMessageAt: now3, updatedAt: now3,
-              provider: finalProvider, model: finalModel
-            }
+            data: { lastMessageAt: now2, updatedAt: now2, provider: 'system', model: 'intent-rule' }
           })
-
+          telemetry?.set('deterministicResponse', true)
+          telemetry?.set('retrievalRequested', false)
+          telemetry?.set('disclaimerAttached', false)
+          telemetry?.setResponseMetrics(content)
+          telemetry?.emit(Date.now() - requestStart)
+          sendSSE(reply, 'delta', { type: 'delta', delta: content })
           sendSSE(reply, 'done', {
             type: 'done',
             assistantMessage: {
@@ -792,126 +766,287 @@ export async function conversationRoutes(fastify: FastifyInstance) {
               createdAt: assistantMsg.createdAt.toISOString(),
               generationStatus: assistantMsg.generationStatus
             },
-            tokenUsage: event.tokenUsage ? {
-              promptTokens: event.tokenUsage.prompt_tokens,
-              completionTokens: event.tokenUsage.completion_tokens,
-              totalTokens: event.tokenUsage.total_tokens
-            } : null,
-            sources: citations?.map(toConversationCitation) ?? []
+            tokenUsage: null,
+            sources: []
           })
+          reply.raw.end()
+          return
         }
       }
 
-      if (!finalized) {
+      const abortController = new AbortController()
+      let finalized = false
+
+      const onRequestClose = () => {
+        if (!finalized) abortController.abort()
+        ensureSlotReleased()
+      }
+      reply.raw.on('close', onRequestClose)
+
+      telemetry?.startStage('retrieval')
+      const resolvedContext = await resolveKnowledgeContext(cleanMessage, knowledgeObjectCode, intent)
+      telemetry?.endStage('retrieval', 'retrievalDurationMs')
+      if (knowledgeObjectCode && !resolvedContext.selected) {
+        finalized = true
+        reply.raw.removeListener('close', onRequestClose)
+        sendSSE(reply, 'error', { type: 'error', error: { code: 'NOT_FOUND', message: 'Knowledge object not found' } })
+        reply.raw.end()
+        return
+      }
+
+      telemetry?.set('retrievalRequested', shouldRunKnowledgeRetrieval(intent))
+      telemetry?.set('retrievalSkippedReason', shouldRunKnowledgeRetrieval(intent) ? undefined : `intent:${intent}`)
+      telemetry?.set('acceptedKnowledgeObjectCount', resolvedContext.knowledgeObjects.length)
+
+      telemetry?.startStage('contextBuild')
+      const dbUserProfile = await prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } })
+      const knowledgeObjects = resolvedContext.knowledgeObjects
+      const knowledgeContext = resolvedContext.knowledgeContext
+      const baseSystemPrompt = buildSystemPrompt(
+        { name: dbUserProfile?.name || user.email, role: dbUserProfile?.role || user.role },
+        knowledgeContext,
+        resolvedContext.koTitle,
+        resolvedContext.selectedKOTitle,
+        intent
+      )
+
+      const recentMsgs = await prisma.conversationMessage.findMany({
+        where: { conversationId: convId },
+        orderBy: { createdAt: 'desc' },
+        take: CONTEXT_MESSAGE_LIMIT
+      })
+      const chatMessages: ChatMessage[] = recentMsgs
+        .reverse()
+        .filter(m => {
+          if (m.error) return false
+          if (m.role !== 'user' && m.role !== 'assistant') return false
+          if (!m.content) return false
+          if (/(?:\?{2,}|[A-Za-zÇĞİÖŞÜçğıöşü]\?[A-Za-zÇĞİÖŞÜçğıöşü])/.test(m.content)) return false
+          return true
+        })
+        .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
+      telemetry?.endStage('contextBuild', 'contextBuildDurationMs')
+
+      let systemMessages: ChatMessage[] = [{ role: 'system', content: baseSystemPrompt }]
+      let usedMemoryIds: number[] = []
+      if (shouldUseMemory(intent)) {
+        telemetry?.startStage('memory')
+        const memCtx = await buildMemoryContext({
+          prisma,
+          userId: user.id,
+          userEmail: user.email,
+          userRole: user.role,
+          conversationId: convId,
+          userMessage: cleanMessage,
+          recentMessages: chatMessages,
+          systemPrompt: baseSystemPrompt
+        })
+        telemetry?.endStage('memory', 'memoryDurationMs')
+        systemMessages = memCtx.systemMessages
+        usedMemoryIds = memCtx.usedMemoryIds
+      }
+
+      telemetry?.setCounts(knowledgeObjects, !!resolvedContext.selected, usedMemoryIds)
+      telemetry?.setPromptMetrics(systemMessages)
+      telemetry?.setCompressedContextMetrics(knowledgeContext)
+
+      const skipOutputReview = shouldSkipOutputReview(intent)
+      const staticDisclaimer = getStaticDisclaimerForIntent(intent)
+
+      let assistantContent = ''
+      let assistantId: number | null = null
+      let finalProvider = ''
+      let finalModel = ''
+      let firstTokenReported = false
+
+      try {
+        telemetry?.startStage('provider')
+        const providerStartTime = Date.now()
+        const stream = streamAiResponse(systemMessages, abortController.signal, knowledgeObjects, { skipOutputReview })
+        for await (const event of stream) {
+          if (finalized) break
+          if (event.type === 'provider') {
+            finalProvider = event.provider
+            finalModel = event.model
+            sendSSE(reply, 'provider', { type: 'provider', provider: event.provider, model: event.model })
+          } else if (event.type === 'delta') {
+            if (!firstTokenReported) {
+              telemetry?.set('firstTokenMs', Date.now() - providerStartTime)
+              firstTokenReported = true
+            }
+            assistantContent += event.delta
+            sendSSE(reply, 'delta', { type: 'delta', delta: event.delta })
+          } else if (event.type === 'done') {
+            if (finalized) break
+            finalized = true
+            telemetry?.endStage('provider', 'providerDurationMs')
+            reply.raw.removeListener('close', onRequestClose)
+
+            if (staticDisclaimer) {
+              assistantContent = appendDisclaimer(assistantContent, staticDisclaimer)
+              sendSSE(reply, 'delta', { type: 'delta', delta: `\n\n---\n${staticDisclaimer}` })
+            }
+
+            telemetry?.set('provider', finalProvider)
+            telemetry?.set('model', finalModel)
+            telemetry?.setResponseMetrics(assistantContent)
+            telemetry?.set('disclaimerAttached', !!staticDisclaimer)
+
+            const citations = event.knowledgeObjects
+            telemetry?.startStage('persistence')
+            const assistantMsg = await prisma.conversationMessage.create({
+              data: {
+                conversationId: convId, role: 'assistant', content: assistantContent,
+                generationStatus: 'completed',
+                tokenUsage: event.tokenUsage ? safeJsonStringify(event.tokenUsage) : null,
+                knowledgeObjects: citations && citations.length > 0
+                  ? safeJsonStringify(citations.map(toConversationCitation))
+                  : null
+              }
+            })
+            telemetry?.endStage('persistence', 'persistenceDurationMs')
+            assistantId = assistantMsg.id
+
+            const now3 = new Date()
+            await prisma.conversation.update({
+              where: { id: convId },
+              data: {
+                lastMessageAt: now3, updatedAt: now3,
+                provider: finalProvider, model: finalModel
+              }
+            })
+
+            sendSSE(reply, 'done', {
+              type: 'done',
+              assistantMessage: {
+                id: assistantMsg.id,
+                role: 'assistant',
+                content: assistantMsg.content,
+                createdAt: assistantMsg.createdAt.toISOString(),
+                generationStatus: assistantMsg.generationStatus
+              },
+              tokenUsage: event.tokenUsage ? {
+                promptTokens: event.tokenUsage.prompt_tokens,
+                completionTokens: event.tokenUsage.completion_tokens,
+                totalTokens: event.tokenUsage.total_tokens
+              } : null,
+              sources: citations?.map(toConversationCitation) ?? []
+            })
+          }
+        }
+
+        if (!finalized) {
+          finalized = true
+          telemetry?.endStage('provider', 'providerDurationMs')
+          reply.raw.removeListener('close', onRequestClose)
+
+          telemetry?.set('provider', finalProvider || 'unknown')
+          telemetry?.set('model', finalModel || 'unknown')
+          telemetry?.setResponseMetrics(assistantContent)
+          telemetry?.setError('GENERATION_CANCELLED', { aborted: true })
+
+          const assistantMsg = await prisma.conversationMessage.create({
+            data: {
+              conversationId: convId, role: 'assistant', content: assistantContent,
+              generationStatus: 'cancelled',
+              error: 'GENERATION_CANCELLED'
+            }
+          })
+          assistantId = assistantMsg.id
+
+          const now4 = new Date()
+          await prisma.conversation.update({
+            where: { id: convId },
+            data: { lastMessageAt: now4, updatedAt: now4 }
+          })
+
+          sendSSE(reply, 'cancelled', {
+            type: 'cancelled',
+            assistantMessage: {
+              id: assistantMsg.id,
+              content: assistantContent,
+              generationStatus: 'cancelled',
+              error: 'GENERATION_CANCELLED',
+              createdAt: assistantMsg.createdAt.toISOString()
+            }
+          })
+        }
+      } catch (err: unknown) {
+        if (finalized) return
         finalized = true
         telemetry?.endStage('provider', 'providerDurationMs')
         reply.raw.removeListener('close', onRequestClose)
 
+        const errorMsg = err instanceof Error ? err.message : 'Unknown error'
+        const isAbort = errorMsg === 'MENTOR_STREAM_ABORTED'
         telemetry?.set('provider', finalProvider || 'unknown')
         telemetry?.set('model', finalModel || 'unknown')
         telemetry?.setResponseMetrics(assistantContent)
-        telemetry?.setError('GENERATION_CANCELLED', { aborted: true })
-
-        const assistantMsg = await prisma.conversationMessage.create({
-          data: {
-            conversationId: convId, role: 'assistant', content: assistantContent,
-            generationStatus: 'cancelled',
-            error: 'GENERATION_CANCELLED'
-          }
-        })
-        assistantId = assistantMsg.id
-
-        const now4 = new Date()
-        await prisma.conversation.update({
-          where: { id: convId },
-          data: { lastMessageAt: now4, updatedAt: now4 }
+        telemetry?.setError('AI_PROVIDER_ERROR', {
+          timeout: errorMsg.includes('TIMEOUT'),
+          aborted: isAbort,
         })
 
-        sendSSE(reply, 'cancelled', {
-          type: 'cancelled',
-          assistantMessage: {
-            id: assistantMsg.id,
-            content: assistantContent,
-            generationStatus: 'cancelled',
-            error: 'GENERATION_CANCELLED',
-            createdAt: assistantMsg.createdAt.toISOString()
-          }
-        })
+        if (isAbort) {
+          const assistantMsg = await prisma.conversationMessage.create({
+            data: {
+              conversationId: convId, role: 'assistant', content: assistantContent,
+              generationStatus: 'cancelled',
+              error: 'GENERATION_CANCELLED'
+            }
+          })
+          assistantId = assistantMsg.id
+          const now5 = new Date()
+          await prisma.conversation.update({
+            where: { id: convId },
+            data: { lastMessageAt: now5, updatedAt: now5 }
+          })
+          sendSSE(reply, 'cancelled', {
+            type: 'cancelled',
+            assistantMessage: {
+              id: assistantMsg.id,
+              content: assistantContent,
+              generationStatus: 'cancelled',
+              error: 'GENERATION_CANCELLED',
+              createdAt: assistantMsg.createdAt.toISOString()
+            }
+          })
+        } else {
+          const assistantMsg = await prisma.conversationMessage.create({
+            data: {
+              conversationId: convId, role: 'assistant', content: '',
+              generationStatus: 'failed',
+              error: errorMsg
+            }
+          })
+          assistantId = assistantMsg.id
+          const now6 = new Date()
+          await prisma.conversation.update({
+            where: { id: convId },
+            data: { lastMessageAt: now6, updatedAt: now6 }
+          })
+          sendSSE(reply, 'error', {
+            type: 'error',
+            error: {
+              code: 'AI_PROVIDER_ERROR',
+              message: 'Yanıt oluşturulamadı. Lütfen tekrar deneyin.'
+            }
+          })
+        }
       }
-    } catch (err: unknown) {
-      if (finalized) return
-      finalized = true
-      telemetry?.endStage('provider', 'providerDurationMs')
-      reply.raw.removeListener('close', onRequestClose)
 
-      const errorMsg = err instanceof Error ? err.message : 'Unknown error'
-      const isAbort = errorMsg === 'MENTOR_STREAM_ABORTED'
-      telemetry?.set('provider', finalProvider || 'unknown')
-      telemetry?.set('model', finalModel || 'unknown')
-      telemetry?.setResponseMetrics(assistantContent)
-      telemetry?.setError('AI_PROVIDER_ERROR', {
-        timeout: errorMsg.includes('TIMEOUT'),
-        aborted: isAbort,
-      })
+      telemetry?.emit(Date.now() - requestStart)
 
-      if (isAbort) {
-        const assistantMsg = await prisma.conversationMessage.create({
-          data: {
-            conversationId: convId, role: 'assistant', content: assistantContent,
-            generationStatus: 'cancelled',
-            error: 'GENERATION_CANCELLED'
-          }
-        })
-        assistantId = assistantMsg.id
-        const now5 = new Date()
-        await prisma.conversation.update({
-          where: { id: convId },
-          data: { lastMessageAt: now5, updatedAt: now5 }
-        })
-        sendSSE(reply, 'cancelled', {
-          type: 'cancelled',
-          assistantMessage: {
-            id: assistantMsg.id,
-            content: assistantContent,
-            generationStatus: 'cancelled',
-            error: 'GENERATION_CANCELLED',
-            createdAt: assistantMsg.createdAt.toISOString()
-          }
-        })
-      } else {
-        const assistantMsg = await prisma.conversationMessage.create({
-          data: {
-            conversationId: convId, role: 'assistant', content: '',
-            generationStatus: 'failed',
-            error: errorMsg
-          }
-        })
-        assistantId = assistantMsg.id
-        const now6 = new Date()
-        await prisma.conversation.update({
-          where: { id: convId },
-          data: { lastMessageAt: now6, updatedAt: now6 }
-        })
-        sendSSE(reply, 'error', {
-          type: 'error',
-          error: {
-            code: 'AI_PROVIDER_ERROR',
-            message: 'Yanıt oluşturulamadı. Lütfen tekrar deneyin.'
-          }
-        })
+      if (finalized && assistantId && assistantContent) {
+        if (shouldUseMemory(intent)) {
+          runBackgroundMemoryExtraction(
+            user.id, convId, cleanMessage, assistantContent, assistantId
+          )
+        }
+        runBackgroundSummaryUpdate(convId, user.id, assistantId)
       }
-    }
 
-    telemetry?.emit(Date.now() - requestStart)
-
-    if (finalized && assistantId && assistantContent) {
-      runBackgroundMemoryExtraction(
-        user.id, convId, cleanMessage, assistantContent, assistantId
-      )
-      runBackgroundSummaryUpdate(convId, user.id, assistantId)
-    }
-
-    reply.raw.end()
+      reply.raw.end()
     } finally {
       ensureSlotReleased()
     }
@@ -989,16 +1124,21 @@ export async function conversationRoutes(fastify: FastifyInstance) {
 
     const lastUserContent = priorMessages.filter(m => m.role === 'user').pop()?.content || ''
     const selectedCode = extractSelectedKnowledgeObjectCode(targetMsg.knowledgeObjects)
-    const resolvedContext = await resolveKnowledgeContext(lastUserContent, selectedCode)
+    const intent = selectedCode
+      ? 'selected_knowledge_object'
+      : detectMentorIntent(lastUserContent).intent
+    const resolvedContext = await resolveKnowledgeContext(lastUserContent, selectedCode, intent)
 
     const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } })
     const systemContent = buildSystemPrompt(
       { name: dbUser?.name || user.email, role: dbUser?.role || 'learner' },
       resolvedContext.knowledgeContext,
       resolvedContext.koTitle,
-      resolvedContext.selectedKOTitle
+      resolvedContext.selectedKOTitle,
+      intent
     )
     const systemMessage: ChatMessage = { role: 'system', content: systemContent }
+    const skipOutputReview = shouldSkipOutputReview(intent)
 
     const abortController = new AbortController()
     let finalized = false
@@ -1013,7 +1153,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     let finalModel = ''
 
     try {
-      const stream = streamAiResponse([systemMessage, ...chatMessages], abortController.signal, resolvedContext.knowledgeObjects)
+      const stream = streamAiResponse([systemMessage, ...chatMessages], abortController.signal, resolvedContext.knowledgeObjects, { skipOutputReview })
       for await (const event of stream) {
         if (finalized) break
         if (event.type === 'provider') {
@@ -1235,15 +1375,20 @@ export async function conversationRoutes(fastify: FastifyInstance) {
 
     chatMessages.push({ role: 'user', content: cleanNewMessage })
 
-    const resolvedContext = await resolveKnowledgeContext(cleanNewMessage, selectedCode)
+    const intent = selectedCode
+      ? 'selected_knowledge_object'
+      : detectMentorIntent(cleanNewMessage).intent
+    const resolvedContext = await resolveKnowledgeContext(cleanNewMessage, selectedCode, intent)
     const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } })
     const systemContent = buildSystemPrompt(
       { name: dbUser?.name || user.email, role: dbUser?.role || user.role },
       resolvedContext.knowledgeContext,
       resolvedContext.koTitle,
-      resolvedContext.selectedKOTitle
+      resolvedContext.selectedKOTitle,
+      intent
     )
     const systemMessage: ChatMessage = { role: 'system', content: systemContent }
+    const skipOutputReview = shouldSkipOutputReview(intent)
 
     const abortController = new AbortController()
     let finalized = false
@@ -1259,7 +1404,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     let finalModel = ''
 
     try {
-      const stream = streamAiResponse([systemMessage, ...chatMessages], abortController.signal, resolvedContext.knowledgeObjects)
+      const stream = streamAiResponse([systemMessage, ...chatMessages], abortController.signal, resolvedContext.knowledgeObjects, { skipOutputReview })
       for await (const event of stream) {
         if (finalized) break
         if (event.type === 'provider') {
@@ -1273,6 +1418,12 @@ export async function conversationRoutes(fastify: FastifyInstance) {
           if (finalized) break
           finalized = true
           reply.raw.removeListener('close', onRequestClose)
+
+          const staticDisclaimer = getStaticDisclaimerForIntent(intent)
+          if (staticDisclaimer) {
+            assistantContent = appendDisclaimer(assistantContent, staticDisclaimer)
+            sendSSE(reply, 'delta', { type: 'delta', delta: `\n\n---\n${staticDisclaimer}` })
+          }
 
           const citations = event.knowledgeObjects
           const assistantMsg = await prisma.conversationMessage.create({

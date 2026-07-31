@@ -88,10 +88,11 @@ export class HybridKnowledgeRetriever implements Retriever {
           candidate.result.title.toLocaleLowerCase('tr-TR') === topic
         ) === index
       })
-      .slice(0, topK)
-      .map(item => ({
-        ...item.result,
-        score: Number((item.rankScore * 10000).toFixed(4)),
-      }))
+.slice(0, topK)
+    .map(item => ({
+      ...item.result,
+      score: Number((item.rankScore * 10000).toFixed(4)),
+      confidence: Number(item.rankScore.toFixed(4)),
+    }))
   }
 }

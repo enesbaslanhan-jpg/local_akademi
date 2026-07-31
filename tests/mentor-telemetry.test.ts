@@ -37,7 +37,7 @@ function makeMockKO(id: number, title: string, code: string) {
   return {
     id, title, code, content: 'Test content',
     category: { name: 'Test Kategori' },
-    score: 10, matchedTerms: ['title:test'],
+    score: 10, confidence: 1, matchedTerms: ['title:test'],
     sourceRefs: [{ sourceId: 'src-1', title: 'Test Source', url: null, authorityLevel: 'high' }],
   }
 }
@@ -106,7 +106,7 @@ describe('Mentor telemetry defaults', () => {
     const collector = getGlobalMentorTelemetryCollector()
     expect(collector.isEnabled()).toBe(false)
     const convId = await createConversation()
-    await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Merhaba' } })
+    await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Gelir modeli nasıl oluşturulur?' } })
     expect(collector.getRecords()).toHaveLength(0)
   })
 
@@ -115,7 +115,7 @@ describe('Mentor telemetry defaults', () => {
     setGlobalMentorTelemetryCollector(collector)
     mockCallAiProviderWithRetry.mockResolvedValue({ content: 'AI', usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, provider: 'nvidia', model: 'test' })
     const convId = await createConversation()
-    const res = await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Merhaba' } })
+    const res = await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Gelir modeli nasıl oluşturulur?' } })
     expect(res.statusCode).toBe(200)
     expect(collector.getRecords()).toHaveLength(1)
     const record = collector.getRecords()[0]
@@ -136,7 +136,7 @@ describe('Mentor telemetry security', () => {
   it('kayıt kullanıcı mesajı içermez', async () => {
     const collector = new MentorTelemetryCollector(true)
     setGlobalMentorTelemetryCollector(collector)
-    const userMessage = 'Gizli kullanıcı sorusu 12345'
+    const userMessage = 'Gizli kullanıcı sorusu 12345 hakkında KDV açıklaması'
     mockCallAiProviderWithRetry.mockResolvedValue({ content: 'AI', usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, provider: 'nvidia', model: 'test' })
     const convId = await createConversation()
     await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: userMessage } })
@@ -150,7 +150,7 @@ describe('Mentor telemetry security', () => {
     const assistantContent = 'Gizli asistan içeriği 67890'
     mockCallAiProviderWithRetry.mockResolvedValue({ content: assistantContent, usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, provider: 'nvidia', model: 'test' })
     const convId = await createConversation()
-    await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Merhaba' } })
+    await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'KDV nedir?' } })
     const serialized = JSON.stringify(collector.getRecords())
     expect(serialized).not.toContain(assistantContent)
   })
@@ -161,7 +161,7 @@ describe('Mentor telemetry security', () => {
     process.env.NVIDIA_API_KEY = 'sk-super-secret-key-xyz'
     mockCallAiProviderWithRetry.mockResolvedValue({ content: 'AI', usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, provider: 'nvidia', model: 'test' })
     const convId = await createConversation()
-    await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Merhaba' } })
+    await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'KDV nedir?' } })
     const serialized = JSON.stringify(collector.getRecords())
     expect(serialized).not.toContain('sk-super-secret-key-xyz')
     expect(serialized).not.toContain(userToken)
@@ -174,7 +174,7 @@ describe('Mentor telemetry field accuracy', () => {
     setGlobalMentorTelemetryCollector(collector)
     mockCallAiProviderWithRetry.mockResolvedValue({ content: 'AI', usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, provider: 'nvidia', model: 'test' })
     const convId = await createConversation()
-    await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Merhaba' } })
+    await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Gelir modeli nasıl oluşturulur?' } })
     const record = collector.getRecords()[0]
     expect(record.retrievalDurationMs).toBeGreaterThanOrEqual(0)
     expect(record.contextBuildDurationMs).toBeGreaterThanOrEqual(0)
@@ -190,7 +190,7 @@ describe('Mentor telemetry field accuracy', () => {
     mockResolveContext.mockResolvedValue(makeResolveResult(kos))
     mockCallAiProviderWithRetry.mockResolvedValue({ content: 'AI', usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, provider: 'nvidia', model: 'test' })
     const convId = await createConversation()
-    await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Merhaba' } })
+    await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Gelir modeli nasıl oluşturulur?' } })
     const record = collector.getRecords()[0]
     expect(record.retrievedKnowledgeObjectCount).toBe(2)
     expect(record.citationCount).toBe(2)
@@ -237,7 +237,7 @@ describe('Mentor telemetry field accuracy', () => {
     setGlobalMentorTelemetryCollector(collector)
     mockCallAiProviderWithRetry.mockRejectedValue(new Error('MENTOR_PROVIDER_ERROR:TIMEOUT'))
     const convId = await createConversation()
-    await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Merhaba' } })
+    await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Gelir modeli nasıl oluşturulur?' } })
     const record = collector.getRecords()[0]
     expect(record.errorCode).toBe('AI_PROVIDER_ERROR')
     expect(record.timeout).toBe(true)
@@ -248,7 +248,7 @@ describe('Mentor telemetry field accuracy', () => {
     setGlobalMentorTelemetryCollector(collector)
     mockCallAiProviderWithRetry.mockRejectedValue(new Error('MENTOR_PROVIDER_ERROR:ABORTED'))
     const convId = await createConversation()
-    await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Merhaba' } })
+    await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Gelir modeli nasıl oluşturulur?' } })
     const record = collector.getRecords()[0]
     expect(record.errorCode).toBe('AI_PROVIDER_ERROR')
     expect(record.timeout).toBe(false)
@@ -267,7 +267,7 @@ describe('Mentor telemetry stream fields', () => {
     }
     mockStreamAiResponse.mockReturnValue(mockGen())
     const convId = await createConversation()
-    await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages/stream`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'stream test' } })
+    await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages/stream`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Gelir modeli nasıl oluşturulur?' } })
     const record = collector.getRecords()[0]
     expect(record.stream).toBe(true)
     expect(record.firstTokenMs).toBeGreaterThanOrEqual(0)
@@ -279,7 +279,7 @@ describe('Mentor telemetry response contract', () => {
   it('telemetry kapalıyken response sözleşmesi değişmez', async () => {
     mockCallAiProviderWithRetry.mockResolvedValue({ content: 'AI', usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, provider: 'nvidia', model: 'test' })
     const convId = await createConversation()
-    const res = await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Merhaba' } })
+    const res = await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Gelir modeli nasıl oluşturulur?' } })
     expect(res.statusCode).toBe(200)
     const body = res.json()
     expect(body.reply).toBe('AI')
@@ -293,7 +293,7 @@ describe('Mentor telemetry response contract', () => {
     setGlobalMentorTelemetryCollector(collector)
     mockCallAiProviderWithRetry.mockResolvedValue({ content: 'AI', usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, provider: 'nvidia', model: 'test' })
     const convId = await createConversation()
-    const res = await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Merhaba' } })
+    const res = await app.inject({ method: 'POST', url: `/mentor/conversations/${convId}/messages`, headers: { authorization: `Bearer ${userToken}` }, body: { message: 'Gelir modeli nasıl oluşturulur?' } })
     expect(res.statusCode).toBe(200)
     const body = res.json()
     expect(body.reply).toBe('AI')

@@ -11,8 +11,10 @@ export interface KnowledgeObjectResult {
   code: string | null
   content: string
   summary?: string | null
+  quickAnswer?: string | null
   category: { name: string } | null
   score: number
+  confidence: number
   matchedTerms: string[]
   sourceRefs: SourceRef[]
 }

@@ -131,8 +131,10 @@ export class SemanticKnowledgeRetriever implements Retriever {
           code: row.code,
           content: row.content,
           summary: row.summary,
+          quickAnswer: row.quickAnswer,
           category: row.category,
           score: Number((similarity * 100).toFixed(4)),
+          confidence: Number(similarity.toFixed(4)),
           matchedTerms: ['semantic'],
           sourceRefs,
         }]

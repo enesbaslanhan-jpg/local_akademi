@@ -1,7 +1,7 @@
 export { LexicalKnowledgeRetriever } from './lexical-knowledge-retriever'
 export { normalizeQuery } from './query-normalizer'
 export { expandDomainQuery } from './domain-query-expander'
-export { formatKnowledgeContext } from './knowledge-context-formatter'
+export { formatKnowledgeContext, formatKnowledgeContextForIntent } from './knowledge-context-formatter'
 export { OllamaEmbeddingProvider } from './embedding-provider'
 export type { EmbeddingProvider } from './embedding-provider'
 export {
