@@ -58,7 +58,9 @@ export default defineConfig({
       '/workspaces': backendProxy,
       '/formulas': backendProxy,
       '/formula-calculations': backendProxy,
-      '/reports': backendProxy
+      '/reports': backendProxy,
+      '/financial-models': backendProxy,
+      '/financial-cases': backendProxy
     }
   }
 })

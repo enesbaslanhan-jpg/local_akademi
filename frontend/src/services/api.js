@@ -142,8 +142,13 @@ export const api = {
       ...options,
       headers
     });
-    const data = await response.json().catch(() => ({}));
+
+    const rawContentType = response.headers?.get ? response.headers.get('content-type') : '';
+    const contentType = typeof rawContentType === 'string' ? rawContentType : '';
+    const isJson = contentType.includes('application/json');
+
     if (!response.ok) {
+      const data = isJson ? await response.json().catch(() => ({})) : {};
       const message = data.error || data.message || 'İşlem başarısız';
       const error = new ApiError(message, response.status, data);
       if (response.status === 401 && !path.startsWith('/auth/')) {
@@ -151,6 +156,22 @@ export const api = {
       }
       throw error;
     }
+
+    if (response.status === 204 || !response.body) {
+      return {};
+    }
+
+    if (!isJson) {
+      throw new ApiError(
+        'API sunucusuna ulaşılamadı veya beklenmeyen bir yanıt alındı.',
+        response.status,
+        {}
+      );
+    }
+
+    const data = await response.json().catch(() => {
+      throw new ApiError('API yanıtı işlenemedi.', response.status, {});
+    });
     return data;
   },
 

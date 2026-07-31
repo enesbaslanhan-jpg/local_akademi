@@ -41,11 +41,17 @@ export default function FinancialModelLibrary() {
   const [category, setCategory] = useState('all')
   const [search, setSearch] = useState('')
 
-  useEffect(() => {
+  const fetchModels = () => {
+    setLoading(true)
+    setError('')
     api.financialModels.list()
       .then(data => setModels(data.models || []))
       .catch(err => setError(err.message || 'Model kütüphanesi yüklenemedi.'))
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchModels()
   }, [])
 
   const visibleModels = useMemo(() => {
@@ -95,7 +101,16 @@ export default function FinancialModelLibrary() {
         </div>
       </section>
 
-      {error && <p className={styles.error}>{error}</p>}
+      {error && (
+        <div className={styles.error}>
+          <p>{error}</p>
+          <button onClick={fetchModels} disabled={loading}>Tekrar dene</button>
+        </div>
+      )}
+
+      {!loading && !error && models.length === 0 && (
+        <div className={styles.empty}>Henüz kullanılabilir model bulunmuyor.</div>
+      )}
 
       <section className={styles.grid}>
         {visibleModels.map(model => {
@@ -121,7 +136,9 @@ export default function FinancialModelLibrary() {
         })}
       </section>
 
-      {!visibleModels.length && <div className={styles.empty}>Bu arama için model bulunamadı.</div>}
+      {!loading && !error && models.length > 0 && visibleModels.length === 0 && (
+        <div className={styles.empty}>Bu arama için model bulunamadı.</div>
+      )}
     </main>
   )
 }
