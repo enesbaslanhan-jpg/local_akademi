@@ -411,15 +411,32 @@ export function withTimeout<T>(promise: Promise<T>, ms: number, context: string)
 
 async function main() {
   const args = parseCliArgs()
-  const health = await checkOllama()
+
+  const provider = (process.env.AI_PROVIDER || 'auto').toLowerCase()
+  let health = { ok: true, message: 'PROVIDER_CONFIG_READY', code: 'PROVIDER_CONFIG_READY' }
+
+  if (provider === 'nvidia' || (provider === 'auto' && process.env.NVIDIA_API_KEY)) {
+    if (!process.env.NVIDIA_API_KEY) health = { ok: false, message: 'NVIDIA_API_KEY is missing', code: 'PROVIDER_CONFIG_MISSING' }
+    else health.message = 'NVIDIA provider configured.'
+  } else if (provider === 'openai' || (provider === 'auto' && process.env.OPENAI_API_KEY)) {
+    if (!process.env.OPENAI_API_KEY) health = { ok: false, message: 'OPENAI_API_KEY is missing', code: 'PROVIDER_CONFIG_MISSING' }
+    else health.message = 'OpenAI provider configured.'
+  } else if (provider === 'deepseek' || (provider === 'auto' && process.env.DEEPSEEK_API_KEY)) {
+    if (!process.env.DEEPSEEK_API_KEY) health = { ok: false, message: 'DEEPSEEK_API_KEY is missing', code: 'PROVIDER_CONFIG_MISSING' }
+    else health.message = 'DeepSeek provider configured.'
+  } else {
+    const ollamaHealth = await checkOllama()
+    health = { ok: ollamaHealth.ok, message: ollamaHealth.message, code: ollamaHealth.ok ? 'PROVIDER_CONFIG_READY' : 'PROVIDER_ENDPOINT_UNVERIFIED' }
+  }
+
   if (!health.ok) {
     console.error('BENCHMARK_ABORTED:', health.message)
-    console.error(`Lütfen Ollama'yi başlatın ve modeli indirin, ardından tekrar deneyin.`)
+    console.error(`Lütfen ilgili provider'ı yapılandırın ve tekrar deneyin.`)
     fs.mkdirSync(REPORT_DIR, { recursive: true })
     atomicWriteJson(
       path.join(REPORT_DIR, 'mentor-baseline-results.json'),
       {
-        status: 'OLLAMA_UNAVAILABLE',
+        status: health.code,
         message: health.message,
         timestamp: new Date().toISOString(),
       },
