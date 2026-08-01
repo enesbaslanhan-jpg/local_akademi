@@ -44,6 +44,23 @@ export interface MentorTelemetryRecord {
   disclaimerAttached?: boolean
   compressedContextCharacters?: number
   estimatedCompressedContextTokens?: number
+  promptProfile?: string
+  systemPromptCharacters?: number
+  historyCharacters?: number
+  historyMessageCount?: number
+  configuredMaxOutputTokens?: number
+  knowledgeContextCharacters?: number
+  estimatedInputTokens?: number
+  memoryCharacters?: number
+  rerankDurationMs?: number
+  retrievalFallbackUsed?: boolean
+  noRelevantKnowledgeFound?: boolean
+  providerInputTokens?: number
+  providerOutputTokens?: number
+  coldStartSuspected?: boolean
+  outputReviewDeferred?: boolean
+  fallbackReason?: string
+  reviewerDeferred?: boolean
   errorCode?: string
   timeout: boolean
   aborted: boolean
@@ -150,6 +167,18 @@ export class MentorTelemetrySession {
     const chars = content.length
     this.record.responseCharacterCount = chars
     this.record.estimatedResponseTokens = estimateTokens(chars)
+  }
+
+  setProviderUsage(usage: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number }): void {
+    if (!this.collector.isEnabled()) return
+    if (usage.prompt_tokens !== undefined) this.record.providerInputTokens = usage.prompt_tokens
+    if (usage.completion_tokens !== undefined) this.record.providerOutputTokens = usage.completion_tokens
+  }
+
+  setFallback(flag: boolean, reason?: string): void {
+    if (!this.collector.isEnabled()) return
+    this.record.fallbackOccurred = flag
+    if (reason) this.record.fallbackReason = reason
   }
 
   setError(code: string, options?: { timeout?: boolean; aborted?: boolean }): void {

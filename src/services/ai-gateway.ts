@@ -49,6 +49,9 @@ export interface GatewayRequest {
   knowledgeObjects?: Citation[]
   reviewerEvidence?: ReviewerEvidence[]
   reviewerProvider?: AiReviewerProvider
+  temperature?: number
+  maxOutputTokens?: number
+  keepAlive?: string | null
 }
 
 export interface GatewayResponse {
@@ -286,16 +289,31 @@ export class GatewayProviderError extends Error {
 
 function buildRequestBody(
   messages: ChatMessage[],
-  config: Pick<ProviderConfig, 'model' | 'maxTokens'>,
+  config: Pick<ProviderConfig, 'model' | 'maxTokens' | 'provider' | 'apiUrl'>,
   stream: boolean,
+  options: { temperature?: number; maxOutputTokens?: number; keepAlive?: string | null } = {},
 ): Record<string, unknown> {
-  return {
+  const body: Record<string, unknown> = {
     model: config.model,
     messages,
-    temperature: 0.5,
-    max_tokens: config.maxTokens,
-    stream
+    temperature: options.temperature ?? 0.5,
+    max_tokens: options.maxOutputTokens ?? config.maxTokens,
+    stream,
   }
+
+  // Only the native Ollama API supports keep_alive; the OpenAI-compatible
+  // endpoint used by this gateway does not. Sending it there would be an
+  // unsupported parameter, so we only attach it when a caller explicitly opts
+  // in with the native provider (not via the default endpoint).
+  if (config.provider === 'ollama' && options.keepAlive && isNativeOllamaEndpoint(config)) {
+    body.keep_alive = options.keepAlive
+  }
+
+  return body
+}
+
+function isNativeOllamaEndpoint(config: Pick<ProviderConfig, 'apiUrl'>): boolean {
+  return config.apiUrl.includes('/api/chat')
 }
 
 class GatewayReviewerTransport implements ReviewerTransport {
@@ -578,7 +596,7 @@ async function fetchWithTimeout(url: string, options: RequestInit & { timeout: n
   }
 }
 
-async function callProvider(messages: ChatMessage[], config: ProviderConfig): Promise<{ content: string; usage: TokenUsage; provider: string; model: string }> {
+async function callProvider(messages: ChatMessage[], config: ProviderConfig, options: { temperature?: number; maxOutputTokens?: number; keepAlive?: string | null } = {}): Promise<{ content: string; usage: TokenUsage; provider: string; model: string }> {
   const { provider, apiUrl, apiKey, model } = config
   let response: Response
   try {
@@ -588,7 +606,7 @@ async function callProvider(messages: ChatMessage[], config: ProviderConfig): Pr
         'Content-Type': 'application/json',
         ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {})
       },
-      body: JSON.stringify(buildRequestBody(messages, config, false)),
+      body: JSON.stringify(buildRequestBody(messages, { ...config, provider }, false, options)),
       timeout: config.timeout
     })
   } catch (err: unknown) {
@@ -634,7 +652,8 @@ async function callProvider(messages: ChatMessage[], config: ProviderConfig): Pr
 async function* streamFromProvider(
   messages: ChatMessage[],
   config: ProviderConfig,
-  abortSignal: AbortSignal
+  abortSignal: AbortSignal,
+  options: { temperature?: number; maxOutputTokens?: number; keepAlive?: string | null } = {}
 ): AsyncGenerator<GatewayStreamEvent> {
   const { provider, apiUrl, apiKey, model, timeout } = config
 
@@ -697,7 +716,7 @@ async function* streamFromProvider(
         'Content-Type': 'application/json',
         ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {})
       },
-      body: JSON.stringify(buildRequestBody(messages, config, true)),
+      body: JSON.stringify(buildRequestBody(messages, { ...config, provider }, true, options)),
       signal: controller.signal
     })
   } catch (err: unknown) {
@@ -835,7 +854,11 @@ export async function generateCompletion(req: GatewayRequest): Promise<GatewayRe
   let lastError: Error | undefined
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const result = await callProvider(messages as ChatMessage[], config)
+      const result = await callProvider(messages as ChatMessage[], config, {
+        temperature: req.temperature,
+        maxOutputTokens: req.maxOutputTokens,
+        keepAlive: req.keepAlive,
+      })
       const durationMs = Date.now() - startTime
 
       if (result.content.length > getReviewMaxOutputChars()) {
@@ -984,7 +1007,11 @@ export async function* generateStream(req: GatewayRequest): AsyncGenerator<Gatew
       ? getAiReviewerConfig().maxDraftChars
       : 0
     try {
-      const generator = streamFromProvider(messages, config, req.abortSignal || new AbortController().signal)
+      const generator = streamFromProvider(messages, config, req.abortSignal || new AbortController().signal, {
+        temperature: req.temperature,
+        maxOutputTokens: req.maxOutputTokens,
+        keepAlive: req.keepAlive,
+      })
       for await (const event of generator) {
         if (
           reviewerEnabled &&
@@ -1027,7 +1054,11 @@ export async function* generateStream(req: GatewayRequest): AsyncGenerator<Gatew
   let finalTokenUsage: TokenUsage | undefined
 
   try {
-    const generator = streamFromProvider(messages, config, req.abortSignal || new AbortController().signal)
+    const generator = streamFromProvider(messages, config, req.abortSignal || new AbortController().signal, {
+      temperature: req.temperature,
+      maxOutputTokens: req.maxOutputTokens,
+      keepAlive: req.keepAlive,
+    })
     for await (const event of generator) {
       if (event.type === 'delta') {
         contentBuffer += event.delta

@@ -1,0 +1,39 @@
+[
+  { "id": "A1", "category": "greeting", "text": "Merhaba" },
+  { "id": "A2", "category": "greeting", "text": "Nasılsın?" },
+  { "id": "A3", "category": "greeting", "text": "Günaydın, bana kısa cevap verir misin?" },
+  { "id": "A4", "category": "greeting", "text": "Teşekkürler, iyi çalışmalar" },
+
+  { "id": "B1", "category": "technical", "text": "Hangi modelle çalışıyorsun?" },
+  { "id": "B2", "category": "technical", "text": "Ollama mı NVIDIA Build.AI mı kullanıyorsun?" },
+  { "id": "B3", "category": "technical", "text": "Verilerim sunucundan çıkıyor mu?" },
+  { "id": "B4", "category": "technical", "text": "İnternet olmadan çalışabilir misin?" },
+
+  { "id": "C1", "category": "business", "text": "Gelir modeli nedir ve nasıl oluşturulur?" },
+  { "id": "C2", "category": "business", "text": "İş modeli Canvas nedir, kısa özet geçer misin?" },
+  { "id": "C3", "category": "business", "text": "Müşteri segmenti nasıl belirlenir?" },
+  { "id": "C4", "category": "business", "text": "Değer önerisi hazırlarken nelere dikkat etmeliyim?" },
+  { "id": "C5", "category": "business", "text": "Sabit ve değişken maliyet farkını detaylı açıkla" },
+
+  { "id": "D1", "category": "financial", "text": "Ciro ile kâr arasındaki fark nedir?" },
+  { "id": "D2", "category": "financial", "text": "Brüt kâr marjı nasıl hesaplanır?" },
+  { "id": "D3", "category": "financial", "text": "Nakit akışı tablosu nasıl hazırlanır?" },
+  { "id": "D4", "category": "financial", "text": "Başabaş noktası analizini örnek vererek anlat" },
+
+  { "id": "E1", "category": "tax_legal", "text": "Şahıs işletmesi hangi vergileri öder?" },
+  { "id": "E2", "category": "tax_legal", "text": "KDV nedir, kısa açıklar mısın?" },
+  { "id": "E3", "category": "tax_legal", "text": "Fatura kesmem gerekir mi?" },
+  { "id": "E4", "category": "tax_legal", "text": "Mali müşavire ne zaman ihtiyaç duyarım?" },
+
+  { "id": "F1", "category": "platform", "text": "Şifremi nasıl değiştiririm?" },
+  { "id": "F2", "category": "platform", "text": "Kurslara nereden ulaşırım?" },
+  { "id": "F3", "category": "platform", "text": "Mentor sohbetini nasıl silerim?" },
+
+  { "id": "G1", "category": "long", "text": "Yeni bir kafe işletmecisi için baştan sona iş planı hazırla. Lokasyon analizi, hedef kitle, maliyet yapısı, gelir modeli, pazarlama kanalları ve finansal projeksiyonları içersin." },
+  { "id": "G2", "category": "long", "text": "Küçük bir perakende mağazasının ilk 12 ayı için kapsamlı bir operasyonel ve mali yol haritası çıkar." },
+  { "id": "G3", "category": "long", "text": "Serbest meslek sahibi bir yazılımcı için vergi, fatura, gider takibi ve birikim stratejisini detaylı özetle." },
+
+  { "id": "H1", "category": "noisy", "text": "gelir modeli anlat" },
+  { "id": "H2", "category": "noisy", "text": "bu nasıl oluyo" },
+  { "id": "H3", "category": "noisy", "text": "kısaca özetle" }
+]

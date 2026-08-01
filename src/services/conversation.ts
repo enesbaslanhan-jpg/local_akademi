@@ -14,6 +14,8 @@ import {
 import type { Citation } from './ai-gateway'
 import { getActiveAiRuntimeInfo } from './ai-gateway'
 import { buildMemoryContext } from './memory/context-builder'
+import { applyHistoryBudget, estimateHistoryCharacters } from './mentor-history-budget'
+import { getProviderParameters, getPromptProfile } from './mentor-prompt-profile'
 import { streamSlotManager } from './stream-manager'
 import { extractAndStoreMemories, buildExtractionPrompt } from './memory/memory-extractor'
 import { updateConversationSummary } from './memory/summary-service'
@@ -191,6 +193,12 @@ interface BuildContextResult {
   knowledgeContext: string
   koTitle: string | undefined
   selectedKOTitle: string | undefined
+  systemPromptCharacters: number
+  historyCharacters: number
+  historyMessageCount: number
+  promptProfile: string
+  maxOutputTokens: number
+  temperature: number
 }
 
 type ResolvedContext = Awaited<ReturnType<typeof resolveKnowledgeContext>>
@@ -199,6 +207,7 @@ async function buildContext(
   conversationId: number,
   user: { id: number; email: string; role: string },
   message: string,
+  intent: MentorIntent,
   resolvedContext?: ResolvedContext,
 ): Promise<BuildContextResult> {
   const recentMessages = await prisma.conversationMessage.findMany({
@@ -206,7 +215,7 @@ async function buildContext(
     orderBy: { createdAt: 'desc' },
     take: CONTEXT_MESSAGE_LIMIT
   })
-  const chatMessages: ChatMessage[] = recentMessages
+  const rawHistory: ChatMessage[] = recentMessages
     .reverse()
     .filter(m => {
       if (m.error) return false
@@ -217,17 +226,23 @@ async function buildContext(
     })
     .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
 
+  const chatMessages = applyHistoryBudget(rawHistory, intent, { userMessage: message })
+
   const [dbUser, ctx] = await Promise.all([
     prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } }),
-    resolvedContext ?? resolveKnowledgeContext(message)
+    resolvedContext ?? resolveKnowledgeContext(message, undefined, intent)
   ])
   const systemContent = buildSystemPrompt(
     { name: dbUser?.name || user.email, role: dbUser?.role || user.role },
     ctx.knowledgeContext,
     ctx.koTitle,
-    ctx.selectedKOTitle
+    ctx.selectedKOTitle,
+    intent,
+    message
   )
   const systemMessage: ChatMessage = { role: 'system', content: systemContent }
+  const providerParams = getProviderParameters(intent, { userRequestedLength: message ? 'normal' : 'normal' })
+  const profile = getPromptProfile(intent)
 
   return {
     chatMessages,
@@ -235,7 +250,13 @@ async function buildContext(
     knowledgeObjects: ctx.knowledgeObjects,
     knowledgeContext: ctx.knowledgeContext,
     koTitle: ctx.koTitle,
-    selectedKOTitle: ctx.selectedKOTitle
+    selectedKOTitle: ctx.selectedKOTitle,
+    systemPromptCharacters: systemContent.length,
+    historyCharacters: estimateHistoryCharacters(chatMessages),
+    historyMessageCount: chatMessages.length,
+    promptProfile: profile.name,
+    maxOutputTokens: providerParams.maxOutputTokens,
+    temperature: providerParams.temperature,
   }
 }
 
@@ -515,14 +536,24 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     telemetry?.set('retrievalRequested', shouldRunKnowledgeRetrieval(intent))
     telemetry?.set('retrievalSkippedReason', shouldRunKnowledgeRetrieval(intent) ? undefined : `intent:${intent}`)
     telemetry?.set('acceptedKnowledgeObjectCount', resolvedContext.knowledgeObjects.length)
-    const rejectedCount = resolvedContext.selected
-      ? 0
-      : Math.max(0, (resolvedContext.knowledgeObjects.length === 0 ? 0 : resolvedContext.knowledgeObjects.length) - resolvedContext.knowledgeObjects.length)
-    telemetry?.set('rejectedKnowledgeObjectCount', rejectedCount)
+    telemetry?.set('rejectedKnowledgeObjectCount', resolvedContext.rejectedKnowledgeObjectCount)
+    telemetry?.set('retrievalFallbackUsed', resolvedContext.noRelevantKnowledgeFound)
+    telemetry?.set('noRelevantKnowledgeFound', resolvedContext.noRelevantKnowledgeFound)
 
     telemetry?.startStage('contextBuild')
-    const { chatMessages, systemMessage, knowledgeObjects } = await buildContext(convId, user, cleanMessage, resolvedContext)
+    const {
+      chatMessages, systemMessage, knowledgeObjects, systemPromptCharacters,
+      historyCharacters, historyMessageCount, promptProfile, maxOutputTokens, temperature,
+    } = await buildContext(convId, user, cleanMessage, intent, resolvedContext)
     telemetry?.endStage('contextBuild', 'contextBuildDurationMs')
+
+    telemetry?.set('promptProfile', promptProfile)
+    telemetry?.set('systemPromptCharacters', systemPromptCharacters)
+    telemetry?.set('historyCharacters', historyCharacters)
+    telemetry?.set('historyMessageCount', historyMessageCount)
+    telemetry?.set('configuredMaxOutputTokens', maxOutputTokens)
+    telemetry?.set('knowledgeContextCharacters', resolvedContext.knowledgeContext.length)
+    telemetry?.set('estimatedInputTokens', Math.round((systemPromptCharacters + historyCharacters + resolvedContext.knowledgeContext.length) / 4))
 
     let memCtx = { systemMessages: [systemMessage], usedMemoryIds: [] as number[] }
     if (shouldUseMemory(intent)) {
@@ -543,14 +574,20 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     telemetry?.setCounts(knowledgeObjects, !!resolvedContext.selected, memCtx.usedMemoryIds)
     telemetry?.setPromptMetrics(memCtx.systemMessages)
     telemetry?.setCompressedContextMetrics(resolvedContext.knowledgeContext)
+    telemetry?.set('memoryCharacters', memCtx.systemMessages[1]?.content?.length ?? 0)
 
     const skipOutputReview = shouldSkipOutputReview(intent)
+    telemetry?.set('outputReviewDeferred', skipOutputReview)
     const staticDisclaimer = getStaticDisclaimerForIntent(intent)
 
     let result: { content: string; usage: TokenUsage; provider: AiProvider; model: string; citations?: { id: number; title: string; code: string | null; category: { name: string } | null }[] }
     try {
       telemetry?.startStage('provider')
-      result = await callAiProviderWithRetry(memCtx.systemMessages, knowledgeObjects, { skipOutputReview })
+      result = await callAiProviderWithRetry(memCtx.systemMessages, knowledgeObjects, {
+        skipOutputReview,
+        temperature,
+        maxOutputTokens,
+      })
       telemetry?.endStage('provider', 'providerDurationMs')
     } catch (error: unknown) {
       telemetry?.endStage('provider', 'providerDurationMs')
@@ -589,6 +626,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     telemetry?.set('provider', result.provider)
     telemetry?.set('model', result.model)
     telemetry?.setResponseMetrics(result.content)
+    telemetry?.setProviderUsage(result.usage)
     telemetry?.set('disclaimerAttached', !!staticDisclaimer)
 
     telemetry?.startStage('persistence')
@@ -716,14 +754,14 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     }
 
     try {
-      reply.raw.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        'X-Accel-Buffering': 'no'
-      })
+    reply.raw.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no'
+    })
 
-      sendSSE(reply, 'start', {
+    sendSSE(reply, 'start', {
         type: 'start',
         conversationId: convId,
         userMessageId: userMsg.id
@@ -797,37 +835,27 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       telemetry?.set('retrievalRequested', shouldRunKnowledgeRetrieval(intent))
       telemetry?.set('retrievalSkippedReason', shouldRunKnowledgeRetrieval(intent) ? undefined : `intent:${intent}`)
       telemetry?.set('acceptedKnowledgeObjectCount', resolvedContext.knowledgeObjects.length)
+      telemetry?.set('rejectedKnowledgeObjectCount', resolvedContext.rejectedKnowledgeObjectCount)
+      telemetry?.set('retrievalFallbackUsed', resolvedContext.noRelevantKnowledgeFound)
+      telemetry?.set('noRelevantKnowledgeFound', resolvedContext.noRelevantKnowledgeFound)
 
       telemetry?.startStage('contextBuild')
-      const dbUserProfile = await prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } })
-      const knowledgeObjects = resolvedContext.knowledgeObjects
-      const knowledgeContext = resolvedContext.knowledgeContext
-      const baseSystemPrompt = buildSystemPrompt(
-        { name: dbUserProfile?.name || user.email, role: dbUserProfile?.role || user.role },
-        knowledgeContext,
-        resolvedContext.koTitle,
-        resolvedContext.selectedKOTitle,
-        intent
-      )
-
-      const recentMsgs = await prisma.conversationMessage.findMany({
-        where: { conversationId: convId },
-        orderBy: { createdAt: 'desc' },
-        take: CONTEXT_MESSAGE_LIMIT
-      })
-      const chatMessages: ChatMessage[] = recentMsgs
-        .reverse()
-        .filter(m => {
-          if (m.error) return false
-          if (m.role !== 'user' && m.role !== 'assistant') return false
-          if (!m.content) return false
-          if (/(?:\?{2,}|[A-Za-zÇĞİÖŞÜçğıöşü]\?[A-Za-zÇĞİÖŞÜçğıöşü])/.test(m.content)) return false
-          return true
-        })
-        .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
+      const {
+        chatMessages, systemMessage, knowledgeObjects, systemPromptCharacters,
+        historyCharacters, historyMessageCount, promptProfile, maxOutputTokens, temperature,
+      } = await buildContext(convId, user, cleanMessage, intent, resolvedContext)
+      const baseSystemPrompt = systemMessage.content
       telemetry?.endStage('contextBuild', 'contextBuildDurationMs')
 
-      let systemMessages: ChatMessage[] = [{ role: 'system', content: baseSystemPrompt }]
+      telemetry?.set('promptProfile', promptProfile)
+      telemetry?.set('systemPromptCharacters', systemPromptCharacters)
+      telemetry?.set('historyCharacters', historyCharacters)
+      telemetry?.set('historyMessageCount', historyMessageCount)
+      telemetry?.set('configuredMaxOutputTokens', maxOutputTokens)
+      telemetry?.set('knowledgeContextCharacters', resolvedContext.knowledgeContext.length)
+      telemetry?.set('estimatedInputTokens', Math.round((systemPromptCharacters + historyCharacters + resolvedContext.knowledgeContext.length) / 4))
+
+      let systemMessages: ChatMessage[] = [systemMessage]
       let usedMemoryIds: number[] = []
       if (shouldUseMemory(intent)) {
         telemetry?.startStage('memory')
@@ -848,9 +876,11 @@ export async function conversationRoutes(fastify: FastifyInstance) {
 
       telemetry?.setCounts(knowledgeObjects, !!resolvedContext.selected, usedMemoryIds)
       telemetry?.setPromptMetrics(systemMessages)
-      telemetry?.setCompressedContextMetrics(knowledgeContext)
+      telemetry?.setCompressedContextMetrics(resolvedContext.knowledgeContext)
+      telemetry?.set('memoryCharacters', systemMessages[1]?.content?.length ?? 0)
 
       const skipOutputReview = shouldSkipOutputReview(intent)
+      telemetry?.set('outputReviewDeferred', skipOutputReview)
       const staticDisclaimer = getStaticDisclaimerForIntent(intent)
 
       let assistantContent = ''
@@ -862,7 +892,11 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       try {
         telemetry?.startStage('provider')
         const providerStartTime = Date.now()
-        const stream = streamAiResponse(systemMessages, abortController.signal, knowledgeObjects, { skipOutputReview })
+        const stream = streamAiResponse(systemMessages, abortController.signal, knowledgeObjects, {
+          skipOutputReview,
+          temperature,
+          maxOutputTokens,
+        })
         for await (const event of stream) {
           if (finalized) break
           if (event.type === 'provider') {
@@ -1094,6 +1128,9 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       }
     }
 
+    const telemetry = startMentorTelemetry(request.id, convId, true)
+    const requestStart = Date.now()
+
     try {
     reply.raw.writeHead(200, {
       'Content-Type': 'text/event-stream',
@@ -1127,7 +1164,11 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     const intent = selectedCode
       ? 'selected_knowledge_object'
       : detectMentorIntent(lastUserContent).intent
+    telemetry?.set('detectedIntent', intent)
     const resolvedContext = await resolveKnowledgeContext(lastUserContent, selectedCode, intent)
+    telemetry?.set('acceptedKnowledgeObjectCount', resolvedContext.knowledgeObjects.length)
+    telemetry?.set('rejectedKnowledgeObjectCount', resolvedContext.rejectedKnowledgeObjectCount)
+    telemetry?.set('noRelevantKnowledgeFound', resolvedContext.noRelevantKnowledgeFound)
 
     const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } })
     const systemContent = buildSystemPrompt(
@@ -1135,10 +1176,21 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       resolvedContext.knowledgeContext,
       resolvedContext.koTitle,
       resolvedContext.selectedKOTitle,
-      intent
+      intent,
+      lastUserContent
     )
     const systemMessage: ChatMessage = { role: 'system', content: systemContent }
+    const chatMessagesBudgeted = applyHistoryBudget(chatMessages, intent, { userMessage: lastUserContent })
+    const { maxOutputTokens, temperature } = getProviderParameters(intent)
     const skipOutputReview = shouldSkipOutputReview(intent)
+    telemetry?.set('outputReviewDeferred', skipOutputReview)
+    telemetry?.set('promptProfile', getPromptProfile(intent).name)
+    telemetry?.set('systemPromptCharacters', systemContent.length)
+    telemetry?.set('historyCharacters', estimateHistoryCharacters(chatMessagesBudgeted))
+    telemetry?.set('historyMessageCount', chatMessagesBudgeted.length)
+    telemetry?.set('configuredMaxOutputTokens', maxOutputTokens)
+    telemetry?.set('knowledgeContextCharacters', resolvedContext.knowledgeContext.length)
+    telemetry?.set('estimatedInputTokens', Math.round((systemContent.length + estimateHistoryCharacters(chatMessagesBudgeted) + resolvedContext.knowledgeContext.length) / 4))
 
     const abortController = new AbortController()
     let finalized = false
@@ -1153,7 +1205,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     let finalModel = ''
 
     try {
-      const stream = streamAiResponse([systemMessage, ...chatMessages], abortController.signal, resolvedContext.knowledgeObjects, { skipOutputReview })
+      const stream = streamAiResponse([systemMessage, ...chatMessagesBudgeted], abortController.signal, resolvedContext.knowledgeObjects, { skipOutputReview, temperature, maxOutputTokens })
       for await (const event of stream) {
         if (finalized) break
         if (event.type === 'provider') {
@@ -1274,6 +1326,10 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       }
     }
 
+    telemetry?.set('provider', finalProvider)
+    telemetry?.set('model', finalModel)
+    telemetry?.setResponseMetrics(assistantContent)
+    telemetry?.emit(Date.now() - requestStart)
     reply.raw.end()
     } finally {
       ensureSlotReleased()
@@ -1345,6 +1401,9 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     })
     const selectedCode = extractSelectedKnowledgeObjectCode(followingAssistant?.knowledgeObjects)
 
+    const telemetry = startMentorTelemetry(request.id, convId, true)
+    const requestStart = Date.now()
+
     try {
     reply.raw.writeHead(200, {
       'Content-Type': 'text/event-stream',
@@ -1378,17 +1437,32 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     const intent = selectedCode
       ? 'selected_knowledge_object'
       : detectMentorIntent(cleanNewMessage).intent
+    telemetry?.set('detectedIntent', intent)
     const resolvedContext = await resolveKnowledgeContext(cleanNewMessage, selectedCode, intent)
+    telemetry?.set('acceptedKnowledgeObjectCount', resolvedContext.knowledgeObjects.length)
+    telemetry?.set('rejectedKnowledgeObjectCount', resolvedContext.rejectedKnowledgeObjectCount)
+    telemetry?.set('noRelevantKnowledgeFound', resolvedContext.noRelevantKnowledgeFound)
     const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } })
     const systemContent = buildSystemPrompt(
       { name: dbUser?.name || user.email, role: dbUser?.role || user.role },
       resolvedContext.knowledgeContext,
       resolvedContext.koTitle,
       resolvedContext.selectedKOTitle,
-      intent
+      intent,
+      cleanNewMessage
     )
     const systemMessage: ChatMessage = { role: 'system', content: systemContent }
+    const chatMessagesBudgeted = applyHistoryBudget(chatMessages, intent, { userMessage: cleanNewMessage })
+    const { maxOutputTokens, temperature } = getProviderParameters(intent)
     const skipOutputReview = shouldSkipOutputReview(intent)
+    telemetry?.set('outputReviewDeferred', skipOutputReview)
+    telemetry?.set('promptProfile', getPromptProfile(intent).name)
+    telemetry?.set('systemPromptCharacters', systemContent.length)
+    telemetry?.set('historyCharacters', estimateHistoryCharacters(chatMessagesBudgeted))
+    telemetry?.set('historyMessageCount', chatMessagesBudgeted.length)
+    telemetry?.set('configuredMaxOutputTokens', maxOutputTokens)
+    telemetry?.set('knowledgeContextCharacters', resolvedContext.knowledgeContext.length)
+    telemetry?.set('estimatedInputTokens', Math.round((systemContent.length + estimateHistoryCharacters(chatMessagesBudgeted) + resolvedContext.knowledgeContext.length) / 4))
 
     const abortController = new AbortController()
     let finalized = false
@@ -1404,7 +1478,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     let finalModel = ''
 
     try {
-      const stream = streamAiResponse([systemMessage, ...chatMessages], abortController.signal, resolvedContext.knowledgeObjects, { skipOutputReview })
+      const stream = streamAiResponse([systemMessage, ...chatMessagesBudgeted], abortController.signal, resolvedContext.knowledgeObjects, { skipOutputReview, temperature, maxOutputTokens })
       for await (const event of stream) {
         if (finalized) break
         if (event.type === 'provider') {
@@ -1518,6 +1592,10 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       }
     }
 
+    telemetry?.set('provider', finalProvider)
+    telemetry?.set('model', finalModel)
+    telemetry?.setResponseMetrics(assistantContent)
+    telemetry?.emit(Date.now() - requestStart)
     reply.raw.end()
     } finally {
       ensureSlotReleased()

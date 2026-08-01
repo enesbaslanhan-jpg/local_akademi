@@ -1,4 +1,5 @@
 import type { MentorIntent, MentorIntentResult } from './mentor-intent'
+import { rerankKnowledgeObjects, toKnowledgeObjectResults } from './mentor-retrieval-rerank'
 import type { KnowledgeObjectResult } from './retrieval/types'
 
 export function shouldRunKnowledgeRetrieval(
@@ -16,68 +17,16 @@ export function shouldRunKnowledgeRetrieval(
   return intentOrResult.requiresRetrieval
 }
 
-function getRelevanceThreshold(intent: MentorIntent): number {
-  const raw = process.env.RAG_MIN_RELEVANCE_SCORE
-  const configured = raw ? Number(raw) : Number.NaN
-  if (Number.isFinite(configured) && configured >= 0 && configured <= 1) {
-    return configured
-  }
-
-  // Default per-intent thresholds (normalized 0-1).
-  switch (intent) {
-    case 'tax_legal':
-      return 0.32
-    case 'financial_analysis':
-      return 0.36
-    case 'business_knowledge':
-      return 0.30
-    case 'selected_knowledge_object':
-      return 0.25
-    default:
-      return 0.30
-  }
-}
-
-function getConfidence(ko: KnowledgeObjectResult): number {
-  if (typeof (ko as any).confidence === 'number') {
-    return (ko as any).confidence
-  }
-  // Fallback heuristic that works with the existing score scales.
-  if (ko.matchedTerms.includes('semantic')) {
-    // Semantic score is similarity * 100.
-    return ko.score / 100
-  }
-  if (ko.matchedTerms.includes('lexical')) {
-    // Lexical exact-code max is 100; normalize to a 0-1-ish scale.
-    return Math.min(ko.score / 100, 1)
-  }
-  return Math.min(ko.score, 1)
-}
-
-function isExactCodeMatch(ko: KnowledgeObjectResult): boolean {
-  return ko.matchedTerms.some(term => term.startsWith('code:'))
-}
-
 export function applyRelevanceGate(
   knowledgeObjects: KnowledgeObjectResult[],
   intent: MentorIntent,
+  query?: string,
 ): { accepted: KnowledgeObjectResult[]; rejected: KnowledgeObjectResult[] } {
-  const threshold = getRelevanceThreshold(intent)
-  const accepted: KnowledgeObjectResult[] = []
-  const rejected: KnowledgeObjectResult[] = []
-  const seenIds = new Set<number>()
-
-  for (const ko of knowledgeObjects) {
-    if (seenIds.has(ko.id)) continue
-    seenIds.add(ko.id)
-    if (isExactCodeMatch(ko) || getConfidence(ko) >= threshold) {
-      accepted.push(ko)
-    } else {
-      rejected.push(ko)
-    }
+  const reranker = rerankKnowledgeObjects(query ?? '', intent, knowledgeObjects)
+  return {
+    accepted: toKnowledgeObjectResults(reranker.accepted),
+    rejected: toKnowledgeObjectResults(reranker.rejected),
   }
-
-  return { accepted, rejected }
 }
 
 export function shouldIncludeCitations(intent: MentorIntent): boolean {

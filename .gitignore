@@ -10,3 +10,4 @@ BACKUPS/
 .video-work/
 uploads/
 *.vsix
+reports/phase7/*.tmp.*
