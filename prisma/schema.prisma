@@ -53,6 +53,7 @@ model User {
   businessNotifications   BusinessNotification[]
   financialModelRuns      FinancialModelRun[]
   decisionJournalEntries  DecisionJournalEntry[]
+  DecisionCheckSession    DecisionCheckSession[]
 }
 
 model CommunityPost {
@@ -1260,4 +1261,82 @@ model AiReviewerHumanAudit {
   @@index([verdict, createdAt])
   @@index([criticalMiss, createdAt])
   @@index([reviewerId, createdAt])
+}
+
+// --- Phase 8: Decision Check Models ---
+
+model DecisionCheck {
+  id             String                 @id @default(uuid())
+  code           String                 @unique
+  title          String
+  description    String
+  category       String?
+  targetRoles    String                 @default("[]")
+  published      Boolean                @default(false)
+  currentVersion String?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  deletedAt      DateTime?
+  sessions       DecisionCheckSession[]
+
+  @@index([published, deletedAt])
+}
+
+model DecisionCheckVersion {
+  id              String    @id @default(uuid())
+  decisionCheckId String
+  version         String
+  status          String    @default("draft")
+  definitionJson  Json
+  ruleVersion     String
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([decisionCheckId, status])
+}
+
+model DecisionCheckSession {
+  id              String    @id @default(uuid())
+  userId          Int
+  decisionCheckId String
+  versionId       String?
+  status          String    @default("in_progress")
+  startedAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  completedAt     DateTime?
+  archivedAt      DateTime?
+
+  decisionCheck DecisionCheck         @relation(fields: [decisionCheckId], references: [id], onDelete: Cascade)
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers       DecisionCheckAnswer[]
+  result        DecisionCheckResult?
+
+  @@index([userId, status])
+  @@index([decisionCheckId])
+}
+
+model DecisionCheckAnswer {
+  id           String   @id @default(uuid())
+  sessionId    String
+  questionCode String
+  valueJson    Json
+  isUnknown    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  session DecisionCheckSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, questionCode])
+}
+
+model DecisionCheckResult {
+  id           String   @id @default(uuid())
+  sessionId    String   @unique
+  status       String   @default("not_ready")
+  riskLevel    String   @default("undetermined")
+  snapshotJson Json
+  ruleVersion  String
+  createdAt    DateTime @default(now())
+
+  session DecisionCheckSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }

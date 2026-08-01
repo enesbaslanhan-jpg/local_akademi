@@ -37,6 +37,8 @@ const WorkspaceTeam = lazy(() => import('@/pages/Workspaces/Team'))
 const WorkspaceContacts = lazy(() => import('@/pages/Workspaces/Contacts'))
 const WorkspaceSettings = lazy(() => import('@/pages/Workspaces/Settings'))
 const WorkspaceActivity = lazy(() => import('@/pages/Workspaces/Activity'))
+const DecisionCheckList = lazy(() => import('@/pages/DecisionCheckList'))
+const DecisionCheckSession = lazy(() => import('@/pages/DecisionCheckSession'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
 const Unauthorized = lazy(() => import('@/pages/Unauthorized'))
 
@@ -79,6 +81,8 @@ export default function AppRoutes() {
             <Route path="mentor" element={<SuspenseWrapper><MentorPage /></SuspenseWrapper>} />
             <Route path="community" element={<SuspenseWrapper><CommunityPage /></SuspenseWrapper>} />
             <Route path="tools" element={<SuspenseWrapper><ToolsPage /></SuspenseWrapper>} />
+            <Route path="decision-checks" element={<SuspenseWrapper><DecisionCheckList /></SuspenseWrapper>} />
+            <Route path="decision-checks/:code" element={<SuspenseWrapper><DecisionCheckSession /></SuspenseWrapper>} />
             <Route path="finance/models" element={<SuspenseWrapper><FinancialModelLibrary /></SuspenseWrapper>} />
             <Route path="finance/models/:modelCode" element={<SuspenseWrapper><FinancialModelWorkspace /></SuspenseWrapper>} />
             <Route path="flashcards" element={<SuspenseWrapper><FlashcardDashboardPage /></SuspenseWrapper>} />
