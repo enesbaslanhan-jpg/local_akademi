@@ -198,6 +198,7 @@ export function useMentorChat(contextCode = '', contextTitle = '') {
       if (selectedId === id) {
         const remaining = conversations.filter(c => c.id !== id && !c.archivedAt)
         setSelectedId(remaining.length > 0 ? remaining[0].id : null)
+        if (remaining.length <= 0) setMessages([])
         if (remaining.length === 0) setMessages([])
       }
       await loadConversations(false)
@@ -219,8 +220,9 @@ export function useMentorChat(contextCode = '', contextTitle = '') {
     try {
       await api.conversation.remove(id)
       if (selectedId === id) {
-        setSelectedId(null)
-        setMessages([])
+        const remaining = conversations.filter(c => c.id !== id && (showArchived ? !!c.archivedAt : !c.archivedAt))
+        setSelectedId(remaining.length > 0 ? remaining[0].id : null)
+        if (remaining.length === 0) setMessages([])
       }
       await loadConversations()
     } catch (err) {

@@ -1,13 +1,43 @@
-import React from 'react'
+import React from 'react';
 
-const QUICK_STARTS = [
+const DEFAULT_QUICK_STARTS = [
   "Kâr marjımı nasıl hesaplarım?",
   "Müşteri segmentimi nasıl belirlerim?",
   "Nakit akışımı nasıl iyileştirebilirim?",
   "Bir işletme kararımı değerlendirelim."
-]
+];
 
-export default function MentorEmptyState({ onQuickStart }) {
+const ESNAF_QUICK_STARTS = [
+  "Ürünümün gerçek kârını hesaplayalım.",
+  "Giderlerimi nasıl azaltabilirim?",
+  "Müşteri segmentimi nasıl belirlerim?",
+  "Nakit akışımı nasıl iyileştirebilirim?"
+];
+
+const GIRISIMCI_QUICK_STARTS = [
+  "İş fikrimi nasıl doğrulayabilirim?",
+  "Müşteri segmentimi belirleyelim.",
+  "Kâr marjımı nasıl hesaplarım?",
+  "Bir işletme kararımı değerlendirelim."
+];
+
+const YATIRIMCI_QUICK_STARTS = [
+  "Bir işletmenin nakit akışını nasıl değerlendiririm?",
+  "Kârlılık göstergelerini nasıl yorumlarım?",
+  "Müşteri segmentimi nasıl belirlerim?",
+  "Bir işletme kararımı değerlendirelim."
+];
+
+export function getQuickStartsByRole(role) {
+  if (role === 'esnaf' || role === 'merchant') return ESNAF_QUICK_STARTS;
+  if (role === 'girisimci' || role === 'entrepreneur') return GIRISIMCI_QUICK_STARTS;
+  if (role === 'yatirimci' || role === 'investor') return YATIRIMCI_QUICK_STARTS;
+  return DEFAULT_QUICK_STARTS;
+}
+
+export default function MentorEmptyState({ onQuickStart, role }) {
+  const quickStarts = getQuickStartsByRole(role);
+
   return (
     <div className="flex flex-col items-center justify-center h-full p-6 text-center">
       <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4">
@@ -16,18 +46,18 @@ export default function MentorEmptyState({ onQuickStart }) {
         </svg>
       </div>
       <h3 className="text-lg font-semibold text-[var(--text)] mb-2">
-        İşletmeniz için neyi netleştirmek istiyorsunuz?
+        Yeni sohbet başlatın veya aşağıdaki hızlı başlangıçlardan birini seçin.
       </h3>
       <p className="text-sm text-[var(--text-light)] mb-8 max-w-sm">
         AI Mentor işletmenizle ilgili sorularınızı yanıtlayabilir, size özel analiz ve öneriler sunabilir.
       </p>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-md">
-        {QUICK_STARTS.map((text, i) => (
+        {quickStarts.map((text, i) => (
           <button
             key={i}
             onClick={() => onQuickStart(text)}
-            className="text-left text-sm p-3 bg-white border border-[var(--border)] rounded-lg hover:border-[var(--primary)] hover:bg-[var(--primary-light)] transition-colors text-[var(--text)] shadow-sm"
+            className="text-left text-sm p-3 bg-white border border-[var(--border)] rounded-lg hover:border-[var(--primary)] hover:bg-[var(--primary-light)] transition-colors text-[var(--text)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
           >
             {text}
           </button>

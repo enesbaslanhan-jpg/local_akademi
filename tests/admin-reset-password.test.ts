@@ -12,22 +12,6 @@ const prisma = new PrismaClient({
 const TEST_PREFIX = 'reset-test'
 
 beforeAll(async () => {
-  const { execSync } = await import('child_process')
-  try {
-    execSync('npx prisma migrate deploy --schema prisma/schema.prisma', {
-      cwd: process.cwd(),
-      env: { ...process.env, DATABASE_URL: RESET_DB_URL },
-      stdio: 'pipe',
-      timeout: 30000
-    })
-  } catch {
-    execSync('npx prisma db push --schema prisma/schema.prisma --force-reset', {
-      cwd: process.cwd(),
-      env: { ...process.env, DATABASE_URL: RESET_DB_URL },
-      stdio: 'pipe',
-      timeout: 30000
-    })
-  }
   await prisma.$connect()
 })
 

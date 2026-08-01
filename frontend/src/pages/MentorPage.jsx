@@ -7,6 +7,9 @@ import MentorMessageBubble from '@/components/mentor/MentorMessageBubble'
 import MentorComposer from '@/components/mentor/MentorComposer'
 import MentorEmptyState from '@/components/mentor/MentorEmptyState'
 import MentorErrorAlert from '@/components/mentor/MentorErrorAlert'
+import MentorDeleteModal from '@/components/mentor/MentorDeleteModal'
+import MentorBetaBadge from '@/components/mentor/MentorBetaBadge'
+import { useAuth } from '@/context/AuthContext'
 
 function formatTime(dateStr) {
   if (!dateStr) return ''
@@ -25,6 +28,7 @@ function contentPreview(text) {
 }
 
 export default function MentorPage() {
+  const { user } = useAuth()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   
@@ -49,6 +53,10 @@ export default function MentorPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [memoryPanelVisible, setMemoryPanelVisible] = useState(false)
   const [showScrollButton, setShowScrollButton] = useState(false)
+  
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [conversationToDelete, setConversationToDelete] = useState(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   
   const messagesEndRef = useRef(null)
   const messagesContainerRef = useRef(null)
@@ -256,7 +264,7 @@ export default function MentorPage() {
                         </button>
                       )}
                       <button
-                        onClick={e => { e.stopPropagation(); handleDelete(conv.id) }}
+                        onClick={e => { e.stopPropagation(); setConversationToDelete(conv.id); setDeleteModalOpen(true) }}
                         className="p-1 rounded hover:bg-gray-200 text-xs text-[var(--text-light)]"
                         title="Sil"
                       >
@@ -291,6 +299,9 @@ export default function MentorPage() {
                 {selectedConv.provider} · {selectedConv.model}
               </span>
             )}
+            <div className="inline-block ml-3">
+              <MentorBetaBadge />
+            </div>
           </div>
           {contextTitle && (
             <span className="badge bg-info text-xs flex-shrink-0">Bağlam: {contextTitle}</span>
@@ -310,14 +321,15 @@ export default function MentorPage() {
           )}
 
           {selectedId === null && messages.length === 0 ? (
-            <MentorEmptyState onQuickStart={handleQuickStart} />
+            <MentorEmptyState role={user?.role} onQuickStart={handleQuickStart} />
           ) : messages.length === 0 && !isStreaming ? (
-            <MentorEmptyState onQuickStart={handleQuickStart} />
+            <MentorEmptyState role={user?.role} onQuickStart={handleQuickStart} />
           ) : (
             <div className="mx-auto max-w-4xl space-y-4">
               {messages.map(msg => (
                 <MentorMessageBubble
                   key={msg.id}
+                  user={user}
                   msg={msg}
                   isStreaming={isStreaming}
                   editMessageId={editMessageId}
@@ -369,6 +381,20 @@ export default function MentorPage() {
       </main>
 
       <MemoryPanel visible={memoryPanelVisible} onClose={() => setMemoryPanelVisible(false)} />
+      
+      <MentorDeleteModal 
+        isOpen={deleteModalOpen}
+        onClose={() => { if(!isDeleting) { setDeleteModalOpen(false); setConversationToDelete(null); } }}
+        onConfirm={async () => {
+          setIsDeleting(true);
+          await handleDelete(conversationToDelete);
+          setIsDeleting(false);
+          setDeleteModalOpen(false);
+          setConversationToDelete(null);
+        }}
+        isDeleting={isDeleting}
+        error={error}
+      />
     </div>
   )
 }

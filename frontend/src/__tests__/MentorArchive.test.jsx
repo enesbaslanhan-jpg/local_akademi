@@ -58,6 +58,10 @@ vi.mock('../components/mentor/CitationBadge', () => ({
   default: ({ title }) => <span>{title}</span>
 }))
 
+vi.mock('@/context/AuthContext', () => ({
+  useAuth: () => ({ user: { id: 'usr-1', role: 'esnaf' } })
+}))
+
 Object.defineProperty(window, 'localStorage', {
   value: {
     getItem: vi.fn(() => 'test-token'),

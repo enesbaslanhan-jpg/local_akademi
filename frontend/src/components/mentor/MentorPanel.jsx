@@ -6,6 +6,8 @@ import MentorMessageBubble from './MentorMessageBubble'
 import MentorComposer from './MentorComposer'
 import MentorEmptyState from './MentorEmptyState'
 import MentorErrorAlert from './MentorErrorAlert'
+import MentorBetaBadge from './MentorBetaBadge'
+import { useAuth } from '@/context/AuthContext'
 
 function formatTime(dateStr) {
   if (!dateStr) return ''
@@ -24,6 +26,7 @@ function contentPreview(text) {
 }
 
 export default function MentorPanel() {
+  const { user } = useAuth()
   const { isPanelOpen, closePanel, isFullPage, panelView, setPanelView, activeConversationId, setActiveConversationId } = useMentorContext()
 
   const chatHook = useMentorChat()
@@ -147,6 +150,11 @@ export default function MentorPanel() {
                 </div>
               )}
             </div>
+            {panelView === 'chat' && (
+              <div className="hidden sm:block ml-2">
+                <MentorBetaBadge />
+              </div>
+            )}
           </div>
           
           <div className="flex items-center gap-2 shrink-0">
@@ -227,12 +235,13 @@ export default function MentorPanel() {
                 <MentorErrorAlert error={error} onDismiss={() => setError('')} />
 
                 {(!messages || messages.length === 0) && !isStreaming ? (
-                  <MentorEmptyState onQuickStart={handleQuickStart} />
+                  <MentorEmptyState role={user?.role} onQuickStart={handleQuickStart} />
                 ) : (
                   <div className="flex-1 px-4 py-4 space-y-4">
                     {messages.map(msg => (
                       <MentorMessageBubble
                         key={msg.id}
+                        user={user}
                         msg={msg}
                         isStreaming={isStreaming}
                         editMessageId={editMessageId}
