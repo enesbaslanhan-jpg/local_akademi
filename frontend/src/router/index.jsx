@@ -4,6 +4,10 @@ import AppLayout from '@/components/layout/AppLayout'
 import ProtectedRoute from '@/components/layout/ProtectedRoute'
 import Loading from '@/components/ui/Loading'
 
+
+const PracticalCardList = lazy(() => import('@/pages/practical-cards/PracticalCardList'))
+const PracticalCardDetail = lazy(() => import('@/pages/practical-cards/PracticalCardDetail'))
+const SavedPracticalCards = lazy(() => import('@/pages/practical-cards/SavedPracticalCards'))
 const AuthPage = lazy(() => import('@/pages/AuthPage'))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const OnboardingPage = lazy(() => import('@/pages/OnboardingPage'))

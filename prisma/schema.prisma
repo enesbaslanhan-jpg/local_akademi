@@ -54,6 +54,8 @@ model User {
   financialModelRuns      FinancialModelRun[]
   decisionJournalEntries  DecisionJournalEntry[]
   DecisionCheckSession    DecisionCheckSession[]
+  practicalCardSaves      PracticalCardSave[]
+  practicalCardFeedbacks  PracticalCardFeedback[]
 }
 
 model CommunityPost {
@@ -622,47 +624,48 @@ model Enrollment {
 }
 
 model KnowledgeObject {
-  id                 Int                             @id @default(autoincrement())
-  code               String?                         @unique
-  slug               String?                         @unique
-  type               String
-  title              String
-  content            String
-  embedding          String
-  metadata           String
-  status             String                          @default("draft")
-  verificationStatus String                          @default("unverified")
-  reviewGate         String                          @default("standard")
-  isDemo             Boolean                         @default(false)
-  publishedAt        DateTime?
-  archivedAt         DateTime?
-  reviewDue          DateTime?
-  categoryId         Int?
-  currentVersionId   Int?
-  createdAt          DateTime                        @default(now())
-  updatedAt          DateTime                        @updatedAt
-  applySteps         String?
-  learnSteps         String?
-  problem            String?
-  quickAnswer        String?
-  seeAlso            String?
-  summary            String?
-  task               String?
-  warning            String?
-  flashcards         Flashcard[]
-  flashcardProgress  FlashcardProgress[]
-  currentVersion     KnowledgeObjectVersion?         @relation("CurrentVersion", fields: [currentVersionId], references: [id])
-  category           Category?                       @relation(fields: [categoryId], references: [id])
-  sources            KnowledgeObjectSource[]
-  versions           KnowledgeObjectVersion[]        @relation("VersionHistory")
-  knowledgeProgress  KnowledgeProgress[]
-  videos             LearningVideo?
-  courseLessons      Lesson[]
-  publicationEvents  PublicationEvent[]
-  quizzes            Quiz[]
-  reviews            ReviewRecord[]
-  taskTemplates      TaskTemplate[]
-  financialModels    FinancialModelKnowledgeObject[]
+  id                           Int                             @id @default(autoincrement())
+  code                         String?                         @unique
+  slug                         String?                         @unique
+  type                         String
+  title                        String
+  content                      String
+  embedding                    String
+  metadata                     String
+  status                       String                          @default("draft")
+  verificationStatus           String                          @default("unverified")
+  reviewGate                   String                          @default("standard")
+  isDemo                       Boolean                         @default(false)
+  publishedAt                  DateTime?
+  archivedAt                   DateTime?
+  reviewDue                    DateTime?
+  categoryId                   Int?
+  currentVersionId             Int?
+  createdAt                    DateTime                        @default(now())
+  updatedAt                    DateTime                        @updatedAt
+  applySteps                   String?
+  learnSteps                   String?
+  problem                      String?
+  quickAnswer                  String?
+  seeAlso                      String?
+  summary                      String?
+  task                         String?
+  warning                      String?
+  flashcards                   Flashcard[]
+  flashcardProgress            FlashcardProgress[]
+  currentVersion               KnowledgeObjectVersion?         @relation("CurrentVersion", fields: [currentVersionId], references: [id])
+  category                     Category?                       @relation(fields: [categoryId], references: [id])
+  sources                      KnowledgeObjectSource[]
+  versions                     KnowledgeObjectVersion[]        @relation("VersionHistory")
+  knowledgeProgress            KnowledgeProgress[]
+  videos                       LearningVideo?
+  courseLessons                Lesson[]
+  publicationEvents            PublicationEvent[]
+  quizzes                      Quiz[]
+  reviews                      ReviewRecord[]
+  taskTemplates                TaskTemplate[]
+  financialModels              FinancialModelKnowledgeObject[]
+  PracticalCardKnowledgeObject PracticalCardKnowledgeObject[]
 }
 
 model Category {
@@ -1339,4 +1342,75 @@ model DecisionCheckResult {
   createdAt    DateTime @default(now())
 
   session DecisionCheckSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// PHASE 8.0C - PRACTICAL CARDS
+// ==========================================
+
+model PracticalCard {
+  id               String   @id @default(uuid())
+  code             String   @unique
+  title            String
+  type             String
+  shortDescription String?
+  category         String?
+  published        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  versions         PracticalCardVersion[]
+  knowledgeObjects PracticalCardKnowledgeObject[]
+  saves            PracticalCardSave[]
+  feedbacks        PracticalCardFeedback[]
+}
+
+model PracticalCardVersion {
+  id              String   @id @default(uuid())
+  practicalCardId String
+  version         Int
+  status          String   @default("draft")
+  contentJson     Json
+  createdAt       DateTime @default(now())
+
+  practicalCard PracticalCard @relation(fields: [practicalCardId], references: [id], onDelete: Cascade)
+
+  @@unique([practicalCardId, version])
+}
+
+model PracticalCardKnowledgeObject {
+  practicalCardId   String
+  knowledgeObjectId Int
+  order             Int    @default(0)
+
+  practicalCard   PracticalCard   @relation(fields: [practicalCardId], references: [id], onDelete: Cascade)
+  knowledgeObject KnowledgeObject @relation(fields: [knowledgeObjectId], references: [id], onDelete: Cascade)
+
+  @@id([practicalCardId, knowledgeObjectId])
+}
+
+model PracticalCardSave {
+  id              String   @id @default(uuid())
+  userId          Int
+  practicalCardId String
+  createdAt       DateTime @default(now())
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  practicalCard PracticalCard @relation(fields: [practicalCardId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, practicalCardId])
+}
+
+model PracticalCardFeedback {
+  id              String   @id @default(uuid())
+  userId          Int
+  practicalCardId String
+  value           String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  practicalCard PracticalCard @relation(fields: [practicalCardId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, practicalCardId])
 }
