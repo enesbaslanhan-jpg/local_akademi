@@ -23,7 +23,9 @@ export default function CitationBadge({ id, title, code, sourceRefs }) {
     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-1
   `
 
-  if (code) {
+  const isValidCode = code && typeof code === 'string' && code.trim().length > 0
+
+  if (isValidCode) {
     return (
       <Link
         to={`/app/knowledge/${encodeURIComponent(code)}`}

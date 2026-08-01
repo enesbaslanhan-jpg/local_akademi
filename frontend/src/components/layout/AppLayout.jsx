@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Header from './Header'
 import Sidebar from './Sidebar'
+import MentorLauncher from '../mentor/MentorLauncher'
+import MentorPanel from '../mentor/MentorPanel'
 import styles from './AppLayout.module.css'
 
 export default function AppLayout() {
@@ -16,6 +18,8 @@ export default function AppLayout() {
           <Outlet />
         </main>
       </div>
+      <MentorLauncher />
+      <MentorPanel />
     </div>
   )
 }

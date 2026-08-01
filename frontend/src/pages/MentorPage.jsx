@@ -1,9 +1,12 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { api } from '@/services/api'
-import { Loading, EmptyState } from '@/components/ui'
+import { useMentorChat } from '@/hooks/useMentorChat'
+import { Loading } from '@/components/ui'
 import MemoryPanel from '@/components/memory/MemoryPanel'
-import CitationBadge from '@/components/mentor/CitationBadge'
+import MentorMessageBubble from '@/components/mentor/MentorMessageBubble'
+import MentorComposer from '@/components/mentor/MentorComposer'
+import MentorEmptyState from '@/components/mentor/MentorEmptyState'
+import MentorErrorAlert from '@/components/mentor/MentorErrorAlert'
 
 function formatTime(dateStr) {
   if (!dateStr) return ''
@@ -21,67 +24,51 @@ function contentPreview(text) {
   return text.length > 80 ? text.slice(0, 80) + '...' : text
 }
 
-function MessageActions({ msg, onCopy, onRegenerate, onStartEdit, isStreaming }) {
-  return (
-    <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-      {msg.content && (
-        <button onClick={() => onCopy(msg.content)} className="text-[11px] px-1.5 py-0.5 rounded hover:bg-black/10 text-[var(--text-light)]" title="Kopyala">
-          Kopyala
-        </button>
-      )}
-      {msg.role === 'assistant' && !isStreaming && (
-        <button onClick={() => onRegenerate(msg.id)} className="text-[11px] px-1.5 py-0.5 rounded hover:bg-black/10 text-[var(--text-light)]" title="Yeniden oluştur">
-          Yeniden Oluştur
-        </button>
-      )}
-      {msg.role === 'user' && !isStreaming && (
-        <button onClick={() => onStartEdit(msg)} className="text-[11px] px-1.5 py-0.5 rounded hover:bg-black/10 text-[var(--text-light)]" title="Düzenle">
-          Düzenle
-        </button>
-      )}
-    </div>
-  )
-}
-
 export default function MentorPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const [conversations, setConversations] = useState([])
-  const [selectedId, setSelectedId] = useState(null)
-  const [messages, setMessages] = useState([])
-  const [inputValue, setInputValue] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [editingId, setEditingId] = useState(null)
-  const [editValue, setEditValue] = useState('')
-  const [showArchived, setShowArchived] = useState(false)
-
-  const [isStreaming, setIsStreaming] = useState(false)
-  const [streamingContent, setStreamingContent] = useState('')
-  const [streamingMessageId, setStreamingMessageId] = useState(null)
-  const [showScrollButton, setShowScrollButton] = useState(false)
-  const [memoryPanelVisible, setMemoryPanelVisible] = useState(false)
-
-  const messagesEndRef = useRef(null)
-  const sendingLockRef = useRef(false)
-  const inputRef = useRef(null)
-  const abortControllerRef = useRef(null)
-  const messagesContainerRef = useRef(null)
-  const streamingBufferRef = useRef('')
-  const rafScheduledRef = useRef(false)
-  const streamRequestedRef = useRef(false)
-
+  
   const contextCode = searchParams.get('code') || ''
   const contextTitle = searchParams.get('title') || ''
   const contextPrompt = searchParams.get('prompt') || ''
 
+  const chatHook = useMentorChat(contextCode, contextTitle)
+  const {
+    conversations, selectedId, selectedConv, messages, loading, error, setError,
+    showArchived, setShowArchived, isStreaming, streamingContent,
+    loadConversations, loadMessages, handleSelect, handleNew, handleAbort,
+    handleSend, handleRegenerate, handleEditAndRegenerate,
+    handleArchive, handleUnarchive, handleDelete,
+    editingId, setEditingId, editValue, setEditValue, handleFinishEditTitle
+  } = chatHook
+
+  const [inputValue, setInputValue] = useState('')
+  const [editMessageId, setEditMessageId] = useState(null)
+  const [editMessageValue, setEditMessageValue] = useState('')
+  
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [memoryPanelVisible, setMemoryPanelVisible] = useState(false)
+  const [showScrollButton, setShowScrollButton] = useState(false)
+  
+  const messagesEndRef = useRef(null)
+  const messagesContainerRef = useRef(null)
+
+  // Initial prompt setup
   useEffect(() => {
     if (contextPrompt) {
       setInputValue(current => current || contextPrompt)
-      setTimeout(() => inputRef.current?.focus(), 100)
     }
   }, [contextPrompt])
+
+  // Load conversations on mount
+  useEffect(() => {
+    loadConversations(showArchived)
+  }, [showArchived, loadConversations])
+
+  // Load messages on select
+  useEffect(() => {
+    if (selectedId) loadMessages(selectedId)
+  }, [selectedId, loadMessages])
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
@@ -105,289 +92,23 @@ export default function MentorPage() {
     return () => container.removeEventListener('scroll', handleScroll)
   }, [])
 
-  useEffect(() => {
-    loadConversations(showArchived)
-  }, [showArchived])
-
-  useEffect(() => {
-    if (selectedId) loadMessages(selectedId)
-  }, [selectedId])
-
-  async function loadConversations(archived = showArchived) {
-    try {
-      setLoading(true)
-      const data = await api.conversation.getList(archived)
-      const list = data.conversations || []
-      setConversations(list)
-      setError('')
-      if (!selectedId && list.length > 0 && !archived) {
-        setSelectedId(list[0].id)
-      }
-      if (list.length === 0) {
-        setSelectedId(null)
-        setMessages([])
-      }
-    } catch (err) {
-      setError('Sohbetler yüklenemedi')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function loadMessages(conversationId) {
-    try {
-      const data = await api.conversation.getById(conversationId)
-      setMessages(data.messages || [])
-      setError('')
-    } catch (err) {
-      setError('Mesajlar yüklenemedi')
-    }
-  }
-
-  function handleSelect(id) {
-    if (isStreaming) handleAbort()
-    setError('')
-    setSelectedId(id)
-    setSidebarOpen(false)
-  }
-
-  async function handleNew() {
-    setError('')
-    if (showArchived) {
-      setShowArchived(false)
-    }
-    try {
-      const data = await api.conversation.create('Yeni Sohbet')
-      const newId = data.conversation.id
-      setSelectedId(newId)
-      setMessages([])
-      setSidebarOpen(false)
-      await loadConversations(false)
-      if (contextCode || contextTitle || contextPrompt) {
+  async function handleSendClick() {
+    const text = inputValue.trim()
+    if (!text) return
+    setInputValue('')
+    
+    await handleSend(text, scrollToBottom, () => {
+      if (contextCode) {
         navigate('/app/mentor', { replace: true })
       }
-      setTimeout(() => inputRef.current?.focus(), 200)
-    } catch (err) {
-      setError('Yeni sohbet oluşturulamadı')
-    }
-  }
-
-  function handleStartEdit(conv, e) {
-    e.stopPropagation()
-    setEditingId(conv.id)
-    setEditValue(conv.title || '')
-  }
-
-  async function handleFinishEdit(id) {
-    if (!editValue.trim()) {
-      setEditingId(null)
-      return
-    }
-    try {
-      await api.conversation.update(id, editValue.trim())
-      setEditingId(null)
-      await loadConversations()
-    } catch (err) {
-      setError('Başlık değiştirilemedi')
-      setEditingId(null)
-    }
-  }
-
-  async function handleDelete(id) {
-    if (!window.confirm('Bu sohbeti silmek istediğinize emin misiniz?')) return
-    try {
-      await api.conversation.remove(id)
-      if (selectedId === id) {
-        setSelectedId(null)
-        setMessages([])
-      }
-      await loadConversations()
-    } catch (err) {
-      setError('Sohbet silinemedi')
-    }
-  }
-
-  async function handleArchive(id) {
-    if (!window.confirm('Bu sohbeti arşivlemek istediğinize emin misiniz? Arşivlenen sohbetlere yeni mesaj gönderilemez.')) return
-    try {
-      await api.conversation.archive(id)
-      if (selectedId === id) {
-        const remaining = conversations.filter(c => c.id !== id && !c.archivedAt)
-        setSelectedId(remaining.length > 0 ? remaining[0].id : null)
-        if (remaining.length === 0) setMessages([])
-      }
-      await loadConversations(false)
-    } catch (err) {
-      setError('Sohbet arşivlenemedi')
-    }
-  }
-
-  async function handleUnarchive(id) {
-    try {
-      await api.conversation.unarchive(id)
-      await loadConversations(true)
-    } catch (err) {
-      setError('Sohbet arşivden çıkarılamadı')
-    }
-  }
-
-  function handleAbort() {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-      abortControllerRef.current = null
-    }
-  }
-
-  function scheduleStreamingUpdate() {
-    if (rafScheduledRef.current) return
-    rafScheduledRef.current = true
-    requestAnimationFrame(() => {
-      rafScheduledRef.current = false
-      setStreamingContent(streamingBufferRef.current)
-      scrollToBottom()
     })
   }
 
-  async function startStream(convId, streamFn, options = {}) {
-    if (streamRequestedRef.current) return
-    streamRequestedRef.current = true
-
-    const { clearContextOnDone } = options
-
-    const abortController = new AbortController()
-    abortControllerRef.current = abortController
-    streamingBufferRef.current = ''
-    setStreamingContent('')
-    setIsStreaming(true)
-    setStreamingMessageId(null)
-    setError('')
-
-    streamFn({
-      conversationId: convId,
-      signal: abortController.signal,
-      onStart: (data) => {
-        if (data.userMessageId) scrollToBottom()
-      },
-      onProvider: () => {},
-      onDelta: (data) => {
-        streamingBufferRef.current += data.delta
-        scheduleStreamingUpdate()
-      },
-      onDone: (data) => {
-        streamRequestedRef.current = false
-        abortControllerRef.current = null
-        setIsStreaming(false)
-        setStreamingContent('')
-        streamingBufferRef.current = ''
-        loadMessages(convId)
-        loadConversations()
-        if (clearContextOnDone) {
-          navigate('/app/mentor', { replace: true })
-        }
-      },
-      onCancelled: (data) => {
-        streamRequestedRef.current = false
-        abortControllerRef.current = null
-        setIsStreaming(false)
-        setStreamingContent('')
-        streamingBufferRef.current = ''
-        loadMessages(convId)
-      },
-      onError: (data) => {
-        streamRequestedRef.current = false
-        abortControllerRef.current = null
-        setIsStreaming(false)
-        setStreamingContent('')
-        streamingBufferRef.current = ''
-        setError(data?.message || 'Bir hata oluştu')
-        loadMessages(convId)
-      }
-    })
-  }
-
-  async function handleSend() {
-    const text = inputValue.trim()
-    if (!text || sendingLockRef.current || streamRequestedRef.current) return
-    sendingLockRef.current = true
+  async function handleQuickStart(text) {
     setInputValue('')
-
-    const optimisticMsg = { id: `pending-${Date.now()}`, role: 'user', content: text, createdAt: new Date().toISOString() }
-    setMessages(current => [...current, optimisticMsg])
-    scrollToBottom()
-
-    let convId = selectedId
-    if (!convId) {
-      try {
-        const data = await api.conversation.create('Yeni Sohbet')
-        convId = data.conversation.id
-        setSelectedId(convId)
-        setSidebarOpen(false)
-        loadConversations()
-      } catch (err) {
-        setMessages(current => current.filter(m => m.id !== optimisticMsg.id))
-        setInputValue(text)
-        setError('Sohbet oluşturulamadı')
-        sendingLockRef.current = false
-        return
-      }
-    }
-
-    sendingLockRef.current = false
-    await startStream(
-      convId,
-      (opts) => api.conversation.streamMessage({
-        conversationId: convId,
-        content: text,
-        knowledgeObjectCode: contextCode || undefined,
-        ...opts
-      }),
-      { clearContextOnDone: !!contextCode }
-    )
-  }
-
-  function handleRegenerate(messageId) {
-    if (!selectedId || streamRequestedRef.current) return
-    startStream(selectedId, (opts) => api.conversation.regenerate({ conversationId: selectedId, messageId, ...opts }))
-  }
-
-  const [editMessageId, setEditMessageId] = useState(null)
-  const [editMessageValue, setEditMessageValue] = useState('')
-
-  function handleStartEditMessage(msg) {
-    if (streamRequestedRef.current) return
-    setEditMessageId(msg.id)
-    setEditMessageValue(msg.content)
-  }
-
-  function handleCancelEditMessage() {
-    setEditMessageId(null)
-    setEditMessageValue('')
-  }
-
-  async function handleSaveEditMessage() {
-    if (!selectedId || !editMessageId || !editMessageValue.trim() || streamRequestedRef.current) return
-    const content = editMessageValue.trim()
-    setEditMessageId(null)
-    setEditMessageValue('')
-
-    await startStream(selectedId, (opts) =>
-      api.conversation.editAndRegenerate({ conversationId: selectedId, messageId: editMessageId, content, ...opts })
-    )
-  }
-
-  function handleKeyDown(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSend()
-    }
-  }
-
-  function handleEditKeyDown(e, id) {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      handleFinishEdit(id)
-    }
-    if (e.key === 'Escape') setEditingId(null)
+    await handleSend(text, scrollToBottom, () => {
+      if (contextCode) navigate('/app/mentor', { replace: true })
+    })
   }
 
   async function handleCopy(text) {
@@ -396,9 +117,29 @@ export default function MentorPage() {
     } catch { }
   }
 
-  const selectedConv = conversations.find(c => c.id === selectedId)
+  function handleStartEditMessage(msg) {
+    if (isStreaming) return
+    setEditMessageId(msg.id)
+    setEditMessageValue(msg.content)
+  }
 
-  if (loading) return <Loading text="Yükleniyor..." />
+  async function handleSaveEditMessage() {
+    if (!editMessageValue.trim() || isStreaming) return
+    await handleEditAndRegenerate(editMessageId, editMessageValue, scrollToBottom)
+    setEditMessageId(null)
+    setEditMessageValue('')
+  }
+
+  function handleEditKeyDown(e, id) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleFinishEditTitle(id, editValue)
+      setEditingId(null)
+    }
+    if (e.key === 'Escape') setEditingId(null)
+  }
+
+  if (loading && conversations.length === 0) return <Loading text="Yükleniyor..." />
 
   return (
     <div className="flex h-full" style={{ height: 'calc(100vh - var(--header-height, 64px))' }}>
@@ -421,24 +162,24 @@ export default function MentorPage() {
             <button onClick={() => setMemoryPanelVisible(true)} className="btn btn-sm btn-outline" title="Hafıza Yönetimi">
               Hafıza
             </button>
-            <button onClick={handleNew} className="btn btn-sm btn-primary">
+            <button onClick={() => { handleNew(); setSidebarOpen(false) }} className="btn btn-sm btn-primary">
               + Yeni
             </button>
           </div>
         </div>
 
-        <div className="flex text-xs border-b border-[var(--border)]">
+        <div className="flex text-xs border-b border-[var(--border)] shrink-0">
           <button
             onClick={() => setShowArchived(false)}
-            className={`flex-1 py-2 font-medium ${!showArchived ? 'bg-[var(--primary-light)] text-[var(--primary)] border-b-2 border-[var(--primary)]' : 'text-[var(--text-light)] hover:bg-gray-50'}`}
             aria-label="Aktif sohbetler"
+            className={`flex-1 py-2 font-medium ${!showArchived ? 'bg-[var(--primary-light)] text-[var(--primary)] border-b-2 border-[var(--primary)]' : 'text-[var(--text-light)] hover:bg-gray-50'}`}
           >
             Aktif
           </button>
           <button
             onClick={() => setShowArchived(true)}
-            className={`flex-1 py-2 font-medium ${showArchived ? 'bg-[var(--primary-light)] text-[var(--primary)] border-b-2 border-[var(--primary)]' : 'text-[var(--text-light)] hover:bg-gray-50'}`}
             aria-label="Arşivlenmiş sohbetler"
+            className={`flex-1 py-2 font-medium ${showArchived ? 'bg-[var(--primary-light)] text-[var(--primary)] border-b-2 border-[var(--primary)]' : 'text-[var(--text-light)] hover:bg-gray-50'}`}
           >
             Arşiv
           </button>
@@ -458,7 +199,7 @@ export default function MentorPage() {
                     group relative px-3 py-2.5 cursor-pointer transition-colors
                     ${selectedId === conv.id ? 'bg-[var(--primary-light)]' : 'hover:bg-gray-50'}
                   `}
-                  onClick={() => handleSelect(conv.id)}
+                  onClick={() => { handleSelect(conv.id); setSidebarOpen(false) }}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
@@ -467,7 +208,7 @@ export default function MentorPage() {
                           className="w-full text-sm font-medium bg-white border border-[var(--primary)] rounded px-1 py-0.5 outline-none"
                           value={editValue}
                           onChange={e => setEditValue(e.target.value)}
-                          onBlur={() => handleFinishEdit(conv.id)}
+                          onBlur={() => { handleFinishEditTitle(conv.id, editValue); setEditingId(null) }}
                           onKeyDown={e => handleEditKeyDown(e, conv.id)}
                           autoFocus
                           onClick={e => e.stopPropagation()}
@@ -490,7 +231,7 @@ export default function MentorPage() {
                       {!showArchived && (
                         <>
                           <button
-                            onClick={e => handleStartEdit(conv, e)}
+                            onClick={e => { e.stopPropagation(); setEditingId(conv.id); setEditValue(conv.title || '') }}
                             className="p-1 rounded hover:bg-gray-200 text-xs text-[var(--text-light)]"
                             title="Düzenle"
                           >
@@ -530,8 +271,8 @@ export default function MentorPage() {
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col min-w-0">
-        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[var(--border)] bg-white">
+      <main className="flex-1 flex flex-col min-w-0 bg-white relative">
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[var(--border)] bg-white shrink-0">
           <button
             className="md:hidden p-1 rounded hover:bg-gray-100 text-[var(--text-light)]"
             onClick={() => setSidebarOpen(true)}
@@ -556,190 +297,74 @@ export default function MentorPage() {
           )}
         </div>
 
-        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-4 relative">
-          {error && (
-            <div className="mx-auto max-w-2xl mb-4 rounded-lg border border-[var(--danger)] bg-[var(--danger-bg)] px-3 py-2 text-sm text-[var(--danger)]">
-              {error}
-            </div>
-          )}
+        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-4 relative bg-gray-50/30">
+          <MentorErrorAlert error={error} onDismiss={() => setError('')} />
 
           {showScrollButton && (
             <button
               onClick={scrollToBottom}
-              className="sticky bottom-2 left-1/2 -translate-x-1/2 z-10 px-3 py-1 text-xs bg-white border border-[var(--border)] rounded-full shadow-md hover:shadow-lg transition-shadow text-[var(--text-light)]"
+              className="sticky top-2 left-1/2 -translate-x-1/2 z-10 px-3 py-1 text-xs bg-white border border-[var(--border)] rounded-full shadow-md hover:shadow-lg transition-shadow text-[var(--text-light)]"
             >
               En yeni mesaja git ↓
             </button>
           )}
 
           {selectedId === null && messages.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center max-w-sm">
-                <h3 className="text-lg font-semibold text-[var(--text)] mb-2">
-                  {showArchived ? 'Arşivlenmiş Sohbetler' : "AI Mentor'a Hoş Geldiniz"}
-                </h3>
-                <p className="text-sm text-[var(--text-light)] mb-4">
-                  {showArchived
-                    ? 'Arşivlediğiniz sohbetler burada listelenir. Geri almak için listeden bir sohbet seçin.'
-                    : 'İşletmenizle ilgili sorular sorun, öneriler alın. KOBİ, esnaf ve girişimciler için yapay zeka destekli iş mentoru.'}
-                </p>
-                {!showArchived && (
-                  <div className="flex flex-col gap-2">
-                    <button onClick={handleNew} className="btn btn-primary">
-                      Yeni Sohbet Başlat
-                    </button>
-                    {contextTitle && (
-                      <p className="text-xs text-[var(--text-light)]">Bağlam: {contextTitle}</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+            <MentorEmptyState onQuickStart={handleQuickStart} />
           ) : messages.length === 0 && !isStreaming ? (
-            <div className="flex items-center justify-center h-full">
-              <EmptyState message="Henüz mesaj yok. Bir soru yazarak başlayın." />
-            </div>
+            <MentorEmptyState onQuickStart={handleQuickStart} />
           ) : (
-            <div className="mx-auto max-w-3xl space-y-4">
-              {messages.map(msg => {
-                const isUser = msg.role === 'user'
-                const isError = msg.role === 'assistant' && msg.error && msg.generationStatus === 'failed'
-                const isCancelled = msg.role === 'assistant' && msg.generationStatus === 'cancelled'
-                const isEditingThis = editMessageId === msg.id
-
-                return (
-                  <div key={msg.id} className={`group flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`
-                      max-w-[80%] md:max-w-[65%] rounded-lg px-4 py-2.5 relative
-                      ${isUser ? 'bg-[var(--primary)] text-white' : ''}
-                      ${!isUser && !isError && !isCancelled ? 'bg-gray-100 text-[var(--text)]' : ''}
-                      ${isError ? 'bg-[var(--danger-bg)] border border-[var(--danger)] text-[var(--danger)]' : ''}
-                      ${isCancelled ? 'bg-orange-50 border border-orange-300 text-[var(--text)]' : ''}
-                    `}>
-                      {isEditingThis ? (
-                        <div className="space-y-2">
-                          <textarea
-                            className="w-full text-sm bg-white border border-[var(--primary)] rounded p-2 outline-none resize-none min-h-[60px] text-[var(--text)]"
-                            value={editMessageValue}
-                            onChange={e => setEditMessageValue(e.target.value)}
-                            autoFocus
-                          />
-                          <div className="flex gap-2">
-                            <button onClick={handleSaveEditMessage} className="text-xs px-2 py-1 bg-[var(--primary)] text-white rounded hover:opacity-90">
-                              Kaydet ve Üret
-                            </button>
-                            <button onClick={handleCancelEditMessage} className="text-xs px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">
-                              İptal
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          {msg.content ? (
-                            <>
-                              <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-                              {msg.knowledgeObjects && Array.isArray(msg.knowledgeObjects) && msg.knowledgeObjects.length > 0 && (
-                                <div className="mt-2 pt-2 border-t border-[var(--border)]">
-                                  <p className="text-[11px] text-[var(--text-light)] font-medium mb-1">Kaynaklar:</p>
-                                  {msg.knowledgeObjects.map((ko, i) => (
-                                    <CitationBadge
-                                      key={ko.id || i}
-                                      id={ko.id}
-                                      title={ko.title}
-                                      code={ko.code}
-                                      sourceRefs={ko.sourceRefs}
-                                    />
-                                  ))}
-                                </div>
-                              )}
-                            </>
-                          ) : isError ? (
-                            <div>
-                              <p className="text-sm font-medium">AI yanıtı alınamadı</p>
-                              <p className="text-xs mt-1 opacity-75">{msg.error}</p>
-                            </div>
-                          ) : isCancelled ? (
-                            <div>
-                              <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-                              <p className="text-[11px] text-orange-500 mt-1">⏹️ Üretim durduruldu</p>
-                            </div>
-                          ) : null}
-                          <div className={`text-[11px] mt-1 ${isUser ? 'text-white/70' : 'text-[var(--text-light)]'}`}>
-                            {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}
-                            {msg.tokenUsage && (
-                              <span className="ml-2">
-                                · {msg.tokenUsage.totalTokens || msg.tokenUsage.total_tokens || 0} token
-                              </span>
-                            )}
-                          </div>
-                          <MessageActions
-                            msg={msg}
-                            onCopy={handleCopy}
-                            onRegenerate={handleRegenerate}
-                            onStartEdit={handleStartEditMessage}
-                            isStreaming={isStreaming}
-                          />
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
+            <div className="mx-auto max-w-4xl space-y-4">
+              {messages.map(msg => (
+                <MentorMessageBubble
+                  key={msg.id}
+                  msg={msg}
+                  isStreaming={isStreaming}
+                  editMessageId={editMessageId}
+                  editMessageValue={editMessageValue}
+                  setEditMessageValue={setEditMessageValue}
+                  onStartEdit={handleStartEditMessage}
+                  onCancelEdit={() => setEditMessageId(null)}
+                  onSaveEdit={handleSaveEditMessage}
+                  onCopy={handleCopy}
+                  onRegenerate={(id) => handleRegenerate(id, scrollToBottom)}
+                />
+              ))}
 
               {(isStreaming || streamingContent) && (
                 <div className="flex justify-start">
-                  <div className="max-w-[80%] md:max-w-[65%] rounded-lg px-4 py-2.5 bg-gray-100 text-[var(--text)]">
+                  <div className="max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 bg-white border border-[var(--border)] text-[var(--text)] rounded-tl-sm shadow-sm">
                     {streamingContent ? (
                       <p className="text-sm whitespace-pre-wrap leading-relaxed">{streamingContent}</p>
                     ) : (
-                      <p className="text-sm text-[var(--text-light)] italic">
-                        AI düşünüyor<span className="animate-pulse">...</span>
+                      <p className="text-sm text-[var(--text-light)] italic flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-ping" /> AI düşünüyor...
                       </p>
                     )}
                   </div>
                 </div>
               )}
 
-              <div ref={messagesEndRef} />
+              <div ref={messagesEndRef} className="h-4" />
             </div>
           )}
         </div>
 
         {!showArchived ? (
-        <div className="px-4 py-3 border-t border-[var(--border)] bg-white">
-          <div className="mx-auto max-w-3xl flex gap-2">
-            <textarea
-              ref={inputRef}
+          <div className="shrink-0 bg-white">
+            <MentorComposer
               value={inputValue}
-              onChange={e => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={isStreaming ? 'Yanıt bekleniyor...' : 'Mesajınızı yazın...'}
-              className="flex-1 min-h-[44px] max-h-[120px] resize-none px-3 py-2.5 text-sm border border-[var(--border)] rounded-lg outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-colors"
-              disabled={isStreaming}
-              rows={1}
+              onChange={setInputValue}
+              onSend={handleSendClick}
+              onAbort={handleAbort}
+              isStreaming={isStreaming}
+              disabled={false}
             />
-            {isStreaming ? (
-              <button
-                onClick={handleAbort}
-                className="btn self-end px-4 py-2.5 bg-orange-500 text-white hover:bg-orange-600 rounded-lg transition-colors"
-              >
-                Durdur
-              </button>
-            ) : (
-              <button
-                onClick={handleSend}
-                disabled={!inputValue.trim()}
-                className="btn btn-primary self-end px-4 py-2.5"
-              >
-                Gönder
-              </button>
-            )}
           </div>
-        </div>
         ) : (
-        <div className="px-4 py-3 border-t border-[var(--border)] bg-gray-50 text-center text-sm text-[var(--text-light)]">
-          Arşivlenmiş sohbetlere yeni mesaj gönderilemez.
-        </div>
+          <div className="px-4 py-3 border-t border-[var(--border)] bg-gray-50 text-center text-sm text-[var(--text-light)] shrink-0">
+            Arşivlenmiş sohbetlere yeni mesaj gönderilemez.
+          </div>
         )}
       </main>
 

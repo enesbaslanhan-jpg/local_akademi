@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { WorkspaceProvider } from './context/WorkspaceContext'
 import { ToastProvider } from './context/ToastContext'
+import { MentorProvider } from './context/MentorContext'
 import AppRoutes from './router'
 import './styles/tokens.css'
 import './styles/base.css'
@@ -15,7 +16,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <WorkspaceProvider>
           <ToastProvider>
-            <AppRoutes />
+            <MentorProvider>
+              <AppRoutes />
+            </MentorProvider>
           </ToastProvider>
         </WorkspaceProvider>
       </AuthProvider>
