@@ -107,3 +107,31 @@
   color: var(--danger, #DC2626);
   text-align: center;
 }
+
+.missingFields {
+  margin-top: 12px;
+}
+
+.missingCount {
+  font-size: 0.85rem;
+  color: var(--text-secondary, #4B5563);
+  margin-bottom: 4px;
+  display: block;
+}
+
+.missingList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.missingBadge {
+  font-size: 0.75rem;
+  background: var(--bg-hover, #F3F4F6);
+  color: var(--text-primary, #111827);
+  padding: 2px 8px;
+  border-radius: 12px;
+}

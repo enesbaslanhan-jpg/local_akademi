@@ -53,4 +53,21 @@ export async function feedRoutes(fastify: FastifyInstance) {
 
     return { success: true }
   })
+
+  fastify.post('/items/action', {
+    preHandler: [fastify.authenticate]
+  }, async (request, reply) => {
+    if (!isFeedEnabled) {
+      return reply.status(403).send({ error: 'Personalized feed is currently disabled' })
+    }
+
+    const { itemKey, actionCode } = request.body as { itemKey: string, actionCode: string }
+    if (!itemKey) return reply.status(400).send({ error: 'itemKey is required' })
+    if (!actionCode) return reply.status(400).send({ error: 'actionCode is required' })
+
+    const userId = request.user.id
+    await PersonalizedFeedService.recordInteraction(userId, itemKey, 'act', actionCode)
+
+    return { success: true }
+  })
 }

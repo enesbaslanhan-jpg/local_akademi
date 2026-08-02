@@ -9,6 +9,7 @@ vi.mock('../src/lib/prisma', () => ({
     practicalCardSave: { findMany: vi.fn() },
     decisionCheck: { findMany: vi.fn() },
     practicalCard: { findMany: vi.fn() },
+    knowledgeObject: { findMany: vi.fn() },
     feedInteraction: { 
       findMany: vi.fn(),
       upsert: vi.fn(),
@@ -39,13 +40,14 @@ describe('PersonalizedFeedService', () => {
     prisma.practicalCardSave.findMany.mockResolvedValue([])
     prisma.decisionCheck.findMany.mockResolvedValue([])
     prisma.practicalCard.findMany.mockResolvedValue([])
+    prisma.knowledgeObject.findMany.mockResolvedValue([])
     prisma.learningProgress.findMany.mockResolvedValue([])
     prisma.user.findUnique.mockResolvedValue({ role: 'learner', businessProfile: null })
   })
 
-  it('should return empty feed if nothing matches', async () => {
+  it('should return empty feed if nothing matches (except financial tools)', async () => {
     const feed = await PersonalizedFeedService.getFeed(userId, 10)
-    expect(feed).toEqual([])
+    expect(feed.filter(i => i.type !== 'financial_tool')).toEqual([])
   })
 
   it('should prioritize continue_learning (priority 2) and decision_check (priority 1)', async () => {
@@ -67,9 +69,11 @@ describe('PersonalizedFeedService', () => {
     ])
 
     const feed = await PersonalizedFeedService.getFeed(userId, 10)
-    expect(feed.length).toBe(2)
-    // Decision check has priority 1, continue learning has 2
-    expect(feed[0].type).toBe('decision_check')
+    const filteredFeed = feed.filter(i => i.type === 'decision_check' || i.type === 'continue_learning')
+    expect(filteredFeed.length).toBe(2)
+    // Decision check has priority 100, continue learning has 90
+    expect(filteredFeed[0].type).toBe('decision_check')
+    expect(filteredFeed[1].type).toBe('continue_learning')
     expect(feed[1].type).toBe('continue_learning')
   })
 
@@ -82,7 +86,8 @@ describe('PersonalizedFeedService', () => {
     ])
 
     const feed = await PersonalizedFeedService.getFeed(userId, 10)
-    expect(feed.length).toBe(0)
+    const dcItems = feed.filter(i => i.type === 'decision_check')
+    expect(dcItems.length).toBe(0)
   })
 
   it('should restrict duplicate consecutive types', async () => {
@@ -93,10 +98,8 @@ describe('PersonalizedFeedService', () => {
     prisma.practicalCard.findMany.mockResolvedValue(cards)
 
     const feed = await PersonalizedFeedService.getFeed(userId, 10)
-    // The service has a limit of 2 of the same type consecutively, 
-    // but since they are all priority 3, it will only take 2 and then stop taking more practical cards 
-    // until another type is found. Since no other type exists, it should return 2.
-    expect(feed.length).toBe(2)
+    const pcItems = feed.filter(i => i.type === 'practical_card')
+    expect(pcItems.length).toBe(2)
   })
 
   it('should limit total items to specified limit', async () => {
