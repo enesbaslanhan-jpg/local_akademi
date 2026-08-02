@@ -19,7 +19,8 @@ test('Helper Compatibility - Profitability calculations match for identical inpu
     taxOrDeduction: 0,
     otherVariableCost: 0,
     returnLossAllowance: 30,
-    allocatedFixedCost: 0
+    allocatedFixedCost: 0,
+    discountRate: 0
   }
   
   const formulaInput = {
@@ -51,11 +52,55 @@ test('Helper - Unknown Behavior is respected', () => {
     taxOrDeduction: 0,
     otherVariableCost: 0,
     returnLossAllowance: 30,
-    allocatedFixedCost: 0
+    allocatedFixedCost: 0,
+    discountRate: 0
   }
 
   const dcRes = calculateDecisionCheckProfitability(dcInput)
   expect(dcRes.calculationComplete).toBe(false)
   expect(dcRes.unknownCostCodes).toContain('productCost')
   expect(dcRes.totalKnownCost).toBe(1000 * 0.15 + 50 + 20 + 30) 
+})
+
+test('Profitability tool calculates break-even price and discounted scenario', () => {
+  const result = calculateDecisionCheckProfitability({
+    salePrice: 1000,
+    productCost: 400,
+    commissionRate: 15,
+    shippingCost: 50,
+    packagingCost: 20,
+    returnLossAllowance: 30,
+    otherVariableCost: 50,
+    discountRate: 20
+  })
+
+  expect(result.totalKnownCost).toBe(700)
+  expect(result.contribution).toBe(300)
+  expect(result.contributionMarginPercent).toBe(30)
+  expect(result.breakEvenPrice).toBeCloseTo(550 / 0.85, 4)
+  expect(result.discountedScenario).toMatchObject({
+    salePrice: 800,
+    commissionAmount: 120,
+    totalCost: 670,
+    contribution: 130,
+    profitable: true
+  })
+})
+
+test('Profitability tool warns when discount makes the product unprofitable', () => {
+  const result = calculateDecisionCheckProfitability({
+    salePrice: 1000,
+    productCost: 650,
+    commissionRate: 15,
+    shippingCost: 50,
+    packagingCost: 20,
+    returnLossAllowance: 30,
+    otherVariableCost: 0,
+    discountRate: 20
+  })
+
+  expect(result.contribution).toBe(100)
+  expect(result.discountedScenario?.contribution).toBe(-70)
+  expect(result.riskWarnings).toContain('Planlanan indirim ürünü zarar noktasına geçiriyor.')
+  expect(result.safeNextSteps).toContain('İndirim oranını azaltın veya indirimi maliyet düşüşüyle eşleştirin.')
 })

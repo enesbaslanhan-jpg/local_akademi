@@ -134,14 +134,25 @@ async function resolveDecisionCheckResultContext(envelope: MentorContextEnvelope
 
   if (!result) return { valid: false, error: 'Result not found or access denied' }
 
-  let scoreText = 'Bilinmiyor'
-  if (result.status === 'completed') {
-    if (result.riskLevel === 'low') scoreText = 'Düşük Risk'
-    else if (result.riskLevel === 'medium') scoreText = 'Orta Risk/Uyarı'
-    else if (result.riskLevel === 'high' || result.riskLevel === 'critical') scoreText = 'Yüksek/Kritik Risk'
-  }
+  let scoreText = 'Belirsiz'
+  if (result.riskLevel === 'low') scoreText = 'Düşük risk'
+  else if (result.riskLevel === 'medium') scoreText = 'Orta risk / dikkat'
+  else if (result.riskLevel === 'high' || result.riskLevel === 'critical') scoreText = 'Yüksek / kritik risk'
 
-  const systemPromptAdditions = `[DECISION CHECK SONUCU BAĞLAMI]\nKullanıcı "${result.session.decisionCheck.title}" değerlendirmesini yaptı.\nDurum: ${result.status}\nGenel Sonuç Özeti: ${scoreText}\n(Kullanıcı adına cevapları değiştirme, sadece sonucu açıkla ve rehberlik et)`
+  const snapshot = result.snapshotJson as any
+  const calculation = snapshot?.calculationOutput
+  const safeSummary = calculation ? [
+    `Ürün başına katkı: ${Number(calculation.contribution ?? 0).toFixed(2)} TL`,
+    `Katkı marjı: %${Number(calculation.contributionMarginPercent ?? 0).toFixed(1)}`,
+    calculation.breakEvenPrice == null ? 'Başabaş fiyatı: hesaplanamadı' : `Başabaş fiyatı: ${Number(calculation.breakEvenPrice).toFixed(2)} TL`,
+    calculation.discountedScenario
+      ? `İndirim sonrası katkı: ${Number(calculation.discountedScenario.contribution ?? 0).toFixed(2)} TL`
+      : null,
+    ...(Array.isArray(calculation.riskWarnings) ? calculation.riskWarnings.slice(0, 3).map((warning: string) => `Risk: ${warning}`) : []),
+    ...(Array.isArray(calculation.safeNextSteps) ? calculation.safeNextSteps.slice(0, 3).map((step: string) => `Güvenli adım: ${step}`) : [])
+  ].filter(Boolean).join('\n') : 'Hesaplama özeti bulunmuyor.'
+
+  const systemPromptAdditions = `[KARAR ARACI SONUCU BAĞLAMI]\nKullanıcı "${result.session.decisionCheck.title}" aracını tamamladı.\nDurum: ${result.status}\nRisk özeti: ${scoreText}\n${safeSummary}\nHam kullanıcı girdilerini tahmin etme veya değiştirme. Sonucu açıkla; kesin finansal, vergi ya da muhasebe tavsiyesi verme ve yalnız güvenli sonraki adımları öner.`
 
   return {
     valid: true,

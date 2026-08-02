@@ -1,12 +1,22 @@
 import { type FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma'
 import { z } from 'zod'
-import { evaluateDecisionCheck } from './decision-check-rule-engine'
-import { calculateDecisionCheckProfitability } from './decision-check-rule-engine' // Just mocked logic, I should implement this cleanly
+import { evaluateDecisionCheck, calculateDecisionCheckProfitability, type Finding } from './decision-check-rule-engine'
 import { LearningProgressService } from './learning-progress'
 
 const featureFlag = process.env.FEATURE_DECISION_CHECKS_ENABLED === 'true'
 const lpService = new LearningProgressService(prisma)
+
+const profitabilityAnswerSchema = z.object({
+  salePrice: z.coerce.number().positive(),
+  productCost: z.coerce.number().min(0),
+  commissionRate: z.coerce.number().min(0).max(100),
+  shippingCost: z.coerce.number().min(0),
+  packagingCost: z.coerce.number().min(0),
+  returnLossAllowance: z.coerce.number().min(0),
+  otherVariableCost: z.coerce.number().min(0),
+  discountRate: z.coerce.number().min(0).max(100)
+})
 
 export async function decisionCheckRoutes(server: FastifyInstance) {
   // Pre-handler for Feature Flag
@@ -134,6 +144,8 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
       id: session.id,
       status: session.status,
       decisionCheckCode: session.decisionCheck.code,
+      decisionCheckTitle: session.decisionCheck.title,
+      decisionCheckDescription: session.decisionCheck.description,
       definition: (version?.definitionJson as any)?.questions || [],
       answers: session.answers
     })
@@ -209,43 +221,53 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
       unknownsObj[a.questionCode] = a.isUnknown
     })
 
-    // Specialized Domain Helper execution
-    let calculationOutput: any = null;
-    let finalRules = rules;
+    let calculationOutput: ReturnType<typeof calculateDecisionCheckProfitability> | null = null
+    let domainResult: ReturnType<typeof evaluateDecisionCheck> | null = null
 
     if (session.decisionCheck.code === 'DC-PROFIT-001') {
-      const inputs = {
-        salePrice: unknownsObj['salePrice'] ? null : answersObj['salePrice'],
-        productCost: unknownsObj['productCost'] ? null : answersObj['productCost'],
-        commissionRate: unknownsObj['commissionRate'] ? null : answersObj['commissionRate'],
-        shippingCost: unknownsObj['shippingCost'] ? null : answersObj['shippingCost'],
-        packagingCost: null,
-        taxOrDeduction: null,
-        otherVariableCost: null,
-        returnLossAllowance: null,
-        allocatedFixedCost: null
-      }
-      calculationOutput = calculateDecisionCheckProfitability(inputs)
-      
-      // Inject rule evaluations dynamically based on domain calculation
-      if (calculationOutput.estimatedProfit < 0 && !unknownsObj['salePrice'] && !unknownsObj['productCost']) {
-        finalRules.push({
-           operator: 'equals', // Dummy to force match
-           questionCode: 'salePrice', 
-           findingCode: 'negative_profit',
-           severity: 'critical',
-           messageTemplate: 'Ürün maliyeti satış fiyatını aşıyor, zararına satış yapıyorsunuz.',
-           actionCode: 'review_product_cost',
-           blocking: true
+      const candidate = Object.fromEntries(
+        Object.keys(profitabilityAnswerSchema.shape).map(code => [
+          code,
+          unknownsObj[code] ? undefined : answersObj[code]
+        ])
+      )
+      const parsedInputs = profitabilityAnswerSchema.safeParse(candidate)
+      if (!parsedInputs.success) {
+        return reply.status(400).send({
+          error: 'PROFITABILITY_INPUTS_INCOMPLETE',
+          message: 'Hesaplama için tüm alanları geçerli değerlerle doldurun.',
+          fields: parsedInputs.error.issues.map(issue => String(issue.path[0]))
         })
-        answersObj['salePrice'] = 'trigger' // Dummy trigger
+      }
+      calculationOutput = calculateDecisionCheckProfitability(parsedInputs.data)
+      
+      const discountCreatesLoss = calculationOutput.discountedScenario?.profitable === false
+      const contributionIsNegative = calculationOutput.contribution <= 0
+      const marginIsFragile = calculationOutput.contributionMarginPercent < 10
+      const riskLevel = contributionIsNegative ? 'critical' : discountCreatesLoss ? 'high' : marginIsFragile ? 'medium' : 'low'
+      const status = contributionIsNegative ? 'not_recommended' : discountCreatesLoss ? 'high_risk' : marginIsFragile ? 'caution' : 'generally_suitable'
+      const severity = riskLevel === 'low' ? 'low' : riskLevel
+      const findings: Finding[] = calculationOutput.riskWarnings.map((message, index) => ({
+        code: `profitability_warning_${index + 1}`,
+        severity,
+        message,
+        isBlocking: contributionIsNegative,
+        priority: 100 - index
+      }))
+      domainResult = {
+        findings,
+        missingInformation: [],
+        criticalIssues: contributionIsNegative ? ['non_positive_contribution'] : [],
+        recommendedActions: calculationOutput.safeNextSteps,
+        status,
+        riskLevel
       }
     }
 
-    const result = evaluateDecisionCheck({
+    const result = domainResult ?? evaluateDecisionCheck({
       answers: answersObj,
       unknowns: unknownsObj,
-      rules: finalRules
+      rules
     })
 
     const snapshotJson = {

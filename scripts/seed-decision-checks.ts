@@ -16,7 +16,7 @@ async function main() {
       category: 'Finans',
       targetRoles: JSON.stringify(['Esnaf', 'Girişimci', 'Yatırımcı']),
       published: true,
-      currentVersion: '1.0'
+      currentVersion: '2.0'
     },
     create: {
       code: dcCode,
@@ -25,7 +25,7 @@ async function main() {
       category: 'Finans',
       targetRoles: JSON.stringify(['Esnaf', 'Girişimci', 'Yatırımcı']),
       published: true,
-      currentVersion: '1.0'
+      currentVersion: '2.0'
     }
   })
 
@@ -75,6 +75,50 @@ async function main() {
         min: 0,
         currency: 'TRY',
         order: 4
+      },
+      {
+        code: 'packagingCost',
+        label: 'Paketleme Maliyeti',
+        description: 'Kutu, poşet, etiket ve koruyucu malzemenin ürün başına maliyeti',
+        type: 'money',
+        required: true,
+        allowUnknown: false,
+        min: 0,
+        currency: 'TRY',
+        order: 5
+      },
+      {
+        code: 'returnLossAllowance',
+        label: 'İade Payı',
+        description: 'İade ve hasar riskleri için ürün başına ayırdığınız ortalama tutar',
+        type: 'money',
+        required: true,
+        allowUnknown: false,
+        min: 0,
+        currency: 'TRY',
+        order: 6
+      },
+      {
+        code: 'otherVariableCost',
+        label: 'Diğer Giderler',
+        description: 'Reklam payı, ödeme kesintisi ve diğer ürün başı değişken giderler',
+        type: 'money',
+        required: true,
+        allowUnknown: false,
+        min: 0,
+        currency: 'TRY',
+        order: 7
+      },
+      {
+        code: 'discountRate',
+        label: 'İndirim Oranı (%)',
+        description: 'Planladığınız indirimin satış fiyatına uygulanacak oranı; indirim yoksa 0 girin',
+        type: 'percentage',
+        required: true,
+        allowUnknown: false,
+        min: 0,
+        max: 100,
+        order: 8
       }
     ],
     rules: [
@@ -111,16 +155,23 @@ async function main() {
     ]
   }
 
-  await prisma.decisionCheckVersion.create({
-    data: {
-      decisionCheckId: dc.id,
-      version: '1.0',
-      status: 'published',
-      definitionJson,
-      ruleVersion: '1.0',
-      publishedAt: new Date()
-    }
+  const existingVersion = await prisma.decisionCheckVersion.findFirst({
+    where: { decisionCheckId: dc.id, version: '2.0' }
   })
+  const versionData = {
+    status: 'published',
+    definitionJson,
+    ruleVersion: '2.0',
+    publishedAt: new Date()
+  }
+
+  if (existingVersion) {
+    await prisma.decisionCheckVersion.update({ where: { id: existingVersion.id }, data: versionData })
+  } else {
+    await prisma.decisionCheckVersion.create({
+      data: { decisionCheckId: dc.id, version: '2.0', ...versionData }
+    })
+  }
 
   console.log(`Seeded Decision Check: ${dc.code}`)
 }

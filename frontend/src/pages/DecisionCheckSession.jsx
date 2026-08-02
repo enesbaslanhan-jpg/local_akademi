@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '@/services/api'
+import { useMentorContext } from '@/context/MentorContext'
+import { MessageSquare } from 'lucide-react'
+import ProfitabilityDecisionTool from '@/components/decision-checks/ProfitabilityDecisionTool'
 
 export default function DecisionCheckSession() {
   const { code: sessionId } = useParams() // The route uses :code but we passed sessionId
@@ -13,20 +16,23 @@ export default function DecisionCheckSession() {
   const [formData, setFormData] = useState({})
   const [unknowns, setUnknowns] = useState({})
 
+  const mentorContext = useMentorContext()
+  const isContextualMentorEnabled = import.meta.env.VITE_FF_CONTEXTUAL_MENTOR === 'true'
+
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const res = await api.get(`/api/v1/decision-checks/sessions/${sessionId}`)
-        setSession(res.data)
+        const res = await api.decisionChecks.getSession(sessionId)
+        setSession(res)
         
-        if (res.data.status === 'completed') {
-          const resultRes = await api.get(`/api/v1/decision-checks/sessions/${sessionId}/result`)
-          setResult(resultRes.data)
+        if (res.status === 'completed') {
+          const resultRes = await api.decisionChecks.getResult(sessionId)
+          setResult(resultRes)
         } else {
           // Populate initial data
           const initialForm = {}
           const initialUnk = {}
-          res.data.answers.forEach(a => {
+          res.answers.forEach(a => {
             initialForm[a.questionCode] = a.valueJson
             initialUnk[a.questionCode] = a.isUnknown
           })
@@ -47,7 +53,7 @@ export default function DecisionCheckSession() {
     setFormData(prev => ({ ...prev, [questionCode]: value }))
     // Optimistic sync
     try {
-      await api.patch(`/api/v1/decision-checks/sessions/${sessionId}/answers`, {
+      await api.decisionChecks.saveAnswer(sessionId, {
         questionCode,
         value,
         isUnknown: unknowns[questionCode] || false
@@ -60,7 +66,7 @@ export default function DecisionCheckSession() {
   const handleUnknownToggle = async (questionCode, isUnknown) => {
     setUnknowns(prev => ({ ...prev, [questionCode]: isUnknown }))
     try {
-      await api.patch(`/api/v1/decision-checks/sessions/${sessionId}/answers`, {
+      await api.decisionChecks.saveAnswer(sessionId, {
         questionCode,
         value: formData[questionCode] ?? null,
         isUnknown
@@ -73,8 +79,8 @@ export default function DecisionCheckSession() {
   const completeSession = async () => {
     setSubmitting(true)
     try {
-      const res = await api.post(`/api/v1/decision-checks/sessions/${sessionId}/complete`)
-      if (res.data.id) {
+      const res = await api.decisionChecks.complete(sessionId)
+      if (res.resultId) {
         // Switch to result view, for MVP we just refresh and show the state
         window.location.reload()
       }
@@ -89,8 +95,20 @@ export default function DecisionCheckSession() {
   if (loading) return <div className="p-8">Yükleniyor...</div>
   if (!session) return <div className="p-8">Oturum bulunamadı</div>
 
+  if (session.decisionCheckCode === 'DC-PROFIT-001') {
+    return (
+      <ProfitabilityDecisionTool
+        session={session}
+        result={result}
+        navigate={navigate}
+        mentorContext={mentorContext}
+        mentorEnabled={Boolean(mentorContext?.openMentorWithContext)}
+      />
+    )
+  }
+
   if (session.status === 'completed' && result) {
-    const snap = result.snapshotJson || {}
+    const snap = result.snapshot || {}
     return (
       <div className="p-8 max-w-3xl mx-auto">
         <h1 className="text-2xl font-bold mb-4">Değerlendirme Sonucu</h1>
@@ -130,7 +148,23 @@ export default function DecisionCheckSession() {
             </div>
           )}
           
-          <button onClick={() => navigate('/app/decision-checks')} className="mt-4 px-4 py-2 bg-gray-200 rounded">Listeye Dön</button>
+          <div className="mt-6 flex gap-4">
+            <button onClick={() => navigate('/app/decision-checks')} className="px-4 py-2 bg-gray-200 rounded">Listeye Dön</button>
+            {isContextualMentorEnabled && (
+              <button
+                onClick={() => mentorContext?.openMentorWithContext?.({
+                  contextType: 'decision_check_result',
+                  source: 'decision_result',
+                  decisionCheckResultId: result.id,
+                  title: session.decisionCheckCode + ' Sonucu',
+                  route: window.location.pathname
+                })}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded font-medium hover:bg-indigo-100 transition-colors"
+              >
+                <MessageSquare size={18} /> Mentora Sor
+              </button>
+            )}
+          </div>
         </div>
       </div>
     )

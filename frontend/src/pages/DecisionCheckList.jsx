@@ -9,17 +9,17 @@ export default function DecisionCheckList() {
 
   useEffect(() => {
     // Feature flag check is done on the server, UI can just fetch
-    api.get('/api/v1/decision-checks')
-      .then(res => setChecks(res.data))
+    api.decisionChecks.list()
+      .then(setChecks)
       .catch(err => console.error(err))
       .finally(() => setLoading(false))
   }, [])
 
   const startCheck = async (code) => {
     try {
-      const res = await api.post(`/api/v1/decision-checks/${code}/start`)
-      if (res.data.sessionId) {
-        navigate(`/app/decision-checks/${res.data.sessionId}`)
+      const res = await api.decisionChecks.start(code)
+      if (res.sessionId) {
+        navigate(`/app/decision-checks/${res.sessionId}`)
       }
     } catch (err) {
       console.error(err)
@@ -46,7 +46,7 @@ export default function DecisionCheckList() {
                   onClick={() => startCheck(c.code)}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition"
                 >
-                  Teste Başla
+                  Aracı Aç
                 </button>
               </div>
             </div>

@@ -156,10 +156,22 @@ export interface ProfitabilityInput {
   commissionRate: number | null;
   shippingCost: number | null;
   packagingCost: number | null;
-  taxOrDeduction: number | null;
   otherVariableCost: number | null;
   returnLossAllowance: number | null;
-  allocatedFixedCost: number | null;
+  discountRate: number | null;
+  /** Kept for compatibility with the existing marketplace formula helper. */
+  taxOrDeduction?: number | null;
+  /** Kept for compatibility with earlier Decision Check snapshots. */
+  allocatedFixedCost?: number | null;
+}
+
+export interface ProfitabilityScenario {
+  salePrice: number;
+  commissionAmount: number;
+  totalCost: number;
+  contribution: number;
+  marginPercent: number;
+  profitable: boolean;
 }
 
 export interface ProfitabilityOutput {
@@ -169,6 +181,12 @@ export interface ProfitabilityOutput {
   totalKnownCost: number;
   estimatedProfit: number;
   estimatedMarginPercent: number;
+  contribution: number;
+  contributionMarginPercent: number;
+  breakEvenPrice: number | null;
+  discountedScenario: ProfitabilityScenario | null;
+  riskWarnings: string[];
+  safeNextSteps: string[];
   calculationComplete: boolean;
 }
 
@@ -178,7 +196,7 @@ export function calculateDecisionCheckProfitability(inputs: ProfitabilityInput):
   let totalKnownCost = 0;
 
   // Revenue
-  const revenue = inputs.salePrice || 0;
+  const revenue = inputs.salePrice ?? 0;
   if (inputs.salePrice === null) unknownCostCodes.push("salePrice");
 
   // Helper to process cost
@@ -204,13 +222,62 @@ export function calculateDecisionCheckProfitability(inputs: ProfitabilityInput):
 
   processCost("shippingCost", inputs.shippingCost);
   processCost("packagingCost", inputs.packagingCost);
-  processCost("taxOrDeduction", inputs.taxOrDeduction);
+  if (inputs.taxOrDeduction !== undefined) processCost("taxOrDeduction", inputs.taxOrDeduction);
   processCost("otherVariableCost", inputs.otherVariableCost);
   processCost("returnLossAllowance", inputs.returnLossAllowance);
-  processCost("allocatedFixedCost", inputs.allocatedFixedCost);
+  if (inputs.allocatedFixedCost !== undefined) processCost("allocatedFixedCost", inputs.allocatedFixedCost);
+
+  if (inputs.discountRate === null) unknownCostCodes.push("discountRate");
 
   const estimatedProfit = revenue - totalKnownCost;
   const estimatedMarginPercent = revenue > 0 ? (estimatedProfit / revenue) * 100 : 0;
+
+  const commissionRate = inputs.commissionRate ?? 0;
+  const nonCommissionCost = totalKnownCost - (knownCosts.commissionAmount ?? 0);
+  const breakEvenPrice = commissionRate >= 100
+    ? null
+    : nonCommissionCost / (1 - commissionRate / 100);
+
+  let discountedScenario: ProfitabilityScenario | null = null;
+  if (inputs.salePrice !== null && inputs.discountRate !== null && inputs.commissionRate !== null) {
+    const discountedPrice = revenue * (1 - inputs.discountRate / 100);
+    const discountedCommission = discountedPrice * (commissionRate / 100);
+    const discountedTotalCost = nonCommissionCost + discountedCommission;
+    const discountedContribution = discountedPrice - discountedTotalCost;
+    discountedScenario = {
+      salePrice: discountedPrice,
+      commissionAmount: discountedCommission,
+      totalCost: discountedTotalCost,
+      contribution: discountedContribution,
+      marginPercent: discountedPrice > 0 ? (discountedContribution / discountedPrice) * 100 : 0,
+      profitable: discountedContribution > 0
+    };
+  }
+
+  const riskWarnings: string[] = [];
+  const safeNextSteps: string[] = [];
+  if (unknownCostCodes.length > 0) {
+    riskWarnings.push('Eksik maliyetler nedeniyle sonuç kesin değil.');
+    safeNextSteps.push('Eksik maliyetleri doğrulamadan fiyat veya kampanya kararı vermeyin.');
+  }
+  if (inputs.commissionRate !== null && inputs.commissionRate >= 100) {
+    riskWarnings.push('Komisyon oranı başabaş fiyatı hesaplamaya izin vermiyor.');
+    safeNextSteps.push('Komisyon koşullarını yeniden görüşün veya farklı bir satış kanalı değerlendirin.');
+  }
+  if (estimatedProfit <= 0 && unknownCostCodes.length === 0) {
+    riskWarnings.push('Mevcut satış fiyatı ürün başına katkı üretmiyor.');
+    safeNextSteps.push('Satış fiyatını artırın veya birim maliyetleri düşürün.');
+  } else if (estimatedMarginPercent < 10 && unknownCostCodes.length === 0) {
+    riskWarnings.push('Katkı marjı küçük maliyet artışlarına karşı kırılgan.');
+    safeNextSteps.push('İndirim vermeden önce maliyetler için güvenlik payı bırakın.');
+  }
+  if (discountedScenario && !discountedScenario.profitable) {
+    riskWarnings.push('Planlanan indirim ürünü zarar noktasına geçiriyor.');
+    safeNextSteps.push('İndirim oranını azaltın veya indirimi maliyet düşüşüyle eşleştirin.');
+  }
+  if (riskWarnings.length === 0) {
+    safeNextSteps.push('Marjı korumak için maliyetleri düzenli aralıklarla güncelleyin.');
+  }
 
   return {
     revenue,
@@ -219,6 +286,12 @@ export function calculateDecisionCheckProfitability(inputs: ProfitabilityInput):
     totalKnownCost,
     estimatedProfit,
     estimatedMarginPercent,
+    contribution: estimatedProfit,
+    contributionMarginPercent: estimatedMarginPercent,
+    breakEvenPrice,
+    discountedScenario,
+    riskWarnings,
+    safeNextSteps: Array.from(new Set(safeNextSteps)).slice(0, 3),
     calculationComplete: unknownCostCodes.length === 0
   };
 }
