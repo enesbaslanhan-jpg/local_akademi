@@ -61,3 +61,32 @@ describe('api.request content-type handling', () => {
     await expect(api.financialModels.list()).rejects.toThrow('İşlem başarısız')
   })
 })
+
+describe('learning progress API contract', () => {
+  it('requests completed progress with the expected query', async () => {
+    mockFetch(makeResponse({ ok: true, status: 200, contentType: 'application/json', body: { items: [] } }))
+
+    await expect(api.learningProgress.getCompleted(3)).resolves.toEqual({ items: [] })
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/v1/learning-progress?status=completed&limit=3',
+      expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer test-token' }) })
+    )
+  })
+
+  it('updates progress through the PATCH endpoint', async () => {
+    mockFetch(makeResponse({ ok: true, status: 200, contentType: 'application/json', body: { status: 'in_progress' } }))
+
+    await api.learningProgress.update('decision_check', 'DC 01', {
+      status: 'in_progress',
+      continueLater: true
+    })
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/v1/learning-progress/decision_check/DC%2001',
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'in_progress', continueLater: true })
+      })
+    )
+  })
+})

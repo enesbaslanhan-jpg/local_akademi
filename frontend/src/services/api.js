@@ -240,21 +240,27 @@ export const api = {
       const query = buildQuery({ archived: archived ? 'true' : 'false' });
       return api.request(`${api.conversation.BASE}${query}`);
     },
-    async create(title) { return api.request(`${api.conversation.BASE}`, { method: 'POST', body: JSON.stringify({ title }) }); },
+    async create(title, context) {
+      const body = { title };
+      if (context) body.context = context;
+      return api.request(`${api.conversation.BASE}`, { method: 'POST', body: JSON.stringify(body) });
+    },
     async getById(id) { return api.request(`${api.conversation.BASE}/${id}`); },
     async update(id, title) { return api.request(`${api.conversation.BASE}/${id}`, { method: 'PATCH', body: JSON.stringify({ title }) }); },
     async remove(id) { return api.request(`${api.conversation.BASE}/${id}`, { method: 'DELETE' }); },
     async archive(id) { return api.request(`${api.conversation.BASE}/${id}/archive`, { method: 'PATCH' }); },
     async unarchive(id) { return api.request(`${api.conversation.BASE}/${id}/unarchive`, { method: 'PATCH' }); },
-    async sendMessage(id, message, knowledgeObjectCode) {
+    async sendMessage(id, message, knowledgeObjectCode, contextOverride) {
       const body = { message };
       if (knowledgeObjectCode) body.knowledgeObjectCode = knowledgeObjectCode;
+      if (contextOverride) body.contextOverride = contextOverride;
       return api.request(`${api.conversation.BASE}/${id}/messages`, { method: 'POST', body: JSON.stringify(body) });
     },
 
-    streamMessage({ conversationId, content, knowledgeObjectCode, signal, onStart, onProvider, onDelta, onDone, onCancelled, onError }) {
+    streamMessage({ conversationId, content, knowledgeObjectCode, contextOverride, signal, onStart, onProvider, onDelta, onDone, onCancelled, onError }) {
       const body = { message: content };
       if (knowledgeObjectCode) body.knowledgeObjectCode = knowledgeObjectCode;
+      if (contextOverride) body.contextOverride = contextOverride;
       return streamSSE({
         url: `${api.conversation.BASE}/${conversationId}/messages/stream`,
         method: 'POST',
@@ -627,6 +633,24 @@ export const api = {
     }
   },
 
+  learningProgress: {
+    async getContinue(limit = 3) {
+      return api.request(`/api/v1/learning-progress/continue?limit=${encodeURIComponent(limit)}`);
+    },
+    async getRecent(limit = 3) {
+      return api.request(`/api/v1/learning-progress/recent?limit=${encodeURIComponent(limit)}`);
+    },
+    async getCompleted(limit = 3) {
+      return api.request(`/api/v1/learning-progress?status=completed&limit=${encodeURIComponent(limit)}`);
+    },
+    async update(contentType, contentId, data) {
+      return api.request(
+        `/api/v1/learning-progress/${encodeURIComponent(contentType)}/${encodeURIComponent(contentId)}`,
+        { method: 'PATCH', body: JSON.stringify(data) }
+      );
+    }
+  },
+
   flashcards: {
     async getByKoId(koId) {
       return api.request(`/flashcards/knowledge/${koId}`);
@@ -851,7 +875,7 @@ export const api = {
       return api.request('/practical-cards/saved');
     },
     async save(id) {
-      return api.request(`/practical-cards/${id}/save`, { method: 'POST' });
+      return api.request(`/practical-cards/${id}/save`, { method: 'POST', body: '{}' });
     },
     async unsave(id) {
       return api.request(`/practical-cards/${id}/save`, { method: 'DELETE' });
@@ -861,6 +885,33 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ value })
       });
+    }
+  },
+
+  decisionChecks: {
+    async list() {
+      return api.request('/api/v1/decision-checks');
+    },
+    async start(code) {
+      return api.request(`/api/v1/decision-checks/${code}/start`, { method: 'POST', body: '{}' });
+    },
+    async getSession(sessionId) {
+      return api.request(`/api/v1/decision-checks/sessions/${sessionId}`);
+    },
+    async saveAnswer(sessionId, answer) {
+      return api.request(`/api/v1/decision-checks/sessions/${sessionId}/answers`, {
+        method: 'PATCH',
+        body: JSON.stringify(answer)
+      });
+    },
+    async complete(sessionId) {
+      return api.request(`/api/v1/decision-checks/sessions/${sessionId}/complete`, {
+        method: 'POST',
+        body: '{}'
+      });
+    },
+    async getResult(sessionId) {
+      return api.request(`/api/v1/decision-checks/sessions/${sessionId}/result`);
     }
   }
 };

@@ -38,14 +38,14 @@ export const LearningProgressPanel = () => {
       setLoading(true);
       setError(null);
       const [continueRes, recentRes, completedRes] = await Promise.all([
-        api.get('/api/v1/learning-progress/continue?limit=3'),
-        api.get('/api/v1/learning-progress/recent?limit=3'),
-        api.get('/api/v1/learning-progress?status=completed&limit=3')
+        api.learningProgress.getContinue(3),
+        api.learningProgress.getRecent(3),
+        api.learningProgress.getCompleted(3)
       ]);
 
-      setContinueItems(continueRes.data.items || []);
-      setRecentItems(recentRes.data.items || []);
-      setCompletedItems(completedRes.data.items || []);
+      setContinueItems(continueRes.items || []);
+      setRecentItems(recentRes.items || []);
+      setCompletedItems(completedRes.items || []);
     } catch (err) {
       console.error(err);
       setError('İlerleme verileri yüklenirken bir hata oluştu.');
@@ -57,16 +57,16 @@ export const LearningProgressPanel = () => {
   const navigateToItem = (item) => {
     let route = '/app';
     if (item.contentType === 'course') route = '/app/enrollments';
-    else if (item.contentType === 'decision_check') route = `/app/decision-checks/start/${item.contentCode || item.contentId}`;
+    else if (item.contentType === 'decision_check') route = `/app/decision-checks/${item.contentCode || item.contentId}`;
     else if (item.contentType === 'practical_card') route = `/app/practical-cards/${item.contentCode || item.contentId}`;
-    else if (item.contentType === 'lesson') route = `/app/courses/${item.contentId}`;
+    else if (item.contentType === 'lesson') route = '/app/enrollments';
 
     window.location.href = route; // Using window.location.href for simplicity, or we could use react-router-dom useNavigate if passed down. We'll stick to a generic href for now.
   };
 
   const toggleContinueLater = async (item) => {
     try {
-      await api.patch(`/api/v1/learning-progress/${item.contentType}/${item.contentId}`, {
+      await api.learningProgress.update(item.contentType, item.contentId, {
         status: item.status,
         continueLater: !item.continueLater
       });
