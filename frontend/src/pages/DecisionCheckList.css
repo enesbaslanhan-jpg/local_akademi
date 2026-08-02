@@ -1,0 +1,342 @@
+.decision-list-page {
+  min-width: 0;
+  min-height: 100%;
+  padding: 40px 32px 64px;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(37, 99, 235, 0.08), transparent 28%),
+    #f8fafc;
+  color: #0f172a;
+}
+
+.decision-list-shell {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.decision-list-header {
+  display: block;
+  max-width: 720px;
+  margin-bottom: 36px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.decision-list-eyebrow {
+  margin: 0 0 10px;
+  color: #2563eb;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.decision-list-header h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.decision-list-intro {
+  max-width: 660px;
+  margin: 16px 0 0;
+  color: #475569;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.decision-list-content {
+  min-width: 0;
+}
+
+.decision-list-summary {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.decision-list-summary h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.35;
+}
+
+.decision-list-summary p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.decision-list-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  min-width: 0;
+}
+
+.decision-card {
+  display: flex;
+  min-width: 0;
+  min-height: 286px;
+  flex-direction: column;
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid #dbe4ef;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.decision-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.1);
+  transform: translateY(-2px);
+}
+
+.decision-card-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.decision-card-category,
+.decision-card-status {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.decision-card-category {
+  max-width: 48%;
+  padding: 8px 10px;
+  overflow: hidden;
+  background: #eff6ff;
+  color: #1d4ed8;
+  text-overflow: ellipsis;
+}
+
+.decision-card-status {
+  gap: 5px;
+  padding: 7px 9px;
+}
+
+.decision-card-status-not-started {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.decision-card-status-in-progress {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.decision-card-status-completed {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.decision-card-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.decision-card-copy h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #0f172a;
+  font-size: 1.25rem;
+  line-height: 1.35;
+  letter-spacing: -0.018em;
+}
+
+.decision-card-copy p {
+  margin: 12px 0 0;
+  overflow-wrap: anywhere;
+  color: #64748b;
+  font-size: 0.925rem;
+  line-height: 1.65;
+}
+
+.decision-card-cta,
+.decision-list-retry {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 0;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.decision-card-cta {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 24px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.decision-card-cta:hover:not(:disabled),
+.decision-list-retry:hover {
+  background: #1d4ed8;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.24);
+  transform: translateY(-1px);
+}
+
+.decision-card-cta:focus-visible,
+.decision-list-retry:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.28);
+  outline-offset: 3px;
+}
+
+.decision-card-cta:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.decision-list-state {
+  display: flex;
+  min-height: 270px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 40px 24px;
+  border: 1px solid #dbe4ef;
+  border-radius: 20px;
+  background: #ffffff;
+  text-align: center;
+}
+
+.decision-list-state h2 {
+  margin: 16px 0 0;
+  font-size: 1.125rem;
+}
+
+.decision-list-state p {
+  margin: 8px 0 0;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.decision-list-state-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.decision-list-state-error .decision-list-state-icon {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.decision-list-spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid #dbeafe;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: decision-list-spin 750ms linear infinite;
+}
+
+.decision-list-retry {
+  margin-top: 20px;
+  padding: 11px 16px;
+  border-radius: 11px;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.decision-list-action-error {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.875rem;
+}
+
+@keyframes decision-list-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 1040px) {
+  .decision-list-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .decision-list-page {
+    padding: 28px 16px 40px;
+  }
+
+  .decision-list-header {
+    margin-bottom: 28px;
+  }
+
+  .decision-list-header h1 {
+    font-size: 2rem;
+  }
+
+  .decision-list-intro {
+    font-size: 0.9375rem;
+  }
+
+  .decision-list-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .decision-card {
+    min-height: 270px;
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .decision-card-topline {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .decision-card-category {
+    max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .decision-card,
+  .decision-card-cta,
+  .decision-list-retry {
+    transition: none;
+  }
+
+  .decision-list-spinner {
+    animation-duration: 1.5s;
+  }
+}
