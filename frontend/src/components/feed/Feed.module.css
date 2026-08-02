@@ -1,0 +1,109 @@
+.feedContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.feedSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  margin: 0;
+}
+.feedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+.feedCard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1.25rem;
+  gap: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.feedCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+.feedHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.feedReason {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary, #4B5563);
+  font-size: 0.875rem;
+}
+.feedIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary, #2563EB);
+}
+.reasonText {
+  flex: 1;
+}
+.dismissBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #9CA3AF);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+.dismissBtn:hover {
+  background-color: var(--bg-hover, #F3F4F6);
+  color: var(--text-primary, #111827);
+}
+.feedBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.feedTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  margin: 0;
+}
+.feedDesc {
+  font-size: 0.9375rem;
+  color: var(--text-secondary, #4B5563);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.feedFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+.feedError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background: var(--bg-surface, #FFFFFF);
+  border-radius: 8px;
+  gap: 1rem;
+  color: var(--danger, #DC2626);
+  text-align: center;
+}

@@ -615,6 +615,18 @@ export const api = {
     }
   },
 
+  feed: {
+    async getFeed() {
+      return api.request('/api/v1/feed');
+    },
+    async viewItem(itemKey) {
+      return api.request('/api/v1/feed/items/view', { method: 'POST', body: JSON.stringify({ itemKey }) });
+    },
+    async dismissItem(itemKey) {
+      return api.request('/api/v1/feed/items/dismiss', { method: 'POST', body: JSON.stringify({ itemKey }) });
+    }
+  },
+
   flashcards: {
     async getByKoId(koId) {
       return api.request(`/flashcards/knowledge/${koId}`);

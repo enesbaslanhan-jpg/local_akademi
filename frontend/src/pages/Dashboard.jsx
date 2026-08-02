@@ -13,6 +13,7 @@ import {
   Bookmark, Calendar, AlertCircle, Brain, HelpCircle,
   Map, Grid
 } from 'lucide-react'
+import { PersonalizedFeed } from '@/components/feed/PersonalizedFeed'
 import styles from './Dashboard.module.css'
 
 function timeAgo(dateStr) {
@@ -48,6 +49,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const mountedRef = useRef(false)
+  const isFeedEnabled = import.meta.env.VITE_FF_PERSONALIZED_FEED === 'true'
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -264,10 +266,12 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Main grid: left (large) + right (sidebar) */}
-      <div className={styles.mainGrid}>
-        {/* Left column */}
-        <div className={styles.mainLeft}>
+      {isFeedEnabled ? (
+        <PersonalizedFeed resumeItem={resume} />
+      ) : (
+        <div className={styles.mainGrid}>
+          {/* Left column */}
+          <div className={styles.mainLeft}>
 
           {/* C. Kaldığın Yerden Devam Et */}
           {resume && (
@@ -542,7 +546,8 @@ export default function Dashboard() {
             </Card>
           )}
         </div>
-      </div>
+        </div>
+      )}
     </div>
   )
 }
