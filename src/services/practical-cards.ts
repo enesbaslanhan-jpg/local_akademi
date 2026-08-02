@@ -5,8 +5,10 @@ import {
   getPracticalCardsQuerySchema
 } from '../schemas/practical-cards'
 import { z } from 'zod'
+import { LearningProgressService } from './learning-progress'
 
 const featureFlag = process.env.FEATURE_PRACTICAL_CARDS_ENABLED === 'true'
+const lpService = new LearningProgressService(prisma)
 
 export async function practicalCardRoutes(server: FastifyInstance) {
   // Pre-handler for Feature Flag
@@ -108,7 +110,7 @@ export async function practicalCardRoutes(server: FastifyInstance) {
       code: ko.knowledgeObject.code
     }))
 
-    return {
+    const response = {
       data: {
         id: card.id,
         code: card.code,
@@ -122,6 +124,16 @@ export async function practicalCardRoutes(server: FastifyInstance) {
         sources
       }
     }
+    
+    // Async hook for learning progress
+    if (request.user?.id) {
+      lpService.updateProgress(request.user.id, 'practical_card', card.id, {
+        status: 'started',
+        contentCode: card.code
+      }).catch(console.error)
+    }
+
+    return response
   })
 
   // 3. Save a Card

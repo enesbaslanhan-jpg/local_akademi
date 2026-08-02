@@ -57,6 +57,7 @@ model User {
   practicalCardSaves      PracticalCardSave[]
   practicalCardFeedbacks  PracticalCardFeedback[]
   feedInteractions        FeedInteraction[]
+  LearningProgress        LearningProgress[]
 }
 
 model CommunityPost {
@@ -1435,4 +1436,33 @@ model FeedInteraction {
   @@unique([userId, itemKey])
   @@index([userId, dismissedAt])
   @@index([userId, viewedAt])
+}
+
+// ==========================================
+// PHASE 8.0D-2 - LEARNING PROGRESS
+// ==========================================
+
+model LearningProgress {
+  id               String    @id @default(uuid())
+  userId           Int
+  contentType      String
+  contentId        String
+  contentCode      String?
+  status           String
+  progressPercent  Int?
+  lastPositionJson Json?
+  continueLater    Boolean   @default(false)
+  startedAt        DateTime  @default(now())
+  lastViewedAt     DateTime  @default(now())
+  completedAt      DateTime?
+  source           String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentType, contentId])
+  @@index([userId, status])
+  @@index([userId, contentType])
+  @@index([userId, lastViewedAt])
 }

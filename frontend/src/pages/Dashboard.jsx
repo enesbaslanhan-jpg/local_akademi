@@ -14,6 +14,7 @@ import {
   Map, Grid
 } from 'lucide-react'
 import { PersonalizedFeed } from '@/components/feed/PersonalizedFeed'
+import LearningProgressPanel from '@/components/progress/LearningProgressPanel'
 import styles from './Dashboard.module.css'
 
 function timeAgo(dateStr) {
@@ -50,6 +51,7 @@ export default function Dashboard() {
   const [error, setError] = useState(null)
   const mountedRef = useRef(false)
   const isFeedEnabled = import.meta.env.VITE_FF_PERSONALIZED_FEED === 'true'
+  const isLearningProgressEnabled = import.meta.env.VITE_FF_LEARNING_PROGRESS === 'true'
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -267,7 +269,14 @@ export default function Dashboard() {
       </section>
 
       {isFeedEnabled ? (
-        <PersonalizedFeed resumeItem={resume} />
+        <>
+          <PersonalizedFeed resumeItem={resume} />
+          {isLearningProgressEnabled && (
+            <div style={{ marginTop: '2rem' }}>
+              <LearningProgressPanel />
+            </div>
+          )}
+        </>
       ) : (
         <div className={styles.mainGrid}>
           {/* Left column */}

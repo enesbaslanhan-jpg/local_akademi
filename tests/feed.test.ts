@@ -16,6 +16,14 @@ vi.mock('../src/lib/prisma', () => ({
       update: vi.fn(),
       create: vi.fn()
     },
+    learningProgress: {
+      findMany: vi.fn(),
+      findFirst: vi.fn(),
+      findUnique: vi.fn(),
+      upsert: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn()
+    },
     user: { findUnique: vi.fn() }
   }
 }))
@@ -31,6 +39,7 @@ describe('PersonalizedFeedService', () => {
     prisma.practicalCardSave.findMany.mockResolvedValue([])
     prisma.decisionCheck.findMany.mockResolvedValue([])
     prisma.practicalCard.findMany.mockResolvedValue([])
+    prisma.learningProgress.findMany.mockResolvedValue([])
     prisma.user.findUnique.mockResolvedValue({ role: 'learner', businessProfile: null })
   })
 
@@ -40,8 +49,18 @@ describe('PersonalizedFeedService', () => {
   })
 
   it('should prioritize continue_learning (priority 2) and decision_check (priority 1)', async () => {
-    prisma.enrollment.findMany.mockResolvedValue([
-      { id: 'enr1', course: { id: 'c1', title: 'Course 1' }, progress: 50, lastAccessedAt: new Date() }
+    prisma.learningProgress.findMany.mockResolvedValue([
+      {
+        id: 'lp-1',
+        userId: 'user-1',
+        contentType: 'course',
+        contentId: 'c1',
+        contentCode: null,
+        status: 'in_progress',
+        continueLater: false,
+        lastViewedAt: new Date(),
+        completedAt: null
+      }
     ])
     prisma.decisionCheckSession.findMany.mockResolvedValue([
       { id: 'dc1', decisionCheck: { title: 'Decision 1', description: '...', code: 'dc1', published: true } }

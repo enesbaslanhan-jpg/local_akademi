@@ -3,8 +3,10 @@ import { prisma } from '../lib/prisma'
 import { z } from 'zod'
 import { evaluateDecisionCheck } from './decision-check-rule-engine'
 import { calculateDecisionCheckProfitability } from './decision-check-rule-engine' // Just mocked logic, I should implement this cleanly
+import { LearningProgressService } from './learning-progress'
 
 const featureFlag = process.env.FEATURE_DECISION_CHECKS_ENABLED === 'true'
+const lpService = new LearningProgressService(prisma)
 
 export async function decisionCheckRoutes(server: FastifyInstance) {
   // Pre-handler for Feature Flag
@@ -102,6 +104,11 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
       }
     })
 
+    await lpService.updateProgress(userId, 'decision_check', check.id, {
+      status: 'started',
+      contentCode: check.code
+    }).catch(console.error)
+
     return reply.send({ sessionId: session.id, status: session.status })
   })
 
@@ -162,6 +169,10 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
         isUnknown: parseRes.data.isUnknown
       }
     })
+
+    await lpService.updateProgress(session.userId, 'decision_check', session.decisionCheckId, {
+      status: 'in_progress'
+    }).catch(console.error)
 
     return reply.send({ success: true })
   })
@@ -263,6 +274,11 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
         data: { status: 'completed', completedAt: new Date() }
       })
     ])
+
+    await lpService.updateProgress(session.userId, 'decision_check', session.decisionCheckId, {
+      status: 'completed',
+      contentCode: session.decisionCheck.code
+    }).catch(console.error)
 
     return reply.send({ resultId: finalRes.id, snapshot: snapshotJson })
   })

@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma.js'
+import { LearningProgressService } from './learning-progress.js'
 
 export class PersonalizedFeedService {
   /**
@@ -75,35 +76,46 @@ export class PersonalizedFeedService {
     }
 
     // 2. Continue Learning
-    const enrollments = await prisma.enrollment.findMany({
-      where: { userId, status: 'in_progress' },
-      include: { course: true },
-      orderBy: { updatedAt: 'desc' }
-    });
+    const lpService = new LearningProgressService(prisma as any)
+    const continueLearningItems = await lpService.getContinueLearning(userId, 1)
 
-    if (enrollments.length > 0) {
-      const resume = enrollments[0];
-      const itemKey = `continue_learning:course:${resume.courseId}`;
+    if (continueLearningItems.length > 0) {
+      const resume = continueLearningItems[0]
+      const itemKey = `continue_learning:${resume.contentType}:${resume.contentId}`
       
-      if (!dismissedKeys.has(itemKey) && !entitySet.has(`continue_learning:${resume.courseId}`)) {
+      if (!dismissedKeys.has(itemKey) && !entitySet.has(`continue_learning:${resume.contentType}:${resume.contentId}`)) {
+        
+        let title = resume.title || 'İçerik'
+        let route = '/app'
+        
+        if (resume.contentType === 'course') {
+           route = '/app/enrollments'
+        } else if (resume.contentType === 'decision_check') {
+           route = `/app/decision-checks/start/${resume.contentCode || resume.contentId}`
+        } else if (resume.contentType === 'practical_card') {
+           route = `/app/practical-cards/${resume.contentCode || resume.contentId}`
+        } else if (resume.contentType === 'lesson') {
+           route = `/app/courses/${resume.contentId}` // Assuming naive route, UI will redirect properly
+        }
+        
         feedItems.push({
           itemKey,
           type: 'continue_learning',
-          title: resume.course.title,
-          shortDescription: resume.course.description?.substring(0, 100) || '',
+          title: title,
+          shortDescription: 'Öğrenme yolculuğunuza devam edin.',
           reasonCode: 'CONTINUE_RECENT_CONTENT',
-          reasonText: 'Son kaldığınız yerden devam edin.',
+          reasonText: resume.continueLater ? 'Daha sonra devam etmek üzere işaretlediniz.' : 'Son kaldığınız yerden devam edin.',
           priority: 2,
           primaryAction: {
             code: 'continue_content',
             label: 'Devam Et',
-            route: `/app/enrollments`
+            route
           },
-          sourceEntityType: 'course',
-          sourceEntityId: String(resume.courseId),
-          sourceEntityCode: null
+          sourceEntityType: resume.contentType,
+          sourceEntityId: String(resume.contentId),
+          sourceEntityCode: resume.contentCode || null
         });
-        entitySet.add(`continue_learning:${resume.courseId}`);
+        entitySet.add(`continue_learning:${resume.contentType}:${resume.contentId}`);
       }
     }
 

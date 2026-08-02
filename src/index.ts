@@ -37,6 +37,7 @@ import { videoRoutes } from './services/videos'
 import { communityRoutes } from './services/community'
 import { financialModelRoutes } from './services/financial-models/routes'
 import { feedRoutes } from './routes/feed.js'
+import { learningProgressRoutes } from './routes/learning-progress.js'
 import { ensureFinancialModelCatalog } from './services/financial-models/catalog'
 import { deleteExpiredReviewerTelemetry } from './services/ai-reviewer'
 import { disconnectPrisma, prisma } from './lib/prisma'
@@ -203,6 +204,7 @@ async function build() {
   server.register(communityRoutes, { prefix: '/community' })
   server.register(financialModelRoutes)
   server.register(feedRoutes, { prefix: '/api/v1/feed' })
+  server.register(learningProgressRoutes, { prefix: '/api/v1/learning-progress' })
   const memoryApiEnabled = process.env.ENABLE_MEMORY_API !== 'false'
   if (memoryApiEnabled) {
     server.register(memoryRoutes, { prefix: '/api/memory' })

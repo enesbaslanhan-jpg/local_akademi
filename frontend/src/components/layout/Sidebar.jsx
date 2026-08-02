@@ -10,6 +10,7 @@ import {
 import styles from './Sidebar.module.css'
 
 const learnerLinks = [
+  ...(import.meta.env.VITE_FF_PRACTICAL_CARDS === 'true' ? [{ id: 'practical-cards', label: 'Pratik Kartlar', icon: Lightbulb, path: '/practical-cards' }] : []),
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/app/dashboard' },
   { id: 'courses', label: 'Kurslar', icon: BookOpen, path: '/app/courses' },
   { id: 'knowledge', label: 'Bilgi Nesneleri', icon: Lightbulb, path: '/app/knowledge' },
