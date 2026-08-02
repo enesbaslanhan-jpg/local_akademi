@@ -1016,6 +1016,7 @@ model Conversation {
   id            Int                   @id @default(autoincrement())
   userId        Int
   title         String                @default("Yeni Sohbet")
+  contextSnapshot String?
   createdAt     DateTime              @default(now())
   updatedAt     DateTime              @updatedAt
   archivedAt    DateTime?

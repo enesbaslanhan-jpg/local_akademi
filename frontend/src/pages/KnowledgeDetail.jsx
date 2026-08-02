@@ -7,11 +7,12 @@ import TaskWorkspace from '@/components/ui/TaskWorkspace'
 import VideoPlayer from '@/components/ui/VideoPlayer'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { useMentorContext } from '@/context/MentorContext'
 import {
   ArrowLeft, ChevronRight, BookOpen, Clock, CheckCircle,
   AlertCircle, ExternalLink, User, Zap, Target, ListChecks,
   HelpCircle, Download, MessageCircle, FileText, Layers, Play,
-  GraduationCap, Brain
+  GraduationCap, Brain, MessageSquare
 } from 'lucide-react'
 import styles from './KnowledgeDetail.module.css'
 
@@ -42,6 +43,9 @@ export default function KnowledgeDetail() {
   const { code } = useParams()
   const navigate = useNavigate()
   const mountedRef = useRef(false)
+
+  const mentorContext = useMentorContext()
+  const isContextualMentorEnabled = import.meta.env.VITE_FF_CONTEXTUAL_MENTOR === 'true'
 
   const [ko, setKo] = useState(null)
   const [quizzes, setQuizzes] = useState([])
@@ -137,6 +141,18 @@ export default function KnowledgeDetail() {
       setProgress({ status: 'completed', progressPercent: 100 })
     } catch { }
     setSaving(false)
+  }
+
+  function handleAskMentor() {
+    if (mentorContext?.openMentorWithContext) {
+      mentorContext.openMentorWithContext({
+        contextType: 'knowledge_object',
+        source: 'content_detail',
+        knowledgeObjectCode: ko.code,
+        title: ko.title,
+        route: window.location.pathname
+      })
+    }
   }
 
   async function handleProgress(val) {
@@ -281,7 +297,14 @@ export default function KnowledgeDetail() {
           <div className={styles.titleSection}>
             <div className={styles.titleRow}>
               <h1 className={styles.title}>{ko.title}</h1>
-              <Badge variant="default" className={styles.typeBadge}>{ko.type}</Badge>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Badge variant="default" className={styles.typeBadge}>{ko.type}</Badge>
+                {isContextualMentorEnabled && (
+                  <Button variant="secondary" size="sm" onClick={handleAskMentor}>
+                    <MessageSquare size={14} className="mr-1" /> Mentora Sor
+                  </Button>
+                )}
+              </div>
             </div>
             <div className={styles.metaRow}>
               {ko.code && <span className={styles.code}>{ko.code}</span>}

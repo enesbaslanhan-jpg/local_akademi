@@ -35,6 +35,20 @@ describe('conversation.sendMessage body', () => {
     expect(body.message).toBe('merhaba')
     expect(body).not.toHaveProperty('knowledgeObjectCode')
   })
+
+  it('includes contextOverride when provided', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ reply: 'ok' }),
+    })
+
+    const contextOverride = { contextType: 'knowledge_object', title: 'Test' }
+    await api.conversation.sendMessage(1, 'merhaba', undefined, contextOverride)
+
+    const [, options] = global.fetch.mock.calls[0]
+    const body = JSON.parse(options.body)
+    expect(body.contextOverride).toEqual(contextOverride)
+  })
 })
 
 describe('conversation.streamMessage body', () => {
@@ -76,5 +90,24 @@ describe('conversation.streamMessage body', () => {
     const body = JSON.parse(options.body)
     expect(body.message).toBe('merhaba')
     expect(body).not.toHaveProperty('knowledgeObjectCode')
+  })
+
+  it('includes contextOverride when provided', async () => {
+    const stream = new ReadableStream({
+      start(controller) { controller.close() }
+    })
+    global.fetch = vi.fn().mockResolvedValue(new Response(stream, { status: 200 }))
+
+    const contextOverride = { contextType: 'feed_recommendation', title: 'Feed' }
+    await api.conversation.streamMessage({
+      conversationId: 1,
+      content: 'merhaba',
+      contextOverride,
+      onDone: vi.fn(),
+    })
+
+    const [, options] = global.fetch.mock.calls[0]
+    const body = JSON.parse(options.body)
+    expect(body.contextOverride).toEqual(contextOverride)
   })
 })

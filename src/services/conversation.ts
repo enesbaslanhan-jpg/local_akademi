@@ -31,6 +31,9 @@ import {
   shouldFetchSelectedKnowledgeObject,
   shouldRunKnowledgeRetrieval,
 } from './mentor-rag-gate'
+import { resolveContext, MentorContextEnvelope } from './mentor-context'
+
+const IS_CONTEXTUAL_MENTOR_ENABLED = process.env.FEATURE_CONTEXTUAL_MENTOR_ENABLED === 'true'
 
 const MAX_TITLE_LENGTH = 120
 const MAX_MESSAGE_LENGTH = 8000
@@ -209,6 +212,7 @@ async function buildContext(
   message: string,
   intent: MentorIntent,
   resolvedContext?: ResolvedContext,
+  systemPromptAdditions?: string
 ): Promise<BuildContextResult> {
   const recentMessages = await prisma.conversationMessage.findMany({
     where: { conversationId },
@@ -238,7 +242,8 @@ async function buildContext(
     ctx.koTitle,
     ctx.selectedKOTitle,
     intent,
-    message
+    message,
+    systemPromptAdditions
   )
   const systemMessage: ChatMessage = { role: 'system', content: systemContent }
   const providerParams = getProviderParameters(intent, { userRequestedLength: message ? 'normal' : 'normal' })
@@ -314,13 +319,23 @@ export async function conversationRoutes(fastify: FastifyInstance) {
 
   fastify.post('/', async (request, reply) => {
     const user = request.user
-    const { title } = request.body as { title?: string }
+    const { title, context } = request.body as { title?: string; context?: MentorContextEnvelope }
+    
+    let contextSnapshot: string | null = null
+    if (context) {
+      const resolved = await resolveContext(context, user.id)
+      if (!resolved.valid) {
+        return reply.status(422).send(validationError('INVALID_CONTEXT', resolved.error || 'Geçersiz bağlam'))
+      }
+      contextSnapshot = JSON.stringify(context)
+    }
+
     const trimmed = title?.trim() || ''
     if (trimmed.length > MAX_TITLE_LENGTH) {
       return reply.status(422).send(validationError('VALIDATION_ERROR', `Başlık en fazla ${MAX_TITLE_LENGTH} karakter olabilir`))
     }
     const conversation = await prisma.conversation.create({
-      data: { userId: user.id, title: trimmed || 'Yeni Sohbet' }
+      data: { userId: user.id, title: trimmed || 'Yeni Sohbet', contextSnapshot }
     })
     return reply.status(201).send({ conversation })
   })
@@ -460,7 +475,8 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     const requestStart = Date.now()
     const user = request.user
     const { id } = request.params as { id: string }
-    const { message, knowledgeObjectCode: rawCode } = request.body as { message: string; knowledgeObjectCode?: string }
+    const { message, knowledgeObjectCode: rawCode, contextOverride: rawContextOverride } = request.body as { message: string; knowledgeObjectCode?: string; contextOverride?: MentorContextEnvelope }
+      const contextOverride = IS_CONTEXTUAL_MENTOR_ENABLED ? rawContextOverride : undefined
 
     const convId = parseId(id)
     if (!convId) return reply.status(400).send(validationError('VALIDATION_ERROR', 'Geçersiz sohbet ID'))
@@ -486,6 +502,25 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     const conv = await ensureOwnership(convId, user.id)
     if (conv.archivedAt) {
       return reply.status(422).send(validationError('VALIDATION_ERROR', 'Arşivlenmiş sohbete mesaj gönderilemez'))
+    }
+
+    let contextData: MentorContextEnvelope | null = null
+    if (contextOverride) {
+      contextData = contextOverride
+      await prisma.conversation.update({
+        where: { id: convId },
+        data: { contextSnapshot: JSON.stringify(contextOverride) }
+      })
+    } else if (conv.contextSnapshot && IS_CONTEXTUAL_MENTOR_ENABLED) {
+      try { contextData = JSON.parse(conv.contextSnapshot) } catch {}
+    }
+
+    let systemPromptAdditions: string | undefined
+    if (contextData && IS_CONTEXTUAL_MENTOR_ENABLED) {
+      const resolved = await resolveContext(contextData, user.id)
+      if (resolved.valid && resolved.systemPromptAdditions) {
+        systemPromptAdditions = resolved.systemPromptAdditions
+      }
     }
 
     const intentResult = detectMentorIntent(cleanMessage, { knowledgeObjectCode })
@@ -544,7 +579,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     const {
       chatMessages, systemMessage, knowledgeObjects, systemPromptCharacters,
       historyCharacters, historyMessageCount, promptProfile, maxOutputTokens, temperature,
-    } = await buildContext(convId, user, cleanMessage, intent, resolvedContext)
+    } = await buildContext(convId, user, cleanMessage, intent, resolvedContext, systemPromptAdditions)
     telemetry?.endStage('contextBuild', 'contextBuildDurationMs')
 
     telemetry?.set('promptProfile', promptProfile)
@@ -684,7 +719,8 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     const requestStart = Date.now()
     const user = request.user
     const { id } = request.params as { id: string }
-    const { message, knowledgeObjectCode: rawCode } = request.body as { message: string; knowledgeObjectCode?: string }
+    const { message, knowledgeObjectCode: rawCode, contextOverride: rawContextOverride } = request.body as { message: string; knowledgeObjectCode?: string; contextOverride?: MentorContextEnvelope }
+      const contextOverride = IS_CONTEXTUAL_MENTOR_ENABLED ? rawContextOverride : undefined
 
     const convId = parseId(id)
     if (!convId) return reply.status(400).send(validationError('VALIDATION_ERROR', 'Geçersiz sohbet ID'))
@@ -710,6 +746,25 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     const conv = await ensureOwnership(convId, user.id)
     if (conv.archivedAt) {
       return reply.status(422).send(validationError('VALIDATION_ERROR', 'Arşivlenmiş sohbete mesaj gönderilemez'))
+    }
+
+    let contextData: MentorContextEnvelope | null = null
+    if (contextOverride) {
+      contextData = contextOverride
+      await prisma.conversation.update({
+        where: { id: convId },
+        data: { contextSnapshot: JSON.stringify(contextOverride) }
+      })
+    } else if (conv.contextSnapshot) {
+      try { contextData = JSON.parse(conv.contextSnapshot) } catch {}
+    }
+
+    let systemPromptAdditions: string | undefined
+    if (contextData && IS_CONTEXTUAL_MENTOR_ENABLED) {
+      const resolved = await resolveContext(contextData, user.id)
+      if (resolved.valid && resolved.systemPromptAdditions) {
+        systemPromptAdditions = resolved.systemPromptAdditions
+      }
     }
 
     const intentResult = detectMentorIntent(cleanMessage, { knowledgeObjectCode })
@@ -843,7 +898,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       const {
         chatMessages, systemMessage, knowledgeObjects, systemPromptCharacters,
         historyCharacters, historyMessageCount, promptProfile, maxOutputTokens, temperature,
-      } = await buildContext(convId, user, cleanMessage, intent, resolvedContext)
+      } = await buildContext(convId, user, cleanMessage, intent, resolvedContext, systemPromptAdditions)
       const baseSystemPrompt = systemMessage.content
       telemetry?.endStage('contextBuild', 'contextBuildDurationMs')
 
@@ -1371,6 +1426,19 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       return reply.status(422).send(validationError('VALIDATION_ERROR', 'Arşivlenmiş sohbete mesaj gönderilemez'))
     }
 
+    let systemPromptAdditions: string | undefined
+    if (conv.contextSnapshot) {
+      try {
+        const contextData = JSON.parse(conv.contextSnapshot)
+        const resolved = await resolveContext(contextData, user.id)
+        if (resolved.valid && resolved.systemPromptAdditions) {
+          systemPromptAdditions = resolved.systemPromptAdditions
+        }
+      } catch (e) {
+        console.warn('Failed to parse or resolve contextSnapshot', e)
+      }
+    }
+
     if (!streamSlotManager.checkRateLimit(user.id)) {
       return reply.status(429).send(validationError('RATE_LIMIT', 'Çok fazla istek gönderildi. Lütfen 1 dakika bekleyin.'))
     }
@@ -1449,7 +1517,8 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       resolvedContext.koTitle,
       resolvedContext.selectedKOTitle,
       intent,
-      cleanNewMessage
+      cleanNewMessage,
+      systemPromptAdditions
     )
     const systemMessage: ChatMessage = { role: 'system', content: systemContent }
     const chatMessagesBudgeted = applyHistoryBudget(chatMessages, intent, { userMessage: cleanNewMessage })

@@ -57,11 +57,11 @@ export function useMentorChat(contextCode = '', contextTitle = '') {
     setSelectedId(id)
   }, [isStreaming])
 
-  const handleNew = useCallback(async () => {
+  const handleNew = useCallback(async (activeContext = null) => {
     setError('')
     if (showArchived) setShowArchived(false)
     try {
-      const data = await api.conversation.create('Yeni Sohbet')
+      const data = await api.conversation.create('Yeni Sohbet', activeContext)
       const newId = data.conversation.id
       setSelectedId(newId)
       setMessages([])
@@ -142,7 +142,7 @@ export function useMentorChat(contextCode = '', contextTitle = '') {
     })
   }, [loadMessages, loadConversations, scheduleStreamingUpdate])
 
-  const handleSend = useCallback(async (text, onScroll, clearContextOnDone) => {
+  const handleSend = useCallback(async (text, onScroll, activeContext = null) => {
     if (!text || sendingLockRef.current || streamRequestedRef.current) return
     sendingLockRef.current = true
 
@@ -153,7 +153,7 @@ export function useMentorChat(contextCode = '', contextTitle = '') {
     let convId = selectedId
     if (!convId) {
       try {
-        const data = await api.conversation.create('Yeni Sohbet')
+        const data = await api.conversation.create('Yeni Sohbet', activeContext)
         convId = data.conversation.id
         setSelectedId(convId)
         loadConversations()
@@ -172,10 +172,10 @@ export function useMentorChat(contextCode = '', contextTitle = '') {
         conversationId: convId,
         content: text,
         knowledgeObjectCode: contextCode || undefined,
+        contextOverride: activeContext,
         ...opts
       }),
-      onScroll,
-      clearContextOnDone
+      onScroll
     )
   }, [selectedId, contextCode, loadConversations, startStream])
 

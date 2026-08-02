@@ -27,7 +27,7 @@ function contentPreview(text) {
 
 export default function MentorPanel() {
   const { user } = useAuth()
-  const { isPanelOpen, closePanel, isFullPage, panelView, setPanelView, activeConversationId, setActiveConversationId } = useMentorContext()
+  const { isPanelOpen, closePanel, isFullPage, panelView, setPanelView, activeConversationId, setActiveConversationId, activeContext, clearMentorContext } = useMentorContext()
 
   const chatHook = useMentorChat()
   const {
@@ -82,12 +82,12 @@ export default function MentorPanel() {
     const text = inputValue.trim()
     if (!text) return
     setInputValue('')
-    await handleSend(text, scrollToBottom)
+    await handleSend(text, scrollToBottom, activeContext)
   }
 
   async function handleQuickStart(text) {
     setInputValue('')
-    await handleSend(text, scrollToBottom)
+    await handleSend(text, scrollToBottom, activeContext)
   }
 
   async function handleCopy(text) {
@@ -110,7 +110,7 @@ export default function MentorPanel() {
   }
 
   async function handleNewChat() {
-    const newId = await handleNew()
+    const newId = await handleNew(activeContext)
     if (newId) {
       setPanelView('chat')
     }
@@ -231,6 +231,17 @@ export default function MentorPanel() {
 
           {panelView === 'chat' && (
             <>
+              {activeContext && (
+                <div className="bg-indigo-50 border-b border-indigo-100 px-4 py-2 flex items-center justify-between shrink-0 shadow-sm z-10">
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[10px] font-semibold text-indigo-600 uppercase tracking-wider">Bağlam</span>
+                    <span className="text-xs font-medium text-gray-800 truncate">{activeContext.title || 'İçerik'}</span>
+                  </div>
+                  <button onClick={clearMentorContext} className="p-1 rounded-md hover:bg-indigo-100 text-indigo-400 hover:text-indigo-600 transition-colors" title="Bağlamı Temizle">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
               <div className="flex-1 overflow-y-auto flex flex-col relative">
                 <MentorErrorAlert error={error} onDismiss={() => setError('')} />
 
@@ -274,7 +285,20 @@ export default function MentorPanel() {
               </div>
 
               {!showArchived ? (
-                <div className="shrink-0 bg-white z-10 pb-safe">
+                <div className="shrink-0 bg-white z-10 pb-safe flex flex-col">
+                  {activeContext && (!messages || messages.length === 0) && !isStreaming && (
+                    <div className="px-4 pt-2 pb-1 flex gap-2 overflow-x-auto hide-scrollbar">
+                      {['Bu konuyu işletmeme nasıl uygularım?', 'En önemli noktaları özetle.', 'Sonraki en güvenli adım nedir?'].map((prompt, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => handleQuickStart(prompt)}
+                          className="shrink-0 text-[11px] font-medium px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 transition-colors border border-indigo-100"
+                        >
+                          {prompt}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <MentorComposer
                     value={inputValue}
                     onChange={setInputValue}

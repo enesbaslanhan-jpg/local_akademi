@@ -1,10 +1,26 @@
 import { useState } from 'react'
 import { Card, Button } from '@/components/ui'
-import { X, ChevronRight, BookOpen, CheckSquare, Target, Calculator, Briefcase } from 'lucide-react'
+import { X, ChevronRight, BookOpen, CheckSquare, Target, Calculator, Briefcase, MessageSquare } from 'lucide-react'
+import { useMentorContext } from '@/context/MentorContext'
 import styles from './Feed.module.css'
 
 export function FeedCard({ item, onDismiss, onAction }) {
   const [dismissing, setDismissing] = useState(false)
+  const mentorContext = useMentorContext() // using optional approach if not available
+  const isContextualMentorEnabled = import.meta.env.VITE_FF_CONTEXTUAL_MENTOR === 'true'
+
+  const handleAskMentor = (e) => {
+    e.stopPropagation()
+    if (mentorContext?.openMentorWithContext) {
+      mentorContext.openMentorWithContext({
+        contextType: 'feed_recommendation',
+        source: 'feed',
+        feedItemKey: item.itemKey,
+        title: item.title,
+        route: window.location.pathname
+      })
+    }
+  }
 
   const handleDismiss = async (e) => {
     e.stopPropagation()
@@ -57,11 +73,16 @@ export function FeedCard({ item, onDismiss, onAction }) {
           </div>
         )}
       </div>
-      <div className={styles.feedFooter}>
-        <Button variant="primary" size="sm" onClick={handleAction}>
-          {item.primaryAction.label} <ChevronRight size={14} />
-        </Button>
-      </div>
+        <div className={styles.feedFooter} style={{ display: 'flex', gap: '8px' }}>
+          <Button variant="primary" size="sm" onClick={handleAction}>
+            {item.primaryAction.label} <ChevronRight size={14} />
+          </Button>
+          {isContextualMentorEnabled && (
+            <Button variant="secondary" size="sm" onClick={handleAskMentor}>
+              <MessageSquare size={14} className="mr-1" /> Mentora Sor
+            </Button>
+          )}
+        </div>
     </Card>
   )
 }
