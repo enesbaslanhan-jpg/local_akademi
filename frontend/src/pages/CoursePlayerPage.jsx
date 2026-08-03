@@ -6,6 +6,7 @@ import QuizWidget from '@/components/ui/QuizWidget'
 import TaskWorkspace from '@/components/ui/TaskWorkspace'
 import FlashcardSection from '@/components/ui/FlashcardSection'
 import VideoPlayer from '@/components/ui/VideoPlayer'
+import { EmbeddedPracticeBlock } from '@/components/practice/EmbeddedPracticeBlock'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import {
@@ -14,6 +15,7 @@ import {
   Play, MessageCircle, ExternalLink, Download, Brain, Film
 } from 'lucide-react'
 import styles from './CoursePlayerPage.module.css'
+import { featureFlags } from '@/config/featureFlags'
 
 function buildShortSummary(metadata, content) {
   if (metadata?.summary) return metadata.summary
@@ -186,7 +188,7 @@ export default function CoursePlayerPage() {
               >
                 <BookOpen size={14} /> İçerik
               </button>
-              {lesson.quizzes?.length > 0 && (
+              {featureFlags.legacyQuiz && lesson.quizzes?.length > 0 && (
                 <button
                   className={`${styles.tab} ${activeTab === 'quiz' ? styles.tabActive : ''}`}
                   onClick={() => setActiveTab('quiz')}
@@ -202,7 +204,7 @@ export default function CoursePlayerPage() {
                   <ListChecks size={14} /> Görev
                 </button>
               )}
-              {ko && ko.hasFlashcards !== false && (
+              {featureFlags.legacyFlashcards && ko && ko.hasFlashcards !== false && (
                 <button
                   className={`${styles.tab} ${activeTab === 'flashcard' ? styles.tabActive : ''}`}
                   onClick={() => setActiveTab('flashcard')}
@@ -299,6 +301,19 @@ export default function CoursePlayerPage() {
                   </Card>
                 )}
 
+                {/* Embedded Practice Blocks */}
+                {lesson.embeddedPracticeBlocks?.length > 0 && (
+                  <Card className={styles.section}>
+                    <h2 className={styles.sectionTitle}><Zap size={16} /> Uygulama Kutuları</h2>
+                    <EmbeddedPracticeBlock
+                      blocks={lesson.embeddedPracticeBlocks}
+                      contextType="course"
+                      contextCode={ko?.code}
+                      contextTitle={ko?.title}
+                    />
+                  </Card>
+                )}
+
                 {/* Sources */}
                 {ko.sources?.length > 0 && (
                   <Card className={styles.section}>
@@ -356,14 +371,14 @@ export default function CoursePlayerPage() {
             )}
 
             {/* Quiz tab */}
-            {activeTab === 'quiz' && lesson.quizzes?.length > 0 && (
+            {featureFlags.legacyQuiz && activeTab === 'quiz' && lesson.quizzes?.length > 0 && (
               <div className={styles.contentArea}>
                 <QuizWidget koId={ko?.id} quizzes={lesson.quizzes} onProgress={fetchLesson} />
               </div>
             )}
 
             {/* Flashcard tab */}
-            {activeTab === 'flashcard' && ko && ko.hasFlashcards !== false && (
+            {featureFlags.legacyFlashcards && activeTab === 'flashcard' && ko && ko.hasFlashcards !== false && (
               <div className={styles.contentArea}>
                 <FlashcardSection koId={ko.id} onProgress={fetchLesson} />
               </div>

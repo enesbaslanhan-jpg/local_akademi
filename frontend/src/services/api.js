@@ -863,34 +863,12 @@ export const api = {
     }
   },
 
-  practicalCards: {
-    async list(params = {}) {
-      const qs = new URLSearchParams(params).toString();
-      return api.request(`/practical-cards${qs ? '?' + qs : ''}`);
-    },
-    async get(code) {
-      return api.request(`/practical-cards/${code}`);
-    },
-    async getSaved() {
-      return api.request('/practical-cards/saved');
-    },
-    async save(id) {
-      return api.request(`/practical-cards/${id}/save`, { method: 'POST', body: '{}' });
-    },
-    async unsave(id) {
-      return api.request(`/practical-cards/${id}/save`, { method: 'DELETE' });
-    },
-    async feedback(id, value) {
-      return api.request(`/practical-cards/${id}/feedback`, {
-        method: 'POST',
-        body: JSON.stringify({ value })
-      });
-    }
-  },
-
   decisionChecks: {
     async list() {
       return api.request('/api/v1/decision-checks');
+    },
+    async listSessions() {
+      return api.request('/api/v1/decision-checks/sessions/me');
     },
     async start(code) {
       return api.request(`/api/v1/decision-checks/${code}/start`, { method: 'POST', body: '{}' });

@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { isLegacyFlashcardsEnabled, isLegacyQuizEnabled } from '../config/feature-flags'
 
 const WEIGHTS = {
   reading: 0.25,
@@ -48,8 +49,8 @@ export async function recomputeLessonAndEnrollment(
 
   const videos = (ko?.videos as Array<{ playbackUrl?: string | null }> | undefined) ?? []
   const hasVideo = videos.length > 0 && videos.some(v => !!v.playbackUrl)
-  const hasFlashcards = (ko?.flashcards?.length ?? 0) > 0
-  const hasQuizzes = (ko?.quizzes?.length ?? 0) > 0
+  const hasFlashcards = isLegacyFlashcardsEnabled() && (ko?.flashcards?.length ?? 0) > 0
+  const hasQuizzes = isLegacyQuizEnabled() && (ko?.quizzes?.length ?? 0) > 0
   const hasTasks = (ko?.taskTemplates?.length ?? 0) > 0
   const isLegacyReadingOnly = !hasVideo && !hasFlashcards && !hasQuizzes && !hasTasks
 
@@ -80,9 +81,12 @@ export async function recomputeLessonAndEnrollment(
   }
 
   // Weighted overall (legacy reading-only = 100% reading)
-  const overallPercent = isLegacyReadingOnly
+  const calculatedOverallPercent = isLegacyReadingOnly
     ? readingPercent
     : Math.round(available.reduce((sum, c) => sum + c.percent * c.weight, 0))
+  // Completion is monotonic: retiring a legacy activity must never regress a learner.
+  const wasCompleted = existing?.status === 'completed'
+  const overallPercent = wasCompleted ? 100 : calculatedOverallPercent
   const status = overallPercent >= 100 ? 'completed' : overallPercent > 0 ? 'in_progress' : 'not_started'
   const now = new Date()
 

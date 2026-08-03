@@ -3,11 +3,10 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import AppLayout from '@/components/layout/AppLayout'
 import ProtectedRoute from '@/components/layout/ProtectedRoute'
 import Loading from '@/components/ui/Loading'
+import LegacyFeatureUnavailable from '@/components/legacy/LegacyFeatureUnavailable'
+import { featureFlags } from '@/config/featureFlags'
 
 
-const PracticalCardList = lazy(() => import('@/pages/practical-cards/PracticalCardList'))
-const PracticalCardDetail = lazy(() => import('@/pages/practical-cards/PracticalCardDetail'))
-const SavedPracticalCards = lazy(() => import('@/pages/practical-cards/SavedPracticalCards'))
 const AuthPage = lazy(() => import('@/pages/AuthPage'))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const OnboardingPage = lazy(() => import('@/pages/OnboardingPage'))
@@ -89,11 +88,11 @@ export default function AppRoutes() {
             <Route path="decision-checks/:code" element={<SuspenseWrapper><DecisionCheckSession /></SuspenseWrapper>} />
             <Route path="finance/models" element={<SuspenseWrapper><FinancialModelLibrary /></SuspenseWrapper>} />
             <Route path="finance/models/:modelCode" element={<SuspenseWrapper><FinancialModelWorkspace /></SuspenseWrapper>} />
-            <Route path="flashcards" element={<SuspenseWrapper><FlashcardDashboardPage /></SuspenseWrapper>} />
-            <Route path="flashcards/study" element={<SuspenseWrapper><FlashcardStudyPage /></SuspenseWrapper>} />
-            <Route path="flashcards/study/:koId" element={<SuspenseWrapper><FlashcardStudyPage /></SuspenseWrapper>} />
-            <Route path="quiz" element={<SuspenseWrapper><QuizDashboardPage /></SuspenseWrapper>} />
-            <Route path="quiz/take/:koId" element={<SuspenseWrapper><QuizTakePage /></SuspenseWrapper>} />
+            <Route path="flashcards" element={featureFlags.legacyFlashcards ? <SuspenseWrapper><FlashcardDashboardPage /></SuspenseWrapper> : <LegacyFeatureUnavailable feature="flashcards" />} />
+            <Route path="flashcards/study" element={featureFlags.legacyFlashcards ? <SuspenseWrapper><FlashcardStudyPage /></SuspenseWrapper> : <LegacyFeatureUnavailable feature="flashcards" />} />
+            <Route path="flashcards/study/:koId" element={featureFlags.legacyFlashcards ? <SuspenseWrapper><FlashcardStudyPage /></SuspenseWrapper> : <LegacyFeatureUnavailable feature="flashcards" />} />
+            <Route path="quiz" element={featureFlags.legacyQuiz ? <SuspenseWrapper><QuizDashboardPage /></SuspenseWrapper> : <LegacyFeatureUnavailable feature="quiz" />} />
+            <Route path="quiz/take/:koId" element={featureFlags.legacyQuiz ? <SuspenseWrapper><QuizTakePage /></SuspenseWrapper> : <LegacyFeatureUnavailable feature="quiz" />} />
             <Route path="settings" element={<SuspenseWrapper><SettingsPage /></SuspenseWrapper>} />
             <Route path="workspaces" element={<SuspenseWrapper><WorkspaceList /></SuspenseWrapper>} />
             <Route path="workspaces/:workspaceId" element={<SuspenseWrapper><WorkspaceLayout /></SuspenseWrapper>}>

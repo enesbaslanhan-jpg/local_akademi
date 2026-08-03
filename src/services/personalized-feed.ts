@@ -32,8 +32,7 @@ export class PersonalizedFeedService {
       ...(await this.buildContinueLearningCandidates(context)),
       ...(await this.buildBusinessProfileCandidates(context)),
       ...(await this.buildFinancialToolCandidates(context)),
-      ...(await this.buildRecommendedGuideCandidates(context)),
-      ...(await this.buildPracticalCardCandidates(context))
+      ...(await this.buildRecommendedGuideCandidates(context))
     ];
 
     for (const item of candidates) {
@@ -145,7 +144,7 @@ export class PersonalizedFeedService {
         primaryAction: {
           code: 'start_decision_check',
           label: 'Başla',
-          route: `/app/decision-checks/start/${dc.code}`
+          route: `/app/decision-checks/${dc.code}`
         },
         sourceEntityType: 'decision_check',
         sourceEntityId: String(dc.id),
@@ -164,9 +163,8 @@ export class PersonalizedFeedService {
     for (const resume of continueLearningItems) {
       let route = '/app';
       if (resume.contentType === 'course') route = '/app/enrollments';
-      else if (resume.contentType === 'decision_check') route = `/app/decision-checks/start/${resume.contentCode || resume.contentId}`;
-      else if (resume.contentType === 'practical_card') route = `/app/practical-cards/${resume.contentCode || resume.contentId}`;
-      else if (resume.contentType === 'knowledge_object' || resume.contentType === 'lesson') route = `/app/guides/${resume.contentCode || resume.contentId}`;
+      else if (resume.contentType === 'decision_check') route = `/app/decision-checks/${resume.contentCode || resume.contentId}`;
+      else if (resume.contentType === 'knowledge_object' || resume.contentType === 'lesson') route = `/app/knowledge/${resume.contentCode || resume.contentId}`;
 
       candidates.push({
         itemKey: `continue_learning:${resume.contentType}:${resume.contentId}`,
@@ -184,64 +182,6 @@ export class PersonalizedFeedService {
         sourceEntityType: resume.contentType,
         sourceEntityId: String(resume.contentId),
         sourceEntityCode: resume.contentCode || null
-      });
-    }
-
-    return candidates;
-  }
-
-  private static async buildPracticalCardCandidates(context: any) {
-    const candidates: any[] = [];
-    const savedCards = await prisma.practicalCardSave.findMany({
-      where: { userId: context.userId },
-      include: { practicalCard: true },
-      orderBy: { createdAt: 'desc' }
-    });
-
-    for (const save of savedCards) {
-      if (!save.practicalCard || !save.practicalCard.published) continue;
-      
-      candidates.push({
-        itemKey: `practical_card:${save.practicalCard.code}`,
-        type: 'practical_card',
-        title: save.practicalCard.title,
-        shortDescription: save.practicalCard.shortDescription?.substring(0, 100) || '',
-        reasonCode: 'SAVED_PRACTICAL_CARD',
-        reasonText: 'Kaydettiğiniz bu kartı tekrar inceleyebilirsiniz.',
-        priority: 66,
-        primaryAction: {
-          code: 'open_practical_card',
-          label: 'İncele',
-          route: `/app/practical-cards/${save.practicalCard.code}`
-        },
-        sourceEntityType: 'practical_card',
-        sourceEntityId: String(save.practicalCard.id),
-        sourceEntityCode: save.practicalCard.code
-      });
-    }
-
-    const publishedCards = await prisma.practicalCard.findMany({
-      where: { published: true },
-      orderBy: { createdAt: 'desc' }
-    });
-
-    for (const pc of publishedCards) {
-      candidates.push({
-        itemKey: `practical_card:${pc.code}`,
-        type: 'practical_card',
-        title: pc.title,
-        shortDescription: pc.shortDescription?.substring(0, 100) || '',
-        reasonCode: 'ROLE_MATCH_PRACTICAL_CARD',
-        reasonText: 'Rolünüze uygun bir uygulama kartı.',
-        priority: 56,
-        primaryAction: {
-          code: 'open_practical_card',
-          label: 'İncele',
-          route: `/app/practical-cards/${pc.code}`
-        },
-        sourceEntityType: 'practical_card',
-        sourceEntityId: String(pc.id),
-        sourceEntityCode: pc.code
       });
     }
 
@@ -362,7 +302,7 @@ export class PersonalizedFeedService {
         primaryAction: {
           code: 'open_guide',
           label: 'Rehberi aç',
-          route: `/app/guides/${guide.code || guide.id}`
+          route: `/app/knowledge/${guide.code || guide.id}`
         },
         sourceEntityType: 'knowledge_object',
         sourceEntityId: String(guide.id),

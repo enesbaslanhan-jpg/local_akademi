@@ -5,6 +5,7 @@ import { Card, Badge, Button, Loading, EmptyState } from '@/components/ui'
 import QuizWidget from '@/components/ui/QuizWidget'
 import TaskWorkspace from '@/components/ui/TaskWorkspace'
 import VideoPlayer from '@/components/ui/VideoPlayer'
+import { EmbeddedPracticeBlock } from '@/components/practice/EmbeddedPracticeBlock'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useMentorContext } from '@/context/MentorContext'
@@ -15,6 +16,7 @@ import {
   GraduationCap, Brain, MessageSquare
 } from 'lucide-react'
 import styles from './KnowledgeDetail.module.css'
+import { featureFlags } from '@/config/featureFlags'
 
 function parseMeta(metadata) {
   try { return JSON.parse(metadata) } catch { return {} }
@@ -51,6 +53,7 @@ export default function KnowledgeDetail() {
   const [quizzes, setQuizzes] = useState([])
   const [taskTemplates, setTaskTemplates] = useState([])
   const [relatedKOs, setRelatedKOs] = useState([])
+  const [embeddedPracticeBlocks, setEmbeddedPracticeBlocks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [notFound, setNotFound] = useState(false)
@@ -90,15 +93,18 @@ export default function KnowledgeDetail() {
       const res = await api.knowledgeV2.getByCode(code)
       if (!mountedRef.current) return
       setKo(res.knowledgeObject || null)
-      setQuizzes(res.quizzes || [])
+      setQuizzes(featureFlags.legacyQuiz ? (res.quizzes || []) : [])
       setTaskTemplates(res.taskTemplates || [])
       setRelatedKOs(res.relatedKOs || [])
+      setEmbeddedPracticeBlocks(res.embeddedPracticeBlocks || [])
       if (!res.knowledgeObject) setNotFound(true)
       else {
         const koId = res.knowledgeObject.id
         api.learning.getProgress(koId).then(setProgress).catch(() => {})
-        api.flashcards.getByKoId(koId).then(setFlashcardData).catch(() => {})
-        api.quizzes.getHistory().then(history => {
+        if (featureFlags.legacyFlashcards) {
+          api.flashcards.getByKoId(koId).then(setFlashcardData).catch(() => {})
+        }
+        if (featureFlags.legacyQuiz) api.quizzes.getHistory().then(history => {
           const koAttempts = (history.attempts || []).filter(a => a.koId === koId)
           if (koAttempts.length > 0) {
             const best = Math.max(...koAttempts.map(a => a.score))
@@ -269,7 +275,7 @@ export default function KnowledgeDetail() {
               </span>
             </div>
           )}
-          {quizzes.length > 0 && (
+          {featureFlags.legacyQuiz && quizzes.length > 0 && (
             <div className={styles.toolStat}>
               <HelpCircle size={14} />
               <span className={styles.toolStatLabel}>Quiz</span>
@@ -426,6 +432,19 @@ export default function KnowledgeDetail() {
           {/* Video */}
           <VideoPlayer koId={ko.id} onProgress={fetchData} />
 
+          {/* Embedded Practice Blocks */}
+          {embeddedPracticeBlocks.length > 0 && (
+            <Card className={styles.section}>
+              <h2 className={styles.sectionTitle}><Zap size={18} /> Uygulama Kutuları</h2>
+              <EmbeddedPracticeBlock
+                blocks={embeddedPracticeBlocks}
+                contextType="knowledge_object"
+                contextCode={ko.code}
+                contextTitle={ko.title}
+              />
+            </Card>
+          )}
+
           {/* Task Templates */}
           {taskTemplates.length > 0 && (
             <Card className={styles.section}>
@@ -505,11 +524,11 @@ export default function KnowledgeDetail() {
           ) : null}
 
           {/* Quick Actions */}
-          {(flashcardData || quizzes.length > 0) && (
+          {((featureFlags.legacyFlashcards && flashcardData) || (featureFlags.legacyQuiz && quizzes.length > 0)) && (
             <Card className={styles.sideSection}>
               <h2 className={styles.sideSectionTitle}><Zap size={16} /> Hızlı Çalışma</h2>
               <div className={styles.quickActions}>
-                {flashcardData && flashcardData.totalCards > 0 && (
+                {featureFlags.legacyFlashcards && flashcardData && flashcardData.totalCards > 0 && (
                   <Button
                     variant="primary" size="sm" className={styles.quickBtn}
                     onClick={() => navigate(`/app/flashcards/study/${ko.id}`)}
@@ -518,7 +537,7 @@ export default function KnowledgeDetail() {
                     <Brain size={14} /> Flashcard Çalış ({flashcardData.totalCards} kart)
                   </Button>
                 )}
-                {quizzes.length > 0 && (
+                {featureFlags.legacyQuiz && quizzes.length > 0 && (
                   <Button
                     variant="primary" size="sm" className={styles.quickBtn}
                     onClick={() => navigate(`/app/quiz/take/${ko.id}`)}

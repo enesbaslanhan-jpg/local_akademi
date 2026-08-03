@@ -78,13 +78,14 @@ describe('Learning Progress Service', () => {
   })
 
   test('Continue Later functionality', async () => {
-    await lpService.updateProgress(user.id, 'practical_card', 'pc-1', {
+    await lpService.updateProgress(user.id, 'decision_check', 'dc-continue', {
       status: 'started',
-      continueLater: true
+      continueLater: true,
+      contentCode: 'DC-CONTINUE-001'
     })
-    
+
     const continueItems = await lpService.getContinueLearning(user.id)
-    const found = continueItems.find(i => i.contentId === 'pc-1' && i.contentType === 'practical_card')
+    const found = continueItems.find(i => i.contentId === 'dc-continue' && i.contentType === 'decision_check')
     expect(found).toBeDefined()
     expect(found?.continueLater).toBe(true)
   })

@@ -91,26 +91,26 @@ describe('PersonalizedFeedService', () => {
   })
 
   it('should restrict duplicate consecutive types', async () => {
-    // Generate 5 practical cards
-    const cards = Array.from({ length: 5 }).map((_, i) => ({
-      id: `pc${i}`, title: `Card ${i}`, content: '...', knowledgeObject: { code: 'ko1' }
+    // Generate 5 decision checks to test consecutive type limiting
+    const checks = Array.from({ length: 5 }).map((_, i) => ({
+      id: `dc${i}`, code: `dc${i}`, title: `Decision ${i}`, description: '...', published: true
     }))
-    prisma.practicalCard.findMany.mockResolvedValue(cards)
+    prisma.decisionCheck.findMany.mockResolvedValue(checks)
 
     const feed = await PersonalizedFeedService.getFeed(userId, 10)
-    const pcItems = feed.filter(i => i.type === 'practical_card')
-    expect(pcItems.length).toBe(2)
+    const dcItems = feed.filter(i => i.type === 'decision_check')
+    expect(dcItems.length).toBe(2)
   })
 
   it('should limit total items to specified limit', async () => {
-    const cards = Array.from({ length: 15 }).map((_, i) => ({
-      id: `pc${i}`, title: `Card ${i}`, content: '...', knowledgeObject: { code: 'ko1' }
+    const checks = Array.from({ length: 15 }).map((_, i) => ({
+      id: `dc${i}`, code: `dc${i}`, title: `Decision ${i}`, description: '...', published: true
     }))
-    prisma.practicalCard.findMany.mockResolvedValue(cards)
+    prisma.decisionCheck.findMany.mockResolvedValue(checks)
     // Add other types to break up the consecutives
-    prisma.decisionCheck.findMany.mockResolvedValue([
-      { id: 'dc1', code: 'dc1', title: 'Decision 1', content: '...', completed: false },
-      { id: 'dc2', code: 'dc2', title: 'Decision 2', content: '...', completed: false }
+    prisma.knowledgeObject.findMany.mockResolvedValue([
+      { id: 1, code: 'ko1', title: 'Guide 1', content: '...', status: 'published', isDemo: false },
+      { id: 2, code: 'ko2', title: 'Guide 2', content: '...', status: 'published', isDemo: false }
     ])
 
     const feed = await PersonalizedFeedService.getFeed(userId, 4)
