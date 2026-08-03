@@ -8,7 +8,7 @@ import StructuredDecisionTool from '@/components/decision-checks/StructuredDecis
 import './DecisionCheckSession.css'
 
 export default function DecisionCheckSession() {
-  const { code: sessionId } = useParams() // The route uses :code but we passed sessionId
+  const { code: routeIdentifier } = useParams()
   const navigate = useNavigate()
   
   const [session, setSession] = useState(null)
@@ -28,6 +28,12 @@ export default function DecisionCheckSession() {
       setLoading(true)
       setLoadError('')
       try {
+        let sessionId = routeIdentifier
+        if (routeIdentifier?.startsWith('DC-')) {
+          const started = await api.decisionChecks.start(routeIdentifier)
+          sessionId = started.sessionId
+        }
+
         const res = await api.decisionChecks.getSession(sessionId)
         setSession(res)
         
@@ -45,6 +51,10 @@ export default function DecisionCheckSession() {
           setFormData(initialForm)
           setUnknowns(initialUnk)
         }
+
+        if (routeIdentifier !== sessionId) {
+          navigate(`/app/decision-checks/${sessionId}`, { replace: true })
+        }
       } catch (err) {
         console.error(err)
         setLoadError('Karar aracı yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.')
@@ -53,13 +63,13 @@ export default function DecisionCheckSession() {
       }
     }
     fetchSession()
-  }, [sessionId, loadAttempt])
+  }, [routeIdentifier, loadAttempt, navigate])
 
   const handleInputChange = async (questionCode, value) => {
     setFormData(prev => ({ ...prev, [questionCode]: value }))
     // Optimistic sync
     try {
-      await api.decisionChecks.saveAnswer(sessionId, {
+      await api.decisionChecks.saveAnswer(session.id, {
         questionCode,
         value,
         isUnknown: unknowns[questionCode] || false
@@ -72,7 +82,7 @@ export default function DecisionCheckSession() {
   const handleUnknownToggle = async (questionCode, isUnknown) => {
     setUnknowns(prev => ({ ...prev, [questionCode]: isUnknown }))
     try {
-      await api.decisionChecks.saveAnswer(sessionId, {
+      await api.decisionChecks.saveAnswer(session.id, {
         questionCode,
         value: formData[questionCode] ?? null,
         isUnknown
@@ -85,7 +95,7 @@ export default function DecisionCheckSession() {
   const completeSession = async () => {
     setSubmitting(true)
     try {
-      const res = await api.decisionChecks.complete(sessionId)
+      const res = await api.decisionChecks.complete(session.id)
       if (res.resultId) {
         // Switch to result view, for MVP we just refresh and show the state
         window.location.reload()
