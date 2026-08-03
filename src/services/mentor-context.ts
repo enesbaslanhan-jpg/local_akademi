@@ -141,7 +141,9 @@ async function resolveDecisionCheckResultContext(envelope: MentorContextEnvelope
 
   const snapshot = result.snapshotJson as any
   const calculation = snapshot?.calculationOutput
-  const safeSummary = calculation ? [
+  const safeSummary = Array.isArray(calculation?.mentorSummary)
+    ? calculation.mentorSummary.slice(0, 8).map((line: unknown) => String(line)).join('\n')
+    : calculation ? [
     `Ürün başına katkı: ${Number(calculation.contribution ?? 0).toFixed(2)} TL`,
     `Katkı marjı: %${Number(calculation.contributionMarginPercent ?? 0).toFixed(1)}`,
     calculation.breakEvenPrice == null ? 'Başabaş fiyatı: hesaplanamadı' : `Başabaş fiyatı: ${Number(calculation.breakEvenPrice).toFixed(2)} TL`,

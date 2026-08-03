@@ -4,6 +4,8 @@ import { api } from '@/services/api'
 import { useMentorContext } from '@/context/MentorContext'
 import { MessageSquare } from 'lucide-react'
 import ProfitabilityDecisionTool from '@/components/decision-checks/ProfitabilityDecisionTool'
+import StructuredDecisionTool from '@/components/decision-checks/StructuredDecisionTool'
+import './DecisionCheckSession.css'
 
 export default function DecisionCheckSession() {
   const { code: sessionId } = useParams() // The route uses :code but we passed sessionId
@@ -12,6 +14,8 @@ export default function DecisionCheckSession() {
   const [session, setSession] = useState(null)
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+  const [loadAttempt, setLoadAttempt] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [formData, setFormData] = useState({})
   const [unknowns, setUnknowns] = useState({})
@@ -21,6 +25,8 @@ export default function DecisionCheckSession() {
 
   useEffect(() => {
     const fetchSession = async () => {
+      setLoading(true)
+      setLoadError('')
       try {
         const res = await api.decisionChecks.getSession(sessionId)
         setSession(res)
@@ -41,13 +47,13 @@ export default function DecisionCheckSession() {
         }
       } catch (err) {
         console.error(err)
-        alert('Oturum yüklenemedi')
+        setLoadError('Karar aracı yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.')
       } finally {
         setLoading(false)
       }
     }
     fetchSession()
-  }, [sessionId])
+  }, [sessionId, loadAttempt])
 
   const handleInputChange = async (questionCode, value) => {
     setFormData(prev => ({ ...prev, [questionCode]: value }))
@@ -92,12 +98,25 @@ export default function DecisionCheckSession() {
     }
   }
 
-  if (loading) return <div className="p-8">Yükleniyor...</div>
-  if (!session) return <div className="p-8">Oturum bulunamadı</div>
+  if (loading) return <div className="decision-session-state" aria-live="polite"><span className="decision-session-spinner" /><h1>Karar aracı yükleniyor</h1><p>Oturum ve kayıtlı yanıtlar hazırlanıyor.</p></div>
+  if (loadError) return <div className="decision-session-state" role="alert"><span className="decision-session-error-icon">!</span><h1>Araç yüklenemedi</h1><p>{loadError}</p><button type="button" onClick={() => setLoadAttempt(value => value + 1)}>Yeniden dene</button></div>
+  if (!session) return <div className="decision-session-state"><h1>Oturum bulunamadı</h1><p>Bu karar aracı oturumuna erişilemiyor.</p><button type="button" onClick={() => navigate('/app/decision-checks')}>Araç listesine dön</button></div>
 
   if (session.decisionCheckCode === 'DC-PROFIT-001') {
     return (
       <ProfitabilityDecisionTool
+        session={session}
+        result={result}
+        navigate={navigate}
+        mentorContext={mentorContext}
+        mentorEnabled={Boolean(mentorContext?.openMentorWithContext)}
+      />
+    )
+  }
+
+  if (session.toolMeta) {
+    return (
+      <StructuredDecisionTool
         session={session}
         result={result}
         navigate={navigate}

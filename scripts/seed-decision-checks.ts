@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { STRUCTURED_TOOL_CONFIGS } from '../src/services/decision-tool-catalog'
 
 const prisma = new PrismaClient()
 
@@ -174,6 +175,58 @@ async function main() {
   }
 
   console.log(`Seeded Decision Check: ${dc.code}`)
+
+  for (const tool of STRUCTURED_TOOL_CONFIGS) {
+    const decisionCheck = await prisma.decisionCheck.upsert({
+      where: { code: tool.code },
+      update: {
+        title: tool.title,
+        description: tool.description,
+        category: tool.category,
+        targetRoles: JSON.stringify(['Esnaf', 'Girişimci', 'Yönetici']),
+        published: true,
+        currentVersion: tool.version
+      },
+      create: {
+        code: tool.code,
+        title: tool.title,
+        description: tool.description,
+        category: tool.category,
+        targetRoles: JSON.stringify(['Esnaf', 'Girişimci', 'Yönetici']),
+        published: true,
+        currentVersion: tool.version
+      }
+    })
+
+    const toolDefinition = {
+      questions: tool.questions,
+      rules: [],
+      ui: {
+        intro: tool.intro,
+        submitLabel: tool.submitLabel,
+        formulas: tool.formulas,
+        decisionChecks: tool.decisionChecks
+      }
+    }
+    const existingToolVersion = await prisma.decisionCheckVersion.findFirst({
+      where: { decisionCheckId: decisionCheck.id, version: tool.version }
+    })
+    const toolVersionData = {
+      status: 'published',
+      definitionJson: toolDefinition,
+      ruleVersion: tool.version,
+      publishedAt: new Date()
+    }
+
+    if (existingToolVersion) {
+      await prisma.decisionCheckVersion.update({ where: { id: existingToolVersion.id }, data: toolVersionData })
+    } else {
+      await prisma.decisionCheckVersion.create({
+        data: { decisionCheckId: decisionCheck.id, version: tool.version, ...toolVersionData }
+      })
+    }
+    console.log(`Seeded Decision Check: ${decisionCheck.code}`)
+  }
 }
 
 main()

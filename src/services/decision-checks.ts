@@ -2,6 +2,7 @@ import { type FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma'
 import { z } from 'zod'
 import { evaluateDecisionCheck, calculateDecisionCheckProfitability, type Finding } from './decision-check-rule-engine'
+import { calculateStructuredDecisionTool, decisionResultFromCalculation, STRUCTURED_TOOL_BY_CODE, validateStructuredToolAnswers } from './decision-tool-catalog'
 import { LearningProgressService } from './learning-progress'
 
 const featureFlag = process.env.FEATURE_DECISION_CHECKS_ENABLED === 'true'
@@ -140,13 +141,15 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
       where: { id: session.versionId! }
     })
 
+    const definitionJson = version?.definitionJson as any
     return reply.send({
       id: session.id,
       status: session.status,
       decisionCheckCode: session.decisionCheck.code,
       decisionCheckTitle: session.decisionCheck.title,
       decisionCheckDescription: session.decisionCheck.description,
-      definition: (version?.definitionJson as any)?.questions || [],
+      definition: definitionJson?.questions || [],
+      toolMeta: definitionJson?.ui || null,
       answers: session.answers
     })
   })
@@ -167,6 +170,19 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
     if (!session) return reply.status(404).send({ error: 'SESSION_NOT_FOUND' })
     if (session.userId !== (request.user as any).id) return reply.status(403).send({ error: 'FORBIDDEN' })
     if (session.status !== 'in_progress') return reply.status(400).send({ error: 'SESSION_ALREADY_COMPLETED' })
+
+    const version = session.versionId ? await prisma.decisionCheckVersion.findUnique({ where: { id: session.versionId } }) : null
+    const question = ((version?.definitionJson as any)?.questions || []).find((item: any) => item.code === parseRes.data.questionCode)
+    if (!question) return reply.status(400).send({ error: 'INVALID_QUESTION' })
+    if (parseRes.data.isUnknown && !question.allowUnknown) {
+      return reply.status(400).send({ error: 'UNKNOWN_NOT_ALLOWED', field: question.code })
+    }
+    if (!parseRes.data.isUnknown) {
+      const numericValue = Number(parseRes.data.value)
+      if (!Number.isFinite(numericValue) || numericValue < (question.min ?? -Infinity) || numericValue > (question.max ?? Infinity)) {
+        return reply.status(400).send({ error: 'INVALID_ANSWER_VALUE', field: question.code })
+      }
+    }
 
     await prisma.decisionCheckAnswer.upsert({
       where: { sessionId_questionCode: { sessionId: id, questionCode: parseRes.data.questionCode } },
@@ -221,7 +237,7 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
       unknownsObj[a.questionCode] = a.isUnknown
     })
 
-    let calculationOutput: ReturnType<typeof calculateDecisionCheckProfitability> | null = null
+    let calculationOutput: any = null
     let domainResult: ReturnType<typeof evaluateDecisionCheck> | null = null
 
     if (session.decisionCheck.code === 'DC-PROFIT-001') {
@@ -247,7 +263,7 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
       const riskLevel = contributionIsNegative ? 'critical' : discountCreatesLoss ? 'high' : marginIsFragile ? 'medium' : 'low'
       const status = contributionIsNegative ? 'not_recommended' : discountCreatesLoss ? 'high_risk' : marginIsFragile ? 'caution' : 'generally_suitable'
       const severity = riskLevel === 'low' ? 'low' : riskLevel
-      const findings: Finding[] = calculationOutput.riskWarnings.map((message, index) => ({
+      const findings: Finding[] = calculationOutput.riskWarnings.map((message: string, index: number) => ({
         code: `profitability_warning_${index + 1}`,
         severity,
         message,
@@ -262,6 +278,22 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
         status,
         riskLevel
       }
+    } else if (STRUCTURED_TOOL_BY_CODE.has(session.decisionCheck.code)) {
+      const toolConfig = STRUCTURED_TOOL_BY_CODE.get(session.decisionCheck.code)!
+      const candidate = Object.fromEntries(toolConfig.questions.map(question => [
+        question.code,
+        unknownsObj[question.code] ? undefined : answersObj[question.code]
+      ]))
+      const validation = validateStructuredToolAnswers(session.decisionCheck.code, candidate)
+      if (!validation.success) {
+        return reply.status(400).send({
+          error: 'DECISION_TOOL_INPUTS_INVALID',
+          message: validation.message,
+          fields: validation.fields
+        })
+      }
+      calculationOutput = calculateStructuredDecisionTool(session.decisionCheck.code, validation.data)
+      domainResult = decisionResultFromCalculation(calculationOutput) as ReturnType<typeof evaluateDecisionCheck>
     }
 
     const result = domainResult ?? evaluateDecisionCheck({
