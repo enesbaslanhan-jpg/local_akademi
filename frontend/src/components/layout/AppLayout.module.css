@@ -22,9 +22,11 @@
 @media (max-width: 768px) {
   .main {
     margin-left: 0;
+    min-width: 0;
   }
 
   .content {
     padding: var(--space-4);
+    min-width: 0;
   }
 }
