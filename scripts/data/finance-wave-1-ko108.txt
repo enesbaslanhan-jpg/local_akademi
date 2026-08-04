@@ -29,16 +29,16 @@ Sipariş başına ekonomik yükü oluşturan temel bileşenler şunlardır:
 
 > **CHECKLIST: Unutulan Maliyet Kalemleri**
 >
-> - [ ] Ambalaj ve paketleme gideri eklendi mi?
-> - [ ] Pazaryeri komisyonu, POS ve kargo kesintileri kendi panelinden doğrulandı mı?
-> - [ ] İşletme yapına uygun ve tutarlı bir genel gider dağıtım anahtarı seçildi mi?
-> - [ ] Fire ve iadesi geri alınamayan harcamaların risk payı eklendi mi?
+> - ☐ Ambalaj ve paketleme gideri eklendi mi?
+> - ☐ Pazaryeri komisyonu, POS ve kargo kesintileri kendi panelinden doğrulandı mı?
+> - ☐ İşletme yapına uygun ve tutarlı bir genel gider dağıtım anahtarı seçildi mi?
+> - ☐ Fire ve iadesi geri alınamayan harcamaların risk payı eklendi mi?
 
 ## Formül ve Örnek Uygulama
 
 > **FORMULA: Sipariş Başına Toplam Ekonomik Yük**
 >
-> $$\text{Tahmini Sipariş Başına Ekonomik Yük } (EY) = DM + Dİ + AMB + DG_{birim} + SG_{payı} + RİK_{payı}$$
+> **Tahmini Sipariş Başına Ekonomik Yük (EY) = DM + Dİ + AMB + DG birim + SG payı + RİK payı**
 
 *(Varsayımsal eğitim örneğidir. Tutarlar KDV hariçtir).*
 
@@ -46,19 +46,19 @@ Ahşap ürünler satan Kaan'ın sipariş başına ekonomik yük hesabı:
 
 | Kalem | Değişken | Tutar |
 |---|---|---|
-| Doğrudan Malzeme | $DM$ | 80 TL |
-| Doğrudan İşçilik | $Dİ$ | 20 TL |
-| Ambalaj | $AMB$ | 15 TL |
-| Komisyon ve POS | $DG_{birim}$ | 40 TL (Varsayımsal) |
-| Kargo Bedeli | $DG_{birim}$ | 35 TL |
-| Genel Gider Payı | $SG_{payı}$ | 25 TL (Satış adedi anahtarıyla) |
-| Fire ve İade Risk Payı | $RİK_{payı}$ | 5 TL |
+| Doğrudan Malzeme | DM | 80 TL |
+| Doğrudan İşçilik | Dİ | 20 TL |
+| Ambalaj | AMB | 15 TL |
+| Komisyon ve POS | DG birim | 40 TL (Varsayımsal) |
+| Kargo Bedeli | DG birim | 35 TL |
+| Genel Gider Payı | SG payı | 25 TL (Satış adedi anahtarıyla) |
+| Fire ve İade Risk Payı | RİK payı | 5 TL |
 
-$$\text{Kaan'ın Tahmini Sipariş Başına Ekonomik Yükü} = 80 + 20 + 15 + 40 + 35 + 25 + 5 = \mathbf{220 \text{ TL}}$$
+**Kaan'ın Tahmini Sipariş Başına Ekonomik Yükü = 80 + 20 + 15 + 40 + 35 + 25 + 5 = 220 TL**
 
 🛠️ **Karar Aracı Yönlendirmesi:**
 
-Sipariş başına ekonomik yükün satış fiyatın karşısındaki durumunu incelemek için "Ürünüm Gerçekten Kârlı mı?" karar aracına başvurabilirsin.
+Sipariş başına ekonomik yükün satış fiyatın karşısındaki durumunu incelemek için [Ürünüm Gerçekten Kârlı mı?](/app/decision-checks/DC-PROFIT-001) karar aracını kullanabilirsin.
 
 ## Somut Çıktı: Ürüne Özel Ekonomik Yük Kartı
 

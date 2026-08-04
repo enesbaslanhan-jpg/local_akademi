@@ -33,10 +33,10 @@ Giderler birbiriyle karıştırılmaması gereken iki ayrı bağımsız eksende 
 
 > **CHECKLIST: Gider Kaydı Kontrolü**
 >
-> - [ ] Bu harcama ilgili dönemde gerçekten tüketildi mi yoksa gelecek döneme sarkan bir hakkı mı temsil ediyor?
-> - [ ] Satış hacmine göre değişken/sabit ayrımı doğru yapıldı mı?
-> - [ ] Ürünle doğrudan ilişkili kalemler dolaylı genel giderlerden ayrıldı mı?
-> - [ ] KDV yaklaşımının işletme yapına uygunluğu mali müşavirinle doğrulandı mı? (İndirilemeyen KDV veya özel durumlar maliyeti etkileyebilir).
+> - ☐ Bu harcama ilgili dönemde gerçekten tüketildi mi yoksa gelecek döneme sarkan bir hakkı mı temsil ediyor?
+> - ☐ Satış hacmine göre değişken/sabit ayrımı doğru yapıldı mı?
+> - ☐ Ürünle doğrudan ilişkili kalemler dolaylı genel giderlerden ayrıldı mı?
+> - ☐ KDV yaklaşımının işletme yapına uygunluğu mali müşavirinle doğrulandı mı? (İndirilemeyen KDV veya özel durumlar maliyeti etkileyebilir).
 
 > **COMMON_MISTAKE: Kasadan Çıkan Her Parayı Dönem Gideri Sanmak!**
 >
@@ -64,11 +64,11 @@ Tekstil atölyesi işleten Selin'in harcamalarının iki ayrı eksende sınıfla
 
 | Gider Kalemi | Hacme Göre Sınıf | Ürünle İlişkisine Göre Sınıf | Sınıflandırma Gerekçesi |
 |---|---|---|---|
-| 1. ................. | [ ]Sabit [ ]Değişken [ ]Karma | [ ]Doğrudan [ ]Dolaylı | ................. |
-| 2. ................. | [ ]Sabit [ ]Değişken [ ]Karma | [ ]Doğrudan [ ]Dolaylı | ................. |
-| 3. ................. | [ ]Sabit [ ]Değişken [ ]Karma | [ ]Doğrudan [ ]Dolaylı | ................. |
-| 4. ................. | [ ]Sabit [ ]Değişken [ ]Karma | [ ]Doğrudan [ ]Dolaylı | ................. |
-| 5. ................. | [ ]Sabit [ ]Değişken [ ]Karma | [ ]Doğrudan [ ]Dolaylı | ................. |
+| 1. ................. | ☐ Sabit ☐ Değişken ☐ Karma | ☐ Doğrudan ☐ Dolaylı | ................. |
+| 2. ................. | ☐ Sabit ☐ Değişken ☐ Karma | ☐ Doğrudan ☐ Dolaylı | ................. |
+| 3. ................. | ☐ Sabit ☐ Değişken ☐ Karma | ☐ Doğrudan ☐ Dolaylı | ................. |
+| 4. ................. | ☐ Sabit ☐ Değişken ☐ Karma | ☐ Doğrudan ☐ Dolaylı | ................. |
+| 5. ................. | ☐ Sabit ☐ Değişken ☐ Karma | ☐ Doğrudan ☐ Dolaylı | ................. |
 
 **Sonuç Beyanı:**
 

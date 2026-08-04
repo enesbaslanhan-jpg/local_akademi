@@ -18,10 +18,10 @@ Farklı ambalaj yaklaşımlarının işletmeye etkisi test edilmelidir:
 
 > **CHECKLIST: Ambalaj Karar Kontrolü**
 >
-> - [ ] Dış kutu, bant, etiket ve dolgu malzemesi maliyeti dâhil edildi mi?
-> - [ ] Paket hazırlama süresinin işçilik etkisi hesaba katıldı mı?
-> - [ ] Ambalaj ebatlarının kargo desisini ve navlun fiyatını artırıp artırmadığı kontrol edildi mi?
-> - [ ] Seçilen ambalajın koruma performansı kendi gönderi ve hasar kayıtlarınla doğrulandı mı?
+> - ☐ Dış kutu, bant, etiket ve dolgu malzemesi maliyeti dâhil edildi mi?
+> - ☐ Paket hazırlama süresinin işçilik etkisi hesaba katıldı mı?
+> - ☐ Ambalaj ebatlarının kargo desisini ve navlun fiyatını artırıp artırmadığı kontrol edildi mi?
+> - ☐ Seçilen ambalajın koruma performansı kendi gönderi ve hasar kayıtlarınla doğrulandı mı?
 
 > **COMMON_MISTAKE: Yalnızca Kutu Fiyatına Bakarak Ambalaj Seçmek!**
 >
@@ -59,7 +59,7 @@ Cam kavanoz satan Deniz, aylık 500 paket gönderimi için iki ambalaj seçeneğ
 
 🛠️ **Karar Aracı Yönlendirmesi:**
 
-Ambalaj değişikliğinin kargo maliyetine etkisini incelemek için "Kargo Ücretsiz Olabilir mi?" karar aracını kullanabilirsin.
+Ambalaj değişikliğinin kargo maliyetine etkisini incelemek için [Kargo Ücretsiz Olabilir mi?](/app/decision-checks/DC-FREESHIP-003) karar aracını kullanabilirsin.
 
 ## Somut Çıktı: Ambalaj Seçim ve Maliyet Kartı
 
@@ -67,7 +67,7 @@ Ambalaj değişikliğinin kargo maliyetine etkisini incelemek için "Kargo Ücre
 |---|---|---|
 | Malzeme Maliyeti | ............... TL | ............... TL |
 | Paketleme Süresi | ............... dk | ............... dk |
-| Koruma Performansı | [ ]Düşük [ ]İyi | [ ]Düşük [ ]İyi |
+| Koruma Performansı | ☐ Düşük ☐ İyi | ☐ Düşük ☐ İyi |
 | Gözlenen Kayıp | ............... TL | ............... TL |
 | **Toplam Tahmini Maliyet** | **............... TL** | **............... TL** |
 

@@ -25,18 +25,18 @@ Bir iade işleminde yalnız işletmenin üstlendiği kalemler toplanır:
 
 > **CHECKLIST: Unutulan İade Maliyetleri**
 >
-> - [ ] Anlaşmana göre üzerinde kalan gidiş ve dönüş kargo tutarları teyit edildi mi?
-> - [ ] Tahrip olan ambalaj ve kontrol süresi maliyete eklendi mi?
-> - [ ] Ürünün yeniden satışındaki olası değer kaybı hesaplandı mı?
-> - [ ] İşletmene uygulanmayan kalemler sıfır (0) olarak bırakıldı mı?
+> - ☐ Anlaşmana göre üzerinde kalan gidiş ve dönüş kargo tutarları teyit edildi mi?
+> - ☐ Tahrip olan ambalaj ve kontrol süresi maliyete eklendi mi?
+> - ☐ Ürünün yeniden satışındaki olası değer kaybı hesaplandı mı?
+> - ☐ İşletmene uygulanmayan kalemler sıfır (0) olarak bırakıldı mı?
 
 ## Formül ve Örnek Uygulama
 
 > **FORMULA: İade Başına Maliyet ve Beklenen İade Risk Payı**
 >
-> $$\text{İade Başına Satıcı Üzerinde Kalan Zarar } (İMZ) = GK + DK + YAMB + İŞÇ + DKAY + KES$$
+> **İade Başına Satıcı Üzerinde Kalan Zarar (İMZ) = GK + DK + YAMB + İŞÇ + DKAY + KES**
 >
-> $$\text{Sipariş Başına Beklenen İade Risk Payı } (İRP) = İMZ \times \text{Geçmiş İade Oranı } (\%)$$
+> **Sipariş Başına Beklenen İade Risk Payı (İRP) = İMZ × Geçmiş İade Oranı**
 
 *(Varsayımsal eğitim örneğidir).*
 
@@ -52,13 +52,13 @@ Ayakkabı satan Burak'ın mağaza verileri:
 | Değer Kaybı Payı | 45 TL |
 | Geri Alınamayan Kesinti | 0 TL |
 
-$$\text{İade Başına Zarar } (İMZ) = 40 + 40 + 15 + 10 + 45 + 0 = \mathbf{150 \text{ TL}}$$
+**İade Başına Zarar (İMZ) = 40 + 40 + 15 + 10 + 45 + 0 = 150 TL**
 
-$$\text{Sipariş Başına Beklenen İade Risk Payı } (İRP) = 150 \text{ TL} \times 0,10 = \mathbf{15 \text{ TL}}$$
+**Sipariş Başına Beklenen İade Risk Payı (İRP) = 150 TL × 0,10 = 15 TL**
 
 🛠️ **Karar Aracı Yönlendirmesi:**
 
-İade oranı yüksek ürünlerin satışına devam etme kararını incelemek için "Bu Ürünü Satmaya Devam Etmeli miyim?" karar aracından faydalanabilirsin.
+İade oranı yüksek ürünlerin satışına devam etme kararını incelemek için [Bu Ürünü Satmaya Devam Etmeli miyim?](/app/decision-checks/DC-CONTINUE-012) karar aracını kullanabilirsin.
 
 ## Somut Çıktı: İade Maliyet Analiz Kartı
 

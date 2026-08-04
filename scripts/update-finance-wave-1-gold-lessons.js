@@ -1,15 +1,26 @@
-const { PrismaClient } = require('C:/Users/bugrz/Documents/Codex/2026-07-19/new-chat/outputs/LocalAkademi_fixed/node_modules/@prisma/client');
+const { PrismaClient } = require('@prisma/client');
 const fs = require('fs');
 const path = require('path');
 const prisma = new PrismaClient();
 
 const DATA_DIR = path.resolve(__dirname, 'data');
+const LESSON_MINUTES = 14;
+const TASK_MINUTES = 15;
+const STALE_TEMPLATE_TERMS = [
+  'genel müdür',
+  'duyarlılık matrisi',
+  'gerçek işletme kaydını oluştur',
+  'birim maliyet kartı hazırlayın',
+  'fiyat ve kampanya senaryo tablosu hazırlayın'
+];
 
 // Metadata definitions — content loaded from .txt files at runtime
 const TARGETS = [
   {
     koId: 95, courseId: 210, lessonId: 896, code: 'CUR-018-05', file: 'finance-wave-1-ko95.txt',
     title: 'Gider Tanımı: Kasadan Çıkan Her Para Gider Midir?',
+    artifact: 'Gider Sınıflandırma Kartı',
+    metric: 'Doğru sınıflandırılan gider kalemi sayısı',
     summary: 'Nakit çıkışı ile gideri ayırt et. Giderlerini iki bağımsız eksende (hacme göre sabit/değişken/karma ve ürünle ilişkisine göre doğrudan/dolaylı) sınıflandırarak bilinçli maliyet kararı ver.',
     outcomes: [
       'Nakit çıkışı (ödeme) ile gider arasındaki farkı ayırt etmek',
@@ -41,6 +52,8 @@ const TARGETS = [
   {
     koId: 108, courseId: 211, lessonId: 899, code: 'CUR-021-03', file: 'finance-wave-1-ko108.txt',
     title: 'Gerçek Birim Maliyet: Üretim Maliyeti ile Sipariş Başına Toplam Ekonomik Yük Farkı',
+    artifact: 'Ürüne Özel Ekonomik Yük Kartı',
+    metric: 'Sipariş başına toplam ekonomik yük',
     summary: 'Ürünün ham alış veya malzeme fiyatının ötesine geç. Ambalaj, komisyon, kargo, genel gider payı ve fire riskini ekleyerek sipariş başına gerçek ekonomik yükü hesapla.',
     outcomes: [
       'Resmî stok maliyeti ile işletme kararı için tahmini sipariş başına ekonomik yük arasındaki farkı ayırt etmek',
@@ -78,6 +91,8 @@ const TARGETS = [
   {
     koId: 122, courseId: 211, lessonId: 902, code: 'CUR-024-02', file: 'finance-wave-1-ko122.txt',
     title: 'Ambalaj Maliyeti: En Ucuz Ambalaj Gerçekten En Düşük Toplam Maliyet Midir?',
+    artifact: 'Ambalaj Seçim ve Maliyet Kartı',
+    metric: 'Ambalaj seçeneği başına toplam maliyet',
     summary: 'Ambalaj seçimini yalnızca malzeme fiyatına göre yapma. Paketleme süresi, koruma performansı ve hasar kaynaklı iade maliyetini birlikte hesaplayarak gerçek toplam maliyeti gör.',
     outcomes: [
       'Ambalaj seçiminin toplam maliyetini malzeme, işçilik, hasar riski ve kargo desisi boyutlarıyla değerlendirmek',
@@ -112,6 +127,8 @@ const TARGETS = [
   {
     koId: 153, courseId: 212, lessonId: 908, code: 'CUR-030-03', file: 'finance-wave-1-ko153.txt',
     title: 'İade Maliyeti: Bir İadenin Sana Gerçek Maliyeti Yalnızca Dönüş Kargosu Mudur?',
+    artifact: 'İade Maliyet Analiz Kartı',
+    metric: 'Sipariş başına beklenen iade risk payı',
     summary: 'İadenin toplam maliyetini yalnızca dönüş kargosuyla sınırlama. Boşa çıkan gidiş kargosu, yeniden paketleme, kontrol işçiliği ve ürün değer kaybını ekleyerek sipariş başına beklenen iade risk payını hesapla.',
     outcomes: [
       'İade maliyetini oluşturan altı bileşeni ayırt etmek',
@@ -154,6 +171,8 @@ const TARGETS = [
   {
     koId: 163, courseId: 213, lessonId: 910, code: 'CUR-032-03', file: 'finance-wave-1-ko163.txt',
     title: 'Fiyat Belirleme: Rakibin Fiyatını Kopyalamadan Gerekçeli Fiyat Nasıl Belirlenir?',
+    artifact: 'Fiyat Karar Kartı',
+    metric: 'Hedef satış marjı ve gerekçeli satış fiyatı',
     summary: 'Maliyet tabanlı hesaplama ile pazar kanıtlarını birleştir. Markup ve hedef satış marjı yöntemlerini karşılaştır, gerekçeli fiyat kararı ver.',
     outcomes: [
       'Maliyet üzerine ekleme (markup) ile hedef satış marjına göre fiyatlama (margin) arasındaki farkı ayırt etmek',
@@ -203,8 +222,57 @@ async function verifyRelation(t) {
 async function updateKO(t, content) {
   const ko = await prisma.knowledgeObject.findUnique({ where: { id: t.koId } });
   const meta = JSON.parse(ko.metadata || '{}');
-  const updatedMeta = { ...meta, learningOutcomes: t.outcomes, embeddedPracticeBlocks: t.blocks, decisionToolLinks: t.tools };
+  const updatedMeta = {
+    ...meta,
+    summary: t.summary,
+    task: t.task,
+    estimatedTime: LESSON_MINUTES + ' dakika',
+    estimatedMinutes: LESSON_MINUTES,
+    learningOutcomes: t.outcomes,
+    coursePurpose: t.summary,
+    courseOutcomes: t.outcomes,
+    targetRole: 'KOBİ sahibi veya işletme yöneticisi',
+    solvedProblem: t.summary,
+    learningArtifact: t.artifact,
+    metric: t.metric,
+    nextAction: t.task,
+    embeddedPracticeBlocks: t.blocks,
+    decisionToolLinks: t.tools
+  };
   await prisma.knowledgeObject.update({ where: { id: t.koId }, data: { title: t.title, content, summary: t.summary, task: t.task, metadata: JSON.stringify(updatedMeta) } });
+}
+
+async function updateLessonAndTask(t) {
+  await prisma.lesson.update({
+    where: { id: t.lessonId },
+    data: { estimatedMinutes: LESSON_MINUTES }
+  });
+
+  const templates = await prisma.taskTemplate.findMany({ where: { koId: t.koId } });
+  if (templates.length !== 1) {
+    throw new Error('KO ' + t.koId + ' has ' + templates.length + ' task templates; expected exactly 1');
+  }
+
+  const checklist = t.blocks.find(block => block.type === 'checklist')?.items || [];
+  await prisma.taskTemplate.update({
+    where: { id: templates[0].id },
+    data: {
+      title: t.title.split(':')[0] + ' Uygulaması',
+      description: t.task,
+      estimatedTime: TASK_MINUTES,
+      instructions: JSON.stringify([
+        t.task,
+        'Kullandığın tutarların ve oranların hangi işletme kaydından geldiğini belirt.',
+        'Hesabını kontrol et ve ulaştığın kararı tek bir sonuç cümlesiyle yaz.'
+      ]),
+      checklist: JSON.stringify(checklist),
+      rubric: JSON.stringify([
+        { level: 'Tam', description: 'İstenen kart gerçek verilerle doldurulmuş, hesap kontrol edilmiş ve karar gerekçelendirilmiş.' },
+        { level: 'Geliştirilmeli', description: 'Eksik veri, hesap veya karar gerekçesi bulunuyor.' }
+      ]),
+      exampleOutput: JSON.stringify({ minWords: 20 })
+    }
+  });
 }
 
 async function upsertSources(t) {
@@ -238,12 +306,24 @@ async function upsertSources(t) {
 }
 
 async function verifyUpdate(t, content) {
-  const ko = await prisma.knowledgeObject.findUnique({ where: { id: t.koId } });
+  const ko = await prisma.knowledgeObject.findUnique({
+    where: { id: t.koId },
+    include: { taskTemplates: true }
+  });
+  const lesson = await prisma.lesson.findUnique({ where: { id: t.lessonId } });
   const meta = JSON.parse(ko.metadata || '{}');
   const ok = (label, pass) => { console.log('  ' + (pass ? '✓' : '✗') + ' ' + label); return pass; };
   let all = true;
   all = ok('title matches', ko.title === t.title) && all;
+  all = ok('summary matches in KO and metadata', ko.summary === t.summary && meta.summary === t.summary) && all;
+  all = ok('task matches in KO and metadata', ko.task === t.task && meta.task === t.task) && all;
+  all = ok('editorial metadata matches lesson', meta.coursePurpose === t.summary && JSON.stringify(meta.courseOutcomes) === JSON.stringify(t.outcomes) && meta.learningArtifact === t.artifact && meta.metric === t.metric) && all;
+  all = ok('lesson duration=' + LESSON_MINUTES + ' dk', lesson?.estimatedMinutes === LESSON_MINUTES && meta.estimatedTime === LESSON_MINUTES + ' dakika') && all;
+  all = ok('task duration=' + TASK_MINUTES + ' dk', ko.taskTemplates.length === 1 && ko.taskTemplates[0].estimatedTime === TASK_MINUTES) && all;
+  all = ok('task description matches', ko.taskTemplates.length === 1 && ko.taskTemplates[0].description === t.task) && all;
   all = ok('content length=' + content.length, ko.content.length === content.length) && all;
+  all = ok('content has no raw LaTeX delimiters', !/\$\$|\\frac|\\text\{|\\mathbf\{|\\times/.test(content)) && all;
+  all = ok('checklists have visible box glyphs', !/- \[ \]/.test(content) && (!content.includes('CHECKLIST:') || content.includes('☐'))) && all;
   all = ok('blocks count=' + t.blocks.length, meta.embeddedPracticeBlocks?.length === t.blocks.length) && all;
   all = ok('tools count=' + t.tools.length, meta.decisionToolLinks?.length === t.tools.length) && all;
   const blockTypes = meta.embeddedPracticeBlocks?.map(b => b.type).join(',');
@@ -252,6 +332,10 @@ async function verifyUpdate(t, content) {
   all = ok('tool codes: ' + toolCodes, toolCodes === t.tools.map(d => d.code).join(',')) && all;
   const srcCount = await prisma.knowledgeObjectSource.count({ where: { koId: t.koId } });
   all = ok('sources count=' + srcCount, srcCount === t.sources.length) && all;
+  const staleText = [JSON.stringify(meta), ...ko.taskTemplates.map(template => template.title + ' ' + template.description)].join(' ').toLocaleLowerCase('tr-TR');
+  all = ok('no stale template terms', !STALE_TEMPLATE_TERMS.some(term => staleText.includes(term))) && all;
+  const expectedToolRoute = t.tools[0] ? '/app/decision-checks/' + t.tools[0].code : null;
+  all = ok('decision tool link ' + (expectedToolRoute || 'not present'), expectedToolRoute ? content.includes(expectedToolRoute) : !content.includes('/app/decision-checks/')) && all;
   return all;
 }
 
@@ -264,6 +348,7 @@ async function main() {
     console.log('  ✓ Relationship verified: Course ' + t.courseId + ' → Lesson ' + t.lessonId + ' → KO ' + t.koId);
     const content = fs.readFileSync(path.join(DATA_DIR, t.file), 'utf8');
     await updateKO(t, content);
+    await updateLessonAndTask(t);
     console.log('  ✓ KO updated');
     const srcCount = await upsertSources(t);
     console.log('  ✓ Sources: ' + srcCount);
