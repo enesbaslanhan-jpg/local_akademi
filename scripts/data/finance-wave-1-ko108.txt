@@ -1,0 +1,89 @@
+# Gerçek Birim Maliyet: Üretim Maliyeti ile Sipariş Başına Toplam Ekonomik Yük Farkı
+
+Bir ürünün resmi üretim veya alış maliyeti ile o siparişin işletmeye getirdiği toplam mali yük aynı şey değildir.
+
+Tedarikçiden 150 TL'ye aldığın bir tişörtün alış bedeli stok maliyetini oluşturur. Ancak bu tişört satıldığında ambalajlanır, kargolanır, pazaryerine komisyon ödenir, atölye kirasından pay alır ve bazı siparişler iade edilir.
+
+İşletme kararları alırken hesapladığımız değer, mevzuattaki resmi stok maliyeti değil; **İşletme Kararı İçin Tahmini Sipariş Başına Toplam Ekonomik Yük** değeridir.
+
+## Sipariş Başına Ekonomik Yük Bileşenleri
+
+Sipariş başına ekonomik yükü oluşturan temel bileşenler şunlardır:
+
+| # | Bileşen | Açıklama |
+|---|---|---|
+| 1 | Doğrudan Malzeme veya Alış Maliyeti | Ürünün ham maddesi ya da tedarik tutarı |
+| 2 | Doğrudan İşçilik | Ürünün hazırlanması için harcanan doğrudan emek payı |
+| 3 | Ambalaj ve Paketleme | Kutu, poşet, dolgu malzemesi, etiket ve bant tutarı |
+| 4 | Siparişe Bağlı Değişken Giderler | Komisyon, POS kesintisi ve satıcıya yansıyan kargo bedeli *(Platform sözleşmesi ve satıcı panelindeki güncel verilerini kullanmalısın)* |
+| 5 | Genel Gider Payı (Ortak Gider Dağıtımı) | Kira, elektrik, yazılım ve yönetim giderlerinin ürüne atanan payı *(İşletmene uygun; tahmini satış adedi, üretim adedi, sipariş sayısı veya işçilik saati gibi tutarlı tek bir dağıtım anahtarı seçilmelidir)* |
+| 6 | Beklenen Fire, Hasar veya İade Payı | İade veya kırılma nedeniyle oluşan zararın sipariş başına düşen risk payı |
+
+*(Not: Komisyon, POS, kargo, iade riski ve genel giderlerin tamamı resmi muhasebede ürün stok maliyetine dahil edilmeyebilir; fakat yönetim kararlarında dikkate alınır).*
+
+> **COMMON_MISTAKE: Yalnızca Alış veya Malzeme Fiyatını Maliyet Sanmak!**
+>
+> **Yanılgı:** "Ürünü 100 TL malzeme ile ürettim. 200 TL'ye satarsam 100 TL net kâr ederim."
+>
+> **Gerçek:** 100 TL malzemenin üzerine 15 TL ambalaj, 30 TL komisyon, 25 TL kargo ve 20 TL genel gider payı eklendiğinde sipariş başına ekonomik yük 190 TL'ye ulaşır. Fiyat ile bu tutar arasındaki 10 TL fark net kâr değildir; vergi, finansman ve beklenmeyen giderler öncesi faaliyet katkısıdır.
+
+> **CHECKLIST: Unutulan Maliyet Kalemleri**
+>
+> - [ ] Ambalaj ve paketleme gideri eklendi mi?
+> - [ ] Pazaryeri komisyonu, POS ve kargo kesintileri kendi panelinden doğrulandı mı?
+> - [ ] İşletme yapına uygun ve tutarlı bir genel gider dağıtım anahtarı seçildi mi?
+> - [ ] Fire ve iadesi geri alınamayan harcamaların risk payı eklendi mi?
+
+## Formül ve Örnek Uygulama
+
+> **FORMULA: Sipariş Başına Toplam Ekonomik Yük**
+>
+> $$\text{Tahmini Sipariş Başına Ekonomik Yük } (EY) = DM + Dİ + AMB + DG_{birim} + SG_{payı} + RİK_{payı}$$
+
+*(Varsayımsal eğitim örneğidir. Tutarlar KDV hariçtir).*
+
+Ahşap ürünler satan Kaan'ın sipariş başına ekonomik yük hesabı:
+
+| Kalem | Değişken | Tutar |
+|---|---|---|
+| Doğrudan Malzeme | $DM$ | 80 TL |
+| Doğrudan İşçilik | $Dİ$ | 20 TL |
+| Ambalaj | $AMB$ | 15 TL |
+| Komisyon ve POS | $DG_{birim}$ | 40 TL (Varsayımsal) |
+| Kargo Bedeli | $DG_{birim}$ | 35 TL |
+| Genel Gider Payı | $SG_{payı}$ | 25 TL (Satış adedi anahtarıyla) |
+| Fire ve İade Risk Payı | $RİK_{payı}$ | 5 TL |
+
+$$\text{Kaan'ın Tahmini Sipariş Başına Ekonomik Yükü} = 80 + 20 + 15 + 40 + 35 + 25 + 5 = \mathbf{220 \text{ TL}}$$
+
+🛠️ **Karar Aracı Yönlendirmesi:**
+
+Sipariş başına ekonomik yükün satış fiyatın karşısındaki durumunu incelemek için "Ürünüm Gerçekten Kârlı mı?" karar aracına başvurabilirsin.
+
+## Somut Çıktı: Ürüne Özel Ekonomik Yük Kartı
+
+| Bileşen | Tutar |
+|---|---|
+| 1. Doğrudan Malzeme / Alış Fiyatı | ............... TL |
+| 2. Doğrudan İşçilik Payı | ............... TL |
+| 3. Ambalaj, Kutu ve Paketleme | ............... TL |
+| 4. Komisyon, POS ve Kargo Kesintileri | ............... TL |
+| 5. Genel Gider Payı (Kira, Fatura vb.) | ............... TL |
+| 6. Fire, Hasar ve İade Risk Payı | ............... TL |
+| **Tahmini Sipariş Başına Toplam Ekonomik Yük** | **............... TL** |
+
+**Sonuç Değerlendirmesi:**
+
+> "Ürünümün ham alış/malzeme fiyatı ............... TL iken; ambalaj, operasyon, kesintiler ve genel gider payı eklendiğinde sipariş başına tahmini toplam ekonomik yükü ............... TL'dir."
+
+## Kaynakça ve Lisans Bilgisi
+
+**Anadolu Üniversitesi Açıköğretim Fakültesi – Maliyet Muhasebesi Ders Kitabı (Ünite 1 ve 4)**
+Yayınlayan Kurum: Anadolu Üniversitesi eKampüs Portalı.
+Erişim Türü: Açık Erişim.
+Lisans/Telif Durumu: Açık erişimli; yeniden kullanım lisansı ayrıca doğrulanmadı. İçerik özgün biçimde özetlenmiştir.
+
+**Atatürk Üniversitesi Açıköğretim Fakültesi – Maliyet Muhasebesi Ders Kitabı (Ünite 3)**
+Yayınlayan Kurum: Atatürk Üniversitesi AÖF Portalı.
+Erişim Türü: Açık Erişim.
+Lisans/Telif Durumu: Açık erişimli; yeniden kullanım lisansı ayrıca doğrulanmadı. İçerik özgün biçimde özetlenmiştir.

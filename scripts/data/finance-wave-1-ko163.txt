@@ -1,0 +1,92 @@
+# Fiyat Belirleme: Rakibin Fiyatını Kopyalamadan Gerekçeli Fiyat Nasıl Belirlenir?
+
+Yeni bir ürün satışa çıkarırken rakibin fiyatını doğrudan kopyalamak finansal risk taşır. Rakibinizin tedarik maliyetleri farklı olabilir veya zararına satış yapıyor olabilir.
+
+Fiyat Belirleme, maliyet tabanlı hesaplamalar ile pazar gerçeklerinin birlikte değerlendirildiği bir karar sürecidir.
+
+## Fiyatlama Yaklaşımları ve Doğrulama
+
+Fiyat belirlerken iki hesaplama yaklaşımı ve bir pazar doğrulaması kullanılır:
+
+**1. Maliyet Üzerine Ekleme (Markup)**
+
+Birim maliyetin üzerine belirli bir ekleme yüzdesi konulur.
+
+Örnek: 100 TL maliyete %40 Markup eklenirse fiyat: $100 \times (1 + 0,40) = \mathbf{140 \text{ TL}}$.
+
+**2. Hedef Satış Marjına Göre Fiyatlama**
+
+Satış fiyatı içerisinden hedeflenen satış marjı oranının kalmasını sağlar.
+
+> **FORMULA: Hedef Satış Marjına Göre Fiyatlama**
+>
+> $$\text{Hesaplanan Satış Fiyatı } (P_{net}) = \frac{\text{Tahmini Sipariş Başına Ekonomik Yük}}{1 - \text{Hedef Satış Marjı Oranı}}$$
+
+*(Hedef Satış Marjı Oranı 1'den küçük bir ondalık sayı olmalıdır. Örn: %35 hedef marj için 0,35 yazılır ve maliyet 0,65'e bölünür).*
+
+*(Önemli: Bu formül nihai net kâr garantisi vermez. Vergi, finansman ve dönem sonu beklenmeyen giderleri kapsamaz; sadece hedeflenen satış marjına göre fiyat tabanı oluşturur).*
+
+**3. Pazar Kanıtları ile Fiyat Doğrulama**
+
+Hesaplanan fiyat pazarda otomatik olarak satılacağı anlamına gelmez. Kararını şu kanıtlarla desteklemelisin:
+
+- Geçmiş satış verileri ve teklif kabul oranları
+- Müşteri görüşmeleri veya küçük fiyat testleri
+- Karşılaştırılabilir 3 farklı ürünün fiyat ve değer farkları
+
+> **CHECKLIST: Fiyat Kararı Öncesi Kontrol**
+>
+> - [ ] Sipariş başına ekonomik yük doğru hesaplandı mı?
+> - [ ] Markup (ekleme) ile Hedef Satış Marjı (margin) kavramları doğru kullanıldı mı?
+> - [ ] Karşılaştırılabilir ürünlerin değer farkları incelendi mi?
+> - [ ] Hesaplanan fiyatın pazardaki talep ve kapasitenle uyumu test edildi mi?
+
+> **COMMON_MISTAKE: Rakip Fiyatını Doğrudan Kopyalamak!**
+>
+> **Yanılgı:** "Rakibim bu ürünü 200 TL'ye satıyor, ben de 195 TL yaparsam satarım."
+>
+> **Gerçek:** Rakibin ölçek ekonomisinden faydalanıyor olabilir. Kendi sipariş başına ekonomik yükünü hesaplamadan verilen fiyat zarara yol açabilir.
+
+## Örnek Uygulama
+
+*(Varsayımsal eğitim örneğidir).*
+
+Eren, deri cüzdanın Tahmini Sipariş Başına Ekonomik Yükünü 200 TL olarak hesaplamıştır.
+
+| Yöntem | Hesap | Sonuç |
+|---|---|---|
+| Maliyete %30 Ekleme (Markup) | $200 \times 1,30$ | **260 TL** (Elde edilen satış marjı: 60/260 = %23) |
+| Hedef Satış Marjı %30 (Margin) | $200 / (1 - 0,30) = 200 / 0,70$ | **285,70 TL** |
+
+🛠️ **Karar Aracı Yönlendirmesi:**
+
+İndirim yapmayı düşündüğünde marj durumunu görmek için "Bu İndirimi Yapabilir miyim?" karar aracını kullanabilirsin.
+
+## Somut Çıktı: Fiyat Karar Kartı
+
+| Adım | Alan | Veri |
+|---|---|---|
+| 1 | Sipariş Başına Ekonomik Yük (A) | ............... TL |
+| 1 | Hedef Satış Marjı Oranı (Örn: %30 için 0,30) | ............... |
+| 1 | Hesaplanan Fiyat (B) = A / (1 - Hedef Marj) | ............... TL |
+| 2 | Karşılaştırılabilir Ürün 1 / Fiyat / Değer Farkı | ............... / ............... TL / ............... |
+| 2 | Karşılaştırılabilir Ürün 2 / Fiyat / Değer Farkı | ............... / ............... TL / ............... |
+| 2 | Karşılaştırılabilir Ürün 3 / Fiyat / Değer Farkı | ............... / ............... TL / ............... |
+| 2 | Destekleyen Kanıt (Geçmiş Satış / Görüşme / Test) | ............... |
+| 3 | **Seçilen Nihai Satış Fiyatı (C)** | **............... TL** |
+
+**Ders Sonu Karar Cümlesi:**
+
+> "Sipariş başına ekonomik yüküm ............... TL'dir. Hesaplanan maliyet tabanlı fiyatım ............... TL'dir. Pazar ve değer kanıtlarım sonucunda seçtiğim fiyat ............... TL'dir. Bu fiyatı seçme gerekçem ............... 'dir."
+
+## Kaynakça ve Lisans Bilgisi
+
+**KOSGEB – Girişimcilik Eğitimi Katılımcı El Kitabı (İş Planı ve Finansal Planlama)**
+Yayınlayan Kurum: T.C. KOSGEB.
+Erişim Türü: Açık Erişim.
+Lisans/Telif Durumu: Açık erişimli; yeniden kullanım lisansı ayrıca doğrulanmadı. İçerik özgün biçimde özetlenmiştir.
+
+**Anadolu Üniversitesi Açıköğretim Fakültesi – Pazarlama Yönetimi Ders Kitabı**
+Yayınlayan Kurum: Anadolu Üniversitesi eKampüs Portalı.
+Erişim Türü: Açık Erişim.
+Lisans/Telif Durumu: Açık erişimli; yeniden kullanım lisansı ayrıca doğrulanmadı. İçerik özgün biçimde özetlenmiştir.

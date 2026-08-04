@@ -1,0 +1,93 @@
+# İade Maliyeti: Bir İadenin Sana Gerçek Maliyeti Yalnızca Dönüş Kargosu Mudur?
+
+Müşteri ürünü iade ettiğinde ilk akla gelen kalem dönüş kargosudur. Ancak kargo, iade sürecinde işletmenin üzerinde kalan tek maliyet değildir.
+
+İade durumunda boşa çıkan gidiş kargosu, tahrip olan ambalaj, kontrol için harcanan zaman ve ürünün yeniden satışında oluşan değer kayıpları da gündeme gelir. Ancak her iadede tüm bu kalemler satıcıya yüklenmez; yalnızca işletmenin üzerinde kalan ve geri alınamayan tutarlar hesaba katılır.
+
+Taşıma ücretleri, kesinti iadeleri ve iade koşulları platform sözleşmesine, satıcı paneline ve kargo anlaşmana göre değişir.
+
+## İade Maliyeti Bileşenleri (Yalnız Satıcı Üzerinde Kalanlar)
+
+Bir iade işleminde yalnız işletmenin üstlendiği kalemler toplanır:
+
+| # | Bileşen | Açıklama |
+|---|---|---|
+| 1 | Boşa Çıkan Gidiş Kargosu (Satıcı Karşılıyorsa) | İade durumunda boşa çıkan gidiş taşıma bedeli |
+| 2 | Dönüş Kargosu (Satıcıya Yansıtılıyorsa) | Ürünün depoya dönüşünde satıcının ödediği kargo |
+| 3 | Yeniden Paketleme Maliyeti | Bozulan kutu ve dolgu yerine kullanılan yeni ambalaj |
+| 4 | İnceleme İşçiliği | Ürünün kabulü ve kontrolü için harcanan zaman payı |
+| 5 | Üründeki Değer Kaybı | İade edilen ürünün ambalajı açıldığı için indirimli satılması veya satılamaması zararı |
+| 6 | Geri Alınamayan Platform Kesintileri | İadede satıcıya geri ödenmeyen işlem ücretleri |
+
+*(Not: İşletmene uygulanmayan kalemlerin karşılığı formülde 0 TL bırakılmalıdır).*
+
+📌 **Veriye Dayalı Yönetim Maliyeti:** İade maliyeti resmi bir stok maliyeti değildir; geçmiş verilerine dayanarak sipariş başına bütçelediğin beklenen yönetim maliyetidir. İade oranları ürün türüne, kanala ve döneme göre değiştiğinden kendi panelindeki geçmiş verileri esas almalısın.
+
+> **CHECKLIST: Unutulan İade Maliyetleri**
+>
+> - [ ] Anlaşmana göre üzerinde kalan gidiş ve dönüş kargo tutarları teyit edildi mi?
+> - [ ] Tahrip olan ambalaj ve kontrol süresi maliyete eklendi mi?
+> - [ ] Ürünün yeniden satışındaki olası değer kaybı hesaplandı mı?
+> - [ ] İşletmene uygulanmayan kalemler sıfır (0) olarak bırakıldı mı?
+
+## Formül ve Örnek Uygulama
+
+> **FORMULA: İade Başına Maliyet ve Beklenen İade Risk Payı**
+>
+> $$\text{İade Başına Satıcı Üzerinde Kalan Zarar } (İMZ) = GK + DK + YAMB + İŞÇ + DKAY + KES$$
+>
+> $$\text{Sipariş Başına Beklenen İade Risk Payı } (İRP) = İMZ \times \text{Geçmiş İade Oranı } (\%)$$
+
+*(Varsayımsal eğitim örneğidir).*
+
+Ayakkabı satan Burak'ın mağaza verileri:
+
+| Kalem | Tutar |
+|---|---|
+| Geçmiş İade Oranı | %10 (0,10) (Kendi panelinden) |
+| Gidiş Kargosu (Satıcıda kalan) | 40 TL |
+| Dönüş Kargosu | 40 TL |
+| Yeni Ambalaj | 15 TL |
+| Kontrol İşçiliği | 10 TL |
+| Değer Kaybı Payı | 45 TL |
+| Geri Alınamayan Kesinti | 0 TL |
+
+$$\text{İade Başına Zarar } (İMZ) = 40 + 40 + 15 + 10 + 45 + 0 = \mathbf{150 \text{ TL}}$$
+
+$$\text{Sipariş Başına Beklenen İade Risk Payı } (İRP) = 150 \text{ TL} \times 0,10 = \mathbf{15 \text{ TL}}$$
+
+🛠️ **Karar Aracı Yönlendirmesi:**
+
+İade oranı yüksek ürünlerin satışına devam etme kararını incelemek için "Bu Ürünü Satmaya Devam Etmeli miyim?" karar aracından faydalanabilirsin.
+
+## Somut Çıktı: İade Maliyet Analiz Kartı
+
+| Kalem | Tutar |
+|---|---|
+| 1. Gidiş Kargo Bedeli (Üzerinde kalan) | ............... TL |
+| 2. İade Kargo Bedeli (Üzerinde kalan) | ............... TL |
+| 3. Yeniden Paketleme ve Ambalaj Gideri | ............... TL |
+| 4. İnceleme ve Kontrol İşçilik Süresi | ............... TL |
+| 5. Ürün Değer Kaybı veya Hurda Zararı | ............... TL |
+| 6. Geri Alınamayan Platform Kesintisi | ............... TL |
+| **İade Başına Satıcı Üzerinde Kalan Zarar** | **............... TL** |
+
+**Hesaplama:**
+
+> Sipariş Başına İade Risk Payı = İade Başına Zarar (............... TL) × İade Oranı (...............) = **............... TL**
+
+**Sonuç Değerlendirmesi:**
+
+> "Kendi verilerime göre sipariş başına bütçelediğim beklenen iade risk payı ............... TL'dir."
+
+## Kaynakça ve Lisans Bilgisi
+
+**IFC (World Bank Group) – SME Financial Management Toolkits**
+Yayınlayan Kurum: IFC / Dünya Bankası Grubu.
+Erişim Türü: Açık Erişim.
+Lisans/Telif Durumu: Açık erişimli; yeniden kullanım lisansı ayrıca doğrulanmadı. İçerik özgün biçimde özetlenmiştir.
+
+**Anadolu Üniversitesi Açıköğretim Fakültesi – Yönetim Muhasebesi Ders Kitabı**
+Yayınlayan Kurum: Anadolu Üniversitesi eKampüs Portalı.
+Erişim Türü: Açık Erişim.
+Lisans/Telif Durumu: Açık erişimli; yeniden kullanım lisansı ayrıca doğrulanmadı. İçerik özgün biçimde özetlenmiştir.

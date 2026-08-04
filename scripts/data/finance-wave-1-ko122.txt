@@ -1,0 +1,88 @@
+# Ambalaj Maliyeti: En Ucuz Ambalaj Gerçekten En Düşük Toplam Maliyet Midir?
+
+İlk bakışta ambalaj harcamasını en aza indirmek mantıklı görünebilir: "Ucuz ambalaj kullanıp paket başına tasarruf edeyim."
+
+Ancak yetersiz koruma nedeniyle kargoda hasar gören tek bir ürün; sana ürün maliyeti, gidiş-dönüş kargosu ve müşteri kaybı olarak geri dönebilir. Buna karşın gereğinden pahalı veya ağır ambalaj kullanmak da kargo desisini büyüterek gereksiz maliyet oluşturabilir.
+
+Ambalaj seçimi kesin doğrular içermez; malzeme maliyeti, paketleme süresi, koruma performansı ve gözlenen kayıp oranları gerçek verilerle test edilmesi gereken birer varsayımdır.
+
+## Ambalaj Seçeneklerini Karşılaştırma Analizi
+
+Farklı ambalaj yaklaşımlarının işletmeye etkisi test edilmelidir:
+
+| Seçenek | Hedef | Dikkat |
+|---|---|---|
+| Ekonomik Seçenek | Düşük malzeme maliyeti sunar | Hasar riskinin ve paketleme süresinin toplam maliyete etkisi kendi kargo kayıtlarınla izlenmelidir |
+| Güvenli Seçenek | Dengeli koruma hedefler | Ambalaj harcaması ile hasar engelleme arasındaki makul noktayı bulmayı amaçlar |
+| Premium Seçenek | Özel müşteri deneyimi ve yüksek koruma | Ambalaj maliyeti ve desi artışının marjları daraltıp daraltmadığı test edilmelidir |
+
+> **CHECKLIST: Ambalaj Karar Kontrolü**
+>
+> - [ ] Dış kutu, bant, etiket ve dolgu malzemesi maliyeti dâhil edildi mi?
+> - [ ] Paket hazırlama süresinin işçilik etkisi hesaba katıldı mı?
+> - [ ] Ambalaj ebatlarının kargo desisini ve navlun fiyatını artırıp artırmadığı kontrol edildi mi?
+> - [ ] Seçilen ambalajın koruma performansı kendi gönderi ve hasar kayıtlarınla doğrulandı mı?
+
+> **COMMON_MISTAKE: Yalnızca Kutu Fiyatına Bakarak Ambalaj Seçmek!**
+>
+> **Yanılgı:** "Kutuya fazla para vereceğime ucuz poşet kullanırım, paket başına kesin tasarruf ederim."
+>
+> **Gerçek:** Malzeme ucuz olsa da paketleme süresi uzuyorsa veya kırılma nedeniyle iade artıyorsa toplam maliyet yükselebilir. Doğru karar kutu fiyatıyla değil, kendi kayıtlarındaki toplam maliyetle verilir.
+
+## Varsayımsal Senaryo Analizi
+
+*(Varsayımsal eğitim örneğidir).*
+
+Cam kavanoz satan Deniz, aylık 500 paket gönderimi için iki ambalaj seçeneğini kendi verileriyle karşılaştırır:
+
+**Seçenek A (İnce Kutu):**
+
+| Kalem | Tutar |
+|---|---|
+| Kutu + Dolgu Malzemesi | 5 TL |
+| Paketleme İşçilik Payı | 2 TL |
+| Gözlenen Varsayımsal Hasar Oranı | %6 (500 pakette 30 kırık) |
+| Hasar başı zarar | 150 TL |
+| Paket başı düşen varsayımsal kayıp | (30 × 150) / 500 = 9 TL |
+| **Paket Başına Toplam Tahmini Ambalaj Maliyeti** | **5 + 2 + 9 = 16 TL** |
+
+**Seçenek B (Köpük Destekli Sert Kutu):**
+
+| Kalem | Tutar |
+|---|---|
+| Kutu + Köpük Malzemesi | 11 TL |
+| Paketleme İşçilik Payı | 2 TL |
+| Gözlenen Varsayımsal Hasar Oranı | %0,4 (500 pakette 2 kırık) |
+| Hasar başı zarar | 150 TL |
+| Paket başı düşen varsayımsal kayıp | (2 × 150) / 500 = 0,60 TL |
+| **Paket Başına Toplam Tahmini Ambalaj Maliyeti** | **11 + 2 + 0,60 = 13,60 TL** |
+
+🛠️ **Karar Aracı Yönlendirmesi:**
+
+Ambalaj değişikliğinin kargo maliyetine etkisini incelemek için "Kargo Ücretsiz Olabilir mi?" karar aracını kullanabilirsin.
+
+## Somut Çıktı: Ambalaj Seçim ve Maliyet Kartı
+
+| Değerlendirme Alanı | Seçenek 1: ............... | Seçenek 2: ............... |
+|---|---|---|
+| Malzeme Maliyeti | ............... TL | ............... TL |
+| Paketleme Süresi | ............... dk | ............... dk |
+| Koruma Performansı | [ ]Düşük [ ]İyi | [ ]Düşük [ ]İyi |
+| Gözlenen Kayıp | ............... TL | ............... TL |
+| **Toplam Tahmini Maliyet** | **............... TL** | **............... TL** |
+
+**Ambalaj Karar Beyanı:**
+
+> "Gözlenen kayıp ve malzeme verilerimi inceleyerek ............... Seçeneğini tercih ettim. Paket başına toplam tahmini maliyetim ............... TL olarak hesaplanmıştır."
+
+## Kaynakça ve Lisans Bilgisi
+
+**ILO – Start and Improve Your Business (SIYB) Costing Module**
+Yayınlayan Kurum: Uluslararası Çalışma Örgütü (ILO).
+Erişim Türü: Açık Erişim.
+Lisans/Telif Durumu: Açık erişimli; yeniden kullanım lisansı ayrıca doğrulanmadı. İçerik özgün biçimde özetlenmiştir.
+
+**IFC (World Bank Group) – SME Management Toolkits**
+Yayınlayan Kurum: IFC / Dünya Bankası Grubu.
+Erişim Türü: Açık Erişim.
+Lisans/Telif Durumu: Açık erişimli; yeniden kullanım lisansı ayrıca doğrulanmadı. İçerik özgün biçimde özetlenmiştir.
