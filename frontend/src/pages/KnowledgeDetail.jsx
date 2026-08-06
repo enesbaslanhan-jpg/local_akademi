@@ -27,6 +27,31 @@ function safeLabel(str) {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
+// İçerik aktarımında KO markdown gövdesine sızan ham "## Metadata" bloğunu
+// renderdan kaldırır. Kalıcı metni (kilitlenmiş ders içeriği) korur; yalnızca
+// ham metadata sızıntısını gizler. Kaynak içeriğe yazmaz.
+function stripRawMetadataBlock(markdown) {
+  if (!markdown) return markdown
+  return markdown.replace(
+    /\n+#{2,6}\s+Metadata\s*\n[\s\S]*?(?=\n[ ]{0,3}#{1,6}\s|\n*$)/gi,
+    '\n'
+  ).replace(/^\n+/, '')
+}
+
+// Markdown gövdesindeki başlıkları, sayfa bölüm başlıklarıyle (h2) çakışmaması
+// için bir seviye düşürür (h1/h2 -> h3, h3 -> h4). İçeriğin metnini değiştirmez.
+const markdownComponents = {
+  h1: ({ node, ...props }) => <h3 {...props} />,
+  h2: ({ node, ...props }) => <h3 {...props} />,
+  h3: ({ node, ...props }) => <h4 {...props} />,
+  h4: ({ node, ...props }) => <h4 {...props} />,
+  table: ({ node, ...props }) => (
+    <div className={styles.tableWrap} role="region" aria-label="Tablo" tabIndex={0}>
+      <table {...props} />
+    </div>
+  )
+}
+
 const VERIFICATION_LABELS = {
   verified: { label: 'Doğrulanmış', variant: 'success' },
   unverified: { label: 'Doğrulanmamış', variant: 'warning' },
@@ -370,8 +395,8 @@ export default function KnowledgeDetail() {
             <Card className={styles.section}>
               <h2 className={styles.sectionTitle}><BookOpen size={18} /> Açıklama</h2>
               <div className={styles.markdown}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {ko.content}
+                <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                  {stripRawMetadataBlock(ko.content)}
                 </ReactMarkdown>
               </div>
             </Card>
@@ -432,9 +457,9 @@ export default function KnowledgeDetail() {
           {/* Video */}
           <VideoPlayer koId={ko.id} onProgress={fetchData} />
 
-          {/* Embedded Practice Blocks */}
+          {/* Embedded Practice Blocks — her kart ayrı bölüm olarak */}
           {embeddedPracticeBlocks.length > 0 && (
-            <Card className={styles.section}>
+            <div className={styles.embeddedBlocksSection}>
               <h2 className={styles.sectionTitle}><Zap size={18} /> Uygulama Kutuları</h2>
               <EmbeddedPracticeBlock
                 blocks={embeddedPracticeBlocks}
@@ -442,7 +467,7 @@ export default function KnowledgeDetail() {
                 contextCode={ko.code}
                 contextTitle={ko.title}
               />
-            </Card>
+            </div>
           )}
 
           {/* Task Templates */}

@@ -27,6 +27,10 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true
       },
+      '/api/v1/decision-checks': {
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      },
       '/api': {
         target: 'http://localhost:3000',
         changeOrigin: true,
@@ -52,6 +56,7 @@ export default defineConfig({
       '/quizzes': backendProxy,
       '/tasks': backendProxy,
       '/flashcards': backendProxy,
+      '/practical-cards': backendProxy,
       '/videos': backendProxy,
       '/documents': backendProxy,
       '/business': backendProxy,

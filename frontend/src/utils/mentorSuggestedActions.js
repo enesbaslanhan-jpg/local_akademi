@@ -6,8 +6,8 @@ const ALLOWED_INTERNAL_ROUTES = [
   '/app/knowledge/',
   '/app/finance/models/',
   '/app/settings',
-  '/app/quiz/take/',
-  '/app/flashcards/study/'
+  '/app/decision-checks/',
+  '/app/practical-cards/'
 ];
 
 function isValidKOCode(code) {

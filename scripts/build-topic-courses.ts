@@ -147,6 +147,19 @@ async function main() {
     }
     const uniqueOutcomes = [...new Set(allOutcomes)].slice(0, 10)
 
+    const koIds = sorted.map(ko => ko.id)
+    const existingNonTopicUsage = await prisma.lesson.findFirst({
+      where: {
+        knowledgeObjectId: { in: koIds },
+        course: { sourceType: { not: 'topic' } }
+      },
+      include: { course: { select: { id: true, title: true, sourceType: true } } }
+    })
+    if (existingNonTopicUsage) {
+      console.log(`Skipping topic ${topicKey}: KO ${existingNonTopicUsage.knowledgeObjectId} already used in ${existingNonTopicUsage.course.sourceType} course ${existingNonTopicUsage.course.id} (${existingNonTopicUsage.course.title})`)
+      continue
+    }
+
     const existingCourse = await prisma.course.findUnique({ where: { slug } })
 
     let course: any

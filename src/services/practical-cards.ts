@@ -125,14 +125,8 @@ export async function practicalCardRoutes(server: FastifyInstance) {
       }
     }
     
-    // Async hook for learning progress
-    if (request.user?.id) {
-      lpService.updateProgress(request.user.id, 'practical_card', card.id, {
-        status: 'started',
-        contentCode: card.code
-      }).catch(console.error)
-    }
-
+    // Practical Card progress is intentionally not tracked separately.
+    // Cards are now embedded inside courses and knowledge objects.
     return response
   })
 

@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma.js'
+import { getEmbeddedPracticeBlocksForCourse, getEmbeddedPracticeBlocksForLesson } from './embedded-practice-blocks.js'
 
 export async function courseRoutes(fastify: FastifyInstance) {
   // List with pagination, filters, search
@@ -120,6 +121,8 @@ export async function courseRoutes(fastify: FastifyInstance) {
       for (const p of progressRows) lessonProgressMap[p.lessonId] = p
     }
 
+    const embeddedPracticeBlocks = await getEmbeddedPracticeBlocksForCourse(courseId)
+
     const lessons: Array<{
       id: number; title: string; order: number; estimatedMinutes: number;
       knowledgeObjectId: number | null; knowledgeObjectCode: string | null;
@@ -193,6 +196,7 @@ export async function courseRoutes(fastify: FastifyInstance) {
           status: enrollment.status,
           progress: enrollment.progress,
         } : null,
+        embeddedPracticeBlocks,
         createdAt: course.createdAt,
         updatedAt: course.updatedAt,
       },
@@ -288,6 +292,8 @@ export async function courseRoutes(fastify: FastifyInstance) {
       where: { userId_lessonId: { userId: user.id, lessonId: lid } },
     })
 
+    const embeddedPracticeBlocks = await getEmbeddedPracticeBlocksForLesson(lid)
+
     // Previous/next lesson
     const allLessons = await prisma.lesson.findMany({
       where: { courseId: cid },
@@ -329,6 +335,7 @@ export async function courseRoutes(fastify: FastifyInstance) {
           quizPercent: progress.quizPercent,
           taskPercent: progress.taskPercent,
         } : null,
+        embeddedPracticeBlocks,
         prevLesson: prevLesson ? { id: prevLesson.id, title: prevLesson.title } : null,
         nextLesson: nextLesson ? { id: nextLesson.id, title: nextLesson.title } : null,
       },

@@ -87,7 +87,7 @@ beforeAll(async () => {
   await app.register(mentorRoutes, { prefix: '/mentor' })
   await app.register(knowledgeRoutes, { prefix: '/knowledge' })
   await app.register(knowledgeV2Routes)
-  await app.register(quizRoutes, { prefix: '/quizzes', prisma: new PrismaClient() })
+  await app.register(quizRoutes, { prefix: '/quizzes', prisma: new PrismaClient(), legacyEnabled: true })
   await app.register(taskRoutes, { prefix: '/tasks' })
   await app.register(documentRoutes, { prefix: '/documents', prisma: new PrismaClient() })
   await app.register(businessRoutes, { prefix: '/business', prisma: new PrismaClient() })

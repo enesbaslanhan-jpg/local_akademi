@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, MessageSquare, ShieldCheck } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, MessageSquare, RotateCcw, ShieldCheck } from 'lucide-react'
 import { api } from '@/services/api'
 import './ProfitabilityDecisionTool.css'
 
@@ -38,6 +38,23 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
   const calc = snapshot.calculationOutput || {}
   const discounted = calc.discountedScenario
   const contributionPositive = Number(calc.contribution) > 0
+  const [recalculating, setRecalculating] = useState(false)
+  const [recalculateError, setRecalculateError] = useState('')
+
+  const handleRecalculate = async () => {
+    setRecalculateError('')
+    setRecalculating(true)
+    try {
+      const response = await api.decisionChecks.start(session.decisionCheckCode)
+      if (response?.sessionId) {
+        navigate(`/app/decision-checks/${response.sessionId}`)
+      }
+    } catch (error) {
+      setRecalculateError('Yeni hesaplama başlatılamadı. Lütfen tekrar deneyin.')
+    } finally {
+      setRecalculating(false)
+    }
+  }
 
   return (
     <main className="profit-tool">
@@ -114,8 +131,12 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
             </div>
           </section>
 
+          {recalculateError && <p role="alert" className="profit-submit-error">{recalculateError}</p>}
           <div className="profit-actions">
             <button onClick={() => navigate('/app/decision-checks')} className="profit-secondary">Listeye dön</button>
+            <button onClick={handleRecalculate} disabled={recalculating} className="profit-secondary">
+              <RotateCcw size={16} /> {recalculating ? 'Başlatılıyor…' : 'Yeniden Hesapla'}
+            </button>
             {mentorEnabled && (
               <button
                 onClick={() => mentorContext?.openMentorWithContext?.({

@@ -91,7 +91,7 @@ export default function PracticalCardDetail() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="bg-red-50 text-red-600 p-4 rounded-lg">{error || 'Kart bulunamadı'}</div>
-        <Link to="/practical-cards" className="inline-block mt-4 text-primary-600 font-medium hover:underline">
+        <Link to="/app/practical-cards" className="inline-block mt-4 text-primary-600 font-medium hover:underline">
           &larr; Kartlara Dön
         </Link>
       </div>
@@ -102,7 +102,7 @@ export default function PracticalCardDetail() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <Link to="/practical-cards" className="inline-flex items-center text-gray-500 hover:text-gray-900 mb-6 font-medium text-sm">
+      <Link to="/app/practical-cards" className="inline-flex items-center text-gray-500 hover:text-gray-900 mb-6 font-medium text-sm">
         <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
@@ -205,7 +205,7 @@ export default function PracticalCardDetail() {
           {content.primaryAction && (
             <div className="pt-4">
               <button 
-                onClick={() => navigate('/decision-checks')} // Simplified for MVP routing
+                onClick={() => navigate('/app/decision-checks')}
                 className="w-full sm:w-auto bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-center inline-block"
               >
                 {content.primaryAction.label}

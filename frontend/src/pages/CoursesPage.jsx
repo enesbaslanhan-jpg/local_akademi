@@ -15,6 +15,7 @@ export default function CoursesPage() {
   const [level, setLevel] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [total, setTotal] = useState(0)
 
   const pageSize = 50
 
@@ -33,6 +34,7 @@ export default function CoursesPage() {
       const data = await api.courses.getAll(filters)
       setCourses(data.courses || [])
       setTotalPages(data.totalPages || 1)
+      setTotal(data.total || 0)
     } catch (err) {
       setError(err.message || 'Kurslar yüklenemedi')
     }
@@ -59,7 +61,9 @@ export default function CoursesPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <h1 className={styles.title}>İşletme Akademisi</h1>
-        <p className={styles.subtitle}>10 alanda sıralanmış 40 uygulamalı kurs · 200 özgün ders</p>
+        <p className={styles.subtitle}>
+          {total > 0 ? `${categories.length > 0 ? `${categories.length} alanda ` : ''}${total} kurs` : 'Kurslar yükleniyor…'}
+        </p>
       </div>
 
       <div className={styles.filters}>

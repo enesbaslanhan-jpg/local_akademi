@@ -21,6 +21,11 @@ describe('vite.config.js financial model proxy', () => {
     expect(content).toMatch(/backendProxy\s*=\s*\{[^}]*target:\s*['"]http:\/\/localhost:3000['"]/s)
   })
 
+  it('proxies Phase 8 APIs without stripping their paths', () => {
+    expect(content).toContain("'/practical-cards': backendProxy")
+    expect(content).toMatch(/'\/api\/v1\/decision-checks':\s*\{[^}]*target:\s*['\"]http:\/\/localhost:3000['\"]/s)
+  })
+
   it('does not rewrite financial model paths', () => {
     // No rewrite rule should appear for these routes
     expect(content).not.toMatch(/\'\/financial-models\':\s*\{[\s\S]*?rewrite:/)

@@ -64,6 +64,8 @@ beforeAll(async () => {
   process.env.AI_REQUEST_TIMEOUT_MS = '5000'
   process.env.BETA_MODE = 'true'
   process.env.ENABLE_MEMORY_API = 'false'
+  process.env.FEATURE_LEGACY_QUIZ_ENABLED = 'true'
+  process.env.FEATURE_LEGACY_FLASHCARDS_ENABLED = 'true'
 
   const { default: build } = await import('../../src/index')
   const app = await build()

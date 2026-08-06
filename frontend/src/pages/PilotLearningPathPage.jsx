@@ -4,6 +4,7 @@ import { api } from '@/services/api'
 import { Card, CardHeader, CardTitle, Badge, Button, Progress, Loading, EmptyState } from '@/components/ui'
 import { Map, BookOpen, Brain, HelpCircle, CheckCircle, ArrowRight, Zap, RefreshCw } from 'lucide-react'
 import styles from './PilotLearningPathPage.module.css'
+import { featureFlags } from '@/config/featureFlags'
 
 const CATEGORY_COLORS = {
   'Temel Finans': { bg: '#d9eaf7', color: '#2f5597', light: '#f0f6fc' },
@@ -201,7 +202,7 @@ export default function PilotLearningPathPage() {
                                 {ko.code && <span className={styles.koCode}>{ko.code}</span>}
                               </div>
                             </div>
-                            <div className={styles.koMeta}>
+                            <div className={styles.koMeta} hidden={!featureFlags.legacyFlashcards && !featureFlags.legacyQuiz}>
                               <span className={styles.koStat}>
                                 <Brain size={12} /> {ko.fcMasteredCount || 0}
                               </span>
@@ -214,6 +215,7 @@ export default function PilotLearningPathPage() {
                                 className={styles.koActionBtn}
                                 title="Flashcard çalış"
                                 onClick={() => navigate(`/app/flashcards/study/${ko.koId}`)}
+                                hidden={!featureFlags.legacyFlashcards}
                               >
                                 <Brain size={14} />
                               </button>
@@ -221,6 +223,7 @@ export default function PilotLearningPathPage() {
                                 className={styles.koActionBtn}
                                 title="Quiz çöz"
                                 onClick={() => navigate(`/app/quiz/take/${ko.koId}`)}
+                                hidden={!featureFlags.legacyQuiz}
                               >
                                 <HelpCircle size={14} />
                               </button>

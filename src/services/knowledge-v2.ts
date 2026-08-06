@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma.js'
 import { createAuditLog } from './audit.js'
 import { enforceTransition, InvalidTransitionError } from './state-machine.js'
 import { scheduleKnowledgeObjectEmbedding } from './retrieval/knowledge-embedding-indexer.js'
+import { getEmbeddedPracticeBlocksForKnowledgeObject } from './embedded-practice-blocks.js'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -280,11 +281,14 @@ export async function knowledgeV2Routes(fastify: FastifyInstance) {
       }))
     }))
 
+    const embeddedPracticeBlocks = await getEmbeddedPracticeBlocksForKnowledgeObject(ko.id)
+
     return {
       knowledgeObject: ko,
       quizzes,
       taskTemplates,
-      relatedKOs
+      relatedKOs,
+      embeddedPracticeBlocks
     }
   })
 

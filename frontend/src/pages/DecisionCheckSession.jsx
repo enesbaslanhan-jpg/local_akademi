@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '@/services/api'
 import { useMentorContext } from '@/context/MentorContext'
-import { MessageSquare } from 'lucide-react'
+import { MessageSquare, RotateCcw } from 'lucide-react'
 import ProfitabilityDecisionTool from '@/components/decision-checks/ProfitabilityDecisionTool'
 import StructuredDecisionTool from '@/components/decision-checks/StructuredDecisionTool'
 import './DecisionCheckSession.css'
@@ -19,6 +19,24 @@ export default function DecisionCheckSession() {
   const [submitting, setSubmitting] = useState(false)
   const [formData, setFormData] = useState({})
   const [unknowns, setUnknowns] = useState({})
+  const [recalculating, setRecalculating] = useState(false)
+  const [recalculateError, setRecalculateError] = useState('')
+
+  const handleRecalculate = async () => {
+    if (!session?.decisionCheckCode) return
+    setRecalculateError('')
+    setRecalculating(true)
+    try {
+      const response = await api.decisionChecks.start(session.decisionCheckCode)
+      if (response?.sessionId) {
+        navigate(`/app/decision-checks/${response.sessionId}`)
+      }
+    } catch (err) {
+      setRecalculateError('Yeni hesaplama başlatılamadı. Lütfen tekrar deneyin.')
+    } finally {
+      setRecalculating(false)
+    }
+  }
 
   const mentorContext = useMentorContext()
   const isContextualMentorEnabled = import.meta.env.VITE_FF_CONTEXTUAL_MENTOR === 'true'
@@ -177,8 +195,12 @@ export default function DecisionCheckSession() {
             </div>
           )}
           
+          {recalculateError && <p role="alert" className="text-red-600 text-sm mb-2">{recalculateError}</p>}
           <div className="mt-6 flex gap-4">
             <button onClick={() => navigate('/app/decision-checks')} className="px-4 py-2 bg-gray-200 rounded">Listeye Dön</button>
+            <button onClick={handleRecalculate} disabled={recalculating} className="px-4 py-2 bg-gray-200 rounded flex items-center gap-2">
+              <RotateCcw size={16} /> {recalculating ? 'Başlatılıyor…' : 'Yeniden Hesapla'}
+            </button>
             {isContextualMentorEnabled && (
               <button
                 onClick={() => mentorContext?.openMentorWithContext?.({

@@ -63,7 +63,7 @@ beforeAll(async () => {
 
   // Register with mock AI provider to avoid real API calls
   await app.register(mentorRoutes, { prefix: '/mentor', aiProvider: new MockAiChatProvider() })
-  await app.register(quizRoutes, { prefix: '/quizzes' })
+  await app.register(quizRoutes, { prefix: '/quizzes', legacyEnabled: true })
   await app.register(adminRoutes, { prefix: '/admin' })
 
   await app.ready()
@@ -397,7 +397,7 @@ describe('Quiz endpoint security', () => {
     })
 
     const { quizRoutes: qRoutes } = await import('../src/services/quizzes')
-    await mockApp.register(qRoutes, { prefix: '/quizzes', prisma: mockPrisma })
+    await mockApp.register(qRoutes, { prefix: '/quizzes', prisma: mockPrisma, legacyEnabled: true })
     await mockApp.ready()
 
     const mockToken = mockApp.jwt.sign({ id: learnerId, email: 'learner@test.com', role: 'learner' })

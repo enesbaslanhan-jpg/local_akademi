@@ -203,6 +203,8 @@ async function build() {
   server.register(videoRoutes, { prefix: '/videos' })
   server.register(communityRoutes, { prefix: '/community' })
   server.register(financialModelRoutes)
+  server.register(practicalCardRoutes, { prefix: '/practical-cards' })
+  server.register(decisionCheckRoutes, { prefix: '/api/v1/decision-checks' })
   server.register(feedRoutes, { prefix: '/api/v1/feed' })
   server.register(learningProgressRoutes, { prefix: '/api/v1/learning-progress' })
   const memoryApiEnabled = process.env.ENABLE_MEMORY_API !== 'false'

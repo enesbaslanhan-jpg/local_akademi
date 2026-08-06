@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, MessageSquare, ShieldCheck } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, MessageSquare, RotateCcw, ShieldCheck } from 'lucide-react'
 import { api } from '@/services/api'
 import './StructuredDecisionTool.css'
 
@@ -18,6 +18,23 @@ function formatMetric(value, format) {
 function ResultView({ session, result, navigate, mentorContext, mentorEnabled }) {
   const snapshot = result.snapshot || {}
   const calculation = snapshot.calculationOutput || {}
+  const [recalculating, setRecalculating] = useState(false)
+  const [recalculateError, setRecalculateError] = useState('')
+
+  const handleRecalculate = async () => {
+    setRecalculateError('')
+    setRecalculating(true)
+    try {
+      const response = await api.decisionChecks.start(session.decisionCheckCode)
+      if (response?.sessionId) {
+        navigate(`/app/decision-checks/${response.sessionId}`)
+      }
+    } catch (error) {
+      setRecalculateError('Yeni hesaplama başlatılamadı. Lütfen tekrar deneyin.')
+    } finally {
+      setRecalculating(false)
+    }
+  }
 
   return (
     <main className="structured-tool">
@@ -77,8 +94,12 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
             <ul>{(calculation.formulas || []).map(formula => <li key={formula}>{formula}</li>)}</ul>
           </section>
 
+          {recalculateError && <p className="structured-submit-error" role="alert">{recalculateError}</p>}
           <div className="structured-actions">
             <button type="button" className="structured-secondary" onClick={() => navigate('/app/decision-checks')}>Listeye dön</button>
+            <button type="button" className="structured-secondary" onClick={handleRecalculate} disabled={recalculating}>
+              <RotateCcw size={16} /> {recalculating ? 'Başlatılıyor…' : 'Yeniden Hesapla'}
+            </button>
             {mentorEnabled && (
               <button
                 type="button"

@@ -62,6 +62,14 @@ function BlockItem({ block, contextType, contextCode, contextTitle, isContextual
   const { type, title, shortDescription, content, source, relatedDecisionCheckCode } = block
   const Icon = TYPE_ICONS[type]
 
+  // KO detay sayfasında kaynak, gösterilen KO'nun kendine işaret ediyorsa
+  // (dairesel/self-referential kaynak gösterimi) kaynak linkini gizle.
+  const isSelfReferentialSource =
+    contextType === 'knowledge_object' &&
+    !!contextCode &&
+    !!source?.code &&
+    source.code === contextCode
+
   const handleAskMentor = useCallback(() => {
     if (mentorContext?.openMentorWithContext) {
       mentorContext.openMentorWithContext({
@@ -75,6 +83,24 @@ function BlockItem({ block, contextType, contextCode, contextTitle, isContextual
     }
   }, [mentorContext, contextType, contextCode, contextTitle, title])
 
+  const handlePrimaryAction = useCallback(() => {
+    const action = content?.primaryAction
+    if (action?.code === 'open_sources' || action?.label?.toLowerCase().includes('kaynak')) {
+      const heading = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5')).find(
+        el => el.textContent.toLowerCase().includes('kaynak')
+      )
+      if (heading) {
+        heading.scrollIntoView({ behavior: 'smooth' })
+        return
+      }
+    }
+    if (relatedDecisionCheckCode) {
+      navigate(`/app/decision-checks/${relatedDecisionCheckCode}`)
+      return
+    }
+    navigate('/app/decision-checks')
+  }, [content?.primaryAction, relatedDecisionCheckCode, navigate])
+
   return (
     <article className={styles.block} data-testid={`practice-block-${type}`}>
       <div className={styles.header}>
@@ -86,7 +112,7 @@ function BlockItem({ block, contextType, contextCode, contextTitle, isContextual
 
       {shortDescription && <p className={styles.shortDescription}>{shortDescription}</p>}
 
-      {content.mainContent && (
+      {content.mainContent && content.mainContent !== shortDescription && (
         <p className={styles.mainContent}>{content.mainContent}</p>
       )}
 
@@ -138,13 +164,26 @@ function BlockItem({ block, contextType, contextCode, contextTitle, isContextual
       )}
 
       <div className={styles.actions}>
-        {source?.code && source.route && (
+        {source?.code && source.route && !isSelfReferentialSource && (
           <Link to={source.route} className={`${styles.actionLink} ${styles.sourceLink}`}>
             <ExternalLink size={14} /> Kaynak: {source.title}
           </Link>
         )}
 
-        {relatedDecisionCheckCode && (
+        {content?.primaryAction ? (
+          <button
+            type="button"
+            className={`${styles.actionLink} ${styles.toolLink}`}
+            onClick={handlePrimaryAction}
+          >
+            {content.primaryAction.code === 'open_sources' || content.primaryAction.label?.toLowerCase().includes('kaynak') ? (
+              <ExternalLink size={14} />
+            ) : (
+              <ArrowRight size={14} />
+            )}
+            {' '}{content.primaryAction.label}
+          </button>
+        ) : relatedDecisionCheckCode ? (
           <button
             type="button"
             className={`${styles.actionLink} ${styles.toolLink}`}
@@ -152,7 +191,7 @@ function BlockItem({ block, contextType, contextCode, contextTitle, isContextual
           >
             <ArrowRight size={14} /> İlgili Karar Aracı
           </button>
-        )}
+        ) : null}
 
         {isContextualMentorEnabled && (
           <button

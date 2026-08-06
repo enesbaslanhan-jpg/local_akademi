@@ -14,6 +14,10 @@ vi.mock('@/services/api', () => ({
   }
 }))
 
+vi.mock('@/context/MentorContext', () => ({
+  useMentorContext: () => ({ openMentorWithContext: vi.fn() })
+}))
+
 // Mock env var
 vi.stubEnv('VITE_FF_PERSONALIZED_FEED', 'true')
 

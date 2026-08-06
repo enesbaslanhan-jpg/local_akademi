@@ -8,9 +8,11 @@ import {
   Building2, CalendarDays, FileText, ListChecks, FlaskConical
 } from 'lucide-react'
 import styles from './Sidebar.module.css'
+import { featureFlags } from '@/config/featureFlags'
 
 const learnerLinks = [
-  ...(import.meta.env.VITE_FF_PRACTICAL_CARDS === 'true' ? [{ id: 'practical-cards', label: 'Pratik Kartlar', icon: Lightbulb, path: '/practical-cards' }] : []),
+  ...(featureFlags.practicalCards ? [{ id: 'practical-cards', label: 'Pratik Kartlar', icon: Lightbulb, path: '/app/practical-cards' }] : []),
+  ...(featureFlags.decisionChecks ? [{ id: 'decision-checks', label: 'Karar Kontrolleri', icon: HelpCircle, path: '/app/decision-checks' }] : []),
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/app/dashboard' },
   { id: 'courses', label: 'Kurslar', icon: BookOpen, path: '/app/courses' },
   { id: 'knowledge', label: 'Bilgi Nesneleri', icon: Lightbulb, path: '/app/knowledge' },
@@ -19,8 +21,8 @@ const learnerLinks = [
   { id: 'enrollments', label: 'Kayıtlarım', icon: GraduationCap, path: '/app/enrollments' },
   { id: 'learning', label: 'Öğrenme Yolu', icon: Map, path: '/app/learning-path' },
   { id: 'learning-pilot', label: 'Pilot Program', icon: Map, path: '/app/learning-path/pilot' },
-  { id: 'flashcards', label: 'Flashcard', icon: Brain, path: '/app/flashcards' },
-  { id: 'quiz', label: 'Quiz', icon: HelpCircle, path: '/app/quiz' },
+  ...(featureFlags.legacyFlashcards ? [{ id: 'flashcards', label: 'Flashcard', icon: Brain, path: '/app/flashcards' }] : []),
+  ...(featureFlags.legacyQuiz ? [{ id: 'quiz', label: 'Quiz', icon: HelpCircle, path: '/app/quiz' }] : []),
   { id: 'tools', label: 'Finans Merkezi', icon: Calculator, path: '/app/tools' },
   { id: 'financial-models', label: 'Model Laboratuvarı', icon: FlaskConical, path: '/app/finance/models' },
   { id: 'settings', label: 'Ayarlar', icon: Settings, path: '/app/settings' }

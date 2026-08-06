@@ -3,6 +3,7 @@ import type { PrismaClient } from '@prisma/client'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { z } from 'zod'
 import { recomputeLessonAndEnrollment } from './course-progress'
+import { isLegacyQuizEnabled, LEGACY_QUIZ_DISABLED } from '../config/feature-flags'
 
 const answersSchema = z.object({
   answers: z.array(z.object({
@@ -31,8 +32,9 @@ function parseSessionContext(raw: string): { role: string; content: string }[] {
   }
 }
 
-export async function quizRoutes(fastify: FastifyInstance, opts?: { prisma?: PrismaClient }) {
+export async function quizRoutes(fastify: FastifyInstance, opts?: { prisma?: PrismaClient; legacyEnabled?: boolean }) {
   const prisma = opts?.prisma ?? sharedPrisma
+  const legacyEnabled = () => opts?.legacyEnabled ?? isLegacyQuizEnabled()
 
   // GET /quizzes/history — user's attempt history (must be before /:koId to avoid capture)
   fastify.get('/history', {
@@ -56,6 +58,7 @@ export async function quizRoutes(fastify: FastifyInstance, opts?: { prisma?: Pri
   fastify.get('/:koId', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
+    if (!legacyEnabled()) return reply.status(410).send(LEGACY_QUIZ_DISABLED)
     const { koId } = request.params as { koId: string }
     const parsed = koIdSchema.safeParse(koId)
     if (!parsed.success) return reply.status(400).send({ error: 'Invalid knowledge object ID' })
@@ -116,6 +119,7 @@ export async function quizRoutes(fastify: FastifyInstance, opts?: { prisma?: Pri
   fastify.post('/:koId/attempts', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
+    if (!legacyEnabled()) return reply.status(410).send(LEGACY_QUIZ_DISABLED)
     const user = request.user as { id: number }
     const { koId } = request.params as { koId: string }
 

@@ -131,6 +131,37 @@ describe('Embedded Practice Blocks', () => {
     await prisma.knowledgeObject.deleteMany({ where: { id: orphanKo.id } })
   })
 
+  it('renders scoped Operations Wave 2 metadata blocks without a decision tool', async () => {
+    const metadataKo = await prisma.knowledgeObject.create({
+      data: {
+        code: `EPB-OPS-W2-${Date.now()}`,
+        title: 'Operations Wave 2 metadata block',
+        type: 'concept',
+        content: '...',
+        embedding: JSON.stringify(Array.from({ length: 768 }, () => 0)),
+        metadata: JSON.stringify({
+          embeddedPracticeBlocksVersion: 'operations-wave-2',
+          embeddedPracticeBlocks: [{
+            id: 'evidence-check',
+            type: 'checklist',
+            title: 'Kanıt kontrolü',
+            content: { checklistItems: ['Kayıt var mı?', 'Varsayım işaretlendi mi?'] },
+            relatedDecisionCheckCode: 'DC-SHOULD-NOT-RENDER'
+          }]
+        }),
+        status: 'published',
+        isDemo: false
+      }
+    })
+
+    const blocks = await getEmbeddedPracticeBlocksForKnowledgeObject(metadataKo.id)
+    expect(blocks).toHaveLength(1)
+    expect(blocks[0].type).toBe('checklist')
+    expect(blocks[0].content.checklistItems).toEqual(['Kayıt var mı?', 'Varsayım işaretlendi mi?'])
+    expect(blocks[0].relatedDecisionCheckCode).toBeNull()
+    await prisma.knowledgeObject.deleteMany({ where: { id: metadataKo.id } })
+  })
+
   it('validates decision check codes', () => {
     expect(isValidDecisionCheckCode('DC-PROFIT-001')).toBe(true)
     expect(isValidDecisionCheckCode('invalid')).toBe(false)

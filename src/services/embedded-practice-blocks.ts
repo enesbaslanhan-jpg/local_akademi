@@ -34,6 +34,7 @@ export interface EmbeddedPracticeBlock {
     mistake?: string
     correctApproach?: string
     keyTakeaway?: string
+    primaryAction?: { code: string; label: string }
   }
   source?: EmbeddedPracticeBlockSource
   relatedDecisionCheckCode?: string | null
@@ -46,13 +47,29 @@ const CARD_TYPE_TO_BLOCK_TYPE: Record<string, EmbeddedBlockType> = {
   comparison: 'common_mistake',
   cash_flow_warning: 'common_mistake',
   common_mistake: 'common_mistake',
-  checklist: 'checklist'
+  checklist: 'checklist',
+  formula: 'formula',
+  quick_application: 'quick_application'
 }
 
 const PRIMARY_ACTION_TO_DECISION_CHECK: Record<string, string | null> = {
   open_profitability_check: 'DC-PROFIT-001',
   open_decision_check: 'DC-CAMPAIGN-010',
-  open_pricing_tool: null
+  open_pricing_tool: null,
+  open_marketplace_check: 'DC-MARKETPLACE-004',
+  open_cashflow_check: 'DC-CASHFLOW-008',
+  open_loan_check: 'DC-LOAN-007',
+  open_branch_check: 'DC-BRANCH-009',
+  open_sources: null,
+  open_assumption_check: 'DC-CAMPAIGN-010',
+  open_interview_guide: null,
+  open_experiment_card: 'DC-CAMPAIGN-010',
+  open_pattern_check: 'DC-CONTINUE-012',
+  open_interpretation_check: 'DC-CONTINUE-012',
+  open_problem_statement: 'DC-CONTINUE-012',
+  open_segment_score: 'DC-CAMPAIGN-010',
+  open_segment_guide: null,
+  open_segment_card: 'DC-CAMPAIGN-010'
 }
 
 function mapCardType(type: string | null): EmbeddedBlockType {
@@ -73,24 +90,36 @@ function extractContentFields(contentJson: any, type: EmbeddedBlockType) {
   if (raw.example) result.example = String(raw.example)
   if (raw.warning) result.warning = String(raw.warning)
   if (raw.keyTakeaway) result.keyTakeaway = String(raw.keyTakeaway)
+  if (raw.primaryAction && typeof raw.primaryAction === 'object') {
+    result.primaryAction = {
+      code: String(raw.primaryAction.code || ''),
+      label: String(raw.primaryAction.label || '')
+    }
+  }
 
   if (type === 'checklist' && Array.isArray(raw.checklistItems)) {
     result.checklistItems = raw.checklistItems.map((item: any) => String(item))
   }
 
   if (type === 'common_mistake') {
-    if (raw.warning) result.mistake = String(raw.warning)
-    if (raw.keyTakeaway) result.correctApproach = String(raw.keyTakeaway)
+    if (raw.mistake) result.mistake = String(raw.mistake)
+    else if (raw.warning) result.mistake = String(raw.warning)
+    if (raw.correctApproach) result.correctApproach = String(raw.correctApproach)
+    else if (raw.keyTakeaway) result.correctApproach = String(raw.keyTakeaway)
     else if (raw.mainContent) result.correctApproach = String(raw.mainContent)
   }
 
   if (type === 'quick_application') {
-    const steps: string[] = []
-    if (raw.formula) steps.push(raw.formula)
-    if (raw.example) steps.push(raw.example)
-    if (raw.warning) steps.push(raw.warning)
-    if (raw.keyTakeaway) steps.push(raw.keyTakeaway)
-    if (steps.length > 0) result.quickSteps = steps
+    if (Array.isArray(raw.quickSteps)) {
+      result.quickSteps = raw.quickSteps.map((s: any) => String(s))
+    } else {
+      const steps: string[] = []
+      if (raw.formula) steps.push(raw.formula)
+      if (raw.example) steps.push(raw.example)
+      if (raw.warning) steps.push(raw.warning)
+      if (raw.keyTakeaway) steps.push(raw.keyTakeaway)
+      if (steps.length > 0) result.quickSteps = steps
+    }
   }
 
   return result
@@ -113,6 +142,33 @@ function buildBlockFromCard(
     source,
     relatedDecisionCheckCode
   }
+}
+
+function buildScopedMetadataBlocks(metadataValue: string | null, koId: number): EmbeddedPracticeBlock[] {
+  let metadata: any
+  try {
+    metadata = JSON.parse(metadataValue || '{}')
+  } catch {
+    return []
+  }
+
+  if (metadata.embeddedPracticeBlocksVersion !== 'operations-wave-2') return []
+  if (!Array.isArray(metadata.embeddedPracticeBlocks)) return []
+
+  return metadata.embeddedPracticeBlocks
+    .filter((block: any) =>
+      block &&
+      typeof block.title === 'string' &&
+      ['formula', 'checklist', 'common_mistake', 'quick_application'].includes(block.type)
+    )
+    .map((block: any, index: number) => ({
+      id: `ko-${koId}-${String(block.id || index)}`,
+      type: block.type as EmbeddedBlockType,
+      title: String(block.title),
+      shortDescription: block.shortDescription ? String(block.shortDescription) : null,
+      content: extractContentFields(block.content, block.type as EmbeddedBlockType),
+      relatedDecisionCheckCode: null
+    }))
 }
 
 async function fetchPublishedCardWithLatestVersion(code: string) {
@@ -140,7 +196,10 @@ export async function getEmbeddedPracticeBlocksForKnowledgeObject(
 ): Promise<EmbeddedPracticeBlock[]> {
   const links = await prisma.practicalCardKnowledgeObject.findMany({
     where: { knowledgeObjectId: koId },
-    include: { practicalCard: true },
+    include: {
+      practicalCard: true,
+      knowledgeObject: { select: { code: true, title: true } }
+    },
     orderBy: { order: 'asc' }
   })
 
@@ -152,12 +211,20 @@ export async function getEmbeddedPracticeBlocksForKnowledgeObject(
 
     const source: EmbeddedPracticeBlockSource = {
       id: link.knowledgeObjectId,
-      title: link.practicalCard.title,
-      code: link.practicalCard.code,
-      route: `/app/knowledge/${link.practicalCard.code}`
+      title: link.knowledgeObject?.title ?? link.practicalCard.title,
+      code: link.knowledgeObject?.code ?? link.practicalCard.code,
+      route: `/app/knowledge/${link.knowledgeObject?.code ?? link.practicalCard.code}`
     }
 
     blocks.push(buildBlockFromCard(card, source))
+  }
+
+  if (blocks.length === 0) {
+    const knowledgeObject = await prisma.knowledgeObject.findUnique({
+      where: { id: koId },
+      select: { metadata: true }
+    })
+    return buildScopedMetadataBlocks(knowledgeObject?.metadata ?? null, koId)
   }
 
   return blocks

@@ -40,7 +40,6 @@ export function FeedCard({ item, onDismiss, onAction }) {
   const icons = {
     continue_learning: <BookOpen size={16} />,
     decision_check: <CheckSquare size={16} />,
-    practical_card: <Target size={16} />,
     recommended_guide: <BookOpen size={16} />,
     financial_tool: <Calculator size={16} />,
     complete_business_profile: <Briefcase size={16} />

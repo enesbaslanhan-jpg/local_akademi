@@ -1,0 +1,5594 @@
+[
+  {
+    "code": "CUR-002-02",
+    "title": "Ciro Nedir? — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-003-05",
+    "title": "Brüt Kâr — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-005-04",
+    "title": "Karlılık Oranı — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-009-05",
+    "title": "İşletme Bütçesi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-011-03",
+    "title": "Borç Ödeme Stratejisi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-013-04",
+    "title": "Sabit Giderler — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-015-03",
+    "title": "Fırsat Maliyeti — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-016-04",
+    "title": "Nakit Dengesi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-019-01",
+    "title": "Başabaş Noktası — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C01-KO1",
+    "title": "Bilanço Fotoğraf Değil Bağlantılar Haritasıdır",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-099-05",
+    "title": "Ortaklık Yapısı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-020-04",
+    "title": "Marjinal Kâr — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-022-05",
+    "title": "Hammadde Maliyeti — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-023-03",
+    "title": "İşçilik Maliyeti — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-027-03",
+    "title": "Ödeme Komisyonu — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-027-04",
+    "title": "Ödeme Komisyonu — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-028-02",
+    "title": "Reklam Maliyeti — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-030-01",
+    "title": "İade Maliyeti — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-031-05",
+    "title": "Hasar Maliyeti — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-051-01",
+    "title": "Müşteri İletişimi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-004-03",
+    "title": "Net Kâr — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-070-03",
+    "title": "Mesafeli Satış — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-073-01",
+    "title": "İade Koşulları — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-083-05",
+    "title": "Hedef Kitle — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-006-O",
+    "title": "Satış Tahmini — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-008-O",
+    "title": "Müşteri Şikâyeti Yönetimi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "FIN-NET-PROFIT-001",
+    "title": "Net Kâr",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C01-KO2",
+    "title": "Kâr ile Nakit Neden Ayrışır?",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-001-02",
+    "title": "Kâr ile Nakit Arasındaki Fark — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "FIN-PROFITABILITY-001",
+    "title": "Kârlılık Oranı",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "FIN-CASH-GROWTH-001",
+    "title": "Nakit Büyüme Oranı",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "FIN-COLLECTION-DAYS-001",
+    "title": "Tahsilat Süresi",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C01-KO3",
+    "title": "Üç Tablo Mutabakatı ile Kırmızı Bayraklar",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-105-05",
+    "title": "Instagram Satış — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "FIN-BUDGET-001",
+    "title": "İşletme Bütçesi",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "DIG-TOOL-001",
+    "title": "KOBİ'ler için Dijital Araç Seçimi",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-003-04",
+    "title": "Brüt Kâr — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-096-05",
+    "title": "Pitch Deck — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-004-04",
+    "title": "Net Kâr — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-005-02",
+    "title": "Karlılık Oranı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-006-01",
+    "title": "Nakit Büyüme Oranı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-001-03",
+    "title": "Kâr ile Nakit Arasındaki Fark — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-108-05",
+    "title": "Google Ads — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-004-05",
+    "title": "Net Kâr — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-005-03",
+    "title": "Karlılık Oranı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-011-05",
+    "title": "Borç Ödeme Stratejisi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-012-03",
+    "title": "Kredi Kullanımı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-012-02",
+    "title": "Kredi Kullanımı — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-017-03",
+    "title": "Gelir Tanımı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-001-05",
+    "title": "Kâr ile Nakit Arasındaki Fark — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-112-05",
+    "title": "Müşteri Edinme Maliyeti — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-002-O",
+    "title": "Dijital Varlık Envanteri — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-003-03",
+    "title": "Brüt Kâr — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-024-05",
+    "title": "Ambalaj Maliyeti — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C02-KO3",
+    "title": "Varsayım Sicili ve Kullanıcı Doğrulaması",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C03-KO1",
+    "title": "Cari Oranın Söylediği ve Sakladığı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-025-04",
+    "title": "Kargo Maliyeti — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C02-KO2",
+    "title": "Eksik, Mükerrer ve Bayat Veri Testleri",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-002-04",
+    "title": "Ciro Nedir? — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-002-05",
+    "title": "Ciro Nedir? — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-003-02",
+    "title": "Brüt Kâr — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-004-02",
+    "title": "Net Kâr — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-097-05",
+    "title": "Lisanslama — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C04-KO1",
+    "title": "ROE’yi Üç Motora Ayırmak",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-025-03",
+    "title": "Kargo Maliyeti — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C03-KO2",
+    "title": "Asit-Test ile Stok Bağımlılığı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C03-KO3",
+    "title": "Oran Panosunda Eşik Yerine Eğilim",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-100-05",
+    "title": "Çıkış Stratejisi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-009-01",
+    "title": "İşletme Bütçesi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-025-05",
+    "title": "Kargo Maliyeti — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "DIG-AI-001",
+    "title": "KOBİ'ler için Yapay Zeka Fırsatları",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-034-04",
+    "title": "Satış Marjı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-032-04",
+    "title": "Fiyat Belirleme — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-008-I",
+    "title": "Müşteri Şikâyeti Yönetimi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C04-KO2",
+    "title": "Marj mı Devir Hızı mı?",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-103-05",
+    "title": "Video İçerik — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-010-O",
+    "title": "İhracat Sonrası Performans — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-010-I",
+    "title": "İhracat Sonrası Performans — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-010-O",
+    "title": "Sürdürülebilirlik İyileştirme Planı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-006-O",
+    "title": "AI Veri Kalitesi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-002-O",
+    "title": "AI Hazırlık Değerlendirmesi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-002-I",
+    "title": "AI Hazırlık Değerlendirmesi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-007-01",
+    "title": "Tahsilat Süresi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-008-01",
+    "title": "Ödeme Süresi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-106-05",
+    "title": "TikTok Pazarlama — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-009-02",
+    "title": "İşletme Bütçesi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-014-02",
+    "title": "Değişken Giderler",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-015-01",
+    "title": "Fırsat Maliyeti",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-016-03",
+    "title": "Nakit Dengesi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-017-01",
+    "title": "Gelir Tanımı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-020-01",
+    "title": "Marjinal Kâr",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-021-03",
+    "title": "Gerçek Birim Maliyet",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-022-02",
+    "title": "Hammadde Maliyeti",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-119-05",
+    "title": "Influencer Pazarlama — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-006-03",
+    "title": "Nakit Büyüme Oranı — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-009-O",
+    "title": "Tedarikçi Siber Riski — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-098-05",
+    "title": "Franchising — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-104-05",
+    "title": "Sosyal Medya Stratejisi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C05-KO3",
+    "title": "İşletme Sermayesi Aksiyon Haritası",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-037-02",
+    "title": "İskonto Oranı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C05-KO1",
+    "title": "Net İşletme Sermayesi Tamponu",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C05-KO2",
+    "title": "Büyümenin Nakit Bedeli",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-005-05",
+    "title": "Karlılık Oranı — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-006-05",
+    "title": "Nakit Büyüme Oranı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-006-04",
+    "title": "Nakit Büyüme Oranı — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-010-O",
+    "title": "Veri Sınıflandırma — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C06-KO3",
+    "title": "Döngüyü Kısaltan Kontrollü Deneyler",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-038-01",
+    "title": "Kampanya Fiyatlandırma",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-039-03",
+    "title": "Toplu İndirim",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C06-KO1",
+    "title": "Bir Liranın Operasyondaki Yolculuğu",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C06-KO2",
+    "title": "CCC Sürücü Köprüsü",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-118-05",
+    "title": "Yeniden Pazarlama — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-007-05",
+    "title": "Tahsilat Süresi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-008-02",
+    "title": "Ödeme Süresi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-008-03",
+    "title": "Ödeme Süresi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-008-05",
+    "title": "Ödeme Süresi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C07-KO3",
+    "title": "DPO ve Tedarikçi Güven Dengesi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-040-01",
+    "title": "Maliyet Değişim Analizi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C07-KO1",
+    "title": "DIO ile Stok Yaşını Okumak",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C07-KO2",
+    "title": "DSO ile Tahsilat Disiplini",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-002-01",
+    "title": "Ciro Nedir? — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-007-04",
+    "title": "Tahsilat Süresi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-008-04",
+    "title": "Ödeme Süresi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-009-03",
+    "title": "İşletme Bütçesi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-009-04",
+    "title": "İşletme Bütçesi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C08-KO3",
+    "title": "Kriz Tetikleyici Eylem Kartları",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-044-03",
+    "title": "Ürün Listeleme",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C08-KO1",
+    "title": "13 Haftalık Nakit Görünürlüğü",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C08-KO2",
+    "title": "Erken Uyarı Sinyal Seti",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-010-01",
+    "title": "Acil Durum Rezervi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-010-02",
+    "title": "Acil Durum Rezervi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-010-03",
+    "title": "Acil Durum Rezervi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-010-05",
+    "title": "Acil Durum Rezervi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-011-01",
+    "title": "Borç Ödeme Stratejisi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C09-KO3",
+    "title": "Birim Katkı ile Kapasite Kararı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C10-KO1",
+    "title": "Başa Baş Adedi Nereden Gelir?",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C09-KO1",
+    "title": "Karara Göre Maliyet Davranışı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C09-KO2",
+    "title": "Karma Maliyetleri Ayırmak",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-001-O",
+    "title": "Süreç Haritalama — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-045-02",
+    "title": "Ürün Fotoğrafçılığı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-047-04",
+    "title": "Sipariş Takibi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-048-05",
+    "title": "Sipariş Onaylama",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-049-01",
+    "title": "İade Yönetimi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-055-01",
+    "title": "Komisyon Oranları",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-058-03",
+    "title": "Desi Hesaplama",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-060-01",
+    "title": "Ekspres Kargo",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-005-I",
+    "title": "Kalite Kontrol Planı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-012-04",
+    "title": "Kredi Kullanımı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-012-05",
+    "title": "Kredi Kullanımı — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-013-03",
+    "title": "Sabit Giderler — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-013-01",
+    "title": "Sabit Giderler — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C11-KO1",
+    "title": "SKU Katkı Kartı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C11-KO2",
+    "title": "Maliyet Dağıtım Anahtarı Seçimi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-061-01",
+    "title": "Fatura Kesme",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C10-KO3",
+    "title": "Çok Ürünlü Başa Baş Mantığı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-013-05",
+    "title": "Sabit Giderler — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-014-01",
+    "title": "Değişken Giderler — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-014-03",
+    "title": "Değişken Giderler — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-014-04",
+    "title": "Değişken Giderler — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-014-05",
+    "title": "Değişken Giderler — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C12-KO2",
+    "title": "İade Sonrası Beklenen Marj",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-062-02",
+    "title": "Tahsilat Faturası",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C11-KO3",
+    "title": "Kârlılık–Hacim Portföyü",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C12-KO1",
+    "title": "Sipariş Ekonomisi Şelalesi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-015-02",
+    "title": "Fırsat Maliyeti — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-015-04",
+    "title": "Fırsat Maliyeti — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-015-05",
+    "title": "Fırsat Maliyeti — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-016-01",
+    "title": "Nakit Dengesi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-016-02",
+    "title": "Nakit Dengesi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C13-KO2",
+    "title": "Marj–Hacim Ödünleşimi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-065-01",
+    "title": "KDV Oranları",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C12-KO3",
+    "title": "Kanal–Ürün Karar Matrisi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C13-KO1",
+    "title": "Maliyetten Değere Fiyat Koridoru",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-016-05",
+    "title": "Nakit Dengesi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-067-04",
+    "title": "Kurumlar Vergisi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-068-05",
+    "title": "Vergi Avantajları",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-086-01",
+    "title": "Gelir Modeli",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-107-02",
+    "title": "LinkedIn İş Geliştirme",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-108-02",
+    "title": "Google Ads",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-118-01",
+    "title": "Yeniden Pazarlama",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-119-03",
+    "title": "Influencer Pazarlama",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-120-03",
+    "title": "Affiliate Marketing",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-017-05",
+    "title": "Gelir Tanımı — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-018-01",
+    "title": "Gider Tanımı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-018-02",
+    "title": "Gider Tanımı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-018-03",
+    "title": "Gider Tanımı — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-018-04",
+    "title": "Gider Tanımı — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C14-KO2",
+    "title": "Kanal Bazlı Edinme Kohortu",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C14-KO3",
+    "title": "Geri Ödeme Süresi ve Büyüme Freni",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-002-B",
+    "title": "Standart İş Tanımı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C14-KO1",
+    "title": "CAC Paydasını Doğru Kurmak",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-019-02",
+    "title": "Başabaş Noktası — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-019-03",
+    "title": "Başabaş Noktası — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-019-05",
+    "title": "Başabaş Noktası — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-020-03",
+    "title": "Marjinal Kâr — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-020-02",
+    "title": "Marjinal Kâr — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C15-KO3",
+    "title": "LTV/CAC Oranının Sınırları",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-003-B",
+    "title": "Darboğaz Analizi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C15-KO1",
+    "title": "Retention Eğrisini Okumak",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C15-KO2",
+    "title": "LTV Varsayım Katmanları",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-020-05",
+    "title": "Marjinal Kâr — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-021-01",
+    "title": "Gerçek Birim Maliyet — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-004-O",
+    "title": "Menşe Kurallarına Giriş — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-021-02",
+    "title": "Gerçek Birim Maliyet — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-021-04",
+    "title": "Gerçek Birim Maliyet — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C16-KO3",
+    "title": "Kohorttan Ürün Deneyine",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C17-KO1",
+    "title": "Gross Burn ve Net Burn Ayrımı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C16-KO1",
+    "title": "Kohort Matrisini İnşa Etmek",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C16-KO2",
+    "title": "Retention Eğrisinde Kırılma Noktası",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-021-05",
+    "title": "Gerçek Birim Maliyet — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-022-01",
+    "title": "Hammadde Maliyeti — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-022-04",
+    "title": "Hammadde Maliyeti — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-022-03",
+    "title": "Hammadde Maliyeti — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C18-KO1",
+    "title": "Kilometre Taşı Bazlı Fon İhtiyacı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-001-B",
+    "title": "Satış Hunisi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-007-B",
+    "title": "CRM Veri Kalitesi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C17-KO2",
+    "title": "Runway Takvimi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C17-KO3",
+    "title": "Burn Multiple ile Harcama Kalitesi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-023-02",
+    "title": "İşçilik Maliyeti — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-023-04",
+    "title": "İşçilik Maliyeti — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-023-05",
+    "title": "İşçilik Maliyeti — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-024-01",
+    "title": "Ambalaj Maliyeti — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-024-03",
+    "title": "Ambalaj Maliyeti — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C19-KO1",
+    "title": "Ciroyu İş Sürücülerine Ayırmak",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C19-KO2",
+    "title": "Kapasite ve Ramp-up Eğrisi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C18-KO2",
+    "title": "Pre-money ve Post-money Seyrelme",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C18-KO3",
+    "title": "Fonlama Senaryolarında Kontrol Hakları",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-024-04",
+    "title": "Ambalaj Maliyeti — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-008-B",
+    "title": "Müşteri Şikâyeti Yönetimi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-006-B",
+    "title": "Uluslararası Teslim Şekilleri",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-008-B",
+    "title": "Sınır Ötesi Lojistik",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-001-B",
+    "title": "Sürdürülebilirlik Önceliklendirmesi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-004-B",
+    "title": "Atık Envanteri",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-005-B",
+    "title": "Kaynak Verimliliği",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-006-B",
+    "title": "Karbon Ayak İzine Giriş",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-026-01",
+    "title": "Pazar Yeri Komisyonu — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-006-O",
+    "title": "Karbon Ayak İzine Giriş — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-008-O",
+    "title": "Yeşil İddialarda Kanıt — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-026-05",
+    "title": "Pazar Yeri Komisyonu — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-026-02",
+    "title": "Pazar Yeri Komisyonu — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C20-KO2",
+    "title": "Fiyat ve Miktar Sapmasını Ayırmak",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C21-KO1",
+    "title": "Senaryo ile Duyarlılık Aynı Şey Değildir",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C20-KO3",
+    "title": "Sapmadan Sorumlu Aksiyona",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-026-03",
+    "title": "Pazar Yeri Komisyonu — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-001-O",
+    "title": "Tedarikçi Seçim Kriterleri — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-027-01",
+    "title": "Ödeme Komisyonu — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-008-I",
+    "title": "Yeşil İddialarda Kanıt — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C22-KO1",
+    "title": "Paranın Zaman Değeri",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-007-B",
+    "title": "Sürdürülebilir Tedarik",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-008-B",
+    "title": "Yeşil İddialarda Kanıt",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C21-KO3",
+    "title": "Stres Testinden Acil Eylem Planına",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-027-05",
+    "title": "Ödeme Komisyonu — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-028-01",
+    "title": "Reklam Maliyeti — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-003-O",
+    "title": "Satın Alma Talep Süreci — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-005-O",
+    "title": "Emniyet Stoku — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-028-03",
+    "title": "Reklam Maliyeti — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C23-KO1",
+    "title": "CAPM ile Özsermaye Maliyeti",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-009-B",
+    "title": "KOBİ Sürdürülebilirlik Göstergeleri",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C22-KO2",
+    "title": "NPV ile Değer Yaratım Eşiği",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C22-KO3",
+    "title": "IRR’nin Çoklu Kök ve Ölçek Tuzakları",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-028-04",
+    "title": "Reklam Maliyeti — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-029-01",
+    "title": "Genel Gider Payı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-029-05",
+    "title": "Genel Gider Payı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-029-02",
+    "title": "Genel Gider Payı — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-029-04",
+    "title": "Genel Gider Payı — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C24-KO1",
+    "title": "FCFF Tahminini Operasyonlardan Kurmak",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-001-B",
+    "title": "Tedarikçi Seçim Kriterleri",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C23-KO2",
+    "title": "Borç ve Özsermaye Ağırlıkları",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C23-KO3",
+    "title": "WACC Kullanım Sınırları",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-030-04",
+    "title": "İade Maliyeti — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-030-02",
+    "title": "İade Maliyeti — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-030-05",
+    "title": "İade Maliyeti — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-031-01",
+    "title": "Hasar Maliyeti — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-031-03",
+    "title": "Hasar Maliyeti — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-002-B",
+    "title": "Tedarikçi Performans Kartı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C24-KO2",
+    "title": "Terminal Değerin Ağırlığını Sınamak",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C24-KO3",
+    "title": "DCF Değer Aralığı ve Duyarlılık",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-031-04",
+    "title": "Hasar Maliyeti — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-032-01",
+    "title": "Fiyat Belirleme — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-032-05",
+    "title": "Fiyat Belirleme — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-032-02",
+    "title": "Fiyat Belirleme — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-004-B",
+    "title": "Tek Kaynak Riski",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C02-KO1",
+    "title": "Kaynak–Dönem–Birim Üçlüsü",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C04-KO3",
+    "title": "Kaldıraçla Gelen Sahte Rahatlık",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C10-KO2",
+    "title": "Güvenlik Marjı ile Talep Tamponu",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C13-KO3",
+    "title": "İskonto Yetki Matrisi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-006-B",
+    "title": "Yeniden Sipariş Noktası",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-034-01",
+    "title": "Satış Marjı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C19-KO3",
+    "title": "Tahmin Varsayım Ağacı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C20-KO1",
+    "title": "Bütçeyi Kontrol Sistemi Olarak Kurmak",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "P6-C21-KO2",
+    "title": "Kırılma Noktası Aramak",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-033-05",
+    "title": "Maliyet Artı Marj — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-033-02",
+    "title": "Maliyet Artı Marj — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-033-03",
+    "title": "Maliyet Artı Marj — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-005-I",
+    "title": "Yama ve Güncelleme Yönetimi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-033-04",
+    "title": "Maliyet Artı Marj — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-034-02",
+    "title": "Satış Marjı — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-034-05",
+    "title": "Satış Marjı — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-007-O",
+    "title": "Oltalama Farkındalığı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-007-B",
+    "title": "Tedarik Süresi Analizi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-008-B",
+    "title": "Talep Tahmini Temelleri",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-035-02",
+    "title": "Brüt Marj — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-035-05",
+    "title": "Brüt Marj — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-035-03",
+    "title": "Brüt Marj — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-035-04",
+    "title": "Brüt Marj — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-036-01",
+    "title": "Net Marj — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-002-B",
+    "title": "Dijital Varlık Envanteri",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-003-O",
+    "title": "Darboğaz Analizi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-036-02",
+    "title": "Net Marj — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-036-03",
+    "title": "Net Marj — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-036-05",
+    "title": "Net Marj — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-037-01",
+    "title": "İskonto Oranı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-005-B",
+    "title": "Yama ve Güncelleme Yönetimi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-007-I",
+    "title": "Düzeltici Faaliyet — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-037-03",
+    "title": "İskonto Oranı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-037-05",
+    "title": "İskonto Oranı — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-037-04",
+    "title": "İskonto Oranı — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-039-01",
+    "title": "Toplu İndirim — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-006-B",
+    "title": "Güvenli Yedekleme",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-038-02",
+    "title": "Kampanya Fiyatlandırma — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-038-03",
+    "title": "Kampanya Fiyatlandırma — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-038-04",
+    "title": "Kampanya Fiyatlandırma — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-038-05",
+    "title": "Kampanya Fiyatlandırma — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-003-B",
+    "title": "AI Risk Kaydı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-005-B",
+    "title": "AI Çıktısı Doğrulama",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-008-I",
+    "title": "İSG Risk Değerlendirmesi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-039-04",
+    "title": "Toplu İndirim — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-039-02",
+    "title": "Toplu İndirim — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-006-02",
+    "title": "Nakit Büyüme Oranı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-040-03",
+    "title": "Maliyet Değişim Analizi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-040-04",
+    "title": "Maliyet Değişim Analizi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-040-05",
+    "title": "Maliyet Değişim Analizi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-039-05",
+    "title": "Toplu İndirim — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-010-I",
+    "title": "Güvenlik Kültürü — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-041-03",
+    "title": "Pazar Yeri Seçimi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-041-04",
+    "title": "Pazar Yeri Seçimi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-041-05",
+    "title": "Pazar Yeri Seçimi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-041-02",
+    "title": "Pazar Yeri Seçimi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-003-O",
+    "title": "İhtiyaç Analizi Görüşmesi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-042-01",
+    "title": "Kendi E-ticaret Sitesi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-042-04",
+    "title": "Kendi E-ticaret Sitesi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-042-05",
+    "title": "Kendi E-ticaret Sitesi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-042-03",
+    "title": "Kendi E-ticaret Sitesi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-007-I",
+    "title": "CRM Veri Kalitesi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-043-03",
+    "title": "Çoklu Kanal Satış — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-043-02",
+    "title": "Çoklu Kanal Satış — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-043-05",
+    "title": "Çoklu Kanal Satış — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-043-04",
+    "title": "Çoklu Kanal Satış — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-009-O",
+    "title": "Müşteri Memnuniyeti Ölçümü — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-044-01",
+    "title": "Ürün Listeleme — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-044-02",
+    "title": "Ürün Listeleme — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-044-04",
+    "title": "Ürün Listeleme — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-044-05",
+    "title": "Ürün Listeleme — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-045-04",
+    "title": "Ürün Fotoğrafçılığı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-045-01",
+    "title": "Ürün Fotoğrafçılığı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-045-05",
+    "title": "Ürün Fotoğrafçılığı — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-045-03",
+    "title": "Ürün Fotoğrafçılığı — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-001-O",
+    "title": "Sürdürülebilirlik Önceliklendirmesi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-046-02",
+    "title": "Stok Yönetimi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-046-03",
+    "title": "Stok Yönetimi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-046-04",
+    "title": "Stok Yönetimi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-007-O",
+    "title": "Tedarik Süresi Analizi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-046-05",
+    "title": "Stok Yönetimi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-047-05",
+    "title": "Sipariş Takibi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-047-01",
+    "title": "Sipariş Takibi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-047-02",
+    "title": "Sipariş Takibi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-047-03",
+    "title": "Sipariş Takibi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-009-O",
+    "title": "Tedarik Zinciri Görünürlüğü — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-048-03",
+    "title": "Sipariş Onaylama — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-048-04",
+    "title": "Sipariş Onaylama — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-048-01",
+    "title": "Sipariş Onaylama — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-048-02",
+    "title": "Sipariş Onaylama — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-049-02",
+    "title": "İade Yönetimi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-049-03",
+    "title": "İade Yönetimi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-049-04",
+    "title": "İade Yönetimi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-049-05",
+    "title": "İade Yönetimi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-002-I",
+    "title": "Dijital Varlık Envanteri — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-050-03",
+    "title": "Değişim Yönetimi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-050-04",
+    "title": "Değişim Yönetimi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-050-02",
+    "title": "Değişim Yönetimi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-050-05",
+    "title": "Değişim Yönetimi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-006-I",
+    "title": "Güvenli Yedekleme — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-051-04",
+    "title": "Müşteri İletişimi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-051-05",
+    "title": "Müşteri İletişimi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-051-03",
+    "title": "Müşteri İletişimi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-052-02",
+    "title": "Ürün Kategorisi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-052-03",
+    "title": "Ürün Kategorisi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-052-04",
+    "title": "Ürün Kategorisi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-052-05",
+    "title": "Ürün Kategorisi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-053-03",
+    "title": "Arama Optimizasyonu — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-053-04",
+    "title": "Arama Optimizasyonu — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-053-02",
+    "title": "Arama Optimizasyonu — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-053-05",
+    "title": "Arama Optimizasyonu — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-070-04",
+    "title": "Mesafeli Satış — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-054-01",
+    "title": "Pazar Yeri Analizi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-054-04",
+    "title": "Pazar Yeri Analizi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-054-05",
+    "title": "Pazar Yeri Analizi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-054-02",
+    "title": "Pazar Yeri Analizi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-055-04",
+    "title": "Komisyon Oranları — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-055-03",
+    "title": "Komisyon Oranları — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-055-02",
+    "title": "Komisyon Oranları — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-055-05",
+    "title": "Komisyon Oranları — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-056-01",
+    "title": "Kargo Seçenekleri — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-056-04",
+    "title": "Kargo Seçenekleri — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-056-02",
+    "title": "Kargo Seçenekleri — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-056-03",
+    "title": "Kargo Seçenekleri — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-084-04",
+    "title": "MVP Oluşturma — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-057-05",
+    "title": "Ücretsiz Kargo — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-057-03",
+    "title": "Ücretsiz Kargo — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-057-04",
+    "title": "Ücretsiz Kargo — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-057-02",
+    "title": "Ücretsiz Kargo — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-024-02",
+    "title": "Ambalaj Maliyeti",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-058-01",
+    "title": "Desi Hesaplama — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-058-02",
+    "title": "Desi Hesaplama — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-058-04",
+    "title": "Desi Hesaplama — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-058-05",
+    "title": "Desi Hesaplama — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-025-01",
+    "title": "Kargo Maliyeti",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-059-02",
+    "title": "paketleme Standartları — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-059-03",
+    "title": "paketleme Standartları — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-059-05",
+    "title": "paketleme Standartları — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-059-04",
+    "title": "paketleme Standartları — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-060-02",
+    "title": "Ekspres Kargo — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-060-03",
+    "title": "Ekspres Kargo — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-060-05",
+    "title": "Ekspres Kargo — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-060-04",
+    "title": "Ekspres Kargo — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-027-02",
+    "title": "Ödeme Komisyonu",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-061-02",
+    "title": "Fatura Kesme — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-061-04",
+    "title": "Fatura Kesme — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-061-05",
+    "title": "Fatura Kesme — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-061-03",
+    "title": "Fatura Kesme — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-062-01",
+    "title": "Tahsilat Faturası — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-062-03",
+    "title": "Tahsilat Faturası — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-062-04",
+    "title": "Tahsilat Faturası — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-062-05",
+    "title": "Tahsilat Faturası — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-063-01",
+    "title": "Gider Faturası — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-063-03",
+    "title": "Gider Faturası — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-063-05",
+    "title": "Gider Faturası — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-063-04",
+    "title": "Gider Faturası — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-064-04",
+    "title": "İade Faturası — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-064-02",
+    "title": "İade Faturası — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-064-03",
+    "title": "İade Faturası — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-064-05",
+    "title": "İade Faturası — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-065-02",
+    "title": "KDV Oranları — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-065-03",
+    "title": "KDV Oranları — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-065-05",
+    "title": "KDV Oranları — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-065-04",
+    "title": "KDV Oranları — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-066-04",
+    "title": "Gelir Vergisi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-066-03",
+    "title": "Gelir Vergisi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-066-02",
+    "title": "Gelir Vergisi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-066-05",
+    "title": "Gelir Vergisi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-067-01",
+    "title": "Kurumlar Vergisi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-067-05",
+    "title": "Kurumlar Vergisi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-067-02",
+    "title": "Kurumlar Vergisi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-067-03",
+    "title": "Kurumlar Vergisi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-068-02",
+    "title": "Vergi Avantajları — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-068-03",
+    "title": "Vergi Avantajları — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-068-04",
+    "title": "Vergi Avantajları — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-068-01",
+    "title": "Vergi Avantajları — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-069-01",
+    "title": "Tüketici Hakkı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-069-02",
+    "title": "Tüketici Hakkı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-069-04",
+    "title": "Tüketici Hakkı — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-069-05",
+    "title": "Tüketici Hakkı — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-070-05",
+    "title": "Mesafeli Satış — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-070-02",
+    "title": "Mesafeli Satış — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-071-03",
+    "title": "Gizlilik Politikası — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-071-01",
+    "title": "Gizlilik Politikası — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-071-04",
+    "title": "Gizlilik Politikası — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-071-05",
+    "title": "Gizlilik Politikası — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-072-02",
+    "title": "Mesafeli Sözleşme — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-072-03",
+    "title": "Mesafeli Sözleşme — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-073-02",
+    "title": "İade Koşulları — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-073-04",
+    "title": "İade Koşulları — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-002-03",
+    "title": "Ciro Nedir?",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-003-01",
+    "title": "Brüt Kâr",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-004-01",
+    "title": "Net Kâr",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-074-05",
+    "title": "Garanti Süresi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-074-03",
+    "title": "Garanti Süresi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-074-02",
+    "title": "Garanti Süresi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-074-04",
+    "title": "Garanti Süresi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-075-02",
+    "title": "Vergi Beyannamesi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-075-03",
+    "title": "Vergi Beyannamesi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-075-01",
+    "title": "Vergi Beyannamesi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-075-05",
+    "title": "Vergi Beyannamesi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-076-05",
+    "title": "E-defter Tutma — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-076-01",
+    "title": "E-defter Tutma — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-076-04",
+    "title": "E-defter Tutma — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-076-02",
+    "title": "E-defter Tutma — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-077-03",
+    "title": "Yasal Saklama Süresi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-077-05",
+    "title": "Yasal Saklama Süresi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-077-04",
+    "title": "Yasal Saklama Süresi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-077-01",
+    "title": "Yasal Saklama Süresi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-078-04",
+    "title": "Çalışan İşe Alma — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-078-01",
+    "title": "Çalışan İşe Alma — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-078-03",
+    "title": "Çalışan İşe Alma — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-078-05",
+    "title": "Çalışan İşe Alma — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-079-04",
+    "title": "SGK Yükümlülükleri — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-079-01",
+    "title": "SGK Yükümlülükleri — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-079-02",
+    "title": "SGK Yükümlülükleri — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-079-05",
+    "title": "SGK Yükümlülükleri — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-080-05",
+    "title": "İş Kazası Sigortası — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-080-02",
+    "title": "İş Kazası Sigortası — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-080-01",
+    "title": "İş Kazası Sigortası — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-080-03",
+    "title": "İş Kazası Sigortası — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-081-03",
+    "title": "İş Fikri Geliştirme — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-081-01",
+    "title": "İş Fikri Geliştirme — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-081-02",
+    "title": "İş Fikri Geliştirme — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-081-04",
+    "title": "İş Fikri Geliştirme — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-082-01",
+    "title": "Müşteri Problemi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-082-02",
+    "title": "Müşteri Problemi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-082-03",
+    "title": "Müşteri Problemi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-023-01",
+    "title": "İşçilik Maliyeti",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-082-05",
+    "title": "Müşteri Problemi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-083-01",
+    "title": "Hedef Kitle — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-083-02",
+    "title": "Hedef Kitle — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-083-04",
+    "title": "Hedef Kitle — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-084-02",
+    "title": "MVP Oluşturma — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-084-03",
+    "title": "MVP Oluşturma — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-046-01",
+    "title": "Stok Yönetimi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-084-05",
+    "title": "MVP Oluşturma — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-085-01",
+    "title": "İş Modeli Canvas — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-085-04",
+    "title": "İş Modeli Canvas — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-085-02",
+    "title": "İş Modeli Canvas — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-052-01",
+    "title": "Ürün Kategorisi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-085-05",
+    "title": "İş Modeli Canvas — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-086-02",
+    "title": "Gelir Modeli — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-086-03",
+    "title": "Gelir Modeli — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-086-04",
+    "title": "Gelir Modeli — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-086-05",
+    "title": "Gelir Modeli — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-087-02",
+    "title": "Maliyet Yapısı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-087-01",
+    "title": "Maliyet Yapısı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-087-03",
+    "title": "Maliyet Yapısı — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-087-04",
+    "title": "Maliyet Yapısı — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-088-03",
+    "title": "Pazar Araştırması — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-088-04",
+    "title": "Pazar Araştırması — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-088-02",
+    "title": "Pazar Araştırması — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-031-02",
+    "title": "Hasar Maliyeti",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-032-03",
+    "title": "Fiyat Belirleme",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-088-05",
+    "title": "Pazar Araştırması — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-089-04",
+    "title": "Rekabet Analizi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-089-02",
+    "title": "Rekabet Analizi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-089-03",
+    "title": "Rekabet Analizi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-033-01",
+    "title": "Maliyet Artı Marj",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-089-05",
+    "title": "Rekabet Analizi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-090-04",
+    "title": "Farklılaştırma — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-090-01",
+    "title": "Farklılaştırma — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-090-02",
+    "title": "Farklılaştırma — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-090-05",
+    "title": "Farklılaştırma — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-091-04",
+    "title": "Fiyat Stratejisi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-091-01",
+    "title": "Fiyat Stratejisi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-091-03",
+    "title": "Fiyat Stratejisi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-036-04",
+    "title": "Net Marj",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-091-05",
+    "title": "Fiyat Stratejisi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-092-02",
+    "title": "Dağıtım Kanalları — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-092-04",
+    "title": "Dağıtım Kanalları — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-092-03",
+    "title": "Dağıtım Kanalları — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-092-05",
+    "title": "Dağıtım Kanalları — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-093-04",
+    "title": "Startup Aşamaları — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-093-02",
+    "title": "Startup Aşamaları — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-093-03",
+    "title": "Startup Aşamaları — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-041-01",
+    "title": "Pazar Yeri Seçimi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-093-05",
+    "title": "Startup Aşamaları — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-094-03",
+    "title": "Bootstrapping — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-094-02",
+    "title": "Bootstrapping — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-094-04",
+    "title": "Bootstrapping — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-042-02",
+    "title": "Kendi E-ticaret Sitesi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-094-05",
+    "title": "Bootstrapping — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-095-03",
+    "title": "Yatırım Turu — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-095-04",
+    "title": "Yatırım Turu — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-095-01",
+    "title": "Yatırım Turu — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-043-01",
+    "title": "Çoklu Kanal Satış",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-095-05",
+    "title": "Yatırım Turu — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-096-03",
+    "title": "Pitch Deck — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-096-02",
+    "title": "Pitch Deck — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-096-04",
+    "title": "Pitch Deck — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-097-04",
+    "title": "Lisanslama — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-097-01",
+    "title": "Lisanslama — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-097-02",
+    "title": "Lisanslama — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-054-03",
+    "title": "Pazar Yeri Analizi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-098-02",
+    "title": "Franchising — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-098-03",
+    "title": "Franchising — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-098-04",
+    "title": "Franchising — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-099-01",
+    "title": "Ortaklık Yapısı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-099-02",
+    "title": "Ortaklık Yapısı — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-099-03",
+    "title": "Ortaklık Yapısı — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-050-01",
+    "title": "Değişim Yönetimi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-100-04",
+    "title": "Çıkış Stratejisi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-100-02",
+    "title": "Çıkış Stratejisi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-100-03",
+    "title": "Çıkış Stratejisi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-053-01",
+    "title": "Arama Optimizasyonu",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-101-03",
+    "title": "İçerik Stratejisi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-101-04",
+    "title": "İçerik Stratejisi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-101-02",
+    "title": "İçerik Stratejisi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-076-03",
+    "title": "E-defter Tutma",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-101-05",
+    "title": "İçerik Stratejisi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-102-03",
+    "title": "Blog İçeriği — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-102-02",
+    "title": "Blog İçeriği — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-102-04",
+    "title": "Blog İçeriği — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-075-04",
+    "title": "Vergi Beyannamesi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-102-05",
+    "title": "Blog İçeriği — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-103-03",
+    "title": "Video İçerik — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-103-04",
+    "title": "Video İçerik — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-103-01",
+    "title": "Video İçerik — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-069-03",
+    "title": "Tüketici Hakkı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-104-03",
+    "title": "Sosyal Medya Stratejisi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-104-04",
+    "title": "Sosyal Medya Stratejisi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-104-01",
+    "title": "Sosyal Medya Stratejisi — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-105-01",
+    "title": "Instagram Satış — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-105-03",
+    "title": "Instagram Satış — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-105-04",
+    "title": "Instagram Satış — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-070-01",
+    "title": "Mesafeli Satış",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-106-01",
+    "title": "TikTok Pazarlama — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-106-03",
+    "title": "TikTok Pazarlama — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-106-04",
+    "title": "TikTok Pazarlama — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-072-01",
+    "title": "Mesafeli Sözleşme",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-107-03",
+    "title": "LinkedIn İş Geliştirme — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-107-04",
+    "title": "LinkedIn İş Geliştirme — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-107-01",
+    "title": "LinkedIn İş Geliştirme — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-073-03",
+    "title": "İade Koşulları",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-108-01",
+    "title": "Google Ads — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-108-03",
+    "title": "Google Ads — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-108-04",
+    "title": "Google Ads — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-109-02",
+    "title": "Meta Ads — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-109-04",
+    "title": "Meta Ads — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-109-03",
+    "title": "Meta Ads — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-109-05",
+    "title": "Meta Ads — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-110-04",
+    "title": "ROAS Hesaplama — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-110-02",
+    "title": "ROAS Hesaplama — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-110-03",
+    "title": "ROAS Hesaplama — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-074-01",
+    "title": "Garanti Süresi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-110-05",
+    "title": "ROAS Hesaplama — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-111-01",
+    "title": "Dönüşüm Oranı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-111-02",
+    "title": "Dönüşüm Oranı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-111-03",
+    "title": "Dönüşüm Oranı — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-071-02",
+    "title": "Gizlilik Politikası",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-111-05",
+    "title": "Dönüşüm Oranı — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-112-04",
+    "title": "Müşteri Edinme Maliyeti — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-112-01",
+    "title": "Müşteri Edinme Maliyeti — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-112-02",
+    "title": "Müşteri Edinme Maliyeti — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-077-02",
+    "title": "Yasal Saklama Süresi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-113-01",
+    "title": "Müşteri Yaşam Boyu Değeri — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-113-02",
+    "title": "Müşteri Yaşam Boyu Değeri — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-113-04",
+    "title": "Müşteri Yaşam Boyu Değeri — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-078-02",
+    "title": "Çalışan İşe Alma",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-113-05",
+    "title": "Müşteri Yaşam Boyu Değeri — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-114-01",
+    "title": "Marka Kimliği — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-114-02",
+    "title": "Marka Kimliği — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-114-03",
+    "title": "Marka Kimliği — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-079-03",
+    "title": "SGK Yükümlülükleri",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-114-05",
+    "title": "Marka Kimliği — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-115-02",
+    "title": "Marka Değeri — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-115-03",
+    "title": "Marka Değeri — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-115-04",
+    "title": "Marka Değeri — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-080-04",
+    "title": "İş Kazası Sigortası",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-115-05",
+    "title": "Marka Değeri — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-116-04",
+    "title": "Email Pazarlama — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-116-02",
+    "title": "Email Pazarlama — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-116-03",
+    "title": "Email Pazarlama — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-114-04",
+    "title": "Marka Kimliği",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-116-05",
+    "title": "Email Pazarlama — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-117-04",
+    "title": "Sepet Terk Etme — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-117-01",
+    "title": "Sepet Terk Etme — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-117-03",
+    "title": "Sepet Terk Etme — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-081-05",
+    "title": "İş Fikri Geliştirme",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-117-05",
+    "title": "Sepet Terk Etme — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-118-02",
+    "title": "Yeniden Pazarlama — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-118-03",
+    "title": "Yeniden Pazarlama — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-118-04",
+    "title": "Yeniden Pazarlama — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-082-04",
+    "title": "Müşteri Problemi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-119-01",
+    "title": "Influencer Pazarlama — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-119-02",
+    "title": "Influencer Pazarlama — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-119-04",
+    "title": "Influencer Pazarlama — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-083-03",
+    "title": "Hedef Kitle",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-120-01",
+    "title": "Affiliate Marketing — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-120-02",
+    "title": "Affiliate Marketing — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-120-04",
+    "title": "Affiliate Marketing — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-084-01",
+    "title": "MVP Oluşturma",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-120-05",
+    "title": "Affiliate Marketing — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": null,
+    "title": "Değişken (Variable)",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": null,
+    "title": "Fonksiyon (Function)",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": null,
+    "title": "Python'da Değişken Oluşturma",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": null,
+    "title": "Python'da len() fonksiyonu",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": null,
+    "title": "DRY (Don't Repeat Yourself)",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "FIN-CASHFLOW-001",
+    "title": "Nakit Akışı",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-085-03",
+    "title": "İş Modeli Canvas",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-094-01",
+    "title": "Bootstrapping",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "FIN-EMERGENCY-RESERVE-001",
+    "title": "Acil Durum Rezervi",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-001-I",
+    "title": "Süreç Haritalama — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-002-O",
+    "title": "Standart İş Tanımı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-004-I",
+    "title": "Kapasite Planlama — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-005-O",
+    "title": "Kalite Kontrol Planı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-102-01",
+    "title": "Blog İçeriği",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-006-O",
+    "title": "Kök Neden Analizi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-103-02",
+    "title": "Video İçerik",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-105-02",
+    "title": "Instagram Satış",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-008-I",
+    "title": "Sürekli İyileştirme — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-009-O",
+    "title": "Operasyon KPI Tasarımı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-110-01",
+    "title": "ROAS Hesaplama",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-010-O",
+    "title": "Görsel Yönetim — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-116-01",
+    "title": "Email Pazarlama",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-002-O",
+    "title": "Yetkinlik Matrisi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-007-B",
+    "title": "Düzeltici Faaliyet",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-004-O",
+    "title": "Performans Görüşmesi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-005-B",
+    "title": "Etkili Geri Bildirim",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-006-O",
+    "title": "Çalışan Öneri Sistemi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-007-B",
+    "title": "İSG Tehlike Belirleme",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-007-I",
+    "title": "İSG Tehlike Belirleme — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-008-O",
+    "title": "İSG Risk Değerlendirmesi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-010-O",
+    "title": "Güvenlik Kültürü — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-007-02",
+    "title": "Tahsilat Süresi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-007-03",
+    "title": "Tahsilat Süresi — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-002-O",
+    "title": "Müşteri Adayı Nitelendirme — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-002-I",
+    "title": "Müşteri Adayı Nitelendirme — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-003-I",
+    "title": "İhtiyaç Analizi Görüşmesi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-004-O",
+    "title": "Değer Önerisi Sunumu — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-072-04",
+    "title": "Mesafeli Sözleşme — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-072-05",
+    "title": "Mesafeli Sözleşme — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-073-05",
+    "title": "İade Koşulları — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "FIN-REVENUE-001",
+    "title": "Ciro Nedir?",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "FIN-GROSS-PROFIT-001",
+    "title": "Brüt Kâr",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-010-O",
+    "title": "Müşteri Kaybı Analizi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-001-B",
+    "title": "İhracata Hazırlık Analizi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-003-B",
+    "title": "GTİP Sınıflandırmasına Giriş",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-001-O",
+    "title": "İhracata Hazırlık Analizi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-001-I",
+    "title": "İhracata Hazırlık Analizi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-002-O",
+    "title": "İhracat Hedef Pazarı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-003-I",
+    "title": "GTİP Sınıflandırmasına Giriş — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-004-B",
+    "title": "Menşe Kurallarına Giriş",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-005-B",
+    "title": "İhracat Belge Kontrolü",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-006-I",
+    "title": "Uluslararası Teslim Şekilleri — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-001-04",
+    "title": "Kâr ile Nakit Arasındaki Fark — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "FIN-PAYMENT-DAYS-001",
+    "title": "Ödeme Süresi",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-008-I",
+    "title": "Sınır Ötesi Lojistik — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "DIG-MATURITY-001",
+    "title": "Dijital Olgunluk Değerlendirmesi",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-009-I",
+    "title": "E-İhracatta Lokalizasyon — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-001-I",
+    "title": "Sürdürülebilirlik Önceliklendirmesi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-002-O",
+    "title": "Enerji Tüketimi Takibi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-003-I",
+    "title": "Su Tüketimi Takibi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-004-O",
+    "title": "Atık Envanteri — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-107-05",
+    "title": "LinkedIn İş Geliştirme — Yönetişim ve Ölçekleme",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-006-I",
+    "title": "Karbon Ayak İzine Giriş — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-011-04",
+    "title": "Borç Ödeme Stratejisi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-017-02",
+    "title": "Gelir Tanımı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-005-I",
+    "title": "Teklif Hazırlama — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-017-04",
+    "title": "Gelir Tanımı — İşletme Uygulaması",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "DIG-DATA-001",
+    "title": "Veri Yönetişimi ve Veri Odaklı Karar Alma",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-009-I",
+    "title": "KOBİ Sürdürülebilirlik Göstergeleri — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-002-I",
+    "title": "Tedarikçi Performans Kartı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-025-02",
+    "title": "Kargo Maliyeti — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-010-I",
+    "title": "Müşteri Kaybı Analizi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-004-I",
+    "title": "Menşe Kurallarına Giriş — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-004-I",
+    "title": "Tek Kaynak Riski — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-010-I",
+    "title": "Sürdürülebilirlik İyileştirme Planı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-006-I",
+    "title": "Yeniden Sipariş Noktası — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-008-I",
+    "title": "Siber Olay Müdahale Planı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-008-I",
+    "title": "Talep Tahmini Temelleri — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-001-01",
+    "title": "Kâr ile Nakit Arasındaki Fark",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-005-01",
+    "title": "Karlılık Oranı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-009-I",
+    "title": "Tedarik Zinciri Görünürlüğü — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-010-O",
+    "title": "Tedarik Kesintisi Senaryosu — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-010-I",
+    "title": "Tedarik Kesintisi Senaryosu — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-010-04",
+    "title": "Acil Durum Rezervi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-001-O",
+    "title": "Siber Risk Yönetişimi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-001-I",
+    "title": "Siber Risk Yönetişimi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-011-02",
+    "title": "Borç Ödeme Stratejisi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-056-05",
+    "title": "Kargo Seçenekleri",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-003-I",
+    "title": "Çok Faktörlü Kimlik Doğrulama — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-004-I",
+    "title": "En Az Yetki İlkesi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-057-01",
+    "title": "Ücretsiz Kargo",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-004-B",
+    "title": "En Az Yetki İlkesi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-012-01",
+    "title": "Kredi Kullanımı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-013-02",
+    "title": "Sabit Giderler",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-007-I",
+    "title": "Oltalama Farkındalığı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-059-01",
+    "title": "paketleme Standartları",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-008-B",
+    "title": "Siber Olay Müdahale Planı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-009-I",
+    "title": "Tedarikçi Siber Riski — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-018-05",
+    "title": "Gider Tanımı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-019-04",
+    "title": "Başabaş Noktası",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-001-O",
+    "title": "AI Kullanım Senaryosu Seçimi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-001-I",
+    "title": "AI Kullanım Senaryosu Seçimi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-028-05",
+    "title": "Reklam Maliyeti",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-029-03",
+    "title": "Genel Gider Payı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-003-O",
+    "title": "AI Risk Kaydı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-004-O",
+    "title": "İnsan Gözetimi Tasarımı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-063-02",
+    "title": "Gider Faturası",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-004-B",
+    "title": "İnsan Gözetimi Tasarımı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-005-O",
+    "title": "AI Çıktısı Doğrulama — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-005-I",
+    "title": "AI Çıktısı Doğrulama — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-064-01",
+    "title": "İade Faturası",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-007-O",
+    "title": "AI Tedarikçi Değerlendirmesi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-007-I",
+    "title": "AI Tedarikçi Değerlendirmesi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-008-O",
+    "title": "AI Pilot Tasarımı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-030-03",
+    "title": "İade Maliyeti",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-034-03",
+    "title": "Satış Marjı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-009-O",
+    "title": "AI Fayda Ölçümü — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-010-O",
+    "title": "Sorumlu AI Kullanım Politikası — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-066-01",
+    "title": "Gelir Vergisi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-010-B",
+    "title": "Sorumlu AI Kullanım Politikası",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-035-01",
+    "title": "Brüt Marj",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "DIG-CYBER-001",
+    "title": "KOBİ'ler için Temel Siber Güvenlik Önlemleri",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-026-04",
+    "title": "Pazar Yeri Komisyonu",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-040-02",
+    "title": "Maliyet Değişim Analizi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-051-02",
+    "title": "Müşteri İletişimi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-002-I",
+    "title": "Standart İş Tanımı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-087-05",
+    "title": "Maliyet Yapısı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-088-01",
+    "title": "Pazar Araştırması",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-089-01",
+    "title": "Rekabet Analizi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-003-I",
+    "title": "Darboğaz Analizi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-004-O",
+    "title": "Kapasite Planlama — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-090-03",
+    "title": "Farklılaştırma",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-091-02",
+    "title": "Fiyat Stratejisi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-005-B",
+    "title": "Kalite Kontrol Planı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-006-I",
+    "title": "Kök Neden Analizi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-007-O",
+    "title": "Düzeltici Faaliyet — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-092-01",
+    "title": "Dağıtım Kanalları",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-093-01",
+    "title": "Startup Aşamaları",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-006-B",
+    "title": "Kök Neden Analizi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-008-O",
+    "title": "Sürekli İyileştirme — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-009-I",
+    "title": "Operasyon KPI Tasarımı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-095-02",
+    "title": "Yatırım Turu",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-096-01",
+    "title": "Pitch Deck",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-009-B",
+    "title": "Operasyon KPI Tasarımı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-010-I",
+    "title": "Görsel Yönetim — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-001-O",
+    "title": "Rol ve Sorumluluk Tasarımı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-001-I",
+    "title": "Rol ve Sorumluluk Tasarımı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-002-I",
+    "title": "Yetkinlik Matrisi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-003-O",
+    "title": "İşe Uyum Programı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-003-I",
+    "title": "İşe Uyum Programı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-097-03",
+    "title": "Lisanslama",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-004-I",
+    "title": "Performans Görüşmesi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-005-O",
+    "title": "Etkili Geri Bildirim — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-005-I",
+    "title": "Etkili Geri Bildirim — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-098-01",
+    "title": "Franchising",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-006-I",
+    "title": "Çalışan Öneri Sistemi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-007-O",
+    "title": "İSG Tehlike Belirleme — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-099-04",
+    "title": "Ortaklık Yapısı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-008-B",
+    "title": "İSG Risk Değerlendirmesi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-009-O",
+    "title": "Ramak Kala Yönetimi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-009-I",
+    "title": "Ramak Kala Yönetimi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-100-01",
+    "title": "Çıkış Stratejisi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-101-01",
+    "title": "İçerik Stratejisi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-010-B",
+    "title": "Güvenlik Kültürü",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-001-O",
+    "title": "Satış Hunisi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-001-I",
+    "title": "Satış Hunisi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-104-02",
+    "title": "Sosyal Medya Stratejisi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-106-02",
+    "title": "TikTok Pazarlama",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-004-I",
+    "title": "Değer Önerisi Sunumu — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-005-O",
+    "title": "Teklif Hazırlama — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-109-01",
+    "title": "Meta Ads",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-111-04",
+    "title": "Dönüşüm Oranı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-004-B",
+    "title": "Değer Önerisi Sunumu",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-006-I",
+    "title": "Satış Tahmini — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-007-O",
+    "title": "CRM Veri Kalitesi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-112-03",
+    "title": "Müşteri Edinme Maliyeti",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-113-03",
+    "title": "Müşteri Yaşam Boyu Değeri",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-006-B",
+    "title": "Satış Tahmini",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-009-I",
+    "title": "Müşteri Memnuniyeti Ölçümü — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-115-01",
+    "title": "Marka Değeri",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "CUR-117-02",
+    "title": "Sepet Terk Etme",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-002-I",
+    "title": "İhracat Hedef Pazarı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-003-O",
+    "title": "GTİP Sınıflandırmasına Giriş — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-001-B",
+    "title": "Süreç Haritalama",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-004-B",
+    "title": "Kapasite Planlama",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-002-B",
+    "title": "İhracat Hedef Pazarı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-005-O",
+    "title": "İhracat Belge Kontrolü — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-005-I",
+    "title": "İhracat Belge Kontrolü — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-006-O",
+    "title": "Uluslararası Teslim Şekilleri — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-008-B",
+    "title": "Sürekli İyileştirme",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-007-O",
+    "title": "İhracatta Ödeme Riskleri — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-007-I",
+    "title": "İhracatta Ödeme Riskleri — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-008-O",
+    "title": "Sınır Ötesi Lojistik — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-OPS-010-B",
+    "title": "Görsel Yönetim",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-009-O",
+    "title": "E-İhracatta Lokalizasyon — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-001-B",
+    "title": "Rol ve Sorumluluk Tasarımı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-002-B",
+    "title": "Yetkinlik Matrisi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-010-B",
+    "title": "İhracat Sonrası Performans",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-002-I",
+    "title": "Enerji Tüketimi Takibi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-003-O",
+    "title": "Su Tüketimi Takibi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-003-B",
+    "title": "İşe Uyum Programı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-004-B",
+    "title": "Performans Görüşmesi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-002-B",
+    "title": "Enerji Tüketimi Takibi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-004-I",
+    "title": "Atık Envanteri — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-005-O",
+    "title": "Kaynak Verimliliği — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-005-I",
+    "title": "Kaynak Verimliliği — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-006-B",
+    "title": "Çalışan Öneri Sistemi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-007-O",
+    "title": "Sürdürülebilir Tedarik — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-007-I",
+    "title": "Sürdürülebilir Tedarik — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-HR-009-B",
+    "title": "Ramak Kala Yönetimi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-002-B",
+    "title": "Müşteri Adayı Nitelendirme",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-009-O",
+    "title": "KOBİ Sürdürülebilirlik Göstergeleri — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-003-B",
+    "title": "İhtiyaç Analizi Görüşmesi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-005-B",
+    "title": "Teklif Hazırlama",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-010-B",
+    "title": "Sürdürülebilirlik İyileştirme Planı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-001-I",
+    "title": "Tedarikçi Seçim Kriterleri — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-002-O",
+    "title": "Tedarikçi Performans Kartı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-009-B",
+    "title": "Müşteri Memnuniyeti Ölçümü",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SAL-010-B",
+    "title": "Müşteri Kaybı Analizi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-003-B",
+    "title": "Satın Alma Talep Süreci",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-003-I",
+    "title": "Satın Alma Talep Süreci — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-004-O",
+    "title": "Tek Kaynak Riski — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-007-B",
+    "title": "İhracatta Ödeme Riskleri",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-EXP-009-B",
+    "title": "E-İhracatta Lokalizasyon",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-005-B",
+    "title": "Emniyet Stoku",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-005-I",
+    "title": "Emniyet Stoku — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-006-O",
+    "title": "Yeniden Sipariş Noktası — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SUS-003-B",
+    "title": "Su Tüketimi Takibi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-007-I",
+    "title": "Tedarik Süresi Analizi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-008-O",
+    "title": "Talep Tahmini Temelleri — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-009-B",
+    "title": "Tedarik Zinciri Görünürlüğü",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-SCM-010-B",
+    "title": "Tedarik Kesintisi Senaryosu",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-001-B",
+    "title": "Siber Risk Yönetişimi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-010-B",
+    "title": "Veri Sınıflandırma",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-002-B",
+    "title": "AI Hazırlık Değerlendirmesi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-003-O",
+    "title": "Çok Faktörlü Kimlik Doğrulama — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-004-O",
+    "title": "En Az Yetki İlkesi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-003-B",
+    "title": "Çok Faktörlü Kimlik Doğrulama",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-006-B",
+    "title": "AI Veri Kalitesi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-005-O",
+    "title": "Yama ve Güncelleme Yönetimi — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-006-O",
+    "title": "Güvenli Yedekleme — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-007-B",
+    "title": "Oltalama Farkındalığı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-007-B",
+    "title": "AI Tedarikçi Değerlendirmesi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-008-O",
+    "title": "Siber Olay Müdahale Planı — Süreç ve Ölçüm",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-009-B",
+    "title": "Tedarikçi Siber Riski",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-CYB-010-I",
+    "title": "Veri Sınıflandırma — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-001-B",
+    "title": "AI Kullanım Senaryosu Seçimi",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-003-I",
+    "title": "AI Risk Kaydı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-004-I",
+    "title": "İnsan Gözetimi Tasarımı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-006-I",
+    "title": "AI Veri Kalitesi — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-008-I",
+    "title": "AI Pilot Tasarımı — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-008-B",
+    "title": "AI Pilot Tasarımı",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-009-B",
+    "title": "AI Fayda Ölçümü",
+    "status": "published",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-009-I",
+    "title": "AI Fayda Ölçümü — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  },
+  {
+    "code": "KBX-AIR-010-I",
+    "title": "Sorumlu AI Kullanım Politikası — Senaryo ve Ödünleşim",
+    "status": "archived",
+    "isDemo": false
+  }
+]

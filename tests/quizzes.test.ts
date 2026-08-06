@@ -76,7 +76,7 @@ beforeAll(async () => {
   })
 
   const { quizRoutes } = await import('../src/services/quizzes')
-  await app.register(quizRoutes, { prefix: '/quizzes', prisma: createMockPrisma() })
+  await app.register(quizRoutes, { prefix: '/quizzes', prisma: createMockPrisma(), legacyEnabled: true })
 
   await app.ready()
 

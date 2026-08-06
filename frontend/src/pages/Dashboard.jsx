@@ -16,6 +16,7 @@ import {
 import { PersonalizedFeed } from '@/components/feed/PersonalizedFeed'
 import LearningProgressPanel from '@/components/progress/LearningProgressPanel'
 import styles from './Dashboard.module.css'
+import { featureFlags } from '@/config/featureFlags'
 
 function timeAgo(dateStr) {
   if (!dateStr) return ''
@@ -96,7 +97,7 @@ export default function Dashboard() {
 
   const recs = data?.recommendations || []
   const tasks = data?.upcomingTasks || []
-  const quizResult = data?.recentQuizResult
+  const quizResult = featureFlags.legacyQuiz ? data?.recentQuizResult : null
   const mentorSession = data?.recentMentorSession
   const courseActivity = data?.recentCourseActivity
   const completedKOData = data?.recentCompletedKO
@@ -242,20 +243,20 @@ export default function Dashboard() {
 
           {pilotData && (
             <>
-              <Card className={styles.statCard}>
+              {featureFlags.legacyFlashcards && <Card className={styles.statCard}>
                 <div className={styles.statIcon} style={{background:'#f0fdf4',color:'#16a34a'}}><Brain size={20} /></div>
                 <div className={styles.statBody}>
                   <span className={styles.statValue}>%{pilotData.flashcards.masteryPercent}</span>
                   <span className={styles.statLabel}>Kart Hakimiyet</span>
                 </div>
-              </Card>
-              <Card className={styles.statCard}>
+              </Card>}
+              {featureFlags.legacyQuiz && <Card className={styles.statCard}>
                 <div className={styles.statIcon} style={{background:'#fefce8',color:'#ca8a04'}}><HelpCircle size={20} /></div>
                 <div className={styles.statBody}>
                   <span className={styles.statValue}>%{pilotData.quizzes.passRate}</span>
                   <span className={styles.statLabel}>Quiz Başarı</span>
                 </div>
-              </Card>
+              </Card>}
               <Card className={styles.statCard}>
                 <div className={styles.statIcon} style={{background:'#eff6ff',color:'#2563eb'}}><ListChecks size={20} /></div>
                 <div className={styles.statBody}>
@@ -389,12 +390,12 @@ export default function Dashboard() {
                   <Button variant="primary" size="sm" onClick={() => navigate('/app/learning-path/pilot')}>
                     <Map size={14} /> Pilot Yol Haritası
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => navigate('/app/flashcards')}>
+                  {featureFlags.legacyFlashcards && <Button variant="outline" size="sm" onClick={() => navigate('/app/flashcards')}>
                     <Brain size={14} /> Flashcards
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => navigate('/app/quiz')}>
+                  </Button>}
+                  {featureFlags.legacyQuiz && <Button variant="outline" size="sm" onClick={() => navigate('/app/quiz')}>
                     <HelpCircle size={14} /> Quizler
-                  </Button>
+                  </Button>}
                 </div>
               </Card>
 
@@ -420,8 +421,8 @@ export default function Dashboard() {
                     })}
                   </div>
                   <div className={styles.weeklyLegend}>
-                    <span><Brain size={12} /> Kart: {pilotData.flashcards.reviewsThisWeek || 0}</span>
-                    <span><HelpCircle size={12} /> Quiz: {pilotData.weeklyTrend.reduce((s, w) => s + w.quizAttempts, 0)}</span>
+                    {featureFlags.legacyFlashcards && <span><Brain size={12} /> Kart: {pilotData.flashcards.reviewsThisWeek || 0}</span>}
+                    {featureFlags.legacyQuiz && <span><HelpCircle size={12} /> Quiz: {pilotData.weeklyTrend.reduce((s, w) => s + w.quizAttempts, 0)}</span>}
                     <span><ListChecks size={12} /> Görev: {pilotData.weeklyTrend.reduce((s, w) => s + w.taskCompletions, 0)}</span>
                   </div>
                 </Card>
@@ -444,12 +445,12 @@ export default function Dashboard() {
                         <div className={styles.koGridCode}>{kp.code || `#${kp.koId}`}</div>
                         <div className={styles.koGridTitle_}>{kp.title}</div>
                         <div className={styles.koGridMeta}>
-                          <span className={kp.flashcardPercent >= 100 ? styles.metaDone : ''}>
+                          {featureFlags.legacyFlashcards && <span className={kp.flashcardPercent >= 100 ? styles.metaDone : ''}>
                             <Brain size={10} /> %{kp.flashcardPercent}
-                          </span>
-                          <span className={kp.quizPassed ? styles.metaDone : ''}>
+                          </span>}
+                          {featureFlags.legacyQuiz && <span className={kp.quizPassed ? styles.metaDone : ''}>
                             <HelpCircle size={10} /> {kp.quizPassed ? 'Geçti' : `${kp.quizAttempts} den`}
-                          </span>
+                          </span>}
                           <span className={kp.tasksCompleted >= kp.taskCount && kp.taskCount > 0 ? styles.metaDone : ''}>
                             <ListChecks size={10} /> {kp.tasksCompleted}/{kp.taskCount}
                           </span>

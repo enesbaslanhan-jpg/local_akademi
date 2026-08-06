@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client'
 import { z } from 'zod'
 import { LegacyProgressAdapter, LearningProgressItem } from './legacy-progress-adapter'
 
-const validContentTypes = ['guide', 'lesson', 'course', 'practical_card', 'decision_check', 'financial_tool'] as const
+const validContentTypes = ['guide', 'lesson', 'course', 'decision_check', 'financial_tool'] as const
 const validStatuses = ['started', 'in_progress', 'completed'] as const
 
 export const UpdateProgressSchema = z.object({

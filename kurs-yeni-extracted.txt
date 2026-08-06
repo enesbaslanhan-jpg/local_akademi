@@ -1,0 +1,3616 @@
+﻿Vitrin ve Mağaza İçi Satışı Artır
+Bir mağazanın kapısından içeri adım atan her ziyaretçi, farkında olmadan işletmenin oluşturduğu fiziksel alışveriş akışının içine girer. Vitrin, giriş alanı, ana koridorlar, ürün grupları ve kasa çevresi; müşterinin neyi fark edeceğini, mağazada ne kadar rahat hareket edeceğini ve hangi ürünleri değerlendireceğini etkileyebilir.
+Fiziksel perakendede satış yalnızca ürün beğenisine bağlı değildir. Ürünün görünürlüğü, erişilebilirliği, fiyat bilgisinin açıklığı ve mağaza içinde izlenen yol da satın alma kararını etkiler. Bu nedenle mağaza alanları yalnızca “boş metrekareler” olarak değil, farklı satış ve kârlılık potansiyellerine sahip kullanım bölgeleri olarak değerlendirilmelidir.
+Yüksek kira ödeyen ancak mağaza alanının hangi bölümünün satış ve brüt kâr ürettiğini ölçmeyen bir işletme, alan verimliliğini yönetemez.
+Her ürüne eşit görünürlük vermek neden doğru değildir?
+Mağaza yerleşiminde sık yapılan hatalardan biri, tüm ürünleri aynı yoğunlukta sergilemeye çalışmaktır. Çok sayıda ürün göstermek her zaman daha fazla satış anlamına gelmez. Aşırı ürün yoğunluğu:
+müşterinin yönünü bulmasını zorlaştırabilir,
+önemli ürünlerin fark edilmesini engelleyebilir,
+fiyat ve kategori karşılaştırmasını güçleştirebilir,
+mağazanın olduğundan daha küçük ve karmaşık görünmesine neden olabilir.
+Mağaza yerleşimi iki temel satın alma davranışını birlikte desteklemelidir:
+Planlı satış
+Müşterinin mağazaya gelmeden önce almayı düşündüğü ürünlerdir.
+Örnekler:
+temel mutfak gereçleri,
+standart beden ve renkte ürünler,
+sürekli kullanılan sarf ürünleri,
+önceden araştırılmış yüksek fiyatlı ürünler.
+Anlık karar satışı
+Müşterinin mağazada fark ederek değerlendirdiği, önceden alışveriş listesinde bulunmayan ürünlerdir.
+Örnekler:
+tamamlayıcı aksesuarlar,
+küçük hediyelik ürünler,
+kullanım alanı hemen anlaşılan düşük tutarlı ürünler,
+ana ürünle birlikte kullanılabilecek tamamlayıcılar.
+Bu iki ürün türünün aynı yöntemle sergilenmesi gerekmez. Planlı ürünler erişilebilir ve kolay bulunabilir olmalı; anlık karar ürünleri ise uygun bağlamda görünür hâle getirilmelidir.
+Sıcak, nötr ve soğuk bölgeler
+Mağaza içindeki trafik her alanda eşit değildir.
+Bazı müşteriler girişten sonra sağ tarafa, bazıları sol tarafa veya doğrudan belirli bir ürün grubuna yönelebilir. “Müşterilerin tamamı veya belirli sabit bir yüzdesi sağa döner” gibi genellemeler her mağaza için geçerli kabul edilmemelidir.
+Gerçek sıcak bölgeyi belirlemek için mağazanın kendi verisi kullanılmalıdır.
+Bunun için bir hafta boyunca:
+müşterilerin ilk yöneldiği alan,
+en fazla durduğu stant,
+en az ziyaret edilen raf,
+ürünlere dokunma veya inceleme noktaları,
+satış danışmanına en sık soru sorulan alanlar,
+kasa kuyruğunun mağaza akışını engellediği noktalar
+gözlemlenebilir.
+Sıcak bölge
+Müşterinin sık gördüğü, geçtiği veya durduğu alandır.
+Bu alanda şu ürünler test edilebilir:
+yüksek brüt kâr katkılı ürünler,
+yeni ürünler,
+markayı temsil eden ürünler,
+kampanyalı ancak kârlılığı korunmuş ürünler,
+ana ürünün tamamlayıcıları.
+Nötr bölge
+Müşterinin geçtiği ancak uzun süre durmadığı alandır.
+Bu alanlarda yönlendirme, kategori işareti veya ürün gruplandırmasıyla görünürlük artırılabilir.
+Soğuk bölge
+Müşterinin az ziyaret ettiği veya doğrudan görmediği alandır.
+Planlı alınan ürünlerin daha derin alanlarda bulunması müşterinin mağazanın diğer bölümlerinden geçmesini sağlayabilir. Ancak temel ihtiyaç ürünlerini özellikle bulunması zor hâle getirmek doğru değildir. Amaç müşteriyi yanıltmak değil, mağaza yolculuğunu düzenlemektir.
+Vitrin hangi sorulara cevap vermeli?
+Vitrin, mağazanın dışarıya açılan ilk iletişim alanıdır. Yoldan geçen kişinin vitrini ne kadar süre inceleyeceği konum, yaya trafiği, hız, vitrin büyüklüğü ve ürün türüne göre değişir. Bu nedenle sabit bir “üç saniye kuralı” yerine, mesajın kısa sürede anlaşılabilir olması hedeflenmelidir.
+Vitrin şu üç soruya mümkün olduğunca hızlı cevap vermelidir:
+Burada benim ihtiyacıma veya tarzıma uygun ne var?
+Mağazanın yaklaşık fiyat ve kalite seviyesi nedir?
+İçeri girmemi sağlayacak temel ilgi noktası nedir?
+Vitrine fazla sayıda ürün yığmak yerine:
+tek bir tema,
+açık bir odak noktası,
+anlaşılır fiyat iletişimi,
+yeterli boşluk,
+ürünü öne çıkaran aydınlatma
+kullanılması daha kontrollü bir sunum sağlar.
+“Üç ila beş ürün” gibi sayılar evrensel kural değildir. Kullanılacak ürün sayısı vitrin genişliğine, ürün boyutuna ve anlatılmak istenen hikâyeye göre belirlenmelidir.
+Kasa çevresinde çapraz satış
+Kasa alanı, müşterinin ana alışveriş kararını büyük ölçüde tamamladığı noktadır. Bu alan tamamlayıcı ürünler için kullanılabilir; ancak ödeme sürecini yavaşlatacak veya kasa çevresini kalabalıklaştıracak yoğunluk oluşturulmamalıdır.
+Kasa çevresindeki ürünler genellikle şu özellikleri taşımalıdır:
+ana alışveriş tutarına kıyasla daha düşük fiyatlı,
+işlevi kolay anlaşılan,
+uzun değerlendirme veya deneme gerektirmeyen,
+ana ürünle ilişkili,
+kolay taşınabilir,
+kasa akışını engellemeyecek boyutta.
+Kasa önü ürünlerinin başarısı yalnızca adet satışla ölçülmemelidir. Ürünün brüt kâr katkısı, stok devir hızı ve kasa süresine etkisi de değerlendirilmelidir.
+Mağaza Metrekare Verimliliği
+Alan performansını ölçmek için kullanılabilecek temel göstergeler:
+Metrekare başına ciro
+\[
+\text{Metrekare Başına Ciro}
+=
+\frac{\text{Bölgenin Dönem Cirosu}}
+{\text{Bölgenin Metrekare Alanı}}
+\]Metrekare başına brüt kâr
+\[
+\text{Metrekare Başına Brüt Kâr}
+=
+\frac{\text{Bölgenin Brüt Kârı}}
+{\text{Bölgenin Metrekare Alanı}}
+\]Sadece ciroya bakmak yanıltıcı olabilir. Yüksek ciro yapan düşük marjlı bir alan, daha düşük ciro yapan yüksek marjlı bir alandan daha az katkı üretebilir.
+Varsayımsal sayısal örnek
+Aşağıdaki örnek gerçek işletme verisi değil, hesaplama yöntemini göstermek için oluşturulmuş varsayımsal bir senaryodur.
+Kadıköy’de 120 m² alan üzerine kurulu bir ev tekstili ve dekorasyon mağazası olduğunu varsayalım.
+Aylık sabit giderler:
+kira,
+faturalar,
+mağaza genel giderleri
+toplam 180.000 TL olsun.
+Basitleştirilmiş ortalama sabit gider yükü:
+\[
+180.000 \div 120 = 1.500\ \text{TL/m²}
+\]Bu tutar doğrudan her metrekarenin gerçek maliyeti değildir. Depo, kasa, geçiş alanı ve satış alanı aynı işlevi görmez. Ancak ilk karşılaştırma için yaklaşık bir gösterge olarak kullanılabilir.
+Eski düzen
+Girişteki 15 m² alanda:
+aylık ciro: 45.000 TL,
+brüt kâr oranı: %15,
+brüt kâr: 6.750 TL.
+Yaklaşık alan gider yükü:
+\[
+15 \times 1.500 = 22.500\ \text{TL}
+\]Basitleştirilmiş karşılaştırmada alanın brüt kârı, alana dağıtılan sabit gider yükünün altında kalmaktadır.
+Yeni düzen
+Giriş alanına daha yüksek brüt kâr katkısı bulunan dekoratif ürünler yerleştirilsin.
+aylık ciro: 110.000 TL,
+brüt kâr oranı: %55,
+brüt kâr: 60.500 TL.
+Yaklaşık alan gider yükü çıkarıldığında:
+\[
+60.500 - 22.500 = 38.000\ \text{TL}
+\]Bu tutar “net kâr” değildir. Vergi, finansman, fire, personel, ürün iadeleri ve diğer değişken giderler hesaba katılmamıştır. Bu nedenle sonuç basitleştirilmiş alan katkısı olarak adlandırılmalıdır.
+Temel havluların arka bölüme taşındığı ve satışlarının düşmediği; kasa çevresi tamamlayıcı ürün satışlarının da arttığı varsayılmıştır. Gerçek işletmede bu sonuç ancak önce-sonra satış verileriyle doğrulanabilir.
+Kendi mağazanda uygulama
+Mağaza krokisini çıkar ve alanları bölgelere ayır:
+Bölge	Alan m²	Dönem cirosu	Brüt kâr	M² başına brüt kâr	Trafik seviyesi
+Giriş					Sıcak/Nötr/Soğuk
+Sağ koridor					
+Sol koridor					
+Arka bölüm					
+Kasa çevresi					
+
+
+Ardından şu kararlardan birini ver:
+ürün grubu değiştir,
+görünürlüğü artır,
+kategori işaretini iyileştir,
+alanı küçült veya büyüt,
+iki haftalık yerleşim testi yap,
+değişiklik öncesi ve sonrası sonuçları karşılaştır.
+Bu dersten çıkacak çalışma kaydınız
+Mağaza Metrekare Verimliliği ve Trafik Haritası Planı
+Çalışma kaydı şunları içermelidir:
+mağaza krokisi,
+sıcak, nötr ve soğuk alanlar,
+her alanın m² başına ciro ve brüt kârı,
+kasa çevresinde test edilecek tamamlayıcı ürünler,
+uygulanacak tek yerleşim değişikliği,
+değişikliğin ölçüleceği tarih aralığı,
+önce-sonra performans sonucu.
+Kaynak ve doğrulama notu
+T.C. Ticaret Bakanlığı: Perakende ticaretine ilişkin mevzuat ve bilgilendirmeler
+TOBB: Perakende sektör raporları
+SCORE: Küçük işletmeler için mağaza yerleşimi ve görsel sunum içerikleri
+Yayımdan önce kullanılan kaynakların doğrudan ilgili sayfası, yayın tarihi ve içerikteki iddiayı destekleyip desteklemediği ayrıca kontrol edilmelidir. Ana sayfa bağlantısı tek başına kaynak doğrulaması sayılmamalıdır.
+Sahada Stok ve Sayım Düzenini Kur
+Mağaza yerleşimini düzenlemek ve müşteriyi içeri çekmek satış sürecinin yalnızca bir bölümüdür. Müşteriye “ürün sistemde var görünüyor ancak rafta bulunamıyor” denmesi, yalnızca o anki satışı değil, işletmeye duyulan güveni de zedeler.
+Perakendede stok, işletmenin nakdinin ürüne dönüşmüş hâlidir. Stok doğruluğu düşük olduğunda işletme:
+olmayan ürünü satmaya çalışabilir,
+gerekli ürünü yeniden sipariş etmeyebilir,
+gereksiz ürün siparişi verebilir,
+kayıp ve fireyi geç fark edebilir,
+gerçek kârlılığını yanlış hesaplayabilir.
+Stok farkları şu nedenlerle oluşabilir:
+teslimat eksikleri,
+yanlış ürün kabulü,
+hatalı barkod,
+yanlış ürün koduyla satış,
+kırılma veya bozulma,
+kayıt dışı numune ve teşhir kullanımı,
+iade işlemlerinin yanlış kaydı,
+hırsızlık veya yetkisiz ürün çıkışı,
+sayım hatası.
+Yalnızca yıl sonunda yapılan sayım, farkın hangi dönemde ve hangi işlem nedeniyle oluştuğunu göstermekte yetersiz kalabilir.
+Kayan sayım neden kullanılır?
+Kayan sayım, tüm stoğu tek seferde saymak yerine ürün gruplarını belirli periyotlarla sayma yöntemidir.
+Amaç:
+mağazayı kapatmadan sayım yapmak,
+kritik ürünleri daha sık kontrol etmek,
+hatayı yıl sonunu beklemeden fark etmek,
+farkın kaynağını daha kolay araştırmaktır.
+Kayan sayım, yasal envanter ve dönem sonu yükümlülüklerinin yerine geçtiği varsayılmamalıdır. Vergi ve muhasebe açısından yapılması gereken resmî işlemler güncel mevzuat ve mali müşavir görüşüyle ayrıca değerlendirilmelidir.
+ABC sınıflandırması
+ABC analizi ürünleri işletme açısından önemine göre sınıflandırmak için kullanılabilir.
+Klasik örneklerde A grubunun az sayıda ürünle cironun büyük bölümünü oluşturduğu anlatılır. Ancak “ürünlerin kesin olarak %20’si cironun %80’ini oluşturur” şeklinde sabit bir sonuç beklenmemelidir.
+Her işletme kendi verisini kullanmalıdır.
+Sınıflandırmada şu ölçütlerden biri veya birkaçı kullanılabilir:
+yıllık satış tutarı,
+brüt kâr katkısı,
+ürünün maliyet değeri,
+kaybolma veya çalınma riski,
+tedarik süresi,
+stokta bulunmamasının satışa etkisi,
+bozulma veya kırılma riski.
+A grubu
+İşletme açısından yüksek değer veya yüksek risk taşıyan ürünler.
+Daha sık sayılabilir.
+B grubu
+Orta düzeyde değer ve risk taşıyan ürünler.
+Orta sıklıkta sayılabilir.
+C grubu
+Birim değeri veya finansal etkisi daha düşük ürünler.
+Daha seyrek sayılabilir; ancak yüksek adetli veya kolay kaybolan ürünler sırf düşük fiyatlı oldukları için tamamen kontrol dışı bırakılmamalıdır.
+Sınıflandırma örneği
+Ürün	Yıllık satış	Brüt kâr katkısı	Stok değeri	Risk	Grup
+Yatak örtüsü				Yüksek	A
+Nevresim takımı				Orta	B
+Küçük dekoratif mum				Düşük/Orta	C
+
+
+Sayım periyotları işletmenin ihtiyacına göre belirlenmelidir.
+Örnek başlangıç planı:
+A grubu: haftalık veya iki haftada bir,
+B grubu: aylık,
+C grubu: iki veya üç ayda bir.
+Bunlar zorunlu ve evrensel süreler değildir. Fark oranı yüksekse sayım sıklaştırılmalıdır.
+Raf ve depo eşleşmesi
+Stok doğruluğu ürün mağazaya ulaştığı anda başlar.
+Ürün kabulünde
+irsaliye veya teslimat belgesi kontrol edilmeli,
+koli adediyle yetinilmemeli,
+ürün miktarı ve ürün kodu doğrulanmalı,
+hasarlı ürün kaydedilmeli,
+eksik veya fazla teslimat belgelenmeli,
+mümkünse kabul eden personel ve tarih kayıt altına alınmalıdır.
+Depoda
+Her ürün için fiziksel bir adres bulunmalıdır.
+Örnek:
+D-02 / R-04 / K-03
+Bu kod:
+depo bölgesi,
+raf,
+kutu
+bilgilerini gösterebilir.
+Satış alanında
+raf doldurma sırasında ürün hareketi kaydedilmeli,
+teşhir ürünü ayrı statüde izlenmeli,
+satılamaz veya hasarlı ürün normal stoktan ayrılmalı,
+barkodsuz satış mümkün olduğunca engellenmelidir.
+Sayım farkı nasıl araştırılır?
+Sayım sonucu sistem stoğu ile fiili stok eşleşmiyorsa yalnızca düzeltme kaydı atılmamalıdır.
+Şunlar kontrol edilmelidir:
+Son ürün kabulü
+Son satış ve iade işlemleri
+Yanlış barkod veya ürün kodu
+Teşhir ürünü
+Hasarlı veya ayrılmış ürün
+Depolar arası aktarım
+Yetkisiz ürün çıkışı
+Önceki sayım hatası
+Farkın nedeni bilinmiyorsa “nedeni belirlenemedi” olarak kaydedilmeli; tahminle neden seçilmemelidir.
+Varsayımsal sayısal örnek
+Aşağıdaki örnek yöntemi göstermek için hazırlanmıştır; gerçek işletme vakası değildir.
+Mağazanın ortalama stok değeri maliyet fiyatıyla 800.000 TL olsun.
+Yıl sonunda:
+sistem stoğu ile fiili stok arasında 48.000 TL fark,
+yaklaşık fark oranı:
+\[
+48.000 \div 800.000 = \%6
+\]olarak hesaplanmış olsun.
+Bu oran tek başına “yıllık kayıp oranı” kabul edilmemelidir. Ortalama stok değeriyle dönem içindeki ürün hareketleri farklıdır. Daha doğru ölçüm için dönem başı, dönem sonu, alışlar, satışlar, iadeler ve stok düzeltmeleri birlikte incelenmelidir.
+Yeni sayım düzeni
+yüksek değerli ürünler belirlenir,
+her hafta küçük bir ürün grubu sayılır,
+ürün kabulünde çift kontrol uygulanır,
+yanlış barkodla satış raporlanır.
+İkinci ayda teslim edilen kolide:
+belgede 20 adet,
+fiilî teslimatta 16 adet
+bulunduğu varsayılsın.
+Eksik dört ürünün toplam maliyeti 8.000 TL ise, teslimat anındaki kontrol bu farkın işletme stok açığına dönüşmesini önler.
+Yıllık farkın sonraki dönemde 9.600 TL’ye düştüğünü varsayarsak:
+\[
+48.000 - 9.600 = 38.400\ \text{TL}
+\]fark azalması oluşur.
+Bu tutar doğrudan “net kâr” olarak adlandırılmamalıdır. Daha doğru ifade:
+Stok farklarının azalmasıyla korunan yaklaşık maliyet değeri.
+
+Kendi işletmende uygulama
+Önce en fazla 20 ürünle pilot başlat:
+Ürün	Sistem stoğu	Fiilî stok	Fark	Birim maliyet	Fark değeri	Olası neden
+						
+
+
+Ardından:
+ürünleri A, B ve C olarak sınıflandır,
+sayım gününü belirle,
+sorumlu kişiyi ata,
+kabul kontrol formu oluştur,
+dört hafta boyunca fark nedenlerini kaydet.
+Bu dersten çıkacak çalışma kaydınız
+ABC Stok Sınıflandırması ve Kayan Sayım Çizelgesi
+Çalışma kaydı:
+ürün listesi,
+sınıflandırma ölçütü,
+A/B/C grupları,
+sayım sıklığı,
+sayım sorumlusu,
+sistem-fiilî stok farkı,
+fark nedeni,
+düzeltici işlem,
+sonraki kontrol tarihini
+içermelidir.
+Kaynak ve doğrulama notu
+Gelir İdaresi Başkanlığı: envanter ve stok değerlemeye ilişkin güncel düzenlemeler
+TESK: esnaf ve işletme yönetimine ilişkin yayınlar
+U.S. Small Business Administration: küçük işletmelerde envanter yönetimi içerikleri
+Yayımdan önce doğrudan kaynak sayfaları ve ilgili düzenlemelerin güncel sürümü kontrol edilmelidir. Kayan sayımın resmî envanter yükümlülüklerinin yerine geçtiği yönünde ifade kullanılmamalıdır.
+Personel Vardiyasını ve Kasa Güvenini Yönet
+Mağazanın fiziksel düzeni ve stok sistemi ne kadar iyi olursa olsun, müşteriyi karşılayan, ürünü sunan ve ödemeyi alan taraf çalışanlardır.
+Perakendede personel planlamasının iki temel amacı vardır:
+Yoğun saatlerde yeterli hizmet kapasitesi sağlamak
+Sakin saatlerde gereksiz işçilik yükü oluşturmamak
+Buna ek olarak kasa işlemlerinin izlenebilir olması gerekir. Buradaki amaç çalışanı peşinen şüpheli kabul etmek değil; sorumlulukları, kayıtları ve devir süreçlerini açık hâle getirmektir.
+Trafiğe göre vardiya planlama
+Her gün ve her saat aynı müşteri yoğunluğuna sahip değildir.
+Vardiya planı yalnızca toplam çalışma saatine göre yapılırsa:
+sakin saatlerde fazla personel,
+yoğun saatlerde yetersiz personel,
+kasa kuyruğu,
+müşteriye geç yardım,
+çalışan yorgunluğu,
+kaçan satış
+oluşabilir.
+Vardiya planı oluştururken son 8-12 haftanın şu verileri incelenebilir:
+saatlik işlem sayısı,
+saatlik ciro,
+ortalama sepet tutarı,
+mağazaya giren kişi sayısı,
+kasa kuyruğu,
+ürün iadesi yoğunluğu,
+teslimat ve raf doldurma saatleri.
+Sadece ciroya bakmak yeterli değildir. Çok müşterili ancak düşük tutarlı saatler de yüksek personel ihtiyacı doğurabilir.
+Yoğunluk haritası
+Gün/Saat	İşlem sayısı	Ciro	Müşteri sayısı	Kasa kuyruğu	Gerekli görev
+Salı 14.00					
+Cuma 18.00					
+Cumartesi 16.00					
+
+
+Yoğun saatlerde görev dağılımı da belirlenmelidir:
+kasa,
+satış alanı,
+deneme alanı,
+depo desteği,
+ürün paketleme,
+iade işlemi.
+Yarı zamanlı veya çapraz vardiya kullanılabilir; ancak çalışma süreleri, ara dinlenmeleri, hafta tatili ve diğer iş hukuku yükümlülükleri güncel mevzuata uygun planlanmalıdır.
+Kasa güveni ve izlenebilirlik
+Kasa güvenliği “sıfır hata beklemek” yerine her işlemin kim tarafından, ne zaman ve hangi kayıtla yapıldığının görülebilmesini sağlamalıdır.
+Kullanıcı bazlı kasa erişimi
+Mümkünse her çalışan:
+kendi kullanıcı hesabıyla giriş yapmalı,
+şifresini paylaşmamalı,
+yaptığı işlem sistemde kendi hesabıyla görünmelidir.
+Tek çekmecenin birden fazla çalışan tarafından kullanıldığı işletmelerde vardiya geçişi kayıt altına alınmalıdır.
+Kasa devir işlemi
+Devir sırasında:
+çekmecedeki nakit sayılır,
+sistem bakiyesi kontrol edilir,
+POS toplamı alınır,
+iade ve iptal işlemleri incelenir,
+teslim eden ve teslim alan kayıt altına alınır.
+“Devir tutanağı” yalnızca imza için değil, farkın hangi vardiyada oluştuğunu belirlemek için kullanılmalıdır.
+Kasa nakit limiti
+Kasa çekmecesinde tutulacak üst nakit tutarı işletme tarafından risk, işlem hacmi ve güvenlik koşullarına göre belirlenebilir.
+Örneğin 5.000 TL gibi bir tutar kullanılabilir; ancak bu evrensel bir sınır değildir.
+Limit aşıldığında:
+ara nakit alımı yapılır,
+tutar kayıt altına alınır,
+parayı teslim eden ve alan belirlenir,
+güvenli saklama alanına aktarılır.
+Gün sonu mutabakatı
+Gün sonunda şu kayıtlar karşılaştırılmalıdır:
+sistemdeki satışlar,
+nakit satış toplamı,
+POS raporları,
+havale veya diğer ödeme yöntemleri,
+iadeler,
+iptaller,
+kasa alım ve çıkışları,
+fiilî nakit.
+Kasa farkı oluştuğunda çalışan hakkında doğrudan hüküm verilmemelidir. Önce:
+yanlış para üstü,
+yanlış ödeme türü,
+iptal veya iade hatası,
+eksik ara alım kaydı,
+sistem hatası,
+vardiya devir hatası
+araştırılmalıdır.
+Ücret kesintisi, çalışandan tahsilat veya disiplin işlemleri konusunda İş Kanunu, iş sözleşmesi ve hukuki süreçler dikkate alınmalıdır. Ders, çalışan ücretinden otomatik kesinti yapılmasını önermemelidir.
+Varsayımsal sayısal örnek
+Aşağıdaki senaryo hesaplama yöntemini göstermek için oluşturulmuştur.
+Mağazada üç tam zamanlı çalışan bulunduğunu varsayalım.
+Eski düzen
+Tüm çalışanlar aynı saatlerde çalışıyor olsun.
+Cumartesi yoğun saatlerde:
+mağazada aynı anda 25 müşteri,
+yetersiz hizmet kapasitesi,
+ödeme yapmadan çıkan müşteri gözlemi
+bulunsun.
+Kaçan satışın aylık 60.000 TL olduğu varsayılmıştır. Gerçek işletmede bu tutar doğrudan bilinemez; terk edilen sepet, müşteri gözlemi ve benzer saatlerin dönüşüm oranıyla tahmin edilmelidir.
+Aylık açıklanamayan kasa farkı da 3.500 TL olsun.
+Yeni düzen
+vardiyalar saatlik yoğunluğa göre değiştirilir,
+yoğun cumartesi saatlerine yarı zamanlı çalışan eklenir,
+kasa ve satış alanı görevleri ayrılır,
+vardiya devir formu uygulanır.
+Aylık cironun 45.000 TL arttığı varsayılsın.
+Net kâr marjı %25 ise:
+\[
+45.000 \times 0{,}25 = 11.250\ \text{TL}
+\]yaklaşık faaliyet kârı katkısı oluşabilir.
+Kasa farkı:
+\[
+3.500 - 150 = 3.350\ \text{TL}
+\]azalmış olsun.
+Bu durumda yarı zamanlı çalışanın ücret ve yan maliyetleri çıkarılmadan “14.600 TL net fayda” denmemelidir.
+Daha doğru hesap:
+\[
+\text{Yaklaşık Aylık Fayda}
+=
+11.250 + 3.350
+-
+\text{Ek Personelin Toplam Maliyeti}
+\]Toplam personel maliyetine ücret dışında işveren yükleri ve ilgili yan giderler de dâhil edilmelidir.
+Kendi mağazanda uygulama
+Son sekiz haftalık veriyi kullanarak:
+Gün ve saat bazında işlem sayısını çıkar.
+En yoğun beş zaman dilimini belirle.
+Bu saatlerde gereken görevleri yaz.
+Mevcut çalışan sayısını karşılaştır.
+Tek bir pilot vardiya değişikliği uygula.
+Kasa kuyruğu, satış ve çalışan maliyetini karşılaştır.
+Kasa farkı takibi için:
+Tarih	Vardiya	Sistem tutarı	Fiilî tutar	Fark	İncelenen neden	Sonuç
+						
+
+
+Bu dersten çıkacak çalışma kaydınız
+Saatlik Trafik Odaklı Vardiya Çizelgesi ve Kasa Devir-Teslim Protokolü
+Çalışma kaydı:
+saatlik yoğunluk haritası,
+görev bazlı personel ihtiyacı,
+pilot vardiya değişikliği,
+tahmini ek personel maliyeti,
+kasa devir formu,
+kasa farkı araştırma adımları,
+pilot öncesi ve sonrası sonuçları
+içermelidir.
+Kaynak ve doğrulama notu
+T.C. Çalışma ve Sosyal Güvenlik Bakanlığı: 4857 sayılı İş Kanunu ve çalışma süreleri
+Resmî Gazete: vardiya, çalışma süreleri ve ilgili yönetmelikler
+SCORE: perakende çalışan ve operasyon yönetimi içerikleri
+Çalışma süresi, vardiya, ücret kesintisi ve çalışan sorumluluğu gibi konularda yayımdan önce güncel mevzuat ve uzman görüşü kontrol edilmelidir.
+Mağaza Genişletme veya Taşıma Kararını Ver
+Mağazanın satış düzeni, stok kontrolü ve personel sistemi iyileştiğinde büyüme seçeneği gündeme gelebilir.
+İşletme genellikle üç seçenekle karşılaşır:
+Mevcut mağazada kalmak
+Daha büyük bir mağazaya taşınmak
+İkinci bir şube açmak
+Büyüme kararı yalnızca ciro artışı beklentisine göre verilmemelidir. Daha büyük bir mağaza:
+daha yüksek kira,
+daha fazla personel,
+daha yüksek enerji gideri,
+ek stok,
+dekorasyon ve taşınma maliyeti,
+daha karmaşık operasyon
+anlamına gelebilir.
+Ciro artarken faaliyet kârı azalabilir.
+Taşınma ve ikinci şube arasındaki fark
+Daha büyük mağazaya taşınma
+Olası avantajlar:
+tek yönetim noktası,
+mevcut müşteri bölgesini koruma,
+daha geniş ürün sunumu,
+operasyonun tek lokasyonda kalması.
+Olası riskler:
+kira ve sabit gider artışı,
+mevcut mağazanın taşınma sırasında kapanması,
+müşterilerin yeni konuma uyum sağlamaması,
+alan artışının ciroya aynı oranda yansımaması,
+yüksek dekorasyon yatırımı.
+İkinci şube
+Olası avantajlar:
+yeni müşteri bölgesine erişim,
+coğrafi çeşitlenme,
+marka görünürlüğünün artması,
+ilk mağazayı çalışır durumda tutma.
+Olası riskler:
+ikinci personel ve yönetim yapısı,
+stokların iki lokasyona bölünmesi,
+kontrol ve raporlama zorluğu,
+başlangıç döneminde düşük ciro,
+mevcut müşterilerin yeni şubeye kayması.
+Müşteri yamyamlaşması
+Yeni şubenin yaptığı her satış yeni satış olmayabilir.
+Mevcut müşteriler yeni şubeyi kullanmaya başlarsa toplam işletme cirosu beklenenden daha az artabilir.
+Yamyamlaşma oranı:
+\[
+\text{Yamyamlaşma Oranı}
+=
+\frac{\text{Yeni Şubeye Kayan Eski Şube Satışı}}
+{\text{Yeni Şubenin Toplam Satışı}}
+\]Bu oranı açılış öncesinde kesin olarak bilmek mümkün değildir. Şu verilerle senaryolaştırılabilir:
+müşteri adresleri veya bölge dağılımı,
+sadakat programı verileri,
+mevcut müşterilerin geldiği ilçeler,
+iki mağaza arasındaki ulaşım süresi,
+hedef müşteri profili,
+rakip yoğunluğu.
+Büyüme öncesi dört kontrol
+1. Kapasite sorunu gerçekten var mı?
+Şunlar kontrol edilmelidir:
+müşteriler yoğunluk nedeniyle mağazadan çıkıyor mu,
+stok için yeterli alan yok mu,
+ürün grupları sergilenemiyor mu,
+kasa veya deneme alanı tıkanıyor mu,
+metrekare başına satış ve brüt kâr zaman içinde artıyor mu?
+Düşük satışın nedeni kötü yerleşim veya zayıf talepse daha büyük mağaza sorunu çözmeyebilir.
+2. Başabaş ciro
+Yeni lokasyonun sabit giderini karşılamak için gereken ciro hesaplanmalıdır.
+\[
+\text{Başabaş Ciro}
+=
+\frac{\text{Aylık Sabit Gider}}
+{\text{Katkı Payı Oranı}}
+\]Katkı payı oranı, satıştan ürünle birlikte değişen giderler çıkarıldıktan sonra kalan oranı ifade eder. Sadece brüt kâr oranı kullanmak bazı işletmelerde yanıltıcı olabilir.
+3. Yatırımın geri dönüş süresi
+\[
+\text{Geri Dönüş Süresi}
+=
+\frac{\text{Başlangıç Yatırımı}}
+{\text{Aylık Ek Nakit Katkısı}}
+\]“18-24 ay her işletme için zorunlu sınırdır” denmemelidir. Kabul edilebilir süre:
+sektör,
+yatırım riski,
+kira sözleşmesi,
+finansman maliyeti,
+yatırımcının hedefi,
+alternatif yatırım seçenekleri
+gibi unsurlara göre değişir.
+4. Çalışma sermayesi
+Yeni mağaza hedeflenen satışa hemen ulaşmayabilir.
+En az üç senaryo hazırlanmalıdır:
+düşük satış,
+beklenen satış,
+güçlü satış.
+Her senaryoda işletmenin:
+kira,
+ücret,
+stok yenileme,
+vergi,
+kredi,
+genel gider
+ödemelerini sürdürebilip sürdüremediği kontrol edilmelidir.
+Varsayımsal sayısal örnek
+Aşağıdaki örnek gerçek yatırım önerisi değil, karar yöntemini göstermek için oluşturulmuş varsayımsal bir senaryodur.
+Mevcut mağaza
+aylık ciro: 500.000 TL,
+brüt kâr oranı: %45,
+brüt kâr: 225.000 TL,
+sabit gider: 150.000 TL.
+Basitleştirilmiş faaliyet katkısı:
+\[
+225.000 - 150.000 = 75.000\ \text{TL}
+\]Bu tutar vergi, finansman, amortisman ve tüm değişken giderleri içermediği sürece kesin net kâr olarak adlandırılmamalıdır.
+Seçenek 1: Daha büyük mağazaya taşınmak
+yeni kira: 200.000 TL,
+diğer sabit giderler: 110.000 TL,
+toplam sabit gider: 310.000 TL,
+taşınma ve dekorasyon yatırımı: 900.000 TL,
+tahmini ciro: 750.000 TL,
+brüt kâr oranı: %45.
+Brüt kâr:
+\[
+750.000 \times 0{,}45 = 337.500\ \text{TL}
+\]Basitleştirilmiş faaliyet katkısı:
+\[
+337.500 - 310.000 = 27.500\ \text{TL}
+\]Bu senaryoda ciro %50 artmasına rağmen sabit gider artışı nedeniyle faaliyet katkısı düşmektedir.
+Daha büyük mağazanın mevcut mağazaya göre aylık katkı farkı:
+\[
+27.500 - 75.000 = -47.500\ \text{TL}
+\]Bu varsayımlar altında yatırım geri dönüşü oluşmamaktadır.
+Seçenek 2: İkinci şube açmak
+Yeni şube için:
+kira: 70.000 TL,
+personel ve diğer sabit giderler: 50.000 TL,
+toplam sabit gider: 120.000 TL,
+kurulum maliyeti: 600.000 TL,
+tahmini ciro: 350.000 TL,
+brüt kâr oranı: %45.
+Brüt kâr:
+\[
+350.000 \times 0{,}45 = 157.500\ \text{TL}
+\]Basitleştirilmiş aylık faaliyet katkısı:
+\[
+157.500 - 120.000 = 37.500\ \text{TL}
+\]Geri dönüş süresi:
+\[
+600.000 \div 37.500 = 16\ \text{ay}
+\]Ancak bu hesap şu varsayımlara bağlıdır:
+eski mağazanın cirosu düşmüyor,
+yamyamlaşma oluşmuyor,
+yeni şube ilk aydan hedef ciroya ulaşıyor,
+ek merkez yönetim ve lojistik maliyeti yok,
+finansman maliyeti bulunmuyor,
+vergi ve amortisman etkisi hesaba katılmıyor.
+Bu nedenle tek bir 16 aylık sonuca dayanarak karar verilmemelidir.
+Üç senaryolu değerlendirme
+Senaryo	Yeni şube cirosu	Brüt kâr	Sabit gider	Aylık katkı	Geri dönüş
+Düşük	250.000	112.500	120.000	-7.500	Oluşmuyor
+Beklenen	350.000	157.500	120.000	37.500	16 ay
+Güçlü	450.000	202.500	120.000	82.500	Yaklaşık 7,3 ay
+
+
+Bu tablo kararın tek tahmine ne kadar duyarlı olduğunu gösterir.
+Karar
+Verilen varsayımlar altında daha büyük mağazaya taşınmak faaliyet katkısını azaltmaktadır. İkinci şube seçeneği ise beklenen ve güçlü satış senaryolarında daha avantajlı görünmektedir.
+Ancak nihai karar için:
+düşük satış senaryosu,
+yamyamlaşma,
+çalışma sermayesi,
+kurulum gecikmesi,
+finansman maliyeti,
+kira sözleşmesi,
+operasyon kapasitesi
+ayrıca değerlendirilmelidir.
+Kendi işletmende uygulama
+Üç seçeneği karşılaştır:
+Ölçüt	Mevcut yerde kal	Daha büyük yere taşın	İkinci şube
+Başlangıç yatırımı			
+Aylık sabit gider			
+Düşük senaryo cirosu			
+Beklenen ciro			
+Güçlü senaryo cirosu			
+Başabaş ciro			
+Aylık faaliyet katkısı			
+Çalışma sermayesi ihtiyacı			
+Yamyamlaşma riski			
+Operasyon riski			
+
+
+Kararı yalnızca en yüksek ciro tahminine göre değil, düşük senaryoda işletmenin ayakta kalıp kalamayacağına göre ver.
+Bu dersten çıkacak çalışma kaydınız
+Şubeleşme ve Lokasyon Taşıma Fizibilite Analizi
+Çalışma kaydı:
+mevcut mağaza performansı,
+üç büyüme seçeneği,
+başlangıç yatırımı,
+başabaş ciro,
+düşük/beklenen/güçlü senaryolar,
+geri dönüş süresi,
+yamyamlaşma riski,
+çalışma sermayesi ihtiyacı,
+karar ve gerekçesini
+içermelidir.
+Kaynak ve doğrulama notu
+T.C. Ticaret Bakanlığı: perakende ve taşınmaz ticaretine ilişkin düzenlemeler
+KOSGEB: güncel işletme geliştirme ve destek programları
+SCORE: ikinci lokasyon ve işletme büyütme rehberleri
+Destek programları, kira ve taşınmaz düzenlemeleri zamanla değişebilir. Yayımdan önce programın yürürlükte olduğu, hedef kitle şartları ve güncel resmî başvuru sayfası doğrulanmalıdır. Finansman, vergi, hukuk ve kira sözleşmesi kararlarında ilgili uzmanlardan destek alınmalıdır.
+
+anka Kredisi mi, KOSGEB Desteği mi?
+Büyümek isteyen bir işletmenin karşılaştığı ilk büyük sorulardan biri, ihtiyaç duyduğu finansmanı hangi kaynaktan sağlayacağıdır.
+Bu karar çoğu zaman şu kadar basit ele alınır:
+“Devlet desteği bedavadır, banka kredisi pahalıdır.”
+
+Oysa finansmanda yalnızca görünen faiz veya destek tutarı karşılaştırılmaz. Yanlış zamanda kullanılan, işletmenin nakit akışına uymayan veya başvuru şartları doğru anlaşılmadan planlanan bir kaynak, kâğıt üzerinde ucuz görünse bile işletme için pahalı olabilir.
+Banka kredileri ile KOSGEB programları her zaman birbirinin doğrudan alternatifi değildir. Bazı KOSGEB programları banka kredisi üzerinden finansman maliyeti desteği sağlarken bazı programlar geri ödemeli veya geri ödemesiz farklı destek unsurları içerebilir. Destek şekli, uygun sektörler, harcama kalemleri, kredi limitleri, başvuru dönemi ve değerlendirme şartları programa göre değişir. Bu nedenle “KOSGEB desteği” tek tip bir finansman ürünü gibi değerlendirilmemelidir. KOSGEB
+Önce finansman ihtiyacını tanımla
+Karşılaştırmaya geçmeden önce işletme şu sorulara cevap vermelidir:
+Para hangi amaçla kullanılacak?
+Yatırımın yapılması gereken son tarih nedir?
+Harcama tek seferde mi, aşamalı mı yapılacak?
+İşletmenin ön ödeme veya özkaynak kapasitesi var mı?
+Yeni yatırım ne zaman gelir üretmeye başlayacak?
+İlk altı ayda beklenen gelir oluşmazsa borç nasıl ödenecek?
+Başvurulan destek programı bu sektör ve harcama için uygun mu?
+Destek başvurusu kabul edilmezse alternatif finansman nedir?
+Finansman seçimi, yalnızca “kredi mi, hibe mi?” sorusu değildir. Asıl soru şudur:
+İşletmenin ihtiyacına, zamanlamasına ve geri ödeme kapasitesine en uygun finansman bileşimi hangisidir?
+
+Banka kredisi nasıl değerlendirilir?
+Banka kredisi işletmeye belirli bir vade, faiz, masraf ve teminat koşuluyla borç sağlar.
+Banka değerlendirmesinde şu unsurlar etkili olabilir:
+işletmenin geçmiş finansal performansı,
+nakit akışı,
+mevcut borçları,
+kredi ödeme geçmişi,
+teminat yapısı,
+sektör riski,
+yatırımın niteliği,
+ortak ve kefil yapısı.
+Onay süresi her işletme için aynı değildir. “Kredi kesin olarak on günde çıkar” gibi bir varsayım kullanılmamalıdır.
+Kredi karşılaştırmasında yalnızca ilan edilen faiz oranına değil şunlara bakılmalıdır:
+toplam geri ödeme,
+tahsis ücreti,
+ekspertiz ve teminat giderleri,
+sigorta giderleri,
+erken ödeme koşulları,
+taksit başlangıç tarihi,
+değişken veya sabit faiz yapısı,
+borç servisinin aylık nakit akışına etkisi.
+KOSGEB desteği nasıl değerlendirilir?
+KOSGEB destekleri programdan programa değişir.
+Örneğin 2026 Kapasite Geliştirme Destek Programı, uygun işletmelerin anlaşmalı finans kuruluşlarından kullandığı kredilerin finansman maliyetine destek sağlayan bir yapıdadır. Program sayfasında makine-teçhizat, yazılım, personel ve belirli hizmet alımlarının destek kapsamındaki giderler arasında yer aldığı; kredi limitleri, proje süresi ve azami vade gibi koşulların program belgelerinde düzenlendiği görülmektedir. Bu program doğrudan “makinenin %60’ı geri ödemesiz hibe edilir” şeklinde anlatılmamalıdır. KOSGEB
+KOSGEB değerlendirmesinde şu sorular sorulmalıdır:
+İşletme programın sektör ve ölçek şartlarını sağlıyor mu?
+Başvuru dönemi açık mı?
+Gider kalemi program kapsamında mı?
+Harcama başvurudan önce yapılabilir mi?
+Kullanılacak banka ve kredi ürünü uygun mu?
+KOSGEB hangi finansman maliyetini, hangi sınırlar içinde karşılıyor?
+Kredi anaparasını kim ve hangi takvimle ödeyecek?
+Projenin tamamlanma ve raporlama yükümlülükleri neler?
+Destek alınamazsa yatırım sürdürülebilir mi?
+Kararı belirleyen beş boyut
+1. Zamanlama
+Yatırımın gecikmesi müşterinin, sözleşmenin veya pazar fırsatının kaybedilmesine yol açıyor mu?
+2. Toplam finansman maliyeti
+Yalnızca faiz değil, tüm masraf ve yükümlülükler hesaplanmalıdır.
+3. Nakit akışı uyumu
+Yatırım gelir üretmeye başlamadan kredi taksitleri başlayacak mı?
+4. Uygunluk ve onay riski
+Destek başvurusunun değerlendirilmesi kesin kabul anlamına gelmez.
+5. Esneklik
+Makine, tedarikçi, bütçe veya proje takvimi değişirse program revizyonuna ihtiyaç doğacak mı?
+Fırsat maliyetini nasıl hesaplayacaksın?
+Bir yatırımın gecikmesi nedeniyle kaybedilecek katkı şu şekilde tahmin edilebilir:
+\[
+\text{Gecikmenin Fırsat Maliyeti}
+=
+\text{Kaybedilecek Satış Katkısı}
++
+\text{Müşteri Kaybı}
++
+\text{Gecikme Cezaları}
++
+\text{Diğer Ek Maliyetler}
+\]Burada satış tutarı ile kâr birbirine karıştırılmamalıdır.
+1.500.000 TL’lik sipariş, doğrudan 1.500.000 TL net kâr anlamına gelmez. Ürün maliyeti, işçilik, sevkiyat, garanti, vergi, finansman ve operasyon giderleri çıkarılmalıdır.
+Düzeltilmiş varsayımsal senaryo
+Aşağıdaki senaryo yöntem göstermek için oluşturulmuştur; gerçek bir KOSGEB program teklifi veya banka teklifi değildir.
+Ege Otomasyon, 2.000.000 TL tutarında CNC makinesi almak istiyor.
+Makinenin işletmeye kazandıracağı sipariş için:
+satış geliri: 3.000.000 TL,
+doğrudan üretim ve teslimat giderleri: 1.900.000 TL,
+tahmini faaliyet katkısı: 1.100.000 TL
+olsun.
+Seçenek A - Banka kredisi
+Banka şu teklifi sunsun:
+kredi: 2.000.000 TL,
+vade: 24 ay,
+toplam faiz ve diğer kredi maliyetleri: teklif tarihindeki geri ödeme planına göre 1.050.000 TL,
+tahmini erişim süresi: 10 gün.
+Buradaki 1.050.000 TL, bankanın yazılı geri ödeme tablosuyla doğrulanmalıdır. Aylık oranı yıllık “basit faiz” diye çevirmek yerine toplam ödeme planı kullanılmalıdır.
+Seçenek B - KOSGEB bağlantılı finansman desteği
+İşletmenin güncel Kapasite Geliştirme Destek Programına uygun olduğu varsayılsın.
+Ancak şu noktalar başvuru belgelerinden doğrulanmadan hesap yapılmamalıdır:
+uygun kredi tutarı,
+destek puanı,
+kredi vadesi,
+bankanın faiz oranı,
+desteklenecek finansman maliyeti,
+başvuru ve onay süresi,
+yatırımın hangi aşamada başlatılabileceği.
+Bu nedenle senaryoda “%60 hibe ve altı ay sonra 1.200.000 TL ödeme” varsayımı kaldırılmalıdır.
+Karar matrisi
+Ölçüt	Banka kredisi	KOSGEB bağlantılı finansman
+Paraya erişim zamanı	Banka değerlendirmesine bağlı	Başvuru, uygunluk ve banka sürecine bağlı
+Anapara yükümlülüğü	İşletmede	Program yapısına göre işletmede
+Finansman maliyeti	Banka teklifine göre	Banka maliyeti eksi uygun destek
+Başvuru riski	Kredi onay riski	Program uygunluğu + kredi onay riski
+Harcama esnekliği	Sözleşmeye göre daha yüksek olabilir	Program kurallarına bağlı olabilir
+Raporlama	Banka belgeleri	Program ve banka belgeleri
+Zaman kritik yatırım	Uygun olabilir	Süreç ayrıca doğrulanmalı
+
+
+Karar kuralı
+Banka kredisi şu durumda daha uygun olabilir:
+yatırım gecikemiyorsa,
+borç servisi karşılanabiliyorsa,
+kredi maliyeti yatırımın üreteceği gerçek katkının altındaysa,
+destek süreci fırsatın kaçmasına neden olacaksa.
+KOSGEB bağlantılı finansman şu durumda daha uygun olabilir:
+işletme program şartlarını sağlıyorsa,
+yatırım takvimi başvuru süreciyle uyumluysa,
+finansman desteği toplam maliyeti anlamlı şekilde düşürüyorsa,
+raporlama ve proje şartları yönetilebiliyorsa.
+İki kaynak birlikte de kullanılabilir. Ancak aynı harcamanın birden fazla kamu desteğine konu edilip edilemeyeceği program belgelerinden kontrol edilmelidir.
+Bu dersten çıkacak çalışma kaydınız
+Banka Kredisi-KOSGEB Finansman Seçim Karar Matrisi
+Çalışma kaydı:
+yatırım ihtiyacı,
+son finansman tarihi,
+banka toplam geri ödeme teklifi,
+KOSGEB program uygunluk koşulları,
+destek sonrası tahmini finansman maliyeti,
+gecikmenin fırsat maliyeti,
+aylık borç servisi,
+düşük/beklenen/güçlü gelir senaryoları,
+başvuru reddi durumundaki alternatif,
+karar ve gerekçe
+alanlarını içermelidir.
+Kaynaklar
+KOSGEB - Kapasite Geliştirme Destek Programı ve güncel başvuru kılavuzu. KOSGEB
+TCMB - Banka kredi faiz istatistikleri. EVDS
+KOSGEB - Güncel destek çağrıları ve dönem duyuruları. KOSGEB
+Program koşulları ve banka teklifleri zaman içinde değişebilir. Kullanıcı güncel KOSGEB program sayfasını, başvuru kılavuzunu ve bankanın yazılı geri ödeme planını kontrol etmelidir.
+Melek Yatırımcıya Hazır mıyım?
+Melek yatırım, geri ödemesiz kredi değildir.
+Yatırımcı şirkete borç vermek yerine çoğunlukla pay edinir veya gelecekte paya dönüşebilecek bir yatırım aracı kullanır. Bunun karşılığında şirketin gelecekteki değer artışından faydalanmayı hedefler.
+Ancak bütün melek yatırımcıların “beş ila yedi yılda kesin 10 kat getiri” aradığı söylenemez. Beklenen getiri, süre, sektör, yatırım aşaması ve yatırımcının stratejisine göre değişir. Bu nedenle 10x ve belirli çıkış süresi evrensel kural gibi sunulmamalıdır.
+Türkiye’de lisanslı bireysel katılım yatırımcıları ve bunların vergi desteğine ilişkin ayrı bir mevzuat sistemi bulunmaktadır. Ancak her melek yatırımcı lisanslı olmak zorunda değildir ve her yatırım bu sistem kapsamına girmez. MS HMB
+Melek yatırım ile gelen değişiklik
+Yatırım alındığında kurucu:
+şirketin belirli bir payını devredebilir,
+bilgi ve raporlama yükümlülüğü üstlenebilir,
+bazı önemli işlemlerde yatırımcı onayına ihtiyaç duyabilir,
+yönetim kurulu veya gözlemci yapısıyla karşılaşabilir,
+sonraki yatırım turlarına ilişkin yükümlülükler üstlenebilir.
+Ancak “yatırım aldıktan sonra artık her kararda izin alınır” sonucu da otomatik değildir. Kontrol düzeyi ana sözleşme, pay sahipleri sözleşmesi, yatırım sözleşmesi ve yönetim yapısına göre belirlenir.
+Yatırıma hazırlığın beş kapısı
+1. Yatırım gereksinimi
+İşletme gerçekten özsermaye yatırımına mı ihtiyaç duyuyor?
+Şu durumlarda başka finansman seçenekleri daha uygun olabilir:
+kısa süreli işletme sermayesi açığı,
+öngörülebilir geri ödemesi olan makine yatırımı,
+büyüme için düşük tutarlı finansman ihtiyacı,
+şirket payı vermeden karşılanabilecek ihtiyaçlar.
+Özsermaye yatırımı genellikle yüksek belirsizlik, hızlı büyüme ve uzun geri dönüş süresi bulunan işlerde daha anlamlıdır.
+2. Ölçeklenebilirlik
+Şirketin büyümesi her yeni satışta aynı oranda personel, fiziksel alan ve yatırım gerektiriyor mu?
+Bir üretim şirketi veya hizmet işletmesi de yatırım alabilir. “Yıllık %20 büyüyen üretim işletmesi yatırımcı için cazip değildir” biçimindeki kesin ifade çıkarılmalıdır.
+Önemli olan:
+pazarın büyüklüğü,
+kapasite artış yöntemi,
+brüt kâr yapısı,
+rekabet avantajı,
+teknoloji veya dağıtım üstünlüğü,
+yatırımın büyümeyi nasıl hızlandıracağıdır.
+3. Pazar doğrulaması
+Yatırımcıya sunulabilecek kanıtlar:
+ödeme yapan müşteri,
+pilot sözleşmeler,
+tekrar satın alma,
+kullanım oranı,
+müşteri kaybı,
+satış hattı,
+müşteri edinme maliyeti,
+brüt kâr,
+ürünün çözdüğü ölçülebilir problem.
+Fikir aşamasında yatırım mümkün olsa da doğrulanmış müşteri kanıtı yatırım görüşmesini güçlendirir.
+4. Kurumsal ve hukuki hazırlık
+Kontrol edilmesi gerekenler:
+şirketin pay yapısı,
+kurucu payları,
+varsa geçmiş yatırım sözleşmeleri,
+fikri mülkiyetin kime ait olduğu,
+çalışan ve yüklenici sözleşmeleri,
+mali kayıtların düzeni,
+vergi ve SGK yükümlülükleri,
+önemli müşteri ve tedarikçi sözleşmeleri,
+devam eden uyuşmazlıklar.
+“Çift imzalı muhasebe” genel bir TTK zorunluluğu gibi sunulmamalıdır. İmza ve temsil yapısı şirketin ana sözleşmesine ve yetki kararlarına göre değişir.
+5. Kurucu uyumu
+Kurucu şu sorulara açık cevap vermelidir:
+Şirketin bir bölümünü paylaşmaya hazır mıyım?
+Düzenli raporlama yapabilir miyim?
+Kritik konuları ortakla müzakere edebilir miyim?
+Gelecekte pay satışı veya şirket satışı ihtimaline nasıl bakıyorum?
+Yatırımcıyla hedef süre ve büyüme stratejimiz uyumlu mu?
+Kurucunun şirketi mutlaka tamamen satmaya hazır olması gerekmez. Ancak yatırımcının olası çıkış beklentisiyle kurucunun uzun vadeli amacı uyumlu olmalıdır.
+Düzeltilmiş sayısal senaryo
+AgroTrack IoT için:
+ödeme yapan müşteri: 3 tesis,
+yıllık tekrarlayan gelir: 180.000 TL,
+brüt kâr oranı: %85,
+talep edilen yatırım: 3.000.000 TL,
+teklif edilen pay: %15.
+Değerleme hesabı
+3.000.000 TL yatırım, yatırım sonrası %15 pay karşılığıysa:
+\[
+\text{Post-money Değerleme}
+=
+3.000.000 \div 0{,}15
+=
+20.000.000\ \text{TL}
+\]\[
+\text{Pre-money Değerleme}
+=
+20.000.000 - 3.000.000
+=
+17.000.000\ \text{TL}
+\]ARR çarpanı:
+\[
+17.000.000 \div 180.000
+\approx 94{,}4
+\]Bu oran yüksektir; ancak “Türkiye’de kabul gören kesin çarpan 6x-12x’tir” ifadesi güvenilir ve güncel bir veri seti olmadan kullanılmamalıdır.
+Erken aşama değerlemeleri yalnızca ARR üzerinden yapılmaz. Şunlar da etkili olabilir:
+teknoloji ve fikri mülkiyet,
+pazar büyüklüğü,
+müşteri niteliği,
+büyüme oranı,
+satış hattı,
+kurucu ekip,
+stratejik değer,
+karşılaştırılabilir yatırım işlemleri.
+Go/No-Go değerlendirmesi
+Sadece üç müşteri ve 180.000 TL ARR bulunması otomatik “NO-GO” anlamına gelmez. Ancak şu riskleri doğurur:
+tek müşteri kaybına yüksek hassasiyet,
+fiyatlandırmanın yeterince doğrulanmaması,
+müşteri edinme sürecinin tekrar edilebilir olmaması,
+değerleme iddiasının kanıtlanmasının zor olması.
+Daha sağlıklı karar:
+Şartlı bekleme / yatırım hazırlığını güçlendir.
+
+Şirket şu hedefleri belirleyebilir:
+müşteri sayısını artırmak,
+hiçbir müşterinin toplam gelirin aşırı büyük bölümünü oluşturmamasını sağlamak,
+yenileme ve müşteri kaybı verisi toplamak,
+satış süresini ölçmek,
+fikri mülkiyet ve sözleşmeleri düzenlemek,
+yatırım kullanım planını hazırlamak.
+750.000 TL ARR’ye ulaşılması yatırımın kesin uygun hâle geldiği veya değerin tam 10x ARR olacağı anlamına gelmez. Bu rakam iç hedef olabilir, evrensel değerleme kuralı değildir.
+Yatırım hazırlık kartı
+Alan	Kanıt	Durum
+Gerçek müşteri	Fatura/sözleşme	Hazır/Geliştirilmeli
+Tekrarlayan gelir	MRR/ARR raporu	
+Müşteri yoğunlaşması	İlk üç müşterinin payı	
+Büyüme	Son 6-12 ay	
+Brüt kâr	Doğrulanmış finansal veri	
+Fikri mülkiyet	Şirket adına kayıt/sözleşme	
+Pay yapısı	Güncel pay defteri	
+Yatırım kullanım planı	18-24 aylık bütçe	
+Kurucu uyumu	Ortak hedef belgesi	
+Çıkış beklentisi	Görüşme notu	
+
+
+Bu dersten çıkacak çalışma kaydınız
+Melek Yatırım Uygunluk ve Hazırlık Kartı
+Çalışma kaydı:
+neden yatırım istendiği,
+finansman alternatifleri,
+müşteri ve gelir kanıtı,
+ölçeklenebilirlik açıklaması,
+fikri mülkiyet durumu,
+pay sahipliği yapısı,
+yatırım kullanım planı,
+kurucu-yatırımcı hedef uyumu,
+eksik belgeler,
+“görüşmeye hazır / hazırlık gerekli / uygun değil” kararı
+içermelidir.
+Kaynaklar
+Hazine ve Maliye Bakanlığı - Bireysel Katılım Sermayesi Yönetmeliği ve sık sorulan sorular. MS HMB
+Hazine ve Maliye Bakanlığı - BKS ilerleme raporları. MS HMB
+Ortaklık Teklifini Değerlendir
+Bir yatırımcıdan veya stratejik ortaktan gelen teklif yalnızca yatırım tutarı ve hisse oranından ibaret değildir.
+Değerleme önemli olsa da anlaşmanın ekonomik ve yönetsel etkisi şu alanlarda ortaya çıkar:
+tasfiye önceliği,
+oy ve veto hakları,
+yönetim kurulu yapısı,
+bilgi alma hakları,
+kurucu bağlılığı,
+pay devri,
+sonraki yatırım turları,
+satış ve çıkış hükümleri.
+Term sheet çoğu zaman bağlayıcı olmayan ana ticari çerçeveyi içerir. Ancak gizlilik, münhasırlık, masraflar ve uygulanacak hukuk gibi bazı maddeler bağlayıcı olabilir. Her belge kendi metnine göre incelenmelidir.
+Önce değerleme matematiğini doğrula
+Pre-money
+Yatırım öncesi şirket değeridir.
+Post-money
+Yatırım sonrası şirket değeridir.
+\[
+\text{Post-money}
+=
+\text{Pre-money}
++
+\text{Yatırım}
+\]Yatırımcı payı:
+\[
+\text{Yatırımcı Payı}
+=
+\frac{\text{Yatırım}}
+{\text{Post-money Değerleme}}
+\]Örneğin:
+pre-money: 10.000.000 TL,
+yatırım: 2.000.000 TL,
+ise:
+\[
+2.000.000 \div 12.000.000
+=
+\%16{,}67
+\]Ancak 10.000.000 TL post-money değerleme üzerinden 2.000.000 TL yatırım yapılırsa pay %20 olur.
+Tasfiye önceliği
+Tasfiye önceliği, şirketin satılması, birleşmesi veya sözleşmede tanımlanan başka bir likidite olayında dağıtım sırasını etkileyebilir.
+1x non-participating
+Yatırımcı çoğunlukla:
+yatırdığı tutarı alma,
+veya normal pay dağılımına katılma
+seçeneklerinden avantajlı olanı kullanır.
+Participating
+Yatırımcı önce öncelik tutarını alabilir, ardından kalan dağıtıma hissesi oranında tekrar katılabilir.
+2x participating
+Yatırımcı önce yatırımının iki katını alabilir ve şartlara göre kalan tutara da katılabilir.
+Bu hükümlerin etkisi satış değerine, diğer yatırım turlarına ve sözleşme ayrıntılarına göre değişir. “Kurucuya kesin sıfır kalır” demek yerine farklı satış senaryoları hesaplanmalıdır.
+Veto ve yönetim hakları
+Yatırımcı düşük bir paya sahip olsa bile belirli işlemler için onay hakkı isteyebilir.
+Örnek işlemler:
+yeni borçlanma,
+büyük yatırım,
+bütçe dışı harcama,
+üst düzey yönetici değişikliği,
+yeni pay çıkarılması,
+şirket varlıklarının satılması,
+ilişkili taraf işlemleri,
+esas faaliyet alanının değiştirilmesi.
+Sorulması gerekenler:
+veto yalnızca olağanüstü işlemler için mi?
+parasal sınır şirket ölçeğine uygun mu?
+günlük faaliyetleri kilitliyor mu?
+yatırımcı cevap vermezse süreç nasıl işleyecek?
+acil işlem istisnası var mı?
+limit enflasyon veya şirket büyüklüğüne göre güncellenecek mi?
+Tag-along ve drag-along
+Tag-along
+Belirli bir ortağın payını satması durumunda diğer pay sahiplerinin de aynı veya benzer koşullarla satışa katılabilmesini sağlayabilir.
+Drag-along
+Belirli koşullarda diğer pay sahiplerinin de şirket satışına katılmasını zorunlu kılabilir.
+Drag-along maddesinde şu noktalar incelenmelidir:
+hangi çoğunlukla devreye girdiği,
+minimum şirket değeri,
+satış koşullarının tüm pay sahipleri için aynı olup olmadığı,
+nakit dışı ödeme olup olmadığı,
+sorumluluk ve garanti sınırları,
+kurucunun kişisel sorumluluğu.
+Vesting ve ayrılma koşulları
+Kurucu vesting yapısı şu sorularla değerlendirilmelidir:
+süre ne kadar?
+başlangıçta hak edilmiş pay var mı?
+cliff süresi var mı?
+şirket satılırsa hızlandırma uygulanıyor mu?
+good leaver ve bad leaver nasıl tanımlanıyor?
+geri alınacak pay hangi bedelden hesaplanıyor?
+sağlık, ölüm, haklı fesih gibi durumlar nasıl düzenleniyor?
+“Üç veya dört yıl doğaldır” denebilir ancak zorunlu standart gibi sunulmamalıdır.
+Düzeltilmiş senaryo
+Teklif:
+yatırım: 5.000.000 TL,
+yatırımcı payı: %30,
+pre-money değerleme: yaklaşık 11.666.667 TL,
+post-money değerleme: yaklaşık 16.666.667 TL,
+tasfiye önceliği: 2x participating.
+Önceki metindeki 11.660.000 TL yaklaşık değerdir; matematiksel olarak:
+\[
+5.000.000 \div 0{,}30
+=
+16.666.667\ \text{TL post-money}
+\]\[
+16.666.667 - 5.000.000
+=
+11.666.667\ \text{TL pre-money}
+\]Şirket üç yıl sonra 25.000.000 TL’ye satılırsa
+Senaryo A - 2x participating
+Öncelik:
+\[
+5.000.000 \times 2
+=
+10.000.000\ \text{TL}
+\]Kalan:
+\[
+25.000.000 - 10.000.000
+=
+15.000.000\ \text{TL}
+\]Yatırımcının kalan tutardaki %30 payı:
+\[
+15.000.000 \times 0{,}30
+=
+4.500.000\ \text{TL}
+\]Toplam yatırımcı dağıtımı:
+\[
+10.000.000 + 4.500.000
+=
+14.500.000\ \text{TL}
+\]Kurucular:
+\[
+15.000.000 \times 0{,}70
+=
+10.500.000\ \text{TL}
+\]Hesap, başka pay sınıfları, çalışan opsiyonları, işlem giderleri, vergiler ve borçlar olmadığı varsayımına dayanır.
+Senaryo B - 1x non-participating
+Yatırımcı şu iki tutarı karşılaştırır:
+yatırım tutarı: 5.000.000 TL,
+pay oranına göre tutar:
+\[
+25.000.000 \times 0{,}30
+=
+7.500.000\ \text{TL}
+\]Pay tutarı yüksek olduğu için 7.500.000 TL seçilir.
+Kurucular:
+\[
+25.000.000 - 7.500.000
+=
+17.500.000\ \text{TL}
+\]Fark
+\[
+17.500.000 - 10.500.000
+=
+7.000.000\ \text{TL}
+\]Aynı değerleme ve yatırım tutarında yalnızca tasfiye önceliği maddesi, bu basitleştirilmiş senaryoda kurucu dağıtımını 7.000.000 TL değiştirmektedir.
+Karşı teklif hazırlanırken
+Tek bir maddeye odaklanma. Şu paket birlikte değerlendirilmelidir:
+pre-money/post-money değerleme,
+çalışan opsiyon havuzu,
+tasfiye önceliği,
+veto listesi,
+yönetim kurulu,
+bilgi hakları,
+anti-dilution,
+pay devri,
+tag/drag,
+vesting,
+kurucu maaşı,
+sonraki yatırım turu,
+münhasırlık süresi,
+masraf yükümlülüğü.
+250.000 TL veya 1.000.000 TL harcama sınırı evrensel olarak doğru değildir. Limit, şirketin aylık bütçesi, işlem büyüklüğü ve yatırım tutarıyla uyumlu belirlenmelidir.
+Bu dersten çıkacak çalışma kaydınız
+Term Sheet Değerlendirme ve Karşı Teklif Matrisi
+Madde	Gelen teklif	Finansal/yönetsel etkisi	Kabul	Karşı teklif	Uzman notu
+Değerleme					
+Tasfiye önceliği					
+Yönetim kurulu					
+Veto					
+Tag-along					
+Drag-along					
+Vesting					
+Anti-dilution					
+Opsiyon havuzu					
+
+
+Bu çalışma hukuki incelemenin yerine geçmez. Pay sahipleri sözleşmesi, yatırım sözleşmesi ve esas sözleşme değişiklikleri girişim yatırımları konusunda deneyimli bir hukukçu tarafından birlikte incelenmelidir.
+Kredi Kartı ve Ticari Kredi Riskini Ölç
+İşletmelerde kısa vadeli nakit açığını kapatmak için kullanılan ürünler, kolay erişilebilir oldukları için uzun vadeli finansman aracına dönüşebilir.
+Özellikle:
+kredili mevduat hesabı,
+ticari kredi kartı,
+nakit avans,
+rotatif kredi,
+spot kredi,
+POS alacağının erken ödenmesi
+aynı ihtiyacı karşılayan özdeş ürünler değildir.
+Her ürünün:
+faiz hesaplama yöntemi,
+vadesi,
+vergi ve ücretleri,
+teminat yapısı,
+erken kapama koşulu,
+banka tarafından sunulan fiyatı
+farklı olabilir.
+Vade eşleştirmesi
+Temel prensip:
+Finansman kaynağının vadesi, finanse edilen ihtiyacın nakde dönüş süresiyle uyumlu olmalıdır.
+
+Örnek:
+üç günlük geçici kasa açığı için uzun vadeli yatırım kredisi gereksiz olabilir,
+üç yıllık makine yatırımı için her gün faiz işleyen KMH kullanmak riskli olabilir,
+45 günlük kesinleşmiş alacak için kısa vadeli spot kredi değerlendirilebilir.
+Ancak müşterinin 45 gün sonra kesin ödeme yapacağı varsayılmamalıdır. Tahsilat gecikmesi için stres senaryosu hazırlanmalıdır.
+Araçları kullanım amacına göre ayır
+Ticari kredi kartı
+Uygun olabilecek kullanımlar:
+kısa vadeli işletme harcamaları,
+seyahat,
+lojistik,
+abonelik,
+sınırlı malzeme alımı.
+Kart borcunun tamamı zamanında kapatılmıyorsa:
+faiz,
+gecikme faizi,
+vergi ve fonlar,
+nakit akışı baskısı
+oluşabilir.
+Kurumsal kredi kartlarında uygulanabilecek aylık azami akdi faiz oranı, Ağustos 2026 itibarıyla %4,25; azami gecikme oranı %4,55 olarak TCMB tablosunda yer almaktadır. Nakit çekim/kullanım işlemleri ve KMH için de aynı tarih itibarıyla azami akdi oran %4,25’tir. Bunlar bankanın mutlaka uygulayacağı oranlar değil, aşamayacağı tavan oranlardır; TCMB oranları aylık güncelleyebilir. Türkiye Cumhuriyeti Merkez Bankası
+Kredili mevduat hesabı
+KMH:
+çok kısa süreli nakit farklarında,
+belirli bir tahsilat tarihi bulunduğunda,
+hızla kapatılabilecek durumlarda
+kullanılabilir.
+“Bir ila yedi gün için uygundur” veya “30 günü aşarsa kesin en pahalı üründür” evrensel sınır değildir. Risk, teklif edilen oran, kullanım süresi ve alternatif ürünlere göre hesaplanmalıdır.
+Rotatif veya spot ticari kredi
+Banka ürün isimleri ve koşulları değişebilir.
+Genellikle:
+belirli süreli işletme sermayesi ihtiyacı,
+hammadde alımı,
+tahsilat ile ödeme arasındaki vade farkı
+için değerlendirilebilir.
+Ancak “spot kredi her zaman KMH’den ucuzdur” denmemelidir. Yazılı fiyat teklifleri karşılaştırılmalıdır.
+POS alacağının erken ödenmesi
+Erken ödeme veya bloke çözümü:
+tahsilatı hızlandırabilir,
+borç oluşturmadan nakit sağlayabilir,
+ancak komisyon veya iskonto yoluyla geliri azaltabilir.
+Maliyeti yıllıklaştırılarak kredi alternatifleriyle karşılaştırılmalıdır.
+Efektif maliyet hesabı
+Her teklif için:
+\[
+\text{Toplam Finansman Maliyeti}
+=
+\text{Faiz}
++
+\text{Vergi/Fon}
++
+\text{Ücret}
++
+\text{Komisyon}
++
+\text{Sigorta}
++
+\text{Diğer Zorunlu Masraflar}
+\]Dönem maliyet oranı:
+\[
+\text{Dönem Maliyet Oranı}
+=
+\frac{\text{Toplam Finansman Maliyeti}}
+{\text{Kullanılan Net Tutar}}
+\]Farklı vadeler karşılaştırılıyorsa aynı zaman birimine dönüştürülmelidir. Basit aylık oranı yalnızca 1,5 ile çarpmak, bileşik hesaplama, gün sayısı, tahakkuk yöntemi ve ücretler nedeniyle gerçek banka maliyetinden farklı çıkabilir.
+En güvenilir karşılaştırma belgesi:
+bankanın yazılı ödeme planı,
+efektif yıllık maliyet,
+tüm ücret ve vergileri gösteren teklif formudur.
+Vergi ve fon konusunda kritik düzeltme
+Önceki metindeki:
+“Her üründe %15 BSMV + %15 KKDF uygulanır.”
+
+varsayımı genel ve güvenli bir kural değildir.
+BSMV ve KKDF uygulaması:
+kredi türüne,
+kullanıcıya,
+işlemin niteliğine,
+para birimine,
+yürürlükteki mevzuata
+göre değişebilir.
+Bu nedenle kullanıcıya sabit toplam %30 ek yük hesaplatılmamalıdır. Bankanın sözleşmesinde ve maliyet tablosunda gösterilen vergiler esas alınmalı; gerektiğinde banka ve mali müşavirden teyit alınmalıdır.
+Düzeltilmiş varsayımsal senaryo
+Ege Otomasyon’un:
+600.000 TL hammadde ihtiyacı,
+beklenen tahsilat süresi: 45 gün
+olsun.
+Üç bankadan alınan yazılı teklifler şu şekilde varsayılsın:
+Araç	Net kullanılan tutar	45 günlük toplam maliyet	Vade sonunda toplam ödeme
+KMH	600.000 TL	41.500 TL	641.500 TL
+Ticari kart/nakit kullanım	600.000 TL	46.000 TL	646.000 TL
+Spot ticari kredi	600.000 TL	32.500 TL	632.500 TL
+
+
+Bu tutarlar gerçek piyasa oranı değil, karşılaştırma yöntemini göstermek için varsayımsaldır. Her biri bankanın faiz, ücret ve vergi dâhil yazılı teklifinden alınmalıdır.
+Bu senaryoda spot kredinin maliyet avantajı:
+KMH’ye göre:
+\[
+41.500 - 32.500
+=
+9.000\ \text{TL}
+\]Ticari karta göre:
+\[
+46.000 - 32.500
+=
+13.500\ \text{TL}
+\]Ancak yalnızca maliyete göre seçim yapılmamalıdır.
+Şunlar da karşılaştırılmalıdır:
+tahsis süresi,
+erken kapama,
+teminat,
+minimum kullanım süresi,
+tahsilat gecikirse ne olacağı,
+limitin diğer ihtiyaçlar için korunması.
+Tahsilat gecikmesi stres testi
+Müşteri 45 değil 75 günde öderse:
+Araç	45 günlük maliyet	Ek 30 gün maliyeti	Toplam	Limit riski
+KMH				
+Ticari kart				
+Spot kredi				
+
+
+Karar yalnızca beklenen senaryoya değil, gecikme senaryosuna göre de verilmelidir.
+Sabit “%15 risk eşiği” yerine işletme bazlı sınır
+Önceki metindeki:
+“Aylık faiz gideri brüt faaliyet kârının %15’ini aşmamalıdır.”
+
+ifadesi evrensel finansal eşik değildir.
+İşletme şu göstergeleri birlikte izlemelidir:
+Faiz karşılama oranı
+\[
+\text{Faiz Karşılama Oranı}
+=
+\frac{\text{Faiz ve Vergi Öncesi Faaliyet Kârı}}
+{\text{Finansman Gideri}}
+\]Borç servisi karşılama oranı
+\[
+\text{DSCR}
+=
+\frac{\text{Borç Servisine Uygun Nakit Akışı}}
+{\text{Anapara + Faiz Ödemeleri}}
+\]Kısa vadeli borç bağımlılığı
+\[
+\text{Kısa Vadeli Finansman Payı}
+=
+\frac{\text{KMH + Kart + Kısa Vadeli Krediler}}
+{\text{Toplam Finansal Borç}}
+\]Tek bir güvenli oran vermek yerine işletme:
+önceki aylarla,
+bütçeyle,
+kredi sözleşmesindeki koşullarla,
+sektör yapısıyla
+karşılaştırma yapmalıdır.
+Kırmızı bayraklar
+Aşağıdaki durumlar kısa vadeli borç riskinin arttığını gösterebilir:
+KMH’nin her ay kapanmadan devam etmesi,
+kart borcunun sürekli devretmesi,
+önceki krediyi kapatmak için yeni kredi kullanılması,
+faiz ödemek için yeniden borçlanma,
+tedarikçi vadelerinin sürekli aşılması,
+tahsilat gecikmesine rağmen yeni sipariş alınması,
+borç maliyetinin ürün fiyatına yansıtılamaması,
+nakit akışı tahmini bulunmaması.
+Bu dersten çıkacak çalışma kaydınız
+Kısa Vadeli Borçlanma ve Likidite Risk Analiz Cetveli
+Çalışma kaydı:
+ihtiyaç tutarı,
+ihtiyaç süresi,
+tahsilatın beklenen tarihi,
+üç finansman teklifi,
+faiz, ücret, vergi ve toplam maliyet,
+45/60/90 günlük senaryolar,
+teminat ve erken kapama koşulları,
+faiz karşılama oranı,
+borç servisi kapasitesi,
+seçilen araç,
+seçimin gerekçesi
+alanlarını içermelidir.
+Kaynaklar
+TCMB - Kredi kartı, kurumsal kart, nakit kullanım ve KMH için güncel azami faiz oranları. Türkiye Cumhuriyeti Merkez Bankası
+TCMB - Banka kredi faiz istatistikleri. EVDS
+TCMB - Kredi kartı ve KMH oranlarındaki düzenleme geçmişi. TCMB
+GİB - BSMV ve kredi işlemlerine ilişkin mevzuat ve özelgeler. Gelir İdaresi Başkanlığı
+Faiz oranları, banka ücretleri ve vergi/fon uygulamaları değişebilir. İçerikte sabit oranları kalıcı bilgi gibi tutmak yerine kullanıcı güncel TCMB tablosuna, banka teklifine ve gerektiğinde mali müşavir görüşüne yönlendirilmelidir.
+
+Şikâyeti Kayba Dönüştürmeden Yönet
+Müşteri şikâyeti yalnızca iletişim problemi değildir. Aynı anda:
+tüketici hukuku,
+ürün kalitesi,
+operasyon,
+maliyet,
+müşteri ilişkisi,
+marka itibarı
+konularını ilgilendiren bir işletme kararıdır.
+İşletmeler genellikle iki uçtan birine gider:
+“Müşteri her zaman haklıdır” diyerek her talebi incelemeden kabul etmek,
+her şikâyeti haksız talep olarak görüp savunmaya geçmek.
+İlk yaklaşım kontrolsüz telafi maliyeti oluşturabilir. İkinci yaklaşım ise yasal uyuşmazlık, müşteri kaybı ve itibar zararı yaratabilir.
+Doğru yaklaşım şudur:
+Önce şikâyetin hukuki ve teknik niteliğini belirle, ardından zorunlu çözüm ile işletmenin gönüllü ticari telafisini birbirinden ayır.
+
+İlk ayrım: Yasal hak mı, ticari inisiyatif mi?
+6502 sayılı Tüketicinin Korunması Hakkında Kanun kapsamında bir malın ayıplı olduğunun anlaşılması hâlinde tüketici; sözleşmeden dönme, bedelden indirim, ücretsiz onarım veya ayıpsız misliyle değişim haklarından birini kullanabilir. Bu hakların koşulları, muhatapları ve uygulanma biçimi somut olaya göre değerlendirilmelidir. Ticaret Bakanlığı
+Ancak her memnuniyetsizlik otomatik olarak ayıplı mal anlamına gelmez.
+Şikâyet şu nedenlerden kaynaklanabilir:
+üretim veya malzeme kusuru,
+taşıma ve teslimat hasarı,
+yanlış ürün gönderimi,
+eksik veya yanıltıcı bilgilendirme,
+yanlış kullanım,
+bakım talimatına uyulmaması,
+müşterinin beklentisiyle ürün özelliğinin uyuşmaması,
+mesafeli satışta cayma talebi,
+kötü niyetli veya tekrarlayan istismar.
+Bunların her biri aynı süreçle yönetilmemelidir.
+Fiziksel satış ile mesafeli satışı karıştırma
+Fiziksel mağazada ayıpsız bir ürün için genel ve sınırsız bir “keyfî iade hakkı” olduğu varsayılmamalıdır. İşletme kendi ticari iade politikasını oluşturabilir.
+Ancak internet, telefon veya benzeri uzaktan iletişim yöntemiyle yapılan mesafeli satışlarda tüketicinin cayma hakkı ayrıca değerlendirilmelidir. Cayma hakkı, ayıplı mal haklarından farklı bir hukuki mekanizmadır. Ön bilgilendirmenin eksik olması da cayma süresini etkileyebilir. Ticaret Bakanlığı
+Bu nedenle çalışan ilk olarak şunu sormalıdır:
+Satış mağazada mı, yoksa mesafeli olarak mı yapıldı?
+
+Kullanım hatası nasıl belirlenir?
+İşletmenin “ürün kullanım hatasıdır” demesi tek başına uyuşmazlığı kesin olarak çözmez.
+Özellikle teknik ürünlerde değerlendirme şu kanıtlara dayanmalıdır:
+ürün fotoğrafları,
+teslimat ve satış tarihi,
+kullanım kılavuzu,
+müşteriye verilen bilgilendirme,
+ürünün fiziksel incelemesi,
+varsa yetkili servis veya uzman raporu,
+aynı partiye ilişkin başka şikâyetler,
+ürünün normal kullanım ömrü.
+Teknik inceleme tarafsız, açıklanabilir ve kayıtlı olmalıdır.
+İşletme müşteriye yalnızca:
+“Kullanıcı hatasıdır, talebiniz reddedildi.”
+
+demek yerine şunu açıklamalıdır:
+hangi bulguya ulaşıldığı,
+hangi kullanım talimatının ihlal edildiği,
+incelemeyi kimin yaptığı,
+müşterinin itiraz veya başvuru yolu.
+Yasal çözüm ile gönüllü telafiyi ayır
+Bir sorun yasal sorumluluk kapsamındaysa çözüm, müşterinin geçmiş harcamasına göre daraltılmamalıdır.
+Yasal haklar:
+yüksek harcama yapan,
+yeni müşteri,
+düşük harcama yapan
+kişiler için farklı uygulanmamalıdır.
+Müşteri yaşam boyu değeri, yalnızca yasal zorunluluğun ötesindeki gönüllü ticari telafide dikkate alınabilir.
+Örnek:
+ücretsiz bakım,
+iyi niyet indirimi,
+sonraki alışveriş kuponu,
+ücretsiz teslimat,
+garanti kapsamı dışındaki sınırlı destek.
+Bu tür jestler de keyfî ve ayrımcı olmamalıdır. İşletme çalışanlarına tutarlı yetki sınırları tanımlamalıdır.
+Müşteri yaşam boyu değeri nasıl kullanılmalı?
+Müşteri yaşam boyu değeri gelecekteki kârı kesin olarak göstermez. Bir tahmindir.
+Basitleştirilmiş yaklaşım:
+\[
+\text{Tahmini Müşteri Değeri}
+=
+\text{Yıllık Satın Alma Sayısı}
+\times
+\text{Ortalama Sepet}
+\times
+\text{Katkı Oranı}
+\times
+\text{Beklenen İlişki Süresi}
+\]Ancak şu unsurlar da düşünülmelidir:
+iade oranı,
+hizmet maliyeti,
+kullanılan indirimler,
+teslimat maliyeti,
+müşteri kayıp ihtimali,
+gelecekteki alışverişlerin belirsizliği.
+Müşterinin geçmişte 28.000 TL harcamış olması, gelecekte aynı harcamayı kesin yapacağı anlamına gelmez.
+Kötüye kullanım nasıl ele alınmalı?
+Şu davranışlar ayrıca incelenebilir:
+ürünü uzun süre kullanıp tekrar tekrar iade istemek,
+aynı olay için farklı kanallardan farklı beyanlarda bulunmak,
+sahte belge veya değiştirilmiş görsel sunmak,
+sistematik indirim veya kupon talep etmek,
+tehdit yoluyla haksız menfaat istemek.
+Ancak müşteriye “kötü niyetli” etiketi kolayca verilmemelidir.
+İşletme:
+olay geçmişini kaydetmeli,
+aynı politikanın benzer vakalarda uygulanmasını sağlamalı,
+reddin gerekçesini açıkça açıklamalı,
+kişisel yorum yerine kanıta dayanmalıdır.
+Şikâyet karar akışı
+1. Kaydı oluştur
+sipariş veya fiş numarası,
+satış kanalı,
+ürün,
+teslim tarihi,
+şikâyet tarihi,
+müşteri talebi,
+fotoğraf ve belgeler.
+2. Hukuki kategoriyi belirle
+ayıplı mal iddiası,
+cayma hakkı,
+garanti veya satış sonrası hizmet,
+ticari iade politikası,
+kullanım desteği,
+kötüye kullanım şüphesi.
+3. Teknik incelemeyi tamamla
+ürün incelendi mi?
+teslimat hasarı olabilir mi?
+kullanım talimatı verildi mi?
+benzer şikâyet var mı?
+uzman görüşü gerekiyor mu?
+4. Çözümü belirle
+yasal hak,
+ücretsiz inceleme,
+tamir,
+değişim,
+bedel indirimi,
+iade,
+gönüllü telafi,
+gerekçeli ret.
+5. Kök nedeni kaydet
+Şikâyet kapatıldıktan sonra şu soruya cevap verilmelidir:
+Aynı şikâyetin yeniden oluşmasını engellemek için işletmede ne değişecek?
+
+Şikâyet matrisi
+Şikâyet durumu	Hukuki/teknik durum	Zorunlu işlem	Ticari inisiyatif	Onay düzeyi
+Doğrulanmış ayıp	Yasal hak doğabilir	Mevzuata uygun çözüm	Ek özür/telafi mümkün	Yetkili personel
+Teknik inceleme gerekli	Henüz belirsiz	İnceleme ve kayıt	Geçici ürün/destek	Yönetici
+Kullanım hatası kanıtlı	Yasal durum ayrıca değerlendirilir	Gerekçeli açıklama	Bakım/indirim desteği	Politika limitine göre
+Beklenti uyumsuzluğu	Satış kanalına göre değişir	İade/cayma politikası kontrolü	Değişim veya kupon	Yetki limitine göre
+İstismar şüphesi	Kanıtlanmamış	Tarafsız inceleme	Jest zorunlu değil	Yönetici/hukuk
+
+
+Varsayımsal sayısal senaryo
+Aşağıdaki örnek gerçek uyuşmazlık veya hukuki görüş değildir.
+Verda Ev & Yaşam’dan 3.500 TL’ye döküm tencere seti alan bir müşteri, ilk kullanımda kaplamanın zarar gördüğünü bildiriyor.
+Teknik incelemede metal gereç kullanımına ilişkin izler tespit ediliyor. Ancak işletme yalnızca kendi kanaatiyle uyuşmazlığı kesinleştirmek yerine:
+kullanım kılavuzunun teslim edilip edilmediğini,
+ürünün kaplama dayanıklılığını,
+aynı üründe benzer şikâyetleri,
+gerektiğinde yetkili teknik görüşü
+kontrol ediyor.
+Müşterinin son iki yıldaki alışverişi:
+toplam ciro: 28.000 TL,
+sekiz sipariş,
+tahmini brüt kâr oranı: %35.
+Toplam geçmiş brüt kâr:
+\[
+28.000 \times 0{,}35
+=
+9.800\ \text{TL}
+\]Bu tutarı “yıllık 4.900 TL” diye kullanmak mümkündür; ancak bu yalnızca iki yıla eşit dağıtılmış basitleştirilmiş geçmiş katkıdır.
+Seçenek A - Talebi gerekçeli olarak reddetmek
+İşletme teknik bulguyu açıklar ve yasal/ticari başvuru kanallarını bildirir.
+Olası maliyetler:
+müşteri kaybı,
+olumsuz yorum,
+ek uyuşmazlık süreci.
+Ancak bunların tamamının gerçekleşeceği varsayılmamalıdır.
+Seçenek B - Gönüllü telafi
+İşletme kullanım hatası değerlendirmesini korurken, müşteri ilişkisini gözeterek:
+ücretsiz bakım,
+maliyet paylaşımı,
+indirimli değişim,
+tek seferlik iyi niyet değişimi
+seçeneklerinden birini sunabilir.
+Yeni ürün maliyeti 1.800 TL ise tam değişim jestinin doğrudan maliyeti en az 1.800 TL’dir. Kargo, inceleme ve operasyon giderleri ayrıca eklenmelidir.
+Karar şu şekilde verilmelidir:
+\[
+\text{Telafinin Beklenen Değeri}
+=
+\text{Korunması Beklenen Katkı}
+-
+\text{Telafi ve Operasyon Maliyeti}
+\]Ancak müşteri gelecekte kesin olarak alışveriş yapacakmış gibi hesap yapılmamalıdır.
+Bu dersten çıkacak çalışma kaydınız
+Müşteri Şikâyet ve Telafi Karar Matrisi
+Kayıt şu alanları içermelidir:
+satış kanalı,
+şikâyetin hukuki kategorisi,
+müşteri talebi,
+teknik inceleme bulgusu,
+yasal çözüm,
+gönüllü telafi seçeneği,
+telafi maliyeti,
+yetki/onay düzeyi,
+müşteriye verilen yanıt,
+kök neden,
+tekrarını önleyecek işlem.
+Kaynaklar
+T.C. Ticaret Bakanlığı - 6502 sayılı Kanun ve ayıplı mal seçimlik hakları. Ticaret Bakanlığı
+T.C. Ticaret Bakanlığı - Mesafeli sözleşmeler ve cayma hakkı bilgilendirmesi. Ticaret Bakanlığı
+T.C. Ticaret Bakanlığı - Satış sonrası hizmetlere ilişkin bilgilendirme. Ticaret Bakanlığı
+Somut uyuşmazlıklarda tüketici hukuku konusunda uzman görüşü alınmalıdır.
+Sadakat Programı Kurmalı mıyım?
+Sadakat programı, müşteriye yalnızca indirim dağıtma sistemi değildir.
+Doğru tasarlandığında:
+tekrar satın almayı,
+müşteri tanımayı,
+kategori geçişini,
+tavsiye davranışını,
+iletişim kalitesini
+geliştirebilir.
+Yanlış tasarlandığında ise:
+mevcut müşteriye gereksiz indirim verir,
+marjı azaltır,
+kullanılmayan karmaşık bir yazılım oluşturur,
+puan ve müşteri hizmetleri yükü doğurur,
+kişisel veri ve ileti izni riskleri yaratır.
+Bu nedenle temel soru:
+Sadakat programı müşterinin davranışını değiştirecek mi, yoksa zaten gerçekleşecek satışa indirim mi verecek?
+
+Satın alma sıklığı önemlidir, ancak tek ölçüt değildir
+Sık satın alınan ürünlerde puan, damga veya ziyaret bazlı sistemler daha kolay anlaşılabilir.
+Düşük sıklıklı kategorilerde ise program farklı bir değer sunmalıdır:
+bakım hizmeti,
+ücretsiz teslimat,
+özel danışmanlık,
+erken erişim,
+özel sipariş imkânı,
+tamamlayıcı ürün avantajı,
+referans ödülü.
+“Yılda iki alışverişin altındaysa sadakat programı kurulmaz” şeklinde evrensel bir sınır yoktur.
+Mobilya gibi düşük sıklıklı bir kategoride müşterinin kendisi yeniden alışveriş yapmasa bile:
+evin diğer odaları,
+taşınma,
+dekorasyon hizmeti,
+hediye alışverişi,
+tavsiye ettiği yeni müşteri
+değer yaratabilir.
+Programın gerçek maliyetleri
+Ödül maliyeti
+Puan, indirim, ücretsiz ürün veya hizmetin işletmeye maliyetidir.
+Teknoloji ve entegrasyon
+CRM,
+kasa sistemi,
+e-ticaret entegrasyonu,
+mobil uygulama,
+raporlama,
+bakım.
+İletişim
+SMS,
+e-posta,
+çağrı merkezi,
+içerik üretimi,
+kampanya yönetimi.
+Operasyon
+müşteri soruları,
+eksik puan itirazları,
+iade sonrası puan düzeltmesi,
+dolandırıcılık kontrolü,
+çalışan eğitimi.
+Veri ve mevzuat uyumu
+kişisel veri işleme,
+aydınlatma,
+saklama,
+ticari ileti onayı,
+ret yönetimi,
+İYS süreçleri.
+Pazarlama amaçlı SMS ve e-posta gibi ticari elektronik ileti izinleri kanal bazında yönetilmelidir. İYS, bu onay ve ret süreçlerinin yönetildiği ulusal sistemdir. İleti Yönetim Sistemi
+Puan yükümlülüğü konusu
+Kazanılmış ancak henüz kullanılmamış puanların finansal tablolara etkisi, işletmenin uyguladığı muhasebe standardına ve programın yapısına göre değerlendirilmelidir.
+Müşteriye gelecekte başka türlü elde edemeyeceği önemli bir hak veriliyorsa, satış bedelinin bir bölümünün bu gelecekteki yükümlülüğe ayrılması gerekebilir. IFRS 15, müşteriye önemli bir hak sağlayan seçeneklerin ayrı edim yükümlülüğü oluşturabileceği yaklaşımını içerir. IFRS Foundation
+Bu nedenle:
+“Tüm puanlar doğrudan bilançoda borçtur.”
+
+ifadesi de,
+“Kullanılmayan puanların hiçbir mali etkisi yoktur.”
+
+ifadesi de tek başına güvenli değildir.
+Mali müşavir veya finans ekibi şu verileri takip etmelidir:
+kazanılan puan,
+kullanılan puan,
+süresi dolan puan,
+tahmini kullanım oranı,
+puanın gerçek maliyeti,
+iade edilen işlemlerde puan düzeltmesi.
+Breakage oranı
+Breakage, kazanılan ancak kullanılmayan ödüllerin oranıdır.
+Geçmiş veri yoksa tek bir oranı kesin kabul etme.
+Üç senaryo kullan:
+düşük kullanım,
+beklenen kullanım,
+yüksek kullanım.
+Programın kârlılığı yalnızca beklenen senaryoda pozitifse risk yüksektir.
+Program gerçekten ek satış mı üretiyor?
+Program üyelerinin daha fazla alışveriş yapması tek başına programın başarılı olduğunu kanıtlamaz.
+Çünkü en sadık müşteriler programa zaten daha yüksek olasılıkla katılır.
+Bu nedenle şu gruplar karşılaştırılmalıdır:
+programa katılan müşteriler,
+benzer geçmiş davranışa sahip katılmayan müşteriler,
+program öncesi dönem,
+program sonrası dönem,
+ödül kullanan ve kullanmayan üyeler.
+Ölçülmesi gereken asıl fark:
+Program olmasaydı gerçekleşmeyecek olan ek davranış.
+
+Ne zaman program kurulmamalı veya pilot yapılmalı?
+Şu durumlarda tam ölçekli program yerine küçük pilot tercih edilmelidir:
+müşteri verisi güvenilir değilse,
+müşteriler tekilleştirilemiyorsa,
+iade ve puan düzeltmesi yapılamıyorsa,
+ürün marjları bilinmiyorsa,
+ana sorun tekrar satın alma değil ilk müşteri kazanımıysa,
+ödülün hangi davranışı değiştireceği belli değilse,
+ticari ileti izinleri ve veri süreçleri hazır değilse,
+program maliyeti ölçülemiyorsa.
+Sadakat programı türünü seç
+Puan programı
+Sık satın alma ve kolay ölçüm için uygundur.
+Damga veya ziyaret programı
+Basit, düşük altyapılı işletmelerde kullanılabilir.
+Kademeli üyelik
+Yüksek harcama veya ilişki derinliğine göre farklı haklar sağlar.
+Ücretli üyelik
+Müşteri açık ve sürekli bir değer görüyorsa kullanılabilir.
+Ayrıcalık kulübü
+İndirim yerine:
+ücretsiz danışmanlık,
+teslimat,
+özel etkinlik,
+öncelikli hizmet
+sunabilir.
+Referans programı
+Düşük satın alma sıklığı olan sektörlerde yeni müşteri tavsiyesini teşvik edebilir.
+Düzeltilmiş sayısal senaryo
+Verda Ev & Yaşam’ın:
+15.000 kayıtlı müşterisi,
+müşteri başına yıllık 1,8 alışverişi,
+ortalama 2.000 TL sepeti,
+%40 brüt kâr oranı
+olduğu varsayılsın.
+Yıllık teorik ciro:
+\[
+15.000 \times 1{,}8 \times 2.000
+=
+54.000.000\ \text{TL}
+\]Planlanan program
+altyapı ve iletişim: 90.000 TL,
+kazanılan puan: cironun %3’ü,
+tahmini kullanım: %70.
+Kullanılacak puanların nominal değeri:
+\[
+54.000.000 \times 0{,}03 \times 0{,}70
+=
+1.134.000\ \text{TL}
+\]Ancak bu tutar her zaman programın gerçek ekonomik maliyeti değildir.
+Örneğin:
+puanla alınan ürünün maliyet oranı,
+ödülün başka satışla birlikte kullanılması,
+puanın mevcut alışverişi ikame etmesi,
+iadeler,
+vergisel ve muhasebesel uygulama
+sonucu değiştirebilir.
+Basitleştirilmiş ve ihtiyatlı hesapta toplam maliyet:
+\[
+1.134.000 + 90.000
+=
+1.224.000\ \text{TL}
+\]olarak kabul edilsin.
+Basit başabaş hesabı
+Tüm ek cironun %40 brüt kâr ürettiği varsayılırsa:
+\[
+1.224.000 \div 0{,}40
+=
+3.060.000\ \text{TL}
+\]ek ciro gerekir.
+Müşteri başına gerekli ek yıllık harcama:
+\[
+3.060.000 \div 15.000
+=
+204\ \text{TL}
+\]Ortalama sepet 2.000 TL ise gereken ek alışveriş sıklığı:
+\[
+204 \div 2.000
+=
+0{,}102
+\]Yıllık ortalama sıklığın yaklaşık:
+\[
+1{,}8 + 0{,}102
+=
+1{,}902
+\]seviyesine çıkması gerekir.
+Ancak bu hesap şu riskleri içerir:
+ödül maliyetinin brüt kâr içinde tekrar sayılması,
+mevcut müşteriye verilen gereksiz ödül,
+satışın başka dönemden öne çekilmesi,
+program üyelerinin zaten daha sadık olması,
+kampanya operasyon maliyetleri.
+Bu nedenle karar doğrudan “1,91’e çıkamaz, program iptal” biçiminde verilmemelidir.
+Daha güvenli karar
+Genel program yerine şu pilot uygulanabilir:
+müşterilerin rastgele veya dengeli bir bölümü,
+90 günlük süre,
+tek ödül kurgusu,
+kontrol grubu,
+harcama, tekrar alışveriş ve marj karşılaştırması.
+VIP kulübünün de “sıfır maliyetli” olduğu söylenmemelidir. Ücretsiz teslimat, danışmanlık ve personel zamanı gerçek maliyet yaratır.
+Pilot ölçüm tablosu
+Gösterge	Kontrol grubu	Program grubu	Gerçek fark
+Tekrar satın alma			
+Ortalama sepet			
+Brüt kâr			
+İndirim maliyeti			
+İade oranı			
+İletişim maliyeti			
+Net faaliyet katkısı			
+
+
+Bu dersten çıkacak çalışma kaydınız
+Sadakat Programı Fizibilite ve Pilot Karar Formu
+Çalışma kaydı:
+değiştirilmek istenen müşteri davranışı,
+satın alma sıklığı,
+marj ve sepet verisi,
+program türü,
+ödül maliyeti,
+tahmini kullanım oranları,
+teknoloji ve iletişim gideri,
+gerekli ek ciro,
+kontrol grubu,
+pilot süresi,
+başarı veya durdurma sınırı
+alanlarını içermelidir.
+Yorum ve İtibar Yönetimi
+Dijital yorumlar müşterilerin bir işletmeyi veya ürünü değerlendirirken kullandığı bilgi kaynaklarından biridir.
+Ancak:
+“Müşterilerin kesin olarak %80’inden fazlası yorumlara bakar.”
+
+gibi oranlar, güncel ve güvenilir araştırma gösterilmeden evrensel gerçek olarak kullanılmamalıdır.
+Yorumların etkisi:
+sektör,
+platform,
+ürün fiyatı,
+müşteri yaşı,
+yerel rekabet,
+yorum sayısı,
+yorumların güncelliği,
+işletmenin verdiği yanıtlar
+gibi unsurlara göre değişir.
+Ticaret Bakanlığı da tüketici yorum ve derecelendirmelerinin satın alma tercihlerini etkileyen önemli unsurlardan biri olduğunu belirtmekte ve bu alandaki uygulamalar için Reklam Kurulu kılavuzu yayımlamaktadır. Ticaret Bakanlığı
+Yorum yanıtının gerçek hedefi
+İşletmenin yanıtı yalnızca yorumu yazan müşteriye değil, daha sonra yorumu okuyacak kişilere de görünür.
+İyi bir yanıt şunları göstermelidir:
+işletme geri bildirimi ciddiye alıyor,
+kişisel veri paylaşmıyor,
+tartışmaya girmiyor,
+çözüm için açık kanal sunuyor,
+doğrulanmamış iddiayı kabul etmiyor,
+benzer sorunun tekrarını araştırıyor.
+Sabit “ilk dört saat” kuralı kullanma
+Her yoruma dört saat içinde cevap verme zorunluluğu yoktur.
+Hız önemlidir; ancak yanlış veya acele cevap vermek daha büyük zarar yaratabilir.
+İşletme kendi hizmet seviyesini tanımlayabilir:
+acil güvenlik veya ayrımcılık iddiası: hızla yöneticiye aktar,
+standart hizmet şikâyeti: aynı iş günü içinde incele,
+teknik ürün şikâyeti: doğrulama sonrası cevapla,
+açık hakaret veya tehdit: hukuk ve platform sürecine yönlendir.
+Dört aşamalı yorum yönetimi
+1. Yorumu kaydet ve doğrula
+platform,
+tarih,
+yıldız,
+iddia,
+şube,
+siparişle eşleşme,
+çalışan veya operasyon kaydı.
+Müşteriden kamuya açık alanda sipariş numarası, telefon veya adres istemek yerine güvenli özel kanal sunulmalıdır.
+2. Kısa kamusal yanıt ver
+Örnek:
+Geri bildiriminiz için teşekkür ederiz. Yaşadığınız deneyimi incelemek istiyoruz. Kişisel bilgilerinizi burada paylaşmadan, siparişinizle ilgili bilgileri resmî destek kanalımız üzerinden iletmenizi rica ederiz.
+
+Yanıtta:
+müşterinin özel ürünü,
+adresi,
+telefon numarası,
+ödeme bilgisi,
+sağlık veya aile bilgisi
+açıklanmamalıdır.
+Kişisel verileri internette yayımlamak, bu verileri üçüncü kişilerin erişimine açan bir veri işleme faaliyetidir ve uygun hukuki dayanak ile veri minimizasyonu gerektirir. Kişisel Verileri Koruma Kurumu
+3. Sorunu özel kanalda çöz
+olayı dinle,
+belge ve kayıtları incele,
+yasal ve ticari çözümü ayır,
+çözüm tarihini bildir,
+sonucu kayıt altına al.
+4. Yorumu güncelleme talebini doğru yap
+Sorun çözüldükten sonra müşteriye:
+Deneyiminiz değiştiyse değerlendirmenizi güncelleyebilirsiniz.
+
+denebilir.
+Ancak:
+olumlu yorum şartıyla telafi vermek,
+beş yıldız karşılığında hediye sunmak,
+yalnızca memnun müşterilerden yorum istemek,
+olumsuz yorumları sistematik biçimde bastırmak,
+sahte hesaplardan yorum üretmek
+yanıltıcı veya platform kurallarına aykırı sonuçlar doğurabilir.
+Yorum talebi mümkün olduğunca bütün uygun müşterilere tarafsız biçimde gönderilmelidir.
+Tüketici değerlendirmelerinde şeffaflık
+Ticaret Bakanlığının kılavuzu, yorum ve derecelendirmelerin doğrulanması, yayımlanması, sıralanması ve yanıltıcı uygulamalardan kaçınılması konusunda işletmelere rehberlik etmektedir. Ticaret Bakanlığı
+İşletmenin kendi sitesinde yorum yayımlaması hâlinde:
+yorumun gerçek satın almaya dayanıp dayanmadığı,
+hangi yorumların yayımlandığı,
+yorumların hangi gerekçeyle reddedildiği,
+sıralamanın nasıl yapıldığı,
+teşvikli yorum olup olmadığı
+konularında şeffaflık sağlanmalıdır.
+Sahte veya hukuka aykırı yorum
+Bir yorumun işletme kayıtlarında bulunamaması, tek başına sahte olduğunu kesin göstermez.
+Müşteri:
+başka ad kullanmış olabilir,
+refakatçi olarak gelmiş olabilir,
+nakit alışveriş yapmış olabilir,
+çalışan davranışını gözlemlemiş olabilir.
+Bu nedenle yanıt:
+Böyle bir müşterimiz yoktur, yorum sahtedir.
+
+şeklinde kesinleştirilmemelidir.
+Daha güvenli yaklaşım:
+Kayıtlarımızda olayı eşleştiremedik. İnceleme yapabilmemiz için ayrıntıları özel kanalımızdan paylaşmanızı rica ederiz.
+
+Açıkça sahte, taklit, spam, hakaret veya kişisel veri içeren içeriklerde:
+platformun şikâyet mekanizması,
+delillerin saklanması,
+gerektiğinde hukuki değerlendirme
+kullanılmalıdır.
+Platforma bildirim yapılması, yorumun kesin kaldırılacağı anlamına gelmez. İçeriğin çıkarılması veya erişimin engellenmesi de her olaya otomatik uygulanan bir süreç değildir; somut olay ve yürürlükteki hukuk uzman tarafından değerlendirilmelidir.
+Varsayımsal senaryo
+Verda Ev & Yaşam Alsancak şubesinin puanının:
+4,7’den,
+4,1’e
+düştüğü varsayılsın.
+Aynı dönemde harita üzerinden mağaza ziyareti ve satış da azalmış olsun.
+Ancak:
+Puan 4,5 altına düştüğü için dönüşüm kesin olarak %18’den %12’ye düştü.
+
+sonucu doğrudan kurulamaz.
+Aynı dönemde şunlar da değişmiş olabilir:
+sezon,
+reklam bütçesi,
+yol çalışması,
+mağaza saatleri,
+rakip kampanyası,
+ürün bulunurluğu,
+fiyatlar.
+Bu nedenle yorum puanı ile ciro arasındaki ilişki, tek neden olarak değil olası etkenlerden biri olarak değerlendirilmelidir.
+Kriz incelemesi
+Altı olumsuz yorumdan:
+dördünün doğrulanabilir müşteri deneyimi,
+ikisinin kayıtlarla eşleştirilemeyen yorum
+olduğu varsayılsın.
+Doğrulanmış sorunlar:
+kasa kuyruğu,
+kırık ürün teslimatı.
+İşletme:
+kök nedeni düzeltir,
+müşterilerle özel kanalda görüşür,
+uygun telafi sunar,
+çözüm sonrası yorumu güncelleme seçeneğini hatırlatır.
+Eşleşmeyen yorumlar için platforma kanıtlarıyla bildirim yapılır. Kaldırılmaları garanti edilmez.
+Organik yorum toplama
+Kasada veya teslimat sonrasında bütün uygun müşterilere:
+Deneyiminizi değerlendirebilirsiniz.
+
+çağrısı yapılabilir.
+Yalnızca mutlu görünen müşterileri seçmek yerine tarafsız örnekleme kullanılmalıdır.
+“45 yorumun tamamı beş yıldız oldu” sonucu işletme tarafından hedeflenmemelidir. Hedef:
+gerçek,
+bağımsız,
+güncel,
+temsili
+yorum toplamaktır.
+Ölçüm planı
+Gösterge	Önce	Sonra	Not
+Ortalama puan			Tek başına yeterli değil
+Yeni yorum sayısı			Organik/teşvikli
+Yanıt süresi			Medyan süre
+Çözülen şikâyet			
+Harita yönlendirmesi			
+Telefon araması			
+Mağaza ziyareti			Ölçüm yöntemi
+Şikâyet tekrar oranı			Kök neden göstergesi
+
+
+Bu dersten çıkacak çalışma kaydınız
+Dijital Yorum Yanıt Protokolü ve Kriz Kontrol Listesi
+Çalışma kaydı:
+yorum sınıfları,
+yanıt süre hedefleri,
+onay mercileri,
+kamusal yanıt şablonları,
+özel kanala geçiş yöntemi,
+KVKK kontrolü,
+platform şikâyet adımları,
+sahte yorum kanıt listesi,
+kök neden sorumlusu,
+tarafsız yorum isteme yöntemi,
+performans göstergeleri
+alanlarını içermelidir.
+Kaynaklar
+Ticaret Bakanlığı - Tüketici Değerlendirmeleri Hakkında Kılavuz. Ticaret Bakanlığı
+Ticaret Bakanlığı - Tüketici yorumlarına ilişkin Reklam Kurulu uygulamaları. https://ticaret.gov.tr
+KVKK - Kişisel verilerin internet ortamında paylaşılması ve veri işleme ilkeleri. Kişisel Verileri Koruma Kurumu
+Tekrar Satın Almayı Artıran Deneyim Tasarımı
+Bir işletmenin büyümesi yalnızca yeni müşteri kazanmasına bağlı değildir.
+Mevcut müşterinin:
+tekrar alışveriş yapması,
+başka kategoriye geçmesi,
+işletmeyi tavsiye etmesi,
+ürününü yenilemesi,
+satış sonrası hizmet kullanması
+da değer yaratır.
+“Yeni müşteri kazanmak mevcut müşteriye satıştan kesin olarak beş ila yedi kat daha pahalıdır” ifadesi, güncel ve işletmeye uygun kanıt olmadan evrensel kural gibi kullanılmamalıdır.
+Gerçek maliyet işletmeye göre değişir.
+Ölçülmesi gerekenler:
+müşteri kazanım maliyeti,
+tekrar satış maliyeti,
+brüt kâr,
+iade,
+indirim,
+destek ve iletişim gideri,
+müşterinin işletmede kaldığı süre.
+Tekrar satın alma neden oluşur?
+Tekrar satın alma yalnızca indirimle açıklanamaz.
+Müşteri şu nedenlerle geri dönebilir:
+ürün ihtiyacı devam ettiği için,
+ilk deneyim güven verdiği için,
+teslimat sorunsuz olduğu için,
+ürünün kullanımı kolay olduğu için,
+bakım ve destek aldığı için,
+yeni ürün ihtiyacı doğduğu için,
+marka ve fiyat dengesi uygun olduğu için.
+Bu nedenle müşteri yolculuğu, satışın tamamlandığı anda bitmemelidir.
+Temas noktalarını ürüne göre tasarla
+Her müşteri için aynı 3., 14., 30. ve 60. gün mesajı uygun değildir.
+Örnek:
+kahve ürünü: kısa tekrar satın alma döngüsü,
+mobilya: uzun döngü,
+tencere: bakım ve tamamlayıcı ürün,
+sarf ürünü: yenileme hatırlatması,
+hediye ürünü: özel gün ve tavsiye fırsatı.
+Temas zamanlaması ürünün gerçek kullanım ve yenileme döngüsüne dayanmalıdır.
+Dört temel aşama
+1. Sipariş ve teslimat
+Müşteri şunları bilmelidir:
+sipariş alındı mı,
+ne zaman hazırlanacak,
+ne zaman teslim edilecek,
+gecikme varsa ne oldu,
+sorun yaşarsa nereye ulaşacak.
+Bu mesajlar işlem ve hizmet bilgilendirmesi niteliğinde olabilir.
+2. İlk kullanım
+Ürünün doğru kullanımı:
+arızayı,
+iadeyi,
+yanlış kullanım şikâyetini,
+erken memnuniyetsizliği
+azaltabilir.
+İçerik ürünle doğrudan ilişkili ve yararlı olmalıdır.
+3. Deneyim kontrolü
+Müşteriye:
+ürün ulaştı mı,
+kullanımda sorun var mı,
+eksik veya hasar var mı
+sorulabilir.
+Bu temas satış baskısı yerine sorun yakalama amacı taşımalıdır.
+4. Tamamlayıcı veya yenileme önerisi
+Müşterinin önceki alışverişine göre ilgili öneri sunulabilir.
+Ancak gereksiz kişiselleştirme ve sık mesaj:
+rahatsızlık,
+ileti izni iptali,
+marka yorgunluğu
+yaratabilir.
+Ticari elektronik ileti ve izin
+Bakım, kullanım veya sipariş durum mesajı ile pazarlama mesajı birbirinden ayrılmalıdır.
+Örneğin:
+“Siparişiniz kargoya verildi.” hizmet mesajıdır.
+“Bu ürüne özel %15 indirim fırsatı.” pazarlama mesajıdır.
+Ticari elektronik ileti izinleri; SMS, e-posta ve sesli arama gibi kanallar için ayrı yönetilebilir. Müşterinin ret hakkı ve İYS kayıtları dikkate alınmalıdır. İleti Yönetim Sistemi
+WhatsApp kullanılması da iletiyi otomatik olarak mevzuat kapsamı dışında bırakmaz. Mesajın amacı ve hukuki dayanağı değerlendirilmelidir.
+Tekrar satın alma oranı
+Belirli dönemde ilk alışverişini yapan müşteri grubu üzerinden hesaplanabilir:
+\[
+\text{Tekrar Satın Alma Oranı}
+=
+\frac{\text{Dönem İçinde Yeniden Alışveriş Yapan Müşteri}}
+{\text{İncelenen Müşteri Grubu}}
+\]Paydada:
+sipariş sayısı değil,
+tekil müşteri
+kullanılmalıdır.
+Aynı müşterinin birden fazla ikinci siparişi varsa, müşteri sayısı ile sipariş sayısı ayrılmalıdır.
+Kohort analizi
+Farklı zamanlarda kazanılan müşterileri tek tabloda karıştırma.
+Örnek:
+İlk alışveriş ayı	Yeni müşteri	30 gün içinde tekrar	90 gün	12 ay
+Ocak				
+Şubat				
+Mart				
+
+
+Bu yöntem:
+sezon etkisini,
+kampanya kalitesini,
+müşteri grubunun yaşını
+daha doğru gösterir.
+Düzeltilmiş sayısal senaryo
+Verda Ev & Yaşam e-ticaret kanalında bir yıl içinde:
+20.000 tekil ilk müşteri,
+12 ay içinde ikinci alışveriş oranı: %14,
+ikinci alışveriş ortalaması: 1.500 TL
+olsun.
+İkinci alışveriş yapan müşteri:
+\[
+20.000 \times 0{,}14
+=
+2.800
+\]İkinci alışveriş cirosu:
+\[
+2.800 \times 1.500
+=
+4.200.000\ \text{TL}
+\]Deneyim müdahaleleri
+kırılabilir ürünlerde ambalaj iyileştirmesi,
+kategoriye özel kullanım rehberi,
+teslimat sonrası sorun kontrolü,
+uygun ileti iznine sahip müşterilere tamamlayıcı ürün önerisi.
+Ambalaj maliyeti:
+\[
+20.000 \times 15
+=
+300.000\ \text{TL}
+\]Yazılım ve iletişim:
+\[
+30.000\ \text{TL}
+\]Toplam doğrudan maliyet:
+\[
+330.000\ \text{TL}
+\]Ancak çalışan zamanı, iade yönetimi ve kampanya indirimi varsa bunlar da eklenmelidir.
+Sonuç senaryosu
+Tekrar satın alma oranının %14’ten %24’e çıktığı varsayılsın.
+Yeni ikinci alışveriş yapan müşteri:
+\[
+20.000 \times 0{,}24
+=
+4.800
+\]Artış:
+\[
+4.800 - 2.800
+=
+2.000
+\]Ek ciro:
+\[
+2.000 \times 1.500
+=
+3.000.000\ \text{TL}
+\]%40 brüt kâr oranıyla:
+\[
+3.000.000 \times 0{,}40
+=
+1.200.000\ \text{TL}
+\]Basitleştirilmiş faaliyet katkısı:
+\[
+1.200.000 - 330.000
+=
+870.000\ \text{TL}
+\]Bu tutara “net faaliyet kârı” denmemelidir; çünkü:
+indirim maliyeti,
+ilave kargo,
+iade,
+çalışan zamanı,
+vergi,
+yazılım kurulum gideri,
+müşteri hizmetleri maliyeti
+tam olarak hesaba katılmamıştır.
+Daha doğru ifade:
+Ölçülen doğrudan program giderleri sonrası basitleştirilmiş ek faaliyet katkısı.
+
+Nedensellik kontrolü
+Oranın yükselmesi yalnızca deneyim projesinden kaynaklanmamış olabilir.
+Aynı dönemde:
+ürün karması,
+fiyatlar,
+reklam kampanyası,
+ekonomik koşullar,
+sezon,
+müşteri kalitesi
+değişmiş olabilir.
+Bu nedenle mümkünse:
+kontrol grubu,
+aşamalı uygulama,
+kategori karşılaştırması,
+önce-sonra kohort analizi
+kullanılmalıdır.
+Temas planı
+Aşama	Amaç	İçerik	Kanal	İzin türü	Sorumlu	Ölçüm
+Sipariş	Güven	Sipariş onayı	E-posta/SMS	Hizmet	Operasyon	Teslimat sorusu
+Teslimat	Belirsizliği azaltma	Takip bilgisi	SMS	Hizmet	Lojistik	Gecikme
+İlk kullanım	Hata azaltma	Bakım rehberi	E-posta	İçeriğe göre	İçerik ekibi	Şikâyet
+Deneyim kontrolü	Sorun yakalama	Memnuniyet sorusu	E-posta/SMS	İçeriğe göre	Destek	Yanıt
+Tamamlayıcı öneri	Ek değer	İlgili ürün	E-posta/SMS	Ticari ileti onayı	Pazarlama	Dönüşüm
+
+
+Bu dersten çıkacak çalışma kaydınız
+Müşteri Yolculuğu ve Tekrar Satın Alma Temas Planı
+Çalışma kaydı:
+müşteri kohortu,
+ürün kullanım döngüsü,
+temas amacı,
+zamanlama,
+hizmet/pazarlama ayrımı,
+ileti izni,
+içerik,
+kanal,
+sorumlu kişi,
+maliyet,
+tekrar satın alma oranı,
+iade ve şikâyet oranı,
+kontrol grubu,
+basitleştirilmiş faaliyet katkısı
+alanlarını içermelidir.
+Kaynaklar
+İleti Yönetim Sistemi - Ticari elektronik ileti izin ve ret yönetimi. İleti Yönetim Sistemi
+KVKK - Pazarlama amacıyla kişisel veri kullanımında hukuki dayanak gerekliliği. Kişisel Verileri Koruma Kurumu
+Ticaret Bakanlığı - Mesafeli sözleşmelerde bilgilendirme ve tüketici yükümlülükleri. Ticaret Bakanlığı
+Gemini kontrolünde özellikle şu başlıkları ayrıca doğrulat: mesafeli satış-ayıplı mal ayrımı, kullanım hatası değerlendirmesi, ticari elektronik ileti sınıflandırması, sadakat puanlarının muhasebeleştirilmesi ve yorum istemeyönteminin Reklam Kurulu ilkeleriyle uyumu.
+
+POS ve Kasa Yazılımı Nasıl Seçilir?
+Perakende işletmesinde kasa noktası yalnızca ödemenin alındığı yer değildir. Satış, stok, fiyat, kampanya, iade, müşteri ve muhasebe verilerinin kesiştiği operasyon merkezidir.
+İşletmeler POS seçimini çoğu zaman şu soruya indirger:
+En uygun fiyatlı yazar kasa POS hangisi?
+
+Oysa doğru karar için üç ayrı yapının birbirinden ayrılması gerekir:
+Mali belge düzenleyen cihaz veya sistem
+Kartlı ödeme alan banka/EFT-POS altyapısı
+Satışı, ürünü, stoğu ve raporlamayı yöneten kasa yazılımı
+Bu üç işlev tek cihazda birleşebilir veya birbirine bağlı farklı sistemler üzerinden çalışabilir. İşletme, yalnızca cihaz fiyatını değil bu yapıların birbiriyle güvenli ve mevzuata uygun biçimde haberleşip haberleşmediğini değerlendirmelidir.
+Yeni Nesil Ödeme Kaydedici Cihaz uygulamasına ilişkin cihazlar, onaylı model listeleri, teknik belgeler ve güncel mevzuat GİB’in YN ÖKC portalından takip edilmelidir. Mayıs 2026’da yayımlanan 593 Sıra No.lu Vergi Usul Kanunu Genel Tebliği ile YN ÖKC’lerden belirli elektronik belgelerin düzenlenmesine ilişkin yeni düzenlemeler de yapılmıştır. Bu nedenle geçmiş yıllardaki cihaz tavsiyeleri güncel kontrol yapılmadan kullanılmamalıdır. Yeni Nesil Ödeme Kaydedici Cihaz
+Önce ihtiyacını doğru tanımla
+İşletme şu sorulara cevap vermeden ürün karşılaştırmasına başlamamalıdır:
+Kaç fiziksel satış noktası var?
+Aynı anda kaç kasa çalışacak?
+Günlük ve yoğun saatlerdeki işlem sayısı nedir?
+Ürünler barkodlu mu?
+Ağırlık veya varyant takibi gerekiyor mu?
+İade ve değişim kasada nasıl yönetiliyor?
+Fiziksel mağaza ile e-ticaret aynı stoğu mu kullanıyor?
+Fiyat ve kampanyalar merkezden mi yönetilecek?
+Satışlar ön muhasebe veya ERP sistemine aktarılacak mı?
+İnternet kesintisinde hangi işlemlerin devam etmesi gerekiyor?
+İşletmenin tabi olduğu mali belge düzeni nedir?
+Bir mağaza için yeterli olan sistem, çok şubeli başka bir işletme için yetersiz olabilir.
+ÖKC, EFT-POS ve kasa yazılımı arasındaki fark
+Yeni Nesil ÖKC
+Mali belge düzenleme ve GİB’in belirlediği teknik ve güvenlik kurallarına uyma işlevini taşır.
+İşletme cihaz seçerken:
+cihazın GİB onay durumunu,
+modelin güncel listede bulunup bulunmadığını,
+yetkili servis ağını,
+satış yazılımıyla bağlantı seçeneklerini,
+güncel teknik kılavuzlara uygunluğunu
+kontrol etmelidir.
+GİB, EFT-POS özellikli ve bilgisayar bağlantılı YN ÖKC modellerini resmî listelerde yayımlamaktadır. Satın alma kararı satıcının beyanıyla değil bu listeler ve yetkili firma bilgileriyle doğrulanmalıdır. Yeni Nesil Ödeme Kaydedici Cihaz
+EFT-POS veya banka POS’u
+Kartlı ödemeyi işleyen bankacılık altyapısıdır.
+Değerlendirilecek noktalar:
+komisyon oranı,
+bloke süresi,
+taksit seçenekleri,
+banka ve kart desteği,
+bağlantı güvenilirliği,
+iptal ve iade süreci,
+gün sonu mutabakatı.
+Kasa satış yazılımı
+Ürün ve satış operasyonunu yönetir.
+Olası işlevler:
+barkod okutma,
+merkezî fiyat yönetimi,
+kampanya,
+stok düşümü,
+kullanıcı yetkileri,
+iade ve değişim,
+şube raporu,
+müşteri kaydı,
+ön muhasebe veya ERP aktarımı.
+Mali cihaz uyumluluğu bulunmayan sıradan bir satış yazılımı, mevzuat gerektiren mali belge işlevini tek başına yerine getiremez.
+Seçimde karşılaştırılacak altı alan
+1. Mali ve teknik uyumluluk
+Satıcıdan yalnızca “GİB uyumlu” sözü alınmamalıdır.
+Şunlar yazılı olarak doğrulanmalıdır:
+desteklenen YN ÖKC marka ve modelleri,
+entegrasyon yöntemi,
+mali belgenin hangi sistemden üretildiği,
+iade ve iptal akışı,
+yazılım güncellemesi sonrası uyumluluk sorumlusu,
+mevzuat değişikliğinde güncellemenin kim tarafından yapılacağı.
+“GMP3 destekliyor” gibi tek bir teknik ifadeyi bütün uyumluluğun kanıtı kabul etme. İşletmenin kullanacağı cihaz, banka, satış yazılımı ve belge türü birlikte test edilmelidir.
+2. İnternet kesintisi ve çevrim dışı çalışma
+“Offline çalışır” ifadesi ayrıntılandırılmalıdır.
+Sorulacak sorular:
+Hangi işlemler bağlantısız yapılabilir?
+Mali belge düzenleme devam eder mi?
+Kartlı ödeme alınabilir mi?
+Yerel kayıt ne kadar süre saklanır?
+Aynı ürün iki kasada satılırsa stok çakışması oluşur mu?
+İnternet geldiğinde senkronizasyon nasıl yapılır?
+Çift kayıt engelleniyor mu?
+Veri kaybı olursa sorumluluk kimde?
+Satış yazılımının çevrim dışı çalışabilmesi, banka veya mali cihazın bütün işlevlerinin internet olmadan devam edeceği anlamına gelmez.
+3. Stok ve fiyat senkronizasyonu
+İyi bir sistem:
+satıştan sonra stoğu doğru depodan düşmeli,
+iadeyi stoğa kontrollü eklemeli,
+teşhir ve hasarlı ürünü ayırmalı,
+şubeler arası transferi kaydetmeli,
+fiyat değişikliğini doğru tarihte uygulamalı,
+e-ticaretle çakışmayı yönetmelidir.
+Senkronizasyon “anlık” olarak tanımlanıyorsa gerçek gecikme süresi ve başarısız aktarım yöntemi test edilmelidir.
+4. Çoklu şube ve kullanıcı kontrolü
+Şunlar bulunabilir:
+şube bazlı stok,
+merkezî ürün kartı,
+rol ve yetki,
+kasiyer bazlı işlem kaydı,
+fiyat değiştirme yetkisi,
+iade onayı,
+kasa açma-kapama kaydı,
+şubeler arası transfer.
+Her çalışanın bütün işlemleri yapabilmesi güvenlik ve denetim riskidir.
+5. Mutabakat ve raporlama
+Sistem şu kayıtları karşılaştırmayı kolaylaştırmalıdır:
+satış yazılımı toplamı,
+mali belge toplamı,
+nakit,
+kartlı ödeme,
+banka/POS raporu,
+iptal ve iadeler,
+kasa giriş-çıkışları.
+“Tek panelde görünmesi”, kayıtların otomatik olarak doğru mutabık olduğu anlamına gelmez. Fark raporu ve inceleme akışı bulunmalıdır.
+6. Toplam sahip olma maliyeti
+Sadece cihaz ve yıllık lisans bedeli hesaplanmamalıdır.
+\[
+\text{Toplam Sahip Olma Maliyeti}
+=
+\text{Donanım}
++
+\text{Lisans}
++
+\text{Kurulum}
++
+\text{Entegrasyon}
++
+\text{Eğitim}
++
+\text{Bakım}
++
+\text{Servis}
++
+\text{Yedek Cihaz}
++
+\text{Veri Aktarımı}
+\]Ek olarak:
+banka komisyonları,
+cihaz değişimi,
+yeni şube lisansı,
+kullanıcı ücreti,
+API kullanımı,
+destek paketi
+sorulmalıdır.
+Satın almadan önce pilot test
+Canlı geçişten önce şu senaryolar test edilmelidir:
+Normal satış
+Nakit ve kartlı ödeme
+Bölünmüş ödeme
+İade ve değişim
+Kampanyalı satış
+İnternet kesintisi
+Yanlış barkod
+Fiyat değişikliği
+Şube transferi
+Gün sonu mutabakatı
+E-ticaretle eş zamanlı son ürün satışı
+Kullanıcı yetkisi ihlali
+Düzeltilmiş varsayımsal senaryo
+Aşağıdaki rakamlar gerçek yazılım teklifi değil, karar yöntemini göstermek amacıyla hazırlanmıştır.
+Verda Ev & Yaşam’ın iki mağazasında günde toplam 300 işlem yapılsın.
+Mevcut düzende ürün satış yazılımında okutulduktan sonra tutarın ödeme cihazına tekrar elle girildiğini varsayalım.
+Ek işlem süresi
+İşlem başına ortalama 40 saniye:
+\[
+300 \times 40
+=
+12.000\ \text{saniye}
+\]\[
+12.000 \div 3.600
+=
+3{,}33\ \text{saat}
+\]Bu, müşterilerin kesin olarak 3,33 saat beklediği anlamına gelmez. Günlük işlemlere dağılmış toplam ek kasa süresidir. Finansal kayıp hesaplanabilmesi için:
+yoğun saat kuyruğu,
+terk edilen sepet,
+çalışan fazla mesaisi,
+işlem kapasitesi
+ayrıca ölçülmelidir.
+Hata analizi
+Aylık 9.000 işlem olduğunu varsayalım:
+\[
+300 \times 30
+=
+9.000
+\]%1,5 manuel giriş hatası:
+\[
+9.000 \times 0{,}015
+=
+135\ \text{işlem}
+\]Ancak 135 işlemin tamamı 450 TL kayıp oluşturmaz. Hatanın:
+ortalama tutar farkı,
+sonradan düzeltilen kısmı,
+iade ve iptal maliyeti,
+stok etkisi
+ölçülmelidir.
+İşletme kayıtlarından doğrulanan aylık toplam hata ve mutabakat maliyetinin 22.500 TL olduğunu varsayalım.
+Yeni sistem maliyeti
+donanım: 45.000 TL,
+ilk yıl lisans: 18.000 TL,
+eğitim ve veri aktarımı: 10.000 TL,
+toplam ilk yıl maliyeti: 73.000 TL.
+Yeni sistemin hataların tamamını değil %80’ini azalttığını varsayalım:
+\[
+22.500 \times 0{,}80
+=
+18.000\ \text{TL/ay}
+\]Basit geri dönüş süresi:
+\[
+73.000 \div 18.000
+\approx
+4{,}1\ \text{ay}
+\]Bu hesaba:
+kuyruk azalmasının olası katkısı,
+bakım maliyeti,
+geçiş dönemindeki hata,
+finansman maliyeti
+dâhil değildir.
+Bu dersten çıkacak çalışma kaydınız
+POS ve Kasa Yazılımı Teknik İhtiyaç ve Seçim Listesi
+Çalışma kaydı şunları içermelidir:
+tabi olunan mali cihaz ve belge düzeni,
+GİB onay kontrolü,
+mağaza ve kasa sayısı,
+günlük işlem hacmi,
+desteklenen ödeme türleri,
+çevrim dışı çalışma sınırları,
+stok ve fiyat senkronizasyonu,
+iade akışı,
+kullanıcı yetkileri,
+mutabakat raporları,
+entegrasyonlar,
+ilk yıl ve üç yıllık toplam maliyet,
+pilot test sonucu,
+seçilen sistem ve gerekçesi.
+Kaynaklar
+GİB Yeni Nesil ÖKC portalı, mevzuat ve onaylı cihaz listeleri. Yeni Nesil Ödeme Kaydedici Cihaz
+GİB 593 Sıra No.lu VUK Genel Tebliği ve e-belge düzenlemeleri. Gelir İdaresi Başkanlığı
+GİB Yeni Nesil ÖKC rehber ve yayınları. GİB Cdn
+Muhasebe Yazılımına Geçmeli miyim?
+İşletmeler ilk dönemlerinde satış, tahsilat, gider ve cari hesaplarını Excel tablolarında takip edebilir.
+Excel’in kullanılması tek başına yanlış değildir. Sorun, işletme büyüdüğü hâlde:
+verilerin farklı dosyalara dağılması,
+aynı bilginin birden fazla kez girilmesi,
+kimin hangi kaydı değiştirdiğinin bilinmemesi,
+cari ve banka kayıtlarının eşleşmemesi,
+faturaların zamanında düzenlenmemesi,
+yönetimin güncel finansal durumu görememesi
+hâlinde ortaya çıkar.
+Ön muhasebe yazılımı, Serbest Muhasebeci Mali Müşavir’in ve resmî genel muhasebenin yerine geçmez. İşletmenin günlük finansal kayıtlarını düzenler ve muhasebe sürecine daha sağlıklı veri aktarılmasını sağlar.
+Önemli düzeltme: Yazılım kullanımı ile e-belge yükümlülüğü aynı şey değildir
+e-Fatura, e-Arşiv Fatura ve diğer e-belge uygulamalarına geçiş koşulları GİB düzenlemeleriyle belirlenir. Bir işletmenin bu kapsama girmesi, mutlaka özel bir ticari ön muhasebe yazılımı satın almak zorunda olduğu anlamına gelmez; GİB Portal veya uygun entegrasyon yöntemleri kullanılabilir.
+Özel yazılım tercihi çoğu zaman:
+işlem hacmi,
+otomasyon,
+banka ve stok entegrasyonu,
+kullanıcı sayısı,
+raporlama ihtiyacı
+nedeniyle yapılır.
+GİB e-Fatura Portalı için resmî kullanım kılavuzları yayımlamaktadır. İşletmenin hangi e-belgeye tabi olduğu ve hangi yöntemi kullanabileceği güncel GİB düzenlemelerinden ve mali müşavirden doğrulanmalıdır. eBelge
+Excel’den geçiş için sabit sayı kullanma
+“Ayda 50 faturadan sonra yazılım zorunludur” şeklinde evrensel bir sınır yoktur.
+Ayda 20 faturası olan ancak:
+beş banka hesabı,
+çok sayıda vadeli alacağı,
+karmaşık stok yapısı
+bulunan işletme yazılıma ihtiyaç duyabilir.
+Ayda 100 basit faturası olan başka bir işletme ise sınırlı bir çözümle yönetilebilir.
+Karar işlem sayısından çok karmaşıklık, hata ve kontrol ihtiyacına göre verilmelidir.
+Geçiş ihtiyacını gösteren sinyaller
+Güncel nakit ve banka bakiyesi tek yerden görülemiyor.
+Vadesi geçen alacaklar geç fark ediliyor.
+Aynı fatura veya ödeme birden fazla dosyada tutuluyor.
+Müşteri ve tedarikçi bakiyeleri uyuşmuyor.
+Stok ile satış kayıtları farklı.
+SMMM’ye gönderilen evraklar eksik veya geç.
+Fatura kesimi tekrarlı veri girişine dönüşüyor.
+Kullanıcı değişiklik geçmişi bulunmuyor.
+Yönetim kâr, nakit ve alacak durumunu zamanında göremiyor.
+Excel dosyası tek kişinin bilgisayarına bağımlı.
+Ön muhasebe yazılımından beklenen işlevler
+İşletmenin ihtiyacına göre:
+satış ve alış faturaları,
+e-belge bağlantısı,
+cari hesap,
+banka hareketleri,
+kasa,
+çek/senet,
+stok,
+tahsilat hatırlatma,
+gider,
+kullanıcı yetkileri,
+SMMM aktarımı,
+raporlama
+değerlendirilebilir.
+En fazla özelliğe sahip ürün değil, kullanılan süreçleri doğru yöneten ürün seçilmelidir.
+Toplam sahip olma maliyeti
+\[
+\text{Yıllık TCO}
+=
+\text{Lisans}
++
+\text{E-belge Kullanımı}
++
+\text{Banka Entegrasyonu}
++
+\text{Kurulum}
++
+\text{Veri Aktarımı}
++
+\text{Eğitim}
++
+\text{Destek}
++
+\text{Ek Kullanıcı}
+\]Şunlar ayrıca sorulmalıdır:
+fiyat artışı nasıl uygulanıyor?
+veriler dışarı aktarılabiliyor mu?
+abonelik biterse kayıtlara erişim sürüyor mu?
+yedekleme kimde?
+SMMM hangi formatta veri alıyor?
+banka entegrasyonu gecikmeli mi?
+iptal ve düzeltme kayıtları izleniyor mu?
+Zaman tasarrufunu nasıl ölçmelisin?
+Yazılımın bütün manuel işi ortadan kaldıracağı varsayılmamalıdır.
+Fatura için:
+\[
+\text{Aylık Zaman Maliyeti}
+=
+\text{İşlem Sayısı}
+\times
+\text{Ortalama İşlem Süresi}
+\times
+\text{Saatlik Tam Personel Maliyeti}
+\]“Saatlik personel maliyeti” yalnızca net ücret değildir. İşveren maliyetleri ve ilgili yan giderler hesaba katılabilir.
+Ayrıca otomasyon sonrası kalan:
+kontrol,
+istisna düzeltme,
+müşteri kartı yönetimi,
+banka eşleştirme
+süresi de düşülmemelidir.
+Düzeltilmiş varsayımsal senaryo
+Verda Ev & Yaşam’ın ayda 850 belge düzenlediğini varsayalım.
+Manuel süreç
+Belge başına dört dakika:
+\[
+850 \times 4
+=
+3.400\ \text{dakika}
+\]\[
+3.400 \div 60
+=
+56{,}7\ \text{saat}
+\]Tam personel saatlik maliyetinin 300 TL olduğu varsayılsın:
+\[
+56{,}7 \times 300
+=
+17.010\ \text{TL/ay}
+\]Yazılım sonrasında işlem süresinin sıfırlanması değil, belge başına bir dakikaya düşmesi varsayılsın:
+\[
+850 \times 1
+=
+850\ \text{dakika}
+\]\[
+850 \div 60
+=
+14{,}2\ \text{saat}
+\]Aylık tasarruf edilen süre:
+\[
+56{,}7 - 14{,}2
+=
+42{,}5\ \text{saat}
+\]Yaklaşık zaman katkısı:
+\[
+42{,}5 \times 300
+=
+12.750\ \text{TL/ay}
+\]Gecikmiş alacak katkısı
+Gecikmiş alacakların finansman etkisinin aylık 18.000 TL olduğu belirtilmişse yazılımın bunun tamamını ortadan kaldırdığı varsayılmamalıdır.
+Yazılımla gecikme maliyetinin %30 azaldığını varsayalım:
+\[
+18.000 \times 0{,}30
+=
+5.400\ \text{TL/ay}
+\]Yazılım maliyeti
+lisans: 16.500 TL,
+e-belge paketi: 4.500 TL,
+banka entegrasyonu: 3.000 TL,
+ilk kurulum ve eğitim: 12.000 TL.
+İlk yıl:
+\[
+16.500 + 4.500 + 3.000 + 12.000
+=
+36.000\ \text{TL}
+\]Aylık ortalama:
+\[
+36.000 \div 12
+=
+3.000\ \text{TL}
+\]Basitleştirilmiş aylık katkı:
+\[
+12.750 + 5.400 - 3.000
+=
+15.150\ \text{TL}
+\]Basit ilk yıl katkısı:
+\[
+15.150 \times 12
+=
+181.800\ \text{TL}
+\]Bu tutar kesin tasarruf değildir. Yazılımın gerçekten gecikmiş alacakları azaltıp azaltmadığı ve personel zamanının değer üreten işe aktarılıp aktarılmadığı ölçülmelidir.
+Geçiş planı
+Cari kartları temizle.
+Açılış bakiyelerini doğrula.
+Ürün ve hizmet kartlarını standartlaştır.
+Banka ve kasa hesaplarını eşleştir.
+Yetkileri tanımla.
+SMMM ile aktarım formatını test et.
+Bir ay paralel kontrol yap.
+Eski Excel dosyalarını salt okunur arşivle.
+İlk ay mutabakatını tamamla.
+Hata listesini kapatmadan eski yöntemi bırakma.
+Bu dersten çıkacak çalışma kaydınız
+Ön Muhasebe Yazılımı Geçiş ve ROI Analiz Cetveli
+Kayıt:
+mevcut süreçler,
+aylık işlem hacmi,
+manuel çalışma süresi,
+hata ve gecikme maliyeti,
+gerekli modüller,
+e-belge yöntemi,
+SMMM uyumu,
+banka entegrasyonu,
+üç yıllık maliyet,
+veri aktarım planı,
+zaman ve finans katkısı,
+pilot sonucu,
+geçiş kararı
+alanlarını içermelidir.
+Kaynaklar
+GİB e-Belge portalı ve e-Fatura Portal kullanım kılavuzu. eBelge
+GİB YN ÖKC ve e-belge düzenlemelerine ilişkin güncel duyurular. Yeni Nesil Ödeme Kaydedici Cihaz
+Yükümlülükler, belge türleri ve geçiş koşulları için güncel GİB düzenlemeleri ile mali müşavir görüşü esas alınmalıdır.
+Stok Takip Sistemi Kurmalı mıyım?
+Stok, işletme sermayesinin ürüne dönüşmüş hâlidir.
+Stok doğruluğu zayıfsa işletme:
+sistemde var görünen ürünü bulamaz,
+olmayan ürünü satabilir,
+gereksiz sipariş verebilir,
+satılmayan üründe nakit bağlar,
+yanlış ürün gönderir,
+gerçek kârını ve nakit ihtiyacını yanlış tahmin eder.
+Ancak stok sorununun her zaman yazılım eksikliğinden kaynaklandığı düşünülmemelidir.
+Sorun şunlardan da doğabilir:
+ürün kartlarının yanlış açılması,
+barkod disiplini olmaması,
+ürün kabulünün kontrol edilmemesi,
+iadenin yanlış depoya alınması,
+personelin sistemi kullanmaması,
+sayım yapılmaması,
+şubeler arası transferin kaydedilmemesi.
+Kötü süreç dijitalleştirildiğinde daha hızlı kötü veri üretilebilir.
+Excel ne zaman yeterli olabilir?
+Excel veya basit takip sistemi şu durumda yeterli olabilir:
+sınırlı sayıda ürün,
+tek depo,
+tek satış kanalı,
+düşük işlem hacmi,
+az varyant,
+düzenli sayım,
+tek sorumlu kişi,
+düşük eş zamanlı satış riski.
+Ancak Excel’de:
+gerçek zamanlı çok kullanıcılı güncelleme,
+işlem geçmişi,
+barkod,
+pazaryeri senkronizasyonu,
+rol yetkileri,
+otomatik rezervasyon
+ihtiyacı arttıkça risk yükselir.
+WMS, ERP stok modülü ve basit stok yazılımını ayır
+Basit stok yazılımı
+ürün giriş-çıkışı,
+stok seviyesi,
+temel raporlar.
+ERP stok modülü
+Stokla birlikte:
+satış,
+satın alma,
+muhasebe,
+üretim,
+finans
+süreçlerini bağlayabilir.
+WMS
+Depo operasyonuna daha derin odaklanabilir:
+lokasyon,
+toplama rotası,
+parti/lot,
+seri numarası,
+görev atama,
+el terminali,
+sevkiyat kontrolü.
+1.000 SKU bulunması otomatik olarak tam WMS gerektirmez. İşlem ve depo karmaşıklığı değerlendirilmelidir.
+Geçiş ihtiyacını gösteren sinyaller
+Satış kanallarındaki kullanılabilir stok farklı.
+Stokta olmayan ürün siparişi oluşuyor.
+Yanlış ürün gönderimi tekrar ediyor.
+Sipariş toplama süresi uzuyor.
+Ürünün hangi rafta olduğu bilinmiyor.
+Sayım farkları açıklanamıyor.
+Aynı SKU farklı kodlarla açılmış.
+İade edilen ürünün durumu izlenemiyor.
+Ölü stok raporu çıkarılamıyor.
+Yeniden sipariş kararları sezgiyle veriliyor.
+“Sayım farkı %2’yi aşınca mutlaka yazılım alınır” şeklinde evrensel sınır kullanılmamalıdır. Yüksek değerli küçük bir ürün grubunda %0,5 fark bile önemli olabilir.
+Pazaryeri riski
+Pazaryerleri stokta olmayan ürün, geciken gönderim ve sipariş iptalleri için farklı performans ölçütleri ve yaptırımlar uygulayabilir.
+Bu kurallar:
+platforma,
+kategoriye,
+satıcı sözleşmesine,
+döneme
+göre değişebilir.
+“Belirli sayıda iptalde mağaza kapatılır” gibi sabit ifade yerine satıcının güncel paneli ve sözleşmesi kontrol edilmelidir.
+Ölü stok maliyeti
+Satılmayan stokun etkisi yalnızca satın alma bedeli değildir.
+\[
+\text{Ölü Stok Yükü}
+=
+\text{Bağlı Sermaye Maliyeti}
++
+\text{Depolama}
++
+\text{Hasar/Bozulma}
++
+\text{Değer Kaybı}
++
+\text{Elden Çıkarma Maliyeti}
+\]Bağlı sermaye maliyetinde rastgele “piyasa faizi %35” kullanmak yerine işletmenin:
+kredi maliyeti,
+özkaynak hedef getirisi,
+alternatif kullanım değeri
+esas alınmalıdır.
+Sistem seçim kriterleri
+SKU ve varyant yapısı
+depo ve şube sayısı
+sipariş hacmi
+barkod ve el terminali
+lot/seri/son kullanma ihtiyacı
+pazaryeri entegrasyonu
+rezervasyon mantığı
+iade ve hasarlı stok
+sayım
+yeniden sipariş
+kullanıcı yetkisi
+API ve veri dışa aktarma
+çevrim dışı kullanım
+destek ve yedekleme
+Düzeltilmiş varsayımsal senaryo
+Verda Ev & Yaşam’ın:
+1.400 SKU,
+bir depo,
+iki mağaza ve e-ticaret kanalı
+bulunsun.
+Mevcut doğrulanmış aylık etkiler
+stok yokluğu nedeniyle iptal edilen sipariş cirosu: 36.000 TL,
+platform kesinti ve operasyon maliyeti: 8.500 TL,
+yanlış gönderi maliyeti: 12.000 TL.
+Ancak iptal edilen 36.000 TL cironun tamamı zarar değildir.
+%40 brüt kâr varsayımıyla kaçırılan brüt kâr:
+\[
+36.000 \times 0{,}40
+=
+14.400\ \text{TL}
+\]Doğrudan aylık etkiler:
+\[
+14.400 + 8.500 + 12.000
+=
+34.900\ \text{TL}
+\]Ölü stok
+240.000 TL atıl stok bulunduğunu ve işletmenin yıllık sermaye maliyetinin %35 olduğunu varsayalım:
+\[
+240.000 \times 0{,}35
+=
+84.000\ \text{TL/yıl}
+\]\[
+84.000 \div 12
+=
+7.000\ \text{TL/ay}
+\]Toplam ölçülen aylık ekonomik yük:
+\[
+34.900 + 7.000
+=
+41.900\ \text{TL}
+\]Önceki 63.500 TL hesabı, kaybedilen cironun tamamını maliyet saydığı için kâr etkisini yüksek gösteriyordu.
+Sistem maliyeti
+el terminali ve yazıcı: 36.000 TL,
+yıllık lisans: 30.000 TL,
+kurulum, etiketleme ve eğitim: 24.000 TL.
+İlk yıl:
+\[
+36.000 + 30.000 + 24.000
+=
+90.000\ \text{TL}
+\]Sistemin kayıpların tamamını sıfırlamadığını varsayalım:
+stok iptal etkisinde %70 azalma,
+platform maliyetinde %60 azalma,
+yanlış gönderide %75 azalma,
+ölü stok finansman etkisinde ilk yıl %25 azalma.
+Aylık katkı:
+\[
+14.400 \times 0{,}70 = 10.080
+\]\[
+8.500 \times 0{,}60 = 5.100
+\]\[
+12.000 \times 0{,}75 = 9.000
+\]\[
+7.000 \times 0{,}25 = 1.750
+\]\[
+10.080 + 5.100 + 9.000 + 1.750
+=
+25.930\ \text{TL/ay}
+\]Basit geri dönüş:
+\[
+90.000 \div 25.930
+\approx
+3{,}5\ \text{ay}
+\]Bu sonuç ancak pilot sonrasında doğrulanabilir.
+Geçiş sırası
+Ürün kartlarını temizle.
+Tekil SKU standardı oluştur.
+Barkodları doğrula.
+Depo ve raf adreslerini tanımla.
+Açılış sayımı yap.
+Satılabilir, teşhir, hasarlı ve iade stoklarını ayır.
+Pazaryeri eşleştirmelerini test et.
+Bir ürün grubunda pilot uygula.
+Son ürün eş zamanlı satış testi yap.
+Sayım farkını karşılaştır.
+Kullanıcı eğitimini tamamla.
+Tam geçiş yap.
+KOSGEB’in dijital dönüşüm programları belirli sektör, ölçek, değerlendirme ve finansman koşullarına bağlıdır. “Her stok yazılımı KOSGEB tarafından desteklenir” denmemelidir. Güncel programda dijital dönüşüm/olgunluk değerlendirme raporu ve program başvurusu gibi aşamalar bulunmaktadır. KOSGEB
+Bu dersten çıkacak çalışma kaydınız
+Stok Yönetim Sistemi Otomasyon ve Geçiş Karar Formu
+Çalışma kaydı:
+SKU ve varyant sayısı,
+kanal ve depo sayısı,
+iptal ve yanlış sevk oranı,
+sayım farkı,
+atıl stok,
+sipariş toplama süresi,
+gerekli sistem düzeyi,
+donanım,
+entegrasyon,
+ilk yıl maliyeti,
+beklenen kayıp azaltma oranları,
+pilot sonuçları,
+geçiş kararı
+alanlarını içermelidir.
+Kaynaklar
+KOSGEB KOBİ Dijital Dönüşüm Destek Programı ve güncel uygulama belgeleri. KOSGEB
+KOSGEB güncel destek ve başvuru duyuruları. KOSGEB
+Entegrasyon mu, Manuel Süreç mi?
+Dijitalleşme, işletmedeki her işi birbirine bağlamak anlamına gelmez.
+Gereksiz entegrasyon:
+yüksek kurulum maliyeti,
+yazılım sağlayıcısına bağımlılık,
+bakım yükü,
+görünmeyen veri hataları,
+süreç kesintisi,
+siber güvenlik riski
+oluşturabilir.
+Ancak yüksek hacimli ve kritik işlemleri manuel bırakmak da:
+tekrarlı işçilik,
+gecikme,
+yanlış veri,
+müşteri kaybı,
+platform cezası,
+kontrol zorluğu
+yaratabilir.
+Doğru soru şudur:
+Bu süreç hangi ölçekte, hangi kontrol düzeyiyle ve hangi maliyetle otomatikleştirilmeli?
+
+Basit denklem yeterli değildir
+İlk değerlendirme için:
+\[
+\text{Manuel Süreç Maliyeti}
+=
+\text{İşçilik}
++
+\text{Hata}
++
+\text{Gecikme}
+\]kullanılabilir.
+Ancak entegrasyon kararında karşı taraf da tam hesaplanmalıdır:
+\[
+\text{Entegrasyon Maliyeti}
+=
+\text{Kurulum}
++
+\text{Lisans}
++
+\text{Bakım}
++
+\text{İç Kontrol}
++
+\text{Kesinti Riski}
++
+\text{Değişiklik Maliyeti}
+\]Otomasyonun sağlayacağı brüt fayda:
+\[
+\text{Brüt Otomasyon Faydası}
+=
+\text{Azalan İşçilik}
++
+\text{Azalan Hata}
++
+\text{Hızlanan Tahsilat}
++
+\text{Korunan Satış}
+\]Net katkı:
+\[
+\text{Net Otomasyon Katkısı}
+=
+\text{Brüt Fayda}
+-
+\text{Toplam Entegrasyon Maliyeti}
+\]Entegrasyona uygun süreçlerin özellikleri
+Yüksek tekrar
+İşlem aynı kurallarla sık tekrarlanıyor.
+Standart veri
+Girdi ve çıktı alanları açık biçimde tanımlanabiliyor.
+Hata etkisi yüksek
+Yanlış veri finansal veya müşteri kaynaklı önemli sonuç oluşturuyor.
+Zaman duyarlılığı
+Gecikme stok, teslimat veya müşteri iletişimini bozuyor.
+İzlenebilirlik ihtiyacı
+Hangi kaydın ne zaman aktarıldığı görülebilmeli.
+Yeterli hacim
+Kurulum ve bakım maliyetini karşılayacak işlem sayısı bulunuyor.
+Manuel veya yarı otomatik kalabilecek süreçler
+çok seyrek yapılan,
+her seferinde farklı karar gerektiren,
+veri yapısı standart olmayan,
+insan değerlendirmesi yüksek,
+hata etkisi düşük,
+entegrasyon maliyeti yüksek
+süreçler manuel kalabilir.
+Ancak manuel kalması “kontrolsüz” olması anlamına gelmez.
+Şunlar kullanılabilir:
+standart form,
+kontrol listesi,
+çift kontrol,
+dosya içe aktarma,
+toplu işlem,
+onay akışı.
+Tam otomasyon ile tamamen manuel yöntem arasında yarı otomasyon seçeneği vardır.
+Önce süreci düzelt, sonra entegre et
+Şu sorunlar çözülmeden entegrasyon yapılmamalıdır:
+aynı ürünün farklı kodlarla bulunması,
+müşteri adreslerinin standart olmaması,
+sipariş statülerinin belirsizliği,
+iade nedenlerinin tanımlanmaması,
+kargo kurallarının sürekli değişmesi,
+personel sorumluluğunun net olmaması.
+Otomasyon hatalı veriyi daha hızlı yayabilir.
+Entegrasyon riskleri
+Sağlayıcı bağımlılığı
+Veriler başka sisteme taşınabiliyor mu?
+API değişikliği
+Pazaryeri veya kargo firması bağlantıyı değiştirirse kim güncelleyecek?
+Başarısız aktarım
+Hatalı kayıt nasıl kuyruğa alınacak?
+Çift kayıt
+Aynı sipariş iki kez faturalanabilir mi?
+Güvenlik
+Hangi sistem hangi veriye erişiyor?
+İş sürekliliği
+Entegrasyon kapandığında geçici manuel yöntem var mı?
+Mutabakat
+“Başarılı aktarıldı” kaydı, karşı sistemde gerçekten oluştuğunu kanıtlıyor mu?
+Entegrasyon öncelik puanı
+Her süreç 1-5 arasında puanlanabilir:
+Ölçüt	Puan
+İşlem hacmi	1-5
+Manuel süre	1-5
+Hata etkisi	1-5
+Zaman duyarlılığı	1-5
+Veri standardı	1-5
+Teknik uygulanabilirlik	1-5
+
+
+Yüksek toplam puan entegrasyon adayını gösterir; ancak finansal fizibilitenin yerine geçmez.
+Düzeltilmiş varsayımsal senaryo
+Verda Ev & Yaşam ayda 1.200 e-ticaret siparişi işliyor.
+Manuel süreçte:
+adres kargo sistemine giriliyor,
+belge düzenleniyor,
+takip numarası kanala aktarılıyor.
+Manuel zaman
+Sipariş başına altı dakika:
+\[
+1.200 \times 6
+=
+7.200\ \text{dakika}
+\]\[
+7.200 \div 60
+=
+120\ \text{saat}
+\]Bir çalışanın aylık üretken çalışma süresini doğrudan 160 saat varsaymak yerine işletmenin gerçek bordro ve çalışma düzeni kullanılmalıdır.
+Tam personel maliyeti aylık 48.000 TL ve üretken süre 160 saat varsayılsın:
+\[
+48.000 \div 160
+=
+300\ \text{TL/saat}
+\]Manuel zaman maliyeti:
+\[
+120 \times 300
+=
+36.000\ \text{TL/ay}
+\]Önceki örnekte 36.000 TL ücretin %75’i alınmıştı. Tam işveren maliyeti ve gerçek çalışma süresi kullanmak daha doğrudur.
+Hata maliyeti
+Aylık 25 hatalı gönderi ve olay başına ortalama 250 TL doğrulanmış maliyet:
+\[
+25 \times 250
+=
+6.250\ \text{TL}
+\]Toplam:
+\[
+36.000 + 6.250
+=
+42.250\ \text{TL/ay}
+\]Entegrasyon maliyeti
+yıllık lisans: 36.000 TL,
+ilk kurulum: 12.000 TL,
+yıllık destek ve ek kullanım: 12.000 TL,
+iç kontrol için ayda 10 saat.
+Yıllık dış maliyet:
+\[
+36.000 + 12.000 + 12.000
+=
+60.000\ \text{TL}
+\]Aylık ortalama:
+\[
+60.000 \div 12
+=
+5.000\ \text{TL}
+\]İç kontrol:
+\[
+10 \times 300
+=
+3.000\ \text{TL/ay}
+\]Toplam aylık entegrasyon maliyeti:
+\[
+5.000 + 3.000
+=
+8.000\ \text{TL}
+\]Gerçekçi fayda varsayımı
+Entegrasyon:
+manuel süreyi %80 azaltıyor,
+hata maliyetini %70 azaltıyor.
+Zaman katkısı:
+\[
+36.000 \times 0{,}80
+=
+28.800\ \text{TL}
+\]Hata katkısı:
+\[
+6.250 \times 0{,}70
+=
+4.375\ \text{TL}
+\]Toplam brüt katkı:
+\[
+28.800 + 4.375
+=
+33.175\ \text{TL}
+\]Net aylık katkı:
+\[
+33.175 - 8.000
+=
+25.175\ \text{TL}
+\]Bu tutar “nakit tasarruf” olarak kabul edilmemelidir. Çalışanın işine son verilmediyse personel maliyeti ortadan kalkmaz; serbest kalan zamanın:
+müşteri hizmetleri,
+satış,
+veri kontrolü,
+pazarlama
+gibi değer üreten işlerde kullanılması gerekir.
+Üç seçenekli karar
+Seçenek	Maliyet	Kontrol	Hız	Uygun durum
+Manuel	Düşük sabit/yüksek değişken	İnsan kontrolü	Düşük	Seyrek ve farklı işlemler
+Yarı otomatik	Orta	Yüksek	Orta	Toplu içe aktarma ve onay
+Tam entegrasyon	Yüksek sabit/düşük işlem maliyeti	Sistem + mutabakat	Yüksek	Yüksek hacim ve standart süreç
+
+
+Pilot uygulama
+Entegrasyonu bütün kanallarda aynı anda açma.
+Tek kanal seç.
+100-200 siparişlik pilot yap.
+Başarılı aktarım oranını ölç.
+Çift kayıt kontrolü yap.
+Hata kuyruğunu test et.
+İptal ve iadeyi dene.
+Kesinti senaryosu uygula.
+Manuel geri dönüş planını dene.
+Mutabakat yap.
+Sonra ölçeklendir.
+Bu dersten çıkacak çalışma kaydınız
+Süreç Entegrasyonu Maliyet-Fayda ve Karar Matrisi
+Çalışma kaydı:
+sürecin başlangıç ve bitişi,
+aylık işlem hacmi,
+manuel süre,
+saatlik tam maliyet,
+hata ve gecikme maliyeti,
+veri standardı,
+tam ve yarı otomasyon seçenekleri,
+kurulum ve yıllık maliyet,
+bakım ve kontrol süresi,
+sağlayıcı bağımlılığı,
+güvenlik ve kesinti riski,
+pilot başarı ölçütü,
+geri dönüş planı,
+net katkı,
+karar ve gerekçe
+alanlarını içermelidir.
+Kaynak ve doğrulama notu
+KOSGEB’in KOBİ Dijital Dönüşüm Destek Programı, dijital olgunluk değerlendirmesi ve program koşulları temelinde yürütülmektedir; her entegrasyon yazılımı otomatik olarak desteklenmez. KOSGEB
+Elektronik ticaret ve platform süreçlerine ilişkin güncel yükümlülükler resmî kaynak ve hizmet sağlayıcı sözleşmelerinden kontrol edilmelidir.
+Yazılım API’leri, pazaryeri kuralları, ücretler ve bağlantı kapsamları değişebileceği için sağlayıcıdan yazılı teknik kapsam alınmalıdır.
+Gemini kontrolünde özellikle şu noktaları doğrulat:
+593 Sıra No.lu Tebliğin YN ÖKC’den e-belge düzenlenmesine etkisi,
+satış yazılımı-YN ÖKC-EFT-POS entegrasyon ayrımı,
+işletmenin e-Fatura/e-Arşiv yükümlülüğünün güncel koşulları,
+offline satışta mali cihaz ve kartlı ödeme sınırları,
+KOSGEB Dijital Dönüşüm Programının sektör ve başvuru şartları,
+pazaryeri stok ve iptal yaptırımlarının platform bazında değişmesi.
+
+İş Kurma mı, Var Olanı Devralmak mı?
+Bir girişimcinin veya büyümek isteyen işletmenin önündeki temel seçeneklerden biri, yeni pazara sıfırdan kuracağı bir işletmeyle mi yoksa faaliyette olan bir işletmeyi devralarak mı gireceğidir.
+Sıfırdan kuruluş daha fazla tasarım ve yönetim özgürlüğü sağlayabilir. Buna karşılık işletme henüz müşteri, çalışan düzeni, satış geçmişi ve tedarikçi ilişkilerine sahip değildir.
+Mevcut bir işletmenin devralınması ise hazır lokasyon, müşteri trafiği, çalışanlar, stok ve geçmiş satış verisi sağlayabilir. Ancak devir işlemiyle birlikte eski işletmenin düşük kaliteli stokları, sözleşme sorunları, çalışan yükümlülükleri, marka algısı ve geçmiş borç riskleri de gündeme gelebilir.
+Bu nedenle karar yalnızca:
+“Sıfırdan kurulum mu daha ucuz, devir bedeli mi?”
+
+sorusuyla verilmemelidir.
+Asıl karşılaştırma, iki seçeneğin toplam nakit ihtiyacını, pazara giriş süresini, devralınan riskleri ve gelecekteki nakit üretme kapasitesini kapsamalıdır.
+Önce neyin devralındığını belirle
+“İşletme devralma” tek tip bir işlem değildir.
+Ticari işletme devri
+İşletmenin faaliyetini devam ettirmesi için gerekli aktif ve pasiflerin bir bütün olarak devredilmesi söz konusu olabilir.
+Türk Borçlar Kanunu’nun 202. maddesine göre bir işletmeyi aktif ve pasifleriyle devralan kişi, devri alacaklılara bildirdiği veya ilan ettiği tarihten itibaren işletmenin borçlarından sorumlu hâle gelir. Devreden kişi de kanunda belirtilen süre boyunca devralanla birlikte müteselsil sorumlu kalır. Muaccel borçlarda iki yıllık süre bildirim veya ilan tarihinden, henüz vadesi gelmemiş borçlarda ise borcun muaccel olduğu tarihten itibaren işler. LEXPERA
+Bu hüküm, yalnızca belirli bir makinenin, stok grubunun veya demirbaşın satın alındığı her işlem için otomatik olarak uygulanmamalıdır. İşlemin gerçekten ticari işletmenin bütüncül devri niteliğinde olup olmadığı ayrıca değerlendirilmelidir.
+Şirket payı devri
+Alıcı şirketin varlıklarını tek tek değil, şirket paylarını satın alır.
+Şirket aynı tüzel kişi olarak faaliyetini sürdürür. Dolayısıyla şirketin:
+borçları,
+davaları,
+sözleşmeleri,
+vergi ve SGK yükümlülükleri,
+çalışan ilişkileri
+şirket bünyesinde devam eder.
+Limited şirket payı devrinde geçmiş kamu borçları bakımından devreden ve devralan ortakların sorumluluğu ayrıca 6183 sayılı Kanun hükümleri çerçevesinde değerlendirilmelidir.
+Tekil varlık devri
+Yalnızca belirli:
+stok,
+makine,
+demirbaş,
+alan adı,
+marka,
+ekipman
+satın alınabilir.
+İşletmenin bütünü veya işyeri devredilmiyorsa satıcının bütün geçmiş borçlarının otomatik olarak alıcıya geçtiği söylenmemelidir. Ancak işlemin görünüşte tekil varlık satışı olup gerçekte işletme devri niteliği taşıması, muvazaa, haciz, rehin veya mülkiyet sorunu gibi riskler ayrıca incelenmelidir.
+İşyeri ve kira ilişkisinin devri
+Dükkânın kira hakkının devri, ticari işletmenin veya şirket paylarının devrinden ayrı bir konudur.
+Türk Borçlar Kanunu’nun 323. maddesine göre kira ilişkisinin devri için kiraya verenin yazılı rızası gerekir. İşyeri kiralarında kiraya veren haklı bir sebep olmadıkça rıza vermekten kaçınamaz. Yazılı rızayla devralan kişi eski kiracının yerine geçer; devreden kiracının sorumluluğu ise sözleşmenin bitimine kadar ve en fazla iki yıl devam eder. LEXPERA
+Kiraya verenin rıza vermemesi hâlinde reddin haklı nedene dayanıp dayanmadığı hukukçu tarafından değerlendirilmelidir. Kira ilişkisi netleşmeden devir bedeli kesinleştirilmemelidir.
+Sıfırdan kuruluşun avantajları
+Marka ve konsept özgürlüğü
+Yeni teknoloji ve yazılım altyapısı kurabilme
+Ürün ve tedarikçi yapısını baştan belirleme
+Geçmiş müşteri uyuşmazlıklarından etkilenmeme
+Eski çalışan ve sözleşme sorunlarının bulunmaması
+Lokasyonu ihtiyaca göre seçebilme
+Sıfırdan kuruluşun riskleri
+Ruhsat ve izin süreci
+Tadilat ve kurulum gecikmesi
+Müşteri kazanım süresi
+İlk stok hataları
+Çalışanların deneyim kazanması
+Başabaş noktasına ulaşana kadar nakit açığı
+Marka bilinirliği oluşturma maliyeti
+Devralmanın avantajları
+Daha hızlı pazara giriş
+Geçmiş satış verilerine erişim
+Hazır müşteri trafiği
+Kurulu tedarikçi ilişkileri
+Mevcut çalışan ve operasyon düzeni
+Hazır demirbaş ve mağaza altyapısı
+Devralmanın riskleri
+Eski sahibin kişisel ilişkilerine bağlı ciro
+Devredilemeyen sözleşmeler
+Vergi ve SGK riskleri
+Çalışan hakları ve geçmiş hizmet süreleri
+Kira devri ve kira artışı
+Satılamayan stok
+Bakım gerektiren demirbaşlar
+Marka itibarındaki sorunlar
+Müşteri verilerinin hukuka aykırı aktarılması
+Geçmiş satışların doğrulanamaması
+Kararda kullanılacak temel hesaplar
+Sıfırdan kuruluş
+\[
+\text{Toplam Nakit İhtiyacı}
+=
+\text{Kurulum}
++
+\text{İlk Stok}
++
+\text{Depozito}
++
+\text{İzinler}
++
+\text{Açılış Giderleri}
++
+\text{Başabaşa Kadar Nakit Açığı}
+\]Devralma
+\[
+\text{Toplam Devralma İhtiyacı}
+=
+\text{Devir Bedeli}
++
+\text{Kullanılabilir Stok}
++
+\text{Yenileme}
++
+\text{İnceleme Giderleri}
++
+\text{Çalışma Sermayesi}
++
+\text{Fiyatlandırılmış Riskler}
+\]Varsayımsal sayısal senaryo
+Verda Ev & Yaşam Bursa’da mağaza açmayı değerlendiriyor.
+Seçenek A - Sıfırdan mağaza
+Tadilat, dekorasyon ve tabela: 1.200.000 TL
+İlk stok: 1.500.000 TL
+Depozito, izin ve altyapı: 300.000 TL
+Kurulum:
+\[
+1.200.000 + 1.500.000 + 300.000
+=
+3.000.000\ \text{TL}
+\]İlk on ayda aylık ortalama 80.000 TL nakit açığı oluştuğu varsayılsın:
+\[
+80.000 \times 10
+=
+800.000\ \text{TL}
+\]Toplam:
+\[
+3.000.000 + 800.000
+=
+3.800.000\ \text{TL}
+\]On ayda başabaşa ulaşılması kesin sonuç değil, test edilmesi gereken tahmindir.
+Seçenek B - Mevcut mağazayı devralma
+Devir bedeli: 2.000.000 TL
+Doğrulanmış kullanılabilir stok: 1.200.000 TL
+Marka ve sistem dönüşümü: 250.000 TL
+Hukuki ve mali inceleme: 100.000 TL
+Ek çalışma sermayesi: 300.000 TL
+Toplam:
+\[
+2.000.000 + 1.200.000 + 250.000 + 100.000 + 300.000
+=
+3.850.000\ \text{TL}
+\]Bu hesap, devralmanın ilk bakışta sıfırdan kuruluştan ucuz görünmesine rağmen gerçek geçiş giderleri eklendiğinde daha pahalı olabileceğini gösterir.
+Karar
+Devralma şu durumda daha uygun olabilir:
+Geçmiş satış ve kâr kayıtları doğrulanabiliyorsa
+Kira ilişkisi sürdürülebiliyorsa
+Stok ve demirbaşlar gerçek değerinden alınıyorsa
+Çalışan ve müşteri devamlılığı yüksekse
+Hukuki ve mali riskler fiyatlandırılmışsa
+Devralma sonrası katkı sıfırdan kuruluş seçeneğinden yüksekse
+Sıfırdan kuruluş şu durumda daha güvenli olabilir:
+Kayıtlar güvenilir değilse
+Ciro eski sahibin kişisel ilişkisine bağlıysa
+Kira devri belirsizse
+Stok kalitesi düşükse
+Devir bedeli gerçek nakit üretimiyle açıklanamıyorsa
+İşletmenin marka ve süreçlerini tamamen değiştirmek gerekiyorsa
+Bu dersten çıkacak çalışma kaydınız
+İş Kurma ve Devralma Karar ve Risk Analiz Cetveli
+Çalışma kaydı:
+İşlemin hukuki türü
+Kurulum veya devir bedeli
+Çalışma sermayesi
+Pazara giriş süresi
+Başabaş süresi
+Müşteri devir riski
+Stok ve demirbaş değeri
+Kira durumu
+Çalışan yükümlülükleri
+Vergi ve SGK riskleri
+Düşük, beklenen ve güçlü senaryolar
+Karar ve gerekçe
+alanlarını içermelidir.
+Kaynaklar
+6098 sayılı Türk Borçlar Kanunu, özellikle m.202 ve m.323. LEXPERA
+4857 sayılı İş Kanunu, işyerinin veya bir bölümünün devrine ilişkin m.6.
+5510 sayılı Sosyal Sigortalar ve Genel Sağlık Sigortası Kanunu, işyeri devri ve prim borçlarına ilişkin m.89.
+6183 sayılı Amme Alacaklarının Tahsil Usulü Hakkında Kanun, limited şirket ortakları ve kanuni temsilcilerin kamu borcu sorumluluğuna ilişkin hükümler.
+KOSGEB güncel girişimcilik ve iş kurma destekleri.
+TOBB Türkiye Ticaret Sicili Gazetesi kuruluş ve devir işlemleri.
+Devren Satın Almada Hukuki, Mali ve Operasyonel Risk Tespiti
+Bir işletmeyi devralırken yalnızca görünen satış hacmine, dekorasyona veya satıcının anlattığı müşteri potansiyeline bakmak yeterli değildir.
+Devir işleminin türüne göre alıcı:
+ticari borç,
+çalışan ilişkisi,
+kira yükümlülüğü,
+kamu borcu riski,
+dava,
+müşteri taahhüdü,
+sözleşme,
+stok ve demirbaş sorunu
+ile karşılaşabilir.
+Bu nedenle sözleşmeden önce bağımsız bir hukuki, mali ve operasyonel durum tespiti yapılmalıdır.
+1. İşlem türünü kesinleştir
+İlk soru şudur:
+Tam olarak ne satın alınıyor?
+
+Liste:
+Şirket payları
+Ticari işletme
+İşletme adı
+Marka
+Stok
+Demirbaş
+Kira ilişkisi
+Müşteri sözleşmeleri
+Tedarikçi sözleşmeleri
+İnternet sitesi ve sosyal medya hesapları
+Ruhsatlar
+Çalışan ilişkileri
+Alacak ve borçlar
+Sözleşmede her unsur ayrı ayrı tanımlanmalıdır.
+2. Ticari işletme borçları
+TBK m.202 kapsamında ticari işletmenin aktif ve pasifleriyle birlikte devredilmesi hâlinde devralanın borç sorumluluğu, alacaklılara bildirim veya ilanla başlar. Devreden kişi de kanunda belirtilen iki yıllık süre boyunca devralanla birlikte sorumlu kalır. LEXPERA
+Bununla birlikte:
+Şirket payı devri
+Ticari işletme devri
+Tekil varlık satışı
+aynı hukuki sonuçları doğurmaz.
+Bu nedenle borç sorumluluğu yalnızca işlemin başlığına bakılarak değil, gerçek kapsamına göre incelenmelidir.
+3. Vergi ve kamu borçları
+Vergi ve diğer kamu borçlarının devralana etkisi:
+işlemin türüne,
+şirket türüne,
+devralanın ortak veya kanuni temsilci sıfatına,
+ilgili özel kanunlara,
+borcun dönemine
+göre değişebilir.
+6183 sayılı Kanun’un 35. maddesi limited şirket ortaklarının, mükerrer 35. maddesi ise kanuni temsilcilerin kamu borçlarına ilişkin sorumluluğunu düzenler. Bu hükümler, her ticari işletme devrinde bütün vergi borçlarının otomatik olarak alıcıya geçtiğini tek başına göstermez.
+Şirket payı devrinde şirketin tüzel kişiliği değişmez; şirketin vergi borçları şirket üzerinde kalır. Ancak limited şirkette payı devreden ve devralan ortakların geçmiş dönem kamu borçlarına ilişkin özel sorumlulukları ayrıca incelenmelidir.
+Tekil bir makine veya stok satın alımında satıcının tüm vergi borçlarının kendiliğinden alıcıya geçtiği varsayılmamalıdır. Buna karşılık haciz, rehin, muvazaa ve işlemin gerçekte işletme devri sayılması riskleri araştırılmalıdır.
+Kontrol edilecekler:
+Vergi borcu yazıları
+Devam eden vergi incelemeleri
+Yapılandırmalar
+Vergi davaları
+Beyanname uyumsuzlukları
+Haciz ve teminatlar
+Kanuni temsilci sorumluluğu
+Limited şirket ortaklık geçmişi
+“Borcu yoktur” yazısı önemlidir ancak bütün geçmiş veya sonradan ortaya çıkabilecek riskleri ortadan kaldırdığı varsayılmamalıdır.
+4. SGK borçları
+5510 sayılı Kanun’un 89. maddesi kapsamında işyerinin aktif veya pasifiyle birlikte devri, intikali veya başka bir işyerine katılması gibi hâllerde prim ve ilgili borçlar bakımından özel sorumluluk hükümleri bulunur.
+Bu nedenle şu belgeler incelenmelidir:
+SGK işyeri dosyası
+Prim borçları
+İdari para cezaları
+Eksik gün kayıtları
+Kayıt dışı çalışan iddiaları
+Yapılandırmalar
+Devam eden SGK denetimleri
+İş kazası ve meslek hastalığı dosyaları
+SGK durumu, genel ticari borç incelemesinden ayrı bir başlık olarak ele alınmalıdır.
+5. Çalışanlar ve işyeri devri
+4857 sayılı İş Kanunu’nun 6. maddesine göre işyeri veya işyerinin bir bölümü hukuki bir işlemle devredildiğinde mevcut iş sözleşmeleri bütün hak ve borçlarıyla devralana geçer.
+Devralan işveren, çalışanların hizmet sürelerini hesaplarken devreden işveren yanında geçen süreleri de dikkate alır.
+Devir:
+hizmet süresini sıfırlamaz,
+çalışanların otomatik olarak kıdem tazminatı almasını sağlamaz,
+tek başına işçi veya işveren için fesih gerekçesi oluşturmaz.
+Devirden önce doğmuş ve devir tarihinde ödenmesi gereken işçilik alacaklarında devreden ve devralanın birlikte sorumluluğu bulunabilir; devredenin bu kapsamdaki sorumluluğu kanunda belirtilen süreyle sınırlıdır.
+Ancak kıdem tazminatı sırf devir tarihinde otomatik olarak doğmuş ve ödenmesi gereken bir borca dönüşmez. Kıdem tazminatında hizmet dönemleri, devir tarihindeki ücret ve ilgili özel hükümler ayrıca değerlendirilmelidir.
+Bu nedenle önceki örnekteki:
+“340.000 TL kıdem ve ihbar yükü kesin olarak devir günü devralana geçer.”
+
+yaklaşımı kullanılmamalıdır.
+Çalışan yükümlülüğü şu parçalara ayrılmalıdır:
+Ödenmemiş ücret
+Fazla çalışma
+Kullanılmamış izin
+Prim ve ikramiye
+Devam eden iş davası
+Gelecekte doğabilecek kıdem karşılığı
+İhbar riski
+SGK eksikliği
+6. Kira ilişkisi
+Kira devri için kiraya verenin yazılı rızası gerekir. İşyeri kiralarında kiraya veren haklı neden olmadıkça bu rızadan kaçınamaz. LEXPERA
+Kontrol edilecekler:
+Yazılı devir onayı
+Sözleşme süresi
+Kira artışı
+Depozito
+Tahliye taahhüdü
+Alt kira ve devir sınırlaması
+Tadilat izni
+Kullanım amacı
+Ortak gider
+Ruhsat uygunluğu
+Devreden kiracının devam eden sorumluluğu
+Kiraya verenin yeni sözleşme veya daha yüksek kira istemesi, devralmanın ekonomik değerini değiştirebilir. Ancak bunun hukuken otomatik olarak kabul edilmesi gereken bir şart olduğu varsayılmamalıdır.
+7. Sözleşmeler
+Aşağıdaki sözleşmeler tek tek incelenmelidir:
+Tedarikçi
+Distribütörlük
+Franchise
+Banka ve POS
+Yazılım lisansı
+Pazaryeri hesabı
+Servis ve bakım
+Müşteri aboneliği
+Marka lisansı
+Kredi ve teminat
+Özellikle şu maddeler aranmalıdır:
+Devir yasağı
+Kontrol değişikliği
+Erken fesih
+Cezai şart
+Münhasırlık
+Rekabet etmeme
+Teminat
+Kefalet
+8. Stok ve demirbaşlar
+Stok:
+Satılabilir
+Yavaş dönen
+Hasarlı
+İade
+Teşhir
+Konsinye
+Sezonu geçmiş
+Son kullanma riski bulunan
+olarak ayrılmalıdır.
+Demirbaşlarda:
+mülkiyet,
+fatura,
+seri numarası,
+bakım,
+garanti,
+finansal kiralama,
+rehin ve haciz
+kontrol edilmelidir.
+Düzeltilmiş varsayımsal senaryo
+Aura Dekorasyon için talep edilen devir bedeli:
+\[
+2.000.000\ \text{TL}
+\]olsun.
+İncelemede:
+280.000 TL vergi ve SGK riski,
+340.000 TL toplam çalışan yükümlülüğü tahmini,
+aylık kirada 35.000 TL artış,
+150.000 TL stok değer kaybı
+tespit edilsin.
+Bu tutarların tamamı aynı şekilde devir bedelinden indirilemez.
+Doğrudan ve kesinleşmiş borçlar
+Satıcının kapanıştan önce ödemesi veya bedelden kesilmesi değerlendirilebilir.
+Çalışan yükümlülüğü
+340.000 TL şu şekilde ayrıştırılmalıdır:
+doğmuş ve ödenmemiş alacaklar,
+izin karşılığı,
+devam eden dava,
+gelecekte doğabilecek kıdem karşılığı.
+Gelecekte doğabilecek kıdem karşılığı, devir günü kesin olarak ödenecek borç gibi değerlendirilmemelidir.
+Kira artışı
+Aylık ek kira:
+\[
+80.000 - 45.000
+=
+35.000\ \text{TL}
+\]İki yıllık basit ek çıkış:
+\[
+35.000 \times 24
+=
+840.000\ \text{TL}
+\]Bu tutar satıcının doğrudan borcu değildir. İşletmenin gelecekteki ekonomik değerini düşüren bir maliyet unsurudur.
+Stok değer kaybı
+\[
+150.000\ \text{TL}
+\]stok devir bedelinden indirilebilir.
+Sözleşme güvenlikleri
+Satıcının beyan ve garantileri
+Vergi ve SGK tazmin hükümleri
+Bedelin bir bölümünün bloke edilmesi
+Emanet hesap
+Kapanış öncesi borç ödeme şartı
+Sonradan çıkan borçların satıcıya rücu edilmesi
+Çalışan ve dava listesinin sözleşmeye eklenmesi
+Stok sayım tutanağı
+Kiraya verenin yazılı onayı
+değerlendirilebilir.
+Bu dersten çıkacak çalışma kaydınız
+Devralma Öncesi Hukuki, Mali ve Operasyonel Durum Tespiti Protokolü
+Çalışma kaydı:
+İşlemin türü
+Devredilen varlık ve haklar
+Ticari borçlar
+Vergi ve SGK durumu
+Ortak ve yönetici sorumluluğu
+Çalışan yükümlülükleri
+Kira ilişkisi
+Sözleşmeler
+Davalar ve teminatlar
+Stok ve demirbaş
+Müşteri verileri
+Fiyat düzeltmeleri
+Sözleşme güvenlikleri
+Devam veya vazgeçme kararı
+alanlarını içermelidir.
+Kaynaklar
+6098 sayılı Türk Borçlar Kanunu, m.202 ve m.323. LEXPERA
+4857 sayılı İş Kanunu, m.6.
+5510 sayılı Sosyal Sigortalar ve Genel Sağlık Sigortası Kanunu, m.89.
+6183 sayılı Amme Alacaklarının Tahsil Usulü Hakkında Kanun, m.35 ve mükerrer m.35.
+1475 sayılı İş Kanunu’nun yürürlükte bulunan kıdem tazminatına ilişkin m.14.
+Türkiye Ticaret Sicili Gazetesi ve ticari işletme devir işlemlerine ilişkin güncel sicil düzenlemeleri.
+Franchise Almalı mıyım?
+Franchise, bir markanın yalnızca adını kullanmak değildir.
+Sistem çoğunlukla:
+marka,
+işletme yöntemi,
+ürün veya hizmet standardı,
+tedarik,
+eğitim,
+yazılım,
+denetim,
+pazarlama
+bileşenlerini birlikte içerir.
+Franchise alan işletme marka bilinirliğinden yararlanabilir; buna karşılık giriş bedeli, royalty, reklam fonu, zorunlu tedarik ve operasyon kısıtlamaları üstlenebilir.
+Rekabet hukuku açısından temel ayrım
+Franchise sözleşmelerindeki:
+bölge koruması,
+internet satışı,
+pasif satış,
+zorunlu tedarik,
+tek marka,
+rekabet etmeme
+hükümleri 2002/2 sayılı Dikey Anlaşmalara İlişkin Grup Muafiyeti Tebliği ve Rekabet Kurumunun güncel Dikey Anlaşmalara İlişkin Kılavuzu kapsamında değerlendirilmelidir. Rekabet Kurumu
+Kılavuzda franchise anlaşmaları, dikey sınırlamaların değerlendirilmesi kapsamında ayrıca ele alınmaktadır. Güncel yapıda grup muafiyeti bakımından pazar payı eşiği de değerlendirmeye dâhildir. Rekabet Kurumu
+Aktif ve pasif satış ayrımı
+Franchise verene belirli bölgeler tahsis edilebilir ve bazı aktif satışlar sınırlanabilir.
+Ancak müşterinin kendiliğinden başvurmasıyla gerçekleşen pasif satışların veya internetin etkili şekilde kullanımının engellenmesi rekabet hukuku açısından daha yüksek risk taşır.
+Sözleşmede şu sorular cevaplanmalıdır:
+Franchise alan kendi internet sitesinden satış yapabilir mi?
+Pazaryeri satışı yapabilir mi?
+Başka bölgeden gelen siparişi kabul edebilir mi?
+Ana firma aynı bölgede doğrudan internet satışı yapabilir mi?
+Kurumsal satışlar kime aittir?
+Tek marka ve zorunlu tedarik
+Alıcının ihtiyaçlarının çok büyük bölümünü tek sağlayıcıdan almasını gerektiren hükümler, rekabet etmeme veya tek marka yükümlülüğü niteliği taşıyabilir.
+Kılavuz ve Tebliğ kapsamında beş yılı aşan veya belirsiz süreli bazı rekabet etmeme yükümlülükleri grup muafiyetinden yararlanamayabilir. Sözleşme sonrasındaki rekabet etmeme hükümleri de kapsam, yer, süre ve know-how koruması açısından ayrıca değerlendirilmelidir. Rekabet Kurumu
+Ancak şu ayrım korunmalıdır:
+Bir hükmün grup muafiyeti dışında kalması, otomatik olarak geçersiz olduğu anlamına gelmez.
+
+Bu durumda sözleşmenin 4054 sayılı Kanun kapsamında bireysel değerlendirilmesi gerekebilir. Rekabet Kurumu Kılavuzu, grup muafiyeti dışında kalmanın tek başına kanuna aykırılık karinesi oluşturmadığını açıkça ayrı bir bölümde ele almaktadır. Rekabet Kurumu
+Franchise inceleme başlıkları
+Giriş bedeli
+Royalty hesaplama tabanı
+Reklam fonu
+Teknoloji ve yazılım bedeli
+Zorunlu tedarik
+Minimum sipariş
+Bölge koruması
+E-ticaret hakları
+Aktif ve pasif satış
+Rekabet etmeme
+Yenileme
+Erken fesih
+Devir hakkı
+Çıkış maliyeti
+Marka sahibinin destek yükümlülüğü
+Benzer mağazaların gerçek performansı
+Kaynaklar
+Rekabet Kurumu, Dikey Anlaşmalara İlişkin Kılavuz; özellikle bölge ve müşteri sınırlamaları, rekabet etmeme ve franchise anlaşmaları bölümleri. Rekabet Kurumu
+Rekabet Kurumu, 2002/2 sayılı Dikey Anlaşmalara İlişkin Grup Muafiyeti Tebliği ve 2021/4 sayılı değişiklik duyurusu. Rekabet Kurumu
+4054 sayılı Rekabetin Korunması Hakkında Kanun, m.4 ve m.5.
+UFRAD franchise sözleşmesi ve işletme değerlendirme yayınları; bağlayıcı mevzuat değil, sektör kaynağı olarak kullanılmalıdır.
+Kira ve Lokasyon Kararını Verilerle Değerlendir
+Bu dersteki mevcut düzeltme korunabilir.
+Özellikle şu ifade kesin biçimde kullanılmalıdır:
+Türkiye’de bütün perakende işletmelerine uygulanacak yasal veya resmî bir kira/ciro ya da doluluk maliyeti oranı bulunmamaktadır. %8, %12 veya %15 gibi oranlar mevzuat sınırı değil, sektör ve işletme özelliklerine göre kullanılan finansal değerlendirme göstergeleridir.
+
+Bu nedenle lokasyon kararı yalnızca kira/ciro oranına göre değil:
+brüt kâr,
+ürün maliyeti,
+personel,
+ortak gider,
+enerji,
+lojistik,
+mağaza yatırımı,
+satış senaryosu,
+kira sözleşmesi
+ile birlikte verilmelidir.
+\[
+\text{Doluluk Maliyeti Oranı}
+=
+\frac{\text{Kira + Ortak Gider + Diğer Lokasyon Giderleri}}
+{\text{Net Satışlar}}
+\]Düşük doluluk oranı otomatik olarak iyi lokasyon anlamına gelmez. Düşük satış potansiyeline sahip ucuz bir mağaza da zarar edebilir.
+Yüksek oran da otomatik olarak zarar anlamına gelmez. Yüksek brüt kâr ve güçlü dönüşüm sağlayan bazı işletmeler daha yüksek doluluk maliyetini karşılayabilir.
+Kaynaklar
+6098 sayılı Türk Borçlar Kanunu; sözleşme özgürlüğü ve işyeri kira hükümleri. LEXPERA
+6585 sayılı Perakende Ticaretin Düzenlenmesi Hakkında Kanun.
+TOBB perakende sektör raporları; sektör karşılaştırması için kullanılabilir ancak yasal oran kaynağı değildir.
+İşletmenin kendi kira sözleşmesi, satış verileri ve mağaza bazlı gelir tablosu.
+Lokasyonla ilgili kesin finansal karar öncesinde mali müşavir ve kira sözleşmesi bakımından hukukçu incelemesi.
+Bu hâliyle derslerde “bütün eski vergi borçları otomatik geçer”, “kıdem yükü devir günü kesin borç olur”, “beş yılı aşan franchise hükmü otomatik geçersizdir” ve “kira/ciro oranı için yasal yüzde vardır” şeklinde hatalı sonuç kalmıyor.

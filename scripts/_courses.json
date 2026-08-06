@@ -1,0 +1,1878 @@
+[
+  {
+    "id": 13,
+    "title": "Acil Durum Rezervi",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 123,
+    "title": "Affiliate Marketing",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 198,
+    "title": "AI Çıktısı Doğrulama",
+    "category": "Yapay Zekâ ve Risk Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 202,
+    "title": "AI Fayda Ölçümü",
+    "category": "Yapay Zekâ ve Risk Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 195,
+    "title": "AI Hazırlık Değerlendirmesi",
+    "category": "Yapay Zekâ ve Risk Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 194,
+    "title": "AI Kullanım Senaryosu Seçimi",
+    "category": "Yapay Zekâ ve Risk Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 201,
+    "title": "AI Pilot Tasarımı",
+    "category": "Yapay Zekâ ve Risk Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 196,
+    "title": "AI Risk Kaydı",
+    "category": "Yapay Zekâ ve Risk Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 200,
+    "title": "AI Tedarikçi Değerlendirmesi",
+    "category": "Yapay Zekâ ve Risk Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 199,
+    "title": "AI Veri Kalitesi",
+    "category": "Yapay Zekâ ve Risk Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 246,
+    "title": "AI Verisini, Tedarikçisini ve Politikasını Yönet",
+    "category": "Siber Güvenlik ve AI",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 27,
+    "title": "Ambalaj Maliyeti",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 56,
+    "title": "Arama Optimizasyonu",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 167,
+    "title": "Atık Envanteri",
+    "category": "Sürdürülebilirlik ve Kaynak Verimliliği",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 22,
+    "title": "Başabaş Noktası",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 380,
+    "title": "Başa Baş ve Güvenlik Marjı",
+    "category": "Maliyet Yönetimi",
+    "level": "beginner",
+    "published": true
+  },
+  {
+    "id": 105,
+    "title": "Blog İçeriği",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 97,
+    "title": "Bootstrapping",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 209,
+    "title": "Borç, Kredi ve Gider Yapısını Yönet",
+    "category": "Finans ve Nakit",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 14,
+    "title": "Borç Ödeme Stratejisi",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 6,
+    "title": "Brüt Kâr",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 38,
+    "title": "Brüt Marj",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 387,
+    "title": "Burn Rate ve Runway",
+    "category": "Girişim Finansı",
+    "level": "beginner",
+    "published": true
+  },
+  {
+    "id": 210,
+    "title": "Bütçe, Başabaş ve Kârlı Karar",
+    "category": "Finans ve Nakit",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 390,
+    "title": "Bütçe ve Sapma Analizi",
+    "category": "Planlama",
+    "level": "intermediate",
+    "published": true
+  },
+  {
+    "id": 384,
+    "title": "CAC ve Müşteri Edinme Ekonomisi",
+    "category": "Büyüme Ekonomisi",
+    "level": "intermediate",
+    "published": true
+  },
+  {
+    "id": 81,
+    "title": "Çalışan İşe Alma",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 234,
+    "title": "Çalışan Katılımı ve Güvenli İş Kültürü Kur",
+    "category": "Operasyon ve İnsan",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 139,
+    "title": "Çalışan Öneri Sistemi",
+    "category": "İnsan ve İş Sağlığı",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 393,
+    "title": "CAPM, WACC ve Sermaye Maliyeti",
+    "category": "Kurumsal Finans",
+    "level": "advanced",
+    "published": true
+  },
+  {
+    "id": 5,
+    "title": "Ciro Nedir?",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 103,
+    "title": "Çıkış Stratejisi",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 386,
+    "title": "Cohort Analizi",
+    "category": "Büyüme Analitiği",
+    "level": "advanced",
+    "published": true
+  },
+  {
+    "id": 186,
+    "title": "Çok Faktörlü Kimlik Doğrulama",
+    "category": "Siber Güvenlik ve Veri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 46,
+    "title": "Çoklu Kanal Satış",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 150,
+    "title": "CRM Veri Kalitesi",
+    "category": "Satış ve Müşteri Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 95,
+    "title": "Dağıtım Kanalları",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 126,
+    "title": "Darboğaz Analizi",
+    "category": "Operasyon ve Kalite",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 394,
+    "title": "DCF ile Şirket ve Proje Değerleme",
+    "category": "Değerleme",
+    "level": "advanced",
+    "published": true
+  },
+  {
+    "id": 147,
+    "title": "Değer Önerisi Sunumu",
+    "category": "Satış ve Müşteri Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 53,
+    "title": "Değişim Yönetimi",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 17,
+    "title": "Değişken Giderler",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 61,
+    "title": "Desi Hesaplama",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 185,
+    "title": "Dijital Varlık Envanteri",
+    "category": "Siber Güvenlik ve Veri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 114,
+    "title": "Dönüşüm Oranı",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 374,
+    "title": "DuPont ile Karlılığın Kaynağı",
+    "category": "Finansal Analiz",
+    "level": "intermediate",
+    "published": true
+  },
+  {
+    "id": 130,
+    "title": "Düzeltici Faaliyet",
+    "category": "Operasyon ve Kalite",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 79,
+    "title": "E-defter Tutma",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 162,
+    "title": "E-İhracatta Lokalizasyon",
+    "category": "İhracat ve E-İhracat",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 63,
+    "title": "Ekspres Kargo",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 119,
+    "title": "Email Pazarlama",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 178,
+    "title": "Emniyet Stoku",
+    "category": "Tedarik Zinciri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 187,
+    "title": "En Az Yetki İlkesi",
+    "category": "Siber Güvenlik ve Veri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 165,
+    "title": "Enerji Tüketimi Takibi",
+    "category": "Sürdürülebilirlik ve Kaynak Verimliliği",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 215,
+    "title": "E-Ticarete Başla: Kanalını Seç ve Mağazanı Kur",
+    "category": "E-Ticaret",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 1,
+    "title": "E-ticaret Maliyet ve Kârlılık",
+    "category": "E-Ticaret",
+    "level": "curated",
+    "published": false
+  },
+  {
+    "id": 382,
+    "title": "E-Ticarette Gerçek Sipariş Karlılığı",
+    "category": "E-Ticaret Finansı",
+    "level": "intermediate",
+    "published": true
+  },
+  {
+    "id": 138,
+    "title": "Etkili Geri Bildirim",
+    "category": "İnsan ve İş Sağlığı",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 93,
+    "title": "Farklılaştırma",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 64,
+    "title": "Fatura Kesme",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 207,
+    "title": "Finansal Sonuçları Doğru Oku",
+    "category": "Finans ve Nakit",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 372,
+    "title": "Finansal Veri Kalitesi ve Model Girdileri",
+    "category": "Veri Okuryazarlığı",
+    "level": "beginner",
+    "published": true
+  },
+  {
+    "id": 35,
+    "title": "Fiyat Belirleme",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 225,
+    "title": "Fiyat, Kanal ve Büyüme Rotasını Seç",
+    "category": "Girişimcilik",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 383,
+    "title": "Fiyatlandırma ve Marj Simülasyonu",
+    "category": "Ticari Kararlar",
+    "level": "intermediate",
+    "published": true
+  },
+  {
+    "id": 204,
+    "title": "Fiyat Mimarisi ve Marj Yönetimi",
+    "category": "Finans",
+    "level": "intermediate",
+    "published": false
+  },
+  {
+    "id": 94,
+    "title": "Fiyat Stratejisi",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 18,
+    "title": "Fırsat Maliyeti",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 388,
+    "title": "Fonlama İhtiyacı ve Seyrelme",
+    "category": "Girişim Finansı",
+    "level": "advanced",
+    "published": true
+  },
+  {
+    "id": 101,
+    "title": "Franchising",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 77,
+    "title": "Garanti Süresi",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 89,
+    "title": "Gelir Modeli",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 20,
+    "title": "Gelir Tanımı",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 69,
+    "title": "Gelir Vergisi",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 32,
+    "title": "Genel Gider Payı",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 24,
+    "title": "Gerçek Birim Maliyet",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 66,
+    "title": "Gider Faturası",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 21,
+    "title": "Gider Tanımı",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 74,
+    "title": "Gizlilik Politikası",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 111,
+    "title": "Google Ads",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 133,
+    "title": "Görsel Yönetim",
+    "category": "Operasyon ve Kalite",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 156,
+    "title": "GTİP Sınıflandırmasına Giriş",
+    "category": "İhracat ve E-İhracat",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 143,
+    "title": "Güvenlik Kültürü",
+    "category": "İnsan ve İş Sağlığı",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 189,
+    "title": "Güvenli Yedekleme",
+    "category": "Siber Güvenlik ve Veri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 25,
+    "title": "Hammadde Maliyeti",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 34,
+    "title": "Hasar Maliyeti",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 213,
+    "title": "Hasar Payını Ekleyip Kârlı Fiyat Kur",
+    "category": "Maliyet ve Fiyatlama",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 86,
+    "title": "Hedef Kitle",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 67,
+    "title": "İade Faturası",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 76,
+    "title": "İade Koşulları",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 33,
+    "title": "İade Maliyeti",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 52,
+    "title": "İade Yönetimi",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 227,
+    "title": "İçerik Motorunu Kur",
+    "category": "Pazarlama",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 104,
+    "title": "İçerik Stratejisi",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 237,
+    "title": "İhracata Hazırlan ve Hedef Pazarı Seç",
+    "category": "Satış ve İhracat",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 154,
+    "title": "İhracata Hazırlık Analizi",
+    "category": "İhracat ve E-İhracat",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 158,
+    "title": "İhracat Belge Kontrolü",
+    "category": "İhracat ve E-İhracat",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 155,
+    "title": "İhracat Hedef Pazarı",
+    "category": "İhracat ve E-İhracat",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 163,
+    "title": "İhracat Sonrası Performans",
+    "category": "İhracat ve E-İhracat",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 160,
+    "title": "İhracatta Ödeme Riskleri",
+    "category": "İhracat ve E-İhracat",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 238,
+    "title": "İhracat Teslimat, Ödeme ve Lojistiğini Yönet",
+    "category": "Satış ve İhracat",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 146,
+    "title": "İhtiyaç Analizi Görüşmesi",
+    "category": "Satış ve Müşteri Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 122,
+    "title": "Influencer Pazarlama",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 197,
+    "title": "İnsan Gözetimi Tasarımı",
+    "category": "Yapay Zekâ ve Risk Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 108,
+    "title": "Instagram Satış",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 231,
+    "title": "İş Akışını Haritala ve Darboğazı Çöz",
+    "category": "Operasyon ve İnsan",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 26,
+    "title": "İşçilik Maliyeti",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 136,
+    "title": "İşe Uyum Programı",
+    "category": "İnsan ve İş Sağlığı",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 84,
+    "title": "İş Fikri Geliştirme",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 223,
+    "title": "İş Fikrini Müşteri Problemiyle Doğrula",
+    "category": "Girişimcilik",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 141,
+    "title": "İSG Risk Değerlendirmesi",
+    "category": "İnsan ve İş Sağlığı",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 140,
+    "title": "İSG Tehlike Belirleme",
+    "category": "İnsan ve İş Sağlığı",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 83,
+    "title": "İş Kazası Sigortası",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 40,
+    "title": "İskonto Oranı",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 12,
+    "title": "İşletme Bütçesi",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 245,
+    "title": "İşletmen İçin Doğru AI Kullanımını Seç",
+    "category": "Siber Güvenlik ve AI",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 243,
+    "title": "İşletmenin Siber Temelini Kur",
+    "category": "Siber Güvenlik ve AI",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 375,
+    "title": "İşletme Sermayesi Yönetimi",
+    "category": "Nakit Yönetimi",
+    "level": "intermediate",
+    "published": true
+  },
+  {
+    "id": 88,
+    "title": "İş Modeli Canvas",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 224,
+    "title": "İş Modelini Pazar Kanıtıyla Kur",
+    "category": "Girişimcilik",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 128,
+    "title": "Kalite Kontrol Planı",
+    "category": "Operasyon ve Kalite",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 41,
+    "title": "Kampanya Fiyatlandırma",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 212,
+    "title": "Kanal Kesintileri ve Gizli Maliyetleri Bul",
+    "category": "Maliyet ve Fiyatlama",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 127,
+    "title": "Kapasite Planlama",
+    "category": "Operasyon ve Kalite",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 169,
+    "title": "Karbon Ayak İzine Giriş",
+    "category": "Sürdürülebilirlik ve Kaynak Verimliliği",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 240,
+    "title": "Karbon, Tedarik ve Yeşil İddiaları Kanıtla",
+    "category": "Sürdürülebilirlik ve Tedarik",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 218,
+    "title": "Kargo Anlaşmasını ve Teslimat Sistemini Kur",
+    "category": "E-Ticaret",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 28,
+    "title": "Kargo Maliyeti",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 59,
+    "title": "Kargo Seçenekleri",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 4,
+    "title": "Kâr ile Nakit Arasındaki Fark",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 8,
+    "title": "Karlılık Oranı",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 168,
+    "title": "Kaynak Verimliliği",
+    "category": "Sürdürülebilirlik ve Kaynak Verimliliği",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 68,
+    "title": "KDV Oranları",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 45,
+    "title": "Kendi E-ticaret Sitesi",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 172,
+    "title": "KOBİ Sürdürülebilirlik Göstergeleri",
+    "category": "Sürdürülebilirlik ve Kaynak Verimliliği",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 129,
+    "title": "Kök Neden Analizi",
+    "category": "Operasyon ve Kalite",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 232,
+    "title": "Kök Nedenden Sürekli İyileştirmeye Geç",
+    "category": "Operasyon ve İnsan",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 58,
+    "title": "Komisyon Oranları",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 15,
+    "title": "Kredi Kullanımı",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 70,
+    "title": "Kurumlar Vergisi",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 110,
+    "title": "LinkedIn İş Geliştirme",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 100,
+    "title": "Lisanslama",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 385,
+    "title": "LTV, Churn ve Retention",
+    "category": "Büyüme Ekonomisi",
+    "level": "intermediate",
+    "published": true
+  },
+  {
+    "id": 373,
+    "title": "Mali Oranlarla İşletme Sağlığı",
+    "category": "Finansal Analiz",
+    "level": "beginner",
+    "published": true
+  },
+  {
+    "id": 36,
+    "title": "Maliyet Artı Marj",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 43,
+    "title": "Maliyet Değişim Analizi",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 90,
+    "title": "Maliyet Yapısı",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 23,
+    "title": "Marjinal Kâr",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 118,
+    "title": "Marka Değeri",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 117,
+    "title": "Marka Kimliği",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 157,
+    "title": "Menşe Kurallarına Giriş",
+    "category": "İhracat ve E-İhracat",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 73,
+    "title": "Mesafeli Satış",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 75,
+    "title": "Mesafeli Sözleşme",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 112,
+    "title": "Meta Ads",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 145,
+    "title": "Müşteri Adayı Nitelendirme",
+    "category": "Satış ve Müşteri Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 115,
+    "title": "Müşteri Edinme Maliyeti",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 54,
+    "title": "Müşteri İletişimi",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 153,
+    "title": "Müşteri Kaybı Analizi",
+    "category": "Satış ve Müşteri Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 152,
+    "title": "Müşteri Memnuniyeti Ölçümü",
+    "category": "Satış ve Müşteri Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 85,
+    "title": "Müşteri Problemi",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 151,
+    "title": "Müşteri Şikâyeti Yönetimi",
+    "category": "Satış ve Müşteri Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 116,
+    "title": "Müşteri Yaşam Boyu Değeri",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 230,
+    "title": "Müşteriyi Geri Kazan ve Ortaklıklarla Büyü",
+    "category": "Pazarlama",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 87,
+    "title": "MVP Oluşturma",
+    "category": "girisimcilik",
+    "level": "Orta",
+    "published": false
+  },
+  {
+    "id": 208,
+    "title": "Nakit Akışını Planla ve Tahsilatı Hızlandır",
+    "category": "Finans ve Nakit",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 2,
+    "title": "Nakit Akışı Yönetimi",
+    "category": "Finans",
+    "level": "curated",
+    "published": false
+  },
+  {
+    "id": 9,
+    "title": "Nakit Büyüme Oranı",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 19,
+    "title": "Nakit Dengesi",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 376,
+    "title": "Nakit Dönüşüm Döngüsü",
+    "category": "Nakit Yönetimi",
+    "level": "intermediate",
+    "published": true
+  },
+  {
+    "id": 378,
+    "title": "Nakit Krizi Erken Uyarıları",
+    "category": "Risk Yönetimi",
+    "level": "intermediate",
+    "published": true
+  },
+  {
+    "id": 7,
+    "title": "Net Kâr",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 39,
+    "title": "Net Marj",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 214,
+    "title": "Net Marjı İndirim ve Kampanyada Koru",
+    "category": "Maliyet ve Fiyatlama",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 392,
+    "title": "NPV ve IRR ile Yatırım Kararı",
+    "category": "Yatırım Analizi",
+    "level": "intermediate",
+    "published": true
+  },
+  {
+    "id": 30,
+    "title": "Ödeme Komisyonu",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 11,
+    "title": "Ödeme Süresi",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 190,
+    "title": "Oltalama Farkındalığı",
+    "category": "Siber Güvenlik ve Veri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 132,
+    "title": "Operasyon KPI Tasarımı",
+    "category": "Operasyon ve Kalite",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 102,
+    "title": "Ortaklık Yapısı",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 62,
+    "title": "paketleme Standartları",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 91,
+    "title": "Pazar Araştırması",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 57,
+    "title": "Pazar Yeri Analizi",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 29,
+    "title": "Pazar Yeri Komisyonu",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 44,
+    "title": "Pazar Yeri Seçimi",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 137,
+    "title": "Performans Görüşmesi",
+    "category": "İnsan ve İş Sağlığı",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 99,
+    "title": "Pitch Deck",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 142,
+    "title": "Ramak Kala Yönetimi",
+    "category": "İnsan ve İş Sağlığı",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 92,
+    "title": "Rekabet Analizi",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 31,
+    "title": "Reklam Maliyeti",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 229,
+    "title": "Reklam ve Dönüşüm Ekonomisini Ölç",
+    "category": "Pazarlama",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 113,
+    "title": "ROAS Hesaplama",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 233,
+    "title": "Rolleri, Yetkinliği ve Performansı Geliştir",
+    "category": "Operasyon ve İnsan",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 134,
+    "title": "Rol ve Sorumluluk Tasarımı",
+    "category": "İnsan ve İş Sağlığı",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 16,
+    "title": "Sabit Giderler",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 379,
+    "title": "Sabit ve Değişken Maliyet",
+    "category": "Maliyet Yönetimi",
+    "level": "beginner",
+    "published": true
+  },
+  {
+    "id": 176,
+    "title": "Satın Alma Talep Süreci",
+    "category": "Tedarik Zinciri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 144,
+    "title": "Satış Hunisi",
+    "category": "Satış ve Müşteri Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 235,
+    "title": "Satış Hunisini Kur ve Doğru Müşteriyi Seç",
+    "category": "Satış ve İhracat",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 236,
+    "title": "Satışı Tahmin Et ve Müşteri Verisini İyileştir",
+    "category": "Satış ve İhracat",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 37,
+    "title": "Satış Marjı",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 149,
+    "title": "Satış Tahmini",
+    "category": "Satış ve Müşteri Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 219,
+    "title": "Satıştan Faturaya Belge Akışını Kur",
+    "category": "Hukuk ve Vergi",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 391,
+    "title": "Senaryo, Duyarlılık ve Stres Testi",
+    "category": "Risk Yönetimi",
+    "level": "advanced",
+    "published": true
+  },
+  {
+    "id": 120,
+    "title": "Sepet Terk Etme",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 82,
+    "title": "SGK Yükümlülükleri",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 191,
+    "title": "Siber Olay Müdahale Planı",
+    "category": "Siber Güvenlik ve Veri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 184,
+    "title": "Siber Risk Yönetişimi",
+    "category": "Siber Güvenlik ve Veri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 51,
+    "title": "Sipariş Onaylama",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 216,
+    "title": "Sipariş, Stok ve İade Operasyonunu Kur",
+    "category": "E-Ticaret",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 50,
+    "title": "Sipariş Takibi",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 161,
+    "title": "Sınır Ötesi Lojistik",
+    "category": "İhracat ve E-İhracat",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 203,
+    "title": "Sorumlu AI Kullanım Politikası",
+    "category": "Yapay Zekâ ve Risk Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 228,
+    "title": "Sosyal Kanallarda Talep Üret",
+    "category": "Pazarlama",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 107,
+    "title": "Sosyal Medya Stratejisi",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 125,
+    "title": "Standart İş Tanımı",
+    "category": "Operasyon ve Kalite",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 96,
+    "title": "Startup Aşamaları",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 377,
+    "title": "Stok ve Alacak Verimliliği",
+    "category": "Operasyonel Finans",
+    "level": "intermediate",
+    "published": true
+  },
+  {
+    "id": 242,
+    "title": "Stok ve Tedarik Süresini Talebe Göre Planla",
+    "category": "Sürdürülebilirlik ve Tedarik",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 49,
+    "title": "Stok Yönetimi",
+    "category": "e-ticaret",
+    "level": "İleri",
+    "published": false
+  },
+  {
+    "id": 173,
+    "title": "Sürdürülebilirlik İyileştirme Planı",
+    "category": "Sürdürülebilirlik ve Kaynak Verimliliği",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 164,
+    "title": "Sürdürülebilirlik Önceliklendirmesi",
+    "category": "Sürdürülebilirlik ve Kaynak Verimliliği",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 239,
+    "title": "Sürdürülebilirlik Önceliklerini ve Tüketimi Ölç",
+    "category": "Sürdürülebilirlik ve Tedarik",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 170,
+    "title": "Sürdürülebilir Tedarik",
+    "category": "Sürdürülebilirlik ve Kaynak Verimliliği",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 124,
+    "title": "Süreç Haritalama",
+    "category": "Operasyon ve Kalite",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 131,
+    "title": "Sürekli İyileştirme",
+    "category": "Operasyon ve Kalite",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 389,
+    "title": "Sürücü Tabanlı Finansal Tahmin",
+    "category": "Planlama",
+    "level": "intermediate",
+    "published": true
+  },
+  {
+    "id": 166,
+    "title": "Su Tüketimi Takibi",
+    "category": "Sürdürülebilirlik ve Kaynak Verimliliği",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 65,
+    "title": "Tahsilat Faturası",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 10,
+    "title": "Tahsilat Süresi",
+    "category": "temel-finans",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 181,
+    "title": "Talep Tahmini Temelleri",
+    "category": "Tedarik Zinciri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 175,
+    "title": "Tedarikçi Performans Kartı",
+    "category": "Tedarik Zinciri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 174,
+    "title": "Tedarikçi Seçim Kriterleri",
+    "category": "Tedarik Zinciri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 192,
+    "title": "Tedarikçi Siber Riski",
+    "category": "Siber Güvenlik ve Veri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 241,
+    "title": "Tedarikçiyi Seç ve Satın Alma Riskini Azalt",
+    "category": "Sürdürülebilirlik ve Tedarik",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 183,
+    "title": "Tedarik Kesintisi Senaryosu",
+    "category": "Tedarik Zinciri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 180,
+    "title": "Tedarik Süresi Analizi",
+    "category": "Tedarik Zinciri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 182,
+    "title": "Tedarik Zinciri Görünürlüğü",
+    "category": "Tedarik Zinciri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 177,
+    "title": "Tek Kaynak Riski",
+    "category": "Tedarik Zinciri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 148,
+    "title": "Teklif Hazırlama",
+    "category": "Satış ve Müşteri Yönetimi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 109,
+    "title": "TikTok Pazarlama",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 42,
+    "title": "Toplu İndirim",
+    "category": "maliyet",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 72,
+    "title": "Tüketici Hakkı",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 221,
+    "title": "Tüketici ve Mesafeli Satış Kurallarını Uygula",
+    "category": "Hukuk ve Vergi",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 367,
+    "title": "Üç Finansal Tabloyu Birlikte Okumak",
+    "category": "Finansal Analiz",
+    "level": "beginner",
+    "published": true
+  },
+  {
+    "id": 60,
+    "title": "Ücretsiz Kargo",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 159,
+    "title": "Uluslararası Teslim Şekilleri",
+    "category": "İhracat ve E-İhracat",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 381,
+    "title": "Ürün Bazlı Karlılık",
+    "category": "Maliyet Yönetimi",
+    "level": "intermediate",
+    "published": true
+  },
+  {
+    "id": 48,
+    "title": "Ürün Fotoğrafçılığı",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 217,
+    "title": "Ürün Kataloğunu ve Pazar Yeri Performansını Geliştir",
+    "category": "E-Ticaret",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 55,
+    "title": "Ürün Kategorisi",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 47,
+    "title": "Ürün Listeleme",
+    "category": "e-ticaret",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 211,
+    "title": "Ürünün Gerçek Maliyetini Hesapla",
+    "category": "Maliyet ve Fiyatlama",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 71,
+    "title": "Vergi Avantajları",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 78,
+    "title": "Vergi Beyannamesi",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 220,
+    "title": "Vergi Takvimini ve Yükümlülüklerini Yönet",
+    "category": "Hukuk ve Vergi",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 3,
+    "title": "Vergi ve Yasal Yükümlülükler",
+    "category": "Hukuk",
+    "level": "curated",
+    "published": false
+  },
+  {
+    "id": 222,
+    "title": "Veri Saklama ve İşveren Yükümlülüklerini Kur",
+    "category": "Hukuk ve Vergi",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 193,
+    "title": "Veri Sınıflandırma",
+    "category": "Siber Güvenlik ve Veri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 106,
+    "title": "Video İçerik",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 188,
+    "title": "Yama ve Güncelleme Yönetimi",
+    "category": "Siber Güvenlik ve Veri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 80,
+    "title": "Yasal Saklama Süresi",
+    "category": "hukuk-vergi",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 226,
+    "title": "Yatırımcıya Hazırlan ve Ortaklık Yapısını Kur",
+    "category": "Girişimcilik",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 98,
+    "title": "Yatırım Turu",
+    "category": "girisimcilik",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 244,
+    "title": "Yedekleme, Oltalama ve Olay Müdahalesini Hazırla",
+    "category": "Siber Güvenlik ve AI",
+    "level": "uygulamalı",
+    "published": true
+  },
+  {
+    "id": 121,
+    "title": "Yeniden Pazarlama",
+    "category": "pazarlama",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 179,
+    "title": "Yeniden Sipariş Noktası",
+    "category": "Tedarik Zinciri",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 171,
+    "title": "Yeşil İddialarda Kanıt",
+    "category": "Sürdürülebilirlik ve Kaynak Verimliliği",
+    "level": "mixed",
+    "published": false
+  },
+  {
+    "id": 135,
+    "title": "Yetkinlik Matrisi",
+    "category": "İnsan ve İş Sağlığı",
+    "level": "mixed",
+    "published": false
+  }
+]
