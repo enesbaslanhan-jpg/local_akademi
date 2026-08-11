@@ -1,6 +1,14 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma.js'
 
+export function isLegacyCourseTitle(title: string): boolean {
+  return /^\s*\[[^\]]*kopya[^\]]*\]/i.test(title)
+}
+
+export function stripLegacyCourseTitle(title: string): string {
+  return title.replace(/^\s*\[[^\]]*\]\s*/, '').trim()
+}
+
 export async function learnerDashboardRoutes(fastify: FastifyInstance) {
   fastify.get('/', {
     preHandler: [fastify.authenticate]
@@ -23,7 +31,10 @@ export async function learnerDashboardRoutes(fastify: FastifyInstance) {
       quizHistory
     ] = await Promise.all([
       prisma.enrollment.findMany({
-        where: { userId: user.id },
+        where: {
+          userId: user.id,
+          course: { published: true }
+        },
         include: { course: true },
         orderBy: { updatedAt: 'desc' }
       }).catch(() => []),
@@ -52,6 +63,7 @@ export async function learnerDashboardRoutes(fastify: FastifyInstance) {
 
       prisma.taskAssignment.findMany({
         where: { userId: user.id },
+        include: { taskTemplate: { select: { title: true } } },
         orderBy: { updatedAt: 'desc' }
       }).catch(() => []),
 
@@ -62,22 +74,56 @@ export async function learnerDashboardRoutes(fastify: FastifyInstance) {
       }).catch(() => [])
     ])
 
-    const completedCourses = enrollments.filter(e => e.status === 'completed').length
-    const activeCourses = enrollments.filter(e => e.status === 'in_progress').length
-    const notStartedCourses = enrollments.filter(e => e.status === 'not_started').length
-    const avgProgress = enrollments.length > 0
-      ? Math.round(enrollments.reduce((s, e) => s + e.progress, 0) / enrollments.length)
+    const visibleEnrollments = enrollments.filter(
+      e => e.course && e.course.published && !isLegacyCourseTitle(e.course.title)
+    )
+
+    const completedCourses = visibleEnrollments.filter(e => e.status === 'completed').length
+    const activeCourses = visibleEnrollments.filter(e => e.status === 'in_progress').length
+    const notStartedCourses = visibleEnrollments.filter(e => e.status === 'not_started').length
+    const avgProgress = visibleEnrollments.length > 0
+      ? Math.round(visibleEnrollments.reduce((s, e) => s + e.progress, 0) / visibleEnrollments.length)
       : 0
 
-    const resumeItem = enrollments
+    let resumeItem = visibleEnrollments
       .filter(e => e.status === 'in_progress')
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0] || null
 
+    if (!resumeItem) {
+      const legacyEnrollment = enrollments
+        .filter(e => e.status === 'in_progress' && e.course && !e.course.published && isLegacyCourseTitle(e.course.title))
+        .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0]
+      if (legacyEnrollment?.course) {
+        const activeMatch = await prisma.course.findFirst({
+          where: {
+            published: true,
+            AND: [
+              { title: { not: { startsWith: '[Eski Kopya]' } } },
+              { title: { contains: stripLegacyCourseTitle(legacyEnrollment.course.title).slice(0, 60) } }
+            ]
+          },
+          select: { id: true, title: true }
+        }).catch(() => null)
+        if (activeMatch) {
+          resumeItem = {
+            id: legacyEnrollment.id,
+            userId: legacyEnrollment.userId,
+            courseId: activeMatch.id,
+            course: activeMatch as any,
+            progress: legacyEnrollment.progress,
+            status: legacyEnrollment.status,
+            createdAt: legacyEnrollment.createdAt,
+            updatedAt: legacyEnrollment.updatedAt
+          }
+        }
+      }
+    }
+
     const lastWeek = new Date(now.getTime() - 7 * 86400000)
-    const weeklyCompleted = enrollments.filter(
+    const weeklyCompleted = visibleEnrollments.filter(
       e => e.status === 'completed' && e.updatedAt >= lastWeek
     ).length
-    const weeklyEnrolled = enrollments.filter(
+    const weeklyEnrolled = visibleEnrollments.filter(
       e => e.createdAt >= lastWeek
     ).length
 
@@ -100,14 +146,14 @@ export async function learnerDashboardRoutes(fastify: FastifyInstance) {
         completedCourses,
         activeCourses,
         notStartedCourses,
-        totalEnrollments: enrollments.length,
+        totalEnrollments: visibleEnrollments.length,
         avgProgress,
         weeklyProgress: weeklyCompleted,
         weeklyEnrolled,
         completedKOs: knowledgeProgress.filter((p: any) => p.status === 'completed').length,
         inProgressKOs: knowledgeProgress.filter((p: any) => p.status === 'in_progress').length
       },
-      enrollments: enrollments.map(e => ({
+      enrollments: visibleEnrollments.map(e => ({
         id: e.id,
         courseId: e.courseId,
         courseTitle: e.course?.title || `Kurs #${e.courseId}`,
@@ -145,7 +191,7 @@ export async function learnerDashboardRoutes(fastify: FastifyInstance) {
       upcomingTasks: openTasks.slice(0, 5).map(t => ({
         id: t.id,
         taskId: t.taskId,
-        title: `Görev #${t.taskId}`,
+        title: t.taskTemplate?.title || 'Görevi tamamla',
         status: t.status,
         progressPercent: t.progressPercent,
         createdAt: t.createdAt,
