@@ -8,6 +8,8 @@ import {
 import Fastify, { type FastifyInstance } from 'fastify'
 import jwt from '@fastify/jwt'
 import { PrismaClient } from '@prisma/client'
+import { unlink } from 'fs/promises'
+import { join } from 'path'
 import {
   communityRoutes,
   officialPostSchema,
@@ -71,6 +73,10 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
+  const media = await prisma.communityMedia.findMany({
+    where: { uploaderId: { in: [learnerId, adminId] } },
+    select: { storedName: true },
+  })
   await prisma.communityPost.deleteMany({
     where: {
       OR: [
@@ -79,6 +85,9 @@ afterAll(async () => {
       ],
     },
   })
+  for (const item of media) {
+    await unlink(join(process.cwd(), 'uploads', 'community', item.storedName)).catch(() => {})
+  }
   await prisma.user.deleteMany({
     where: { id: { in: [learnerId, adminId] } },
   })
@@ -192,6 +201,55 @@ describe('community moderation flow', () => {
       sourceUrl: 'javascript:alert(1)',
     })
     expect(result.success).toBe(false)
+  })
+
+  it('attaches a validated image and serves it only after moderation', async () => {
+    const boundary = `community-boundary-${Date.now()}`
+    const png = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Zr2AAAAAASUVORK5CYII=',
+      'base64',
+    )
+    const body = Buffer.concat([
+      Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="sample.png"\r\nContent-Type: image/png\r\n\r\n`),
+      png,
+      Buffer.from(`\r\n--${boundary}--\r\n`),
+    ])
+    const uploaded = await app.inject({
+      method: 'POST',
+      url: '/community/media',
+      headers: {
+        authorization: `Bearer ${learnerToken}`,
+        'content-type': `multipart/form-data; boundary=${boundary}`,
+      },
+      payload: body,
+    })
+    expect(uploaded.statusCode).toBe(201)
+    const mediaId = uploaded.json().media.id
+
+    const unpublished = await app.inject({ method: 'GET', url: `/community/media/${mediaId}` })
+    expect(unpublished.statusCode).toBe(404)
+
+    const created = await app.inject({
+      method: 'POST',
+      url: '/community/posts',
+      headers: { authorization: `Bearer ${learnerToken}` },
+      payload: {
+        title: `${marker} görselli paylaşım`,
+        summary: 'Güvenli biçimde yüklenen görsel moderasyon sonrasında topluluk akışında gösterilmelidir.',
+        mediaId,
+      },
+    })
+    expect(created.statusCode).toBe(201)
+    await app.inject({
+      method: 'POST',
+      url: `/community/${created.json().post.id}/moderate`,
+      headers: { authorization: `Bearer ${adminToken}` },
+      payload: { action: 'publish' },
+    })
+
+    const published = await app.inject({ method: 'GET', url: `/community/media/${mediaId}` })
+    expect(published.statusCode).toBe(200)
+    expect(published.headers['content-type']).toContain('image/png')
   })
 
   it('accepts one learner report per published post', async () => {

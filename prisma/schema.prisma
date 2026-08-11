@@ -15,6 +15,7 @@ model User {
   role                    String                   @default("student")
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
+  deletedAt               DateTime?
   activityEvents          ActivityEvent[]
   businessAssessments     BusinessAssessment[]
   businessProfile         BusinessProfile?
@@ -24,6 +25,7 @@ model User {
   createdContacts         BusinessContact[]
   moderatedCommunityPosts CommunityPost[]          @relation("CommunityPostModerator")
   communityPosts          CommunityPost[]          @relation("CommunityPostAuthor")
+  communityMedia          CommunityMedia[]
   communityReports        CommunityReport[]
   conversations           Conversation[]
   conversationSummaries   ConversationSummary[]
@@ -58,6 +60,8 @@ model User {
   practicalCardFeedbacks  PracticalCardFeedback[]
   feedInteractions        FeedInteraction[]
   LearningProgress        LearningProgress[]
+
+  @@index([deletedAt])
 }
 
 model CommunityPost {
@@ -79,10 +83,27 @@ model CommunityPost {
   moderatedBy       User?             @relation("CommunityPostModerator", fields: [moderatedById], references: [id])
   author            User?             @relation("CommunityPostAuthor", fields: [authorId], references: [id])
   reports           CommunityReport[]
+  media             CommunityMedia?
 
   @@index([status, publishedAt])
   @@index([postType, status])
   @@index([authorId, createdAt])
+}
+
+model CommunityMedia {
+  id           String         @id @default(uuid())
+  uploaderId   Int
+  postId       String?        @unique
+  originalName String
+  storedName   String         @unique
+  mimeType     String
+  sizeBytes    Int
+  kind         String
+  createdAt    DateTime       @default(now())
+  uploader     User           @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  post         CommunityPost? @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([uploaderId, createdAt])
 }
 
 model CommunityReport {
@@ -1013,20 +1034,20 @@ model MentorSession {
 }
 
 model Conversation {
-  id            Int                   @id @default(autoincrement())
-  userId        Int
-  title         String                @default("Yeni Sohbet")
+  id              Int                   @id @default(autoincrement())
+  userId          Int
+  title           String                @default("Yeni Sohbet")
   contextSnapshot String?
-  createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
-  archivedAt    DateTime?
-  deletedAt     DateTime?
-  lastMessageAt DateTime?
-  model         String?
-  provider      String?
-  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages      ConversationMessage[]
-  summary       ConversationSummary?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  archivedAt      DateTime?
+  deletedAt       DateTime?
+  lastMessageAt   DateTime?
+  model           String?
+  provider        String?
+  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages        ConversationMessage[]
+  summary         ConversationSummary?
 }
 
 model ConversationMessage {

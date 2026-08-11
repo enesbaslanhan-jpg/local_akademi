@@ -2,6 +2,20 @@ import type { FastifyInstance } from 'fastify'
 import type { PrismaClient } from '@prisma/client'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { z } from 'zod'
+import fastifyMultipart from '@fastify/multipart'
+import { createReadStream } from 'fs'
+import { mkdir, stat, unlink, writeFile } from 'fs/promises'
+import { isAbsolute, join, relative, resolve } from 'path'
+import { randomUUID } from 'crypto'
+import {
+  ALLOWED_MIME_MAP,
+  MAX_FILE_SIZE,
+  detectFileType,
+  inspectZip,
+  validateImageFile,
+  validatePdfFile,
+  FileValidationError,
+} from './documentSecurity'
 import {
   generateOfficialSummary,
   officialSummaryRequestSchema,
@@ -14,6 +28,7 @@ import {
 export const communityPostSchema = z.object({
   title: z.string().trim().min(5).max(180),
   summary: z.string().trim().min(20).max(1200),
+  mediaId: z.string().uuid().optional(),
 })
 
 export const officialPostSchema = communityPostSchema.extend({
@@ -79,6 +94,146 @@ export async function communityRoutes(
   opts?: { prisma?: PrismaClient },
 ) {
   const prisma = opts?.prisma ?? sharedPrisma
+  const mediaDirectory = join(process.cwd(), 'uploads', 'community')
+
+  await fastify.register(fastifyMultipart, {
+    limits: { fileSize: MAX_FILE_SIZE, files: 1 },
+  })
+  await mkdir(mediaDirectory, { recursive: true })
+
+  const mediaSelect = {
+    id: true,
+    originalName: true,
+    mimeType: true,
+    sizeBytes: true,
+    kind: true,
+  } as const
+
+  function safeMediaPath(storedName: string) {
+    const base = resolve(mediaDirectory)
+    const target = resolve(join(mediaDirectory, storedName))
+    const pathFromBase = relative(base, target)
+    if (!pathFromBase || pathFromBase.startsWith('..') || isAbsolute(pathFromBase)) {
+      throw new FileValidationError('Geçersiz dosya yolu', 400)
+    }
+    return target
+  }
+
+  async function ownedMedia(mediaId: string | undefined, userId: number) {
+    if (!mediaId) return null
+    return prisma.communityMedia.findFirst({
+      where: { id: mediaId, uploaderId: userId, postId: null },
+      select: { id: true },
+    })
+  }
+
+  fastify.post('/media', {
+    preHandler: [fastify.authenticate],
+    config: { rateLimit: { max: 12, timeWindow: '1 hour' } },
+  }, async (request, reply) => {
+    let upload
+    try {
+      upload = await request.file()
+    } catch (error: any) {
+      const tooLarge = error?.statusCode === 413 || error?.message?.includes('file size limit')
+      return reply.status(tooLarge ? 413 : 400).send({
+        error: tooLarge ? 'Dosya en fazla 10 MB olabilir.' : 'Dosya okunamadı.',
+      })
+    }
+    if (!upload) return reply.status(400).send({ error: 'Dosya seçilmedi.' })
+
+    const originalName = upload.filename.slice(0, 255)
+    const extension = (originalName.split('.').pop() || '').toLowerCase()
+    const allowedExtensions = new Set(['png', 'jpg', 'jpeg', 'pdf', 'docx'])
+    if (!allowedExtensions.has(extension) || ALLOWED_MIME_MAP[extension] !== upload.mimetype) {
+      return reply.status(415).send({ error: 'PNG, JPEG, PDF veya DOCX dosyası yükleyin.' })
+    }
+
+    let buffer: Buffer
+    try {
+      buffer = await upload.toBuffer()
+    } catch {
+      return reply.status(400).send({ error: 'Dosya okunamadı.' })
+    }
+    if (!buffer.length || buffer.length > MAX_FILE_SIZE) {
+      return reply.status(buffer.length > MAX_FILE_SIZE ? 413 : 422).send({ error: 'Dosya boş veya çok büyük.' })
+    }
+
+    try {
+      const detected = detectFileType(buffer)
+      if (!detected.valid) throw new FileValidationError(detected.error || 'Dosya türü doğrulanamadı', 415)
+      if (extension === 'png' && detected.detectedType !== 'png') throw new FileValidationError('Görsel içeriği uzantıyla uyuşmuyor', 415)
+      if (['jpg', 'jpeg'].includes(extension) && detected.detectedType !== 'jpeg') throw new FileValidationError('Görsel içeriği uzantıyla uyuşmuyor', 415)
+      if (extension === 'pdf') validatePdfFile(buffer)
+      if (extension === 'png') validateImageFile(buffer, 'png')
+      if (['jpg', 'jpeg'].includes(extension)) validateImageFile(buffer, 'jpeg')
+      if (extension === 'docx') {
+        const zip = inspectZip(buffer)
+        if (!zip.valid || !zip.hasContentTypesXml || !zip.hasWordDocumentXml) {
+          throw new FileValidationError(zip.error || 'Geçersiz DOCX dosyası', 422)
+        }
+      }
+    } catch (error) {
+      if (error instanceof FileValidationError) return reply.status(error.statusCode).send({ error: error.message })
+      throw error
+    }
+
+    const id = randomUUID()
+    const storedName = `${id}.${extension}`
+    const path = safeMediaPath(storedName)
+    try {
+      await writeFile(path, buffer, { flag: 'wx' })
+      const media = await prisma.communityMedia.create({
+        data: {
+          id,
+          uploaderId: request.user.id,
+          originalName,
+          storedName,
+          mimeType: upload.mimetype,
+          sizeBytes: buffer.length,
+          kind: upload.mimetype.startsWith('image/') ? 'image' : 'file',
+        },
+        select: mediaSelect,
+      })
+      return reply.status(201).send({ media: { ...media, url: `/community/media/${media.id}` } })
+    } catch (error) {
+      await unlink(path).catch(() => {})
+      request.log.error({ error }, 'Community media upload failed')
+      return reply.status(500).send({ error: 'Dosya kaydedilemedi.' })
+    }
+  })
+
+  fastify.get('/media/:mediaId', async (request, reply) => {
+    const mediaId = String((request.params as { mediaId?: string }).mediaId || '')
+    const media = await prisma.communityMedia.findFirst({
+      where: { id: mediaId, post: { status: 'published' } },
+      select: { storedName: true, mimeType: true, originalName: true },
+    })
+    if (!media) return reply.status(404).send({ error: 'Dosya bulunamadı.' })
+    try {
+      const path = safeMediaPath(media.storedName)
+      await stat(path)
+      reply.header('Content-Type', media.mimeType)
+      reply.header('Content-Disposition', `inline; filename*=UTF-8''${encodeURIComponent(media.originalName)}`)
+      reply.header('Cache-Control', 'public, max-age=86400, immutable')
+      return reply.send(createReadStream(path))
+    } catch {
+      return reply.status(404).send({ error: 'Dosya bulunamadı.' })
+    }
+  })
+
+  fastify.delete('/media/:mediaId', {
+    preHandler: [fastify.authenticate],
+  }, async (request, reply) => {
+    const mediaId = String((request.params as { mediaId?: string }).mediaId || '')
+    const media = await prisma.communityMedia.findFirst({
+      where: { id: mediaId, uploaderId: request.user.id, postId: null },
+    })
+    if (!media) return reply.status(404).send({ error: 'Dosya bulunamadı.' })
+    await prisma.communityMedia.delete({ where: { id: media.id } })
+    await unlink(safeMediaPath(media.storedName)).catch(() => {})
+    return { deleted: true }
+  })
 
   fastify.get('/', {
     preHandler: [fastify.authenticate],
@@ -101,6 +256,7 @@ export async function communityRoutes(
         author: {
           select: { id: true, name: true },
         },
+        media: { select: mediaSelect },
       },
       orderBy: [
         { publishedAt: 'desc' },
@@ -134,6 +290,10 @@ export async function communityRoutes(
         details: parsed.error.errors,
       })
     }
+    const media = await ownedMedia(parsed.data.mediaId, request.user.id)
+    if (parsed.data.mediaId && !media) {
+      return reply.status(422).send({ error: 'Yüklenen dosya bulunamadı veya başka bir paylaşıma bağlı.' })
+    }
     const post = await prisma.communityPost.create({
       data: {
         authorId: request.user.id,
@@ -141,6 +301,7 @@ export async function communityRoutes(
         title: parsed.data.title,
         summary: parsed.data.summary,
         status: 'pending',
+        ...(media ? { media: { connect: { id: media.id } } } : {}),
       },
     })
     return reply.status(201).send({
@@ -221,6 +382,10 @@ export async function communityRoutes(
         details: parsed.error.errors,
       })
     }
+    const media = await ownedMedia(parsed.data.mediaId, request.user.id)
+    if (parsed.data.mediaId && !media) {
+      return reply.status(422).send({ error: 'Yüklenen dosya bulunamadı veya başka bir paylaşıma bağlı.' })
+    }
     const post = await prisma.communityPost.create({
       data: {
         authorId: request.user.id,
@@ -233,6 +398,7 @@ export async function communityRoutes(
           ? new Date(parsed.data.sourcePublishedAt)
           : null,
         status: 'draft',
+        ...(media ? { media: { connect: { id: media.id } } } : {}),
       },
     })
     return reply.status(201).send({
@@ -321,6 +487,7 @@ export async function communityRoutes(
         author: {
           select: { id: true, name: true, email: true },
         },
+        media: { select: mediaSelect },
       },
       orderBy: { createdAt: 'asc' },
       take: 100,
