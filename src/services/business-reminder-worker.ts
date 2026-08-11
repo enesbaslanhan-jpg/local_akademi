@@ -42,7 +42,7 @@ export async function processDueBusinessReminders(
     where: { status: 'pending', scheduledAt: { lte: now } },
     include: {
       record: { select: { id: true, title: true, dueAt: true, status: true, archivedAt: true } },
-      workspace: { select: { status: true } }
+      workspace: { select: { status: true, settings: { select: { notificationPrefs: true } } } }
     },
     orderBy: { scheduledAt: 'asc' },
     take: 200
@@ -58,6 +58,21 @@ export async function processDueBusinessReminders(
         reminder.record.archivedAt ||
         ['completed', 'cancelled'].includes(reminder.record.status)
       ) {
+        await tx.businessReminder.update({
+          where: { id: reminder.id },
+          data: { status: 'cancelled' }
+        })
+        return
+      }
+
+      let reminderNotificationsEnabled = true
+      try {
+        const preferences = JSON.parse(reminder.workspace.settings?.notificationPrefs || '{}')
+        reminderNotificationsEnabled = preferences.dueReminders !== false
+      } catch {
+        reminderNotificationsEnabled = true
+      }
+      if (!reminderNotificationsEnabled) {
         await tx.businessReminder.update({
           where: { id: reminder.id },
           data: { status: 'cancelled' }
