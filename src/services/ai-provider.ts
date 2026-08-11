@@ -14,7 +14,7 @@ import { buildProfiledSystemPrompt, detectUserRequestedLength } from './mentor-p
 
 const retriever = createKnowledgeRetriever(prisma)
 
-export type AiProvider = 'nvidia' | 'openai' | 'deepseek'
+export type AiProvider = 'nvidia' | 'openai' | 'deepseek' | 'omniroute'
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant'
@@ -55,6 +55,8 @@ export interface ProviderCallOptions {
   temperature?: number
   maxOutputTokens?: number
   keepAlive?: string | null
+  provider?: string
+  model?: string
 }
 
 export async function callAiProviderWithRetry(
@@ -70,6 +72,7 @@ export async function callAiProviderWithRetry(
     category: ko.category,
     sourceRefs: ko.sourceRefs,
   }))
+  const startedAt = Date.now()
   const result = await generateCompletion({
     messages,
     skipMasking: options.skipMasking ?? false,
@@ -80,7 +83,16 @@ export async function callAiProviderWithRetry(
     temperature: options.temperature,
     maxOutputTokens: options.maxOutputTokens,
     keepAlive: options.keepAlive,
+    provider: options.provider ?? process.env.MENTOR_AI_PROVIDER,
+    model: options.model ?? process.env.MENTOR_AI_MODEL,
   })
+  console.log(JSON.stringify({
+    event: 'MENTOR_AI_CALL_FINISHED',
+    provider: result.provider,
+    model: result.model,
+    durationMs: Date.now() - startedAt,
+    success: true,
+  }))
   return {
     content: result.content,
     usage: result.usage,
@@ -116,6 +128,8 @@ export async function* streamAiResponse(
     temperature: options.temperature,
     maxOutputTokens: options.maxOutputTokens,
     keepAlive: options.keepAlive,
+    provider: options.provider ?? process.env.MENTOR_AI_PROVIDER,
+    model: options.model ?? process.env.MENTOR_AI_MODEL,
   })
 
   for await (const event of stream) {

@@ -7,7 +7,7 @@ export interface AiRuntimeInfo {
 export function getProviderExecutionType(provider: string): AiRuntimeInfo['executionType'] {
   const p = provider.toLowerCase()
   if (p === 'ollama') return 'local'
-  if (['nvidia', 'openai', 'deepseek'].includes(p)) return 'cloud'
+  if (['nvidia', 'openai', 'deepseek', 'omniroute'].includes(p)) return 'cloud'
   return 'unknown'
 }
 

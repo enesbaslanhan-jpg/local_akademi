@@ -52,6 +52,8 @@ export interface GatewayRequest {
   temperature?: number
   maxOutputTokens?: number
   keepAlive?: string | null
+  provider?: string
+  model?: string
 }
 
 export interface GatewayResponse {
@@ -69,13 +71,14 @@ export type GatewayStreamEvent =
   | { type: 'done'; tokenUsage?: TokenUsage; citations?: Citation[]; reviewResult?: ReviewResult }
   | { type: 'error'; code: string; message: string }
 
-export type AiProviderName = 'ollama' | 'nvidia' | 'openai' | 'deepseek'
+export type AiProviderName = 'ollama' | 'nvidia' | 'openai' | 'deepseek' | 'omniroute'
 
 const ALLOWED_PROVIDERS: AiProviderName[] = [
   'ollama',
   'nvidia',
   'openai',
   'deepseek',
+  'omniroute',
 ]
 
 interface ProviderConfig {
@@ -120,7 +123,11 @@ export interface AiRuntimeInfo {
 
 export function getActiveAiRuntimeInfo(): AiRuntimeInfo {
   try {
-    const config = getProviderConfig()
+    const mentorProvider = (process.env.MENTOR_AI_PROVIDER || '').trim().toLowerCase()
+    const mentorModel = (process.env.MENTOR_AI_MODEL || '').trim()
+    const config = mentorProvider
+      ? getProviderConfig({ provider: mentorProvider, model: mentorModel || undefined })
+      : getProviderConfig()
     return {
       provider: config.provider,
       model: config.model,
@@ -137,6 +144,7 @@ export function getActiveAiRuntimeInfo(): AiRuntimeInfo {
 
 function selectAutoProvider(): AiProviderName {
   if (process.env.OLLAMA_API_URL || process.env.OLLAMA_MODEL) return 'ollama'
+  if (process.env.OMNIROUTE_API_KEY) return 'omniroute'
   if (process.env.NVIDIA_API_KEY) return 'nvidia'
   if (process.env.OPENAI_API_KEY) return 'openai'
   if (process.env.DEEPSEEK_API_KEY) return 'deepseek'
@@ -176,8 +184,16 @@ function getLoopbackOllamaUrl(): string {
   return url.toString()
 }
 
-function getProviderConfig(): ProviderConfig {
-  const raw = (process.env.AI_PROVIDER || 'auto').toLowerCase()
+function joinChatCompletionsUrl(baseUrl: string): string {
+  return `${baseUrl.trim().replace(/\/+$/, '')}/chat/completions`
+}
+
+function getProviderConfig(options: { provider?: string; model?: string } = {}): ProviderConfig {
+  const raw = (
+    options.provider && options.provider !== 'auto'
+      ? options.provider
+      : process.env.AI_PROVIDER || 'auto'
+  ).toLowerCase()
 
   let provider: AiProviderName
   if (raw === 'auto') {
@@ -219,15 +235,23 @@ function getProviderConfig(): ProviderConfig {
       model: process.env.DEEPSEEK_MODEL || 'deepseek-v4-flash',
       timeout: REQUEST_TIMEOUT,
       maxTokens: MAX_OUTPUT_TOKENS
+    },
+    omniroute: {
+      provider: 'omniroute',
+      apiUrl: joinChatCompletionsUrl(process.env.OMNIROUTE_BASE_URL || 'http://localhost:20128/v1'),
+      apiKey: process.env.OMNIROUTE_API_KEY,
+      model: process.env.OMNIROUTE_MODEL || 'auto/best-free',
+      timeout: REQUEST_TIMEOUT,
+      maxTokens: MAX_OUTPUT_TOKENS
     }
   }
 
-  const config = configs[provider]
-  if (!config) throw new GatewayConfigError('MENTOR_INVALID_PROVIDER')
-  if (config.provider !== 'ollama' && !config.apiKey) {
+  const baseConfig = configs[provider]
+  if (!baseConfig) throw new GatewayConfigError('MENTOR_INVALID_PROVIDER')
+  if (baseConfig.provider !== 'ollama' && !baseConfig.apiKey) {
     throw new GatewayConfigError(`MENTOR_API_KEY_MISSING:${provider}`)
   }
-  return config
+  return options.model ? { ...baseConfig, model: options.model } : baseConfig
 }
 
 function getReviewerProviderConfig(
@@ -826,7 +850,7 @@ export function formatOutputContent(content: string, reviewResult: ReviewResult)
 export async function generateCompletion(req: GatewayRequest): Promise<GatewayResponse> {
   const startTime = Date.now()
   const requestId = req.requestId || `gw-${Date.now()}`
-  const config = getProviderConfig()
+  const config = getProviderConfig({ provider: req.provider, model: req.model })
 
   let messages: ChatMessage[] = req.messages
   if (!req.skipMasking) {
@@ -971,7 +995,7 @@ export async function generateCompletion(req: GatewayRequest): Promise<GatewayRe
 export async function* generateStream(req: GatewayRequest): AsyncGenerator<GatewayStreamEvent> {
   const startTime = Date.now()
   const requestId = req.requestId || `gw-${Date.now()}`
-  const config = getProviderConfig()
+  const config = getProviderConfig({ provider: req.provider, model: req.model })
 
   let messages: ChatMessage[] = req.messages
   if (!req.skipMasking) {

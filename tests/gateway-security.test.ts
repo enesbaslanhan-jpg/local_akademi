@@ -70,16 +70,18 @@ describe('Auto Provider Selection', () => {
     // Snapshot all AI-related env vars
     for (const key of ['AI_PROVIDER', 'NVIDIA_API_KEY', 'OPENAI_API_KEY', 'DEEPSEEK_API_KEY',
       'NVIDIA_API_URL', 'OPENAI_API_URL', 'DEEPSEEK_API_URL', 'OLLAMA_API_URL',
-      'OLLAMA_MODEL']) {
+      'OLLAMA_MODEL', 'OMNIROUTE_API_KEY', 'OMNIROUTE_BASE_URL', 'OMNIROUTE_MODEL',
+      'MENTOR_AI_PROVIDER', 'MENTOR_AI_MODEL']) {
       origEnv[key] = process.env[key]
     }
   })
 
   beforeEach(() => {
     // Cloud provider selection tests must not inherit the developer's local
-    // Ollama configuration from .env.
+    // Ollama or OmniRoute configuration from .env.
     delete process.env.OLLAMA_API_URL
     delete process.env.OLLAMA_MODEL
+    delete process.env.OMNIROUTE_API_KEY
   })
 
   afterAll(() => {
