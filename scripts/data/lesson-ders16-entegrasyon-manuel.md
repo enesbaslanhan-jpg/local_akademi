@@ -220,7 +220,7 @@ Entegrasyonu bütün kanallarda aynı anda açma.
 
 ## Kaynaklar
 
-1. [KOSGEB — KOBİ Dijital Dönüşüm Destek Programı ve güncel uygulama belgeleri](https://www.kosgeb.gov.tr/)
+1. [KOSGEB — KOBİ Dijital Dönüşüm Destek Programı](https://www.kosgeb.gov.tr/site/tr/genel/destekdetay/9144/kobi-dijital-donusum-destek-programi)
 2. [Elektronik ticaret ve platform süreçlerine ilişkin güncel yükümlülükler](https://www.kosgeb.gov.tr/)
 3. Yazılım API'leri, pazaryeri kuralları, ücretler ve bağlantı kapsamları değişebileceği için sağlayıcıdan yazılı teknik kapsam alınmalıdır.
 

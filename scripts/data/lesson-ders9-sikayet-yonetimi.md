@@ -208,8 +208,8 @@ Ancak müşteri gelecekte kesin olarak alışveriş yapacakmış gibi hesap yap�
 
 ## Kaynaklar
 
-1. [T.C. Ticaret Bakanlığı — 6502 sayılı Kanun ve ayıplı mal seçimlik hakları](https://ticaret.gov.tr/)
-2. [T.C. Ticaret Bakanlığı — Mesafeli sözleşmeler ve cayma hakkı bilgilendirmesi](https://ticaret.gov.tr/)
-3. [T.C. Ticaret Bakanlığı — Satış sonrası hizmetlere ilişkin bilgilendirme](https://ticaret.gov.tr/)
+1. [T.C. Ticaret Bakanlığı — Ayıplı Mal ve Hizmetler Hakkında Bilgilendirme](https://tuketici.ticaret.gov.tr/yayinlar/tuketici-bilgi-rehberi/ayipli-mal-ve-hizmetler-hakkinda-bilgilendirme)
+2. [T.C. Ticaret Bakanlığı — Mesafeli Sözleşmeler Hakkında Bilgilendirme](https://tuketici.ticaret.gov.tr/yayinlar/tuketici-bilgi-rehberi/mesafeli-sozlesmeler-hakkinda-bilgilendirme)
+3. [T.C. Ticaret Bakanlığı — Satış Sonrası Hizmetler Hakkında Bilgilendirme](https://tuketici.ticaret.gov.tr/yayinlar/tuketici-bilgi-rehberi/satis-sonrasi-hizmetler-hakkinda-bilgilendirme)
 
 *Kaynaklar Ağustos 2026'da kontrol edilmiştir. Somut uyuşmazlıklarda tüketici hukuku konusunda uzman görüşü alınmalıdır.*

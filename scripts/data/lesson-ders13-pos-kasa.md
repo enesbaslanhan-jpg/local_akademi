@@ -221,8 +221,8 @@ dâhil değildir.
 
 ## Kaynaklar
 
-1. [GİB — Yeni Nesil Ödeme Kaydedici Cihaz portalı, mevzuat ve onaylı cihaz listeleri](https://www.gib.gov.tr/)
-2. [GİB — 593 Sıra No.lu VUK Genel Tebliği ve e-belge düzenlemeleri](https://www.gib.gov.tr/)
-3. [GİB — Yeni Nesil ÖKC rehber ve yayınları](https://www.gib.gov.tr/)
+1. [GİB — Yeni Nesil Ödeme Kaydedici Cihaz (YN ÖKC) Portalı](https://www.gib.gov.tr/ynokc)
+2. [GİB — 593 Sıra No.lu Vergi Usul Kanunu Genel Tebliği (PDF)](https://ynokc.gib.gov.tr/UploadedFiles/Files/vuk_593_20260508.pdf)
+3. [GİB — Yeni Nesil Ödeme Kaydedici Cihaz (YN ÖKC) Portalı](https://www.gib.gov.tr/ynokc)
 
 *Kaynaklar Ağustos 2026'da kontrol edilmiştir. YN ÖKC, EFT-POS ve mali belge düzenine ilişkin kararlar için güncel GİB düzenlemeleri ve yetkili firma bilgileri doğrulanmalıdır.*

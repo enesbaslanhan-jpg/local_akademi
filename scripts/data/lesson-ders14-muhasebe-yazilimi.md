@@ -160,7 +160,7 @@ Bu tutar kesin tasarruf değildir. Yazılımın gerçekten gecikmiş alacakları
 
 ## Kaynaklar
 
-1. [GİB — e-Belge portalı ve e-Fatura Portal kullanım kılavuzu](https://www.gib.gov.tr/)
-2. [GİB — YN ÖKC ve e-belge düzenlemelerine ilişkin güncel duyurular](https://www.gib.gov.tr/)
+1. [GİB — e-Belge Portalı](https://ebelge.gib.gov.tr/)
+2. [GİB — Yeni Nesil Ödeme Kaydedici Cihaz (YN ÖKC) Portalı](https://www.gib.gov.tr/ynokc)
 
 *Kaynaklar Ağustos 2026'da kontrol edilmiştir. Yükümlülükler, belge türleri ve geçiş koşulları için güncel GİB düzenlemeleri ile mali müşavir görüşü esas alınmalıdır.*

@@ -137,6 +137,6 @@ Tek bir maddeye odaklanma. Şu paket birlikte değerlendirilmelidir:
 ## Kaynaklar
 
 1. [Türkiye Ticaret Sicili Gazetesi — şirket pay değişiklikleri ve esas sözleşme düzenlemeleri](https://www.ticaretsicil.gov.tr/)
-2. [SPK — pay sahipliği ve girişim sermayesi düzenlemeleri](https://www.spk.gov.tr/)
+2. [SPK — Girişim Sermayesi Yatırım Fonları](https://www.spk.gov.tr/kurumlar/fonlar/yatirim-fonlari/girisim-sermayesi-yatirim-fonlari)
 
 *Kaynaklar Ağustos 2026'da kontrol edilmiştir. Term sheet, pay sahipleri sözleşmesi ve şirket esas sözleşmesi değişiklikleri konusunda mutlaka bir hukukçu ve mali müşavir görüşü alın.*
