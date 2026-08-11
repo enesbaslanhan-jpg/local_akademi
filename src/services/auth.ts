@@ -4,11 +4,27 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import jwt from '@fastify/jwt'
 import { z } from 'zod'
 import { createAuditLog } from './audit.js'
+import { randomBytes } from 'node:crypto'
 
 const registerSchema = z.object({
   email: z.string().email().max(254).transform(value => value.trim().toLowerCase()),
   password: z.string().min(10).max(128),
   name: z.string().trim().min(2).max(100)
+})
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8, 'Yeni şifre en az 8 karakter olmalı.')
+})
+
+const changeEmailSchema = z.object({
+  newEmail: z.string().email().max(254).transform(value => value.trim().toLowerCase()),
+  currentPassword: z.string().min(1).max(128)
+})
+
+const deleteAccountSchema = z.object({
+  currentPassword: z.string().min(1).max(128),
+  confirmation: z.literal('HESABIMI SİL')
 })
 
 const loginSchema = z.object({
@@ -79,6 +95,9 @@ export async function authRoutes(fastify: FastifyInstance) {
     const { email, password } = parsed.data
 
     const user = await prisma.user.findUnique({ where: { email } })
+    if (user?.deletedAt) {
+      return reply.status(401).send({ error: 'Invalid credentials' })
+    }
     if (!user) {
       return reply.status(401).send({ error: 'Invalid credentials' })
     }
@@ -101,7 +120,7 @@ export async function authRoutes(fastify: FastifyInstance) {
   }, async (request, reply) => {
     const user = request.user
     const found = await prisma.user.findUnique({ where: { id: user.id } })
-    if (!found) {
+    if (!found || found.deletedAt) {
       return reply.status(404).send({ error: 'User not found' })
     }
     const pref = await prisma.userPreference.findUnique({ where: { userId: found.id } })
@@ -112,6 +131,151 @@ export async function authRoutes(fastify: FastifyInstance) {
       role: found.role,
       onboardingCompleted: pref?.onboardingCompleted ?? false
     }
+  })
+
+  /*
+   * PUT /auth/password — oturum açmış kullanıcının şifresini değiştirir.
+   * Prisma şeması değişmez; yalnızca mevcut `password` alanı güncellenir.
+   * Yanıt gövdesinde şifre veya hash döndürülmez.
+   */
+  fastify.put('/password', {
+    preHandler: [fastify.authenticate]
+  }, async (request, reply) => {
+    const parsed = changePasswordSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({
+        error: 'VALIDATION_ERROR',
+        message: 'Şifre bilgileri geçersiz.',
+        fields: parsed.error.issues.map(issue => String(issue.path[0]))
+      })
+    }
+
+    const { currentPassword, newPassword } = parsed.data
+    const user = request.user as any
+
+    const found = await prisma.user.findUnique({ where: { id: user.id } })
+    if (!found) {
+      return reply.status(404).send({ error: 'User not found' })
+    }
+
+    // Mevcut şifre yanlışsa hangi alanın hatalı olduğunu sızdırmadan 401 dön.
+    const valid = await bcrypt.compare(currentPassword, found.password)
+    if (!valid) {
+      return reply.status(401).send({
+        error: 'INVALID_CREDENTIALS',
+        message: 'Şifre değiştirilemedi. Bilgileri kontrol edip tekrar deneyin.'
+      })
+    }
+
+    // Yeni şifre eskisiyle aynı olamaz.
+    const same = await bcrypt.compare(newPassword, found.password)
+    if (same) {
+      return reply.status(422).send({
+        error: 'PASSWORD_UNCHANGED',
+        message: 'Yeni şifre mevcut şifreyle aynı olamaz.'
+      })
+    }
+
+    // Kayıt akışıyla aynı bcrypt maliyeti (10).
+    const hashed = await bcrypt.hash(newPassword, 10)
+    await prisma.user.update({
+      where: { id: found.id },
+      data: { password: hashed }
+    })
+
+    await createAuditLog({
+      action: 'auth.password_changed',
+      entityType: 'user',
+      entityId: found.id,
+      actorId: found.id,
+      actorName: found.name
+    }).catch(() => {})
+
+    return reply.send({ success: true })
+  })
+
+  fastify.put('/email', {
+    preHandler: [fastify.authenticate],
+    config: { rateLimit: { max: 5, timeWindow: '1 hour' } }
+  }, async (request, reply) => {
+    const parsed = changeEmailSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(422).send({ error: 'VALIDATION_ERROR', message: 'E-posta bilgileri geçersiz.' })
+    }
+
+    const found = await prisma.user.findUnique({ where: { id: request.user.id } })
+    if (!found || found.deletedAt) return reply.status(404).send({ error: 'User not found' })
+
+    const valid = await bcrypt.compare(parsed.data.currentPassword, found.password)
+    if (!valid) {
+      return reply.status(401).send({ error: 'INVALID_CREDENTIALS', message: 'E-posta değiştirilemedi. Şifrenizi kontrol edin.' })
+    }
+    if (parsed.data.newEmail === found.email) {
+      return reply.status(422).send({ error: 'EMAIL_UNCHANGED', message: 'Yeni e-posta mevcut e-posta ile aynı.' })
+    }
+
+    const existing = await prisma.user.findUnique({ where: { email: parsed.data.newEmail } })
+    if (existing) return reply.status(409).send({ error: 'EMAIL_IN_USE', message: 'Bu e-posta başka bir hesapta kullanılıyor.' })
+
+    const updated = await prisma.user.update({ where: { id: found.id }, data: { email: parsed.data.newEmail } })
+    await createAuditLog({
+      action: 'auth.email_changed', entityType: 'user', entityId: found.id,
+      actorId: found.id, actorName: found.name
+    }).catch(() => {})
+
+    const token = fastify.jwt.sign(
+      { id: updated.id, email: updated.email, role: updated.role },
+      { expiresIn: process.env.JWT_EXPIRES_IN || '8h' }
+    )
+    return reply.send({ token, user: { id: updated.id, email: updated.email, name: updated.name, role: updated.role } })
+  })
+
+  fastify.delete('/account', {
+    preHandler: [fastify.authenticate],
+    config: { rateLimit: { max: 3, timeWindow: '1 hour' } }
+  }, async (request, reply) => {
+    const parsed = deleteAccountSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(422).send({ error: 'CONFIRMATION_REQUIRED', message: 'Hesap silme onayı geçersiz.' })
+    }
+
+    const found = await prisma.user.findUnique({ where: { id: request.user.id } })
+    if (!found || found.deletedAt) return reply.status(404).send({ error: 'User not found' })
+    const valid = await bcrypt.compare(parsed.data.currentPassword, found.password)
+    if (!valid) return reply.status(401).send({ error: 'INVALID_CREDENTIALS', message: 'Hesap silinemedi. Şifrenizi kontrol edin.' })
+
+    if (found.role === 'admin') {
+      const activeAdmins = await prisma.user.count({ where: { role: 'admin', deletedAt: null } })
+      if (activeAdmins <= 1) return reply.status(409).send({ error: 'LAST_ADMIN', message: 'Son yönetici hesabı silinemez.' })
+    }
+
+    const soleOwnerMembership = await prisma.businessMember.findFirst({
+      where: {
+        userId: found.id,
+        role: 'owner',
+        status: 'active',
+        workspace: { members: { none: { userId: { not: found.id }, role: 'owner', status: 'active' } } }
+      },
+      select: { workspace: { select: { name: true } } }
+    })
+    if (soleOwnerMembership) {
+      return reply.status(409).send({
+        error: 'SOLE_WORKSPACE_OWNER',
+        message: `Önce “${soleOwnerMembership.workspace.name}” işletmesine başka bir sahip atayın.`
+      })
+    }
+
+    const deletedEmail = `deleted-${found.id}-${Date.now()}@deleted.local`
+    const unusablePassword = await bcrypt.hash(randomBytes(32).toString('hex'), 10)
+    await prisma.$transaction([
+      prisma.businessMember.updateMany({ where: { userId: found.id }, data: { status: 'inactive' } }),
+      prisma.user.update({
+        where: { id: found.id },
+        data: { email: deletedEmail, name: 'Silinmiş Kullanıcı', password: unusablePassword, deletedAt: new Date() }
+      })
+    ])
+
+    return reply.status(204).send()
   })
 }
 
@@ -135,9 +299,9 @@ export function registerJwtPlugin(fastify: FastifyInstance) {
 
     const dbUser = await prisma.user.findUnique({
       where: { id: request.user.id },
-      select: { id: true, email: true, role: true }
+      select: { id: true, email: true, role: true, deletedAt: true }
     })
-    if (!dbUser) {
+    if (!dbUser || dbUser.deletedAt) {
       return reply.status(401).send({ error: 'Unauthorized' })
     }
 
