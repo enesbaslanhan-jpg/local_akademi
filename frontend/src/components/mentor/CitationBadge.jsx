@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import styles from './CitationBadge.module.css'
 
 export default function CitationBadge({ id, title, code, sourceRefs }) {
   const label = title || 'Bilinmeyen kaynak'
@@ -7,10 +8,10 @@ export default function CitationBadge({ id, title, code, sourceRefs }) {
 
   const content = (
     <>
-      <span className="truncate max-w-[150px] md:max-w-[200px]">{label}</span>
-      {code && <span className="ml-1 opacity-80">({code})</span>}
+      <span className={`truncate max-w-[150px] md:max-w-[200px] ${styles.label}`}>{label}</span>
+      {code && <span className={`ml-1 opacity-80 ${styles.code}`}>({code})</span>}
       {showSourceIndicator && (
-        <span className="ml-1 w-1 h-1 rounded-full bg-current opacity-60" aria-hidden="true" />
+        <span className={`ml-1 w-1 h-1 rounded-full bg-current opacity-60 ${styles.sourceDot}`} aria-hidden="true" />
       )}
     </>
   )
@@ -21,6 +22,7 @@ export default function CitationBadge({ id, title, code, sourceRefs }) {
     transition-colors
     hover:bg-[var(--primary)] hover:text-white
     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-1
+    ${styles.badge}
   `
 
   const isValidCode = code && typeof code === 'string' && code.trim().length > 0

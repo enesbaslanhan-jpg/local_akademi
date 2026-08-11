@@ -3,20 +3,21 @@ import { api } from '../../services/api';
 import { Button } from '../ui';
 import { Play, CheckCircle2, Clock, MapPin, Eye, MessageSquare } from 'lucide-react';
 import { useMentorContext } from '@/context/MentorContext';
+import styles from './LearningProgressPanel.module.css';
 
 const TYPE_LABELS = {
   course: 'Eğitim',
   lesson: 'Ders',
-  decision_check: 'Karar Kontrolü',
+  decision_check: 'Karar Aracı',
   practical_card: 'Pratik Kart',
   financial_tool: 'Finansal Araç',
   guide: 'Rehber'
 };
 
 const STATUS_MAP = {
-  started: { label: 'Başlandı', color: 'bg-blue-100 text-blue-800' },
-  in_progress: { label: 'Devam Ediyor', color: 'bg-yellow-100 text-yellow-800' },
-  completed: { label: 'Tamamlandı', color: 'bg-green-100 text-green-800' }
+  started: { label: 'Başlandı', color: 'bg-blue-100 text-blue-800', moduleClass: styles.statusStarted },
+  in_progress: { label: 'Devam Ediyor', color: 'bg-yellow-100 text-yellow-800', moduleClass: styles.statusInProgress },
+  completed: { label: 'Tamamlandı', color: 'bg-green-100 text-green-800', moduleClass: styles.statusCompleted }
 };
 
 export const LearningProgressPanel = () => {
@@ -77,30 +78,30 @@ export const LearningProgressPanel = () => {
   };
 
   const renderItemCard = (item, actionLabel, ActionIcon, primaryAction) => (
-    <div key={item.id || `${item.contentType}-${item.contentId}`} className="border rounded-lg p-4 flex flex-col justify-between bg-white shadow-sm hover:shadow-md transition-shadow">
+    <div key={item.id || `${item.contentType}-${item.contentId}`} className={`border rounded-lg p-4 flex flex-col justify-between bg-white shadow-sm hover:shadow-md transition-shadow ${styles.card}`}>
       <div>
-        <div className="flex justify-between items-start mb-2">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        <div className={`flex justify-between items-start mb-2 ${styles.cardTop}`}>
+          <span className={`text-xs font-semibold text-gray-500 uppercase tracking-wider ${styles.typeLabel}`}>
             {TYPE_LABELS[item.contentType] || item.contentType}
           </span>
           {item.status && STATUS_MAP[item.status] && (
-            <span className={`text-xs px-2 py-1 rounded-full ${STATUS_MAP[item.status].color}`}>
+            <span className={`text-xs px-2 py-1 rounded-full ${STATUS_MAP[item.status].color} ${styles.status} ${STATUS_MAP[item.status].moduleClass}`}>
               {STATUS_MAP[item.status].label}
             </span>
           )}
         </div>
-        <h4 className="font-medium text-gray-900 mb-1 line-clamp-2" title={item.title || item.contentCode}>
+        <h4 className={`font-medium text-gray-900 mb-1 line-clamp-2 ${styles.cardTitle}`} title={item.title || item.contentCode}>
           {item.title || item.contentCode || 'İçerik'}
         </h4>
         {item.progressPercent !== undefined && item.progressPercent !== null && (
-          <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-            <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${Math.min(100, item.progressPercent)}%` }}></div>
+          <div className={`w-full bg-gray-200 rounded-full h-2 mb-3 ${styles.progressTrack}`}>
+            <div className={`bg-blue-600 h-2 rounded-full ${styles.progressFill}`} style={{ width: `${Math.min(100, item.progressPercent)}%` }}></div>
           </div>
         )}
       </div>
-      <div className="mt-4 flex space-x-2 items-center">
-        <Button variant="primary" size="sm" className="flex-1 flex justify-center items-center" onClick={() => primaryAction(item)}>
-          <ActionIcon className="w-4 h-4 mr-1" />
+      <div className={`mt-4 flex space-x-2 items-center ${styles.cardActions}`}>
+        <Button variant="primary" size="sm" className={`flex-1 flex justify-center items-center ${styles.cardActionPrimary}`} onClick={() => primaryAction(item)}>
+          <ActionIcon className="w-4 h-4 mr-1" size={16} />
           {actionLabel}
         </Button>
         {isContextualMentorEnabled && (
@@ -120,12 +121,12 @@ export const LearningProgressPanel = () => {
             }}
             title="Mentora Sor"
           >
-            <MessageSquare className="w-4 h-4" />
+            <MessageSquare className="w-4 h-4" size={16} />
           </Button>
         )}
         {item.status !== 'completed' && (
           <Button variant="outline" size="sm" onClick={() => toggleContinueLater(item)} title={item.continueLater ? 'Daha Sonra Devam Et İşaretini Kaldır' : 'Daha Sonra Devam Et'}>
-            <Clock className={`w-4 h-4 ${item.continueLater ? 'text-blue-600' : 'text-gray-400'}`} />
+            <Clock className={`w-4 h-4 ${item.continueLater ? 'text-blue-600' : 'text-gray-400'} ${item.continueLater ? styles.laterIconActive : styles.laterIcon}`} size={16} />
           </Button>
         )}
       </div>
@@ -133,12 +134,12 @@ export const LearningProgressPanel = () => {
   );
 
   if (loading) {
-    return <div className="p-6 bg-gray-50 rounded-xl animate-pulse">İlerleme yükleniyor...</div>;
+    return <div className={`p-6 bg-gray-50 rounded-xl animate-pulse ${styles.loading}`}>İlerleme yükleniyor...</div>;
   }
 
   if (error) {
     return (
-      <div className="p-6 bg-red-50 rounded-xl text-red-600 flex justify-between items-center">
+      <div className={`p-6 bg-red-50 rounded-xl text-red-600 flex justify-between items-center ${styles.errorBox}`}>
         <span>{error}</span>
         <Button variant="outline" size="sm" onClick={fetchData}>Tekrar Dene</Button>
       </div>
@@ -146,39 +147,39 @@ export const LearningProgressPanel = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className={`space-y-8 ${styles.panel}`}>
       <div>
-        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-          <MapPin className="w-5 h-5 mr-2 text-blue-600" />
+        <h3 className={`text-lg font-bold text-gray-900 mb-4 flex items-center ${styles.sectionTitle}`}>
+          <MapPin className={`w-5 h-5 mr-2 text-blue-600 ${styles.sectionIconContinue}`} size={20} />
           Kaldığınız Yerden Devam Edin
         </h3>
         {continueItems.length === 0 ? (
-          <p className="text-sm text-gray-500">Henüz devam eden bir içeriğiniz bulunmuyor.</p>
+          <p className={`text-sm text-gray-500 ${styles.emptyText}`}>Henüz devam eden bir içeriğiniz bulunmuyor.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${styles.cardGrid}`}>
             {continueItems.map(item => renderItemCard(item, 'Devam Et', Play, navigateToItem))}
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 ${styles.twoCol}`}>
         <div>
-          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-            <Eye className="w-5 h-5 mr-2 text-gray-600" />
+          <h3 className={`text-lg font-bold text-gray-900 mb-4 flex items-center ${styles.sectionTitle}`}>
+            <Eye className={`w-5 h-5 mr-2 text-gray-600 ${styles.sectionIconRecent}`} size={20} />
             Son Görüntülenenler
           </h3>
           {recentItems.length === 0 ? (
-            <p className="text-sm text-gray-500">Son görüntülenen içerik yok.</p>
+            <p className={`text-sm text-gray-500 ${styles.emptyText}`}>Son görüntülenen içerik yok.</p>
           ) : (
-            <div className="space-y-3">
+            <div className={`space-y-3 ${styles.rowList}`}>
               {recentItems.map(item => (
-                 <div key={`${item.contentType}-${item.contentId}`} className="flex items-center justify-between p-3 border rounded-lg bg-white hover:bg-gray-50 cursor-pointer" onClick={() => navigateToItem(item)}>
+                 <div key={`${item.contentType}-${item.contentId}`} className={`flex items-center justify-between p-3 border rounded-lg bg-white hover:bg-gray-50 cursor-pointer ${styles.row}`} onClick={() => navigateToItem(item)}>
                    <div>
-                     <p className="text-sm font-medium text-gray-900 line-clamp-1">{item.title || item.contentCode || 'İçerik'}</p>
-                     <p className="text-xs text-gray-500">{TYPE_LABELS[item.contentType]}</p>
+                     <p className={`text-sm font-medium text-gray-900 line-clamp-1 ${styles.rowTitle}`}>{item.title || item.contentCode || 'İçerik'}</p>
+                     <p className={`text-xs text-gray-500 ${styles.rowMeta}`}>{TYPE_LABELS[item.contentType]}</p>
                    </div>
                    {item.status && STATUS_MAP[item.status] && (
-                      <span className={`text-xs px-2 py-1 rounded-full ${STATUS_MAP[item.status].color}`}>
+                      <span className={`text-xs px-2 py-1 rounded-full ${STATUS_MAP[item.status].color} ${styles.status} ${STATUS_MAP[item.status].moduleClass}`}>
                         {STATUS_MAP[item.status].label}
                       </span>
                     )}
@@ -189,21 +190,21 @@ export const LearningProgressPanel = () => {
         </div>
 
         <div>
-          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-            <CheckCircle2 className="w-5 h-5 mr-2 text-green-600" />
+          <h3 className={`text-lg font-bold text-gray-900 mb-4 flex items-center ${styles.sectionTitle}`}>
+            <CheckCircle2 className={`w-5 h-5 mr-2 text-green-600 ${styles.sectionIconCompleted}`} size={20} />
             Tamamlananlar
           </h3>
           {completedItems.length === 0 ? (
-            <p className="text-sm text-gray-500">Henüz tamamlanmış bir içerik yok.</p>
+            <p className={`text-sm text-gray-500 ${styles.emptyText}`}>Henüz tamamlanmış bir içerik yok.</p>
           ) : (
-            <div className="space-y-3">
+            <div className={`space-y-3 ${styles.rowList}`}>
               {completedItems.map(item => (
-                 <div key={`${item.contentType}-${item.contentId}`} className="flex items-center justify-between p-3 border rounded-lg bg-green-50">
+                 <div key={`${item.contentType}-${item.contentId}`} className={`flex items-center justify-between p-3 border rounded-lg bg-green-50 ${styles.row} ${styles.rowDone}`}>
                    <div>
-                     <p className="text-sm font-medium text-green-900 line-clamp-1">{item.title || item.contentCode || 'İçerik'}</p>
-                     <p className="text-xs text-green-700">{TYPE_LABELS[item.contentType]}</p>
+                     <p className={`text-sm font-medium text-green-900 line-clamp-1 ${styles.rowTitle} ${styles.rowTitleDone}`}>{item.title || item.contentCode || 'İçerik'}</p>
+                     <p className={`text-xs text-green-700 ${styles.rowMeta} ${styles.rowMetaDone}`}>{TYPE_LABELS[item.contentType]}</p>
                    </div>
-                   <CheckCircle2 className="w-5 h-5 text-green-600" />
+                   <CheckCircle2 className={`w-5 h-5 text-green-600 ${styles.rowDoneIcon}`} size={20} />
                  </div>
               ))}
             </div>

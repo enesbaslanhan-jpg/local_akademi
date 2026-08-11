@@ -3,14 +3,47 @@
 .sectionHeader h3 { margin: 0; }
 .table { width: 100%; border-collapse: collapse; }
 .table th, .table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-.table th { font-weight: 600; color: var(--text-secondary); }
-.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; background: var(--accent-bg); color: var(--accent); }
+.table th { font-weight: var(--font-weight-semibold); color: var(--text-secondary); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm); font-size: 0.8rem; background: var(--primary-light); color: var(--brand-ink); }
 .actions { display: flex; gap: 6px; }
-.select { padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--input-bg); color: var(--text); font-size: 0.85rem; }
+.select { min-width: 150px; }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.dialog { background: var(--card-bg); border-radius: 12px; padding: 24px; width: 90%; max-width: 440px; }
+.dialog { background: var(--white); border-radius: var(--radius); padding: 24px; width: 90%; max-width: 440px; }
 .dialog h3 { margin: 0 0 16px; }
 .field { margin-bottom: 16px; }
 .field label { display: block; font-size: 0.85rem; margin-bottom: 4px; color: var(--text-secondary); }
-.field input, .field select { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--input-bg); color: var(--text); font-size: 0.9rem; box-sizing: border-box; }
+.field input { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-primary); color: var(--text); font-size: 0.9rem; box-sizing: border-box; }
 .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+/* Baş harf avatarı — fotoğraf/görsel değil, yalnızca renk tokenları. */
+.nameCell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--brand-ink);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+/* İşletme Takibi / Ekip — üyelik masası */
+.section { padding: 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface-card); box-shadow: var(--shadow-card); }
+.section:first-child { background: linear-gradient(112deg, color-mix(in srgb, var(--brand-700) 97%, transparent), color-mix(in srgb, var(--brand-700) 93%, transparent)); color: var(--brand-50); }
+.section:first-child .table th, .section:first-child .table td { border-color: rgba(255,255,255,.12); color: rgba(254,249,238,.82); }
+.section:first-child .table th { color: rgba(254,249,238,.62); }
+.table { overflow: hidden; }
+.table tbody tr { transition: background 160ms ease, transform 160ms ease; }
+.table tbody tr:hover { background: rgba(255,255,255,.08); }
+.select { min-width: 150px; }
+.dialog { border: 1px solid var(--border-strong); border-radius: 16px; background: var(--surface-raised); box-shadow: var(--shadow-4); }
+.field input { background: var(--surface-raised); border-color: color-mix(in srgb, var(--brand-900) 18%, transparent); }
+
+:global(.dark) .section:first-child { background: var(--surface-panel); color: var(--text); }
+:global(.dark) .section:first-child .table th,
+:global(.dark) .section:first-child .table td { border-color: var(--border); color: var(--text); }
+:global(.dark) .section:first-child .table th { color: var(--text-light); }

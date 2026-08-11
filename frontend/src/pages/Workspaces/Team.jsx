@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '@/services/api'
 import Button from '@/components/ui/Button'
+import { Select } from '@/components/ui'
 import styles from './Team.module.css'
 
 export default function Team() {
@@ -67,15 +68,17 @@ export default function Team() {
           <tbody>
             {members.map(m => (
               <tr key={m.id}>
-                <td>{m.name}</td>
+                <td>
+                  <span className={styles.nameCell}>
+                    <span className={styles.avatar} aria-hidden="true">
+                      {(m.name || m.email || '?').trim().charAt(0)}
+                    </span>
+                    {m.name}
+                  </span>
+                </td>
                 <td>{m.email}</td>
                 <td>
-                  <select className={styles.select} value={m.role} onChange={e => handleRoleChange(m.id, e.target.value)}>
-                    <option value="owner">Sahip</option>
-                    <option value="admin">Yönetici</option>
-                    <option value="staff">Personel</option>
-                    <option value="viewer">İzleyici</option>
-                  </select>
+                  <Select className={styles.select} aria-label="Rol" options={[{ value: 'owner', label: 'Sahip' }, { value: 'admin', label: 'Yönetici' }, { value: 'staff', label: 'Personel' }, { value: 'viewer', label: 'İzleyici' }]} value={m.role} onChange={v => handleRoleChange(m.id, v)} />
                 </td>
                 <td><span className={styles.badge}>{m.status}</span></td>
                 <td>
@@ -132,11 +135,7 @@ export default function Team() {
                 </div>
                 <div className={styles.field}>
                   <label>Rol</label>
-                  <select value={inviteForm.role} onChange={e => setInviteForm(f => ({ ...f, role: e.target.value }))}>
-                    <option value="admin">Yönetici</option>
-                    <option value="staff">Personel</option>
-                    <option value="viewer">İzleyici</option>
-                  </select>
+                  <Select aria-label="Rol" options={[{ value: 'admin', label: 'Yönetici' }, { value: 'staff', label: 'Personel' }, { value: 'viewer', label: 'İzleyici' }]} value={inviteForm.role} onChange={v => setInviteForm(f => ({ ...f, role: v }))} />
                 </div>
                 <div className={styles.actions}>
                   <Button type="button" variant="secondary" onClick={() => setShowInvite(false)}>İptal</Button>

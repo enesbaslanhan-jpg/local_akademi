@@ -1,6 +1,9 @@
 import React, { useMemo, useState } from 'react'
-import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, MessageSquare, RotateCcw, ShieldCheck } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, ChevronRight, MessageSquare, Receipt, RotateCcw, ShieldCheck } from 'lucide-react'
 import { api } from '@/services/api'
+import { DarkPanel, Modal } from '@/components/ui'
+import DecisionReceipt from './DecisionReceipt'
+import receiptTrigger from './ReceiptTrigger.module.css'
 import './ProfitabilityDecisionTool.css'
 
 const fields = [
@@ -40,6 +43,7 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
   const contributionPositive = Number(calc.contribution) > 0
   const [recalculating, setRecalculating] = useState(false)
   const [recalculateError, setRecalculateError] = useState('')
+  const [receiptOpen, setReceiptOpen] = useState(false)
 
   const handleRecalculate = async () => {
     setRecalculateError('')
@@ -66,9 +70,9 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
         <div className={`profit-hero ${contributionPositive ? 'good' : 'bad'}`}>
           <div className="profit-hero-row">
             <div>
-              <p className="text-sm font-semibold text-white/70">Hesaplama kaydedildi</p>
-              <h1 className="mt-1 text-2xl font-bold sm:text-3xl">{contributionPositive ? 'Ürün katkı üretiyor' : 'Bu fiyatla ürün zarar ediyor'}</h1>
-              <p className="mt-2 max-w-2xl text-sm text-white/75">Sonuç, girdiğiniz ürün başı maliyetler ve satış koşullarıyla hesaplandı.</p>
+              <p>Hesaplama kaydedildi</p>
+              <h1>{contributionPositive ? 'Ürün katkı üretiyor' : 'Bu fiyatla ürün zarar ediyor'}</h1>
+              <p>Sonuç, girdiğiniz ürün başı maliyetler ve satış koşullarıyla hesaplandı.</p>
             </div>
             <div className="profit-contribution">
               <p>Ürün başına katkı</p>
@@ -76,6 +80,13 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
             </div>
           </div>
         </div>
+
+        {/* Karar fişi tetikleyicisi — mevcut imza paneli (DarkPanel), sweep açık */}
+        <DarkPanel sweep className={receiptTrigger.bar} onClick={() => setReceiptOpen(true)}>
+          <span className={receiptTrigger.icon} aria-hidden="true"><Receipt size={17} /></span>
+          <span className={receiptTrigger.label}>Karar fişini görüntüle</span>
+          <ChevronRight size={17} className={receiptTrigger.chevron} aria-hidden="true" />
+        </DarkPanel>
 
         <div className="profit-result-body">
           <div className="profit-metrics">
@@ -87,7 +98,7 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
 
           {discounted && (
             <section>
-              <h2 className="text-lg font-bold text-slate-900">İndirim sonrası senaryo</h2>
+              <h2>İndirim sonrası senaryo</h2>
               <div className="profit-metrics">
                 <Metric label="İndirimli fiyat" value={money.format(discounted.salePrice)} />
                 <Metric label="Yeni toplam maliyet" value={money.format(discounted.totalCost)} />
@@ -101,29 +112,29 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
             <section className="profit-panel warning">
               <h2><AlertTriangle size={19} /> Risk uyarıları</h2>
               {calc.riskWarnings?.length ? (
-                <ul className="mt-3 space-y-2 text-sm text-amber-950">
-                  {calc.riskWarnings.map(item => <li key={item} className="flex gap-2"><span>•</span><span>{item}</span></li>)}
+                <ul>
+                  {calc.riskWarnings.map(item => <li key={item}><span>•</span><span>{item}</span></li>)}
                 </ul>
-              ) : <p className="mt-3 text-sm text-amber-900">Bu senaryoda kritik bir risk işareti bulunmadı.</p>}
+              ) : <p>Bu senaryoda kritik bir risk işareti bulunmadı.</p>}
             </section>
 
             <section className="profit-panel safe">
               <h2><ShieldCheck size={19} /> Güvenli sonraki adımlar</h2>
-              <ul className="mt-3 space-y-2 text-sm text-emerald-950">
-                {(calc.safeNextSteps || []).map(item => <li key={item} className="flex gap-2"><CheckCircle2 className="mt-0.5 shrink-0" size={16} /><span>{item}</span></li>)}
+              <ul>
+                {(calc.safeNextSteps || []).map(item => <li key={item}><CheckCircle2 size={16} /><span>{item}</span></li>)}
               </ul>
             </section>
           </div>
 
           <section className="profit-formula">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-blue-700">Formül</p>
-              <p className="mt-2 text-sm font-semibold text-blue-950">Katkı = Satış fiyatı − ürün başı toplam maliyet</p>
-              <p className="mt-1 text-xs text-blue-800">Komisyon, mevcut ve indirimli satış fiyatları üzerinden ayrı ayrı hesaplanır.</p>
+              <p>Formül</p>
+              <p>Katkı = Satış fiyatı − ürün başı toplam maliyet</p>
+              <p>Komisyon, mevcut ve indirimli satış fiyatları üzerinden ayrı ayrı hesaplanır.</p>
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-blue-700">Karar öncesi kontrol</p>
-              <ul className="mt-2 space-y-1 text-sm text-blue-950">
+              <p>Karar öncesi kontrol</p>
+              <ul>
                 <li>✓ Kargo ve paketleme güncel mi?</li>
                 <li>✓ İade payı gerçek sipariş verisine dayanıyor mu?</li>
                 <li>✓ İndirim sonrası katkı sıfırın üzerinde mi?</li>
@@ -151,6 +162,19 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
           </div>
         </div>
       </section>
+
+      {/* Başlık fişin kendi parçası — modal yalnızca çerçeve. */}
+      <Modal
+        open={receiptOpen}
+        onClose={() => setReceiptOpen(false)}
+        size="md"
+      >
+        <DecisionReceipt
+          snapshot={snapshot}
+          title={session.decisionCheckTitle || 'Ürün kârlılığı'}
+          completedAt={snapshot.completedAt}
+        />
+      </Modal>
     </main>
   )
 }
@@ -245,11 +269,11 @@ export default function ProfitabilityDecisionTool({ session, result, navigate, m
 
         <aside className="profit-aside">
           <p className="profit-aside-title">Ne hesaplanır?</p>
-          <ul className="mt-4 space-y-4 text-sm text-slate-200">
-            <li><strong className="block text-white">Gerçek toplam maliyet</strong>Komisyon dahil tüm ürün başı giderler.</li>
-            <li><strong className="block text-white">Katkı ve katkı marjı</strong>Her satışın işletmeye bıraktığı tutar ve oran.</li>
-            <li><strong className="block text-white">Başabaş fiyatı</strong>Zarar etmeden satış yapabileceğiniz en düşük fiyat.</li>
-            <li><strong className="block text-white">İndirim senaryosu</strong>İndirimli fiyatta komisyon ve katkı yeniden hesaplanır.</li>
+          <ul>
+            <li><strong>Gerçek toplam maliyet</strong>Komisyon dahil tüm ürün başı giderler.</li>
+            <li><strong>Katkı ve katkı marjı</strong>Her satışın işletmeye bıraktığı tutar ve oran.</li>
+            <li><strong>Başabaş fiyatı</strong>Zarar etmeden satış yapabileceğiniz en düşük fiyat.</li>
+            <li><strong>İndirim senaryosu</strong>İndirimli fiyatta komisyon ve katkı yeniden hesaplanır.</li>
           </ul>
           <p className="profit-disclaimer">Bu araç karar desteği sağlar. Vergi ve muhasebe yükümlülüklerinizi ayrıca değerlendirmeniz gerekir.</p>
         </aside>

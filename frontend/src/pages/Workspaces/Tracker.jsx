@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { AlertTriangle, CalendarDays, Check, Package, Plus, WalletCards, X } from 'lucide-react'
+import { useParams, useSearchParams } from 'react-router-dom'
+import {
+  AlertTriangle, CalendarDays, Check, Package, Plus, WalletCards, X,
+  Receipt, HandCoins, FileSignature, Truck
+} from 'lucide-react'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
+import { Select } from '@/components/ui'
 import styles from './Tracker.module.css'
 
 const emptyForm = {
@@ -28,6 +32,21 @@ const typeLabels = {
   other: 'Diğer'
 }
 
+/*
+ * HIZLI AKSİYON ŞERİDİ — her biri MEVCUT kayıt oluşturma akışını `type`
+ * (ve mantıklı olduğunda `direction`) ön seçili açar. Yeni endpoint yok.
+ *
+ * Mockup'taki "Hızlı Rapor" BURADA YOK: backend'de rapor/dışa aktarım
+ * endpoint'i bulunmuyor, karşılığı olmayan aksiyon eklenmedi. Özet rakamlar
+ * zaten hemen altındaki KPI şeridinde ve Genel Bakış sekmesinde.
+ */
+const QUICK_ACTIONS = [
+  { id: 'payment', label: 'Yeni Ödeme', icon: Receipt, preset: { type: 'payment', direction: 'payable' } },
+  { id: 'receivable', label: 'Yeni Tahsilat', icon: HandCoins, preset: { type: 'receivable', direction: 'receivable' } },
+  { id: 'promissory_note', label: 'Yeni Senet', icon: FileSignature, preset: { type: 'promissory_note', direction: 'payable' } },
+  { id: 'shipment', label: 'Yeni Kargo', icon: Truck, preset: { type: 'shipment', direction: 'neutral' } }
+]
+
 const statusLabels = {
   open: 'Açık',
   in_progress: 'Devam ediyor',
@@ -47,6 +66,7 @@ function money(value, currency = 'TRY') {
 
 export default function Tracker() {
   const { workspaceId } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const toast = useToast()
   const [summary, setSummary] = useState(null)
   const [records, setRecords] = useState([])
@@ -74,6 +94,21 @@ export default function Tracker() {
   }, [filters, toast, workspaceId])
 
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    const requestedType = searchParams.get('new')
+    const action = QUICK_ACTIONS.find(item => item.id === requestedType)
+    if (!action) return
+    openForm(action.preset)
+    setSearchParams({}, { replace: true })
+  }, [searchParams, setSearchParams])
+
+  /* Kayıt formunu ön seçimle açar. Hızlı aksiyon şeridi ve "Yeni kayıt"
+     düğmesi aynı akışı kullanır. */
+  function openForm(preset = {}) {
+    setForm({ ...emptyForm, ...preset })
+    setShowForm(true)
+  }
 
   const overdueIds = useMemo(() => new Set(
     records.filter(record => record.dueAt && new Date(record.dueAt) < new Date() && !['completed', 'cancelled'].includes(record.status)).map(record => record.id)
@@ -117,9 +152,32 @@ export default function Tracker() {
           <h2>İşletme Takibi</h2>
           <p>Ödemeleri, tahsilatları, senetleri, alımları ve kargo günlerini tek yerde izleyin.</p>
         </div>
-        <button className={styles.primary} onClick={() => setShowForm(true)}>
-          <Plus size={18} /> Yeni kayıt
-        </button>
+        {/* Sayfanın TEK turuncu ana CTA'sı. Kayıt yokken boş durumdaki
+            "İlk kaydı ekle" turuncu olduğu için bu düğme gizlenir —
+            sayfada aynı anda iki turuncu bulunmaz. */}
+        {records.length > 0 && (
+          <button className={styles.cta} onClick={() => openForm()}>
+            <Plus size={18} /> Yeni kayıt
+          </button>
+        )}
+      </div>
+
+      {/* Hızlı aksiyon şeridi — mevcut kayıt akışını tür ön seçimiyle açar. */}
+      <div className={styles.quickStrip} role="group" aria-label="Hızlı kayıt oluştur">
+        {QUICK_ACTIONS.map(action => {
+          const ActionIcon = action.icon
+          return (
+            <button
+              key={action.id}
+              type="button"
+              className={styles.quickCard}
+              onClick={() => openForm(action.preset)}
+            >
+              <ActionIcon size={19} aria-hidden="true" />
+              <span>{action.label}</span>
+            </button>
+          )
+        })}
       </div>
 
       <div className={styles.metrics}>
@@ -130,14 +188,8 @@ export default function Tracker() {
       </div>
 
       <div className={styles.toolbar}>
-        <select value={filters.status} onChange={event => setFilters(current => ({ ...current, status: event.target.value }))}>
-          <option value="">Tüm durumlar</option>
-          {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-        </select>
-        <select value={filters.type} onChange={event => setFilters(current => ({ ...current, type: event.target.value }))}>
-          <option value="">Tüm kayıt türleri</option>
-          {Object.entries(typeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-        </select>
+        <Select aria-label="Durum filtresi" placeholder="Tüm durumlar" options={Object.entries(statusLabels).map(([value, label]) => ({ value, label }))} value={filters.status} onChange={v => setFilters(current => ({ ...current, status: v }))} />
+        <Select aria-label="Kayıt türü filtresi" placeholder="Tüm kayıt türleri" options={Object.entries(typeLabels).map(([value, label]) => ({ value, label }))} value={filters.type} onChange={v => setFilters(current => ({ ...current, type: v }))} />
       </div>
 
       {loading ? (
@@ -147,7 +199,8 @@ export default function Tracker() {
           <CalendarDays size={40} />
           <h3>Henüz takip kaydı yok</h3>
           <p>İlk ödeme, tahsilat veya yapılacak işinizi ekleyerek başlayın.</p>
-          <button className={styles.primary} onClick={() => setShowForm(true)}><Plus size={17} /> İlk kaydı ekle</button>
+          {/* Boş durumda sayfanın tek turuncu CTA'sı burası */}
+          <button className={styles.cta} onClick={() => openForm()}><Plus size={17} /> İlk kaydı ekle</button>
         </div>
       ) : (
         <div className={styles.list}>
@@ -187,16 +240,10 @@ export default function Tracker() {
             <form onSubmit={createRecord}>
               <div className={styles.grid}>
                 <label>Tür
-                  <select value={form.type} onChange={event => setForm(current => ({ ...current, type: event.target.value }))}>
-                    {Object.entries(typeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                  </select>
+                  <Select aria-label="Kayıt türü" options={Object.entries(typeLabels).map(([value, label]) => ({ value, label }))} value={form.type} onChange={v => setForm(current => ({ ...current, type: v }))} />
                 </label>
                 <label>Yön
-                  <select value={form.direction} onChange={event => setForm(current => ({ ...current, direction: event.target.value }))}>
-                    <option value="payable">Ödenecek</option>
-                    <option value="receivable">Tahsil edilecek</option>
-                    <option value="neutral">Finansal değil</option>
-                  </select>
+                  <Select aria-label="Yön" options={[{ value: 'payable', label: 'Ödenecek' }, { value: 'receivable', label: 'Tahsil edilecek' }, { value: 'neutral', label: 'Finansal değil' }]} value={form.direction} onChange={v => setForm(current => ({ ...current, direction: v }))} />
                 </label>
               </div>
               <label>Başlık
@@ -214,13 +261,7 @@ export default function Tracker() {
                 </label>
               </div>
               <label>Tekrarlama
-                <select value={form.recurrenceRule} onChange={event => setForm(current => ({ ...current, recurrenceRule: event.target.value }))}>
-                  <option value="">Tekrarlanmaz</option>
-                  <option value="weekly">Her hafta</option>
-                  <option value="monthly">Her ay</option>
-                  <option value="quarterly">Her 3 ayda</option>
-                  <option value="yearly">Her yıl</option>
-                </select>
+                <Select aria-label="Tekrarlama" options={[{ value: '', label: 'Tekrarlanmaz' }, { value: 'weekly', label: 'Her hafta' }, { value: 'monthly', label: 'Her ay' }, { value: 'quarterly', label: 'Her 3 ayda' }, { value: 'yearly', label: 'Her yıl' }]} value={form.recurrenceRule} onChange={v => setForm(current => ({ ...current, recurrenceRule: v }))} />
               </label>
               <div className={styles.actions}>
                 <button type="button" className={styles.secondary} onClick={() => setShowForm(false)}>Vazgeç</button>

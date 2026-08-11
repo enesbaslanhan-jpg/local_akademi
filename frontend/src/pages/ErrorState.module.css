@@ -1,0 +1,66 @@
+/* Uç durum sayfaları (404, yetkisiz erişim) — ortalanmış sade blok.
+   Dekoratif öğe yok; ikon, kısa başlık, tek satır açıklama, tek CTA. */
+
+.page {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  min-width: 0;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 26rem;
+  padding: var(--space-8) var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: var(--space-2);
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--brand-ink);
+}
+
+/* Erişim engeli gibi uyarı durumları → bordo ailesi */
+.iconWarn {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.code {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-light);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text);
+}
+
+.desc {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
+  line-height: var(--line-height-normal);
+}

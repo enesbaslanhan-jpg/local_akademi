@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '@/services/api'
 import { useWorkspace } from '@/context/WorkspaceContext'
-import { Button, Loading } from '@/components/ui'
+import { Select, Button, Loading } from '@/components/ui'
 import {
   AlertTriangle, ArrowLeft, Bot, CheckCircle2, ChevronRight, FlaskConical,
   History, Info, Play, Save, ShieldCheck
@@ -220,14 +220,7 @@ export default function FinancialModelWorkspace() {
                     : <div className={styles.numberInput}><input type="number" step="any" value={inputs[input.key] || ''} onChange={event => setInputs(current => ({ ...current, [input.key]: event.target.value }))} placeholder="0" /><span>{input.unit}</span></div>}
                 </label>
                 <div className={styles.sourceFields}>
-                  <select value={metadata[input.key]?.sourceType || 'user'} onChange={event => setMetadata(current => ({ ...current, [input.key]: { ...current[input.key], sourceType: event.target.value } }))}>
-                    <option value="user">Kullanıcı girişi</option>
-                    <option value="document">Belge</option>
-                    <option value="business_record">İşletme kaydı</option>
-                    <option value="approved_dataset">Onaylı veri seti</option>
-                    <option value="market_data">Doğrulanmış piyasa verisi</option>
-                    <option value="case">Eğitim vakası</option>
-                  </select>
+                  <Select aria-label="Kaynak türü" options={[{ value: 'user', label: 'Kullanıcı girişi' }, { value: 'document', label: 'Belge' }, { value: 'business_record', label: 'İşletme kaydı' }, { value: 'approved_dataset', label: 'Onaylı veri seti' }, { value: 'market_data', label: 'Doğrulanmış piyasa verisi' }, { value: 'case', label: 'Eğitim vakası' }]} value={metadata[input.key]?.sourceType || 'user'} onChange={v => setMetadata(current => ({ ...current, [input.key]: { ...current[input.key], sourceType: v } }))} />
                   <input value={metadata[input.key]?.sourceReference || ''} onChange={event => setMetadata(current => ({ ...current, [input.key]: { ...current[input.key], sourceReference: event.target.value } }))} placeholder="Kaynak / belge adı" />
                   <input type="date" value={metadata[input.key]?.effectiveDate || ''} onChange={event => setMetadata(current => ({ ...current, [input.key]: { ...current[input.key], effectiveDate: event.target.value } }))} />
                 </div>
@@ -235,7 +228,7 @@ export default function FinancialModelWorkspace() {
               </article>
             ))}
           </div>
-          <div className={styles.runBar}><span>Hesaplama yalnız girdi ve varsayımlarınızdan üretilir.</span><Button variant="primary" onClick={runModel} disabled={running}><Play size={16} /> {running ? 'Çalıştırılıyor...' : 'Modeli çalıştır'}</Button></div>
+          <div className={styles.runBar}><span>Hesaplama yalnız girdi ve varsayımlarınızdan üretilir.</span><Button variant="cta" onClick={runModel} disabled={running}><Play size={16} /> {running ? 'Çalıştırılıyor...' : 'Modeli çalıştır'}</Button></div>
         </section>
       )}
 
@@ -329,7 +322,7 @@ export default function FinancialModelWorkspace() {
         <section className={styles.panel}>
           <div className={styles.sectionHeading}><div><span className={styles.eyebrow}>SOURCES</span><h2>Metodolojik kaynaklar</h2></div></div>
           <div className={styles.sources}>{model.sources.map(source => <a key={source.url} href={source.url} target="_blank" rel="noreferrer"><span>{source.authority}</span><strong>{source.title}</strong><p>{source.usage}</p></a>)}</div>
-          <p className={styles.disclaimer}><Info size={16} />Kaynaklar yöntem içindir. LocalAkademi kaynak metinlerini, ücretli şablonları veya telifli soruları kopyalamaz.</p>
+          <p className={styles.disclaimer}><Info size={16} />Kaynaklar yöntem içindir. LocalKarar kaynak metinlerini, ücretli şablonları veya telifli soruları kopyalamaz.</p>
         </section>
       )}
 

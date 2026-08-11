@@ -1,0 +1,249 @@
+/*
+ * Karar aracı oturumu — jenerik (toolMeta'sız) soru formu ve sonuç görünümü.
+ *
+ * NOT: Bu bölümler Tailwind class isimleriyle yazılmıştı ama projede Tailwind
+ * kurulu değil. MentorPanel/MentorPage'de izlenen yöntem uygulandı: mevcut
+ * class string'leri silinmedi, gerçek stil sağlayan module class'ları
+ * yanlarına eklendi. Oturum durum ekranları (yükleniyor/hata) ayrı bir düz
+ * stil dosyasında (DecisionCheckSession.css) kalmaya devam ediyor.
+ */
+
+.page {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: var(--space-8);
+  min-width: 0;
+}
+
+.pageForm {
+  padding-bottom: var(--space-16);
+}
+
+.title {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text);
+}
+
+.titleForm {
+  margin-bottom: var(--space-6);
+}
+
+/* ---------- Sonuç görünümü ---------- */
+.resultCard {
+  padding: var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+
+.resultRow {
+  margin-bottom: var(--space-4);
+}
+
+.resultLabel {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-light);
+}
+
+.resultValue {
+  font-weight: var(--font-weight-bold);
+  color: var(--text);
+}
+
+/* Eksik bilgi uyarısı → hardal/uyarı tonu */
+.missingInfo {
+  margin-bottom: var(--space-4);
+  color: var(--warning);
+}
+
+.missingInfoLabel {
+  font-weight: var(--font-weight-semibold);
+}
+
+.list {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-5);
+  list-style: disc;
+}
+
+.recalcError {
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--danger);
+}
+
+.resultActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.secondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
+}
+
+.secondaryBtn:hover:not(:disabled) {
+  background: var(--border);
+  transform: translateY(var(--lift-btn));
+}
+
+.secondaryBtn:active:not(:disabled) {
+  transform: scale(var(--scale-active));
+}
+
+.secondaryBtn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.mentorBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--primary-light);
+  color: var(--brand-ink);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
+}
+
+.mentorBtn:hover {
+  background: var(--bg-hover);
+  transform: translateY(var(--lift-btn));
+}
+
+.mentorBtn:active {
+  transform: scale(var(--scale-active));
+}
+
+/* ---------- Soru formu ---------- */
+.questionList {
+  display: grid;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.questionCard {
+  padding: var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+.questionLabel {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text);
+}
+
+.questionDesc {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
+}
+
+.questionRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.numberInput {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text);
+}
+
+.numberInput:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.numberInput:disabled {
+  background: var(--bg-tertiary);
+  color: var(--text-light);
+}
+
+.unknownLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.unknownLabel input {
+  width: auto;
+  margin: 0;
+}
+
+.submitRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-8);
+}
+
+/* Formun tek tamamlama aksiyonu — tekrarlayan/rutin olduğu için teal. */
+.submitBtn {
+  padding: var(--space-3) var(--space-8);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--brand-teal);
+  color: var(--white);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(var(--lift-btn));
+}
+
+.submitBtn:active:not(:disabled) {
+  transform: scale(var(--scale-active));
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .secondaryBtn,
+  .mentorBtn,
+  .submitBtn {
+    transition: none;
+  }
+}

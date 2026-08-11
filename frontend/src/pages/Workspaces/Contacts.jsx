@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '@/services/api'
 import Button from '@/components/ui/Button'
+import { Select } from '@/components/ui'
 import styles from './Contacts.module.css'
 
 const emptyContact = { type: 'customer', name: '', legalName: '', contactPerson: '', email: '', phone: '', city: '', address: '', notes: '' }
@@ -72,7 +73,14 @@ export default function Contacts() {
           <tbody>
             {contacts.map(c => (
               <tr key={c.id}>
-                <td>{c.name}</td>
+                <td>
+                  <span className={styles.nameCell}>
+                    <span className={styles.avatar} aria-hidden="true">
+                      {(c.name || '?').trim().charAt(0)}
+                    </span>
+                    {c.name}
+                  </span>
+                </td>
                 <td><span className={styles.badge}>{c.type}</span></td>
                 <td>{c.email || '-'}</td>
                 <td>{c.phone || '-'}</td>
@@ -94,12 +102,7 @@ export default function Contacts() {
             <form onSubmit={handleSubmit}>
               <div className={styles.field}>
                 <label>Tür</label>
-                <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                  <option value="customer">Müşteri</option>
-                  <option value="supplier">Tedarikçi</option>
-                  <option value="partner">İş Ortağı</option>
-                  <option value="other">Diğer</option>
-                </select>
+                <Select aria-label="Tür" options={[{ value: 'customer', label: 'Müşteri' }, { value: 'supplier', label: 'Tedarikçi' }, { value: 'partner', label: 'İş Ortağı' }, { value: 'other', label: 'Diğer' }]} value={form.type} onChange={v => setForm(f => ({ ...f, type: v }))} />
               </div>
               <div className={styles.field}>
                 <label>Ad *</label>

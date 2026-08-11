@@ -2,13 +2,42 @@
 .sectionHeader h3 { margin: 0; }
 .table { width: 100%; border-collapse: collapse; }
 .table th, .table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-.table th { font-weight: 600; color: var(--text-secondary); }
+.table th { font-weight: var(--font-weight-semibold); color: var(--text-secondary); }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.dialog { background: var(--card-bg); border-radius: 12px; padding: 24px; width: 90%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+.dialog { background: var(--white); border-radius: var(--radius); padding: 24px; width: 90%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
 .dialog h3 { margin: 0 0 16px; }
 .field { margin-bottom: 14px; }
 .field label { display: block; font-size: 0.85rem; margin-bottom: 4px; color: var(--text-secondary); }
-.field input, .field select, .field textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--input-bg); color: var(--text); font-size: 0.9rem; box-sizing: border-box; }
+.field input, .field textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-primary); color: var(--text); font-size: 0.9rem; box-sizing: border-box; }
 .field textarea { resize: vertical; min-height: 60px; }
 .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
-.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; background: var(--accent-bg); color: var(--accent); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm); font-size: 0.8rem; background: var(--primary-light); color: var(--brand-ink); }
+
+/* Baş harf avatarı — fotoğraf/görsel değil, yalnızca renk tokenları. */
+.nameCell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--brand-ink);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+/* İşletme Takibi / Kişiler — sade CRM yüzeyi */
+.sectionHeader { padding: 18px 20px; border-radius: 2px 22px 2px 22px; background: linear-gradient(112deg, var(--brand-700), var(--brand-700)); color: var(--brand-50); box-shadow: 0 18px 34px -25px rgba(6,31,26,.7), inset 0 1px rgba(255,255,255,.14); }
+.table { border: 1px solid var(--border); background: var(--surface-card); box-shadow: 0 18px 34px -28px rgba(20,44,38,.62); }
+.table th { background: color-mix(in srgb, var(--text) 7%, transparent); color: var(--text); }
+.table tbody tr { transition: background 160ms ease; }
+.table tbody tr:hover { background: var(--surface-panel); }
+.badge { border-radius: 999px; background: color-mix(in srgb, var(--brand-900) 10%, transparent); }
+.dialog { border: 1px solid var(--border-strong); border-radius: 16px; background: var(--surface-raised); box-shadow: var(--shadow-4); }
+.field input, .field textarea { background: var(--surface-raised); border-color: color-mix(in srgb, var(--brand-900) 18%, transparent); }
+
+:global(.dark) .sectionHeader { background: var(--surface-panel); color: var(--text); border: 1px solid var(--border); box-shadow: var(--shadow-card); }
+:global(.dark) .table th { background: var(--surface-panel); color: var(--text-light); }

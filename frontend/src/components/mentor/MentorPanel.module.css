@@ -1,0 +1,510 @@
+/*
+ * AI Mentor paneli — drawer + bağlam paneli glass yüzeyleri ve giriş animasyonu.
+ *
+ * NOT: Bu dosya eklenmeden önce panel, Tailwind class isimleriyle
+ * (fixed/inset-0/bg-black/40 vb.) yazılmıştı ama projede Tailwind kurulu
+ * değil — o class'lar hiçbir CSS üretmiyordu. Motion+glass sistemini
+ * gerçek anlamda uygulayabilmek için burada karşılık gelen konumlandırma
+ * ve yüzey stilleri tanımlandı; JSX'teki mevcut class string'leri
+ * silinmedi, üzerine gerçek stil sağlayan module class'ları eklendi.
+ */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  z-index: var(--z-modal-overlay);
+  animation: fadeSlideIn var(--dur-fast) var(--ease-standard) both;
+}
+
+@media (min-width: 768px) {
+  .backdrop {
+    display: none;
+  }
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-modal);
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  animation: drawerIn var(--dur-slow) var(--ease-decelerate) both;
+}
+
+@media (min-width: 768px) {
+  .drawer {
+    width: 480px;
+  }
+}
+
+/* İzin verilen glass alanlarından biri: AI Mentor drawer'ının kendisi */
+.drawerGlass {
+  background: var(--surface-raised);
+  border-left: 1px solid var(--border-strong);
+  box-shadow: -18px 0 44px rgba(0, 0, 0, .28);
+}
+
+/* İzin verilen glass alanlarından biri: bağlam (context) çubuğu */
+.contextBarGlass {
+  background: var(--surface-panel);
+  border-bottom: 1px solid var(--border);
+  animation: fadeSlideIn var(--dur-base) var(--ease-standard) both;
+}
+
+/* "AI düşünüyor" balonu göründüğünde kısa fade — sahte typing animasyonu
+   eklenmez, sadece giriş (kural 14). */
+.streamingBubble {
+  animation: fadeSlideIn var(--dur-fast) var(--ease-standard) both;
+}
+
+/* ==========================================================================
+   Panel yerleşimi — başlık, sekmeler, sohbet listesi, mesaj alanı, composer.
+
+   Bu blok, daha önce karşılıksız Tailwind class'larıyla yazılmış (ve bu
+   yüzden fiilen stilsiz render olan) iç yerleşimi LocalKarar tokenlarıyla
+   yeniden kurar. Yukarıdaki glass/motion sınıfları değiştirilmedi.
+   Görsel yapı korundu: üstte başlık + geri/kapat, altında sekmeler, sonra
+   kaydırılabilir liste veya sohbet alanı, en altta composer.
+   ========================================================================== */
+
+/* ---------- Başlık çubuğu ---------- */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+  padding: max(var(--space-3), env(safe-area-inset-top)) var(--space-4) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-raised);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.backBtn,
+.closeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding: 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.backBtn {
+  margin-left: -6px;
+}
+
+.closeBtn {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-panel);
+  color: var(--text);
+  z-index: 2;
+}
+
+.backBtn:hover,
+.closeBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.headerTitleWrap {
+  min-width: 0;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.headerProvider {
+  font-size: 10px;
+  color: var(--text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.betaWrap {
+  display: none;
+  margin-left: var(--space-2);
+}
+
+@media (min-width: 640px) {
+  .betaWrap {
+    display: block;
+  }
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+}
+
+/* Panelin tekrarlayan aksiyonu — teal, turuncu CTA değil. */
+.newChatBtn {
+  padding: 6px var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--brand-teal);
+  color: var(--white);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
+}
+
+.newChatBtn:hover {
+  background: var(--primary-dark);
+  transform: translateY(var(--lift-btn));
+}
+
+.newChatBtn:active {
+  transform: scale(var(--scale-active));
+}
+
+/* ---------- İçerik alanı ---------- */
+.content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+}
+
+/* ---------- Sohbet listesi görünümü ---------- */
+.conversationsPane {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--surface-panel);
+}
+
+.tabs {
+  display: flex;
+  flex: 0 0 auto;
+  font-size: var(--font-size-xs);
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  flex: 1;
+  padding: var(--space-3) 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-light);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.tab:hover {
+  background: var(--bg-hover);
+}
+
+.tabActive {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.convList {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.convState {
+  padding: var(--space-8);
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
+}
+
+.convItems {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.convItem {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard);
+}
+
+.convItem:hover {
+  background: var(--bg-hover);
+}
+
+.convItemActive {
+  background: var(--primary-light);
+}
+
+.convTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.convPreview {
+  margin-top: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.convTime {
+  margin-top: 6px;
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-light);
+}
+
+/* ---------- Bağlam çubuğu içeriği (glass yüzeyi yukarıda) ---------- */
+.contextBarLayout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+  z-index: 10;
+  padding: var(--space-2) var(--space-4);
+}
+
+.contextTextWrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.contextLabel {
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--brand-ink);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.contextTitle {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contextClearBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.contextClearBtn:hover {
+  background: var(--primary-light);
+  color: var(--brand-ink);
+}
+
+/* ---------- Mesaj alanı ---------- */
+.chatScroll {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.messagesInner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  flex: 1;
+  padding: var(--space-4);
+  min-width: 0;
+}
+
+.streamingRow {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.streamingBubbleSurface {
+  max-width: 85%;
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  border-top-left-radius: 4px;
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (min-width: 768px) {
+  .streamingBubbleSurface {
+    max-width: 75%;
+  }
+}
+
+.streamingText {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  white-space: pre-wrap;
+}
+
+.streamingPlaceholder {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-style: normal;
+  color: var(--text-light);
+}
+
+/* Statik gösterge — yeni keyframe tanımlanmadı (kural). */
+.typingDot {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-light);
+  opacity: 0.6;
+}
+
+/* ---------- Alt alan: hızlı öneriler + composer ---------- */
+.composerWrap {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  z-index: 10;
+  background: var(--white);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+:global(.dark) .drawerGlass,
+:global(.dark) .header,
+:global(.dark) .composerWrap { background: #121417; }
+:global(.dark) .contextBarGlass,
+:global(.dark) .streamingBubbleSurface { background: #1c1f24; border-color: var(--border-strong); color: var(--text); }
+
+.quickPrompts {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4) var(--space-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.quickPrompts::-webkit-scrollbar {
+  display: none;
+}
+
+.quickPromptBtn {
+  flex: 0 0 auto;
+  padding: 6px var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--primary-light);
+  color: var(--brand-ink);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+
+.quickPromptBtn:hover {
+  background: var(--bg-hover);
+  border-color: var(--brand-olive);
+}
+
+.archivedNotice {
+  flex: 0 0 auto;
+  padding: var(--space-3) var(--space-4);
+  padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--border);
+  background: var(--bg-tertiary);
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .drawer,
+  .contextBarGlass,
+  .streamingBubble {
+    animation: none;
+  }
+
+  .backBtn,
+  .closeBtn,
+  .newChatBtn,
+  .tab,
+  .convItem,
+  .contextClearBtn,
+  .quickPromptBtn {
+    transition: none;
+  }
+}

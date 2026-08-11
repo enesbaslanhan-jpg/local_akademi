@@ -1,0 +1,366 @@
+/*
+ * Karar Fişi — kararın saklanabilir / yazdırılabilir özet artefaktı.
+ *
+ * Detaylı sonuç sayfasının YERİNE geçmez, yanında durur.
+ * Kağıt yüzey: fildişi/beyaz, glass DEĞİL. Arkadaki modal örtüsü zaten bulanık.
+ * İmza dili DarkPanel ile ortak: aynı --panel-bevel köşe pahı, ama açık yüzeyde.
+ */
+
+.receipt {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  min-width: 0;
+  padding: var(--space-6) var(--space-6) var(--space-8);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  color: var(--text);
+  overflow: hidden;
+
+  /* Sağ üst köşe pahı (DarkPanel ile aynı imza) + alt kenarda tırtık.
+     Tırtık, tekrarlayan radial gradyanlı bir mask ile üretilir — görsel
+     dosya kullanılmaz.
+
+     NOT: Aşağıdaki `#000` değerleri renk değil MASKE değeridir; maskede
+     yalnızca alfa okunur ve "opak = koru" anlamına gelir. Tema token'ı
+     kullanmak yanlış olur (token'ın rengi maskeyi etkilemez, şeffaflık
+     kazanırsa maskeyi bozar). İki maske katmanı varsayılan `add` ile
+     birleşir: tam alan eksi (alt 10px şeridindeki daireler). */
+  -webkit-mask-image:
+    linear-gradient(#000 0 0),
+    radial-gradient(circle at 7px 10px, transparent 6px, #000 6.5px);
+  mask-image:
+    linear-gradient(#000 0 0),
+    radial-gradient(circle at 7px 10px, transparent 6px, #000 6.5px);
+  -webkit-mask-size: 100% calc(100% - 10px), 14px 10px;
+  mask-size: 100% calc(100% - 10px), 14px 10px;
+  -webkit-mask-position: top left, bottom left;
+  mask-position: top left, bottom left;
+  -webkit-mask-repeat: no-repeat, repeat-x;
+  mask-repeat: no-repeat, repeat-x;
+
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--panel-bevel)) 0,
+    100% var(--panel-bevel),
+    100% 100%,
+    0 100%
+  );
+
+  /* Keskin ve hızlı açılış — mevcut fichOpen, --dur-slow'u aşmaz. */
+  animation: fichOpen var(--dur-slow) var(--ease-decelerate) both;
+}
+
+/* Açık yüzeyde tek seferlik ayna taraması. --sweep-tint koyu zemin için
+   ayarlı olduğundan burada daha düşük opaklıkta bir ton kullanılır. */
+.sweepBar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--sweep-width);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.55),
+    transparent
+  );
+  mix-blend-mode: overlay;
+  transform: translateX(-140%) skewX(var(--sweep-skew));
+  pointer-events: none;
+  animation: mirrorSweep var(--dur-slow) var(--ease-standard) 1 both;
+}
+
+/* ---------- Üst blok ---------- */
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px dashed var(--border);
+}
+
+.headIcon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--brand-ink);
+}
+
+.headText {
+  min-width: 0;
+}
+
+.eyebrow {
+  display: block;
+  font-size: var(--font-size-page-eyebrow);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+.date {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--font-size-xs);
+  color: var(--text-light);
+}
+
+.decisionTitle {
+  margin: var(--space-4) 0 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Satır kalemleri ---------- */
+.lines {
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+  min-width: 0;
+}
+
+.line + .line {
+  border-top: 1px solid var(--border);
+}
+
+.lineLabel {
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
+  min-width: 0;
+}
+
+.lineValue {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ana sonuç satırı — diğerlerinden ayrı */
+.total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 2px solid var(--text);
+  min-width: 0;
+}
+
+.totalLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text);
+  min-width: 0;
+}
+
+.totalValue {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Karar manşeti ---------- */
+.verdict {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-tertiary);
+}
+
+.verdictIcon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+
+.verdictBody { min-width: 0; }
+
+.verdictLabel {
+  display: block;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+}
+
+.verdictSummary {
+  margin: 3px 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-light);
+  line-height: 1.5;
+}
+
+/* Olumlu → zeytin, dikkat → hardal, olumsuz → bordo */
+.toneGood { border-color: var(--brand-olive); background: var(--success-bg); }
+.toneGood .verdictIcon { background: var(--brand-olive); color: var(--white); }
+.toneGood .verdictLabel { color: var(--success); }
+
+.toneWarn { border-color: var(--warning); background: var(--warning-bg); }
+.toneWarn .verdictIcon { background: var(--warning); color: var(--white); }
+.toneWarn .verdictLabel { color: var(--warning); }
+
+.toneBad { border-color: var(--danger); background: var(--danger-bg); }
+.toneBad .verdictIcon { background: var(--brand-bordo); color: var(--white); }
+.toneBad .verdictLabel { color: var(--danger); }
+
+/* ---------- Aksiyon satırı ---------- */
+.actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px dashed var(--border);
+}
+
+.action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: var(--space-2) var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text);
+  font-size: 0.68rem;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
+}
+
+.action:hover:not(:disabled) {
+  background: var(--primary-light);
+  border-color: var(--brand-olive);
+  transform: translateY(var(--lift-btn));
+}
+
+.action:active:not(:disabled) {
+  transform: scale(var(--scale-active));
+}
+
+/* Henüz gerçek işlevi olmayan aksiyonlar — çalışıyormuş gibi görünmez */
+.action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: var(--bg-tertiary);
+}
+
+/* ---------- Yazdırma imzası — yalnızca baskıda görünür ---------- */
+.printSignature {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .receipt { animation: none; }
+  .sweepBar { animation: none; display: none; }
+  .action { transition: none; }
+}
+
+/* ==========================================================================
+   YAZDIRMA — yalnızca fiş basılır.
+   Uygulama kabuğu (sidebar, üst bar, mentor balonu, modal çerçevesi) ve tüm
+   gölge/animasyonlar gizlenir; siyah metin, beyaz zemin, ince gri kenarlık.
+   Koyu zeminler basılmaz (mürekkep israfı).
+   ========================================================================== */
+@media print {
+  .receipt {
+    position: static;
+    max-width: none;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #fff;
+    color: #000;
+    overflow: visible;
+    animation: none;
+    /* Tırtık ve köşe pahı baskıda kaldırılır — kağıtta anlamsız. */
+    -webkit-mask-image: none;
+    mask-image: none;
+    clip-path: none;
+  }
+
+  .sweepBar { display: none; }
+
+  .headIcon {
+    background: transparent;
+    color: #000;
+    border: 1px solid #999;
+  }
+
+  .eyebrow, .date, .lineLabel, .verdictSummary { color: #333; }
+  .decisionTitle, .lineValue, .totalLabel, .totalValue { color: #000; }
+
+  .head { border-bottom: 1px solid #999; }
+  .line + .line { border-top: 1px solid #ccc; }
+  .total { border-top: 2px solid #000; }
+
+  /* Karar manşeti: renkli zemin yerine ince çerçeve */
+  .verdict,
+  .toneGood, .toneWarn, .toneBad {
+    background: #fff;
+    border: 1px solid #999;
+  }
+
+  .toneGood .verdictLabel,
+  .toneWarn .verdictLabel,
+  .toneBad .verdictLabel { color: #000; }
+
+  .verdictIcon,
+  .toneGood .verdictIcon,
+  .toneWarn .verdictIcon,
+  .toneBad .verdictIcon {
+    background: transparent;
+    color: #000;
+    border: 1px solid #999;
+  }
+
+  /* Aksiyon satırı basılmaz */
+  .actions { display: none; }
+
+  .printSignature {
+    display: block;
+    margin-top: 18px;
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+    font-size: 10px;
+    color: #555;
+    text-align: center;
+  }
+}

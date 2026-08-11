@@ -128,7 +128,8 @@ export default function KnowledgePage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Bilgi Nesneleri</h1>
+          {/* Sayfa adı üst barda yazıyor; görünür h1 yerine sr-only başlık. */}
+          <h1 className="sr-only">Bilgi Nesneleri</h1>
           <p className={styles.subtitle}>
             {total > 0 ? `${total} konu başlığı bulundu` : 'Henüz içerik bulunmuyor'}
           </p>
@@ -160,8 +161,8 @@ export default function KnowledgePage() {
         <div className={styles.sortWrap}>
           <Select
             value={`${sortBy}_${sortOrder}`}
-            onChange={e => {
-              const [sb, so] = e.target.value.split('_')
+            onChange={value => {
+              const [sb, so] = value.split('_')
               const params = new URLSearchParams(searchParams)
               params.set('sortBy', sb)
               params.set('sortOrder', so)
@@ -180,7 +181,7 @@ export default function KnowledgePage() {
             <Select
               label="Kategori"
               value={category}
-              onChange={e => updateFilter('category', e.target.value)}
+              onChange={value => updateFilter('category', value)}
               placeholder="Tüm Kategoriler"
               options={categories.map(c => ({ value: c.name, label: `${c.name} (${c.count})` }))}
             />

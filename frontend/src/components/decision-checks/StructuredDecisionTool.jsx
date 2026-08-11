@@ -1,6 +1,9 @@
 import React, { useMemo, useState } from 'react'
-import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, MessageSquare, RotateCcw, ShieldCheck } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, ChevronRight, MessageSquare, Receipt, RotateCcw, ShieldCheck } from 'lucide-react'
 import { api } from '@/services/api'
+import { DarkPanel, Modal } from '@/components/ui'
+import DecisionReceipt from './DecisionReceipt'
+import receiptTrigger from './ReceiptTrigger.module.css'
 import './StructuredDecisionTool.css'
 
 const money = new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 2 })
@@ -20,6 +23,7 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
   const calculation = snapshot.calculationOutput || {}
   const [recalculating, setRecalculating] = useState(false)
   const [recalculateError, setRecalculateError] = useState('')
+  const [receiptOpen, setReceiptOpen] = useState(false)
 
   const handleRecalculate = async () => {
     setRecalculateError('')
@@ -51,6 +55,13 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
           </div>
           <div className="structured-result-tool-name">{session.decisionCheckTitle}</div>
         </div>
+
+        {/* Karar fişi tetikleyicisi — mevcut imza paneli (DarkPanel), sweep açık */}
+        <DarkPanel sweep className={receiptTrigger.bar} onClick={() => setReceiptOpen(true)}>
+          <span className={receiptTrigger.icon} aria-hidden="true"><Receipt size={17} /></span>
+          <span className={receiptTrigger.label}>Karar fişini görüntüle</span>
+          <ChevronRight size={17} className={receiptTrigger.chevron} aria-hidden="true" />
+        </DarkPanel>
 
         <div className="structured-result-body">
           <section aria-label="Temel hesaplamalar">
@@ -115,6 +126,15 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
           </div>
         </div>
       </section>
+
+      {/* Başlık fişin kendi parçası — modal yalnızca çerçeve. */}
+      <Modal open={receiptOpen} onClose={() => setReceiptOpen(false)} size="md">
+        <DecisionReceipt
+          snapshot={snapshot}
+          title={session.decisionCheckTitle}
+          completedAt={snapshot.completedAt}
+        />
+      </Modal>
     </main>
   )
 }

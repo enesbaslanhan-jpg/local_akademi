@@ -59,7 +59,7 @@ export default function LearningPathPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Kişisel Öğrenme Planı</h1>
+          <h1 className="sr-only">Kişisel Öğrenme Planı</h1>
           <p className={styles.subtitle}>
             İşletme profilinize ve değerlendirme sonuçlarınıza göre oluşturulur.
           </p>

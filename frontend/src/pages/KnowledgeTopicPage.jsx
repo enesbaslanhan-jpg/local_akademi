@@ -49,7 +49,8 @@ export default function KnowledgeTopicPage() {
       </Link>
 
       <div className={styles.header}>
-        <h1 className={styles.title}>Konu: {topicKey}</h1>
+        <h1 className="sr-only">Konu: {topicKey}</h1>
+        <div className={styles.title}>Konu: {topicKey}</div>
         {availableLevels.length > 0 && (
           <div className={styles.levelSelector}>
             <span className={styles.levelLabel}>Seviye:</span>

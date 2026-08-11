@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { api } from '@/services/api'
 import { useWorkspace } from '@/context/WorkspaceContext'
 import Button from '@/components/ui/Button'
+import { Select } from '@/components/ui'
 import styles from './Settings.module.css'
 
 const emptyProfile = {
@@ -155,14 +156,7 @@ export default function Settings() {
             <input value={profile.city} onChange={event => setProfileField('city', event.target.value)} />
           </label>
           <label className={styles.field}>İşletme aşaması
-            <select value={profile.businessStage} onChange={event => setProfileField('businessStage', event.target.value)}>
-              <option value="">Seçilmedi</option>
-              <option value="idea">Fikir aşaması</option>
-              <option value="startup">Yeni kuruldu</option>
-              <option value="growth">Büyüme aşaması</option>
-              <option value="established">Yerleşik işletme</option>
-              <option value="transformation">Dönüşüm aşaması</option>
-            </select>
+            <Select aria-label="İşletme aşaması" placeholder="Seçilmedi" options={[{ value: 'idea', label: 'Fikir aşaması' }, { value: 'startup', label: 'Yeni kuruldu' }, { value: 'growth', label: 'Büyüme aşaması' }, { value: 'established', label: 'Yerleşik işletme' }, { value: 'transformation', label: 'Dönüşüm aşaması' }]} value={profile.businessStage} onChange={v => setProfileField('businessStage', v)} />
           </label>
           <label className={styles.field}>Çalışan sayısı
             <input type="number" min="0" value={profile.employeeCount} onChange={event => setProfileField('employeeCount', event.target.value)} />
@@ -211,31 +205,16 @@ export default function Settings() {
         </div>
         <div className={styles.grid}>
           <label className={styles.field}>Saat dilimi
-            <select value={preferences.timezone} onChange={event => setPreferences(current => ({ ...current, timezone: event.target.value }))}>
-              <option value="Europe/Istanbul">İstanbul (GMT+3)</option>
-              <option value="Europe/London">Londra (GMT+0/+1)</option>
-              <option value="America/New_York">New York (GMT-5/-4)</option>
-            </select>
+            <Select aria-label="Saat dilimi" options={[{ value: 'Europe/Istanbul', label: 'İstanbul (GMT+3)' }, { value: 'Europe/London', label: 'Londra (GMT+0/+1)' }, { value: 'America/New_York', label: 'New York (GMT-5/-4)' }]} value={preferences.timezone} onChange={v => setPreferences(current => ({ ...current, timezone: v }))} />
           </label>
           <label className={styles.field}>Dil / bölge
-            <select value={preferences.locale} onChange={event => setPreferences(current => ({ ...current, locale: event.target.value }))}>
-              <option value="tr-TR">Türkçe (Türkiye)</option>
-              <option value="en-US">English (US)</option>
-            </select>
+            <Select aria-label="Dil / bölge" options={[{ value: 'tr-TR', label: 'Türkçe (Türkiye)' }, { value: 'en-US', label: 'English (US)' }]} value={preferences.locale} onChange={v => setPreferences(current => ({ ...current, locale: v }))} />
           </label>
           <label className={styles.field}>Para birimi
-            <select value={preferences.defaultCurrency} onChange={event => setPreferences(current => ({ ...current, defaultCurrency: event.target.value }))}>
-              <option value="TRY">₺ TRY</option>
-              <option value="USD">$ USD</option>
-              <option value="EUR">€ EUR</option>
-              <option value="GBP">£ GBP</option>
-            </select>
+            <Select aria-label="Para birimi" options={[{ value: 'TRY', label: '₺ TRY' }, { value: 'USD', label: '$ USD' }, { value: 'EUR', label: '€ EUR' }, { value: 'GBP', label: '£ GBP' }]} value={preferences.defaultCurrency} onChange={v => setPreferences(current => ({ ...current, defaultCurrency: v }))} />
           </label>
           <label className={styles.field}>Hafta başlangıcı
-            <select value={preferences.weekStartsOn} onChange={event => setPreferences(current => ({ ...current, weekStartsOn: Number(event.target.value) }))}>
-              <option value={1}>Pazartesi</option>
-              <option value={0}>Pazar</option>
-            </select>
+            <Select aria-label="Hafta başlangıcı" options={[{ value: '1', label: 'Pazartesi' }, { value: '0', label: 'Pazar' }]} value={String(preferences.weekStartsOn)} onChange={v => setPreferences(current => ({ ...current, weekStartsOn: Number(v) }))} />
           </label>
         </div>
         <div className={styles.actions}>

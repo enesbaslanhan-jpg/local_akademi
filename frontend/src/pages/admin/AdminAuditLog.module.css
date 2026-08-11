@@ -1,0 +1,191 @@
+/*
+ * Yönetim — Denetim Kayıtları.
+ *
+ * NOT: Bu sayfa Tailwind class isimleriyle yazılmıştı ama projede Tailwind
+ * kurulu değil. MentorPanel/MentorPage'de izlenen yöntem uygulandı: mevcut
+ * class string'leri silinmedi, gerçek stil sağlayan module class'ları
+ * yanlarına eklendi. Admin görünümünün yerleşimi korundu.
+ */
+
+.page {
+  padding: var(--space-6);
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.headerIcon {
+  color: var(--brand-teal);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text);
+}
+
+.count {
+  margin-left: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
+}
+
+/* ---------- Filtreler ---------- */
+.filters {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.filterLabel {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--text-light);
+}
+
+.filterInput {
+  padding: 6px var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text);
+  font-size: var(--font-size-sm);
+}
+
+.filterInput:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.clearBtn {
+  padding: 6px var(--space-3);
+  border: 0;
+  background: transparent;
+  color: var(--brand-ink);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.clearBtn:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Tablo ---------- */
+.tableWrap {
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.th {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-tertiary);
+  color: var(--text-light);
+  font-weight: var(--font-weight-medium);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tr {
+  border-bottom: 1px solid var(--border);
+  transition: background var(--dur-fast) var(--ease-standard);
+}
+
+.tr:hover {
+  background: var(--bg-hover);
+}
+
+.td {
+  padding: var(--space-2) var(--space-3);
+}
+
+.tdDate {
+  color: var(--text-light);
+  white-space: nowrap;
+}
+
+.actionCode {
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  font-size: var(--font-size-xs);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.tdMono {
+  font-size: var(--font-size-xs);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.tdMeta {
+  max-width: 20rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  color: var(--text-light);
+}
+
+.emptyCell {
+  padding: var(--space-8) var(--space-3);
+  text-align: center;
+  color: var(--text-light);
+}
+
+/* ---------- Sayfalama ---------- */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.pageBtn {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-standard);
+}
+
+.pageBtn:not(:disabled):hover {
+  border-color: var(--brand-olive);
+}
+
+.pageBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tr,
+  .pageBtn {
+    transition: none;
+  }
+}

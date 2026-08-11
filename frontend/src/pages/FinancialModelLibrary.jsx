@@ -32,7 +32,12 @@ const ICONS = {
 
 const LEVELS = { basic: 'Temel', intermediate: 'Orta', advanced: 'İleri' }
 
-export default function FinancialModelLibrary() {
+/*
+ * `embedded`: Finans Merkezi sayfasının "Model Laboratuvarı" sekmesi içinde
+ * render edilirken sayfa kabuğu atlanır. /app/finance/models route'u
+ * çalışmaya devam eder ve bu bileşeni tam sayfa gösterir.
+ */
+export default function FinancialModelLibrary({ embedded = false }) {
   const navigate = useNavigate()
   const { activeWorkspace } = useWorkspace()
   const [models, setModels] = useState([])
@@ -66,11 +71,13 @@ export default function FinancialModelLibrary() {
   if (loading) return <Loading text="Finansal model kütüphanesi hazırlanıyor..." />
 
   return (
-    <main className={styles.page}>
+    <main className={embedded ? styles.embedded : styles.page}>
       <section className={styles.hero}>
         <div>
           <span>LOCALAKADEMİ FİNANSAL ZEKA</span>
-          <h1>Model Laboratuvarı</h1>
+          {/* Sayfa adı üst barda yazıyor; görünür h1 yerine sr-only başlık.
+              Sekme içinde kabuk Finans Merkezi'ne ait olduğu için tekrarlanmaz. */}
+          {!embedded && <h1 className="sr-only">Model Laboratuvarı</h1>}
           <p>Gerçek işletme verisini doğrulayın, doğru modeli seçin, hesabın her adımını görün ve kararınızı kaydedin.</p>
         </div>
         <div className={styles.heroStats}>

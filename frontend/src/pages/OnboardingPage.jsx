@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { Select } from '@/components/ui'
 import styles from './OnboardingPage.module.css'
 
 const STAGES = [
@@ -153,7 +154,7 @@ export default function OnboardingPage() {
       <div className={styles.header}>
         <h1 className={styles.title}>İşletme Profili Oluşturun</h1>
         <p className={styles.subtitle}>
-          LocalAkademi deneyiminizi işletmenize özel hale getirmek için birkaç soru.
+          LocalKarar deneyiminizi işletmenize özel hale getirmek için birkaç soru.
         </p>
       </div>
 
@@ -207,43 +208,37 @@ export default function OnboardingPage() {
 
             <div className={styles.field}>
               <label className={styles.label}>İşletme Aşaması</label>
-              <select
+              <Select
                 className={styles.select}
+                aria-label="İşletme Aşaması"
+                placeholder="Seçiniz"
+                options={STAGES.map(s => ({ value: s.value, label: s.label }))}
                 value={form.businessStage}
-                onChange={e => setForm(prev => ({ ...prev, businessStage: e.target.value }))}
-              >
-                <option value="">Seçiniz</option>
-                {STAGES.map(s => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
-                ))}
-              </select>
+                onChange={v => setForm(prev => ({ ...prev, businessStage: v }))}
+              />
             </div>
 
             <div className={styles.field}>
               <label className={styles.label}>Çalışan Sayısı</label>
-              <select
+              <Select
                 className={styles.select}
+                aria-label="Çalışan Sayısı"
+                placeholder="Seçiniz"
+                options={EMPLOYEE_RANGES.map(r => ({ value: r.value, label: r.label }))}
                 value={form.employeeCount}
-                onChange={e => setForm(prev => ({ ...prev, employeeCount: e.target.value }))}
-              >
-                <option value="">Seçiniz</option>
-                {EMPLOYEE_RANGES.map(r => (
-                  <option key={r.value} value={r.value}>{r.label}</option>
-                ))}
-              </select>
+                onChange={v => setForm(prev => ({ ...prev, employeeCount: v }))}
+              />
             </div>
 
             <div className={styles.field}>
               <label className={styles.label}>Haftalık öğrenmeye ayırabileceğiniz süre</label>
-              <select
+              <Select
                 className={styles.select}
+                aria-label="Haftalık öğrenmeye ayrılan süre"
+                options={LEARNING_OPTIONS.map(o => ({ value: o.value, label: o.label }))}
                 value={form.weeklyLearningMinutes}
-                onChange={e => setForm(prev => ({ ...prev, weeklyLearningMinutes: e.target.value }))}
-              >
-                {LEARNING_OPTIONS.map(o => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
+                onChange={v => setForm(prev => ({ ...prev, weeklyLearningMinutes: v }))}
+              />
             </div>
 
             <div className={`${styles.field} ${styles.fieldFull}`}>
@@ -310,16 +305,14 @@ export default function OnboardingPage() {
 
             <div className={styles.field}>
               <label className={styles.label}>Birincil Hedefiniz</label>
-              <select
+              <Select
                 className={styles.select}
+                aria-label="Birincil Hedef"
+                placeholder="Seçiniz"
+                options={GOALS.map(g => ({ value: g.value, label: g.label }))}
                 value={form.primaryGoal}
-                onChange={e => setForm(prev => ({ ...prev, primaryGoal: e.target.value }))}
-              >
-                <option value="">Seçiniz</option>
-                {GOALS.map(g => (
-                  <option key={g.value} value={g.value}>{g.label}</option>
-                ))}
-              </select>
+                onChange={v => setForm(prev => ({ ...prev, primaryGoal: v }))}
+              />
             </div>
 
             <div className={styles.field}>

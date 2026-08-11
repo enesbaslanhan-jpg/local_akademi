@@ -6,7 +6,7 @@ export default function LegacyFeatureUnavailable({ feature }) {
   const navigate = useNavigate()
   const headingRef = useRef(null)
   const isQuiz = feature === 'quiz'
-  const replacement = isQuiz ? 'Karar Kontrolleri' : 'Pratik Kartlar'
+  const replacement = isQuiz ? 'Karar Araçları' : 'Pratik Kartlar'
   const route = isQuiz ? '/app/decision-checks' : '/app/practical-cards'
 
   useEffect(() => { headingRef.current?.focus() }, [])

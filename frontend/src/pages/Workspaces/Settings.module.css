@@ -5,9 +5,9 @@
 }
 
 .card {
-  background: var(--card-bg);
+  background: var(--white);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius);
   padding: 24px;
 }
 
@@ -37,17 +37,16 @@
   margin-bottom: 18px;
   color: var(--text-secondary);
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
-.field input,
-.field select {
+.field input {
   width: 100%;
   margin-top: 5px;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: 7px;
-  background: var(--input-bg);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
   color: var(--text);
   font-size: 0.9rem;
   box-sizing: border-box;
@@ -57,7 +56,7 @@
   display: block;
   margin-top: 5px;
   color: var(--text-light);
-  font-weight: 400;
+  font-weight: var(--font-weight-normal);
 }
 
 .subheading {
@@ -73,24 +72,38 @@
 
 .message {
   padding: 10px 14px;
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
 }
 
 .success {
-  background: #d4edda;
-  color: #155724;
+  background: var(--success-bg);
+  color: var(--success);
 }
 
 .error {
-  background: #f8d7da;
-  color: #721c24;
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .loading {
   padding: 28px;
   color: var(--text-secondary);
 }
+
+/* İşletme Takibi / Ayarlar — Meta benzeri bölümlü işletme ayarları */
+.page { gap: 20px; }
+.card { border-color: var(--border); border-radius: 16px; background: var(--surface-card); box-shadow: var(--shadow-card); overflow: hidden; }
+.card:first-of-type .heading { margin: -24px -24px 22px; padding: 22px 24px; background: linear-gradient(112deg, var(--brand-700), var(--brand-700)); color: var(--brand-50); }
+.card:first-of-type .heading p { color: rgba(254,249,238,.7); }
+.field input { margin-top: 5px; background: var(--input-bg); border-color: var(--border-strong); box-shadow: inset 0 1px color-mix(in srgb, var(--theme-text) 6%, transparent); }
+.field input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent); outline: none; }
+.subheading { padding-top: 18px; border-top: 1px solid var(--border-subtle); color: var(--text); }
+.message { border-radius: 2px 14px 2px 14px; }
+
+:global(.dark) .card:first-of-type .heading { background: var(--surface-panel); color: var(--text); border-bottom: 1px solid var(--border); }
+:global(.dark) .card:first-of-type .heading p { color: var(--text-light); }
+:global(.dark) .subheading { border-color: var(--border); color: var(--primary); }
 
 @media (max-width: 700px) {
   .grid {

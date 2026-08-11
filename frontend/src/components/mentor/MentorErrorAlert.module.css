@@ -1,0 +1,70 @@
+/*
+ * AI Mentor hata uyarısı.
+ *
+ * NOT: Bu bileşen Tailwind class isimleriyle yazılmıştı ama projede Tailwind
+ * kurulu değil. MentorPanel'de izlenen yöntem uygulandı: mevcut class
+ * string'leri silinmedi, gerçek stil sağlayan module class'ları eklendi.
+ *
+ * Renk: hata durumu → bordo ailesi (--danger / --danger-bg).
+ */
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: var(--space-2) var(--space-4) var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: var(--font-size-sm);
+  box-shadow: var(--shadow-sm);
+  animation: fadeSlideIn var(--dur-fast) var(--ease-standard) both;
+}
+
+.alertIcon {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--danger);
+}
+
+.alertBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.alertTitle {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+}
+
+.alertMessage {
+  margin: 0;
+  opacity: 0.9;
+  line-height: var(--line-height-normal);
+}
+
+.dismissBtn {
+  flex: 0 0 auto;
+  padding: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--danger);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity var(--dur-fast) var(--ease-standard);
+}
+
+.dismissBtn:hover {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alert,
+  .dismissBtn {
+    animation: none;
+    transition: none;
+  }
+}

@@ -1,7 +1,64 @@
-.list { display: flex; flex-direction: column; gap: 8px; }
-.item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; }
-.icon { flex-shrink: 0; margin-top: 2px; }
-.action { font-weight: 600; }
-.time { font-size: 0.8rem; color: var(--text-secondary); margin-left: auto; white-space: nowrap; }
+/* Zaman çizgisi listesi — solda ince sürekli çizgi, her olayda ikon + metin. */
+.list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 22px;
+  min-width: 0;
+}
+
+.list::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 9px;
+  width: 1px;
+  background: var(--border);
+}
+
+.item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 12px 12px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  min-width: 0;
+  transition: background var(--dur-fast) var(--ease-standard);
+}
+
+.item:hover { background: var(--bg-hover); }
+
+/* Çizgi üzerindeki nokta */
+.item::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: -18px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand-olive);
+  box-shadow: 0 0 0 3px var(--bg);
+}
+
+.icon { flex-shrink: 0; margin-top: 2px; color: var(--brand-ink); }
+.action { font-weight: var(--font-weight-semibold); color: var(--text); }
+.time { font-size: 0.8rem; color: var(--text-secondary); margin-left: auto; white-space: nowrap; flex: 0 0 auto; }
 .meta { font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px; }
 .empty { text-align: center; padding: 48px; color: var(--text-secondary); }
+
+/* İşletme Takibi / Aktiviteler — zaman çizgisi */
+.list { padding: 18px 18px 18px 28px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface-card); box-shadow: var(--shadow-card); }
+.list::before { background: linear-gradient(#b78742, color-mix(in srgb, var(--brand-900) 18%, transparent)); }
+.item { border-radius: 2px 15px 2px 15px; background: var(--surface-panel); border: 1px solid transparent; }
+.item:hover { transform: translateX(4px); background: var(--surface-raised); border-color: color-mix(in srgb, var(--brand-900) 10%, transparent); }
+.item::before { background: #b78742; box-shadow: 0 0 0 5px rgba(183,135,66,.14); }
+.empty { border: 1px dashed color-mix(in srgb, var(--brand-900) 20%, transparent); border-radius: 2px 22px 2px 22px; background: var(--surface-panel); }
+
+@media (prefers-reduced-motion: reduce) {
+  .item { transition: none; }
+}

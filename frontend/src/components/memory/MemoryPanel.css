@@ -62,10 +62,7 @@
 }
 
 .memory-panel__type-filter {
-  padding: 6px 8px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 13px;
+  min-width: 140px;
 }
 
 .memory-panel__new-btn {
@@ -291,7 +288,6 @@
   margin-bottom: 4px;
 }
 
-.memory-form__field select,
 .memory-form__field input[type="text"],
 .memory-form__field textarea {
   width: 100%;
@@ -341,3 +337,34 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Persian Mosaic / Midnight Premium surface bridge. */
+:root.dark .memory-panel,
+:root.dark .memory-form {
+  background: var(--surface-card);
+  color: var(--text);
+  box-shadow: var(--shadow-4);
+}
+:root.dark .memory-panel__header,
+:root.dark .memory-panel__toolbar,
+:root.dark .memory-card__details { border-color: var(--border); }
+:root.dark .memory-panel__close,
+:root.dark .memory-panel__empty,
+:root.dark .memory-card__value,
+:root.dark .memory-card__summary,
+:root.dark .memory-card__detail-row { color: var(--text-light); }
+:root.dark .memory-panel__close:hover,
+:root.dark .memory-card__btn:hover,
+:root.dark .memory-form__cancel { background: var(--surface-panel); }
+:root.dark .memory-panel__search,
+:root.dark .memory-form__field input[type="text"],
+:root.dark .memory-form__field textarea {
+  border-color: var(--border-strong);
+  background: var(--input-bg);
+  color: var(--text);
+}
+:root.dark .memory-card { border-color: var(--border); background: var(--surface-panel); }
+:root.dark .memory-card__key,
+:root.dark .memory-card__detail-value,
+:root.dark .memory-form__field label { color: var(--text); }
+:root.dark .memory-card__btn { border-color: var(--border-strong); background: var(--surface-card); color: var(--text); }

@@ -1,0 +1,68 @@
+/*
+ * Mentor yanıtlarındaki kaynak (citation) rozeti.
+ *
+ * NOT: Bu bileşen Tailwind class isimleriyle yazılmıştı ama projede Tailwind
+ * kurulu değil. MentorPanel'de izlenen yöntem uygulandı: mevcut class
+ * string'leri silinmedi, gerçek stil sağlayan module class'ları eklendi.
+ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 var(--space-1) var(--space-1) 0;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-light);
+  color: var(--brand-ink);
+  font-size: 11px;
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+a.badge:hover {
+  background: var(--brand-teal);
+  color: var(--white);
+}
+
+.badge:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.label {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .label {
+    max-width: 200px;
+  }
+}
+
+.code {
+  margin-left: var(--space-1);
+  opacity: 0.8;
+  flex: 0 0 auto;
+}
+
+.sourceDot {
+  flex: 0 0 auto;
+  width: 4px;
+  height: 4px;
+  margin-left: var(--space-1);
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge {
+    transition: none;
+  }
+}

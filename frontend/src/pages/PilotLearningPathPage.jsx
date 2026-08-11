@@ -9,7 +9,7 @@ import { featureFlags } from '@/config/featureFlags'
 const CATEGORY_COLORS = {
   'Temel Finans': { bg: '#d9eaf7', color: '#2f5597', light: '#f0f6fc' },
   'Maliyet ve Fiyatlandırma': { bg: '#e2f0d9', color: '#28733c', light: '#f1f8ec' },
-  'E-Ticaret': { bg: '#fff2cc', color: '#795c00', light: '#fffaf0' },
+  'E-Ticaret': { bg: '#fff2cc', color: '#795c00', light: 'var(--surface-card)' },
   'Girişimcilik': { bg: '#ede9fe', color: '#7c3aed', light: '#f5f3ff' },
   'Dijital Ekonomi': { bg: '#fce7f3', color: '#db2777', light: '#fdf2f8' },
   'Finansman ve Yatırım': { bg: '#dbeafe', color: '#2563eb', light: '#eff6ff' }
@@ -121,7 +121,7 @@ export default function PilotLearningPathPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Pilot Öğrenme Programı</h1>
+          <h1 className="sr-only">Pilot Öğrenme Programı</h1>
           <p className={styles.subtitle}>6 kategoride 30 bilgi nesnesi ile kapsamlı öğrenme yolu</p>
         </div>
         <Button variant="primary" size="sm" onClick={handleGeneratePilot} disabled={generating}>

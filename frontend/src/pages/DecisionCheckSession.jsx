@@ -6,6 +6,7 @@ import { MessageSquare, RotateCcw } from 'lucide-react'
 import ProfitabilityDecisionTool from '@/components/decision-checks/ProfitabilityDecisionTool'
 import StructuredDecisionTool from '@/components/decision-checks/StructuredDecisionTool'
 import './DecisionCheckSession.css'
+import styles from './DecisionCheckSession.module.css'
 
 export default function DecisionCheckSession() {
   const { code: routeIdentifier } = useParams()
@@ -157,27 +158,27 @@ export default function DecisionCheckSession() {
   if (session.status === 'completed' && result) {
     const snap = result.snapshot || {}
     return (
-      <div className="p-8 max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">Değerlendirme Sonucu</h1>
-        <div className="bg-white p-6 border rounded shadow-sm">
-          <div className="mb-4">
-            <span className="font-semibold text-gray-700">Durum: </span>
-            <span className="font-bold">{snap.status}</span>
+      <div className={`p-8 max-w-3xl mx-auto ${styles.page}`}>
+        <h1 className={`text-2xl font-bold mb-4 ${styles.title}`}>Değerlendirme Sonucu</h1>
+        <div className={`bg-white p-6 border rounded shadow-sm ${styles.resultCard}`}>
+          <div className={`mb-4 ${styles.resultRow}`}>
+            <span className={`font-semibold text-gray-700 ${styles.resultLabel}`}>Durum: </span>
+            <span className={`font-bold ${styles.resultValue}`}>{snap.status}</span>
           </div>
-          <div className="mb-4">
-            <span className="font-semibold text-gray-700">Risk Seviyesi: </span>
-            <span className="font-bold">{snap.riskLevel}</span>
+          <div className={`mb-4 ${styles.resultRow}`}>
+            <span className={`font-semibold text-gray-700 ${styles.resultLabel}`}>Risk Seviyesi: </span>
+            <span className={`font-bold ${styles.resultValue}`}>{snap.riskLevel}</span>
           </div>
           {snap.missingInformation && snap.missingInformation.length > 0 && (
-            <div className="mb-4 text-orange-600">
-              <span className="font-semibold">Eksik Bilgiler: </span>
+            <div className={`mb-4 text-orange-600 ${styles.missingInfo}`}>
+              <span className={`font-semibold ${styles.missingInfoLabel}`}>Eksik Bilgiler: </span>
               {snap.missingInformation.join(', ')}
             </div>
           )}
           {snap.findings && snap.findings.length > 0 && (
-            <div className="mb-4">
-              <span className="font-semibold text-gray-700">Bulgular: </span>
-              <ul className="list-disc pl-5 mt-2">
+            <div className={`mb-4 ${styles.resultRow}`}>
+              <span className={`font-semibold text-gray-700 ${styles.resultLabel}`}>Bulgular: </span>
+              <ul className={`list-disc pl-5 mt-2 ${styles.list}`}>
                 {snap.findings.map((f, idx) => (
                   <li key={idx}>{f.message}</li>
                 ))}
@@ -185,20 +186,20 @@ export default function DecisionCheckSession() {
             </div>
           )}
           {snap.recommendedActions && snap.recommendedActions.slice(0,3).length > 0 && (
-            <div className="mb-4">
-              <span className="font-semibold text-gray-700">Önerilen Aksiyonlar: </span>
-              <ul className="list-disc pl-5 mt-2">
+            <div className={`mb-4 ${styles.resultRow}`}>
+              <span className={`font-semibold text-gray-700 ${styles.resultLabel}`}>Önerilen Aksiyonlar: </span>
+              <ul className={`list-disc pl-5 mt-2 ${styles.list}`}>
                 {snap.recommendedActions.slice(0,3).map((a, idx) => (
                   <li key={idx}>{a}</li>
                 ))}
               </ul>
             </div>
           )}
-          
-          {recalculateError && <p role="alert" className="text-red-600 text-sm mb-2">{recalculateError}</p>}
-          <div className="mt-6 flex gap-4">
-            <button onClick={() => navigate('/app/decision-checks')} className="px-4 py-2 bg-gray-200 rounded">Listeye Dön</button>
-            <button onClick={handleRecalculate} disabled={recalculating} className="px-4 py-2 bg-gray-200 rounded flex items-center gap-2">
+
+          {recalculateError && <p role="alert" className={`text-red-600 text-sm mb-2 ${styles.recalcError}`}>{recalculateError}</p>}
+          <div className={`mt-6 flex gap-4 ${styles.resultActions}`}>
+            <button onClick={() => navigate('/app/decision-checks')} className={`px-4 py-2 bg-gray-200 rounded ${styles.secondaryBtn}`}>Listeye Dön</button>
+            <button onClick={handleRecalculate} disabled={recalculating} className={`px-4 py-2 bg-gray-200 rounded flex items-center gap-2 ${styles.secondaryBtn}`}>
               <RotateCcw size={16} /> {recalculating ? 'Başlatılıyor…' : 'Yeniden Hesapla'}
             </button>
             {isContextualMentorEnabled && (
@@ -210,7 +211,7 @@ export default function DecisionCheckSession() {
                   title: session.decisionCheckCode + ' Sonucu',
                   route: window.location.pathname
                 })}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded font-medium hover:bg-indigo-100 transition-colors"
+                className={`flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded font-medium hover:bg-indigo-100 transition-colors ${styles.mentorBtn}`}
               >
                 <MessageSquare size={18} /> Mentora Sor
               </button>
@@ -222,26 +223,26 @@ export default function DecisionCheckSession() {
   }
 
   return (
-    <div className="p-8 max-w-3xl mx-auto pb-24">
-      <h1 className="text-2xl font-bold mb-6">Değerlendirme: {session.decisionCheckCode}</h1>
-      <div className="space-y-8">
+    <div className={`p-8 max-w-3xl mx-auto pb-24 ${styles.page} ${styles.pageForm}`}>
+      <h1 className={`text-2xl font-bold mb-6 ${styles.title} ${styles.titleForm}`}>Değerlendirme: {session.decisionCheckCode}</h1>
+      <div className={`space-y-8 ${styles.questionList}`}>
         {session.definition.map((q) => (
-          <div key={q.code} className="bg-white p-6 rounded-lg shadow-sm border">
-            <label className="block font-semibold mb-1">{q.label}</label>
-            <p className="text-sm text-gray-500 mb-4">{q.description}</p>
-            
-            <div className="flex items-center gap-4">
+          <div key={q.code} className={`bg-white p-6 rounded-lg shadow-sm border ${styles.questionCard}`}>
+            <label className={`block font-semibold mb-1 ${styles.questionLabel}`}>{q.label}</label>
+            <p className={`text-sm text-gray-500 mb-4 ${styles.questionDesc}`}>{q.description}</p>
+
+            <div className={`flex items-center gap-4 ${styles.questionRow}`}>
               <input
                 type="number"
                 disabled={unknowns[q.code]}
                 value={formData[q.code] || ''}
                 onChange={(e) => handleInputChange(q.code, e.target.value ? Number(e.target.value) : null)}
-                className="flex-1 border p-2 rounded disabled:bg-gray-100"
+                className={`flex-1 border p-2 rounded disabled:bg-gray-100 ${styles.numberInput}`}
                 placeholder={q.currency ? `Örn: 100 ${q.currency}` : 'Değer girin'}
               />
-              
+
               {q.allowUnknown && (
-                <label className="flex items-center gap-2 text-sm text-gray-700 whitespace-nowrap">
+                <label className={`flex items-center gap-2 text-sm text-gray-700 whitespace-nowrap ${styles.unknownLabel}`}>
                   <input
                     type="checkbox"
                     checked={unknowns[q.code] || false}
@@ -254,12 +255,12 @@ export default function DecisionCheckSession() {
           </div>
         ))}
       </div>
-      
-      <div className="mt-8 flex justify-end">
+
+      <div className={`mt-8 flex justify-end ${styles.submitRow}`}>
         <button
           onClick={completeSession}
           disabled={submitting}
-          className="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50"
+          className={`bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50 ${styles.submitBtn}`}
         >
           {submitting ? 'Hesaplanıyor...' : 'Sonuçları Gör'}
         </button>

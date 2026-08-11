@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api } from '@/services/api'
+import { Select } from '@/components/ui'
 import './MemoryPanel.css'
 
 const TYPE_LABELS = {
@@ -185,10 +186,7 @@ export default function MemoryPanel({ visible, onClose }) {
             onChange={(e) => setFilter(e.target.value)}
             className="memory-panel__search"
           />
-          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="memory-panel__type-filter">
-            <option value="">Tümü</option>
-            {types.map(t => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
-          </select>
+          <Select className="memory-panel__type-filter" aria-label="Tür filtresi" placeholder="Tümü" options={types.map(t => ({ value: t, label: TYPE_LABELS[t] }))} value={typeFilter} onChange={v => setTypeFilter(v)} />
           <button className="memory-panel__new-btn" onClick={handleNew}>+ Yeni</button>
         </div>
 
@@ -219,9 +217,7 @@ export default function MemoryPanel({ visible, onClose }) {
               <h4>{editingMemory ? 'Hafızayı Düzenle' : 'Yeni Hafıza'}</h4>
               <div className="memory-form__field">
                 <label>Tür</label>
-                <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}>
-                  {types.map(t => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
-                </select>
+                <Select aria-label="Tür" options={types.map(t => ({ value: t, label: TYPE_LABELS[t] }))} value={formData.type} onChange={v => setFormData({ ...formData, type: v })} />
               </div>
               <div className="memory-form__field">
                 <label>Anahtar</label>

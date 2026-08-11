@@ -1,0 +1,46 @@
+/*
+ * "Karar fişini görüntüle" tetikleyici barı.
+ *
+ * Yeni bir koyu yüzey tipi icat edilmez — mevcut imza paneli (DarkPanel)
+ * `sweep` açık şekilde kullanılır; bu dosya yalnızca barın iç yerleşimini
+ * tanımlar.
+ */
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  min-width: 0;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--sidebar-active-text);
+}
+
+.label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--sidebar-active-text);
+}
+
+.chevron {
+  flex: 0 0 auto;
+  color: var(--sidebar-text-dim);
+}
+
+/* Baskıda tetikleyici bar görünmez (print.css zaten kabuğu gizliyor,
+   bu ek güvenlik). */
+@media print {
+  .bar { display: none; }
+}

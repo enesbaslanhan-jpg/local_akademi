@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useMentorChat } from '@/hooks/useMentorChat'
 import { Loading } from '@/components/ui'
@@ -8,8 +8,29 @@ import MentorComposer from '@/components/mentor/MentorComposer'
 import MentorEmptyState from '@/components/mentor/MentorEmptyState'
 import MentorErrorAlert from '@/components/mentor/MentorErrorAlert'
 import MentorDeleteModal from '@/components/mentor/MentorDeleteModal'
-import MentorBetaBadge from '@/components/mentor/MentorBetaBadge'
 import { useAuth } from '@/context/AuthContext'
+import { ContextPanelSlot } from '@/components/layout/ContextPanel'
+import { generateSuggestedActions } from '@/utils/mentorSuggestedActions'
+import { api } from '@/services/api'
+import {
+  Menu, Pencil, Archive, RotateCcw, Trash2,
+  BookOpen, FlaskConical, Settings, Sparkles, ArrowRight, CirclePlus, History, Zap, Brain
+} from 'lucide-react'
+import styles from './MentorPage.module.css'
+
+/* İşlem önerisi tipine göre ikon. Tip tanınmazsa nötr kıvılcım kullanılır —
+   uydurma bir etiket veya ikon üretilmez. */
+const ACTION_ICONS = {
+  open_knowledge: BookOpen,
+  open_financial_models: FlaskConical,
+  open_business_profile: Settings
+}
+
+const ACTION_DESCRIPTIONS = {
+  open_knowledge: 'Yanıtın dayandığı ilgili içeriği incele.',
+  open_financial_models: 'Finansal model kütüphanesinde çalışmaya devam et.',
+  open_business_profile: 'İşletme bilgilerini güncelle ve öneriyi netleştir.'
+}
 
 function formatTime(dateStr) {
   if (!dateStr) return ''
@@ -25,6 +46,13 @@ function formatTime(dateStr) {
 function contentPreview(text) {
   if (!text) return ''
   return text.length > 80 ? text.slice(0, 80) + '...' : text
+}
+
+function formatMoney(value, currency) {
+  return `${Number(value || 0).toLocaleString('tr-TR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  })} ${currency || 'TRY'}`
 }
 
 export default function MentorPage() {
@@ -53,6 +81,10 @@ export default function MentorPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [memoryPanelVisible, setMemoryPanelVisible] = useState(false)
   const [showScrollButton, setShowScrollButton] = useState(false)
+
+  const [businessProfile, setBusinessProfile] = useState(null)
+  const [profileLoading, setProfileLoading] = useState(true)
+  const [lastDecision, setLastDecision] = useState(null)
   
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [conversationToDelete, setConversationToDelete] = useState(null)
@@ -77,6 +109,29 @@ export default function MentorPage() {
   useEffect(() => {
     if (selectedId) loadMessages(selectedId)
   }, [selectedId, loadMessages])
+
+  // HAFIZA: gerçek işletme profili ve en güncel karar kaydı. Uç nokta
+  // yapılandırılmadığında (ör. eski test mock'ları) sessizce boş kalır.
+  useEffect(() => {
+    let cancelled = false
+    const profilePromise = api.business?.getProfile
+      ? api.business.getProfile().catch(() => null)
+      : Promise.resolve(null)
+    const decisionsPromise = api.memory?.list
+      ? api.memory.list({ type: 'decision' }).catch(() => null)
+      : Promise.resolve(null)
+
+    Promise.all([profilePromise, decisionsPromise]).then(([profile, memoryData]) => {
+      if (cancelled) return
+      const decisions = (memoryData?.memories || [])
+        .filter(m => m.status === 'active' && m.value)
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+      setBusinessProfile(profile)
+      setLastDecision(decisions[0] || null)
+      setProfileLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [])
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
@@ -147,174 +202,304 @@ export default function MentorPage() {
     if (e.key === 'Escape') setEditingId(null)
   }
 
+  /*
+   * İşlem önerileri: mockup'taki tekrarlayan sahte satırlar DEĞİL — gerçek
+   * generateSuggestedActions çıktısının sohbet genelinde tekilleştirilmiş
+   * hâli. Öneri yoksa sütun hiç render edilmez.
+   */
+  const suggestedActions = useMemo(() => {
+    const seen = new Set()
+    const collected = []
+    messages.forEach(msg => {
+      generateSuggestedActions(msg).forEach(action => {
+        if (!action.route || seen.has(action.id)) return
+        seen.add(action.id)
+        collected.push(action)
+      })
+    })
+    /* En yeni mesajın önerileri üstte kalsın. */
+    return collected.reverse().slice(0, 6)
+  }, [messages])
+
+const sessionLabel = useMemo(() => {
+    const firstDate = messages.find(message => message.createdAt)?.createdAt
+    if (!firstDate) return ''
+    const date = new Date(firstDate)
+    if (Number.isNaN(date.getTime())) return ''
+    const isToday = date.toDateString() === new Date().toDateString()
+    return isToday
+      ? `Bugün, ${date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`
+      : date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+  }, [messages])
+
+  /* HAFIZA: yalnız BusinessProfile'da gerçekten kayıtlı alanlar gösterilir.
+     Alan yoksa sıra çizilmez; hiç veri yoksa boş durum mesajı çıkar. */
+  const profileRows = useMemo(() => {
+    if (!businessProfile) return []
+    const p = businessProfile
+    const rows = []
+    if (p.sector) rows.push({ label: 'Sektör', value: p.sector })
+    if (p.city) rows.push({ label: 'Şehir', value: p.city })
+    if (p.businessStage) rows.push({ label: 'Aşama', value: p.businessStage })
+    if (p.monthly_sales > 0) rows.push({ label: 'Aylık Satış', value: formatMoney(p.monthly_sales, p.currency) })
+    if (p.monthly_expenses > 0) rows.push({ label: 'Aylık Gider', value: formatMoney(p.monthly_expenses, p.currency) })
+    if (p.primaryGoal) rows.push({ label: 'Hedef', value: p.primaryGoal })
+    if (Array.isArray(p.challenges) && p.challenges.length > 0) {
+      rows.push({ label: 'Zorluklar', value: p.challenges.join(', ') })
+    }
+    return rows
+  }, [businessProfile])
+
   if (loading && conversations.length === 0) return <Loading text="Yükleniyor..." />
 
-  return (
-    <div className="flex h-full" style={{ height: 'calc(100vh - var(--header-height, 64px))' }}>
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 z-10 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      <aside className={`
-        w-72 bg-white border-r border-[var(--border)] flex flex-col flex-shrink-0
-        md:relative md:translate-x-0
-        fixed inset-y-0 left-0 z-20 transition-transform duration-300
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-      `} style={{ top: 'var(--header-height, 64px)', height: 'calc(100vh - var(--header-height, 64px))' }}>
-        <div className="flex items-center justify-between p-3 border-b border-[var(--border)]">
-          <h2 className="text-sm font-semibold text-[var(--text)]">Sohbetler</h2>
-          <div className="flex gap-2">
-            <button onClick={() => setMemoryPanelVisible(true)} className="btn btn-sm btn-outline" title="Hafıza Yönetimi">
-              Hafıza
-            </button>
-            <button onClick={() => { handleNew(); setSidebarOpen(false) }} className="btn btn-sm btn-primary">
-              + Yeni
-            </button>
+  /* Aynı liste iki yere basılır: masaüstünde kabuğun bağlam paneline (portal),
+     mobilde hamburgerden açılan drawer'a. Her breakpoint'te yalnızca biri
+     görünür; ikisi de aynı JSX'ten üretildiği için ayrışamazlar. */
+  const conversationList = (
+    <div className={styles.convPanel}>
+        <div className={styles.sidebarHeader}>
+          <div>
+            <h2 className={styles.sidebarHeaderTitle}>Sohbet Geçmişi</h2>
+            <p className={styles.sidebarHeaderEyebrow}>Aktif Oturumlar</p>
           </div>
+          <button className={styles.memoryBtn} onClick={() => setMemoryPanelVisible(true)}>Hafıza</button>
         </div>
 
-        <div className="flex text-xs border-b border-[var(--border)] shrink-0">
+        <button className={styles.newChatBtn} onClick={() => { handleNew(); setSidebarOpen(false) }}>
+          <CirclePlus size={19} aria-hidden="true" />
+          Yeni Sohbet Başlat
+        </button>
+
+        <div className={styles.tabs}>
           <button
             onClick={() => setShowArchived(false)}
             aria-label="Aktif sohbetler"
-            className={`flex-1 py-2 font-medium ${!showArchived ? 'bg-[var(--primary-light)] text-[var(--primary)] border-b-2 border-[var(--primary)]' : 'text-[var(--text-light)] hover:bg-gray-50'}`}
+            className={`${styles.tab} ${!showArchived ? styles.tabActive : ''}`}
           >
             Aktif
           </button>
           <button
             onClick={() => setShowArchived(true)}
             aria-label="Arşivlenmiş sohbetler"
-            className={`flex-1 py-2 font-medium ${showArchived ? 'bg-[var(--primary-light)] text-[var(--primary)] border-b-2 border-[var(--primary)]' : 'text-[var(--text-light)] hover:bg-gray-50'}`}
+            className={`${styles.tab} ${showArchived ? styles.tabActive : ''}`}
           >
             Arşiv
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className={styles.convList}>
           {conversations.length === 0 ? (
-            <div className="p-4 text-center text-sm text-[var(--text-light)]">
+            <div className={styles.convListEmpty}>
               Henüz sohbet yok
             </div>
           ) : (
-            <ul className="divide-y divide-[var(--border)]">
+            <ul>
               {conversations.map(conv => (
                 <li
                   key={conv.id}
-                  className={`
-                    group relative px-3 py-2.5 cursor-pointer transition-colors
-                    ${selectedId === conv.id ? 'bg-[var(--primary-light)]' : 'hover:bg-gray-50'}
-                  `}
+                  className={`${styles.convItem} ${selectedId === conv.id ? styles.convItemActive : ''}`}
                   onClick={() => { handleSelect(conv.id); setSidebarOpen(false) }}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      {editingId === conv.id ? (
-                        <input
-                          className="w-full text-sm font-medium bg-white border border-[var(--primary)] rounded px-1 py-0.5 outline-none"
-                          value={editValue}
-                          onChange={e => setEditValue(e.target.value)}
-                          onBlur={() => { handleFinishEditTitle(conv.id, editValue); setEditingId(null) }}
-                          onKeyDown={e => handleEditKeyDown(e, conv.id)}
-                          autoFocus
-                          onClick={e => e.stopPropagation()}
-                        />
-                      ) : (
-                        <div className="text-sm font-medium text-[var(--text)] truncate">
-                          {conv.title || 'İsimsiz'}
-                        </div>
-                      )}
-                      <div className="text-xs text-[var(--text-light)] mt-0.5 truncate">
-                        {conv.lastMessage ? contentPreview(conv.lastMessage.content) : 'Henüz mesaj yok'}
+                  <div className={styles.convItemMain}>
+                    {editingId === conv.id ? (
+                      <input
+                        className={styles.convTitleInput}
+                        value={editValue}
+                        onChange={e => setEditValue(e.target.value)}
+                        onBlur={() => { handleFinishEditTitle(conv.id, editValue); setEditingId(null) }}
+                        onKeyDown={e => handleEditKeyDown(e, conv.id)}
+                        autoFocus
+                        onClick={e => e.stopPropagation()}
+                      />
+                    ) : (
+                      <div className={styles.convTitle}>
+                        <History size={13} aria-hidden="true" />
+                        {conv.title || 'İsimsiz'}
                       </div>
-                      <div className="text-[11px] text-[var(--text-light)] mt-0.5">
-                        {formatTime(conv.lastMessageAt || conv.updatedAt)}
-                        {conv.messageCount > 0 && ` · ${conv.messageCount} mesaj`}
-                      </div>
+                    )}
+                    <div className={styles.convPreview}>
+                      {conv.lastMessage ? contentPreview(conv.lastMessage.content) : 'Henüz mesaj yok'}
                     </div>
+                    <div className={styles.convMeta}>
+                      {formatTime(conv.lastMessageAt || conv.updatedAt)}
+                      {conv.messageCount > 0 && ` · ${conv.messageCount} mesaj`}
+                    </div>
+                  </div>
 
-                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                      {!showArchived && (
-                        <>
-                          <button
-                            onClick={e => { e.stopPropagation(); setEditingId(conv.id); setEditValue(conv.title || '') }}
-                            className="p-1 rounded hover:bg-gray-200 text-xs text-[var(--text-light)]"
-                            title="Düzenle"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            onClick={e => { e.stopPropagation(); handleArchive(conv.id) }}
-                            className="p-1 rounded hover:bg-gray-200 text-xs text-[var(--text-light)]"
-                            title="Arşivle"
-                          >
-                            Arşiv
-                          </button>
-                        </>
-                      )}
-                      {showArchived && (
+                  <div className={styles.convActions}>
+                    {!showArchived && (
+                      <>
                         <button
-                          onClick={e => { e.stopPropagation(); handleUnarchive(conv.id) }}
-                          className="p-1 rounded hover:bg-gray-200 text-xs text-[var(--text-light)]"
-                          title="Arşivden çıkar"
+                          onClick={e => { e.stopPropagation(); setEditingId(conv.id); setEditValue(conv.title || '') }}
+                          className={styles.convActionBtn}
+                          title="Düzenle"
+                          aria-label="Düzenle"
                         >
-                          Geri Al
+                          <Pencil size={13} aria-hidden="true" />
                         </button>
-                      )}
+                        <button
+                          onClick={e => { e.stopPropagation(); handleArchive(conv.id) }}
+                          className={styles.convActionBtn}
+                          title="Arşivle"
+                          aria-label="Arşivle"
+                        >
+                          <Archive size={13} aria-hidden="true" />
+                        </button>
+                      </>
+                    )}
+                    {showArchived && (
                       <button
-                        onClick={e => { e.stopPropagation(); setConversationToDelete(conv.id); setDeleteModalOpen(true) }}
-                        className="p-1 rounded hover:bg-gray-200 text-xs text-[var(--text-light)]"
-                        title="Sil"
+                        onClick={e => { e.stopPropagation(); handleUnarchive(conv.id) }}
+                        className={styles.convActionBtn}
+                        title="Arşivden çıkar"
+                        aria-label="Arşivden çıkar"
                       >
-                        🗑️
+                        <RotateCcw size={13} aria-hidden="true" />
                       </button>
-                    </div>
+                    )}
+                    <button
+                      onClick={e => { e.stopPropagation(); setConversationToDelete(conv.id); setDeleteModalOpen(true) }}
+                      className={styles.convActionBtn}
+                      title="Sil"
+                      aria-label="Sil"
+                    >
+                      <Trash2 size={13} aria-hidden="true" />
+                    </button>
                   </div>
                 </li>
               ))}
             </ul>
           )}
         </div>
+    </div>
+  )
+
+  /* Aynı öneri bloğu iki yere basılır: masaüstünde sağ sütun, mobilde
+     mesajların altı. Görünürlüğü CSS breakpoint'i belirler. */
+  const actionsBlock = (
+    <>
+      <div className={styles.actionsTitle}><Zap size={14} aria-hidden="true" /> İşlem Önerileri</div>
+      {suggestedActions.length > 0 ? (
+        <div className={styles.actionsList}>
+          {suggestedActions.map(action => {
+            const ActionIcon = ACTION_ICONS[action.type] || Sparkles
+            return (
+              <button
+                key={action.id}
+                type="button"
+                className={styles.actionCard}
+                onClick={() => navigate(action.route)}
+                disabled={action.disabled}
+              >
+                <span className={styles.actionIcon}><ActionIcon size={19} aria-hidden="true" /></span>
+                <span className={styles.actionCopy}>
+                  <span className={styles.actionLabel}>{action.label}</span>
+                  <small>{ACTION_DESCRIPTIONS[action.type] || 'İlgili çalışma alanını aç.'}</small>
+                </span>
+                <ArrowRight size={15} aria-hidden="true" />
+              </button>
+            )
+          })}
+        </div>
+) : (
+        <div className={styles.actionsEmpty}>Mentor yanıtındaki uygun ve gerçek işlemler burada görünür.</div>
+      )}
+    </>
+  )
+
+  /* HAFIZA kartı: veriler yukarıda (erken dönüşten önce) hesaplanır;
+     burada yalnızca render edilir. */
+  const memoryBlock = (
+    <section className={styles.memorySection} aria-label="Hafıza">
+      <div className={styles.actionsTitle}><Brain size={14} aria-hidden="true" /> Hafıza</div>
+      {profileLoading ? (
+        <div className={styles.actionsEmpty}>Yükleniyor...</div>
+      ) : profileRows.length === 0 && !lastDecision ? (
+        <div className={styles.actionsEmpty}>Henüz kaydedilmiş işletme bilgisi yok.</div>
+      ) : (
+        <div className={styles.memoryCard}>
+          {profileRows.map(row => (
+            <div key={row.label} className={styles.memoryRow}>
+              <span className={styles.memoryLabel}>{row.label}</span>
+              <span className={styles.memoryValue}>{row.value}</span>
+            </div>
+          ))}
+          {lastDecision && (
+            <div className={styles.memoryRow}>
+              <span className={styles.memoryLabel}>Son Karar</span>
+              <span className={styles.memoryValue}>{lastDecision.summary || lastDecision.value}</span>
+            </div>
+          )}
+        </div>
+      )}
+      <button
+        type="button"
+        className={styles.memoryManageBtn}
+        onClick={() => setMemoryPanelVisible(true)}
+      >
+        Hafızayı Yönet
+      </button>
+    </section>
+  )
+
+  /* Sağ panel: üstte HAFIZA, altta İŞLEM ÖNERİLERİ. Aynı blok masaüstünde
+     sağ sütuna, mobilde mesajların altına basılır. */
+  const rightPanel = (
+    <>
+      {memoryBlock}
+      {actionsBlock}
+    </>
+  )
+
+  return (
+    <div className={styles.page}>
+      {/* Sayfa adı üst barda yazıyor; görünür h1 yerine sr-only başlık. */}
+      <h1 className="sr-only">AI Mentor</h1>
+
+      {/* Masaüstü: sohbet listesi kabuğun bağlam panelinde. Panel rayfaki
+          düğmeyle kapatılınca sohbet alanı kendiliğinden genişler. */}
+      <ContextPanelSlot>{conversationList}</ContextPanelSlot>
+
+      {sidebarOpen && (
+        <div
+          className={styles.overlay}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Mobil: aynı liste drawer olarak. */}
+      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}>
+        {conversationList}
       </aside>
 
-      <main className="flex-1 flex flex-col min-w-0 bg-white relative">
-        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[var(--border)] bg-white shrink-0">
+      <main className={styles.main}>
+        <div className={styles.topBar}>
           <button
-            className="md:hidden p-1 rounded hover:bg-gray-100 text-[var(--text-light)]"
+            className={styles.menuBtn}
             onClick={() => setSidebarOpen(true)}
             title="Sohbet listesi"
+            aria-label="Sohbet listesi"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 12h18M3 6h18M3 18h18" />
-            </svg>
+            <Menu size={20} aria-hidden="true" />
           </button>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-base font-semibold text-[var(--text)] truncate">
-              {selectedConv ? selectedConv.title : 'AI Mentor'}
+          <div className={styles.topBarTitleWrap}>
+            <h2 className={styles.topBarTitle}>
+              LocalKarar
             </h2>
-            {selectedConv?.provider && (
-              <span className="text-[11px] text-[var(--text-light)]">
-                {selectedConv.provider} · {selectedConv.model}
-              </span>
-            )}
-            <div className="inline-block ml-3">
-              <MentorBetaBadge />
-            </div>
+            <span className={styles.topBarProvider}>Mentor Desk{selectedConv?.title ? ` · ${selectedConv.title}` : ''}</span>
           </div>
           {contextTitle && (
-            <span className="badge bg-info text-xs flex-shrink-0">Bağlam: {contextTitle}</span>
+            <span className={styles.contextBadge}>Bağlam: {contextTitle}</span>
           )}
         </div>
 
-        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-4 relative bg-gray-50/30">
+        <div ref={messagesContainerRef} className={styles.messagesArea}>
           <MentorErrorAlert error={error} onDismiss={() => setError('')} />
 
           {showScrollButton && (
             <button
               onClick={scrollToBottom}
-              className="sticky top-2 left-1/2 -translate-x-1/2 z-10 px-3 py-1 text-xs bg-white border border-[var(--border)] rounded-full shadow-md hover:shadow-lg transition-shadow text-[var(--text-light)]"
+              className={styles.scrollToBottomBtn}
             >
               En yeni mesaja git ↓
             </button>
@@ -325,7 +510,8 @@ export default function MentorPage() {
           ) : messages.length === 0 && !isStreaming ? (
             <MentorEmptyState role={user?.role} onQuickStart={handleQuickStart} />
           ) : (
-            <div className="mx-auto max-w-4xl space-y-4">
+            <div className={styles.messagesInner}>
+              {sessionLabel && <div className={styles.sessionDate}>{sessionLabel}</div>}
               {messages.map(msg => (
                 <MentorMessageBubble
                   key={msg.id}
@@ -344,26 +530,31 @@ export default function MentorPage() {
               ))}
 
               {(isStreaming || streamingContent) && (
-                <div className="flex justify-start">
-                  <div className="max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 bg-white border border-[var(--border)] text-[var(--text)] rounded-tl-sm shadow-sm">
+                <div className={styles.streamingBubbleWrap}>
+                  <div className={styles.streamingBubble}>
                     {streamingContent ? (
-                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{streamingContent}</p>
+                      <p className={styles.streamingText}>{streamingContent}</p>
                     ) : (
-                      <p className="text-sm text-[var(--text-light)] italic flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-ping" /> AI düşünüyor...
+                      <p className={styles.streamingPlaceholder}>
+                        <span className={styles.typingDot} /> AI düşünüyor...
                       </p>
                     )}
                   </div>
                 </div>
               )}
 
-              <div ref={messagesEndRef} className="h-4" />
+              {/* Mobilde hafıza ve işlem önerileri mesajların altına iner. */}
+              <section className={styles.actionsInline} aria-label="Mentor yan paneli">
+                {rightPanel}
+              </section>
+
+              <div ref={messagesEndRef} className={styles.messagesEndAnchor} />
             </div>
           )}
         </div>
 
         {!showArchived ? (
-          <div className="shrink-0 bg-white">
+          <div className={styles.composerWrap}>
             <MentorComposer
               value={inputValue}
               onChange={setInputValue}
@@ -374,11 +565,16 @@ export default function MentorPage() {
             />
           </div>
         ) : (
-          <div className="px-4 py-3 border-t border-[var(--border)] bg-gray-50 text-center text-sm text-[var(--text-light)] shrink-0">
+          <div className={styles.archivedNotice}>
             Arşivlenmiş sohbetlere yeni mesaj gönderilemez.
           </div>
         )}
       </main>
+
+      {/* Masaüstü üçüncü bölge: üstte HAFIZA, altta işlem önerileri. */}
+      <aside className={styles.actionsCol} aria-label="Mentor yan paneli">
+        {rightPanel}
+      </aside>
 
       <MemoryPanel visible={memoryPanelVisible} onClose={() => setMemoryPanelVisible(false)} />
       

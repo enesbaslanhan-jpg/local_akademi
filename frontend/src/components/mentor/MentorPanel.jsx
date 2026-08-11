@@ -6,8 +6,8 @@ import MentorMessageBubble from './MentorMessageBubble'
 import MentorComposer from './MentorComposer'
 import MentorEmptyState from './MentorEmptyState'
 import MentorErrorAlert from './MentorErrorAlert'
-import MentorBetaBadge from './MentorBetaBadge'
 import { useAuth } from '@/context/AuthContext'
+import styles from './MentorPanel.module.css'
 
 function formatTime(dateStr) {
   if (!dateStr) return ''
@@ -42,6 +42,22 @@ export default function MentorPanel() {
   const [editMessageValue, setEditMessageValue] = useState('')
   
   const messagesEndRef = useRef(null)
+  const closeButtonRef = useRef(null)
+  const previousFocusRef = useRef(null)
+
+  useEffect(() => {
+    if (!isPanelOpen || isFullPage) return undefined
+    previousFocusRef.current = document.activeElement
+    const onKeyDown = event => {
+      if (event.key === 'Escape') closePanel()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    window.requestAnimationFrame(() => closeButtonRef.current?.focus())
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      previousFocusRef.current?.focus?.()
+    }
+  }, [closePanel, isFullPage, isPanelOpen])
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
@@ -119,106 +135,98 @@ export default function MentorPanel() {
   return (
     <>
       {/* Mobile backdrop */}
-      <div className="fixed inset-0 bg-black/40 z-40 md:hidden" onClick={closePanel} aria-hidden="true" />
+      <div className={styles.backdrop} onClick={closePanel} aria-hidden="true" />
 
       {/* Drawer */}
       <div
-        className="fixed inset-y-0 right-0 z-50 w-full md:w-[480px] bg-white border-l border-[var(--border)] shadow-2xl flex flex-col transition-transform"
+        className={`${styles.drawer} ${styles.drawerGlass}`}
         aria-label="AI Mentor Paneli"
         role="dialog"
+        aria-modal="true"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-white shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className={styles.header}>
+          <div className={styles.headerLeft}>
             {panelView === 'chat' && (
               <button
                 onClick={() => setPanelView('conversations')}
-                className="p-1.5 -ml-1.5 rounded-md hover:bg-gray-100 text-[var(--text-light)] shrink-0"
+                className={styles.backBtn}
                 title="Sohbetler"
                 aria-label="Sohbetlere dön"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft size={20} />
               </button>
             )}
-            <div className="min-w-0">
-              <h2 className="text-sm font-semibold text-[var(--text)] flex items-center gap-2 truncate">
+            <div className={styles.headerTitleWrap}>
+              <h2 className={styles.headerTitle}>
                 {panelView === 'chat' ? (selectedConv?.title || 'AI Mentor') : 'Sohbetler'}
               </h2>
-              {panelView === 'chat' && selectedConv?.provider && (
-                <div className="text-[10px] text-[var(--text-light)] truncate">
-                  {selectedConv.provider} · {selectedConv.model}
-                </div>
-              )}
             </div>
-            {panelView === 'chat' && (
-              <div className="hidden sm:block ml-2">
-                <MentorBetaBadge />
-              </div>
-            )}
           </div>
-          
-          <div className="flex items-center gap-2 shrink-0">
+
+          <div className={styles.headerActions}>
             {panelView === 'conversations' && (
-              <button onClick={handleNewChat} className="text-xs px-2 py-1.5 font-medium bg-[var(--primary)] text-white rounded-md">
+              <button onClick={handleNewChat} className={styles.newChatBtn}>
                 + Yeni
               </button>
             )}
             <button
+              ref={closeButtonRef}
               onClick={closePanel}
-              className="p-1.5 rounded-md hover:bg-gray-100 text-[var(--text-light)]"
+              className={styles.closeBtn}
               aria-label="Kapat"
             >
-              <X className="w-5 h-5" />
+              <X size={20} />
             </button>
           </div>
         </div>
 
         {/* Content area */}
-        <div className="flex-1 overflow-hidden relative flex flex-col bg-gray-50/50">
-          
+        <div className={styles.content}>
+
           {panelView === 'conversations' && (
-            <div className="absolute inset-0 flex flex-col bg-white">
-              <div className="flex text-xs border-b border-[var(--border)] shrink-0">
+            <div className={styles.conversationsPane}>
+              <div className={styles.tabs}>
                 <button
                   onClick={() => setShowArchived(false)}
                   aria-label="Aktif sohbetler"
-                  className={`flex-1 py-3 font-medium ${!showArchived ? 'bg-[var(--primary-light)] text-[var(--primary)] border-b-2 border-[var(--primary)]' : 'text-[var(--text-light)] hover:bg-gray-50'}`}
+                  className={`${styles.tab} ${!showArchived ? styles.tabActive : ''}`}
                 >
                   Aktif
                 </button>
                 <button
                   onClick={() => setShowArchived(true)}
                   aria-label="Arşivlenmiş sohbetler"
-                  className={`flex-1 py-3 font-medium ${showArchived ? 'bg-[var(--primary-light)] text-[var(--primary)] border-b-2 border-[var(--primary)]' : 'text-[var(--text-light)] hover:bg-gray-50'}`}
+                  className={`${styles.tab} ${showArchived ? styles.tabActive : ''}`}
                 >
                   Arşiv
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto">
+              <div className={styles.convList}>
                 {loading ? (
-                  <div className="p-8 text-center text-sm text-[var(--text-light)]">Yükleniyor...</div>
+                  <div className={styles.convState}>Yükleniyor...</div>
                 ) : conversations.length === 0 ? (
-                  <div className="p-8 text-center text-sm text-[var(--text-light)]">
+                  <div className={styles.convState}>
                     Henüz sohbet yok.
                   </div>
                 ) : (
-                  <ul className="divide-y divide-[var(--border)]">
+                  <ul className={styles.convItems}>
                     {conversations.map(conv => (
                       <li
                         key={conv.id}
-                        className={`px-4 py-3 cursor-pointer transition-colors hover:bg-gray-50 ${selectedId === conv.id ? 'bg-[var(--primary-light)]' : ''}`}
+                        className={`${styles.convItem} ${selectedId === conv.id ? styles.convItemActive : ''}`}
                         onClick={() => {
                           handleSelect(conv.id)
                           setPanelView('chat')
                         }}
                       >
-                        <div className="text-sm font-medium text-[var(--text)] truncate">
+                        <div className={styles.convTitle}>
                           {conv.title || 'İsimsiz'}
                         </div>
-                        <div className="text-xs text-[var(--text-light)] mt-1 truncate">
+                        <div className={styles.convPreview}>
                           {conv.lastMessage ? contentPreview(conv.lastMessage.content) : 'Henüz mesaj yok'}
                         </div>
-                        <div className="text-[10px] text-[var(--text-light)] mt-1.5 font-medium">
+                        <div className={styles.convTime}>
                           {formatTime(conv.lastMessageAt || conv.updatedAt)}
                         </div>
                       </li>
@@ -232,23 +240,23 @@ export default function MentorPanel() {
           {panelView === 'chat' && (
             <>
               {activeContext && (
-                <div className="bg-indigo-50 border-b border-indigo-100 px-4 py-2 flex items-center justify-between shrink-0 shadow-sm z-10">
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[10px] font-semibold text-indigo-600 uppercase tracking-wider">Bağlam</span>
-                    <span className="text-xs font-medium text-gray-800 truncate">{activeContext.title || 'İçerik'}</span>
+                <div className={`${styles.contextBarLayout} ${styles.contextBarGlass}`}>
+                  <div className={styles.contextTextWrap}>
+                    <span className={styles.contextLabel}>Bağlam</span>
+                    <span className={styles.contextTitle}>{activeContext.title || 'İçerik'}</span>
                   </div>
-                  <button onClick={clearMentorContext} className="p-1 rounded-md hover:bg-indigo-100 text-indigo-400 hover:text-indigo-600 transition-colors" title="Bağlamı Temizle">
-                    <X className="w-4 h-4" />
+                  <button onClick={clearMentorContext} className={styles.contextClearBtn} title="Bağlamı Temizle" aria-label="Bağlamı Temizle">
+                    <X size={16} />
                   </button>
                 </div>
               )}
-              <div className="flex-1 overflow-y-auto flex flex-col relative">
+              <div className={styles.chatScroll}>
                 <MentorErrorAlert error={error} onDismiss={() => setError('')} />
 
                 {(!messages || messages.length === 0) && !isStreaming ? (
                   <MentorEmptyState role={user?.role} onQuickStart={handleQuickStart} />
                 ) : (
-                  <div className="flex-1 px-4 py-4 space-y-4">
+                  <div className={styles.messagesInner}>
                     {messages.map(msg => (
                       <MentorMessageBubble
                         key={msg.id}
@@ -267,13 +275,13 @@ export default function MentorPanel() {
                     ))}
 
                     {(isStreaming || streamingContent) && (
-                      <div className="flex justify-start">
-                        <div className="max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 bg-white border border-[var(--border)] text-[var(--text)] rounded-tl-sm shadow-sm">
+                      <div className={`${styles.streamingRow} ${styles.streamingBubble}`}>
+                        <div className={styles.streamingBubbleSurface}>
                           {streamingContent ? (
-                            <p className="text-sm whitespace-pre-wrap leading-relaxed">{streamingContent}</p>
+                            <p className={styles.streamingText}>{streamingContent}</p>
                           ) : (
-                            <p className="text-sm text-[var(--text-light)] italic flex items-center gap-2">
-                              <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-ping" /> AI düşünüyor...
+                            <p className={styles.streamingPlaceholder}>
+                              <span className={styles.typingDot} /> AI düşünüyor...
                             </p>
                           )}
                         </div>
@@ -285,14 +293,14 @@ export default function MentorPanel() {
               </div>
 
               {!showArchived ? (
-                <div className="shrink-0 bg-white z-10 pb-safe flex flex-col">
+                <div className={styles.composerWrap}>
                   {activeContext && (!messages || messages.length === 0) && !isStreaming && (
-                    <div className="px-4 pt-2 pb-1 flex gap-2 overflow-x-auto hide-scrollbar">
+                    <div className={styles.quickPrompts}>
                       {['Bu konuyu işletmeme nasıl uygularım?', 'En önemli noktaları özetle.', 'Sonraki en güvenli adım nedir?'].map((prompt, idx) => (
                         <button
                           key={idx}
                           onClick={() => handleQuickStart(prompt)}
-                          className="shrink-0 text-[11px] font-medium px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 transition-colors border border-indigo-100"
+                          className={styles.quickPromptBtn}
                         >
                           {prompt}
                         </button>
@@ -309,7 +317,7 @@ export default function MentorPanel() {
                   />
                 </div>
               ) : (
-                <div className="px-4 py-3 border-t border-[var(--border)] bg-gray-100 text-center text-sm text-[var(--text-light)] shrink-0 pb-safe">
+                <div className={styles.archivedNotice}>
                   Arşivlenmiş sohbetlere yeni mesaj gönderilemez.
                 </div>
               )}

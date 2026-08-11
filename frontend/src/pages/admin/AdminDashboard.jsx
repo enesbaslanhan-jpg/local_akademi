@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { api } from '@/services/api'
 import { AlertTriangle, Clock, Users, BookOpen, Download, UserPlus, FileText, RefreshCw, AlertCircle, ArrowUpRight, Layers, Tag, CheckCircle, XCircle, Archive, Eye, Zap, Ban } from 'lucide-react'
+import { Select } from '@/components/ui'
 import styles from './AdminDashboard.module.css'
 
 const PERIODS = [
@@ -133,9 +134,7 @@ export default function AdminDashboard() {
       <div className={styles.page}>
         <div className={styles.header}>
           <h2>Sistem Özeti</h2>
-          <select className={styles.periodSelect} value={period} onChange={e => setPeriod(Number(e.target.value))} aria-label="Zaman aralığı">
-            {PERIODS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-          </select>
+          <Select className={styles.periodSelect} aria-label="Zaman aralığı" options={PERIODS.map(p => ({ value: String(p.value), label: p.label }))} value={String(period)} onChange={v => setPeriod(Number(v))} />
         </div>
         <KpiSkeleton />
       </div>
@@ -160,9 +159,7 @@ export default function AdminDashboard() {
     <div className={styles.page}>
       <div className={styles.header}>
         <h2>Sistem Özeti</h2>
-        <select className={styles.periodSelect} value={period} onChange={e => setPeriod(Number(e.target.value))} aria-label="Zaman aralığı">
-          {PERIODS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-        </select>
+        <Select className={styles.periodSelect} aria-label="Zaman aralığı" options={PERIODS.map(p => ({ value: String(p.value), label: p.label }))} value={String(period)} onChange={v => setPeriod(Number(v))} />
       </div>
 
       {error && data && (

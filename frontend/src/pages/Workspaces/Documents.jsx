@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { BarChart3, Camera, Check, Eye, FileImage, FileText, ImagePlus, Trash2, Upload, X } from 'lucide-react'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
+import { Select } from '@/components/ui'
 import styles from './Documents.module.css'
 
 const categories = {
@@ -140,9 +141,7 @@ export default function Documents() {
 
         <label className={styles.categoryField}>
           Belge türü
-          <select value={category} onChange={event => setCategory(event.target.value)} disabled={uploading}>
-            {Object.entries(categories).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-          </select>
+          <Select aria-label="Belge türü" options={Object.entries(categories).map(([value, label]) => ({ value, label }))} value={category} onChange={setCategory} disabled={uploading} />
         </label>
 
         <div className={styles.uploadActions}>

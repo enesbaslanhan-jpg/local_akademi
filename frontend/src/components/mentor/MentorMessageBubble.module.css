@@ -1,0 +1,475 @@
+/*
+ * AI Mentor mesaj balonu — giriş animasyonu + gerçek yüzey stilleri.
+ *
+ * NOT: Bu bileşen Tailwind class isimleriyle (flex, rounded-2xl, bg-white vb.)
+ * yazılmıştı ama projede Tailwind kurulu değil — o class'lar hiçbir CSS
+ * üretmiyor. MentorPanel'de izlenen yöntem burada da uygulandı: JSX'teki
+ * mevcut class string'leri silinmedi, gerçek stil sağlayan module class'ları
+ * yanlarına eklendi.
+ *
+ * Renk disiplini: kullanıcı balonu --brand-teal zemin + beyaz metin,
+ * asistan balonu --white zemin + --border kenarlık, hata --danger ailesi.
+ */
+
+/* Mesaj giriş animasyonu (kural 14): mesajlar fade/slide ile gelir, sahte bir
+   "typing" animasyonu eklenmez — ortak fadeSlideIn keyframe'i kullanılır. */
+.messageEnter {
+  animation: fadeSlideIn var(--dur-base) var(--ease-standard) both;
+}
+
+/* ---------- Satır ve balon ---------- */
+.row {
+  display: flex;
+  min-width: 0;
+}
+
+.rowUser {
+  justify-content: flex-end;
+}
+
+.rowAssistant {
+  justify-content: flex-start;
+}
+
+.bubble {
+  position: relative;
+  max-width: 90%;
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (min-width: 768px) {
+  .bubble {
+    max-width: 75%;
+  }
+}
+
+.bubbleUser {
+  background: var(--brand-teal);
+  color: var(--white);
+  border-top-right-radius: 4px;
+}
+
+.bubbleAssistant {
+  background: var(--surface-panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-top-left-radius: 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+.answerLabel {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--brand-ink);
+  font-size: .64rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.bubbleError {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  border-top-left-radius: 4px;
+}
+
+.bubbleCancelled {
+  background: var(--warning-bg);
+  border: 1px solid var(--warning);
+  color: var(--text);
+  border-top-left-radius: 4px;
+}
+
+/* ---------- Mesaj metni ---------- */
+.text {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.markdownContent {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  overflow-wrap: anywhere;
+}
+.markdownContent > :first-child { margin-top: 0; }
+.markdownContent > :last-child { margin-bottom: 0; }
+.markdownContent p { margin: 0 0 .7em; }
+.markdownContent ul, .markdownContent ol { margin: .45em 0 .8em; padding-left: 1.35rem; }
+.markdownContent li + li { margin-top: .35em; }
+/* Başlık ve kalın metin ACCENT rengiyle boyanmaz. Her başlığın renkli
+   olması cevabı sohbet botu çıktısına benzetiyordu; vurgu için kalınlık
+   yeterli. Renk yalnızca linklerde kullanılır. */
+.markdownContent strong { color: var(--text); font-weight: var(--font-weight-bold); }
+.markdownContent h1,
+.markdownContent h2,
+.markdownContent h3,
+.markdownContent h4 {
+  margin: 1.1em 0 .4em;
+  color: var(--text);
+  font-size: .94rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -.005em;
+}
+.markdownContent h1:first-child,
+.markdownContent h2:first-child,
+.markdownContent h3:first-child { margin-top: 0; }
+.markdownContent a { color: var(--primary); }
+.markdownContent code { padding: .1em .35em; border-radius: 5px; background: color-mix(in srgb, var(--primary-light) 74%, transparent); }
+
+/* Mirror & Glass sohbet yüzeyleri */
+.bubble {
+  border-radius: 0;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--brand-900) 5%, transparent);
+}
+
+.row .bubbleUser {
+  max-width: 82%;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  border: 1px solid var(--border-strong);
+  /* --surface-high diye bir token yok; balon zeminsiz kalıyordu. */
+  background: var(--surface-raised) !important;
+  color: var(--text) !important;
+}
+
+.row .bubbleAssistant {
+  max-width: 92% !important;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 10px);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-panel);
+  box-shadow: var(--shadow-sm);
+}
+
+.answerLabel { color: var(--primary); }
+.footerUser { border-top-color: var(--border-subtle); }
+.metaUser { color: var(--text-light); }
+
+/* ---------- Düzenleme modu ---------- */
+.editWrap {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.editTextarea {
+  width: 100%;
+  min-height: 80px;
+  padding: var(--space-3);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.editActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.editSave,
+.editCancel {
+  padding: 6px var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
+}
+
+.editSave {
+  background: var(--brand-teal);
+  color: var(--white);
+}
+
+.editSave:hover {
+  background: var(--primary-dark);
+  transform: translateY(var(--lift-btn));
+}
+
+.editCancel {
+  background: var(--bg-tertiary);
+  color: var(--text);
+}
+
+.editCancel:hover {
+  background: var(--border);
+}
+
+.editSave:active,
+.editCancel:active {
+  transform: scale(var(--scale-active));
+}
+
+/* ---------- Kaynaklar ---------- */
+.sources {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.sourcesLabel {
+  margin: 0 0 var(--space-2);
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sourcesList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ---------- Yasal uyarı (disclaimer) ---------- */
+.disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-light);
+  font-size: 11px;
+}
+
+.disclaimerIcon {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.disclaimerText {
+  margin: 0;
+  line-height: var(--line-height-tight);
+}
+
+/* ---------- Hata / iptal durumu ---------- */
+.errorTitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.errorDetail {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-xs);
+  opacity: 0.8;
+}
+
+.cancelledNote {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  color: var(--warning);
+}
+
+/* ---------- Alt bilgi (zaman, token) ---------- */
+.footer {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+}
+
+.footerUser {
+  border-top-color: rgba(255, 255, 255, 0.2);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-light);
+}
+
+.metaUser {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.tokenInfo {
+  margin-left: var(--space-2);
+}
+
+/* ---------- Mesaj aksiyonları ---------- */
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  transition: opacity var(--dur-fast) var(--ease-standard);
+}
+
+/* Masaüstünde aksiyonlar yalnızca balon hover'ında görünür; dokunmatikte
+   her zaman görünür kalır (kural 19). */
+@media (hover: hover) and (pointer: fine) and (min-width: 768px) {
+  .actionsRow {
+    opacity: 0;
+  }
+
+  .row:hover .actionsRow,
+  .row:focus-within .actionsRow {
+    opacity: 1;
+  }
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border: 1px solid color-mix(in srgb, var(--brand-900) 16%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand-900) 8%, transparent);
+  color: var(--surface-dark-2);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+}
+
+.actionBtn:hover {
+  background: var(--surface-dark-2);
+  color: var(--brand-50);
+  transform: translateY(-2px);
+  box-shadow: 0 9px 16px -10px rgba(8,34,29,.55);
+}
+
+.actionBtnLabel {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .actionBtnLabel {
+    display: inline;
+  }
+}
+
+/* ---------- Geri bildirim ---------- */
+.feedbackRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.feedbackBtn {
+  padding: var(--space-1);
+  border: 0;
+  border-radius: 999px;
+  background: var(--bg-tertiary);
+  color: var(--text-light);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard);
+}
+
+.feedbackBtn:hover {
+  background: var(--surface-dark-2);
+  color: var(--brand-50);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px -10px rgba(8,34,29,.5);
+}
+
+/* Pozitif geri bildirim → zeytin (başarı) */
+.feedbackBtnHelpful {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+/* Negatif geri bildirim → bordo (yalnızca olumsuz durum) */
+.feedbackBtnNotHelpful {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.feedbackToast {
+  margin-left: var(--space-1);
+  font-size: 10px;
+  color: var(--text-light);
+}
+
+/* ---------- Önerilen aksiyonlar ---------- */
+.suggestedRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.suggestedBtn {
+  padding: 6px var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--primary-light);
+  color: var(--brand-ink);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+
+.suggestedBtn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--brand-olive);
+}
+
+.suggestedBtnDisabled {
+  background: var(--bg-tertiary);
+  border-color: var(--border);
+  color: var(--text-light);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+:global(.dark) .bubbleUser {
+  border-color: color-mix(in srgb, var(--primary) 42%, var(--border));
+  background: #20252a !important;
+  color: var(--text) !important;
+}
+
+:global(.dark) .bubbleAssistant {
+  border-color: var(--border-strong);
+  background: #1c1f24 !important;
+  color: var(--text) !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.045);
+}
+
+:global(.dark) .answerLabel,
+:global(.dark) .markdownContent strong { color: var(--primary); }
+:global(.dark) .editTextarea,
+:global(.dark) .disclaimer,
+:global(.dark) .actionBtn,
+:global(.dark) .suggestedBtn { background: var(--surface-panel); color: var(--text); border-color: var(--border); }
+
+@media (prefers-reduced-motion: reduce) {
+  .messageEnter,
+  .actionsRow,
+  .actionBtn,
+  .feedbackBtn,
+  .suggestedBtn,
+  .editSave,
+  .editCancel {
+    animation: none;
+    transition: none;
+  }
+}

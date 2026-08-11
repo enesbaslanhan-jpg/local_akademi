@@ -162,8 +162,8 @@
 }
 
 .ratingBtn:hover {
-  background: var(--btn-bg);
-  border-color: var(--btn-color);
+  background: var(--brand-teal);
+  border-color: var(--white);
 }
 
 .ratingBtn:disabled {
@@ -174,7 +174,7 @@
 .ratingLabelText {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  color: var(--btn-color);
+  color: var(--white);
 }
 
 .ratingShortcut {

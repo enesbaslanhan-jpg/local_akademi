@@ -327,7 +327,8 @@ export default function KnowledgeDetail() {
           {/* Title & Meta Row */}
           <div className={styles.titleSection}>
             <div className={styles.titleRow}>
-              <h1 className={styles.title}>{ko.title}</h1>
+              <h1 className="sr-only">{ko.title}</h1>
+              <div className={styles.title}>{ko.title}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Badge variant="default" className={styles.typeBadge}>{ko.type}</Badge>
                 {isContextualMentorEnabled && (

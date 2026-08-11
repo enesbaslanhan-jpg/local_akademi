@@ -1,0 +1,15 @@
+.page { min-height: 100vh; padding: 24px; background: var(--surface-canvas); color: var(--text); }
+.header { width: min(100%, 860px); margin: 0 auto 18px; display: flex; align-items: center; gap: 10px; }
+.header button { display: grid; place-items: center; width: 38px; height: 38px; margin-right: 4px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-card); color: var(--text); }
+.header button:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+.header strong { font-family: var(--font-heading); }
+.document { width: min(100%, 860px); box-sizing: border-box; margin: 0 auto; padding: clamp(24px, 5vw, 52px); border: 1px solid var(--border); border-radius: 18px; background: var(--surface-card); box-shadow: var(--shadow-card); }
+.titleIcon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 13px; background: var(--primary-light); color: var(--primary); }
+.kicker { margin: 18px 0 5px; color: var(--primary); font-size: .7rem; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+.document h1 { margin: 0; font-size: clamp(1.8rem, 4vw, 2.7rem); line-height: 1.08; }
+.intro { margin: 12px 0 5px; color: var(--text-light); font-size: 1rem; line-height: 1.65; }
+.updated { margin: 0 0 28px; color: var(--text-light); font-size: .72rem; }
+.document section { padding: 20px 0; border-top: 1px solid var(--border); }
+.document section h2 { margin: 0 0 7px; font-size: 1rem; }
+.document section p { margin: 0; color: var(--text-light); font-size: .88rem; line-height: 1.7; }
+@media (max-width: 600px) { .page { padding: 14px; } .document { padding: 22px 18px; } }

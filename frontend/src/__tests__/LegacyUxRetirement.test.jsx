@@ -18,7 +18,7 @@ describe('Phase 8.0F legacy learner transition', () => {
   it('offers Decision Checks instead of a raw quiz 404', () => {
     render(<MemoryRouter><LegacyFeatureUnavailable feature="quiz" /></MemoryRouter>)
     expect(screen.getByRole('heading', { name: /Quiz deneyimi yenilendi/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Karar Kontrolleri/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Karar Araçları/i })).toBeInTheDocument()
   })
 
   it('offers Practical Cards instead of a raw flashcard 404', () => {

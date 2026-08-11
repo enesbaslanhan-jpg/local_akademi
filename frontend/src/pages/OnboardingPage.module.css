@@ -16,7 +16,7 @@
 }
 
 .subtitle {
-  color: #666;
+  color: var(--text-light);
   margin: 0;
   font-size: 0.95rem;
 }
@@ -34,21 +34,21 @@
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
-  background: #f5f5f5;
-  color: #999;
+  background: var(--bg-tertiary);
+  color: var(--text-light);
   font-size: 0.8rem;
   cursor: default;
   transition: all 0.2s;
 }
 
 .stepActive {
-  background: #e3f2fd;
-  color: #1976d2;
+  background: var(--primary-light);
+  color: var(--brand-ink);
 }
 
 .stepDone {
-  background: #e8f5e9;
-  color: #388e3c;
+  background: var(--success-bg);
+  color: var(--success);
 }
 
 .stepNumber {
@@ -61,7 +61,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   background: currentColor;
-  color: #fff;
+  color: var(--white);
 }
 
 .stepLabel {
@@ -85,8 +85,8 @@
 }
 
 .card {
-  background: #fff;
-  border: 1px solid #e0e0e0;
+  background: var(--white);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 2rem;
 }
@@ -116,15 +116,14 @@
   font-size: 0.85rem;
   font-weight: 500;
   margin-bottom: 0.4rem;
-  color: #444;
+  color: var(--text);
 }
 
 .input,
-.select,
 .textarea {
   width: 100%;
   padding: 0.6rem 0.75rem;
-  border: 1px solid #d0d0d0;
+  border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 0.9rem;
   font-family: inherit;
@@ -132,11 +131,14 @@
   transition: border-color 0.2s;
 }
 
+.select {
+  width: 100%;
+}
+
 .input:focus,
-.select:focus,
 .textarea:focus {
   outline: none;
-  border-color: #1976d2;
+  border-color: var(--brand-ink);
   box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.15);
 }
 
@@ -163,7 +165,7 @@
 }
 
 .checkboxLabel:hover {
-  background: #f5f5f5;
+  background: var(--bg-tertiary);
 }
 
 .row {
@@ -178,7 +180,7 @@
   gap: 0.75rem;
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border);
 }
 
 .btnPrimary,
@@ -193,12 +195,12 @@
 }
 
 .btnPrimary {
-  background: #1976d2;
-  color: #fff;
+  background: var(--brand-ink);
+  color: var(--white);
 }
 
 .btnPrimary:hover:not(:disabled) {
-  background: #1565c0;
+  background: var(--brand-teal-deep);
 }
 
 .btnPrimary:disabled {
@@ -206,13 +208,16 @@
   cursor: not-allowed;
 }
 
+:global(.dark) .btnPrimary,
+:global(.dark) .btnPrimary:hover:not(:disabled) { background: var(--primary); color: var(--theme-on-primary); }
+
 .btnSecondary {
-  background: #f5f5f5;
-  color: #333;
+  background: var(--bg-tertiary);
+  color: var(--text);
 }
 
 .btnSecondary:hover {
-  background: #e0e0e0;
+  background: var(--border);
 }
 
 .summary {
@@ -225,13 +230,13 @@
   font-size: 0.95rem;
   font-weight: 600;
   margin: 0 0 0.5rem;
-  color: #444;
-  border-bottom: 1px solid #eee;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 0.4rem;
 }
 
 .summaryGroup p {
   margin: 0.25rem 0;
   font-size: 0.9rem;
-  color: #555;
+  color: var(--text-light);
 }

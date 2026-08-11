@@ -31,7 +31,9 @@ describe('CoursePlayerPage', () => {
       </MemoryRouter>
     )
 
-    await waitFor(() => expect(screen.getByText('Test Kursu')).toBeInTheDocument())
+    // Kurs adı iki yerde geçer: sol sütun başlığı ve breadcrumb.
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Test Kursu' })).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'Test Kursu' })).toBeInTheDocument()
     expect(screen.getByText('0 ders')).toBeInTheDocument()
   })
 })

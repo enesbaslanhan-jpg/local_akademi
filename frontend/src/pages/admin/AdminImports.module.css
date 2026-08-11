@@ -29,7 +29,7 @@
 .dropZone:hover,
 .dragOver {
   border-color: var(--primary);
-  background: #f7faff;
+  background: var(--bg-tertiary);
 }
 
 .dragOver {
@@ -122,10 +122,9 @@
   flex-wrap: wrap;
 }
 
-.issueFilters select,
 .issueFilters input {
   padding: var(--space-1) var(--space-2);
-  border: 1px solid #cfd6e2;
+  border: 1px solid var(--border);
   border-radius: 6px;
   font-size: var(--font-size-xs);
   font-family: var(--font-family);
@@ -136,7 +135,6 @@
   min-width: 140px;
 }
 
-.issueFilters select:focus,
 .issueFilters input:focus {
   outline: none;
   border-color: var(--primary);
@@ -265,7 +263,6 @@
     flex-direction: column;
   }
 
-  .issueFilters select,
   .issueFilters input {
     width: 100%;
   }

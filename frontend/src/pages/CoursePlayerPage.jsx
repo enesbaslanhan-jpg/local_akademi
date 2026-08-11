@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '@/services/api'
-import { Card, Badge, Button, Loading } from '@/components/ui'
+import { Card, Badge, Button, Progress, Loading, DarkPanel } from '@/components/ui'
 import QuizWidget from '@/components/ui/QuizWidget'
 import TaskWorkspace from '@/components/ui/TaskWorkspace'
 import FlashcardSection from '@/components/ui/FlashcardSection'
@@ -105,6 +105,13 @@ export default function CoursePlayerPage() {
   const meta = ko?.metadata || {}
   const shortSummary = buildShortSummary(meta, ko?.content)
 
+  /* Kurs ilerlemesi — tümü gerçek veriden türetilir. */
+  const lessons = course.lessons || []
+  const totalLessons = lessons.length || course.lessonCount || 0
+  const doneLessons = lessons.filter(l => l.progress?.status === 'completed').length
+  const coursePercent = totalLessons > 0 ? Math.round((doneLessons / totalLessons) * 100) : 0
+  const lessonIndex = lesson ? lessons.findIndex(l => l.id === lesson.id) : -1
+
   return (
     <div className={styles.player}>
       {/* Mobile toggle */}
@@ -122,14 +129,21 @@ export default function CoursePlayerPage() {
           </div>
         </div>
         <nav className={styles.lessonList}>
-            {course.lessons?.map((l, idx) => (
+            {course.lessons?.map((l, idx) => {
+            const isDone = l.progress?.status === 'completed'
+            const isActive = lesson?.id === l.id
+            // "Kilitli" ayrı bir alan olarak gelmiyor; henüz başlanmamış ve
+            // aktif olmayan dersler soluk gösterilir.
+            const isUntouched = !isDone && !isActive && !(l.progress?.overallPercent > 0)
+            return (
             <button
               key={l.id}
-              className={`${styles.lessonItem} ${lesson?.id === l.id ? styles.lessonActive : ''}`}
+              className={`${styles.lessonItem} ${isActive ? styles.lessonActive : ''} ${isDone ? styles.lessonDone : ''} ${isUntouched ? styles.lessonLocked : ''}`}
               onClick={() => {
                 navigate(`/app/courses/${courseId}/learn/${l.id}`)
                 setSidebarOpen(false)
               }}
+              aria-current={isActive ? 'true' : undefined}
             >
               <span className={styles.lessonOrder}>{idx + 1}</span>
               <div className={styles.lessonInfo}>
@@ -139,18 +153,32 @@ export default function CoursePlayerPage() {
                   {l.progress?.overallPercent > 0 && ` · %${l.progress.overallPercent}`}
                 </span>
               </div>
-              {l.progress?.status === 'completed' && <CheckCircle size={16} className={styles.doneIcon} />}
+              {isDone && <CheckCircle size={16} className={styles.doneIcon} aria-hidden="true" />}
             </button>
-          ))}
+            )
+          })}
         </nav>
       </aside>
 
       {/* Main content */}
       <main className={styles.main}>
         <div className={styles.topBar}>
-          <button className={styles.backBtn} onClick={() => navigate('/app/courses')}>
-            <ArrowLeft size={16} /> Kurslara Dön
-          </button>
+          {/* Breadcrumb: Kurslar › kurs › ders */}
+          <nav className={styles.breadcrumb} aria-label="Konum">
+            <button type="button" className={styles.crumbBtn} onClick={() => navigate('/app/courses')}>
+              Kurslar
+            </button>
+            <span className={styles.crumbSep} aria-hidden="true">›</span>
+            <button type="button" className={styles.crumbBtn} onClick={() => navigate(`/app/courses/${courseId}/learn`)}>
+              {course.title}
+            </button>
+            {lesson && (
+              <>
+                <span className={styles.crumbSep} aria-hidden="true">›</span>
+                <span className={styles.crumbCurrent}>{lesson.title}</span>
+              </>
+            )}
+          </nav>
           <div className={styles.topNav}>
             <button
               className={styles.navBtn}
@@ -171,14 +199,39 @@ export default function CoursePlayerPage() {
 
         {lesson && (
           <>
-            <div className={styles.lessonHeader}>
-              <h1 className={styles.lessonTitle}>{lesson.title}</h1>
-              <div className={styles.lessonMetaRow}>
-                <span><Clock size={14} /> {lesson.estimatedMinutes} dk</span>
-                {ko && <Badge variant="default">{ko.code}</Badge>}
-                {meta.level && <Badge variant="info">{meta.level}</Badge>}
+            {/* Sayfanın TEK koyu paneli — aktif ders başlığı bloğu.
+                sweep kapalı: sık bakılan bir yüzeyde hareket yorucu olur.
+                bevel kapalı: sayfa genişliğindeki şeritte pah çentik gibi
+                okunuyor; altın hairline ve iç yansıma korunur. */}
+            <DarkPanel bevel={false} className={styles.lessonHeaderPanel}>
+              <div className={styles.lessonHeaderMain}>
+                <h1 className={styles.lessonHeaderTitle}>{lesson.title}</h1>
+                <div className={styles.lessonMetaRow}>
+                  {lessonIndex >= 0 && totalLessons > 0 && (
+                    <span>Ders {lessonIndex + 1}/{totalLessons}</span>
+                  )}
+                  {lesson.estimatedMinutes > 0 && (
+                    <span><Clock size={13} aria-hidden="true" /> {lesson.estimatedMinutes} dk</span>
+                  )}
+                  {meta.level && <span>{meta.level}</span>}
+                  {ko?.code && <span>{ko.code}</span>}
+                </div>
               </div>
-            </div>
+              {totalLessons > 0 && (
+                <div className={styles.headerProgress}>
+                  <span className={styles.headerProgressLabel}>Kurs ilerlemesi %{coursePercent}</span>
+                  <div
+                    className={styles.headerProgressTrack}
+                    role="progressbar"
+                    aria-valuenow={coursePercent}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  >
+                    <div className={styles.headerProgressFill} style={{ width: `${coursePercent}%` }} />
+                  </div>
+                </div>
+              )}
+            </DarkPanel>
 
             {/* Tabs */}
             <div className={styles.tabs}>
@@ -222,9 +275,12 @@ export default function CoursePlayerPage() {
               )}
             </div>
 
+            <div className={styles.contentLayout}>
+              <div className={styles.contentArea}>
+
             {/* Content tab */}
             {activeTab === 'content' && ko && (
-              <div className={styles.contentArea}>
+              <>
                 {shortSummary && (
                   <Card className={`${styles.section} ${styles.summaryCard}`}>
                     <h2 className={styles.sectionTitle}><Zap size={16} /> Kısa Özet</h2>
@@ -232,17 +288,7 @@ export default function CoursePlayerPage() {
                   </Card>
                 )}
 
-                {/* Learning outcomes */}
-                {meta.learningOutcomes?.length > 0 && (
-                  <Card className={styles.section}>
-                    <h2 className={styles.sectionTitle}><Target size={16} /> Öğrenme Çıktıları</h2>
-                    <ul className={styles.outcomeList}>
-                      {meta.learningOutcomes.map((o, i) => (
-                        <li key={i}><CheckCircle size={14} /> {o}</li>
-                      ))}
-                    </ul>
-                  </Card>
-                )}
+                {/* Öğrenme çıktıları sağ sütuna taşındı ("Bu derste kazanacaklarınız") */}
 
                 {/* Main content */}
                 <Card className={styles.section}>
@@ -321,12 +367,13 @@ export default function CoursePlayerPage() {
                     <div className={styles.sourcesList}>
                       {ko.sources.map((ks) => (
                         <div key={ks.id} className={styles.sourceItem}>
-                          <div className={styles.sourceTitle}>{ks.source.title}</div>
-                          {ks.source.url && (
-                            <a href={ks.source.url} target="_blank" rel="noopener noreferrer" className={styles.sourceLink}>
-                              <ExternalLink size={12} /> Kaynağa Git
-                            </a>
-                          )}
+                          <FileText size={15} className={styles.sourceIcon} aria-hidden="true" />
+                          <div className={styles.sourceBody}>
+                            <span className={styles.sourceTitle}>{ks.source.title}</span>
+                            {ks.source.publisher && (
+                              <span className={styles.sourceName}>{ks.source.publisher}</span>
+                            )}
+                          </div>
                           <Badge variant={
                             ks.source.authorityLevel === 'high' ? 'success' :
                             ks.source.authorityLevel === 'medium' ? 'info' : 'default'
@@ -334,17 +381,22 @@ export default function CoursePlayerPage() {
                             {ks.source.authorityLevel === 'high' ? 'Doğrulanmış' :
                              ks.source.authorityLevel === 'medium' ? 'Orta Güven' : 'Düşük Güven'}
                           </Badge>
+                          {ks.source.url && (
+                            <a href={ks.source.url} target="_blank" rel="noopener noreferrer" className={styles.sourceLink}>
+                              <ExternalLink size={12} aria-hidden="true" /> Kaynağa Git
+                            </a>
+                          )}
                         </div>
                       ))}
                     </div>
                   </Card>
                 )}
 
-                {/* Reading complete button */}
+                {/* Sayfanın TEK turuncu ana CTA'sı — asıl aksiyon dersi tamamlamak */}
                 {(!lesson.progress || lesson.progress.readingPercent < 100) && (
                   <div className={styles.readingActions}>
-                    <Button variant="primary" onClick={handleStartReading}>
-                      <Play size={14} /> Okumayı Tamamladım
+                    <Button variant="cta" onClick={handleStartReading}>
+                      <Play size={14} /> Dersi Tamamla
                     </Button>
                   </div>
                 )}
@@ -367,35 +419,87 @@ export default function CoursePlayerPage() {
                     </Button>
                   </Card>
                 )}
-              </div>
+              </>
             )}
 
             {/* Quiz tab */}
             {featureFlags.legacyQuiz && activeTab === 'quiz' && lesson.quizzes?.length > 0 && (
-              <div className={styles.contentArea}>
-                <QuizWidget koId={ko?.id} quizzes={lesson.quizzes} onProgress={fetchLesson} />
-              </div>
+              <QuizWidget koId={ko?.id} quizzes={lesson.quizzes} onProgress={fetchLesson} />
             )}
 
             {/* Flashcard tab */}
             {featureFlags.legacyFlashcards && activeTab === 'flashcard' && ko && ko.hasFlashcards !== false && (
-              <div className={styles.contentArea}>
-                <FlashcardSection koId={ko.id} onProgress={fetchLesson} />
-              </div>
+              <FlashcardSection koId={ko.id} onProgress={fetchLesson} />
             )}
 
             {activeTab === 'video' && ko?.hasVideo && (
-              <div className={styles.contentArea}>
-                <VideoPlayer koId={ko.id} onProgress={fetchLesson} />
-              </div>
+              <VideoPlayer koId={ko.id} onProgress={fetchLesson} />
             )}
 
             {/* Task tab */}
             {activeTab === 'task' && lesson.taskTemplates?.length > 0 && (
-              <div className={styles.contentArea}>
-                <TaskWorkspace koId={ko?.id} taskTemplates={lesson.taskTemplates} onProgress={fetchLesson} />
-              </div>
+              <TaskWorkspace koId={ko?.id} taskTemplates={lesson.taskTemplates} onProgress={fetchLesson} />
             )}
+
+              </div>
+
+              {/* ---------- SAĞ SÜTUN — yalnızca gerçek veri ---------- */}
+              <aside className={styles.rail}>
+                {totalLessons > 0 && (
+                  <Card className={styles.railCard}>
+                    <h2 className={styles.railTitle}><Target size={14} /> İlerleme</h2>
+                    <span className={styles.railPercent}>%{coursePercent}</span>
+                    <Progress value={coursePercent} size="sm" variant="primary" />
+                    <span className={styles.railHint}>
+                      {doneLessons} / {totalLessons} ders tamamlandı
+                    </span>
+                  </Card>
+                )}
+
+                {lesson.embeddedPracticeBlocks?.length > 0 && (
+                  <Card className={styles.railCard}>
+                    <h2 className={styles.railTitle}><Zap size={14} /> Uygulama</h2>
+                    <span className={styles.railHint}>
+                      Bu derste {lesson.embeddedPracticeBlocks.length} uygulama kutusu var.
+                    </span>
+                  </Card>
+                )}
+
+                {meta.learningOutcomes?.length > 0 && (
+                  <Card className={styles.railCard}>
+                    <h2 className={styles.railTitle}><CheckCircle size={14} /> Bu derste kazanacaklarınız</h2>
+                    <ul className={styles.railList}>
+                      {meta.learningOutcomes.map((o, i) => (
+                        <li key={i}><CheckCircle size={12} aria-hidden="true" /> {o}</li>
+                      ))}
+                    </ul>
+                  </Card>
+                )}
+
+                {ko?.sources?.length > 0 && (
+                  <Card className={styles.railCard}>
+                    <h2 className={styles.railTitle}><Download size={14} /> Ek kaynaklar</h2>
+                    {ko.sources.map(ks => (
+                      <div key={ks.id} className={styles.railSourceItem}>
+                        <FileText size={13} aria-hidden="true" />
+                        {ks.source.url ? (
+                          <a
+                            href={ks.source.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.railSourceLink}
+                          >
+                            {ks.source.title}
+                          </a>
+                        ) : (
+                          <span className={styles.railSourceLink}>{ks.source.title}</span>
+                        )}
+                      </div>
+                    ))}
+                  </Card>
+                )}
+              </aside>
+            </div>
 
             {/* Bottom navigation */}
             <div className={styles.bottomNav}>

@@ -16,7 +16,6 @@ const KnowledgeDetail = lazy(() => import('@/pages/KnowledgeDetail'))
 const KnowledgeTopicPage = lazy(() => import('@/pages/KnowledgeTopicPage'))
 const CoursesPage = lazy(() => import('@/pages/CoursesPage'))
 const CoursePlayerPage = lazy(() => import('@/pages/CoursePlayerPage'))
-const EnrollmentsPage = lazy(() => import('@/pages/EnrollmentsPage'))
 const LearningPathPage = lazy(() => import('@/pages/LearningPathPage'))
 const MentorPage = lazy(() => import('@/pages/MentorPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
@@ -29,6 +28,7 @@ const QuizDashboardPage = lazy(() => import('@/pages/QuizDashboardPage'))
 const QuizTakePage = lazy(() => import('@/pages/QuizTakePage'))
 const PilotLearningPathPage = lazy(() => import('@/pages/PilotLearningPathPage'))
 const CommunityPage = lazy(() => import('@/pages/CommunityPage'))
+const NewsPage = lazy(() => import('@/pages/NewsPage'))
 const WorkspaceList = lazy(() => import('@/pages/Workspaces/index'))
 const WorkspaceLayout = lazy(() => import('@/pages/Workspaces/WorkspaceLayout'))
 const WorkspaceOverview = lazy(() => import('@/pages/Workspaces/Overview'))
@@ -42,8 +42,10 @@ const WorkspaceSettings = lazy(() => import('@/pages/Workspaces/Settings'))
 const WorkspaceActivity = lazy(() => import('@/pages/Workspaces/Activity'))
 const DecisionCheckList = lazy(() => import('@/pages/DecisionCheckList'))
 const DecisionCheckSession = lazy(() => import('@/pages/DecisionCheckSession'))
+const DecisionToolsPage = lazy(() => import('@/pages/DecisionToolsPage'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
 const Unauthorized = lazy(() => import('@/pages/Unauthorized'))
+const LegalPage = lazy(() => import('@/pages/LegalPage'))
 
 const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'))
 const AdminKnowledge = lazy(() => import('@/pages/admin/AdminKnowledge'))
@@ -65,9 +67,13 @@ export default function AppRoutes() {
         <Route path="/login" element={<SuspenseWrapper><AuthPage mode="login" /></SuspenseWrapper>} />
         <Route path="/register" element={<SuspenseWrapper><AuthPage mode="register" /></SuspenseWrapper>} />
         <Route path="/unauthorized" element={<SuspenseWrapper><Unauthorized /></SuspenseWrapper>} />
+        <Route path="/privacy" element={<SuspenseWrapper><LegalPage type="privacy" /></SuspenseWrapper>} />
+        <Route path="/terms" element={<SuspenseWrapper><LegalPage type="terms" /></SuspenseWrapper>} />
+        <Route path="/cookies" element={<SuspenseWrapper><LegalPage type="cookies" /></SuspenseWrapper>} />
 
         {/* Protected learner routes */}
         <Route element={<ProtectedRoute />}>
+          <Route path="/decision-tools" element={<SuspenseWrapper><DecisionToolsPage /></SuspenseWrapper>} />
           <Route path="/app" element={<AppLayout />}>
             <Route index element={<Navigate to="/app/dashboard" replace />} />
             <Route path="dashboard" element={<SuspenseWrapper><Dashboard /></SuspenseWrapper>} />
@@ -78,11 +84,14 @@ export default function AppRoutes() {
             <Route path="knowledge/:code" element={<SuspenseWrapper><KnowledgeDetail /></SuspenseWrapper>} />
             <Route path="courses" element={<SuspenseWrapper><CoursesPage /></SuspenseWrapper>} />
             <Route path="courses/:courseId/learn/:lessonId?" element={<SuspenseWrapper><CoursePlayerPage /></SuspenseWrapper>} />
-            <Route path="enrollments" element={<SuspenseWrapper><EnrollmentsPage /></SuspenseWrapper>} />
+            <Route path="enrollments" element={<SuspenseWrapper><CoursesPage initialTab="enrollments" /></SuspenseWrapper>} />
             <Route path="learning-path" element={<SuspenseWrapper><LearningPathPage /></SuspenseWrapper>} />
             <Route path="learning-path/pilot" element={<SuspenseWrapper><PilotLearningPathPage /></SuspenseWrapper>} />
             <Route path="mentor" element={<SuspenseWrapper><MentorPage /></SuspenseWrapper>} />
-            <Route path="community" element={<SuspenseWrapper><CommunityPage /></SuspenseWrapper>} />
+            {/* Haberler yalnızca resmî içerik; Topluluk kullanıcı gönderileri.
+                Aynı bileşen iki modda çalışır, yeni endpoint yok. */}
+            <Route path="community" element={<SuspenseWrapper><NewsPage /></SuspenseWrapper>} />
+            <Route path="community/topluluk" element={<SuspenseWrapper><CommunityPage mode="community" /></SuspenseWrapper>} />
             <Route path="tools" element={<SuspenseWrapper><ToolsPage /></SuspenseWrapper>} />
             <Route path="decision-checks" element={<SuspenseWrapper><DecisionCheckList /></SuspenseWrapper>} />
             <Route path="decision-checks/:code" element={<SuspenseWrapper><DecisionCheckSession /></SuspenseWrapper>} />

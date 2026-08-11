@@ -296,3 +296,28 @@
     font-size: 0.8rem;
   }
 }
+
+:global(.dark) .block { border-color: var(--border); background: var(--surface-card); box-shadow: var(--shadow-card); }
+:global(.dark) .title,
+:global(.dark) .mainContent,
+:global(.dark) .checklistItem,
+:global(.dark) .step { color: var(--text); }
+:global(.dark) .shortDescription,
+:global(.dark) .example,
+:global(.dark) .checked { color: var(--text-light); }
+:global(.dark) .formulaBox,
+:global(.dark) .exampleBox,
+:global(.dark) .sourceLink { border-color: var(--border); background: var(--surface-panel); }
+:global(.dark) .formula,
+:global(.dark) .formulaLabel,
+:global(.dark) .toolLink { color: var(--primary); }
+:global(.dark) .checklistItem { border-color: var(--border); }
+:global(.dark) .warningBox { background: var(--danger-bg); }
+:global(.dark) .warningTitle,
+:global(.dark) .warningText { color: var(--danger); }
+:global(.dark) .correctBox { border-color: color-mix(in srgb, var(--success) 45%, var(--border)); background: var(--success-bg); }
+:global(.dark) .correctLabel,
+:global(.dark) .correctText { color: var(--success); }
+:global(.dark) .takeaway { border-color: color-mix(in srgb, var(--warning) 48%, var(--border)); background: var(--warning-bg); color: var(--warning); }
+:global(.dark) .toolLink,
+:global(.dark) .mentorBtn { background: var(--primary-light); }

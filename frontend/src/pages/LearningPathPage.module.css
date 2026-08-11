@@ -19,14 +19,14 @@
 }
 
 .subtitle {
-  color: #666;
+  color: var(--text-light);
   font-size: 0.85rem;
   margin: 0;
 }
 
 .error {
-  color: #d32f2f;
-  background: #fef2f2;
+  color: var(--danger);
+  background: var(--danger-bg);
   padding: 0.75rem 1rem;
   border-radius: 6px;
   margin-bottom: 1rem;
@@ -52,23 +52,23 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #555;
+  color: var(--text-light);
 }
 
 .summaryItem strong {
   display: block;
   font-size: 1.1rem;
-  color: #111;
+  color: var(--text);
 }
 
 .summaryItem span {
   font-size: 0.75rem;
-  color: #888;
+  color: var(--text-light);
 }
 
 .progressBar {
   height: 6px;
-  background: #e0e0e0;
+  background: var(--border);
   border-radius: 3px;
   overflow: hidden;
   position: relative;
@@ -76,7 +76,7 @@
 
 .progressFill {
   height: 100%;
-  background: #1976d2;
+  background: var(--brand-ink);
   border-radius: 3px;
   transition: width 0.3s;
 }
@@ -86,7 +86,7 @@
   right: 0;
   top: -16px;
   font-size: 0.7rem;
-  color: #1976d2;
+  color: var(--brand-ink);
   font-weight: 600;
 }
 
@@ -97,20 +97,20 @@
 }
 
 .stepCard {
-  background: #fff;
-  border: 1px solid #e0e0e0;
+  background: var(--white);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 1rem 1.25rem;
   transition: all 0.15s;
 }
 
 .stepCard:hover {
-  border-color: #bbdefb;
+  border-color: var(--primary-light);
 }
 
 .stepDone {
   opacity: 0.7;
-  background: #f5f5f5;
+  background: var(--bg-tertiary);
 }
 
 .stepHeader {
@@ -123,8 +123,8 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #1976d2;
-  color: #fff;
+  background: var(--brand-ink);
+  color: var(--white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -134,7 +134,7 @@
 }
 
 .stepDone .stepNum {
-  background: #388e3c;
+  background: var(--brand-olive);
 }
 
 .stepInfo {
@@ -149,7 +149,7 @@
 
 .stepDesc {
   font-size: 0.8rem;
-  color: #666;
+  color: var(--text-light);
   margin: 0;
 }
 
@@ -163,14 +163,14 @@
   gap: 0.4rem;
   margin-top: 0.6rem;
   padding-top: 0.6rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border);
 }
 
 .koChip {
   padding: 0.2rem 0.6rem;
-  background: #f0f7ff;
-  color: #1976d2;
-  border: 1px solid #d0e3f7;
+  background: var(--primary-light);
+  color: var(--brand-ink);
+  border: 1px solid var(--border);
   border-radius: 4px;
   font-size: 0.75rem;
   font-family: monospace;
@@ -179,6 +179,6 @@
 }
 
 .koChip:hover {
-  background: #1976d2;
-  color: #fff;
+  background: var(--brand-ink);
+  color: var(--white);
 }

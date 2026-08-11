@@ -1,0 +1,474 @@
+/*
+ * Pratik Kart detayı.
+ *
+ * NOT: Bu sayfa Tailwind class isimleriyle yazılmıştı ama projede Tailwind
+ * kurulu değil. MentorPanel/MentorPage'de izlenen yöntem uygulandı: mevcut
+ * class string'leri silinmedi, gerçek stil sağlayan module class'ları
+ * yanlarına eklendi. Yerleşim korundu, yeniden tasarım yapılmadı.
+ */
+
+.page {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+  min-width: 0;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-6);
+  color: var(--text-light);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-standard);
+}
+
+.backLink:hover {
+  color: var(--text);
+}
+
+.errorBox {
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.errorBackLink {
+  display: inline-block;
+  margin-top: var(--space-4);
+  color: var(--brand-ink);
+  font-weight: var(--font-weight-medium);
+}
+
+.errorBackLink:hover {
+  text-decoration: underline;
+}
+
+.article {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------- Başlık bölümü ---------- */
+.header {
+  position: relative;
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--border);
+}
+
+@media (min-width: 768px) {
+  .header {
+    padding: var(--space-8);
+  }
+}
+
+.headerTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.category {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--primary-light);
+  color: var(--brand-ink);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.mentorBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--primary-light);
+  color: var(--brand-ink);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
+}
+
+.mentorBtn:hover {
+  background: var(--bg-hover);
+  transform: translateY(var(--lift-btn));
+}
+
+.mentorBtn:active {
+  transform: scale(var(--scale-active));
+}
+
+.saveBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2);
+  border: 0;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  color: var(--text-light);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.saveBtn:hover {
+  color: var(--text);
+}
+
+/* Kaydedilmiş durum → zeytin/aktif durum rengi */
+.saveBtnActive {
+  background: var(--primary-light);
+  color: var(--brand-olive);
+}
+
+.title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text);
+  line-height: var(--line-height-tight);
+}
+
+.lead {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: var(--text-light);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ---------- Gövde ---------- */
+.body {
+  display: grid;
+  gap: var(--space-8);
+  padding: var(--space-6);
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .body {
+    padding: var(--space-8);
+  }
+}
+
+.mainContent {
+  max-width: none;
+  color: var(--text);
+}
+
+.mainContentText {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-relaxed);
+}
+
+.sectionLabel {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Formül kutusu */
+.formulaBox {
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--primary-light);
+}
+
+.formulaBox .sectionLabel {
+  color: var(--brand-ink);
+}
+
+.formulaText {
+  margin: 0;
+  color: var(--brand-ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+/* Örnek senaryo */
+.exampleBox {
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-tertiary);
+}
+
+.exampleBox .sectionLabel {
+  color: var(--text-light);
+}
+
+.exampleText {
+  margin: 0;
+  color: var(--text);
+  font-style: italic;
+}
+
+/* Kontrol listesi */
+.checklistTitle {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.checklist {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checklistItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+/* Tamamlanmış/olumlu işaret → zeytin */
+.checkIcon {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--brand-olive);
+}
+
+.checklistText {
+  color: var(--text);
+}
+
+/* Uyarı kutusu → bordo (risk ailesi) */
+.warningBox {
+  padding: var(--space-4);
+  border-left: 4px solid var(--danger);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--danger-bg);
+}
+
+.warningRow {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.warningIcon {
+  flex: 0 0 auto;
+  color: var(--danger);
+}
+
+.warningTitle {
+  margin: 0 0 var(--space-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--danger);
+}
+
+.warningText {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--danger);
+}
+
+/* Ana fikir → hardal/uyarı tonu (bilgilendirici vurgu) */
+.takeawayBox {
+  padding: var(--space-5);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius);
+  background: var(--warning-bg);
+}
+
+.takeawayBox .sectionLabel {
+  color: var(--warning);
+}
+
+.takeawayText {
+  margin: 0;
+  color: var(--warning);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Birincil aksiyon — karar aracına yönlendirme.
+   Tekrarlayan/rutin gezinme aksiyonu olduğu için teal; turuncu CTA
+   ayrılmadı (kural: emin değilsen teal). */
+.primaryActionWrap {
+  padding-top: var(--space-4);
+}
+
+.primaryActionBtn {
+  display: inline-block;
+  width: 100%;
+  padding: var(--space-3) var(--space-6);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--brand-teal);
+  color: var(--white);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
+}
+
+@media (min-width: 640px) {
+  .primaryActionBtn {
+    width: auto;
+  }
+}
+
+.primaryActionBtn:hover {
+  background: var(--primary-dark);
+  transform: translateY(var(--lift-btn));
+}
+
+.primaryActionBtn:active {
+  transform: scale(var(--scale-active));
+}
+
+/* ---------- Alt bilgi + geri bildirim ---------- */
+.footer {
+  padding: var(--space-6);
+  border-top: 1px solid var(--border);
+  background: var(--bg-tertiary);
+}
+
+@media (min-width: 768px) {
+  .footer {
+    padding: var(--space-8);
+  }
+}
+
+.footerRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .footerRow {
+    flex-direction: row;
+  }
+}
+
+.sourcesCol {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+}
+
+.sources {
+  font-size: var(--font-size-xs);
+  color: var(--text-light);
+}
+
+.sourcesLabel {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-weight: var(--font-weight-semibold);
+}
+
+.sourceList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.sourceLink {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text-light);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+
+.sourceLink:hover {
+  color: var(--brand-ink);
+  border-color: var(--brand-olive);
+}
+
+.feedback {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.feedbackLabel {
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
+  font-weight: var(--font-weight-medium);
+}
+
+.feedbackBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--text-light);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    background var(--dur-fast) var(--ease-standard);
+}
+
+.feedbackBtn:hover:not(:disabled) {
+  border-color: var(--brand-olive);
+  color: var(--brand-olive);
+}
+
+/* Olumlu geri bildirim → zeytin */
+.feedbackBtnHelpful {
+  background: var(--success-bg);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+/* Olumsuz geri bildirim → bordo */
+.feedbackBtnNotHelpful {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backLink,
+  .mentorBtn,
+  .saveBtn,
+  .primaryActionBtn,
+  .sourceLink,
+  .feedbackBtn {
+    transition: none;
+  }
+}

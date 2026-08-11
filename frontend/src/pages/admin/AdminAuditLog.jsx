@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { api } from '@/services/api'
 import { Loading } from '@/components/ui'
 import { Shield, Filter, ArrowUpDown } from 'lucide-react'
+import styles from './AdminAuditLog.module.css'
 
 function formatDate(dateStr) {
   if (!dateStr) return '-'
@@ -37,27 +38,29 @@ export default function AdminAuditLog() {
   const totalPages = Math.ceil(total / limit)
 
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-2 mb-6">
-        <Shield size={24} className="text-indigo-600" />
-        <h1 className="text-2xl font-bold">Denetim Kayıtları</h1>
-        <span className="text-sm text-gray-500 ml-2">({total} kayıt)</span>
+    <div className={`p-6 ${styles.page}`}>
+      <div className={`flex items-center gap-2 mb-6 ${styles.header}`}>
+        <Shield size={24} className={`text-indigo-600 ${styles.headerIcon}`} />
+        {/* Sayfa adı üst barda yazıyor; görünür h1 yerine sr-only başlık. */}
+        <h1 className="sr-only">Denetim Kayıtları</h1>
+        <span className={styles.title}>Denetim Kayıtları</span>
+        <span className={`text-sm text-gray-500 ml-2 ${styles.count}`}>({total} kayıt)</span>
       </div>
 
-      <div className="flex gap-4 mb-4 items-end">
+      <div className={`flex gap-4 mb-4 items-end ${styles.filters}`}>
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">Varlık Türü</label>
+          <label className={`text-xs text-gray-500 mb-1 block ${styles.filterLabel}`}>Varlık Türü</label>
           <input
-            className="border rounded px-3 py-1.5 text-sm"
+            className={`border rounded px-3 py-1.5 text-sm ${styles.filterInput}`}
             placeholder="örn: knowledge_object"
             value={filters.entityType}
             onChange={e => { setFilters(f => ({ ...f, entityType: e.target.value })); setPage(1) }}
           />
         </div>
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">İşlem</label>
+          <label className={`text-xs text-gray-500 mb-1 block ${styles.filterLabel}`}>İşlem</label>
           <input
-            className="border rounded px-3 py-1.5 text-sm"
+            className={`border rounded px-3 py-1.5 text-sm ${styles.filterInput}`}
             placeholder="örn: knowledge_object.published"
             value={filters.action}
             onChange={e => { setFilters(f => ({ ...f, action: e.target.value })); setPage(1) }}
@@ -65,7 +68,7 @@ export default function AdminAuditLog() {
         </div>
         {(filters.entityType || filters.action) && (
           <button
-            className="text-sm text-indigo-600 px-3 py-1.5"
+            className={`text-sm text-indigo-600 px-3 py-1.5 ${styles.clearBtn}`}
             onClick={() => { setFilters({ entityType: '', action: '' }); setPage(1) }}
           >
             Temizle
@@ -77,52 +80,52 @@ export default function AdminAuditLog() {
         <Loading text="Yükleniyor..." />
       ) : (
         <>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
+          <div className={`overflow-x-auto ${styles.tableWrap}`}>
+            <table className={`w-full text-sm border-collapse ${styles.table}`}>
               <thead>
                 <tr className="bg-gray-50 text-left">
-                  <th className="px-3 py-2 border-b font-medium text-gray-600">Tarih</th>
-                  <th className="px-3 py-2 border-b font-medium text-gray-600">İşlem</th>
-                  <th className="px-3 py-2 border-b font-medium text-gray-600">Varlık</th>
-                  <th className="px-3 py-2 border-b font-medium text-gray-600">Varlık ID</th>
-                  <th className="px-3 py-2 border-b font-medium text-gray-600">Kullanıcı</th>
-                  <th className="px-3 py-2 border-b font-medium text-gray-600">Detay</th>
+                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>Tarih</th>
+                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>İşlem</th>
+                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>Varlık</th>
+                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>Varlık ID</th>
+                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>Kullanıcı</th>
+                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>Detay</th>
                 </tr>
               </thead>
               <tbody>
                 {logs.map(log => (
-                  <tr key={log.id} className="border-b hover:bg-gray-50">
-                    <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{formatDate(log.createdAt)}</td>
-                    <td className="px-3 py-2"><code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{log.action}</code></td>
-                    <td className="px-3 py-2">{log.entityType}</td>
-                    <td className="px-3 py-2 font-mono text-xs">{log.entityId || '-'}</td>
-                    <td className="px-3 py-2">{log.actorName || `#${log.actorId}`}</td>
-                    <td className="px-3 py-2 text-xs text-gray-500 max-w-xs truncate">
+                  <tr key={log.id} className={`border-b hover:bg-gray-50 ${styles.tr}`}>
+                    <td className={`px-3 py-2 text-gray-600 whitespace-nowrap ${styles.td} ${styles.tdDate}`}>{formatDate(log.createdAt)}</td>
+                    <td className={`px-3 py-2 ${styles.td}`}><code className={`text-xs bg-gray-100 px-1.5 py-0.5 rounded ${styles.actionCode}`}>{log.action}</code></td>
+                    <td className={`px-3 py-2 ${styles.td}`}>{log.entityType}</td>
+                    <td className={`px-3 py-2 font-mono text-xs ${styles.td} ${styles.tdMono}`}>{log.entityId || '-'}</td>
+                    <td className={`px-3 py-2 ${styles.td}`}>{log.actorName || `#${log.actorId}`}</td>
+                    <td className={`px-3 py-2 text-xs text-gray-500 max-w-xs truncate ${styles.td} ${styles.tdMeta}`}>
                       {log.metadata ? JSON.stringify(log.metadata).slice(0, 80) : '-'}
                     </td>
                   </tr>
                 ))}
                 {logs.length === 0 && (
-                  <tr><td colSpan={6} className="px-3 py-8 text-center text-gray-400">Kayıt bulunamadı</td></tr>
+                  <tr><td colSpan={6} className={`px-3 py-8 text-center text-gray-400 ${styles.emptyCell}`}>Kayıt bulunamadı</td></tr>
                 )}
               </tbody>
             </table>
           </div>
 
           {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-4">
+            <div className={`flex justify-center gap-2 mt-4 ${styles.pagination}`}>
               <button
-                className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+                className={`px-3 py-1 text-sm border rounded disabled:opacity-50 ${styles.pageBtn}`}
                 disabled={page <= 1}
                 onClick={() => setPage(p => Math.max(1, p - 1))}
               >
                 Önceki
               </button>
-              <span className="px-3 py-1 text-sm text-gray-600">
+              <span className={`px-3 py-1 text-sm text-gray-600 ${styles.pageInfo}`}>
                 Sayfa {page} / {totalPages}
               </span>
               <button
-                className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+                className={`px-3 py-1 text-sm border rounded disabled:opacity-50 ${styles.pageBtn}`}
                 disabled={page >= totalPages}
                 onClick={() => setPage(p => p + 1)}
               >

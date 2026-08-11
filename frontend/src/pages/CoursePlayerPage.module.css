@@ -1,8 +1,9 @@
 .player {
   display: flex;
-  height: calc(100vh - 56px);
+  height: calc(100vh - var(--header-height));
   position: relative;
-  background: #fff;
+  background: var(--bg);
+  min-width: 0;
 }
 
 .mobileToggle {
@@ -11,42 +12,48 @@
   top: 64px;
   left: 8px;
   z-index: 100;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   padding: 6px;
+  color: var(--text);
   cursor: pointer;
 }
 
+/* ==========================================================================
+   SOL SÜTUN — ders listesi
+   ========================================================================== */
 .sidebar {
   width: 280px;
   min-width: 280px;
-  border-right: 1px solid #e5e7eb;
+  border-right: 1px solid var(--border);
   overflow-y: auto;
-  background: #f9fafb;
+  background: var(--white);
 }
 
 .sidebarHeader {
   padding: 16px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
 }
 
 .courseTitle {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-semibold);
   margin: 0 0 8px;
-  color: #111827;
+  color: var(--text);
+  line-height: 1.35;
 }
 
 .courseMeta {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .lessonCount {
-  font-size: 0.8rem;
-  color: #6b7280;
+  font-size: 0.78rem;
+  color: var(--text-light);
 }
 
 .lessonList {
@@ -60,16 +67,27 @@
   gap: 10px;
   padding: 10px 16px;
   border: none;
-  border-bottom: 1px solid #f3f4f6;
+  /* Aktif ders satırının sol kenar çizgisi bu şeffaf kenarlığın üzerine biner */
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid var(--border);
   background: transparent;
   cursor: pointer;
   text-align: left;
   width: 100%;
-  transition: background 0.1s;
+  min-width: 0;
+  transition: background var(--dur-fast) var(--ease-standard);
 }
 
-.lessonItem:hover { background: #f3f4f6; }
-.lessonActive { background: #e8f0fe !important; }
+.lessonItem:hover { background: var(--bg-hover); }
+
+/* Aktif ders: --primary-light zemin + sol kenarda ince teal çizgi */
+.lessonActive {
+  background: var(--primary-light);
+  border-left-color: var(--brand-teal);
+}
+
+.lessonActive:hover { background: var(--primary-light); }
+
 .lessonOrder {
   width: 24px;
   height: 24px;
@@ -77,199 +95,348 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: #e5e7eb;
-  font-size: 0.75rem;
-  font-weight: 600;
+  background: var(--bg-tertiary);
+  color: var(--text-light);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-semibold);
   flex-shrink: 0;
 }
-.lessonActive .lessonOrder { background: #2563eb; color: #fff; }
+
+.lessonActive .lessonOrder {
+  background: var(--brand-teal);
+  color: var(--white);
+}
+
+/* Tamamlanmış ders — zeytin */
+.lessonDone .lessonOrder {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+/* Henüz açılmamış ders — soluk */
+.lessonLocked { opacity: 0.55; }
+
 .lessonInfo {
   flex: 1;
   min-width: 0;
 }
+
 .lessonTitle {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #111827;
+  font-size: 0.83rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--text);
   display: block;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .lessonMeta {
-  font-size: 0.75rem;
-  color: #9ca3af;
+  font-size: 0.72rem;
+  color: var(--text-light);
 }
-.doneIcon { color: #2e7d32; flex-shrink: 0; }
+
+.doneIcon { color: var(--brand-olive); flex-shrink: 0; }
+
+/* ==========================================================================
+   ORTA — içerik
+   ========================================================================== */
 .main {
   flex: 1;
   overflow-y: auto;
   padding: 0;
+  min-width: 0;
 }
 
 .topBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #fff;
+  gap: 12px;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
   position: sticky;
   top: 0;
   z-index: 10;
+  flex-wrap: wrap;
 }
 
-.backBtn {
+/* Breadcrumb: Kurslar › kurs › ders */
+.breadcrumb {
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  font-size: 0.85rem;
-  color: #2563eb;
+  gap: 6px;
+  min-width: 0;
+  font-size: 0.75rem;
+  color: var(--text-light);
+  flex-wrap: wrap;
+}
+
+.crumbBtn {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 0.75rem;
+  color: var(--text-light);
   cursor: pointer;
-  padding: 4px 8px;
+}
+
+.crumbBtn:hover { color: var(--brand-ink); text-decoration: underline; }
+
+.crumbSep { color: var(--border); }
+
+.crumbCurrent {
+  color: var(--text);
+  font-weight: var(--font-weight-medium);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 260px;
 }
 
 .topNav {
   display: flex;
   gap: 8px;
+  flex: 0 0 auto;
 }
 
 .navBtn {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   padding: 6px 12px;
   font-size: 0.8rem;
+  color: var(--text);
   cursor: pointer;
-  transition: background 0.1s;
+  transition: background var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
 }
-.navBtn:hover:not(:disabled) { background: #e5e7eb; }
+
+.navBtn:hover:not(:disabled) {
+  background: var(--primary-light);
+  border-color: var(--brand-olive);
+  transform: translateY(var(--lift-btn));
+}
+
+.navBtn:active:not(:disabled) { transform: scale(var(--scale-active)); }
 .navBtn:disabled { opacity: 0.4; cursor: default; }
 
-.lessonHeader {
-  padding: 24px 24px 0;
+/* ---------- Aktif ders başlığı — sayfanın TEK koyu paneli (sweep kapalı) ---------- */
+.lessonHeaderPanel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 16px 24px 0;
+  padding: 16px 20px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
-.lessonTitle {
-  font-size: 1.3rem;
-  font-weight: 700;
-  margin: 0 0 8px;
-  color: #111827;
+.lessonHeaderMain { min-width: 0; }
+
+.lessonHeaderTitle {
+  margin: 0 0 6px;
+  font-size: 1.15rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--sidebar-active-text);
+  line-height: 1.3;
 }
 
 .lessonMetaRow {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: #6b7280;
+  gap: 12px;
+  font-size: 0.78rem;
+  color: var(--sidebar-text-dim);
+  flex-wrap: wrap;
 }
 
+.lessonMetaRow span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Sağda ince ilerleme göstergesi */
+.headerProgress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 150px;
+  flex: 0 0 auto;
+}
+
+.headerProgressLabel {
+  font-size: 0.72rem;
+  color: var(--sidebar-text-dim);
+}
+
+/* Koyu zeminde görünürlük: ray biraz açıldı, dolgu açık tona çekildi. */
+.headerProgressTrack {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.28);
+  overflow: hidden;
+}
+
+.headerProgressFill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--success-bg);
+  transition: width var(--dur-base) var(--ease-standard);
+}
+
+/* ---------- Sekmeler ---------- */
 .tabs {
   display: flex;
   gap: 4px;
-  padding: 12px 24px 0;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 14px 24px 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+
+.tabs::-webkit-scrollbar { display: none; }
 
 .tab {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 8px 14px;
   border: none;
   background: transparent;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--text-light);
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
-}
-.tab:hover { color: #111827; }
-.tabActive {
-  color: #2563eb;
-  border-bottom-color: #2563eb;
-  font-weight: 500;
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-standard);
 }
 
-.contentArea {
-  padding: 16px 24px 24px;
+.tab:hover { color: var(--text); }
+
+.tabActive {
+  color: var(--brand-teal);
+  border-bottom-color: var(--brand-teal);
+  font-weight: var(--font-weight-semibold);
 }
+
+/* ---------- İçerik + sağ sütun ---------- */
+.contentLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
+  align-items: start;
+  padding: 18px 24px 24px;
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .contentLayout { grid-template-columns: minmax(0, 1fr); }
+}
+
+.contentArea { min-width: 0; }
 
 .section {
   padding: 16px;
   margin-bottom: 12px;
+  min-width: 0;
 }
 
 .sectionTitle {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: var(--font-weight-semibold);
   margin: 0 0 12px;
-  color: #111827;
-}
-.summaryCard {
-  border-left: 4px solid #2563eb;
-  background: #eff6ff;
-}
-.summaryText {
-  margin: 0;
-  color: #1f2937;
-  font-size: 0.95rem;
-  line-height: 1.7;
+  color: var(--text);
 }
 
+.sectionTitle svg { color: var(--brand-ink); }
+
+.summaryCard {
+  border-left: 3px solid var(--brand-teal);
+  background: var(--primary-light);
+}
+
+.summaryText {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.92rem;
+  line-height: var(--line-height-relaxed);
+  max-width: 70ch;
+}
+
+/* ---------- Ders metni okunabilirliği ---------- */
 .markdown {
   font-size: 0.9rem;
-  line-height: 1.7;
-  color: #374151;
+  line-height: var(--line-height-relaxed);
+  color: var(--text);
+  max-width: 70ch;
 }
+
 .markdown h1, .markdown h2, .markdown h3, .markdown h4 {
-  margin: 1em 0 0.5em;
-  color: #111827;
+  margin: 1.6em 0 0.6em;
+  color: var(--text);
+  line-height: 1.35;
 }
-.markdown p { margin: 0 0 0.8em; }
-.markdown ul, .markdown ol { padding-left: 20px; margin-bottom: 0.8em; }
-.markdown li { margin-bottom: 4px; }
+
+.markdown h1:first-child,
+.markdown h2:first-child,
+.markdown h3:first-child { margin-top: 0; }
+
+.markdown p { margin: 0 0 1em; }
+.markdown ul, .markdown ol { padding-left: 20px; margin-bottom: 1em; }
+.markdown li { margin-bottom: 6px; }
+
 .markdown code {
-  background: #f3f4f6;
+  background: var(--bg-tertiary);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.85em;
 }
+
 .markdown pre {
-  background: #1f2937;
-  color: #f3f4f6;
+  background: var(--brand-teal-deep);
+  color: var(--bg);
   padding: 16px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   overflow-x: auto;
 }
+
 .markdown pre code { background: none; padding: 0; color: inherit; }
-.markdown table { border-collapse: collapse; width: 100%; margin-bottom: 0.8em; }
-.markdown th, .markdown td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
-.markdown th { background: #f9fafb; font-weight: 600; }
+:global(.dark) .markdown pre { background: var(--surface-sunken); color: var(--text); border: 1px solid var(--border); }
+
+.markdown table { border-collapse: collapse; width: 100%; margin-bottom: 1em; }
+.markdown th, .markdown td { border: 1px solid var(--border); padding: 8px; text-align: left; }
+.markdown th { background: var(--bg-tertiary); font-weight: var(--font-weight-semibold); }
+
 .markdown blockquote {
-  border-left: 4px solid #2563eb;
+  border-left: 3px solid var(--brand-teal);
   padding-left: 16px;
   margin-left: 0;
-  color: #6b7280;
+  color: var(--text-light);
 }
-.markdown a { color: #2563eb; }
+
+.markdown a { color: var(--brand-ink); }
+
 .markdown img {
   display: block;
   width: 100%;
   height: auto;
   margin: 18px auto;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
 }
 
 .outcomeList {
@@ -277,35 +444,58 @@
   padding: 0;
   margin: 0;
 }
+
 .outcomeList li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   padding: 6px 0;
-  font-size: 0.85rem;
+  font-size: 0.83rem;
+  line-height: 1.5;
 }
 
+.outcomeList svg { flex: 0 0 auto; margin-top: 2px; color: var(--brand-olive); }
+
+/* Formül / örnek blokları — --bg-tertiary zemin + sol kenarda ince teal çizgi */
 .exampleBlock {
   margin-bottom: 12px;
-  padding: 12px;
-  background: #f9fafb;
-  border-radius: 8px;
+  padding: 12px 14px;
+  background: var(--bg-tertiary);
+  border-left: 3px solid var(--brand-teal);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  max-width: 70ch;
 }
+
 .exampleNum {
   display: block;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #2563eb;
+  font-size: 0.76rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--brand-ink);
   margin-bottom: 4px;
 }
 
-.stepsList {
-  padding-left: 24px;
-  margin: 0;
+.formulaBlock {
+  background: var(--bg-tertiary);
+  border-left: 3px solid var(--brand-teal);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  font-family: ui-monospace, 'Courier New', monospace;
+  font-size: 0.88rem;
+  overflow-x: auto;
+  max-width: 70ch;
 }
+
+.stepsList {
+  padding-left: 22px;
+  margin: 0;
+  max-width: 70ch;
+}
+
 .stepItem {
   padding: 6px 0;
   font-size: 0.85rem;
+  line-height: 1.55;
 }
 
 .checklist {
@@ -313,70 +503,187 @@
   padding: 0;
   margin: 0;
 }
+
 .checklist li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
-  padding: 4px 0;
+  padding: 5px 0;
   font-size: 0.85rem;
+  line-height: 1.5;
 }
 
-.formulaBlock {
-  background: #f3f4f6;
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 8px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
-}
+.checklist svg { flex: 0 0 auto; margin-top: 2px; color: var(--brand-olive); }
 
+/* ---------- Kaynak listesi ---------- */
 .sourcesList {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
 }
+
 .sourceItem {
-  padding: 8px 0;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.84rem;
+  min-width: 0;
+  flex-wrap: wrap;
 }
-.sourceTitle { font-weight: 500; margin-bottom: 4px; }
+
+.sourceItem:last-child { border-bottom: none; }
+
+.sourceIcon { flex: 0 0 auto; color: var(--brand-ink); }
+
+.sourceBody { flex: 1; min-width: 0; }
+
+.sourceTitle {
+  display: block;
+  font-weight: var(--font-weight-medium);
+  color: var(--text);
+}
+
+.sourceName {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
 .sourceLink {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #2563eb;
+  color: var(--brand-ink);
   text-decoration: none;
-  font-size: 0.8rem;
-  margin-right: 8px;
+  font-size: 0.78rem;
+  flex: 0 0 auto;
 }
 
+.sourceLink:hover { text-decoration: underline; }
+
+/* ---------- Okuma aksiyonu ---------- */
 .readingActions {
-  margin: 16px 0;
+  margin: 18px 0;
 }
 
 .readingDone {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #2e7d32;
-  font-weight: 500;
-  font-size: 0.9rem;
-  margin: 16px 0;
+  color: var(--success);
+  font-weight: var(--font-weight-medium);
+  font-size: 0.88rem;
+  margin: 18px 0;
 }
 
 .mentorText {
-  font-size: 0.85rem;
-  color: #6b7280;
-  margin: 0 0 8px;
+  font-size: 0.83rem;
+  color: var(--text-light);
+  margin: 0 0 10px;
+  max-width: 70ch;
 }
 
+/* ==========================================================================
+   SAĞ SÜTUN — ilerleme, kazanımlar, kaynaklar
+   ========================================================================== */
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  position: sticky;
+  top: 74px;
+}
+
+@media (max-width: 1100px) {
+  .rail { position: static; }
+}
+
+.railCard {
+  padding: 14px 16px;
+  min-width: 0;
+}
+
+.railTitle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-semibold);
+  margin: 0 0 10px;
+  color: var(--text);
+}
+
+.railTitle svg { color: var(--brand-ink); }
+
+.railPercent {
+  font-size: 1.4rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--text);
+  line-height: 1.15;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.railHint {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.74rem;
+  color: var(--text-light);
+}
+
+.railList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.railList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 5px 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.railList svg { flex: 0 0 auto; margin-top: 2px; color: var(--brand-olive); }
+
+.railSourceItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 6px 0;
+  font-size: 0.78rem;
+  min-width: 0;
+}
+
+.railSourceItem + .railSourceItem { border-top: 1px solid var(--border); }
+
+.railSourceItem svg { flex: 0 0 auto; margin-top: 2px; color: var(--brand-ink); }
+
+.railSourceLink {
+  color: var(--text);
+  text-decoration: none;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.railSourceLink:hover { text-decoration: underline; color: var(--brand-ink); }
+
+/* ---------- Alt gezinme ---------- */
 .bottomNav {
   display: flex;
   justify-content: space-between;
+  gap: 12px;
   padding: 16px 24px;
-  border-top: 1px solid #e5e7eb;
-  background: #fff;
+  border-top: 1px solid var(--border);
+  background: var(--white);
+  flex-wrap: wrap;
 }
 
 .errorContainer {
@@ -385,7 +692,7 @@
   align-items: center;
   justify-content: center;
   height: 60vh;
-  color: #6b7280;
+  color: var(--text-light);
   gap: 12px;
 }
 
@@ -393,17 +700,29 @@
   .mobileToggle { display: block; }
   .sidebar {
     position: fixed;
-    top: 56px;
+    top: var(--header-height);
     left: -280px;
     z-index: 99;
-    height: calc(100vh - 56px);
-    transition: left 0.2s;
+    height: calc(100vh - var(--header-height));
+    transition: left var(--dur-base) var(--ease-standard);
   }
   .sidebarOpen { left: 0; }
   .player { min-width: 0; }
   .main { width: 100%; min-width: 0; }
-  .topBar { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+  .topBar { padding: 10px 16px; }
   .topNav { width: 100%; justify-content: flex-end; }
-  .bottomNav { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
-  .contentArea { padding: 12px 16px; }
+  .bottomNav { padding: 12px 16px; }
+  .contentLayout { padding: 14px 16px; }
+  .lessonHeaderPanel { margin: 14px 16px 0; }
+  .headerProgress { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lessonItem,
+  .navBtn,
+  .tab,
+  .headerProgressFill,
+  .sidebar {
+    transition: none;
+  }
 }

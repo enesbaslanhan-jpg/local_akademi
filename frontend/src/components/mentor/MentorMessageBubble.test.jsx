@@ -32,7 +32,7 @@ describe('MentorMessageBubble Disclaimer Parser', () => {
     // Normal markdown should just be rendered in the main content area
     // It should NOT render the disclaimer ⚠️ icon or box
     expect(screen.queryByText('⚠️')).not.toBeInTheDocument()
-    expect(screen.getByText(/1\. Madde/)).toBeInTheDocument()
+    expect(screen.getAllByRole('listitem').map(item => item.textContent)).toEqual(['Madde', 'Madde'])
   })
 
   it('parses known disclaimer format correctly', () => {

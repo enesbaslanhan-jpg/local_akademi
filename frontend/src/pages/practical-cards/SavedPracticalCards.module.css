@@ -1,0 +1,199 @@
+/*
+ * Kaydedilen Pratik Kartlar.
+ *
+ * NOT: Bu sayfa Tailwind class isimleriyle yazılmıştı ama projede Tailwind
+ * kurulu değil. MentorPanel/MentorPage'de izlenen yöntem uygulandı: mevcut
+ * class string'leri silinmedi, gerçek stil sağlayan module class'ları
+ * yanlarına eklendi.
+ */
+
+.page {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+  min-width: 0;
+}
+
+.header {
+  margin-bottom: var(--space-6);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+  color: var(--text-light);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-standard);
+}
+
+.backLink:hover {
+  color: var(--text);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text);
+}
+
+.error {
+  margin-bottom: var(--space-4);
+  color: var(--danger);
+}
+
+.empty {
+  padding: var(--space-8);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-tertiary);
+  text-align: center;
+  color: var(--text-light);
+}
+
+.emptyText {
+  margin: 0 0 var(--space-4);
+}
+
+.emptyAction {
+  display: inline-block;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+
+.emptyAction:hover {
+  color: var(--brand-ink);
+  border-color: var(--brand-olive);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--dur-base) var(--ease-standard),
+    transform var(--dur-base) var(--ease-standard);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(var(--lift-card));
+  }
+}
+
+/* Kaydedilenlerden çıkarma — yıkıcı işlem, bordo (risk ailesi) */
+.unsaveBtn {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2);
+  border: 0;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-light);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-standard),
+    opacity var(--dur-fast) var(--ease-standard);
+}
+
+.unsaveBtn:hover {
+  color: var(--danger);
+}
+
+/* Masaüstünde yalnızca kart hover'ında görünür; dokunmatikte hep görünür. */
+@media (hover: hover) and (pointer: fine) {
+  .unsaveBtn {
+    opacity: 0;
+  }
+
+  .card:hover .unsaveBtn,
+  .card:focus-within .unsaveBtn {
+    opacity: 1;
+  }
+}
+
+.cardLink {
+  flex: 1;
+  display: block;
+  padding: var(--space-6);
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease-standard);
+}
+
+.cardLink:hover {
+  background: var(--bg-hover);
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.category {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--primary-light);
+  color: var(--brand-ink);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.cardTitle {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text);
+}
+
+.cardDesc {
+  margin: 0;
+  color: var(--text-light);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .cardLink,
+  .unsaveBtn,
+  .backLink,
+  .emptyAction {
+    transition: none;
+  }
+}

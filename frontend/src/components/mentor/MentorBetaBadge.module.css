@@ -1,3 +1,12 @@
+/*
+ * AI Mentor "BETA" rozeti.
+ *
+ * NOT: Bu dosya --color-primary-subtle gibi tanımsız tokenları eski mavi
+ * fallback değerleriyle (#e0f2fe / #0369a1) kullanıyordu — yani fiilen
+ * LocalKarar paleti dışında render oluyordu. Tokenlar tokens.css'te gerçekten
+ * tanımlı karşılıklarıyla değiştirildi.
+ */
+
 .wrapper {
   position: relative;
   display: inline-flex;
@@ -5,12 +14,12 @@
 }
 
 .badge {
-  background-color: var(--color-primary-subtle, #e0f2fe);
-  color: var(--color-primary-dark, #0369a1);
+  background-color: var(--primary-light);
+  color: var(--brand-ink);
   font-size: 0.65rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   padding: 2px 6px;
-  border-radius: var(--radius-sm, 4px);
+  border-radius: var(--radius-sm);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   cursor: help;
@@ -23,22 +32,29 @@
   top: 100%;
   left: 50%;
   transform: translateX(-50%) translateY(4px);
-  background-color: var(--color-surface-inverted, #1f2937);
-  color: var(--color-text-inverted, #f9fafb);
+  background-color: var(--brand-teal-deep);
+  color: var(--bg);
   padding: 8px 12px;
-  border-radius: var(--radius-md, 6px);
-  font-size: 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
   width: max-content;
   max-width: 200px;
   text-align: center;
   pointer-events: none;
-  transition: opacity 0.2s, visibility 0.2s;
-  z-index: 50;
-  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,0.1));
+  transition: opacity var(--dur-fast) var(--ease-standard),
+    visibility var(--dur-fast) var(--ease-standard);
+  z-index: var(--z-modal);
+  box-shadow: var(--shadow);
 }
 
 .badge:hover + .tooltip,
 .badge:focus + .tooltip {
   visibility: visible;
   opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tooltip {
+    transition: none;
+  }
 }

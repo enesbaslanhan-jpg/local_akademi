@@ -1,0 +1,100 @@
+/*
+ * AI Mentor boş durum ekranı — hızlı başlangıç önerileri.
+ *
+ * NOT: Bu bileşen Tailwind class isimleriyle yazılmıştı ama projede Tailwind
+ * kurulu değil. MentorPanel'de izlenen yöntem uygulandı: mevcut class
+ * string'leri silinmedi, gerçek stil sağlayan module class'ları eklendi.
+ */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--space-6);
+  text-align: center;
+  animation: fadeSlideIn var(--dur-base) var(--ease-standard) both;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: var(--space-4);
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--brand-ink);
+}
+
+.title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text);
+}
+
+.subtitle {
+  max-width: 24rem;
+  margin: 0 0 var(--space-8);
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
+  line-height: var(--line-height-normal);
+}
+
+.quickGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 28rem;
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .quickGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.quickBtn {
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .quickBtn:hover {
+    border-color: var(--brand-olive);
+    background: var(--primary-light);
+    transform: translateY(var(--lift-btn));
+  }
+}
+
+.quickBtn:active {
+  transform: scale(var(--scale-active));
+}
+
+.quickBtn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrap,
+  .quickBtn {
+    animation: none;
+    transition: none;
+  }
+}

@@ -6,37 +6,45 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px;
+  width: auto;
+  max-width: 128px;
+  height: 40px;
+  max-height: 40px;
+  min-height: 40px;
+  padding: 8px 13px;
   border-radius: 9999px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 16px -8px rgba(0, 0, 0, .42), inset 0 1px rgba(255,255,255,.16);
   border: none;
   cursor: pointer;
   transition: transform 0.2s ease;
-  background: var(--primary);
-  color: #fff;
+  background: var(--surface-dark-2);
+  color: var(--sidebar-active-text);
+  border: 1px solid color-mix(in srgb, var(--primary) 46%, var(--border-dark));
 }
 
 .launcher:hover {
-  transform: scale(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0 13px 22px -10px rgba(0,0,0,.5), inset 0 1px rgba(255,255,255,.22);
 }
 
 .launcher:active {
   transform: scale(0.95);
 }
 
-.open {
-  background: #1f2937;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
 .label {
-  margin-left: 8px;
-  padding-right: 4px;
+  margin-left: 6px;
+  padding-right: 2px;
+  font-size: .78rem;
   font-weight: 500;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 899px) {
   .label {
     display: none;
+  }
+
+  /* Alt sekme çubuğunun üstünde kalsın — çubuğu örtmesin, örtülmesin. */
+  .launcher {
+    bottom: calc(56px + var(--space-4) + env(safe-area-inset-bottom));
   }
 }

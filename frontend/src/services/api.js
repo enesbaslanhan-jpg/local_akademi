@@ -190,6 +190,24 @@ export const api = {
     },
     async me() {
       return api.request('/auth/me');
+    },
+    async changePassword(currentPassword, newPassword) {
+      return api.request('/auth/password', {
+        method: 'PUT',
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+    },
+    async changeEmail(newEmail, currentPassword) {
+      return api.request('/auth/email', {
+        method: 'PUT',
+        body: JSON.stringify({ newEmail, currentPassword })
+      });
+    },
+    async deleteAccount(currentPassword, confirmation) {
+      return api.request('/auth/account', {
+        method: 'DELETE',
+        body: JSON.stringify({ currentPassword, confirmation })
+      });
     }
   },
 
@@ -355,6 +373,14 @@ export const api = {
       return api.request('/community/posts', {
         method: 'POST', body: JSON.stringify(data)
       });
+    },
+    async uploadMedia(file) {
+      const form = new FormData();
+      form.append('file', file);
+      return api.request('/community/media', { method: 'POST', body: form });
+    },
+    async discardMedia(mediaId) {
+      return api.request(`/community/media/${mediaId}`, { method: 'DELETE' });
     },
     async createOfficial(data) {
       return api.request('/community/official', {
@@ -846,6 +872,12 @@ export const api = {
       async readAll(workspaceId) {
         return api.request(`/workspaces/${workspaceId}/notifications/read-all`, { method: 'POST' })
       }
+    }
+  },
+
+  news: {
+    async list({ category, cursor, limit = 12 } = {}) {
+      return api.request(`/api/news${buildQuery({ category, cursor, limit })}`, {}, false);
     }
   },
 

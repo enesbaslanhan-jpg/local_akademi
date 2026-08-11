@@ -28,7 +28,7 @@
   flex: 1;
   min-width: 200px;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid #cfd6e2;
+  border: 1px solid var(--border);
   border-radius: 9px;
   font-size: var(--font-size-sm);
   font-family: var(--font-family);
@@ -42,19 +42,7 @@
 }
 
 .filterSelect {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid #cfd6e2;
-  border-radius: 9px;
-  font-size: var(--font-size-sm);
-  font-family: var(--font-family);
-  background: var(--white);
-  cursor: pointer;
   min-width: 120px;
-}
-
-.filterSelect:focus {
-  outline: none;
-  border-color: var(--primary);
 }
 
 .code {

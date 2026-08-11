@@ -1,7 +1,14 @@
-.decision-session-state { display: flex; min-height: 360px; align-items: center; justify-content: center; flex-direction: column; padding: 40px 24px; border: 1px solid #dbe4ef; border-radius: 20px; background: #fff; color: #0f172a; text-align: center; }
+.decision-session-state { display: flex; min-height: 360px; align-items: center; justify-content: center; flex-direction: column; padding: 40px 24px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--white); color: var(--text); text-align: center; }
 .decision-session-state h1 { margin: 16px 0 0; font-size: 1.35rem; }
-.decision-session-state p { max-width: 480px; margin: 8px 0 0; color: #64748b; line-height: 1.6; }
-.decision-session-state button { margin-top: 20px; padding: 11px 17px; border: 0; border-radius: 11px; background: #2563eb; color: #fff; font: inherit; font-weight: 750; cursor: pointer; }
-.decision-session-spinner { width: 36px; height: 36px; border: 3px solid #dbeafe; border-top-color: #2563eb; border-radius: 50%; animation: decision-session-spin .75s linear infinite; }
-.decision-session-error-icon { display: grid; width: 46px; height: 46px; place-items: center; border-radius: 50%; background: #fef2f2; color: #dc2626; font-size: 1.25rem; font-weight: 850; }
+.decision-session-state p { max-width: 480px; margin: 8px 0 0; color: var(--text-light); line-height: 1.6; }
+.decision-session-state button { margin-top: 20px; padding: 11px 17px; border: 0; border-radius: var(--radius-sm); background: var(--brand-teal); color: var(--white); font: inherit; font-weight: 750; cursor: pointer; transition: background var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard); }
+.decision-session-state button:hover { background: var(--primary-dark); transform: translateY(var(--lift-btn)); }
+.decision-session-state button:active { transform: scale(var(--scale-active)); }
+.decision-session-spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--brand-teal); border-radius: 50%; animation: decision-session-spin .75s linear infinite; }
+.decision-session-error-icon { display: grid; width: 46px; height: 46px; place-items: center; border-radius: 50%; background: var(--danger-bg); color: var(--danger); font-size: 1.25rem; font-weight: 850; }
 @keyframes decision-session-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .decision-session-state button { transition: none; }
+  .decision-session-spinner { animation-duration: 1.5s; }
+}

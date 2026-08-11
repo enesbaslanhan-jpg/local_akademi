@@ -56,7 +56,7 @@
 .dismissBtn {
   background: transparent;
   border: none;
-  color: var(--text-muted, #9CA3AF);
+  color: var(--text-light);
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 4px;
@@ -101,7 +101,7 @@
   align-items: center;
   justify-content: center;
   padding: 3rem;
-  background: var(--bg-surface, #FFFFFF);
+  background: var(--white);
   border-radius: 8px;
   gap: 1rem;
   color: var(--danger, #DC2626);

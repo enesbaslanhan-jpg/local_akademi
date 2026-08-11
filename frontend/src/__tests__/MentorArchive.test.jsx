@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import MentorPage from '../pages/MentorPage'
 import { api } from '@/services/api'
+import styles from '../pages/MentorPage.module.css'
 
 const { request, buildQuery } = vi.hoisted(() => {
   const BASE = '/mentor/conversations'
@@ -177,8 +178,15 @@ describe('MentorPage archive UX', () => {
     const { container } = render(<MemoryRouter><MentorPage /></MemoryRouter>)
     await waitFor(() => {
       const aside = container.querySelector('aside')
-      expect(aside).toHaveClass('md:relative')
-      expect(aside).toHaveClass('w-72')
+      expect(aside.className).toContain(styles.sidebar)
+    })
+
+    const menuBtn = await waitFor(() => screen.getByLabelText('Sohbet listesi'))
+    fireEvent.click(menuBtn)
+
+    await waitFor(() => {
+      const aside = container.querySelector('aside')
+      expect(aside.className).toContain(styles.sidebarOpen)
     })
   })
 })

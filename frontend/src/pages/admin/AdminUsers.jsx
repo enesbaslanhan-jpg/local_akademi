@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
-import { DataTable, Badge, Button, Modal } from '@/components/ui'
+import { Select, DataTable, Badge, Button, Modal } from '@/components/ui'
 import { MoreVertical, Shield, AlertTriangle } from 'lucide-react'
 import styles from './AdminUsers.module.css'
 
@@ -232,12 +232,14 @@ export default function AdminUsers() {
             aria-label="Kullanıcı ara"
           />
         </div>
-        <select className={styles.filterSelect} value={roleFilter} onChange={e => setRoleFilter(e.target.value)} aria-label="Rol filtresi">
-          <option value="">Tüm Roller</option>
-          {Object.entries(ROLE_LABELS).map(([k, v]) => (
-            <option key={k} value={k}>{v}</option>
-          ))}
-        </select>
+        <Select
+          className={styles.filterSelect}
+          aria-label="Rol filtresi"
+          placeholder="Tüm Roller"
+          options={Object.entries(ROLE_LABELS).map(([k, v]) => ({ value: k, label: v }))}
+          value={roleFilter}
+          onChange={setRoleFilter}
+        />
       </div>
 
       {error && (
@@ -270,16 +272,13 @@ export default function AdminUsers() {
               <div><b>Mevcut Rol:</b> {ROLE_LABELS[roleChangeUser.role] || roleChangeUser.role}</div>
             </div>
 
-            <select
+            <Select
               className={styles.roleModalSelect}
-              value={newRole}
-              onChange={e => setNewRole(e.target.value)}
               aria-label="Yeni rol seçin"
-            >
-              {Object.entries(ROLE_LABELS).map(([k, v]) => (
-                <option key={k} value={k}>{v}</option>
-              ))}
-            </select>
+              options={Object.entries(ROLE_LABELS).map(([k, v]) => ({ value: k, label: v }))}
+              value={newRole}
+              onChange={setNewRole}
+            />
 
             {isSelfAdminRemoval && (
               <div className={styles.roleModalWarning}>

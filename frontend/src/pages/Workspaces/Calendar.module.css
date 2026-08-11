@@ -13,11 +13,37 @@
 .blank { background: var(--bg-primary); }
 .events { display: grid; gap: 5px; margin-top: 7px; }
 .event { min-width: 0; display: grid; padding: 5px 6px; border-radius: 7px; background: var(--bg-tertiary); border-left: 3px solid var(--text-secondary); }
-.event.payable { border-left-color: #dc2626; }
-.event.receivable { border-left-color: #16a34a; }
+.event.payable { border-left-color: var(--danger); }
+.event.receivable { border-left-color: var(--brand-olive); }
 .event small, .event b { font-size: .68rem; color: var(--text-secondary); }
 .event span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .76rem; color: var(--text-primary); }
 .more { color: var(--text-secondary); }
 .empty { min-height: 120px; display: grid; place-items: center; align-content: center; gap: 8px; color: var(--text-secondary); border: 1px dashed var(--border); border-radius: 12px; }
+
+/* İşletme Takibi / Takvim — operasyon takvimi */
+.heading { padding: 18px 20px; border-radius: 2px 22px 2px 22px; background: linear-gradient(112deg, var(--brand-700), var(--brand-700)); color: var(--brand-50); box-shadow: 0 18px 34px -25px rgba(6,31,26,.7), inset 0 1px rgba(255,255,255,.14); }
+.heading p { color: rgba(254,249,238,.7); }
+.navigation button { color: var(--brand-50); border-color: rgba(255,255,255,.16); background: rgba(255,255,255,.08); }
+.metrics span { border-radius: 12px; border-color: var(--border); background: var(--surface-card); box-shadow: var(--shadow-card); }
+.calendar { overflow: hidden; border: 1px solid color-mix(in srgb, var(--brand-900) 16%, transparent); border-radius: 2px 22px 2px 22px; background: rgba(231,223,208,.68); box-shadow: 0 18px 35px -28px rgba(24,47,40,.62); }
+.weekday { background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text); }
+.day { background: linear-gradient(145deg, rgba(250,247,240,.78), rgba(234,227,214,.72)); }
+.blank { background: rgba(214,206,191,.48); }
+.event { border-radius: 9px; background: var(--surface-panel); }
+.empty { border-radius: 2px 20px 2px 20px; background: linear-gradient(145deg, rgba(242,235,223,.74), rgba(225,218,204,.64)); }
+
+@media (max-width: 720px) {
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .day, .blank { min-height: 92px; padding: 5px; }
+}
 @media (max-width: 900px) { .metrics { grid-template-columns: 1fr 1fr; } .calendar { overflow-x: auto; grid-template-columns: repeat(7, minmax(130px, 1fr)); } }
 @media (max-width: 650px) { .heading { flex-direction: column; } }
+
+:global(.dark) .heading { background: var(--surface-panel); color: var(--text); border: 1px solid var(--border); box-shadow: var(--shadow-card); }
+:global(.dark) .heading p { color: var(--text-light); }
+:global(.dark) .navigation button { color: var(--text); border-color: var(--border-strong); background: var(--surface-raised); }
+:global(.dark) .calendar { border-color: var(--border); background: var(--surface-panel); box-shadow: var(--shadow-card); }
+:global(.dark) .weekday { background: var(--surface-raised); color: var(--text-light); }
+:global(.dark) .day { background: var(--surface-card); }
+:global(.dark) .blank { background: var(--surface-sunken); }
+:global(.dark) .empty { background: var(--surface-panel); }

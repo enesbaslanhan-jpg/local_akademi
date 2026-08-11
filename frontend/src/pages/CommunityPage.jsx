@@ -1,30 +1,152 @@
-import { useEffect, useState } from 'react'
-import { ExternalLink, Newspaper, Send, Users } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  Clock,
+  ExternalLink,
+  FileText,
+  Flag,
+  Image as ImageIcon,
+  Paperclip,
+  Send,
+  Star,
+  TrendingUp,
+  Users,
+  X,
+} from 'lucide-react'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import styles from './CommunityPage.module.css'
 
+const API_URL = import.meta.env.VITE_API_URL || ''
 const emptyUserPost = { title: '', summary: '' }
-const emptyOfficialPost = {
-  title: '',
-  summary: '',
-  sourceTitle: '',
-  sourceUrl: '',
+const emptyOfficialPost = { title: '', summary: '', sourceTitle: '', sourceUrl: '' }
+
+function timeAgo(dateStr) {
+  if (!dateStr) return ''
+  const diff = Math.max(0, Date.now() - new Date(dateStr).getTime())
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'az önce'
+  if (mins < 60) return `${mins} dk önce`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours} saat önce`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days} gün önce`
+  return new Date(dateStr).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-export default function CommunityPage() {
+function initials(name = 'LK') {
+  return name.split(' ').filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase()
+}
+
+function mediaUrl(media) {
+  return media?.id ? `${API_URL}/community/media/${media.id}` : ''
+}
+
+function MediaPicker({ media, onChange, disabled = false }) {
+  const inputRef = useRef(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+  const [preview, setPreview] = useState('')
+
+  useEffect(() => () => {
+    if (preview) URL.revokeObjectURL(preview)
+  }, [preview])
+
+  async function selectFile(event) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setError('')
+    setUploading(true)
+    try {
+      if (media?.id) await api.community.discardMedia(media.id).catch(() => {})
+      if (preview) URL.revokeObjectURL(preview)
+      const result = await api.community.uploadMedia(file)
+      setPreview(file.type.startsWith('image/') ? URL.createObjectURL(file) : '')
+      onChange(result.media)
+    } catch (uploadError) {
+      setError(uploadError.message || 'Dosya yüklenemedi.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  async function removeMedia() {
+    if (media?.id) await api.community.discardMedia(media.id).catch(() => {})
+    if (preview) URL.revokeObjectURL(preview)
+    setPreview('')
+    setError('')
+    onChange(null)
+  }
+
+  return (
+    <div className={styles.mediaPicker}>
+      <input
+        ref={inputRef}
+        className="sr-only"
+        type="file"
+        accept="image/png,image/jpeg,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        onChange={selectFile}
+        disabled={disabled || uploading}
+      />
+      <button type="button" className={styles.toolButton} onClick={() => inputRef.current?.click()} disabled={disabled || uploading}>
+        <ImageIcon size={18} aria-hidden="true" />
+        <span>Görsel</span>
+      </button>
+      <button type="button" className={styles.toolButton} onClick={() => inputRef.current?.click()} disabled={disabled || uploading}>
+        <Paperclip size={18} aria-hidden="true" />
+        <span>Dosya</span>
+      </button>
+      {uploading && <span className={styles.uploadStatus}>Yükleniyor…</span>}
+      {media && (
+        <div className={styles.selectedMedia}>
+          {preview ? <img src={preview} alt="Yüklenecek görsel önizlemesi" /> : <FileText size={18} />}
+          <span>{media.originalName}</span>
+          <button type="button" onClick={removeMedia} aria-label="Ek dosyayı kaldır"><X size={16} /></button>
+        </div>
+      )}
+      {error && <span className={styles.mediaError}>{error}</span>}
+    </div>
+  )
+}
+
+function PostMedia({ media, featured = false }) {
+  if (!media) return null
+  const url = mediaUrl(media)
+  if (media.kind === 'image') {
+    return <img className={featured ? styles.featuredImage : styles.postImage} src={url} alt="" loading={featured ? 'eager' : 'lazy'} />
+  }
+  return (
+    <a className={styles.fileAttachment} href={url} target="_blank" rel="noreferrer noopener">
+      <FileText size={20} />
+      <span><strong>{media.originalName}</strong><small>{Math.ceil(media.sizeBytes / 1024)} KB</small></span>
+    </a>
+  )
+}
+
+export default function CommunityPage({ mode = 'news' }) {
   const { isAdmin } = useAuth()
-  const [type, setType] = useState('')
+  const isNews = mode === 'news'
+  const type = isNews ? 'official' : 'user'
   const [posts, setPosts] = useState([])
   const [pending, setPending] = useState([])
   const [reports, setReports] = useState([])
   const [userPost, setUserPost] = useState(emptyUserPost)
+  const [userMedia, setUserMedia] = useState(null)
   const [officialPost, setOfficialPost] = useState(emptyOfficialPost)
+  const [officialMedia, setOfficialMedia] = useState(null)
   const [aiSourceText, setAiSourceText] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+
+  const contributors = useMemo(() => Object.values(posts.reduce((result, post) => {
+    const name = post.author?.name || 'LocalKarar kullanıcısı'
+    result[name] ||= { name, count: 0 }
+    result[name].count += 1
+    return result
+  }, {})).sort((a, b) => b.count - a.count).slice(0, 4), [posts])
 
   async function load() {
     setLoading(true)
@@ -32,50 +154,52 @@ export default function CommunityPage() {
     try {
       const [feed, moderation, reportQueue] = await Promise.all([
         api.community.list(type),
-        isAdmin
-          ? api.community.moderation()
-          : Promise.resolve({ posts: [] }),
-        isAdmin
-          ? api.community.reports()
-          : Promise.resolve({ reports: [] }),
+        isAdmin ? api.community.moderation() : Promise.resolve({ posts: [] }),
+        isAdmin ? api.community.reports() : Promise.resolve({ reports: [] }),
       ])
       setPosts(feed.posts || [])
       setPending(moderation.posts || [])
       setReports(reportQueue.reports || [])
-    } catch (err) {
-      setError(err.message || 'Paylaşım alanı yüklenemedi.')
+    } catch (loadError) {
+      setError(loadError.message || 'Akış yüklenemedi.')
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    load()
-  }, [type, isAdmin])
+  useEffect(() => { load() }, [type, isAdmin])
 
   async function submitUserPost(event) {
     event.preventDefault()
+    setSubmitting(true)
     setError('')
     try {
-      const result = await api.community.submit(userPost)
+      const result = await api.community.submit({ ...userPost, ...(userMedia ? { mediaId: userMedia.id } : {}) })
       setUserPost(emptyUserPost)
+      setUserMedia(null)
       setNotice(result.message)
       if (isAdmin) await load()
-    } catch (err) {
-      setError(err.message || 'Paylaşım gönderilemedi.')
+    } catch (submitError) {
+      setError(submitError.message || 'Paylaşım gönderilemedi.')
+    } finally {
+      setSubmitting(false)
     }
   }
 
   async function submitOfficialPost(event) {
     event.preventDefault()
+    setSubmitting(true)
     setError('')
     try {
-      await api.community.createOfficial(officialPost)
+      await api.community.createOfficial({ ...officialPost, ...(officialMedia ? { mediaId: officialMedia.id } : {}) })
       setOfficialPost(emptyOfficialPost)
-      setNotice('Resmî güncelleme taslak olarak kaydedildi.')
+      setOfficialMedia(null)
+      setNotice('Resmî güncelleme moderasyon taslağına kaydedildi.')
       await load()
-    } catch (err) {
-      setError(err.message || 'Resmî güncelleme kaydedilemedi.')
+    } catch (submitError) {
+      setError(submitError.message || 'Resmî güncelleme kaydedilemedi.')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -83,293 +207,135 @@ export default function CommunityPage() {
     setAiLoading(true)
     setError('')
     try {
-      await api.community.createAiOfficial({
-        sourceTitle: officialPost.sourceTitle,
-        sourceUrl: officialPost.sourceUrl,
-        sourceText: aiSourceText,
-      })
+      await api.community.createAiOfficial({ sourceTitle: officialPost.sourceTitle, sourceUrl: officialPost.sourceUrl, sourceText: aiSourceText })
       setAiSourceText('')
-      setNotice('Yerel AI özeti taslak olarak oluşturuldu; yayınlamadan önce inceleyin.')
+      setNotice('Yerel AI özeti taslak olarak oluşturuldu; yayımlamadan önce inceleyin.')
       await load()
-    } catch (err) {
-      setError(err.message || 'Yerel AI özeti oluşturulamadı.')
+    } catch (aiError) {
+      setError(aiError.message || 'Yerel AI özeti oluşturulamadı.')
     } finally {
       setAiLoading(false)
     }
   }
 
   async function moderate(postId, action) {
-    const reason =
-      action === 'reject'
-        ? window.prompt('Ret nedeni')?.trim()
-        : ''
+    const reason = action === 'reject' ? window.prompt('Ret nedeni')?.trim() : ''
     if (action === 'reject' && !reason) return
-    try {
-      await api.community.moderate(postId, action, reason)
-      await load()
-    } catch (err) {
-      setError(err.message || 'Moderasyon işlemi başarısız.')
-    }
+    try { await api.community.moderate(postId, action, reason); await load() }
+    catch (moderationError) { setError(moderationError.message || 'Moderasyon işlemi başarısız.') }
   }
 
   async function reportPost(postId) {
-    const allowed = [
-      'spam', 'misinformation', 'harassment',
-      'unsafe', 'copyright', 'other',
-    ]
-    const reason = window.prompt(
-      'Rapor nedeni: spam, misinformation, harassment, unsafe, copyright veya other',
-      'misinformation',
-    )?.trim()
+    const allowed = ['spam', 'misinformation', 'harassment', 'unsafe', 'copyright', 'other']
+    const reason = window.prompt('Rapor nedeni: spam, misinformation, harassment, unsafe, copyright veya other', 'misinformation')?.trim()
     if (!reason || !allowed.includes(reason)) return
-    const details = reason === 'other'
-      ? window.prompt('Kısa açıklama')?.trim()
-      : undefined
+    const details = reason === 'other' ? window.prompt('Kısa açıklama')?.trim() : undefined
     if (reason === 'other' && !details) return
-    try {
-      await api.community.report(postId, reason, details)
-      setNotice('Rapor moderasyon ekibine iletildi.')
-    } catch (err) {
-      setError(err.message || 'Rapor gönderilemedi.')
-    }
+    try { await api.community.report(postId, reason, details); setNotice('Rapor moderasyon ekibine iletildi.') }
+    catch (reportError) { setError(reportError.message || 'Rapor gönderilemedi.') }
   }
 
   async function resolveReport(reportId, action) {
-    try {
-      await api.community.resolveReport(reportId, action)
-      await load()
-    } catch (err) {
-      setError(err.message || 'Rapor çözülemedi.')
-    }
+    try { await api.community.resolveReport(reportId, action); await load() }
+    catch (resolveError) { setError(resolveError.message || 'Rapor çözülemedi.') }
   }
 
+  const featuredPost = isNews ? posts[0] : null
+  const latestPosts = isNews ? posts.slice(1) : posts
+
   return (
-    <main className={styles.page}>
-      <header className={styles.header}>
-        <div>
-          <span className={styles.eyebrow}>Kaynaklı ve kontrollü</span>
-          <h1>Güncellemeler ve Paylaşım</h1>
-          <p>
-            Resmî duyuruların kısa özetlerini okuyun, kendi işletme
-            deneyiminizi toplulukla paylaşın.
-          </p>
-        </div>
-        <Newspaper size={38} aria-hidden="true" />
+    <main className={`${styles.page} ${isNews ? styles.newsPage : styles.communityPage}`}>
+      <header className={styles.pageHeading}>
+        <span className={styles.kicker}>{isNews ? 'LocalKarar Haber Merkezi' : 'Profesyonel Topluluk'}</span>
+        <h1>{isNews ? 'Haberler' : 'Topluluk Akışı'}</h1>
+        <p>{isNews ? 'İşletmenizi etkileyen resmî gelişmeleri kaynaklı ve kısa özetlerle takip edin.' : 'LocalKarar topluluğunda bugün neler konuşulduğunu keşfet ve deneyimini paylaş.'}</p>
       </header>
 
       {notice && <div className={styles.notice}>{notice}</div>}
       {error && <div className={styles.error}>{error}</div>}
 
-      <section className={styles.composer}>
-        <div>
-          <Users size={22} aria-hidden="true" />
-          <h2>Deneyimini paylaş</h2>
-          <p>Gönderiler yayınlanmadan önce moderasyondan geçer.</p>
+      {!isNews && (
+        <div className={styles.communityGrid}>
+          <div className={styles.mainColumn}>
+            <section id="paylas" className={styles.composer}>
+              <div className={styles.composerTitle}>
+                <span className={styles.authorAvatar}>LK</span>
+                <span><h2>Deneyimini paylaş</h2><p>Gönderiler yayımlanmadan önce moderasyondan geçer.</p></span>
+              </div>
+              <form onSubmit={submitUserPost} className={styles.form}>
+                <input aria-label="Paylaşım başlığı" placeholder="Başlık ekle" value={userPost.title} onChange={event => setUserPost({ ...userPost, title: event.target.value })} minLength={5} maxLength={180} required />
+                <textarea aria-label="Paylaşım metni" placeholder="İşletmende ne öğrendin?" value={userPost.summary} onChange={event => setUserPost({ ...userPost, summary: event.target.value })} minLength={20} maxLength={1200} rows={3} required />
+                <div className={styles.composerFooter}>
+                  <MediaPicker media={userMedia} onChange={setUserMedia} disabled={submitting} />
+                  <button className={styles.primaryButton} type="submit" disabled={submitting}><Send size={17} />{submitting ? 'Gönderiliyor…' : 'Paylaş'}</button>
+                </div>
+              </form>
+            </section>
+            {isAdmin && <AdminPanel {...{ pending, reports, officialPost, setOfficialPost, officialMedia, setOfficialMedia, submitting, submitOfficialPost, aiSourceText, setAiSourceText, aiLoading, createAiOfficialDraft, moderate, resolveReport }} />}
+            <section className={styles.feed} aria-live="polite">
+              {loading && <FeedSkeleton />}
+              {!loading && posts.length === 0 && <EmptyState text="Henüz yayımlanmış paylaşım yok. İlk deneyimi sen paylaşabilirsin." />}
+              {posts.map(post => <CommunityCard key={post.id} post={post} onReport={reportPost} />)}
+            </section>
+          </div>
+          <CommunityRail posts={posts} contributors={contributors} />
         </div>
-        <form onSubmit={submitUserPost} className={styles.form}>
-          <label>
-            Başlık
-            <input
-              value={userPost.title}
-              onChange={event =>
-                setUserPost({ ...userPost, title: event.target.value })
-              }
-              minLength={5}
-              maxLength={180}
-              required
-            />
-          </label>
-          <label>
-            Kısa ve özgün paylaşım
-            <textarea
-              value={userPost.summary}
-              onChange={event =>
-                setUserPost({ ...userPost, summary: event.target.value })
-              }
-              minLength={20}
-              maxLength={1200}
-              rows={4}
-              required
-            />
-          </label>
-          <button type="submit">
-            <Send size={17} /> Moderasyona gönder
-          </button>
-        </form>
-      </section>
-
-      {isAdmin && (
-        <section className={styles.adminPanel}>
-          <h2>Resmî güncelleme taslağı</h2>
-          <p>
-            Telifli haber metnini kopyalamayın; kendi kısa özetinizi ve
-            doğrudan resmî kaynak bağlantısını girin.
-          </p>
-          <form onSubmit={submitOfficialPost} className={styles.form}>
-            {Object.entries({
-              title: 'Başlık',
-              sourceTitle: 'Kaynak kurum',
-              sourceUrl: 'Kaynak bağlantısı',
-            }).map(([key, label]) => (
-              <label key={key}>
-                {label}
-                <input
-                  type={key === 'sourceUrl' ? 'url' : 'text'}
-                  value={officialPost[key]}
-                  onChange={event =>
-                    setOfficialPost({
-                      ...officialPost,
-                      [key]: event.target.value,
-                    })
-                  }
-                  required
-                />
-              </label>
-            ))}
-            <label>
-              Özgün kısa özet
-              <textarea
-                value={officialPost.summary}
-                onChange={event =>
-                  setOfficialPost({
-                    ...officialPost,
-                    summary: event.target.value,
-                  })
-                }
-                minLength={20}
-                maxLength={1200}
-                rows={4}
-                required
-              />
-            </label>
-            <button type="submit">Taslak oluştur</button>
-          </form>
-
-          <div className={styles.aiDraft}>
-            <h3>Yerel AI ile özgün özet taslağı</h3>
-            <p>
-              Yukarıdaki kaynak kurum ve bağlantıyı doldurun. Aşağıdaki kaynak
-              metni yalnız özetleme isteğinde kullanılır, veritabanında saklanmaz.
-            </p>
-            <textarea
-              value={aiSourceText}
-              onChange={event => setAiSourceText(event.target.value)}
-              minLength={100}
-              maxLength={12000}
-              rows={6}
-              placeholder="Resmî duyuru metni…"
-            />
-            <button
-              type="button"
-              onClick={createAiOfficialDraft}
-              disabled={
-                aiLoading ||
-                !officialPost.sourceTitle ||
-                !officialPost.sourceUrl ||
-                aiSourceText.trim().length < 100
-              }
-            >
-              {aiLoading ? 'Yerel AI özetliyor…' : 'AI taslağı oluştur'}
-            </button>
-          </div>
-
-          <h3>Moderasyon kuyruğu ({pending.length})</h3>
-          <div className={styles.queue}>
-            {pending.map(post => (
-              <article key={post.id} className={styles.queueItem}>
-                <strong>{post.title}</strong>
-                <span>{post.postType === 'official' ? 'Resmî' : 'Kullanıcı'}</span>
-                <p>{post.summary}</p>
-                <div>
-                  <button onClick={() => moderate(post.id, 'publish')}>
-                    Yayınla
-                  </button>
-                  <button
-                    className={styles.reject}
-                    onClick={() => moderate(post.id, 'reject')}
-                  >
-                    Reddet
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          <h3>Açık kullanıcı raporları ({reports.length})</h3>
-          <div className={styles.queue}>
-            {reports.map(report => (
-              <article key={report.id} className={styles.queueItem}>
-                <strong>{report.post.title}</strong>
-                <span>{report.reason}</span>
-                {report.details && <p>{report.details}</p>}
-                <div>
-                  <button onClick={() => resolveReport(report.id, 'dismiss')}>
-                    Raporu kapat
-                  </button>
-                  <button
-                    className={styles.reject}
-                    onClick={() => resolveReport(report.id, 'hide_post')}
-                  >
-                    Gönderiyi gizle
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
       )}
 
-      <div className={styles.filters} role="group" aria-label="Paylaşım filtresi">
-        {[
-          ['', 'Tümü'],
-          ['official', 'Resmî güncellemeler'],
-          ['user', 'Topluluk'],
-        ].map(([value, label]) => (
-          <button
-            key={value}
-            className={type === value ? styles.active : ''}
-            onClick={() => setType(value)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      <section className={styles.feed} aria-live="polite">
-        {loading && <p>Paylaşımlar yükleniyor…</p>}
-        {!loading && posts.length === 0 && (
-          <p className={styles.empty}>Henüz yayımlanmış paylaşım yok.</p>
-        )}
-        {posts.map(post => (
-          <article key={post.id} className={styles.card}>
-            <div className={styles.cardMeta}>
-              <span className={post.postType === 'official' ? styles.official : styles.user}>
-                {post.postType === 'official' ? 'Resmî özet' : 'Topluluk'}
-              </span>
-              <time>
-                {new Date(post.publishedAt).toLocaleDateString('tr-TR')}
-              </time>
+      {isNews && (
+        <>
+          {isAdmin && <AdminPanel {...{ pending, reports, officialPost, setOfficialPost, officialMedia, setOfficialMedia, submitting, submitOfficialPost, aiSourceText, setAiSourceText, aiLoading, createAiOfficialDraft, moderate, resolveReport }} />}
+          {loading ? <FeedSkeleton /> : posts.length === 0 ? <EmptyState text="Henüz yayımlanmış resmî haber yok." /> : (
+            <div className={styles.newsGrid}>
+              <div className={styles.newsMain}>
+                <FeaturedNews post={featuredPost} onReport={reportPost} />
+                <div className={styles.sectionHeading}><h2>Son gelişmeler</h2><span>{posts.length} kaynaklı özet</span></div>
+                <section className={styles.newsList}>{latestPosts.map(post => <NewsCard key={post.id} post={post} onReport={reportPost} />)}</section>
+              </div>
+              <aside className={styles.newsRail}>
+                <section className={styles.railCard}><h2><TrendingUp size={19} /> Öne çıkanlar</h2>{posts.slice(0, 5).map((post, index) => <a key={post.id} href={post.sourceUrl || '#'} target={post.sourceUrl ? '_blank' : undefined} rel="noreferrer noopener"><b>{String(index + 1).padStart(2, '0')}</b><span>{post.title}<small>{timeAgo(post.publishedAt)}</small></span></a>)}</section>
+                <section className={styles.sourcePromise}><Star size={22} /><h2>Kaynağı belli</h2><p>Her haber özeti doğrudan resmî bağlantısıyla yayımlanır.</p></section>
+              </aside>
             </div>
-            <h2>{post.title}</h2>
-            <p>{post.summary}</p>
-            {post.sourceUrl ? (
-              <a href={post.sourceUrl} target="_blank" rel="noreferrer noopener">
-                {post.sourceTitle || 'Resmî kaynağı aç'}
-                <ExternalLink size={15} />
-              </a>
-            ) : (
-              <small>{post.author?.name || 'LocalAkademi kullanıcısı'}</small>
-            )}
-            <button
-              type="button"
-              className={styles.reportButton}
-              onClick={() => reportPost(post.id)}
-            >
-              Raporla
-            </button>
-          </article>
-        ))}
-      </section>
+          )}
+        </>
+      )}
     </main>
   )
 }
+
+function CommunityCard({ post, onReport }) {
+  return <article className={styles.communityCard}>
+    <div className={styles.authorRow}><span className={styles.authorAvatar}>{initials(post.author?.name)}</span><span><strong>{post.author?.name || 'LocalKarar kullanıcısı'}</strong><small>{timeAgo(post.publishedAt)}</small></span></div>
+    <h2>{post.title}</h2><p>{post.summary}</p><PostMedia media={post.media} />
+    <div className={styles.cardActions}><span>Topluluk paylaşımı</span><button type="button" onClick={() => onReport(post.id)}><Flag size={15} /> Raporla</button></div>
+  </article>
+}
+
+function FeaturedNews({ post, onReport }) {
+  return <article className={styles.featuredNews}>
+    <PostMedia media={post.media} featured />
+    <div className={styles.featuredOverlay} />
+    <div className={styles.featuredContent}><span className={styles.newsBadge}>Günün gelişmesi</span><h2>{post.title}</h2><p>{post.summary}</p><div><span><Clock size={15} /> {timeAgo(post.publishedAt)}</span>{post.sourceUrl && <a href={post.sourceUrl} target="_blank" rel="noreferrer noopener">Resmî kaynağı aç <ExternalLink size={15} /></a>}<button type="button" onClick={() => onReport(post.id)}><Flag size={14} /> Raporla</button></div></div>
+  </article>
+}
+
+function NewsCard({ post, onReport }) {
+  return <article className={styles.newsCard}><div className={styles.newsThumb}>{post.media?.kind === 'image' ? <PostMedia media={post.media} /> : <FileText size={34} />}</div><div className={styles.newsBody}><span>{post.sourceTitle || 'Resmî kaynak'}</span><h2>{post.title}</h2><p>{post.summary}</p><div><time>{timeAgo(post.publishedAt)}</time>{post.sourceUrl && <a href={post.sourceUrl} target="_blank" rel="noreferrer noopener">Kaynağa git <ExternalLink size={14} /></a>}<button type="button" onClick={() => onReport(post.id)} aria-label="Haberi raporla"><Flag size={14} /></button></div></div></article>
+}
+
+function CommunityRail({ posts, contributors }) {
+  return <aside className={styles.communityRail} aria-label="Topluluk özeti"><section className={styles.railCard}><h2><TrendingUp size={19} /> Gündemde</h2>{posts.length === 0 ? <p>Henüz gündem başlığı oluşmadı.</p> : posts.slice(0, 4).map((post, index) => <div className={styles.topicRow} key={post.id}><span>{post.title}</span><small>{index + 1}</small></div>)}</section><section className={styles.railCard}><h2><Star size={19} /> Katkı sağlayanlar</h2>{contributors.length === 0 ? <p>İlk katkıyı paylaşarak sen başlatabilirsin.</p> : contributors.map(person => <div className={styles.contributorRow} key={person.name}><span className={styles.authorAvatar}>{initials(person.name)}</span><span><strong>{person.name}</strong><small>{person.count} paylaşım</small></span></div>)}</section></aside>
+}
+
+function AdminPanel(props) {
+  const { pending, reports, officialPost, setOfficialPost, officialMedia, setOfficialMedia, submitting, submitOfficialPost, aiSourceText, setAiSourceText, aiLoading, createAiOfficialDraft, moderate, resolveReport } = props
+  return <details id="yayin-araclari" className={styles.adminPanel}><summary><span>Yayın ve moderasyon araçları</span><small>{pending.length} bekleyen · {reports.length} açık rapor</small></summary><div className={styles.adminContent}><h2>Resmî güncelleme oluştur</h2><p>Kendi kısa özetinizi, doğrudan resmî kaynak bağlantısını ve isteğe bağlı görsel veya dosyayı ekleyin.</p><form onSubmit={submitOfficialPost} className={styles.form}><div className={styles.twoFields}><label>Başlık<input value={officialPost.title} onChange={event => setOfficialPost({ ...officialPost, title: event.target.value })} required /></label><label>Kaynak kurum<input value={officialPost.sourceTitle} onChange={event => setOfficialPost({ ...officialPost, sourceTitle: event.target.value })} required /></label></div><label>Kaynak bağlantısı<input type="url" value={officialPost.sourceUrl} onChange={event => setOfficialPost({ ...officialPost, sourceUrl: event.target.value })} required /></label><label>Özgün kısa özet<textarea value={officialPost.summary} onChange={event => setOfficialPost({ ...officialPost, summary: event.target.value })} minLength={20} maxLength={1200} rows={4} required /></label><div className={styles.composerFooter}><MediaPicker media={officialMedia} onChange={setOfficialMedia} disabled={submitting} /><button className={styles.primaryButton} type="submit" disabled={submitting}>Taslak oluştur</button></div></form><div className={styles.aiDraft}><h3>Yerel AI ile özet taslağı</h3><textarea value={aiSourceText} onChange={event => setAiSourceText(event.target.value)} minLength={100} maxLength={12000} rows={4} placeholder="Resmî duyuru metni…" /><button type="button" onClick={createAiOfficialDraft} disabled={aiLoading || !officialPost.sourceTitle || !officialPost.sourceUrl || aiSourceText.trim().length < 100}>{aiLoading ? 'Özetleniyor…' : 'AI taslağı oluştur'}</button></div><ModerationQueue pending={pending} reports={reports} moderate={moderate} resolveReport={resolveReport} /></div></details>
+}
+
+function ModerationQueue({ pending, reports, moderate, resolveReport }) {
+  return <div className={styles.moderationGrid}><section><h3>Moderasyon kuyruğu ({pending.length})</h3>{pending.map(post => <article key={post.id} className={styles.queueItem}><strong>{post.title}</strong><p>{post.summary}</p>{post.media && <div className={styles.pendingAttachment}><FileText size={16} /> {post.media.originalName}</div>}<div><button onClick={() => moderate(post.id, 'publish')}>Yayımla</button><button onClick={() => moderate(post.id, 'reject')}>Reddet</button></div></article>)}</section><section><h3>Açık raporlar ({reports.length})</h3>{reports.map(report => <article key={report.id} className={styles.queueItem}><strong>{report.post.title}</strong><p>{report.details || report.reason}</p><div><button onClick={() => resolveReport(report.id, 'dismiss')}>Kapat</button><button onClick={() => resolveReport(report.id, 'hide_post')}>Gizle</button></div></article>)}</section></div>
+}
+
+function FeedSkeleton() { return <div className={styles.skeleton} aria-label="İçerik yükleniyor"><span /><span /><span /></div> }
+function EmptyState({ text }) { return <div className={styles.empty}><Users size={34} /><p>{text}</p></div> }

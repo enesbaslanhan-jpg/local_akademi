@@ -1,52 +1,267 @@
 .decision-list-page {
   min-width: 0;
   min-height: 100%;
-  padding: 40px 32px 64px;
-  background:
-    radial-gradient(circle at 8% 0%, rgba(37, 99, 235, 0.08), transparent 28%),
-    #f8fafc;
-  color: #0f172a;
+  /* Üst boşluk azaltıldı: sayfa adı zaten üst barda yazıyor. */
+  padding: 8px 18px 28px;
+  background: var(--bg);
+  color: var(--text);
 }
 
 .decision-list-shell {
   width: 100%;
-  max-width: 1180px;
+  max-width: 1060px;
   margin: 0 auto;
 }
 
-.decision-list-header {
-  display: block;
-  max-width: 720px;
-  margin-bottom: 36px;
-  padding: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+/* ---------- İmza koyu panel + taşan cam arama hapı ----------
+   Sayfanın TEK koyu paneli. Hüzme (mirrorSweepLoop) DarkPanel'in sweep
+   prop'undan geliyor; buradaki ışık huzmesi ondan ayrı, sabit bir radial
+   gradyan. */
+.decision-hero-wrap {
+  position: relative;
+  /* Cam hapın yarısı panelin dışına taştığı için altta yer bırakılır. */
+  margin-bottom: 34px;
 }
 
-.decision-list-eyebrow {
-  margin: 0 0 10px;
-  color: #2563eb;
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+.decision-hero {
+  padding: 22px 26px 28px;
+  text-align: center;
+}
+
+/* Sağ üstten gelen ışık hüzmesi. */
+.decision-hero-beam {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 150% at 88% -20%,
+    rgba(255, 255, 255, 0.16),
+    rgba(255, 255, 255, 0.05) 38%,
+    transparent 62%
+  );
+}
+
+.decision-hero-eyebrow {
+  position: relative;
+  margin: 0;
+  color: var(--brand-gold);
+  font-size: var(--font-size-page-eyebrow);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
-.decision-list-header h1 {
-  margin: 0;
-  color: #0f172a;
-  font-size: clamp(2rem, 4vw, 3rem);
-  line-height: 1.08;
-  letter-spacing: -0.035em;
+.decision-hero-title {
+  position: relative;
+  max-width: 22ch;
+  margin: 7px auto 0;
+  color: var(--sidebar-active-text);
+  font-size: 1.55rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
-.decision-list-intro {
-  max-width: 660px;
-  margin: 16px 0 0;
-  color: #475569;
-  font-size: 1rem;
-  line-height: 1.7;
+.decision-hero-intro {
+  position: relative;
+  max-width: 62ch;
+  margin: 8px auto 0;
+  color: var(--sidebar-text);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+/* Yarısı panelin dışında duran cam hap. Hem koyu hem açık zeminin üzerine
+   bindiği için açık cam + koyu metin kullanılıyor — iki zeminde de okunur. */
+.decision-hero-search {
+  position: absolute;
+  left: 50%;
+  bottom: -19px;
+  transform: translateX(-50%);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(380px, calc(100% - 48px));
+  height: 38px;
+  padding: 0 18px;
+  border-radius: var(--radius-full);
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  color: var(--text-light);
+}
+
+.decision-hero-search:focus-within {
+  border-color: var(--brand-olive);
+  color: var(--brand-ink);
+}
+
+.decision-hero-search input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.decision-hero-search input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* ---------- Durum süzgeci (mobil / panel kapalıyken) ---------- */
+.decision-filter-row {
+  display: none;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.decision-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--white);
+  color: var(--text-light);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.decision-filter-chip:hover {
+  border-color: var(--brand-olive);
+  color: var(--brand-ink);
+}
+
+.decision-filter-chip:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.decision-filter-chip.is-active {
+  background: var(--brand-teal);
+  border-color: var(--brand-teal);
+  color: var(--white);
+}
+
+.decision-filter-count {
+  font-size: 0.72rem;
+  opacity: 0.75;
+}
+
+/* ---------- Bağlam paneline enjekte edilen bölümler ---------- */
+.decision-panel-block {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding-top: 12px;
+  margin-top: 6px;
+  border-top: 1px solid var(--sidebar-divider);
+  min-width: 0;
+}
+
+.decision-panel-block:first-child {
+  padding-top: 0;
+  margin-top: 0;
+  border-top: 0;
+}
+
+.decision-panel-label {
+  padding: 0 var(--space-2);
+  color: var(--sidebar-text-dim);
+  font-size: 0.62rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.decision-panel-filters,
+.decision-panel-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.decision-panel-filter,
+.decision-panel-tool {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 39px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-dark);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sidebar-text);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-medium);
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+  transition: background var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.decision-panel-tool {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: var(--font-weight-medium);
+  color: var(--sidebar-text);
+  background: color-mix(in srgb, var(--surface-dark-2) 38%, transparent);
+}
+
+.decision-panel-filter:hover,
+.decision-panel-tool:hover:not(:disabled) {
+  background: var(--sidebar-hover-bg);
+  color: var(--sidebar-active-text);
+}
+
+.decision-panel-tool:hover:not(:disabled) {
+  border-color: var(--brand-400);
+  transform: translateX(3px) !important;
+}
+
+.decision-panel-filter:focus-visible,
+.decision-panel-tool:focus-visible {
+  outline: 2px solid var(--brand-gold);
+  outline-offset: -2px;
+}
+
+.decision-panel-filter.is-active {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
+}
+
+.decision-panel-tool:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.decision-panel-count {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  opacity: 0.7;
 }
 
 .decision-list-content {
@@ -58,7 +273,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .decision-list-summary h2 {
@@ -69,106 +284,132 @@
 
 .decision-list-summary p {
   margin: 5px 0 0;
-  color: #64748b;
+  color: var(--text-light);
   font-size: 0.875rem;
 }
 
 .decision-list-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 14px;
   min-width: 0;
 }
 
 .decision-card {
   display: flex;
   min-width: 0;
-  min-height: 286px;
+  min-height: 220px;
   flex-direction: column;
-  padding: 24px;
+  padding: 18px;
   overflow: hidden;
-  border: 1px solid #dbe4ef;
-  border-radius: 20px;
-  background: #ffffff;
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  background: var(--surface-card);
+  /* Dokunsal gölge + Mirror Edge (üst/sol 1px parlak iç çizgi) */
+  box-shadow: var(--shadow-2);
+  transition: border-color var(--dur-base) var(--ease-standard),
+    box-shadow var(--dur-base) var(--ease-standard),
+    transform var(--dur-base) var(--ease-standard);
 }
 
-.decision-card:hover {
-  border-color: #bfdbfe;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.1);
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .decision-card:hover {
+    border-color: var(--brand-olive);
+    box-shadow: var(--shadow-3);
+    transform: translateY(var(--lift-card));
+  }
 }
 
+@media (hover: none) {
+  .decision-card:active {
+    transform: scale(var(--scale-active));
+  }
+}
+
+/* Başlık solda, büyük ince çizgili ikon sağda. */
 .decision-card-topline {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.decision-card-category,
-.decision-card-status {
-  display: inline-flex;
+  gap: 14px;
   min-width: 0;
-  align-items: center;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 750;
-  line-height: 1;
-  white-space: nowrap;
 }
 
-.decision-card-category {
-  max-width: 48%;
-  padding: 8px 10px;
-  overflow: hidden;
-  background: #eff6ff;
-  color: #1d4ed8;
-  text-overflow: ellipsis;
-}
-
-.decision-card-status {
-  gap: 5px;
-  padding: 7px 9px;
-}
-
-.decision-card-status-not-started {
-  background: #f1f5f9;
-  color: #475569;
-}
-
-.decision-card-status-in-progress {
-  background: #fff7ed;
-  color: #c2410c;
-}
-
-.decision-card-status-completed {
-  background: #ecfdf5;
-  color: #047857;
-}
-
-.decision-card-copy {
+.decision-card-heading {
   min-width: 0;
   flex: 1;
 }
 
-.decision-card-copy h3 {
-  margin: 0;
+.decision-card-heading h3 {
+  margin: 6px 0 0;
   overflow-wrap: anywhere;
-  color: #0f172a;
-  font-size: 1.25rem;
-  line-height: 1.35;
+  color: var(--text);
+  font-size: 1.03rem;
+  line-height: 1.3;
   letter-spacing: -0.018em;
 }
 
-.decision-card-copy p {
-  margin: 12px 0 0;
+.decision-card-category {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--brand-ink);
+  font-size: 0.66rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.decision-card-icon {
+  flex-shrink: 0;
+  color: var(--brand-ink);
+  opacity: 0.55;
+  width: 44px;
+  height: 44px;
+}
+
+.decision-card-status {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  margin-top: 16px;
+  padding: 7px 11px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Başlanmadı nötr · Devam ediyor hardal · Tamamlandı zeytin */
+.decision-card-status-not-started {
+  background: var(--bg-tertiary);
+  color: var(--text-light);
+}
+
+.decision-card-status-in-progress {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.decision-card-status-completed {
+  background: var(--success-bg);
+  color: var(--brand-olive);
+}
+
+.decision-card-desc {
+  min-width: 0;
+  flex: 1;
+  margin: 10px 0 0;
   overflow-wrap: anywhere;
-  color: #64748b;
-  font-size: 0.925rem;
-  line-height: 1.65;
+  color: var(--text-light);
+  font-size: 0.8rem;
+  line-height: 1.5;
 }
 
 .decision-card-cta,
@@ -181,30 +422,47 @@
   font: inherit;
   font-weight: 750;
   cursor: pointer;
-  transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition: background-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
 }
 
+/* Kart başına tekrarlayan aksiyon — sayfanın tek ana CTA'sı değil, bu yüzden
+   teal (primary), turuncu (cta) değil. */
 .decision-card-cta {
   width: 100%;
-  min-height: 46px;
-  margin-top: 24px;
-  padding: 12px 18px;
-  border-radius: 12px;
-  background: #2563eb;
-  color: #ffffff;
+  min-height: 40px;
+  margin-top: 16px;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-teal);
+  color: var(--white);
 }
 
-.decision-card-cta:hover:not(:disabled),
+.decision-card-cta:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(var(--lift-btn));
+}
+
+.decision-list-retry {
+  background: var(--brand-teal);
+  color: var(--white);
+}
+
 .decision-list-retry:hover {
-  background: #1d4ed8;
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.24);
-  transform: translateY(-1px);
+  background: var(--primary-dark);
+  transform: translateY(var(--lift-btn));
 }
 
 .decision-card-cta:focus-visible,
 .decision-list-retry:focus-visible {
-  outline: 3px solid rgba(37, 99, 235, 0.28);
+  outline: 2px solid var(--primary);
   outline-offset: 3px;
+}
+
+.decision-card-cta:active:not(:disabled),
+.decision-list-retry:active {
+  transform: scale(var(--scale-active));
 }
 
 .decision-card-cta:disabled {
@@ -219,9 +477,9 @@
   justify-content: center;
   flex-direction: column;
   padding: 40px 24px;
-  border: 1px solid #dbe4ef;
-  border-radius: 20px;
-  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--white);
   text-align: center;
 }
 
@@ -232,7 +490,7 @@
 
 .decision-list-state p {
   margin: 8px 0 0;
-  color: #64748b;
+  color: var(--text-light);
   line-height: 1.6;
 }
 
@@ -242,41 +500,33 @@
   height: 46px;
   place-items: center;
   border-radius: 50%;
-  background: #eff6ff;
-  color: #2563eb;
+  background: var(--primary-light);
+  color: var(--brand-ink);
   font-size: 1.25rem;
   font-weight: 800;
 }
 
 .decision-list-state-error .decision-list-state-icon {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .decision-list-spinner {
   width: 34px;
   height: 34px;
-  border: 3px solid #dbeafe;
-  border-top-color: #2563eb;
+  border: 3px solid var(--border);
+  border-top-color: var(--brand-teal);
   border-radius: 50%;
   animation: decision-list-spin 750ms linear infinite;
-}
-
-.decision-list-retry {
-  margin-top: 20px;
-  padding: 11px 16px;
-  border-radius: 11px;
-  background: #2563eb;
-  color: #ffffff;
 }
 
 .decision-list-action-error {
   margin: 0 0 16px;
   padding: 12px 14px;
-  border: 1px solid #fecaca;
-  border-radius: 10px;
-  background: #fef2f2;
-  color: #b91c1c;
+  border: 1px solid var(--danger-bg);
+  border-radius: var(--radius-sm);
+  background: var(--danger-bg);
+  color: var(--danger);
   font-size: 0.875rem;
 }
 
@@ -284,27 +534,30 @@
   to { transform: rotate(360deg); }
 }
 
-@media (max-width: 1040px) {
+/* Bağlam paneli açıkken içerik ~336px daralır; 3 sütun bu genişlikte
+   sıkışmasın diye kırılım viewport'a göre erken alınıyor. */
+@media (max-width: 1240px) {
   .decision-list-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 640px) {
+/* Mobil kırılımı kabuğunkiyle aynı: 900px altında tek sütun. */
+@media (max-width: 899px) {
+  .decision-filter-row {
+    display: flex;
+  }
+
   .decision-list-page {
-    padding: 28px 16px 40px;
+    padding: 12px 0 24px;
   }
 
-  .decision-list-header {
-    margin-bottom: 28px;
+  .decision-hero {
+    padding: 28px 20px 34px;
   }
 
-  .decision-list-header h1 {
-    font-size: 2rem;
-  }
-
-  .decision-list-intro {
-    font-size: 0.9375rem;
+  .decision-hero-title {
+    font-size: 1.5rem;
   }
 
   .decision-list-grid {
@@ -313,19 +566,18 @@
   }
 
   .decision-card {
-    min-height: 270px;
+    min-height: 0;
     padding: 20px;
-    border-radius: 16px;
   }
 
-  .decision-card-topline {
-    align-items: flex-start;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
+  .decision-card-icon {
+    width: 44px;
+    height: 44px;
   }
 
-  .decision-card-category {
-    max-width: 100%;
+  /* Dokunma hedefi alt sınırı */
+  .decision-filter-chip {
+    min-height: 44px;
   }
 }
 

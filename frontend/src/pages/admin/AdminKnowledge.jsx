@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
-import { Button, Badge, DataTable } from '@/components/ui'
+import { Select, Button, Badge, DataTable } from '@/components/ui'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import { Plus, Eye, Edit3, CheckCircle, XCircle, Send, Upload, Archive } from 'lucide-react'
 import styles from './AdminKnowledge.module.css'
@@ -249,15 +249,9 @@ export default function AdminKnowledge() {
       <div className={styles.filters}>
         <input className={styles.filterInput} placeholder="Ara..." value={filters.search}
           onChange={e => handleFilterChange('search', e.target.value)} />
-        <select className={styles.filterSelect} value={filters.type} onChange={e => handleFilterChange('type', e.target.value)}>
-          {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-        <select className={styles.filterSelect} value={filters.status} onChange={e => handleFilterChange('status', e.target.value)}>
-          {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-        <select className={styles.filterSelect} value={filters.level} onChange={e => handleFilterChange('level', e.target.value)}>
-          {LEVEL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
+        <Select className={styles.filterSelect} aria-label="Tür filtresi" options={TYPE_OPTIONS} value={filters.type} onChange={v => handleFilterChange('type', v)} />
+        <Select className={styles.filterSelect} aria-label="Durum filtresi" options={STATUS_OPTIONS} value={filters.status} onChange={v => handleFilterChange('status', v)} />
+        <Select className={styles.filterSelect} aria-label="Seviye filtresi" options={LEVEL_OPTIONS} value={filters.level} onChange={v => handleFilterChange('level', v)} />
       </div>
 
       <div className="panel" style={{ padding: 0 }}>

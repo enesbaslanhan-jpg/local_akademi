@@ -181,7 +181,7 @@ export default function AdminKOForm() {
             <Select
               label="Tür"
               value={form.type}
-              onChange={e => handleChange('type', e.target.value)}
+              onChange={value => handleChange('type', value)}
               options={TYPE_OPTIONS}
               error={errors.type}
             />
@@ -189,7 +189,7 @@ export default function AdminKOForm() {
             <Select
               label="Seviye"
               value={form.level}
-              onChange={e => handleChange('level', e.target.value)}
+              onChange={value => handleChange('level', value)}
               options={LEVEL_OPTIONS}
             />
 
@@ -216,14 +216,14 @@ export default function AdminKOForm() {
               <Select
                 label="İnceleme Kapısı"
                 value={form.reviewGate}
-                onChange={e => handleChange('reviewGate', e.target.value)}
+                onChange={value => handleChange('reviewGate', value)}
                 options={REVIEW_GATE_OPTIONS}
               />
 
               <Select
                 label="Doğrulama"
                 value={form.verificationStatus}
-                onChange={e => handleChange('verificationStatus', e.target.value)}
+                onChange={value => handleChange('verificationStatus', value)}
                 options={VERIFICATION_OPTIONS}
               />
             </div>

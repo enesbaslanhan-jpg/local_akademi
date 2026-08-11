@@ -1,7 +1,13 @@
-import React, { useCallback, useEffect, useState } from 'react'
-import { ArrowRight, CheckCircle2, Clock3, RotateCcw } from 'lucide-react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  ArrowRight, RotateCcw, Search, CircleDashed,
+  Percent, Truck, Store, Target, UserPlus, Landmark, Wallet,
+  Building2, Megaphone, Boxes, PackageSearch, TrendingUp, Scale
+} from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '@/services/api'
+import DarkPanel from '@/components/ui/DarkPanel'
+import { ContextPanelSlot, useContextPanel } from '@/components/layout/ContextPanel'
 import './DecisionCheckList.css'
 
 const STATUS_CONTENT = {
@@ -22,6 +28,38 @@ const STATUS_CONTENT = {
   }
 }
 
+/* Bağlam panelindeki durum süzgeçleri. */
+const STATUS_FILTERS = [
+  { id: 'all', label: 'Tümü' },
+  { id: 'in_progress', label: 'Devam eden' },
+  { id: 'completed', label: 'Tamamlanan' }
+]
+
+/*
+ * Kart ikonları araç KODUNDAN türetilir — her araç kendi konusunu anlatan
+ * ince çizgili bir Lucide ikonu alır. Kod tanınmazsa nötr terazi ikonu
+ * kullanılır; uydurma ikon veya görsel eklenmez.
+ */
+const TOOL_ICONS = [
+  ['PROFIT', TrendingUp],
+  ['DISCOUNT', Percent],
+  ['FREESHIP', Truck],
+  ['MARKETPLACE', Store],
+  ['ADS', Target],
+  ['HIRE', UserPlus],
+  ['LOAN', Landmark],
+  ['CASHFLOW', Wallet],
+  ['BRANCH', Building2],
+  ['CAMPAIGN', Megaphone],
+  ['STOCK', Boxes],
+  ['CONTINUE', PackageSearch]
+]
+
+function iconForCheck(code = '') {
+  const match = TOOL_ICONS.find(([key]) => code.toUpperCase().includes(key))
+  return match ? match[1] : Scale
+}
+
 function normalizeStatus(status) {
   if (status === 'completed' || status === 'complete') return 'completed'
   if (status === 'in_progress' || status === 'started') return 'in_progress'
@@ -34,7 +72,14 @@ export default function DecisionCheckList() {
   const [loadError, setLoadError] = useState(false)
   const [openingCode, setOpeningCode] = useState(null)
   const [actionError, setActionError] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
   const navigate = useNavigate()
+
+  /* Arama kutusu kabuğun bağlam paneliyle ORTAK. Buradaki cam hap ile
+     paneldeki hap aynı değeri yazar; iki ayrı filtre yok. */
+  const panel = useContextPanel()
+  const query = panel?.query ?? ''
+  const setQuery = panel?.setQuery ?? (() => {})
 
   const loadChecks = useCallback(async () => {
     setLoading(true)
@@ -98,16 +143,117 @@ export default function DecisionCheckList() {
     }
   }
 
+  const visibleChecks = useMemo(() => {
+    const needle = query.trim().toLocaleLowerCase('tr')
+    return checks.filter((check) => {
+      if (statusFilter !== 'all' && normalizeStatus(check.status) !== statusFilter) return false
+      if (!needle) return true
+      return [check.title, check.category, check.description]
+        .filter(Boolean)
+        .some(field => field.toLocaleLowerCase('tr').includes(needle))
+    })
+  }, [checks, query, statusFilter])
+
+  const statusCounts = useMemo(() => {
+    const counts = { all: checks.length, in_progress: 0, completed: 0 }
+    checks.forEach((check) => {
+      const status = normalizeStatus(check.status)
+      if (status in counts) counts[status] += 1
+    })
+    return counts
+  }, [checks])
+
+  const hasChecks = !loading && !loadError && checks.length > 0
+  const filtersActive = statusFilter !== 'all' || query.trim().length > 0
+
   return (
     <main className="decision-list-page">
+      {/* Bağlam paneline enjekte edilen alt navigasyon: durum süzgeçleri +
+          gerçek araç listesi. Panel yalnızca masaüstünde görünür; mobilde
+          süzgeçler sayfanın kendi hap satırında kalır. */}
+      <ContextPanelSlot>
+        <div className="decision-panel-block">
+          <div className="decision-panel-label">Durum</div>
+          <div className="decision-panel-filters">
+            {STATUS_FILTERS.map((filter) => (
+              <button
+                key={filter.id}
+                type="button"
+                className={`decision-panel-filter${statusFilter === filter.id ? ' is-active' : ''}`}
+                onClick={() => setStatusFilter(filter.id)}
+                aria-pressed={statusFilter === filter.id}
+              >
+                <span>{filter.label}</span>
+                <span className="decision-panel-count">{statusCounts[filter.id] ?? 0}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {visibleChecks.length > 0 && (
+          <div className="decision-panel-block">
+            <div className="decision-panel-label">Araçlar</div>
+            <div className="decision-panel-tools">
+              {visibleChecks.map((check) => (
+                <button
+                  key={check.code}
+                  type="button"
+                  className="decision-panel-tool"
+                  onClick={() => openCheck(check)}
+                  disabled={openingCode === check.code}
+                >
+                  {check.title}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </ContextPanelSlot>
+
       <div className="decision-list-shell">
-        <header className="decision-list-header">
-          <p className="decision-list-eyebrow">Karar araçları</p>
-          <h1>Karar Kontrolleri</h1>
-          <p className="decision-list-intro">
-            Önemli iş kararlarını vermeden önce temel riskleri, maliyetleri ve sonraki adımları hızlıca kontrol edin.
-          </p>
-        </header>
+        {/* Sayfa adı üst barda yazıyor; görünür h1 yerine sr-only başlık. */}
+        <h1 className="sr-only">Karar Araçları</h1>
+
+        <div className="decision-hero-wrap">
+          <DarkPanel bevel={false} sweep className="decision-hero">
+            <span className="decision-hero-beam" aria-hidden="true" />
+            <p className="decision-hero-eyebrow">Karar öncesi kontrol</p>
+            <p className="decision-hero-title">Karar vermeden önce rakamlara bakın</p>
+            <p className="decision-hero-intro">
+              Önemli iş kararlarını vermeden önce temel riskleri, maliyetleri ve sonraki adımları hızlıca kontrol edin.
+            </p>
+          </DarkPanel>
+
+          {/* Panelin alt kenarından taşan cam arama hapı — yarısı dışarıda. */}
+          <div className="decision-hero-search">
+            <Search size={17} aria-hidden="true" />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Araç ara"
+              aria-label="Karar araçlarında ara"
+            />
+          </div>
+        </div>
+
+        {/* Mobilde bağlam paneli yok; süzgeçler burada kalır. */}
+        {hasChecks && (
+          <div className="decision-filter-row" role="group" aria-label="Durum süzgeci">
+            {STATUS_FILTERS.map((filter) => (
+              <button
+                key={filter.id}
+                type="button"
+                className={`decision-filter-chip${statusFilter === filter.id ? ' is-active' : ''}`}
+                onClick={() => setStatusFilter(filter.id)}
+                aria-pressed={statusFilter === filter.id}
+              >
+                {filter.label}
+                <span className="decision-filter-count">{statusCounts[filter.id] ?? 0}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {loading && (
           <section className="decision-list-state" aria-live="polite" aria-busy="true">
@@ -133,58 +279,75 @@ export default function DecisionCheckList() {
           <section className="decision-list-state">
             <span className="decision-list-state-icon" aria-hidden="true">✓</span>
             <h2>Henüz araç bulunmuyor</h2>
-            <p>Yayınlanan yeni karar kontrolleri burada görünecek.</p>
+            <p>Yayınlanan yeni karar araçları burada görünecek.</p>
           </section>
         )}
 
-        {!loading && !loadError && checks.length > 0 && (
-          <section className="decision-list-content" aria-label="Karar kontrolü araçları">
+        {hasChecks && (
+          <section className="decision-list-content" aria-label="Karar araçları">
             <div className="decision-list-summary">
               <div>
                 <h2>İşinize uygun araçlar</h2>
-                <p>{checks.length} karar kontrolü kullanıma hazır.</p>
+                <p>
+                  {filtersActive
+                    ? `${visibleChecks.length} / ${checks.length} araç gösteriliyor.`
+                    : `${checks.length} karar aracı kullanıma hazır.`}
+                </p>
               </div>
             </div>
 
             {actionError && <p className="decision-list-action-error" role="alert">{actionError}</p>}
 
-            <div className="decision-list-grid">
-              {checks.map((check) => {
-                const status = STATUS_CONTENT[normalizeStatus(check.status)]
-                const isOpening = openingCode === check.code
+            {visibleChecks.length === 0 && (
+              <div className="decision-list-state">
+                <span className="decision-list-state-icon" aria-hidden="true">
+                  <CircleDashed size={22} />
+                </span>
+                <h2>Bu süzgece uyan araç yok</h2>
+                <p>Aramayı temizleyin veya başka bir durum seçin.</p>
+              </div>
+            )}
 
-                return (
-                  <article className="decision-card" key={check.code}>
-                    <div className="decision-card-topline">
-                      <span className="decision-card-category">{check.category || 'Genel'}</span>
-                      <span className={`decision-card-status decision-card-status-${status.className}`}>
-                        {status.className === 'completed' ? (
-                          <CheckCircle2 size={15} aria-hidden="true" />
-                        ) : (
-                          <Clock3 size={15} aria-hidden="true" />
-                        )}
-                        {status.label}
-                      </span>
-                    </div>
+            {visibleChecks.length > 0 && (
+              <div className="decision-list-grid">
+                {visibleChecks.map((check) => {
+                  const status = STATUS_CONTENT[normalizeStatus(check.status)]
+                  const isOpening = openingCode === check.code
+                  const ToolIcon = iconForCheck(check.code)
 
-                    <div className="decision-card-copy">
-                      <h3>{check.title}</h3>
-                      <p>{check.description}</p>
-                    </div>
+                  return (
+                    <article className="decision-card" key={check.code}>
+                      <div className="decision-card-topline">
+                        <div className="decision-card-heading">
+                          {check.category && (
+                            <span className="decision-card-category">{check.category}</span>
+                          )}
+                          <h3>{check.title}</h3>
+                        </div>
+                        <ToolIcon
+                          className="decision-card-icon"
+                          size={58}
+                          strokeWidth={1.15}
+                          aria-hidden="true"
+                        />
+                      </div>
 
-                    <button
-                      type="button"
-                      className="decision-card-cta"
-                      onClick={() => openCheck(check)}
-                      disabled={isOpening}
-                    >
-                      <span>{isOpening ? 'Açılıyor…' : status.cta}</span>
-                      <ArrowRight size={18} aria-hidden="true" />
-                    </button>
-                  </article>
-                )
-              })}
-            </div>
+                      <p className="decision-card-desc">{check.description}</p>
+
+                      <button
+                        type="button"
+                        className="decision-card-cta"
+                        onClick={() => openCheck(check)}
+                        disabled={isOpening}
+                      >
+                        <span>{isOpening ? 'Açılıyor…' : status.cta}</span>
+                        <ArrowRight size={18} aria-hidden="true" />
+                      </button>
+                    </article>
+                  )
+                })}
+              </div>
+            )}
           </section>
         )}
       </div>

@@ -1,0 +1,160 @@
+/*
+ * AI Mentor mesaj yazma alanı (composer).
+ *
+ * NOT: Bu bileşen Tailwind class isimleriyle yazılmıştı ama projede Tailwind
+ * kurulu değil. MentorPanel'de izlenen yöntem uygulandı: mevcut class
+ * string'leri silinmedi, gerçek stil sağlayan module class'ları eklendi.
+ * Composer bir kart değil, mesaj alanının alt çubuğu — glass kullanılmaz.
+ */
+
+.wrap {
+  padding: var(--space-3);
+  background: var(--white);
+  border-top: 1px solid var(--border);
+}
+
+.inputRow {
+  position: relative;
+  display: flex;
+  gap: var(--space-2);
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-tertiary);
+  transition: border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard);
+}
+
+.inputRow:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.textarea {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  max-height: 120px;
+  padding: 10px var(--space-3);
+  border: 0;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.textarea:disabled {
+  opacity: 0.5;
+}
+
+.buttonCol {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.sendBtn,
+.abortBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--white);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
+}
+
+.sendBtn {
+  background: var(--brand-teal);
+}
+
+.sendBtn:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(var(--lift-btn));
+}
+
+.sendBtn:active:not(:disabled) {
+  transform: scale(var(--scale-active));
+}
+
+.sendBtn:disabled {
+  background: var(--border);
+  color: var(--text-light);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Üretimi durdurma — yıkıcı olmayan ama kesici bir işlem: bordo (risk ailesi) */
+.abortBtn {
+  background: var(--brand-bordo);
+}
+
+.abortBtn:hover {
+  background: color-mix(in srgb, var(--brand-bordo) 82%, black);
+  transform: translateY(var(--lift-btn));
+}
+
+.abortBtn:active {
+  transform: scale(var(--scale-active));
+}
+
+.counter {
+  margin-top: var(--space-1);
+  padding-right: var(--space-2);
+  text-align: right;
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.counterOver {
+  color: var(--danger);
+  font-weight: var(--font-weight-semibold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inputRow,
+  .sendBtn,
+  .abortBtn {
+    transition: none;
+  }
+}
+
+/* Mirror Desk: hafif kum yüzey, alt çizgi ve kesik köşe. */
+.wrap {
+  padding: 10px 0 0;
+  border-top: 0;
+  background: transparent;
+}
+
+.inputRow {
+  max-width: 780px;
+  padding: 8px;
+  border: 0;
+  border-bottom: 2px solid #c1c8c5;
+  border-radius: 12px 12px 0 0;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 10px);
+  background: var(--surface-panel);
+  box-shadow: var(--shadow-sm);
+}
+
+.inputRow:focus-within { border-color: var(--brand-500); box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-500) 18%, transparent); }
+.textarea { min-height: 46px; font-size: .9rem; font-style: normal; }
+.sendBtn { width: 42px; height: 42px; padding: 0; border-radius: 50%; background: var(--primary); color: var(--theme-on-primary); box-shadow: 0 4px 0 var(--primary-dark), 0 10px 18px -9px rgba(18, 23, 23, .5), inset 0 1px rgba(255,255,255,.12); }
+.sendBtn:hover:not(:disabled) { background: var(--theme-primary-hover); transform: translateY(-3px) !important; box-shadow: 0 7px 0 var(--primary-dark), 0 16px 24px -10px rgba(18, 23, 23, .55), inset 0 1px rgba(255,255,255,.18); }
+.sendBtn:active:not(:disabled) { transform: translateY(3px) !important; box-shadow: 0 1px 0 var(--brand-900), inset 0 3px 7px rgba(0,0,0,.3); }
+
+:global(.dark) .inputRow {
+  border: 1px solid var(--border-strong);
+  border-bottom: 2px solid color-mix(in srgb, var(--primary) 55%, var(--border-strong));
+  background: #1c1f24;
+  box-shadow: inset 0 1px rgba(255,255,255,.045), 0 10px 24px rgba(0,0,0,.22);
+}
+:global(.dark) .sendBtn { background: #282a2d; color: var(--primary); border: 1px solid var(--border-strong); box-shadow: none; }

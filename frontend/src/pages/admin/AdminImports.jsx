@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
-import { Button, Badge, Loading, DataTable } from '@/components/ui'
+import { Select, Button, Badge, Loading, DataTable } from '@/components/ui'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import { Upload, FileJson, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Clock, Archive } from 'lucide-react'
 import styles from './AdminImports.module.css'
@@ -291,9 +291,12 @@ export default function AdminImports() {
           {allIssues.length > 0 && (
             <div className="panel" style={{ padding: 0 }}>
               <div className={styles.issueFilters}>
-                <select value={errorFilters.severity} onChange={e => setErrorFilters(f => ({ ...f, severity: e.target.value }))}>
-                  {SEVERITY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
+                <Select
+                  aria-label="Önem düzeyi filtresi"
+                  options={SEVERITY_OPTIONS}
+                  value={errorFilters.severity}
+                  onChange={v => setErrorFilters(f => ({ ...f, severity: v }))}
+                />
                 <input placeholder="Alan ara..." value={errorFilters.field} onChange={e => setErrorFilters(f => ({ ...f, field: e.target.value }))} />
                 <input placeholder="KO kodu ara..." value={errorFilters.code} onChange={e => setErrorFilters(f => ({ ...f, code: e.target.value }))} />
               </div>

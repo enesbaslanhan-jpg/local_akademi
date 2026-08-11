@@ -4,6 +4,7 @@ import { useWorkspace } from '@/context/WorkspaceContext'
 import { useAuth } from '@/context/AuthContext'
 import { Plus, Building2, Users, MapPin } from 'lucide-react'
 import Button from '@/components/ui/Button'
+import DarkPanel from '@/components/ui/DarkPanel'
 import styles from './WorkspaceList.module.css'
 
 export default function WorkspaceList() {
@@ -31,17 +32,24 @@ export default function WorkspaceList() {
 
   return (
     <div className={styles.container}>
+      {/* Sayfa adı üst barda yazıyor; görünür h1 yerine sr-only başlık. */}
+      <h1 className="sr-only">İşletmelerim</h1>
       <div className={styles.header}>
-        <h1>İşletmelerim</h1>
-        <Button onClick={() => setShowCreate(true)}><Plus size={18} /> Yeni İşletme</Button>
+        <p className={styles.subtitle}>
+          {workspaces.length > 0 ? `${workspaces.length} işletme` : 'Henüz işletme yok'}
+        </p>
+        {/* Sayfanın TEK turuncu ana CTA'sı */}
+        {workspaces.length > 0 && <Button variant="cta" onClick={() => setShowCreate(true)}><Plus size={18} /> Yeni İşletme</Button>}
       </div>
 
       {workspaces.length === 0 ? (
-        <div className={styles.empty}>
-          <Building2 size={48} />
-          <p>Henüz bir işletme kaydınız bulunmuyor.</p>
-          <Button onClick={() => setShowCreate(true)}>İlk İşletmeyi Oluştur</Button>
-        </div>
+        <DarkPanel className={styles.empty} bevel={false} sweep>
+          <div className={styles.emptyIcon}><Building2 size={38} /></div>
+          <span className={styles.emptyEyebrow}>İşletme Kontrol Merkezi</span>
+          <h2>İşletmenin bugünkü durumunu tek ekranda gör</h2>
+          <p>Ödeme, tahsilat, görev ve yaklaşan işlemleri gerçek kayıtlarınla takip etmeye başla.</p>
+          <Button variant="cta" onClick={() => setShowCreate(true)}><Plus size={17} /> İlk İşletmeyi Oluştur</Button>
+        </DarkPanel>
       ) : (
         <div className={styles.grid}>
           {workspaces.map(ws => (

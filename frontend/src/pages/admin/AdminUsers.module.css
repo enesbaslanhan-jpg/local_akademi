@@ -39,18 +39,7 @@
 }
 
 .filterSelect {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-family);
-  background: var(--white);
   min-width: 120px;
-}
-
-.filterSelect:focus {
-  outline: none;
-  border-color: var(--primary);
 }
 
 /* Avatar */
@@ -165,27 +154,16 @@
 }
 
 .roleModalSelect {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-family);
-  background: var(--white);
-  min-height: 44px;
-}
-
-.roleModalSelect:focus {
-  outline: none;
-  border-color: var(--primary);
+  width: 100%;
 }
 
 .roleModalWarning {
-  background: #fff3cd;
-  border: 1px solid #ffc107;
+  background: var(--warning-bg);
+  border: 1px solid var(--warning);
   border-radius: var(--radius-sm);
   padding: var(--space-3);
   font-size: var(--font-size-xs);
-  color: #856404;
+  color: var(--warning);
 }
 
 .roleModalActions {
@@ -197,7 +175,7 @@
 
 /* Error inline */
 .errorInline {
-  background: var(--danger-light, #fde8e8);
+  background: var(--danger-bg);
   border: 1px solid var(--danger);
   border-radius: var(--radius-sm);
   padding: var(--space-3);

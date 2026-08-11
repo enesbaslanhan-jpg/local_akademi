@@ -40,12 +40,12 @@ describe('DecisionCheckList', () => {
     const { container } = renderList()
 
     expect(screen.getByText('Araçlar hazırlanıyor')).toBeInTheDocument()
-    expect(await screen.findByRole('heading', { name: 'Karar Kontrolleri' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Karar Araçları' })).toBeInTheDocument()
     expect(screen.getByText(/Önemli iş kararlarını vermeden önce/)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Ürünüm Gerçekten Kârlı mı?' })).toBeInTheDocument()
     expect(screen.getByText(profitabilityCheck.description)).toBeInTheDocument()
     expect(screen.getByText('Finans')).toBeInTheDocument()
-    expect(screen.getByText('Başlanmadı')).toBeInTheDocument()
+    expect(screen.queryByText('Başlanmadı')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Aracı Aç' })).toBeInTheDocument()
     expect(screen.queryByText('DC-PROFIT-001')).not.toBeInTheDocument()
     expect(container.textContent).not.toContain('FinansAracı Aç')
@@ -54,12 +54,12 @@ describe('DecisionCheckList', () => {
   it.each([
     ['in_progress', 'Devam ediyor', 'Devam Et'],
     ['completed', 'Tamamlandı', 'Sonucu Gör']
-  ])('renders the %s state and correct CTA', async (status, label, cta) => {
+  ])('keeps the %s state out of the card and renders the correct CTA', async (status, label, cta) => {
     api.decisionChecks.list.mockResolvedValue([{ ...profitabilityCheck, status }])
     renderList()
 
-    expect(await screen.findByText(label)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: cta })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: cta })).toBeInTheDocument()
+    expect(screen.queryByText(label)).not.toBeInTheDocument()
   })
 
   it('matches the latest user session to its card', async () => {
@@ -71,8 +71,8 @@ describe('DecisionCheckList', () => {
     }])
     renderList()
 
-    expect(await screen.findByText('Devam ediyor')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Devam Et' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Devam Et' })).toBeInTheDocument()
+    expect(screen.queryByText('Devam ediyor')).not.toBeInTheDocument()
   })
 
   it('starts a new check through the existing API action', async () => {
@@ -89,7 +89,7 @@ describe('DecisionCheckList', () => {
     renderList()
 
     expect(await screen.findByRole('heading', { name: 'Henüz araç bulunmuyor' })).toBeInTheDocument()
-    expect(screen.getByText('Yayınlanan yeni karar kontrolleri burada görünecek.')).toBeInTheDocument()
+    expect(screen.getByText('Yayınlanan yeni karar araçları burada görünecek.')).toBeInTheDocument()
   })
 
   it('renders an error state and retries loading', async () => {

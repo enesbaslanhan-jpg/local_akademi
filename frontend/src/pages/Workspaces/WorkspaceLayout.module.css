@@ -1,11 +1,37 @@
-.container { padding: 24px; max-width: 960px; margin: 0 auto; }
-.back { margin-bottom: 16px; }
-.back button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.9rem; padding: 0; }
+.container { padding: 16px 24px 36px; max-width: 1180px; margin: 0 auto; min-width: 0; }
+.back { margin-bottom: 8px; }
+.back button { background: none; border: none; color: var(--brand-ink); cursor: pointer; font-size: 0.9rem; padding: 0; }
 .back button:hover { text-decoration: underline; }
-.header { margin-bottom: 24px; }
-.header h1 { margin: 0 0 4px; font-size: 1.5rem; }
+.header { margin-bottom: 14px; }
+.wsName { margin: 0 0 3px; font-size: 1.35rem; font-weight: var(--font-weight-bold); color: var(--text); line-height: 1.2; }
 .headerMeta { font-size: 0.85rem; color: var(--text-secondary); display: flex; gap: 16px; }
-.tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 24px; }
-.tab { padding: 10px 20px; background: none; border: none; cursor: pointer; font-size: 0.9rem; color: var(--text-secondary); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color 0.2s, border-color 0.2s; }
+.tabs { display: none; gap: 8px; margin-bottom: 18px; overflow-x: auto; scrollbar-width: none; min-width: 0; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs button { flex: 0 0 auto; white-space: nowrap; }
+.tab { padding: 9px 16px; background: var(--surface-panel); border: 1px solid var(--border); border-radius: 999px; cursor: pointer; font-size: 0.85rem; color: var(--text-secondary); transition: color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard); }
 .tab:hover { color: var(--text); }
-.tabActive { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.tabActive { color: var(--theme-on-primary); border-color: var(--primary); background: var(--primary); font-weight: var(--font-weight-semibold); }
+:global(.dark) .tabActive { color: var(--theme-on-primary); border-color: var(--primary); background: var(--primary); }
+.workspaceContent { min-width: 0; animation: workspaceReveal 420ms cubic-bezier(.2,.75,.2,1) both; }
+
+@keyframes workspaceReveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* İşletme seçicisi — yalnızca birden fazla işletme varsa gösterilir. */
+.wsPicker { margin: 0 0 4px; min-width: 0; }
+.wsSelect {
+  max-width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 899px) {
+  .container { padding: 18px 16px 36px; }
+  .tabs { display: flex; }
+  .headerMeta { flex-wrap: wrap; gap: 6px 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspaceContent { animation: none; }
+}
