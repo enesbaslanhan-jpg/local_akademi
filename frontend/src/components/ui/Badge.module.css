@@ -29,6 +29,6 @@
 }
 
 .info {
-  background: #e8f4fd;
-  color: #1a6b9a;
+  background: var(--primary-light);
+  color: var(--brand-ink);
 }

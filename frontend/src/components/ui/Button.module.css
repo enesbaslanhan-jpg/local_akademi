@@ -4,17 +4,45 @@
   justify-content: center;
   gap: var(--space-2);
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full);
   font-family: var(--font-family);
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: background var(--transition-fast), transform var(--transition-fast), opacity var(--transition-fast);
+  transition: background var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard),
+    opacity var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard);
   white-space: nowrap;
   line-height: 1;
 }
 
-.btn:active {
-  transform: scale(0.97);
+/* Masaüstü hover: hafif kalkış. Mobilde hover yerine dokunma geri bildirimi
+   kullanılır (kural 19) — bu yüzden yalnızca gerçek "hover" desteği olan
+   cihazlarda çalışır. */
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled) {
+    transform: translateY(var(--lift-btn));
+  }
+
+  .btn:hover:not(:disabled) svg:last-child {
+    transform: translateX(var(--shift-icon));
+  }
+}
+
+.btn svg:last-child {
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(var(--scale-active));
+}
+
+/* Mobil/dokunmatik tap geri bildirimi (kural 19) */
+@media (hover: none) {
+  .btn:active:not(:disabled) {
+    transform: scale(var(--scale-active));
+    opacity: 0.92;
+  }
 }
 
 .btn:disabled {
@@ -23,10 +51,53 @@
   transform: none;
 }
 
-/* Variants */
-.primary {
-  background: var(--primary);
+/* Variants
+ * Renk disiplini:
+ *  - .cta      → terracotta. Sayfa başına YALNIZCA BİR kez kullanılır.
+ *  - .primary  → koyu teal. Sıradan/tekrarlayan birincil butonlar.
+ *  - .danger   → bordo. Yalnızca risk / yıkıcı işlem.
+ */
+.cta {
+  position: relative;
+  overflow: hidden;
+  background: var(--brand-terracotta);
   color: var(--white);
+}
+
+.cta:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--brand-terracotta) 88%, black);
+}
+
+/* Mirror Sweep — ana CTA'da hover'da tek seferlik ince ışık taraması.
+   Yalnızca gerçek hover destekleyen cihazlarda; mobilde yok. */
+@media (hover: hover) and (pointer: fine) {
+  .cta::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--sweep-width);
+    background: linear-gradient(90deg, transparent, var(--sweep-tint), transparent);
+    transform: translateX(-140%) skewX(var(--sweep-skew));
+    pointer-events: none;
+  }
+
+  .cta:hover:not(:disabled)::after {
+    animation: mirrorSweep var(--dur-slow) var(--ease-standard) 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta:hover:not(:disabled)::after {
+    animation: none;
+  }
+}
+
+.primary {
+  background: linear-gradient(145deg, var(--primary), var(--primary-dark));
+  color: var(--theme-on-primary);
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--primary-dark) 78%, black), 0 12px 20px rgba(0, 0, 0, .15), inset 0 1px rgba(255, 255, 255, .16);
 }
 
 .primary:hover:not(:disabled) {
@@ -34,40 +105,44 @@
 }
 
 .secondary {
-  background: #53657a;
+  background: var(--brand-olive);
   color: var(--white);
 }
 
 .secondary:hover:not(:disabled) {
-  background: #3d4d5f;
+  background: color-mix(in srgb, var(--brand-olive) 82%, black);
 }
 
 .danger {
-  background: var(--danger);
+  background: var(--brand-bordo);
   color: var(--white);
 }
 
 .danger:hover:not(:disabled) {
-  background: #8a2020;
+  background: color-mix(in srgb, var(--brand-bordo) 82%, black);
 }
 
 .success {
-  background: var(--success);
+  background: var(--brand-olive);
   color: var(--white);
 }
 
 .success:hover:not(:disabled) {
-  background: #1f5a2d;
+  background: color-mix(in srgb, var(--brand-olive) 82%, black);
 }
 
-.ghost {
-  background: transparent;
+.ghost,
+.outline {
+  background: var(--white);
   color: var(--text);
   border: 1px solid var(--border);
 }
 
-.ghost:hover:not(:disabled) {
+.ghost:hover:not(:disabled),
+.outline:hover:not(:disabled) {
   background: var(--primary-light);
+  border-color: var(--brand-olive);
+  color: var(--brand-ink);
 }
 
 /* Sizes */

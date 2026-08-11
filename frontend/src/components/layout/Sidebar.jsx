@@ -1,30 +1,45 @@
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { useWorkspace } from '@/context/WorkspaceContext'
 import {
-  LayoutDashboard, BookOpen, Lightbulb, Bot,
-  GraduationCap, Map, Settings, Shield,
-  Users, Database, X, Calculator, Brain, HelpCircle, Newspaper,
-  Building2, CalendarDays, FileText, ListChecks, FlaskConical
+  Home, BookOpen, Bot, Settings, Shield,
+  Users, Database, X, Calculator, Newspaper,
+  Building2, ListChecks, Scale, Bookmark, LogOut,
+  PanelLeftClose, PanelLeftOpen, MessagesSquare, Search, Plus, ChevronDown
 } from 'lucide-react'
 import styles from './Sidebar.module.css'
+import BrandMark from '@/components/ui/BrandMark'
 import { featureFlags } from '@/config/featureFlags'
 
-const learnerLinks = [
-  ...(featureFlags.practicalCards ? [{ id: 'practical-cards', label: 'Pratik Kartlar', icon: Lightbulb, path: '/app/practical-cards' }] : []),
-  ...(featureFlags.decisionChecks ? [{ id: 'decision-checks', label: 'Karar Kontrolleri', icon: HelpCircle, path: '/app/decision-checks' }] : []),
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/app/dashboard' },
+/*
+ * ANA MENÜ — sadeleştirilmiş bilgi mimarisi (Paket 4).
+ *
+ * HİÇBİR ROUTE SİLİNMEDİ. Menüden çıkan sayfalar erişilebilir kalır:
+ *   İşletme Takvimi  → İşletme Takibi'nin sekmesi
+ *   İşletmelerim     → İşletme Takibi'ndeki işletme seçicisi
+ *   Kayıtlarım       → Kurslar sayfasında sekme (/app/enrollments hâlâ çalışır)
+ *   Öğrenme Yolu     → Kurslar sayfasındaki koyu panel
+ *   Pilot Program    → yalnızca route (/app/learning-path/pilot)
+ *   Bilgi Nesneleri  → ders içinden (Lesson.knowledgeObjectId bağı)
+ *   Model Laboratuvarı → Finans Merkezi'nde sekme (/app/finance/models çalışır)
+ *   Pratik Kartlar / Flashcard / Quiz → feature flag'li legacy route'lar
+ */
+/* MobileTabBar de bu diziyi kullanır — alt sekme çubuğunun 5 maddesi ile
+   masaüstü rayının ana grubu tek kaynaktan gelsin diye export ediliyor. */
+export const primaryLinks = [
+  { id: 'dashboard', label: 'Ana Sayfa', icon: Home, path: '/app/dashboard' },
   { id: 'courses', label: 'Kurslar', icon: BookOpen, path: '/app/courses' },
-  { id: 'knowledge', label: 'Bilgi Nesneleri', icon: Lightbulb, path: '/app/knowledge' },
-  { id: 'mentor', label: 'AI Mentor', icon: Bot, path: '/app/mentor' },
-  { id: 'community', label: 'Güncellemeler', icon: Newspaper, path: '/app/community' },
-  { id: 'enrollments', label: 'Kayıtlarım', icon: GraduationCap, path: '/app/enrollments' },
-  { id: 'learning', label: 'Öğrenme Yolu', icon: Map, path: '/app/learning-path' },
-  { id: 'learning-pilot', label: 'Pilot Program', icon: Map, path: '/app/learning-path/pilot' },
-  ...(featureFlags.legacyFlashcards ? [{ id: 'flashcards', label: 'Flashcard', icon: Brain, path: '/app/flashcards' }] : []),
-  ...(featureFlags.legacyQuiz ? [{ id: 'quiz', label: 'Quiz', icon: HelpCircle, path: '/app/quiz' }] : []),
+  ...(featureFlags.decisionChecks
+    ? [{ id: 'decision-checks', label: 'Karar Araçları', icon: Scale, path: '/app/decision-checks', recommended: true }]
+    : []),
   { id: 'tools', label: 'Finans Merkezi', icon: Calculator, path: '/app/tools' },
-  { id: 'financial-models', label: 'Model Laboratuvarı', icon: FlaskConical, path: '/app/finance/models' },
+  { id: 'mentor', label: 'AI Mentor', icon: Bot, path: '/app/mentor' }
+]
+
+const secondaryLinks = [
+  { id: 'community', label: 'Haberler', icon: Newspaper, path: '/app/community' },
+  { id: 'community-forum', label: 'Topluluk', icon: MessagesSquare, path: '/app/community/topluluk' },
   { id: 'settings', label: 'Ayarlar', icon: Settings, path: '/app/settings' }
 ]
 
@@ -36,20 +51,41 @@ const adminLinks = [
   { id: 'admin-audit', label: 'Denetim Kayıtları', icon: Shield, path: '/admin/audit-logs' }
 ]
 
-export default function Sidebar({ open, onClose }) {
-  const { isAdmin } = useAuth()
+export default function Sidebar({
+  open,
+  onClose,
+  collapsed = false,
+  onToggleCollapsed
+}) {
+  const { isAdmin, logout } = useAuth()
   const { activeWorkspaceId } = useWorkspace()
   const location = useLocation()
   const navigate = useNavigate()
-  const workspaceLinks = activeWorkspaceId
-    ? [
-        { id: 'workspace-tracker', label: 'İşletme Takibi', icon: ListChecks, path: `/app/workspaces/${activeWorkspaceId}/tracker` },
-        { id: 'workspace-calendar', label: 'İşletme Takvimi', icon: CalendarDays, path: `/app/workspaces/${activeWorkspaceId}/calendar` },
-        { id: 'workspace-documents', label: 'Belgelerim', icon: FileText, path: `/app/workspaces/${activeWorkspaceId}/documents` }
-      ]
-    : [
-        { id: 'workspace-create', label: 'İşletme Merkezi', icon: Building2, path: '/app/workspaces' }
-      ]
+  const [navQuery, setNavQuery] = useState('')
+  const routeGroup = location.pathname.startsWith('/app/tools') || location.pathname.startsWith('/app/finance/models')
+    ? 'tools'
+    : location.pathname.startsWith('/app/workspaces')
+      ? 'workspace-tracker'
+      : null
+  const [expandedMenu, setExpandedMenu] = useState(routeGroup)
+
+  useEffect(() => {
+    if (routeGroup) setExpandedMenu(routeGroup)
+  }, [routeGroup])
+
+  const normalizedQuery = navQuery.trim().toLocaleLowerCase('tr-TR')
+  const matchesQuery = link => !normalizedQuery || link.label.toLocaleLowerCase('tr-TR').includes(normalizedQuery)
+
+  /* ANA MENÜ'nün son maddesi. Takvim ve İşletmelerim menüden çıktı; sırasıyla
+     Takip sekmesinden ve işletme seçicisinden erişiliyor. */
+  const trackerLink = activeWorkspaceId
+    ? { id: 'workspace-tracker', label: 'İşletme Takibi', icon: ListChecks, path: `/app/workspaces/${activeWorkspaceId}/tracker` }
+    : { id: 'workspace-create', label: 'İşletme Takibi', icon: Building2, path: '/app/workspaces' }
+
+  /* DİĞER grubunun ilk maddesi — hedefi aktif işletmeye bağlı. */
+  const savedLink = activeWorkspaceId
+    ? { id: 'workspace-documents', label: 'Kaydedilenler', icon: Bookmark, path: `/app/workspaces/${activeWorkspaceId}/documents` }
+    : { id: 'workspace-documents', label: 'Kaydedilenler', icon: Bookmark, path: '/app/workspaces' }
 
   function handleNavigate(path) {
     navigate(path)
@@ -58,7 +94,12 @@ export default function Sidebar({ open, onClose }) {
 
   function isActive(linkPath) {
     if (linkPath === location.pathname) return true
+    if (linkPath.includes('/app/workspaces/') && linkPath.endsWith('/tracker') && location.pathname.startsWith('/app/workspaces/')) return true
     if (linkPath === '/app/learning-path/pilot') return false
+    if (linkPath === '/app/tools' && location.pathname.startsWith('/app/finance/models')) return true
+    /* Topluluk, Haberler'in alt yolu ama ayrı bir menü maddesi — Haberler
+       onun üzerindeyken aktif görünmemeli. */
+    if (linkPath === '/app/community' && location.pathname.startsWith('/app/community/topluluk')) return false
     if (linkPath !== '/app/dashboard' && location.pathname.startsWith(linkPath)) return true
     if (linkPath === '/app/knowledge' && location.pathname.startsWith('/app/knowledge/')) return true
     if (linkPath === '/app/flashcards' && location.pathname.startsWith('/app/flashcards/')) return true
@@ -66,84 +107,157 @@ export default function Sidebar({ open, onClose }) {
     return false
   }
 
+  const submenuFor = link => {
+    const view = new URLSearchParams(location.search).get('view')
+    if (link.id === 'tools') {
+      return [
+        { label: 'Araçlar', path: '/app/tools?view=calculator', active: location.pathname === '/app/tools' && !['models', 'history'].includes(view) },
+        { label: 'Modeller', path: '/app/tools?view=models', active: location.pathname.startsWith('/app/finance/models') || view === 'models' },
+        { label: 'Geçmiş / Tamamlanan', path: '/app/tools?view=history', active: location.pathname === '/app/tools' && view === 'history' },
+      ]
+    }
+    if (link.id === 'workspace-tracker' && activeWorkspaceId) {
+      return [
+        ['overview', 'Genel Bakış'], ['tracker', 'Kayıtlar'], ['documents', 'Belgeler'],
+        ['notifications', 'Bildirimler'], ['calendar', 'Takvim'], ['team', 'Ekip'],
+        ['contacts', 'Kişiler'], ['activity', 'Aktiviteler'], ['settings', 'Ayarlar'],
+      ].map(([slug, label]) => ({
+        label,
+        path: `/app/workspaces/${activeWorkspaceId}/${slug}`,
+        active: location.pathname === `/app/workspaces/${activeWorkspaceId}/${slug}`,
+      }))
+    }
+    return []
+  }
+
+  function renderLink(link) {
+    if (!matchesQuery(link)) return null
+    const Icon = link.icon
+    const active = isActive(link.path)
+    const submenu = submenuFor(link)
+    const expanded = submenu.length > 0 && expandedMenu === link.id && !collapsed
+    return (
+      <Fragment key={link.id}>
+      <button
+        className={`${styles.navItem} ${active ? styles.active : ''} ${link.recommended ? styles.recommended : ''}`}
+        onClick={() => {
+          if (submenu.length > 0) setExpandedMenu(current => current === link.id ? null : link.id)
+          handleNavigate(link.path)
+        }}
+        aria-current={active ? 'page' : undefined}
+        aria-expanded={submenu.length > 0 ? expanded : undefined}
+      >
+        <Icon size={17} aria-hidden="true" />
+        <span className={styles.navLabel}>{link.label}</span>
+        {link.recommended && <span className={styles.recommendedBadge}>Önerilen</span>}
+        {submenu.length > 0 && <ChevronDown className={`${styles.submenuChevron} ${expanded ? styles.submenuChevronOpen : ''}`} size={15} aria-hidden="true" />}
+      </button>
+      {expanded && (
+        <div className={styles.submenu} aria-label={`${link.label} alt menüsü`}>
+          {submenu.map(item => (
+            <button
+              type="button"
+              key={item.path}
+              className={`${styles.submenuItem} ${item.active ? styles.submenuItemActive : ''}`}
+              onClick={() => handleNavigate(item.path)}
+              aria-current={item.active ? 'page' : undefined}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+      </Fragment>
+    )
+  }
+
+  const quickAction = useMemo(() => {
+    if (location.pathname.startsWith('/app/community/topluluk')) {
+      return { label: 'Deneyim paylaş', path: '/app/community/topluluk#paylas' }
+    }
+    if (location.pathname.startsWith('/app/community') && isAdmin) {
+      return { label: 'Haber oluştur', path: '/app/community#yayin-araclari' }
+    }
+    if (location.pathname.startsWith('/app/tools')) {
+      return { label: 'Yeni hesaplama', path: '/app/tools' }
+    }
+    return null
+  }, [isAdmin, location.pathname])
+
   return (
     <>
       {open && <div className={styles.overlay} onClick={onClose} aria-hidden="true" />}
-      <aside className={`${styles.sidebar} ${open ? styles.open : ''}`} aria-label="Ana navigasyon">
+      <aside className={`${styles.sidebar} ${open ? styles.open : ''} ${collapsed ? styles.collapsed : ''}`} aria-label="Ana navigasyon">
         <div className={styles.logoArea}>
-          <span className={styles.logoText}>LocalAkademi</span>
+          <div className={styles.brand}>
+            <BrandMark size={26} />
+            <span className={styles.logoText}>
+              <strong>LocalKarar</strong>
+              <small>Professional Community</small>
+            </span>
+          </div>
           <button className={styles.closeBtn} onClick={onClose} aria-label="Menüyü kapat">
-            <X size={20} />
+            <X size={18} />
+          </button>
+          <button
+            type="button"
+            className={styles.collapseBtn}
+            onClick={onToggleCollapsed}
+            aria-label={collapsed ? 'Menüyü genişlet' : 'Menüyü daralt'}
+            aria-expanded={!collapsed}
+            title={collapsed ? 'Menüyü genişlet' : 'Menüyü daralt'}
+          >
+            {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
           </button>
         </div>
 
+        <label className={styles.navSearch}>
+          <Search size={17} aria-hidden="true" />
+          <span className="sr-only">Menüde ara</span>
+          <input
+            type="search"
+            value={navQuery}
+            onChange={event => setNavQuery(event.target.value)}
+            placeholder="Menüde ara..."
+          />
+        </label>
+
         <nav className={styles.nav}>
-          <div className={styles.sectionLabel}>İşletmem</div>
-          {workspaceLinks.map(link => {
-            const Icon = link.icon
-            const active = isActive(link.path)
-            return (
-              <button
-                key={link.id}
-                className={`${styles.navItem} ${active ? styles.active : ''}`}
-                onClick={() => handleNavigate(link.path)}
-                aria-current={active ? 'page' : undefined}
-              >
-                <Icon size={20} />
-                <span>{link.label}</span>
-              </button>
-            )
-          })}
-          {activeWorkspaceId && (
-            <button
-              className={`${styles.navItem} ${location.pathname === '/app/workspaces' ? styles.active : ''}`}
-              onClick={() => handleNavigate('/app/workspaces')}
-            >
-              <Building2 size={20} />
-              <span>İşletmelerim</span>
-            </button>
-          )}
+          <div className={styles.sectionLabel}>Ana Menü</div>
+          {primaryLinks.map(renderLink)}
+          {renderLink(trackerLink)}
 
           <div className={styles.divider} />
-          <div className={styles.sectionLabel}>Öğrenme</div>
-          {learnerLinks.map(link => {
-            const Icon = link.icon
-            const active = isActive(link.path)
-            return (
-              <button
-                key={link.id}
-                className={`${styles.navItem} ${active ? styles.active : ''}`}
-                onClick={() => handleNavigate(link.path)}
-                aria-current={active ? 'page' : undefined}
-              >
-                <Icon size={20} />
-                <span>{link.label}</span>
-              </button>
-            )
-          })}
+          <div className={styles.sectionLabel}>Diğer</div>
+          {renderLink(savedLink)}
+          {secondaryLinks.map(renderLink)}
 
           {isAdmin && (
             <>
               <div className={styles.divider} />
               <div className={styles.sectionLabel}>Yönetim</div>
-              {adminLinks.map(link => {
-                const Icon = link.icon
-                const active = isActive(link.path)
-                return (
-                  <button
-                    key={link.id}
-                    className={`${styles.navItem} ${active ? styles.active : ''}`}
-                    onClick={() => handleNavigate(link.path)}
-                    aria-current={active ? 'page' : undefined}
-                  >
-                    <Icon size={20} />
-                    <span>{link.label}</span>
-                  </button>
-                )
-              })}
+              {adminLinks.map(renderLink)}
             </>
           )}
         </nav>
+
+        {quickAction && (
+          <button
+            type="button"
+            className={styles.quickAction}
+            onClick={() => handleNavigate(quickAction.path)}
+          >
+            <Plus size={17} aria-hidden="true" />
+            <span>{quickAction.label}</span>
+          </button>
+        )}
+
+        <div className={styles.userArea} aria-label="Kullanıcı işlemleri">
+          <button className={styles.logoutBtn} onClick={logout} aria-label="Çıkış yap" title="Çıkış yap">
+            <LogOut size={15} aria-hidden="true" />
+            <span className={styles.logoutLabel}>Çıkış yap</span>
+          </button>
+        </div>
       </aside>
     </>
   )

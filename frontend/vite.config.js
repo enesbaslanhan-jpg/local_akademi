@@ -10,8 +10,10 @@ const backendProxy = {
   changeOrigin: true
 }
 
+import tailwindcss from '@tailwindcss/vite'
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [tailwindcss(), react()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
@@ -28,6 +30,10 @@ export default defineConfig({
         changeOrigin: true
       },
       '/api/v1/decision-checks': {
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      },
+      '/api/news': {
         target: 'http://localhost:3000',
         changeOrigin: true
       },

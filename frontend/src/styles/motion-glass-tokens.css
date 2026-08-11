@@ -1,0 +1,171 @@
+/*
+ * Motion + Glass System — ortak tokenlar
+ * Bu dosya mevcut tokens.css'i DEĞİŞTİRMEZ, üzerine ortak bir hareket ve
+ * kontrollü glassmorphism katmanı ekler. Tüm component'ler animasyon
+ * süresi/easing/lift değerlerini BURADAN okumalı — component başına farklı
+ * süre veya easing üretilmemeli (kural 3 ve 4).
+ */
+
+:root {
+  /* ---------- Motion: easing ---------- */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+
+  /* ---------- Motion: süreler ---------- */
+  --dur-instant: 120ms;   /* buton active/scale gibi anlık geri bildirimler */
+  --dur-fast: 180ms;      /* hover, focus, ikon kaydırma */
+  --dur-base: 220ms;      /* kart hover, küçük panel açılışı, alt sınır */
+  --dur-page: 260ms;      /* sayfa içeriği geçişi (220–280ms aralığının ortası) */
+  --dur-slow: 320ms;      /* modal/drawer/karar fişi gibi büyük yüzeyler */
+  --dur-panel: 200ms;     /* bağlam panelinin açılıp kapanması */
+
+  /* ---------- Motion: hareket miktarları ---------- */
+  --lift-btn: -2px;       /* buton hover — buton küçük olduğu için kart kadar yükselmez */
+  --lift-card: -5px;      /* kart hover üst sınırı */
+  --scale-active: 0.98;   /* buton/kart active */
+  --shift-icon: 4px;      /* ikonlu buton hover'da ikon kayması */
+  --offset-page: 10px;    /* sayfa geçişinde main content'in geldiği mesafe */
+  --offset-sheet: 24px;   /* mobil bottom-sheet açılış mesafesi */
+
+  /* ---------- Glass yüzeyler (yalnızca izinli 7 alan için) ---------- */
+  --glass-bg: rgba(255, 255, 255, 0.68);
+  --glass-bg-strong: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.45);
+  --glass-blur: 14px;
+  --glass-saturate: 140%;
+  --glass-shadow: 0 12px 40px rgba(17, 24, 39, 0.14);
+
+  /* ---------- Karar Fişi vurgu tonları (kural 10/11) ---------- */
+  --cta-orange: var(--primary);      /* turuncu kapalı — tek vurgu teal */
+  --risk-bordo: var(--danger);       /* risk / hata / yıkıcı işlem */
+
+  /* ---------- Signature Dark Panel ---------- */
+  --panel-bevel: 18px;        /* sağ üst köşe pahı */
+  --panel-sheen: rgba(255, 255, 255, 0.05);  /* iç yansıma gradyanının üst ucu */
+
+  /* ---------- Mirror Sweep ---------- */
+  --sweep-tint: rgba(255, 255, 255, 0.18);   /* tarama şeridinin tepe opaklığı */
+  --sweep-width: 42%;         /* şerit genişliği */
+  --sweep-skew: -18deg;       /* şeridin açısı */
+  --sweep-period: 5s;         /* koyu imza panellerde döngü aralığı */
+
+  /* ---------- Kabuk ölçüleri (Paket 5) ---------- */
+  --rail-width: 280px;        /* etiketli ana sidebar */
+  --context-width: 300px;     /* gerektiğinde açılan ikincil bağlam drawer'ı */
+
+  /* ---------- Dokunsal yüzey (Paket 5) ---------- */
+  /* Bu üçü TEMAYA GÖRE değişmeliydi ama sabit açık-mod değerleriydi:
+     koyu modda gölge görünmüyor, beyaz iç çizgi ise parlıyordu. Artık
+     theme-modes.css'teki rampalara bağlılar. */
+  --mirror-edge: var(--edge-highlight);      /* üst + sol 1px kenar ışığı */
+  --edge-inset: inset 1px 1px 0 0 var(--mirror-edge);
+  --shadow-tactile: var(--shadow-2);
+  --shadow-tactile-hover: var(--shadow-3);
+}
+
+/* Glass yüzey — utility sınıfı, yalnızca izin verilen 7 alanda kullanılır:
+   üst bar, modal, drawer, AI Mentor bağlam paneli, Model Lab parametre
+   paneli, karar sonucu overlay'i, mobil bottom-sheet. */
+.glass-surface {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-surface-strong {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Ortak keyframe'ler — tüm sayfa geçişi / drawer / mesaj animasyonları
+   bunlardan birini kullanır, component başına yeni keyframe tanımlanmaz. */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(var(--offset-page)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sheetUp {
+  from { opacity: 0; transform: translateY(var(--offset-sheet)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes drawerIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fichOpen {
+  0% { opacity: 0; transform: translateY(14px) scale(0.985); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Grafiklerin yalnızca ilk görünümde bir kez oynayacağı ortak grow animasyonu */
+@keyframes growIn {
+  from { opacity: 0; transform: scaleY(0.82); }
+  to { opacity: 1; transform: scaleY(1); }
+}
+
+/* Mirror Sweep — koyu yüzeylerde ve ana CTA'da hover'da TEK SEFERLİK ince ışık
+   taraması. Yalnızca gerçek hover destekleyen cihazlarda çalışır (bileşen
+   tarafında @media ile sınırlanır); açık renkli kartlarda kullanılmaz. */
+@keyframes mirrorSweep {
+  from { transform: translateX(-140%) skewX(var(--sweep-skew)); }
+  to { transform: translateX(320%) skewX(var(--sweep-skew)); }
+}
+
+/* Mirror Sweep — DÖNGÜSEL varyant. Yalnızca koyu imza panellerde kullanılır.
+   Şerit periyodun ilk %30'unda geçer, kalan %70'te ekranda hiç görünmez;
+   böylece --sweep-period 5s iken yaklaşık 1.5sn tarama + 3.5sn dinlenme olur.
+   Açık kartlar bunu KULLANMAZ, onlarda hover'daki tek seferlik mirrorSweep var. */
+@keyframes mirrorSweepLoop {
+  0% { transform: translateX(-140%) skewX(var(--sweep-skew)); opacity: 0; }
+  4% { opacity: 1; }
+  26% { opacity: 1; }
+  30% { transform: translateX(320%) skewX(var(--sweep-skew)); opacity: 0; }
+  100% { transform: translateX(320%) skewX(var(--sweep-skew)); opacity: 0; }
+}
+
+/* Mirror Edge — üst ve sol kenarda 1px parlak çizgi. Kartın kendi border'ına
+   dokunmaz; iç gölge olarak çizilir.
+   NOT: Zaten box-shadow'u olan bir yüzeyde bu sınıfı kullanma — box-shadow tek
+   bir property olduğu için ezer. O yüzeylerde modül CSS'i iki gölgeyi tek
+   bildirimde birleştirir: box-shadow: var(--shadow-tactile), var(--edge-inset); */
+.mirror-edge {
+  box-shadow: inset 1px 1px 0 0 var(--mirror-edge);
+}
+
+/* ---------- prefers-reduced-motion desteği (kural 16) ----------
+   Tüm animasyon/transition'lar sıfırlanır; layout'u etkilemez, sadece
+   hareketi kaldırır. Component'ler bu global kurala ek bir şey yapmaz. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Lift ve sweep tek yerden kapanır: bileşenler lift ve sweep-tint
+     token'larını okuduğu için burada nötrlemek yeterli — hiçbir modülde
+     ayrıca reduced-motion kuralı yazmaya gerek kalmaz. */
+  :root {
+    --lift-btn: 0px;
+    --lift-card: 0px;
+    --scale-active: 1;
+    --sweep-tint: transparent;
+  }
+}

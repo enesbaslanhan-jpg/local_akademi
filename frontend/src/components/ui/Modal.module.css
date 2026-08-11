@@ -1,35 +1,31 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(15, 23, 42, 0.52);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: var(--z-modal-overlay);
   padding: var(--space-4);
-  animation: fadeIn 150ms ease;
+  animation: fadeSlideIn var(--dur-fast) var(--ease-standard) both;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
+/* Modal paneli — izin verilen glass alanlarından biri (kural 5) */
 .modal {
-  background: var(--white);
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--glass-shadow);
   width: 100%;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  animation: slideUp 200ms ease;
+  animation: fadeSlideUp var(--dur-slow) var(--ease-decelerate) both;
   outline: none;
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 .sm { max-width: 400px; }
@@ -44,6 +40,13 @@
   padding: var(--space-5) var(--space-6);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+}
+
+/* Başlıksız kullanım — modal yalnızca çerçeve, içerik kendi başlığını taşır. */
+.headerBare {
+  justify-content: flex-end;
+  padding: var(--space-3) var(--space-3) 0;
+  border-bottom: none;
 }
 
 .title {
@@ -70,6 +73,25 @@
 
 .body {
   padding: var(--space-6);
+  /* Kaydırma her zaman modal gövdesinde olur, içeriğin kendi içinde değil;
+     böylece açılış konumu daima en üsttir (içeriğin üst bloğu görünür). */
   overflow-y: auto;
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Mobilde tam genişlik, kenar boşluğu dar. */
+@media (max-width: 640px) {
+  .overlay {
+    padding: var(--space-2);
+    align-items: flex-start;
+  }
+
+  .modal {
+    max-width: none;
+    width: 100%;
+    max-height: calc(100vh - var(--space-4));
+  }
+
+  .body { padding: var(--space-4); }
 }

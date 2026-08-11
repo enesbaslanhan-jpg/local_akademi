@@ -30,10 +30,27 @@ describe('Sidebar', () => {
       </MemoryRouter>
     )
 
-    expect(screen.getByText('Dashboard')).toBeInTheDocument()
-    expect(screen.getByText('Bilgi Nesneleri')).toBeInTheDocument()
+    // Sadeleştirilmiş ana menü (Paket 4)
+    expect(screen.getByText('Ana Sayfa')).toBeInTheDocument()
+    expect(screen.getByText('Kurslar')).toBeInTheDocument()
+    expect(screen.getByText('Finans Merkezi')).toBeInTheDocument()
     expect(screen.getByText('AI Mentor')).toBeInTheDocument()
-    expect(screen.getByText('Öğrenme Yolu')).toBeInTheDocument()
+  })
+
+  it('menüden çıkarılan sayfaları listelemez (route\'lar durmaya devam eder)', () => {
+    render(
+      <MemoryRouter initialEntries={['/app/dashboard']}>
+        <Sidebar open={true} onClose={() => {}} />
+      </MemoryRouter>
+    )
+
+    expect(screen.queryByText('Bilgi Nesneleri')).not.toBeInTheDocument()
+    expect(screen.queryByText('Öğrenme Yolu')).not.toBeInTheDocument()
+    expect(screen.queryByText('Pilot Program')).not.toBeInTheDocument()
+    expect(screen.queryByText('Kayıtlarım')).not.toBeInTheDocument()
+    expect(screen.queryByText('Model Laboratuvarı')).not.toBeInTheDocument()
+    expect(screen.queryByText('İşletme Takvimi')).not.toBeInTheDocument()
+    expect(screen.queryByText('İşletmelerim')).not.toBeInTheDocument()
   })
 
   it('does not show admin links for non-admin', () => {
@@ -77,10 +94,10 @@ describe('Sidebar', () => {
       </MemoryRouter>
     )
 
-    expect(screen.getByText('İşletme Merkezi')).toBeInTheDocument()
+    expect(screen.getByText('İşletme Takibi')).toBeInTheDocument()
   })
 
-  it('shows direct tracker, calendar and document links for the active workspace', () => {
+  it('shows tracker and saved links for the active workspace', () => {
     mockUseWorkspace.mockReturnValue({ activeWorkspaceId: 'workspace-1', hasWorkspaces: true })
 
     render(
@@ -90,8 +107,6 @@ describe('Sidebar', () => {
     )
 
     expect(screen.getByText('İşletme Takibi')).toBeInTheDocument()
-    expect(screen.getByText('İşletme Takvimi')).toBeInTheDocument()
-    expect(screen.getByText('Belgelerim')).toBeInTheDocument()
-    expect(screen.getByText('İşletmelerim')).toBeInTheDocument()
+    expect(screen.getByText('Kaydedilenler')).toBeInTheDocument()
   })
 })

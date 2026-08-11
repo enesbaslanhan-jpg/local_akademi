@@ -1,24 +1,167 @@
-:root {
-  /* Colors */
-  --primary: #2f5597;
-  --primary-dark: #173f69;
-  --primary-light: #d9eaf7;
-  --success: #28733c;
-  --success-bg: #e2f0d9;
-  --warning: #795c00;
-  --warning-bg: #fff2cc;
-  --danger: #a33a3a;
-  --danger-bg: #fde2e2;
-  --bg: #f5f7fb;
-  --white: #ffffff;
-  --border: #e4e8ef;
-  --text: #18212f;
-  --text-light: #5c6675;
+/*
+ * LocalKarar tasarım sistemi — renk/spacing/typography tokenları.
+ *
+ * PALET B: mavi-teal marka + soğutulmuş nötr zemin.
+ * Tek tek hex seçmek yerine dört adet 11 kademeli RAMPA tanımlanır
+ * (brand / neutral / accent / gold). Derinlik hissi rampalardan gelir:
+ * zemin, panel ve kart artık üç ayrı değerde durur, hepsi birbirine
+ * yakın tonlar değil.
+ *
+ * Değişken İSİMLERİ korundu — mevcut ~70 CSS modülü ve component
+ * hiç dokunulmadan yeni palete geçer. Yeni yazılan CSS'te doğrudan
+ * rampa/surface tokenları kullanılmalı.
+ */
 
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(25, 45, 70, 0.04);
-  --shadow: 0 8px 28px rgba(25, 45, 70, 0.06);
-  --shadow-lg: 0 20px 60px rgba(25, 45, 70, 0.12);
+:root {
+  /* ==============================================================
+     RAMPALAR — yeni CSS bunları kullanmalı
+     ============================================================== */
+
+  /* Marka — mavi-teal (hue ~190). Uçlar düzeltildi: 50 saf beyaz
+     değil, 800/900/950 birbirinden ayrılabilir koyuluklar. */
+  --brand-50:  #F1F6F7;
+  --brand-100: #D3DCDD;
+  --brand-200: #A7B9BD;
+  --brand-300: #7E989D;
+  --brand-400: #55787E;
+  --brand-500: #2C5961;
+  --brand-600: #1E4046;
+  --brand-700: #11282D;
+  --brand-800: #0B1B1E;
+  --brand-900: #051315;
+  --brand-950: #020809;
+
+  /* Nötr — soğutulmuş gri-yeşil. Sıcak krem kaldırıldı; markayla
+     aynı soğuk aileden olduğu için koyu paneller zemine oturur. */
+  --neutral-50:  #FBFCFC;
+  --neutral-100: #F2F4F4;
+  --neutral-200: #E6E9E9;
+  --neutral-300: #D5DAD9;
+  --neutral-400: #B4BBBB;
+  --neutral-500: #8E9797;
+  --neutral-600: #6B7575;
+  --neutral-700: #4E5757;
+  --neutral-800: #353C3C;
+  --neutral-900: #1F2525;
+  --neutral-950: #121717;
+
+  /* Vurgu — terracotta. Mavi-teal'in tamamlayıcısı olduğu için
+     soğuk zeminde daha da güçlü çıkar. YALNIZCA tek ana CTA. */
+  --accent-50:  #FDF4F0;
+  --accent-100: #FAE3D8;
+  --accent-200: #F3C2AB;
+  --accent-300: #E99E7B;
+  --accent-400: #DC7B52;
+  --accent-500: #C85A2E;
+  --accent-600: #A8481F;
+  --accent-700: #843718;
+  --accent-800: #5F2711;
+  --accent-900: #3C180A;
+  --accent-950: #220D05;
+
+  /* Altın — rozet, eyebrow, "Önerilen" çizgisi. */
+  --gold-50:  #FCF8EC;
+  --gold-100: #F6ECCC;
+  --gold-200: #EBD79C;
+  --gold-300: #DCBE6B;
+  --gold-400: #CAA748;
+  --gold-500: #B8923F;
+  --gold-600: #977535;
+  --gold-700: #765A29;
+  --gold-800: #55401D;
+  --gold-900: #362811;
+  --gold-950: #1E1609;
+
+  /* ==============================================================
+     YÜZEY KADEMELERİ — derinliğin asıl kaynağı
+     Zemin < panel < kart < yüzen kart, dört ayrı değer.
+     ============================================================== */
+  --surface-canvas: var(--neutral-200);  /* sayfa zemini */
+  --surface-sunken: var(--neutral-300);  /* içeri gömülü alan */
+  --surface-panel:  var(--neutral-100);  /* bölüm paneli */
+  --surface-card:   var(--neutral-50);   /* kart */
+  --surface-raised: #FFFFFF;             /* modal, dropdown, yüzen kart */
+  --surface-dark:   var(--brand-700);    /* koyu panel */
+  --surface-dark-2: var(--brand-600);    /* koyu panel içi kart */
+
+  /* HER İKİ TEMADA DA AÇIK kalan renkler. Sadece her zaman koyu olan
+     yüzeylerin (imza paneli, karar fişi) üstünde kullanılır. --success-bg
+     gibi ZEMİN tokenları metin rengi olarak kullanılmamalı: açık temada
+     tesadüfen okunuyorlardı, koyu temada kayboluyorlar. */
+  --on-dark-good: #5CCFD8;
+  --on-dark-bad:  #F0A0A0;
+  --on-dark-text: #E4E9ED;
+  --on-dark-dim:  #9FB3B7;
+
+  --border-subtle: var(--neutral-200);
+  --border-strong: var(--neutral-400);
+  --border-dark:   var(--brand-600);
+
+  /* ==============================================================
+     ESKİ İSİMLER — mevcut modüller için eşleme (silinmeyecek)
+     ============================================================== */
+  --brand-teal: var(--brand-600);
+  --brand-teal-deep: var(--brand-700);
+  --brand-olive: var(--brand-400);
+  --brand-ink: var(--brand-500);
+  /* TURUNCU KAPALI. Referans tasarımda tek vurgu rengi teal; turuncu CTA
+     paletle çakışıyordu. Geri açmak için: var(--accent-500). */
+  --brand-terracotta: var(--primary);
+  --brand-bordo: #8F2F2F;
+  --brand-gold: var(--gold-500);
+  --brand-mustard: var(--gold-600);
+
+  --primary: var(--brand-600);
+  --primary-dark: var(--brand-700);
+  --primary-light: var(--brand-50);
+  /* Yeşil YOK. Referanstaki gibi "olumlu" = vurgu teali, "olumsuz" = somon.
+     Ayrı bir yeşil aile paletle çakışıyordu. */
+  --success: #217A85;
+  --success-bg: #E1EFF1;
+  --warning: var(--gold-600);
+  --warning-bg: var(--gold-100);
+  --danger: #8F2F2F;
+  --danger-bg: #F7E7E7;
+
+  --bg: var(--surface-canvas);
+  --bg-hover: var(--neutral-300);
+  --white: var(--surface-card);
+  --border: var(--neutral-300);
+  --text: var(--neutral-900);
+  --text-light: var(--neutral-600);
+
+  /* Workspace sayfalarının kullandığı alternatif isimler */
+  --bg-primary: var(--surface-canvas);
+  --bg-secondary: var(--surface-card);
+  --bg-tertiary: var(--surface-panel);
+  --text-primary: var(--neutral-900);
+  --text-secondary: var(--neutral-600);
+
+  /* Sidebar'a özel tokenlar */
+  --sidebar-bg: var(--brand-700);
+  --sidebar-text: var(--brand-200);
+  --sidebar-text-dim: var(--brand-300);
+  --sidebar-active-bg: var(--brand-600);
+  --sidebar-active-text: var(--brand-50);
+  --sidebar-hover-bg: #17353B;
+  --sidebar-divider: #1B3B41;
+
+  /* ==============================================================
+     GÖLGE RAMPASI — 4 kademe, soğuk tonlu
+     Tek gölge yerine kademeli sistem; yükseklik farkı görünür olsun.
+     ============================================================== */
+  --shadow-1: 0 1px 2px rgba(18, 23, 23, 0.06);
+  --shadow-2: 0 2px 6px rgba(18, 23, 23, 0.08);
+  --shadow-3: 0 6px 18px -4px rgba(18, 23, 23, 0.14);
+  --shadow-4: 0 16px 40px -12px rgba(18, 23, 23, 0.24);
+  /* Koyu yüzeyler: dış gölge + üstte ince ışık çizgisi */
+  --shadow-dark: 0 8px 24px -6px rgba(5, 19, 21, 0.34),
+                 inset 0 1px 0 rgba(255, 255, 255, 0.09);
+
+  /* Eski isimler */
+  --shadow-sm: var(--shadow-1);
+  --shadow: var(--shadow-2);
+  --shadow-lg: var(--shadow-4);
 
   /* Border Radius */
   --radius-sm: 10px;
@@ -27,6 +170,7 @@
 
   /* Typography */
   --font-family: 'Inter', 'Segoe UI', system-ui, Arial, sans-serif;
+  --font-heading: 'Manrope', 'Inter', 'Segoe UI', system-ui, Arial, sans-serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -34,6 +178,12 @@
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 1.875rem;
+
+  /* Sayfa içi h1 için TEK ölçek. Üst barda sayfa adı zaten yazdığı için
+     sayfa başlığı ona rakip olmaz, destekleyici kalır. Mobilde küçülür. */
+  --font-size-page-title: 1.5rem;
+  --font-size-page-eyebrow: 0.7rem;
+  --font-size-page-intro: 0.9rem;
 
   --font-weight-normal: 400;
   --font-weight-medium: 500;
@@ -57,10 +207,10 @@
   --space-16: 4rem;
 
   /* Layout */
-  --sidebar-width: 260px;
+  --sidebar-width: 248px;
   --sidebar-collapsed-width: 64px;
-  --header-height: 64px;
-  --content-max-width: 1400px;
+  --header-height: 52px;
+  --content-max-width: 1180px;
 
   /* Z-index layers */
   --z-sidebar: 100;
@@ -73,4 +223,12 @@
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
   --transition-slow: 350ms ease;
+}
+
+/* Sayfa başlığı ölçeği mobilde küçülür — ayrı bir media query yerine
+   token'ın kendisi güncellenir, böylece tüm sayfalar tek yerden değişir. */
+@media (max-width: 640px) {
+  :root {
+    --font-size-page-title: 1.3rem;
+  }
 }

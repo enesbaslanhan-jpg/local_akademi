@@ -40,14 +40,14 @@
 .transcriptToggle {
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--primary, #2563eb);
+  color: var(--primary);
   cursor: pointer;
 }
 
 .transcriptText {
   margin-top: 8px;
   padding: 12px;
-  background: var(--bg-subtle, #f9fafb);
+  background: var(--bg-tertiary);
   border-radius: 8px;
   font-size: 0.85rem;
   line-height: 1.6;

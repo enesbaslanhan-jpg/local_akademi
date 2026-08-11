@@ -1,0 +1,77 @@
+/*
+ * Yazdırma kuralları — uygulama kabuğu düzeyinde.
+ *
+ * Karar Fişi'nin kendi baskı biçimi DecisionReceipt.module.css içindeki
+ * @media print bloğundadır (kağıt üzerindeki tipografi, kenarlıklar, imza).
+ * Bu dosya ise MODÜLLERİN ERİŞEMEDİĞİ kabuğu yönetir: sidebar, üst bar,
+ * AI Mentor balonu/paneli ve modal çerçevesi.
+ *
+ * Yaklaşım: fiş ekranda açıkken yalnızca fiş basılır; kabuk gizlenir.
+ * `.dr-print-root` DecisionReceipt bileşeninin sabit (hash'lenmemiş)
+ * işaretçisidir — CSS Module sınıf adları derlemede değiştiği için gerekli.
+ */
+
+@media print {
+  @page {
+    margin: 16mm;
+  }
+
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  /* Hiçbir yerde gölge/animasyon/blur basılmaz. */
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    animation: none !important;
+    transition: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* ---------- Fiş açıkken: yalnızca fişi bas ----------
+     Görünürlük tabanlı yaklaşım, DOM'u bozmadan tüm kabuğu gizler. */
+  body:has(.dr-print-root) * {
+    visibility: hidden;
+  }
+
+  body:has(.dr-print-root) .dr-print-root,
+  body:has(.dr-print-root) .dr-print-root * {
+    visibility: visible;
+  }
+
+  body:has(.dr-print-root) .dr-print-root {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  /* Modal örtüsü ve paneli baskıda çerçevesiz/şeffaf olur — koyu zemin
+     basılmaz (mürekkep israfı). */
+  body:has(.dr-print-root) [role='dialog'] {
+    position: static !important;
+    display: block !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  /* ---------- Fiş açık değilken de kabuk basılmaz ---------- */
+  aside,
+  [aria-label='Ana navigasyon'],
+  [aria-label='AI Mentor Paneli'],
+  button[title='AI Mentor'] {
+    display: none !important;
+  }
+
+  /* Kompakt üst bar sticky; baskıda her sayfaya tekrarlanmasın. */
+  header {
+    display: none !important;
+  }
+}

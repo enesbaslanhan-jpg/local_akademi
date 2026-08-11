@@ -1,128 +1,800 @@
+/*
+ * NAVİGASYON — tek bileşen, iki görünüm (Paket 5).
+ *
+ *   >=900px : 72px'lik YÜZEN İKON RAYI. Kendi yuvarlak köşeli koyu paneli,
+ *             kenarlarında zemin görünür, ikon üstte + çok küçük etiket altta.
+ *   <900px  : klasik ETİKETLİ DRAWER. Hamburgerden açılır, alt sekme çubuğunda
+ *             yer almayan maddeler buradan erişilir.
+ *
+ * Aynı JSX iki görünümü de besler; hiçbir madde ikinci kez tanımlanmaz.
+ */
 .overlay {
   display: none;
 }
 
 .sidebar {
-  width: var(--sidebar-width);
-  height: 100vh;
   position: fixed;
-  top: 0;
-  left: 0;
-  background: var(--white);
-  border-right: 1px solid var(--border);
+  top: var(--space-3);
+  bottom: var(--space-3);
+  left: var(--space-3);
+  width: var(--rail-width);
   display: flex;
   flex-direction: column;
+  border-radius: var(--radius);
+  background: var(--sidebar-bg);
+  box-shadow: var(--shadow-tactile), var(--edge-inset);
   z-index: var(--z-sidebar);
-  transition: transform var(--transition-normal);
+  overflow: hidden;
+  transition: transform var(--dur-slow) var(--ease-decelerate);
 }
 
+/* ---------- Marka alanı ---------- */
 .logoArea {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  height: var(--header-height);
-  padding: 0 var(--space-5);
-  border-bottom: 1px solid var(--border);
+  justify-content: center;
+  padding: var(--space-4) var(--space-2) var(--space-2);
+  flex-shrink: 0;
 }
 
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* Rayda marka adı sığmaz; yalnızca işaret kalır. */
 .logoText {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--primary-dark);
+  display: none;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--sidebar-active-text);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .closeBtn {
   display: none;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-sm);
-  color: var(--text-light);
-  transition: background var(--transition-fast);
+  color: var(--sidebar-text-dim);
+  transition: background var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
 }
+
+.collapseBtn { display: none; }
 
 .closeBtn:hover {
-  background: var(--bg);
-  color: var(--text);
+  background: var(--sidebar-hover-bg);
+  color: var(--sidebar-active-text);
 }
 
+/* ---------- Bağlam paneli aç/kapa ---------- */
+.panelToggle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex-shrink: 0;
+  margin: 0 var(--space-2) var(--space-2);
+  padding: var(--space-2) var(--space-1);
+  min-height: 44px;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--sidebar-text-dim);
+  transition: background var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.panelToggle:hover {
+  background: var(--sidebar-hover-bg);
+  color: var(--sidebar-active-text);
+}
+
+.panelToggle:focus-visible {
+  outline: 2px solid var(--brand-gold);
+  outline-offset: -2px;
+}
+
+/* ---------- Navigasyon ---------- */
 .nav {
   flex: 1;
-  padding: var(--space-3);
+  padding: 0 var(--space-2) var(--space-2);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-height: 0;
 }
 
+.nav::-webkit-scrollbar { width: 4px; }
+.nav::-webkit-scrollbar-track { background: transparent; }
+.nav::-webkit-scrollbar-thumb { background: var(--sidebar-divider); border-radius: 3px; }
+
+/* Rayda bölüm başlığı sığmaz — ayırıcı çizgi görevi üstlenir. */
 .sectionLabel {
-  padding: var(--space-3) var(--space-4) var(--space-1);
-  font-size: var(--font-size-xs);
+  display: none;
+  padding: var(--space-4) var(--space-2) var(--space-2);
+  font-size: 0.65rem;
   font-weight: var(--font-weight-semibold);
-  color: var(--text-light);
+  color: var(--sidebar-text-dim);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.08em;
 }
 
 .divider {
   height: 1px;
-  background: var(--border);
-  margin: var(--space-2) var(--space-3);
+  background: var(--sidebar-divider);
+  margin: var(--space-2) var(--space-1);
+  flex-shrink: 0;
 }
 
 .navItem {
+  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-size: var(--font-size-sm);
+  justify-content: center;
+  gap: 3px;
+  padding: var(--space-2) var(--space-1);
+  /* Global stillerin sızmasına karşı açık sıfırlama */
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--sidebar-text);
   font-weight: var(--font-weight-medium);
-  transition: all var(--transition-fast);
-  text-align: left;
+  transition: background var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+  text-align: center;
   width: 100%;
+  /* Dokunma hedefi alt sınırı */
+  min-height: 50px;
+  flex-shrink: 0;
+}
+
+.navItem svg {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.navLabel {
+  width: 100%;
+  min-width: 0;
+  font-size: 9px;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  /* Uzun etiketler iki satıra iner, taşmaz */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.desktopLogout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 48px;
+  margin: 5px 10px 10px;
+  padding: 7px 4px;
+  border: 1px solid var(--sidebar-divider);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface-dark-2) 42%, transparent);
+  color: var(--sidebar-text);
+  font-size: 9px;
+  cursor: pointer;
+  box-shadow: var(--shadow-1);
+}
+
+.desktopLogout:hover {
+  color: var(--sidebar-active-text);
+  background: var(--sidebar-hover-bg);
+  border-color: var(--brand-400);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-3);
 }
 
 .navItem:hover {
-  background: var(--primary-light);
-  color: var(--primary-dark);
+  background: var(--sidebar-hover-bg);
+  color: var(--sidebar-active-text);
 }
 
 .navItem:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--brand-gold);
   outline-offset: -2px;
 }
 
-.active {
-  background: var(--primary);
-  color: var(--white);
-}
-
+/* Aktif menü — zeytin yeşili dolgu (turuncu DEĞİL) */
+.active,
 .active:hover {
-  background: var(--primary-dark);
-  color: var(--white);
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
 }
 
-@media (max-width: 768px) {
+.active svg {
+  opacity: 1;
+}
+
+/* Solda ince altın çizgi: hem aktif maddede hem "Önerilen" maddede.
+   border yerine ::before kullanılıyor — kutu genişliğini kaydırmaz. */
+.active::before,
+.recommended::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: var(--brand-gold);
+}
+
+/* Rayda rozet için yer yok; altın çizgi zaten aynı bilgiyi taşıyor. */
+.recommendedBadge {
+  display: none;
+  flex-shrink: 0;
+  font-size: 0.56rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.03em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--sidebar-hover-bg);
+  color: var(--brand-gold);
+}
+
+.submenuChevron {
+  margin-left: auto;
+  color: var(--sidebar-text-dim);
+  transition: transform 180ms ease, color 180ms ease;
+}
+
+.submenuChevronOpen { transform: rotate(180deg); }
+
+.submenu {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  margin: 1px 6px 7px 30px;
+  padding: 4px 0 4px 13px;
+  border-left: 1px solid var(--sidebar-divider);
+  animation: submenuReveal 180ms ease-out both;
+}
+
+.submenuItem {
+  min-width: 0;
+  min-height: 31px;
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--sidebar-text-dim);
+  font: inherit;
+  font-size: .72rem;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.submenuItem:hover {
+  background: var(--sidebar-hover-bg);
+  color: var(--sidebar-active-text);
+  transform: translateX(2px);
+}
+
+.submenuItemActive {
+  background: color-mix(in srgb, var(--sidebar-active-bg) 74%, transparent);
+  color: var(--sidebar-active-text);
+}
+
+@keyframes submenuReveal {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Alt kullanıcı alanı ---------- */
+.userArea {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-top: 1px solid var(--sidebar-divider);
+  flex-shrink: 0;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--brand-terracotta);
+  color: var(--white);
+  font-size: 0.65rem;
+  font-weight: var(--font-weight-semibold);
+  flex-shrink: 0;
+}
+
+.userText {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+}
+
+.userName {
+  width: 100%;
+  font-size: 8px;
+  line-height: 1.2;
+  text-align: center;
+  font-weight: var(--font-weight-medium);
+  color: var(--sidebar-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Rayda rol satırı gereksiz gürültü — drawer'da geri gelir. */
+.userRole {
+  display: none;
+  font-size: 0.64rem;
+  color: var(--sidebar-text-dim);
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  color: var(--sidebar-text-dim);
+  flex-shrink: 0;
+  transition: background var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.logoutLabel { display: none; }
+
+.logoutBtn:hover {
+  background: var(--sidebar-hover-bg);
+  color: var(--sidebar-active-text);
+}
+
+/* ==================================================================
+   <900px — DRAWER GÖRÜNÜMÜ
+   Ray gizlenir, klasik etiketli menü geri gelir. Alt sekme çubuğunda
+   olmayan maddelere (Haberler, Ayarlar, Kaydedilenler, yönetim) tek
+   erişim yolu burasıdır, o yüzden hiçbir madde saklanmaz.
+   ================================================================== */
+@media (max-width: 1023px) {
   .overlay {
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: color-mix(in srgb, var(--brand-900) 42%, transparent);
     z-index: calc(var(--z-sidebar) - 1);
+    animation: fadeSlideIn var(--dur-fast) var(--ease-standard) both;
   }
 
+  /* Drawer — izin verilen glass alanlarından biri */
   .sidebar {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    border-radius: 0;
+    box-shadow: none;
     transform: translateX(-100%);
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    backdrop-filter: blur(var(--glass-blur));
   }
 
   .open {
     transform: translateX(0);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .logoArea {
+    justify-content: space-between;
+    height: var(--header-height);
+    padding: 0 var(--space-4);
+  }
+
+  .logoText {
+    display: block;
   }
 
   .closeBtn {
     display: flex;
+  }
+
+  /* Bağlam paneli mobilde yok; düğmesi de olmamalı. */
+  .panelToggle {
+    display: none;
+  }
+
+  .desktopLogout { display: none; }
+
+  .nav {
+    padding: var(--space-2) var(--space-3) var(--space-3);
+    gap: 1px;
+  }
+
+  .sectionLabel {
+    display: block;
+  }
+
+  .divider {
+    margin: var(--space-2) var(--space-2) 0;
+  }
+
+  .navItem {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    text-align: left;
+    font-size: 0.82rem;
+    min-height: 44px;
+  }
+
+  .navLabel {
+    flex: 1;
+    font-size: 0.82rem;
+    line-height: var(--line-height-normal);
+    display: block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .recommendedBadge {
+    display: inline-block;
+  }
+
+  .userArea {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .userText {
+    align-items: flex-start;
+    flex: 1;
+  }
+
+  .userName {
+    font-size: 0.76rem;
+    text-align: left;
+  }
+
+  .userRole {
+    display: block;
+  }
+
+  .logoutBtn { width: 100%; gap: 10px; justify-content: flex-start; padding: 9px 12px; }
+  .logoutLabel { display: inline; }
+}
+
+/* Desktop: Persian Mosaic / Midnight Premium etiketli navigasyon. */
+@media (min-width: 1024px) {
+  .sidebar {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--app-rail-width, var(--rail-width));
+    border-radius: 0;
+    border-right: 1px solid var(--sidebar-divider);
+    box-shadow: 18px 0 46px -34px color-mix(in srgb, var(--theme-primary-strong) 65%, transparent);
+  }
+
+  .logoArea {
+    justify-content: flex-start;
+    min-height: 74px;
+    padding: 18px 22px 12px;
+  }
+
+  .collapseBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    margin-left: auto;
+    border: 1px solid var(--sidebar-divider);
+    border-radius: 9px;
+    background: transparent;
+    color: var(--sidebar-text-dim);
+  }
+
+  .collapseBtn:hover { background: var(--sidebar-hover-bg); color: var(--sidebar-active-text); }
+
+  .brand { gap: 12px; }
+  .brand > svg { width: 38px; height: 38px; }
+
+  .logoText {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    color: var(--sidebar-active-text);
+  }
+
+  .logoText strong {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    line-height: 1.25;
+  }
+
+  .logoText small {
+    color: var(--sidebar-text-dim);
+    font-size: .63rem;
+    font-weight: 500;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  .navSearch {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 42px;
+    margin: 5px 16px 14px;
+    padding: 0 13px;
+    border: 1px solid var(--sidebar-divider);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--surface-dark) 34%, transparent);
+    color: var(--sidebar-text-dim);
+    box-shadow: inset 0 1px 4px color-mix(in srgb, #000 18%, transparent);
+  }
+
+  .navSearch:focus-within {
+    border-color: var(--theme-primary-hover);
+    color: var(--sidebar-active-text);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-primary) 16%, transparent);
+  }
+
+  .navSearch input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--sidebar-active-text);
+    font-size: .8rem;
+  }
+
+  .navSearch input::placeholder { color: var(--sidebar-text-dim); }
+
+  .panelToggle {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    min-height: 44px;
+    margin: 0 16px 6px;
+    padding: 10px 13px;
+    border-radius: 10px;
+  }
+
+  .nav {
+    padding: 2px 14px 12px;
+    gap: 3px;
+  }
+
+  .sectionLabel {
+    display: block;
+    padding: 15px 12px 7px;
+    font-size: .62rem;
+    letter-spacing: .12em;
+  }
+
+  .divider { margin: 9px 8px 1px; }
+
+  .navItem {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 13px;
+    min-height: 44px;
+    padding: 10px 13px;
+    border-radius: 10px;
+    text-align: left;
+  }
+
+  .navItem:hover { transform: translateX(3px); }
+  .navItem svg { width: 18px; height: 18px; }
+
+  .navLabel {
+    flex: 1;
+    display: block;
+    width: auto;
+    font-size: .82rem;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .active::before,
+  .recommended::before {
+    top: 9px;
+    bottom: 9px;
+    width: 3px;
+    box-shadow: 0 0 9px color-mix(in srgb, var(--theme-primary-hover) 64%, transparent);
+  }
+
+  .recommendedBadge {
+    display: inline-block;
+    font-size: .53rem;
+  }
+
+  .quickAction {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    margin: 8px 16px 10px;
+    padding: 10px 14px;
+    border: 1px solid color-mix(in srgb, var(--theme-primary-hover) 42%, transparent);
+    border-radius: 999px;
+    background: var(--theme-primary-soft);
+    color: var(--theme-on-soft);
+    font-size: .8rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-2);
+  }
+
+  .quickAction:hover { transform: translateY(-2px); box-shadow: var(--shadow-3); }
+
+  .userArea {
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+    padding: 12px 16px 14px;
+    background: transparent;
+  }
+
+  .avatar { width: 34px; height: 34px; background: var(--theme-primary-soft); color: var(--theme-on-soft); }
+
+  .userText {
+    flex: 1;
+    align-items: flex-start;
+    width: auto;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .userName { font-size: .76rem; text-align: left; color: var(--sidebar-active-text); }
+  .userRole { display: block; font-size: .62rem; }
+  .logoutBtn {
+    width: 100%;
+    height: 40px;
+    justify-content: flex-start;
+    gap: 11px;
+    padding: 0 12px;
+    border: 1px solid transparent;
+    color: var(--sidebar-text);
+  }
+  .logoutLabel { display: inline; font-size: .78rem; }
+
+  .collapsed .logoArea { justify-content: center; padding-inline: 10px; }
+  .collapsed .brand { gap: 0; }
+  .collapsed .brand > svg { width: 34px; height: 34px; }
+  .collapsed .logoText,
+  .collapsed .navSearch,
+  .collapsed .sectionLabel,
+  .collapsed .divider,
+  .collapsed .recommendedBadge,
+  .collapsed .quickAction span,
+  .collapsed .userText,
+  .collapsed .submenuChevron,
+  .collapsed .submenu { display: none; }
+  .collapsed .collapseBtn {
+    position: absolute;
+    top: 60px;
+    margin: 0;
+    width: 30px;
+    height: 30px;
+    background: var(--sidebar-bg);
+  }
+  .collapsed .panelToggle,
+  .collapsed .navItem {
+    justify-content: center;
+    padding-inline: 8px;
+  }
+  .collapsed .panelToggle { margin-inline: 8px; }
+  .collapsed .nav { padding: 28px 8px 10px; }
+  .collapsed .navItem:hover { transform: translateY(-1px); }
+  .collapsed .navLabel { display: none; }
+  .collapsed .active::before,
+  .collapsed .recommended::before { left: -8px; }
+  .collapsed .quickAction { width: 42px; min-height: 42px; margin-inline: auto; padding: 0; }
+  .collapsed .userArea { justify-content: center; padding-inline: 8px; }
+  .collapsed .logoutBtn { width: 40px; justify-content: center; padding: 0; }
+  .collapsed .logoutLabel { display: none; }
+}
+
+:global(.dark) .sidebar {
+  background: #171a1d;
+  border-color: #2d3339;
+  box-shadow: 8px 0 22px -20px rgba(0,0,0,.8);
+}
+
+:global(.dark) .navItem,
+:global(.dark) .collapseBtn,
+:global(.dark) .navSearch,
+:global(.dark) .logoutBtn { border-radius: 8px; }
+
+:global(.dark) .active,
+:global(.dark) .active:hover {
+  background: #2a3037;
+  color: #f8fafc;
+}
+
+:global(.dark) .active::before,
+:global(.dark) .recommended::before { background: #50b8c5; box-shadow: none; opacity: .82; }
+
+:global(.dark) .quickAction {
+  border-color: color-mix(in srgb, #50b8c5 48%, #2a2e35);
+  background: #1c1f24;
+  color: #f8fafc;
+  box-shadow: none;
+}
+
+:global(.dark) .userArea { border-top: 1px solid #2a2e35; }
+:global(.dark) .logoutBtn:hover { border-color: #2a2e35; background: #1c1f24; }
+
+/* Arama yalnızca etiketli masaüstü ve drawer görünümünde vardır. */
+.navSearch { flex-shrink: 0; }
+
+@media (max-width: 1023px) {
+  .navSearch {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 42px;
+    margin: 8px 14px;
+    padding: 0 12px;
+    border: 1px solid var(--sidebar-divider);
+    border-radius: 10px;
+    color: var(--sidebar-text-dim);
+    background: color-mix(in srgb, var(--surface-dark) 32%, transparent);
+  }
+
+  .navSearch input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--sidebar-active-text);
+  }
+
+  .quickAction {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    margin: 8px 14px;
+    border-radius: 999px;
+    background: var(--theme-primary-soft);
+    color: var(--theme-on-soft);
+    font-weight: 700;
   }
 }

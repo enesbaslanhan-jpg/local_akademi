@@ -1,0 +1,47 @@
+@import "tailwindcss/theme";
+@import "tailwindcss/utilities";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Palet B — soğutulmuş nötr + mavi-teal. İsimler korundu. */
+  --color-warm-paper: #0b0d0e;
+  --color-ivory-card: #1c1f24;
+  --color-deep-petrol: #121417;
+  --color-deep-petrol-hover: #2a2e35;
+
+  --animate-mirror-sweep: mirror-sweep 5s linear infinite;
+
+  @keyframes mirror-sweep {
+    0% { background-position: -100% -100%; }
+    10% { background-position: 200% 200%; }
+    100% { background-position: 200% 200%; }
+  }
+}
+
+@theme inline {
+  --color-brand: var(--theme-primary);
+  --color-brand-hover: var(--theme-primary-hover);
+  --color-surface: var(--surface-card);
+  --color-surface-canvas: var(--surface-canvas);
+  --color-surface-panel: var(--surface-panel);
+  --color-content: var(--text);
+  --color-content-muted: var(--text-light);
+}
+
+@layer utilities {
+  .mirror-edge {
+    border-top: 1px solid rgba(255, 255, 255, 0.4);
+    border-left: 1px solid rgba(255, 255, 255, 0.4);
+  }
+  
+  .glass-card {
+    background: color-mix(in srgb, var(--surface-card) 88%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .glow-panel {
+    background: radial-gradient(circle at top, color-mix(in srgb, var(--primary) 8%, transparent) 0%, transparent 60%), var(--surface-dark);
+  }
+}

@@ -22,15 +22,15 @@
 }
 
 .primary {
-  background: linear-gradient(90deg, var(--primary), #4a7fc7);
+  background: var(--brand-teal);
 }
 
 .success {
-  background: linear-gradient(90deg, var(--success), #3ca356);
+  background: var(--brand-olive);
 }
 
 .warning {
-  background: linear-gradient(90deg, #d4a017, #f0c040);
+  background: var(--brand-mustard);
 }
 
 .label {

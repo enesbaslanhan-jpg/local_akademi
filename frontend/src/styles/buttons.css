@@ -1,0 +1,308 @@
+/* LocalKarar ortak taktil buton sistemi.
+   Ana aksiyonlar tam ovaldir; kart, sekme ve ikon kontrolleri kendi geometrisini
+   korur ancak aynı fiziksel basılma geri bildirimini paylaşır. */
+
+button {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transform: translateZ(0);
+  transition-property: transform, box-shadow, filter, background-color, border-color, color;
+  transition-duration: 180ms;
+  transition-timing-function: cubic-bezier(.4, 0, .2, 1);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(5px) scale(.985) !important;
+  filter: brightness(.97);
+  transition-duration: 80ms;
+}
+
+button.is-tactile-pressed:not(:disabled) {
+  transform: translateY(5px) scale(.985) !important;
+  filter: brightness(.95);
+  transition-duration: 65ms !important;
+}
+
+/* Ortak React Button, eski .btn ve sayfa bazlı ana CTA sınıfları. */
+.btn:not(.btn-danger):not(.btn-secondary):not(.btn-outline):not(.btn-success),
+button[class*="_primary_"],
+button[class*="_cta_"],
+button[class*="_panelCta_"],
+button[class*="_headerBtnPrimary_"],
+button[class*="_newChatBtn_"] {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  min-height: 40px;
+  padding: 10px 20px;
+  border: 1px solid rgba(255, 255, 255, .11);
+  border-radius: 9999px !important;
+  background: linear-gradient(145deg, var(--primary), var(--primary-dark)) !important;
+  color: var(--theme-on-primary) !important;
+  font-weight: 700;
+  letter-spacing: .01em;
+  box-shadow:
+    0 10px 20px -5px rgba(0, 0, 0, .28),
+    0 4px 6px -2px rgba(0, 0, 0, .11),
+    inset 0 1px 1px rgba(255, 255, 255, .16) !important;
+}
+
+/* Sınıf adı olmayan form aksiyonları da otomatik olarak bu sisteme katılır.
+   Sekme, kart, navigasyon ve yalnız ikon kontrollerinin geometrisi korunur. */
+button[data-tactile="action"] {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  min-height: 40px;
+  padding: 10px 20px;
+  border: 1px solid rgba(255, 255, 255, .11) !important;
+  border-radius: 9999px !important;
+  background: linear-gradient(145deg, var(--primary), var(--primary-dark)) !important;
+  color: var(--theme-on-primary) !important;
+  font-weight: 700;
+  letter-spacing: .01em;
+  box-shadow:
+    0 6px 0 color-mix(in srgb, var(--primary-dark) 78%, black),
+    0 14px 24px -8px rgba(0, 0, 0, .42),
+    inset 0 1px 1px rgba(255, 255, 255, .18) !important;
+}
+
+button[data-tactile="action"]::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 0 auto 0 -100%;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.11), transparent);
+  transition: left 600ms cubic-bezier(.4, 0, .2, 1);
+  pointer-events: none;
+}
+
+button[data-tactile="action"] > * { position: relative; z-index: 1; }
+
+button[data-tactile="secondary"],
+button[data-tactile="danger"] {
+  border-radius: 9999px !important;
+  box-shadow: var(--shadow-2) !important;
+}
+
+button[data-tactile="control"] {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
+}
+
+/* KART BİÇİMİNDEKİ BUTONLAR ana CTA geometrisine dönüşmez.
+   buttonFeedback.js sınıfı olmayan her butonu data-tactile="action" yapıyor;
+   içinde başlık+açıklama olan kart butonları (Finans Merkezi kısayolları
+   gibi) bu yüzden dev renkli hapa dönüşüyor ve alt yazıları okunmuyordu.
+   Kendi modül stilleri geçerli kalsın. */
+[class*="_quickActions_"] > button,
+[class*="_quickGrid_"] > button,
+[class*="_actionsList_"] > button,
+[class*="_toolGrid_"] > button {
+  min-height: auto !important;
+  padding: 17px !important;
+  border-radius: var(--radius) !important;
+  border: 1px solid var(--border) !important;
+  background: var(--surface-card) !important;
+  color: var(--text) !important;
+  font-weight: var(--font-weight-medium) !important;
+  box-shadow: var(--shadow-2) !important;
+}
+
+[class*="_quickActions_"] > button::after,
+[class*="_quickGrid_"] > button::after,
+[class*="_actionsList_"] > button::after,
+[class*="_toolGrid_"] > button::after { display: none !important; }
+
+@media (hover: hover) and (pointer: fine) {
+  [class*="_quickActions_"] > button:hover:not(:disabled),
+  [class*="_quickGrid_"] > button:hover:not(:disabled),
+  [class*="_actionsList_"] > button:hover:not(:disabled),
+  [class*="_toolGrid_"] > button:hover:not(:disabled) {
+    transform: translateY(-2px) !important;
+    filter: none;
+    border-color: var(--primary) !important;
+    box-shadow: var(--shadow-3) !important;
+  }
+}
+
+/* Bağlam paneli araçları hiçbir koşulda ana CTA geometrisine dönüşmez. */
+button.decision-panel-tool[data-tactile] {
+  min-height: 38px !important;
+  padding: 8px 12px !important;
+  border: 1px solid var(--border-dark) !important;
+  border-radius: 9px !important;
+  background: color-mix(in srgb, var(--surface-dark-2) 40%, transparent) !important;
+  color: var(--sidebar-text) !important;
+  box-shadow: var(--shadow-1) !important;
+  font-size: .8rem !important;
+  font-weight: 500 !important;
+}
+
+button.decision-panel-tool[data-tactile]:hover:not(:disabled) {
+  background: var(--surface-dark-2) !important;
+  color: var(--sidebar-active-text) !important;
+  border-color: var(--brand-400) !important;
+  transform: translateX(3px) !important;
+  box-shadow: var(--shadow-2) !important;
+}
+
+.btn:not(.btn-danger):not(.btn-secondary):not(.btn-outline):not(.btn-success)::after,
+button[class*="_primary_"]::after,
+button[class*="_cta_"]::after,
+button[class*="_panelCta_"]::after,
+button[class*="_headerBtnPrimary_"]::after,
+button[class*="_newChatBtn_"]::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 0 auto 0 -100%;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .09), transparent);
+  transition: left 600ms cubic-bezier(.4, 0, .2, 1);
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button[data-tactile="action"]:hover:not(:disabled) {
+    transform: translateY(-3px) !important;
+    filter: brightness(1.1);
+    box-shadow: var(--shadow-4) !important;
+  }
+
+  button[data-tactile="action"]:hover:not(:disabled)::after { left: 100%; }
+
+  .btn:not(.btn-danger):not(.btn-secondary):not(.btn-outline):not(.btn-success):hover:not(:disabled),
+  button[class*="_primary_"]:hover:not(:disabled),
+  button[class*="_cta_"]:hover:not(:disabled),
+  button[class*="_panelCta_"]:hover:not(:disabled),
+  button[class*="_headerBtnPrimary_"]:hover:not(:disabled),
+  button[class*="_newChatBtn_"]:hover:not(:disabled) {
+    transform: translateY(-3px) !important;
+    filter: brightness(1.1);
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, .34),
+      0 10px 10px -5px rgba(0, 0, 0, .18),
+      inset 0 1px 2px rgba(255, 255, 255, .24) !important;
+  }
+
+  .btn:not(.btn-danger):not(.btn-secondary):not(.btn-outline):not(.btn-success):hover:not(:disabled)::after,
+  button[class*="_primary_"]:hover:not(:disabled)::after,
+  button[class*="_cta_"]:hover:not(:disabled)::after,
+  button[class*="_panelCta_"]:hover:not(:disabled)::after,
+  button[class*="_headerBtnPrimary_"]:hover:not(:disabled)::after,
+  button[class*="_newChatBtn_"]:hover:not(:disabled)::after { left: 100%; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button[data-tactile="control"]:hover:not(:disabled) {
+    transform: translateY(-2px) !important;
+    box-shadow: var(--shadow-3) !important;
+  }
+}
+
+button[data-tactile="action"]:active:not(:disabled),
+button[data-tactile="action"].is-tactile-pressed:not(:disabled) {
+  transform: translateY(5px) scale(.985) !important;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--primary-dark) 78%, black), 0 4px 8px rgba(0,0,0,.2), inset 0 4px 9px rgba(0,0,0,.34) !important;
+}
+
+.btn:not(.btn-danger):not(.btn-secondary):not(.btn-outline):not(.btn-success):active:not(:disabled),
+button[class*="_primary_"]:active:not(:disabled),
+button[class*="_cta_"]:active:not(:disabled),
+button[class*="_panelCta_"]:active:not(:disabled),
+button[class*="_headerBtnPrimary_"]:active:not(:disabled),
+button[class*="_newChatBtn_"]:active:not(:disabled) {
+  box-shadow: 0 3px 5px rgba(0, 0, 0, .18), inset 0 4px 8px rgba(0, 0, 0, .28) !important;
+}
+
+/* İkincil aksiyonlar: aynı oval geometri, daha sakin sandstone yüzey. */
+.btn-secondary,
+.btn-outline,
+button[class*="_secondary_"],
+button[class*="_reopen_"],
+button[class*="_headerBtnOutline_"] {
+  border-radius: 9999px !important;
+  box-shadow: var(--shadow-2);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  filter: grayscale(.15);
+  box-shadow: none;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button { transition-duration: 1ms; }
+  .btn:not(.btn-danger):not(.btn-secondary):not(.btn-outline):not(.btn-success)::after,
+  button[class*="_primary_"]::after,
+  button[class*="_cta_"]::after,
+  button[class*="_panelCta_"]::after,
+  button[class*="_headerBtnPrimary_"]::after,
+  button[class*="_newChatBtn_"]::after { display: none; }
+  button[data-tactile="action"]::after { display: none; }
+}
+
+/* KOYU MOD BUTON TONU — "tonal" doldurma.
+   Üç seçenek var: (1) grafit — rengi tamamen almak, her şey cansız olur.
+   (2) parlak dolgu — koyu zeminde göz alır. (3) TONAL: markanın %15
+   opaklıkta zemini + açık teal yazı. Koyu arayüzlerin standardı budur;
+   renk korunur ama parlamaz. Parlak dolgu SADECE tek ana CTA'da. */
+:root.dark .btn:not(.btn-danger):not(.btn-secondary):not(.btn-outline):not(.btn-success),
+:root.dark button[data-tactile="action"],
+:root.dark button[class*="_primary_"],
+:root.dark button[class*="_panelCta_"],
+:root.dark button[class*="_headerBtnPrimary_"],
+:root.dark button[class*="_newChatBtn_"] {
+  border-color: color-mix(in srgb, var(--primary) 34%, transparent) !important;
+  background: color-mix(in srgb, var(--primary) 15%, transparent) !important;
+  color: var(--primary) !important;
+  box-shadow: 0 4px 12px -8px rgba(0, 0, 0, .7) !important;
+}
+
+/* Sayfanın ana CTA'sı da DOYGUN DOLGU DEĞİL. Referans tasarımda hiçbir
+   yerde parlak dolu buton yok; ana eylem sadece bir kademe daha koyu
+   tint + belirgin kenarlıkla ayrışıyor. */
+:root.dark button[class*="_cta_"] {
+  border-color: color-mix(in srgb, var(--primary) 55%, transparent) !important;
+  background: color-mix(in srgb, var(--primary) 22%, transparent) !important;
+  color: var(--primary) !important;
+  box-shadow: 0 4px 14px -10px rgba(0, 0, 0, .7) !important;
+}
+
+:root.dark button[data-tactile="action"]:hover:not(:disabled),
+:root.dark .btn:not(.btn-danger):not(.btn-secondary):not(.btn-outline):not(.btn-success):hover:not(:disabled),
+:root.dark button[class*="_primary_"]:hover:not(:disabled),
+:root.dark button[class*="_panelCta_"]:hover:not(:disabled),
+:root.dark button[class*="_headerBtnPrimary_"]:hover:not(:disabled),
+:root.dark button[class*="_newChatBtn_"]:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--primary) 60%, transparent) !important;
+  background: color-mix(in srgb, var(--primary) 26%, transparent) !important;
+  color: var(--theme-primary-hover) !important;
+  filter: none;
+  box-shadow: 0 8px 18px -10px rgba(0, 0, 0, .8) !important;
+}
+
+/* Kart butonları koyu modda da tonal dolgu almaz — kart kalırlar.
+   Seçici gücü :root.dark ... [data-tactile] ile eşitlensin diye :root.dark
+   ile başlıyor. */
+:root.dark [class*="_quickActions_"] > button,
+:root.dark [class*="_quickGrid_"] > button,
+:root.dark [class*="_actionsList_"] > button,
+:root.dark [class*="_toolGrid_"] > button {
+  border-color: var(--border) !important;
+  background: var(--surface-card) !important;
+  color: var(--text) !important;
+  box-shadow: var(--shadow-2) !important;
+}
+
+:root.dark button[class*="_cta_"]:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary) 32%, transparent) !important;
+  color: var(--theme-primary-hover) !important;
+  filter: none;
+}

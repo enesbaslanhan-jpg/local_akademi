@@ -1,14 +1,26 @@
 .layout {
   display: flex;
   min-height: 100vh;
+  background: var(--bg);
+  --app-rail-width: var(--rail-width);
 }
 
+.sidebarCollapsed { --app-rail-width: var(--sidebar-collapsed-width); }
+
+/*
+ * İçerik alanı rayın (ve varsa bağlam panelinin) sağından başlar.
+ * Panel açılıp kapanırken margin --dur-panel boyunca yumuşakça değişir;
+ * panelin kendi opacity/transform geçişiyle aynı süre, aynı easing.
+ */
 .main {
   flex: 1;
-  margin-left: var(--sidebar-width);
+  margin-left: var(--app-rail-width);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  /* Yatay scroll'u engeller: grid/flex çocuklarının taşmasını keser */
+  min-width: 0;
+  transition: margin-left var(--dur-panel) ease-in-out;
 }
 
 .content {
@@ -16,17 +28,35 @@
   max-width: var(--content-max-width);
   width: 100%;
   margin: 0 auto;
-  padding: var(--space-6);
+  /* Referanstaki gibi dış boşluk cömert olsun: içerik kenara yapışınca
+     her şey büyük ve sıkışık görünüyor. */
+  padding: var(--space-8) var(--space-10) var(--space-12);
+  min-width: 0;
 }
 
-@media (max-width: 768px) {
+.pageTransition {
+  min-width: 0;
+}
+
+/* Sayfa geçişi: ray sabit kalır, yalnızca bu sarmalayıcı 10px'den
+   fadeSlideUp ile gelir (kural 7). Layout shift olmaması için genişlik/
+   yükseklik değişmez, sadece opacity + transform animasyonu çalışır. */
+.pageTransitionAnim {
+  animation: fadeSlideUp var(--dur-page) var(--ease-decelerate) both;
+}
+
+/* <900px: ray ve bağlam paneli gizli, içerik tam genişlik.
+   Alt sekme çubuğu içeriği örtmesin diye altta çubuk kadar boşluk bırakılır. */
+@media (max-width: 1023px) {
   .main {
     margin-left: 0;
     min-width: 0;
+    transition: none;
   }
 
   .content {
     padding: var(--space-4);
+    padding-bottom: calc(56px + var(--space-6) + env(safe-area-inset-bottom));
     min-width: 0;
   }
 }

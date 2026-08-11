@@ -1,0 +1,203 @@
+/* LocalKarar themes: Persian Mosaic (light) and Midnight Premium (dark). */
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+  --theme-canvas: #f9f9fc;
+  /* Persian Mosaic matte surfaces: pure white is reserved for tiny highlights. */
+  --theme-surface: #f2f4f6;
+  --theme-surface-low: #eef1f3;
+  --theme-surface-container: #e9edef;
+  --theme-surface-high: #e3e8ea;
+  --theme-surface-highest: #dce3e5;
+  --theme-text: #1a1c1e;
+  --theme-text-muted: #3f484a;
+  --theme-outline: #6f797b;
+  --theme-outline-soft: #bfc8ca;
+  --theme-primary: #266e7a;
+  --theme-primary-strong: #005561;
+  --theme-primary-hover: #1d6773;
+  --theme-primary-soft: #a5eefb;
+  --theme-on-primary: #ffffff;
+  --theme-on-soft: #004f58;
+  --theme-focus: #266e7a;
+
+  /* Yükseklik arttıkça AÇIL. Önceden kart (#f2f4f6) zeminden (#f9f9fc)
+     daha koyuydu; bu kademelenmeyi ters çeviriyor ve düzlük hissi veriyordu. */
+  --surface-canvas: #edf0f2;   /* sayfa zemini */
+  --surface-sunken: #e4e8eb;   /* gömülü alan */
+  --surface-panel: #f4f6f8;    /* bölüm paneli */
+  --surface-card: #fbfcfd;     /* kart */
+  --surface-raised: #ffffff;   /* modal, dropdown */
+  --surface-dark: #24343a;
+  --surface-dark-2: #31444b;
+  /* Açık modda da ayrımı gölge taşır; çizgi sadece ipucu. */
+  --border-subtle: rgba(26, 28, 30, .07);
+  --border-strong: rgba(26, 28, 30, .14);
+  --border-dark: color-mix(in srgb, var(--theme-primary-strong) 72%, #001f24);
+
+  --bg: var(--surface-canvas);
+  --bg-primary: var(--surface-canvas);
+  --bg-secondary: var(--surface-card);
+  --bg-tertiary: var(--surface-panel);
+  --bg-hover: #e7ecef;
+  --white: var(--surface-card);
+  --border: var(--border-subtle);
+  --text: var(--theme-text);
+  --text-primary: var(--theme-text);
+  --text-light: var(--theme-text-muted);
+  --text-secondary: var(--theme-text-muted);
+  --text-soft: var(--theme-text-muted);
+  --input-bg: var(--surface-raised);
+  --primary: var(--theme-primary);
+  --primary-dark: var(--theme-primary-strong);
+  --primary-light: color-mix(in srgb, var(--theme-primary-soft) 42%, var(--theme-surface));
+
+  --sidebar-bg: #245f68;
+  --sidebar-text: #d7f4f8;
+  --sidebar-text-dim: #abeefc;
+  --sidebar-active-bg: color-mix(in srgb, #abeefc 18%, transparent);
+  --sidebar-active-text: #ffffff;
+  --sidebar-hover-bg: color-mix(in srgb, #abeefc 11%, transparent);
+  --sidebar-divider: color-mix(in srgb, #abeefc 18%, transparent);
+
+  /* Kart üstündeki 1px ışık çizgisi. Açık modda güçlü beyaz, koyu modda
+     çok zayıf olmalı — aksi halde koyu zeminde çizgi gibi parlar. */
+  --edge-highlight: rgba(255, 255, 255, .48);
+
+  --shadow-1: 0 1px 2px rgba(26, 28, 30, .06);
+  --shadow-2: 0 3px 12px -2px rgba(26, 28, 30, .10);
+  --shadow-3: 0 12px 28px -8px rgba(26, 28, 30, .16);
+  --shadow-4: 0 26px 56px -14px rgba(26, 28, 30, .22);
+  --shadow-dark: 0 12px 30px -10px rgba(0, 55, 63, .42), inset 0 1px rgba(255, 255, 255, .16);
+  --shadow-card: var(--shadow-2);
+  --shadow-card-hover: var(--shadow-3);
+}
+
+:root.dark,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  /* Zemin saf siyah DEĞİL. #0b0d0e + #f8fafc metin ~19:1 kontrast üretiyordu;
+     bu kadar yüksek kontrast harflerin kenarında parlama (halation) yapar ve
+     uzun bakışta gözü yorar. Zemin açıldı, metin yumuşatıldı → ~12:1. */
+  --theme-canvas: #15181c;
+  --theme-surface: #1d2126;          /* kart */
+  --theme-surface-low: #191d21;      /* panel */
+  --theme-surface-container: #22272c;
+  --theme-surface-high: #282e34;     /* yüzen kart, modal */
+  --theme-surface-highest: #313840;
+  --theme-text: #e4e9ed;
+  --theme-text-muted: #9aa6ae;
+  --theme-outline: #8a959d;
+  /* Kenarlık ÇİZGİ değil, kenara vuran ışık. Katmanları çizgiyle ayırmak
+     her şeyi kutulanmış gösteriyordu; ayrımı artık gölge yapıyor. */
+  --theme-outline-soft: rgba(255, 255, 255, .045);
+  --theme-primary: #5cbcc8;
+  --theme-primary-strong: #3f97a3;
+  --theme-primary-hover: #74cdd8;
+  --theme-primary-soft: #18333a;
+  --theme-on-primary: #04262b;
+  --theme-on-soft: #e4e9ed;
+  --theme-focus: #74cdd8;
+
+  --surface-canvas: var(--theme-canvas);
+  --surface-sunken: #101317;
+  --surface-panel: var(--theme-surface-low);
+  --surface-card: var(--theme-surface);
+  --surface-raised: var(--theme-surface-high);
+  /* Açık modda "koyu panel" olan alanlar, koyu modda zemine gömülemez —
+     aksi halde kaybolurlar. Onun yerine bir kademe YÜKSELTİLİR. */
+  --surface-dark: #222831;
+  --surface-dark-2: #2b323c;
+  --border-subtle: var(--theme-outline-soft);
+  --border-strong: rgba(255, 255, 255, .10);
+  --border-dark: rgba(255, 255, 255, .07);
+
+  --bg: var(--surface-canvas);
+  --bg-primary: var(--surface-canvas);
+  --bg-secondary: var(--surface-card);
+  --bg-tertiary: var(--surface-panel);
+  --bg-hover: var(--theme-surface-high);
+  --white: var(--surface-card);
+  --border: var(--border-subtle);
+  --text: var(--theme-text);
+  --text-primary: var(--theme-text);
+  --text-light: var(--theme-text-muted);
+  --text-secondary: var(--theme-text-muted);
+  --text-soft: var(--theme-text-muted);
+  --input-bg: var(--theme-surface-container);
+  --primary: var(--theme-primary);
+  /* Gradyan AÇIKTAN KOYUYA gitmeli. Önceden primary-dark = hover (daha da
+     açık) idi; buton bütün olarak parlıyordu ve bu yüzden koyu modda
+     butonların rengi tamamen alınmıştı. */
+  --primary-dark: var(--theme-primary-strong);
+  --primary-light: var(--theme-primary-soft);
+
+  /* Yeşil yok: olumlu = vurgu teali, olumsuz = somon (referanstaki gibi). */
+  --success: #5ccfd8;
+  --success-bg: #16323a;
+  --danger: #f0908c;
+  --danger-bg: #3d2523;
+  /* Legacy component aliases: dark mode uses graphite for large surfaces;
+     teal remains an accent instead of becoming a full-card background. */
+  --brand-teal: var(--theme-primary);
+  --brand-teal-deep: var(--surface-dark-2);
+  --brand-olive: var(--theme-primary);
+  --brand-ink: var(--theme-primary);
+  /* Bu dördü koyu modda override EDİLMİYORDU; açık mod için seçilmiş koyu
+     değerlerinde kalıyor ve koyu zeminde okunmuyorlardı. Rampaların açık
+     ucundan karşılıkları verildi. */
+  --brand-gold: var(--gold-300);
+  --brand-mustard: var(--gold-200);
+  /* Terracotta DOLGU rengi olarak kalır (üstünde beyaz metin okunuyor);
+     lighten edilirse buton yazısı okunmaz hale gelir. */
+  --brand-terracotta: var(--primary);
+  --brand-bordo: #e08a8a;
+  --cta-orange: var(--primary);
+  --risk-bordo: var(--danger);
+
+  /* Ray, zeminden bir kademe AŞAĞIDA — böylece yüzen panel gibi okunur. */
+  --sidebar-bg: #101317;
+  --sidebar-text: #b3bfc6;
+  --sidebar-text-dim: #8e9aa2;
+  --sidebar-active-bg: #253039;
+  --sidebar-active-text: #e4e9ed;
+  --sidebar-hover-bg: #1c2127;
+  --sidebar-divider: #2a313a;
+
+  --warning: #e0b96a;
+  --warning-bg: #38301d;
+
+  --edge-highlight: rgba(255, 255, 255, .05);
+
+  /* Koyu modda gölge ZAYIF olmaz — yüzeyler zeminin üstünde yüzmeli.
+     Öncekiler (%24 opaklık, 8px bulanıklık) koyu zeminde görünmüyordu,
+     bu yüzden ayrımı 1px çizgiler taşımak zorunda kalıyordu. */
+  --shadow-1: 0 1px 3px rgba(0, 0, 0, .45);
+  --shadow-2: 0 4px 16px -2px rgba(0, 0, 0, .5);
+  --shadow-3: 0 14px 34px -8px rgba(0, 0, 0, .62);
+  --shadow-4: 0 30px 66px -14px rgba(0, 0, 0, .72);
+  --shadow-dark: 0 14px 34px -10px rgba(0, 0, 0, .7), inset 0 1px rgba(255, 255, 255, .07);
+  --shadow-card: var(--shadow-2);
+  --shadow-card-hover: var(--shadow-3);
+  --glass-bg: rgba(18, 20, 23, .94);
+  --glass-bg-strong: rgba(18, 20, 23, .99);
+  --glass-border: rgba(255, 255, 255, .09);
+  --glass-shadow: 0 16px 36px rgba(0, 0, 0, .36);
+}
+
+html,
+body { background: var(--surface-canvas); color: var(--text); }
+
+body,
+button,
+input,
+select,
+textarea {
+  transition: background-color 240ms ease, border-color 240ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+::selection { background: color-mix(in srgb, var(--theme-primary) 28%, transparent); color: var(--text); }
+
+@media (prefers-reduced-motion: reduce) {
+  body, button, input, select, textarea { transition: none; }
+}

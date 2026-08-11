@@ -59,10 +59,20 @@
 }
 .textarea:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: var(--brand-olive);
 }
 .actions {
   display: flex;
   gap: 8px;
   margin-top: 8px;
 }
+
+:global(.dark) .workspace,
+:global(.dark) .rubric,
+:global(.dark) .textarea {
+  border-color: var(--border);
+  background: var(--surface-card);
+  color: var(--text);
+}
+:global(.dark) .prompt,
+:global(.dark) .wordCount { color: var(--text-light); }

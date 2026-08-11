@@ -1,13 +1,64 @@
+/*
+ * Dokunsal kart yüzeyi (Paket 5).
+ * box-shadow iki katman taşır: yumuşak dış gölge + Mirror Edge (üst/sol 1px
+ * parlak iç çizgi). Tek property olduğu için ikisi burada birleştirilir;
+ * global .mirror-edge yardımcı sınıfı bu yüzeyde KULLANILMAZ.
+ */
 .card {
+  position: relative;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-4);
-  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+  box-shadow: var(--shadow-tactile), var(--edge-inset);
+  transition: box-shadow var(--dur-base) var(--ease-standard),
+    border-color var(--dur-base) var(--ease-standard),
+    transform var(--dur-base) var(--ease-standard);
 }
 
-.hoverable:hover {
-  box-shadow: var(--shadow);
+@media (hover: hover) and (pointer: fine) {
+  .hoverable:hover {
+    box-shadow: var(--shadow-tactile-hover), var(--edge-inset);
+    transform: translateY(var(--lift-card));
+  }
+}
+
+/* Mobilde hover yerine dokunma geri bildirimi (kural 9, 19) */
+@media (hover: none) {
+  .hoverable:active {
+    transform: scale(var(--scale-active));
+  }
+}
+
+/* ---------- Mirror Sweep (açık kart varyantı) ----------
+   Koyu panellerde hüzme DÖNGÜSEL; açık kartta yalnızca hover'da TEK SEFER.
+   Dokunmatikte hiç çalışmaz. */
+.sweep {
+  overflow: hidden;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sweep::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--sweep-width);
+    /* Açık zeminde beyaz görünmez; hüzme burada çok hafif teal bir parlama. */
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--brand-ink) 8%, transparent),
+      transparent
+    );
+    transform: translateX(-140%) skewX(var(--sweep-skew));
+    pointer-events: none;
+  }
+
+  .sweep:hover::after {
+    animation: mirrorSweep var(--dur-slow) var(--ease-standard) 1;
+  }
 }
 
 .clickable {
@@ -22,7 +73,7 @@
 .selected {
   border-color: var(--primary);
   border-width: 2px;
-  background: #f7faff;
+  background: var(--primary-light);
 }
 
 .header {

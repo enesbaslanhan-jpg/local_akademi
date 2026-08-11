@@ -1,0 +1,49 @@
+/* Karar Araçları ile ortak LocalKarar giriş yüzeyi. Arama ve dosya kontrolleri
+   kendi özel geometrisini korur; veri giriş alanları taş/mirror sistemi paylaşır. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="search"]),
+textarea,
+select {
+  border: 1px solid var(--border-strong) !important;
+  border-radius: 10px !important;
+  background: var(--surface-sunken) !important;
+  color: var(--text) !important;
+  box-shadow: var(--shadow-1), inset 0 1px 1px rgba(255,255,255,.58) !important;
+  font-style: normal !important;
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="search"]):hover:not(:disabled),
+textarea:hover:not(:disabled),
+select:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--brand-900) 40%, transparent) !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="search"]):focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  border-color: var(--primary) !important;
+  background: var(--surface-raised) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-500) 12%, transparent), var(--shadow-2) !important;
+}
+
+input::placeholder,
+textarea::placeholder { color: var(--text-light) !important; opacity: 1; font-style: normal; }
+
+:root.dark input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="search"]),
+:root.dark textarea,
+:root.dark select,
+:root[data-theme='dark'] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="search"]),
+:root[data-theme='dark'] textarea,
+:root[data-theme='dark'] select {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+
+:root.dark input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="search"]):hover:not(:disabled),
+:root.dark textarea:hover:not(:disabled),
+:root.dark select:hover:not(:disabled),
+:root[data-theme='dark'] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="search"]):hover:not(:disabled),
+:root[data-theme='dark'] textarea:hover:not(:disabled),
+:root[data-theme='dark'] select:hover:not(:disabled) {
+  border-color: var(--theme-outline) !important;
+}

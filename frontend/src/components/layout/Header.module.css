@@ -1,10 +1,18 @@
+/*
+ * Kompakt üst alan — eski beyaz büyük header kaldırıldı.
+ * Ana zemine (fildişi) entegre, 52px yükseklikte; glass yalnızca hafif
+ * bir doygunluk katmanı olarak uygulanıyor (sticky durumda okunabilirlik).
+ */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-4);
   height: var(--header-height);
   padding: 0 var(--space-6);
-  background: var(--white);
+  background: color-mix(in srgb, var(--surface-canvas) 88%, transparent);
+  -webkit-backdrop-filter: saturate(var(--glass-saturate, 140%)) blur(10px);
+  backdrop-filter: saturate(var(--glass-saturate, 140%)) blur(10px);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -14,84 +22,100 @@
 .left {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
+  min-width: 0;
 }
 
 .menuBtn {
   display: none;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-sm);
   color: var(--text);
-  transition: background var(--transition-fast);
+  transition: background var(--dur-fast, 180ms) var(--ease-standard, ease);
 }
 
 .menuBtn:hover {
-  background: var(--bg);
+  background: var(--bg-hover);
 }
 
-.logo {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--primary-dark);
+.pageTitle {
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
 }
 
 .right {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
+  flex-shrink: 0;
 }
 
-.userInfo {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+.date {
+  font-size: 0.76rem;
   color: var(--text-light);
-  font-size: var(--font-size-sm);
+  white-space: nowrap;
 }
 
-.userName {
-  color: var(--text);
-  font-weight: var(--font-weight-medium);
-}
-
-.logoutBtn {
+.iconBtn {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-sm);
   color: var(--text-light);
-  font-size: var(--font-size-sm);
-  transition: all var(--transition-fast);
+  transition: background var(--dur-fast, 180ms) var(--ease-standard, ease),
+    color var(--dur-fast, 180ms) var(--ease-standard, ease);
 }
 
-.logoutBtn:hover {
-  background: var(--danger-bg);
-  color: var(--danger);
+.iconBtn:hover {
+  background: var(--bg-hover);
+  color: var(--theme-primary);
 }
 
-@media (max-width: 768px) {
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--theme-primary);
+  color: var(--theme-on-primary);
+  font-size: 0.65rem;
+  font-weight: var(--font-weight-semibold);
+  flex-shrink: 0;
+  border: 0;
+  cursor: pointer;
+  box-shadow: var(--shadow-2);
+  transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+}
+
+.avatar:hover { transform: translateY(-2px); box-shadow: var(--shadow-3); }
+
+/* Kabuk kırılımı 900px: bu noktanın altında ikon rayı gizlenir, menüye
+   yalnızca hamburger drawer'ından ulaşılır — düğme de burada görünür. */
+@media (max-width: 1023px) {
   .header {
     padding: 0 var(--space-4);
   }
 
   .menuBtn {
     display: flex;
+    /* Dokunma hedefi alt sınırı */
+    width: 44px;
+    height: 44px;
   }
 
-  .userName {
+  .date {
     display: none;
-  }
-
-  .logoutText {
-    display: none;
-  }
-
-  .logo {
-    font-size: var(--font-size-lg);
   }
 }

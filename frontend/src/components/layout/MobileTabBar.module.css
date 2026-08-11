@@ -1,0 +1,66 @@
+/*
+ * Mobil alt sekme çubuğu — yalnızca <900px. Masaüstünde ikon rayı devralır.
+ */
+.tabBar {
+  display: none;
+}
+
+@media (max-width: 899px) {
+  .tabBar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-header);
+    background: var(--white);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -6px 22px rgba(18, 23, 23, 0.07);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .tab {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    /* Dokunma hedefi en az 44x44 */
+    min-height: 56px;
+    padding: var(--space-2) var(--space-1);
+    background: transparent;
+    border: 0;
+    color: var(--text-light);
+    transition: color var(--dur-fast) var(--ease-standard);
+  }
+
+  .tab:focus-visible {
+    outline: 2px solid var(--brand-gold);
+    outline-offset: -2px;
+  }
+
+  /* Dokunmatikte hover yok; geri bildirim yalnızca basılı tutmada */
+  .tab:active {
+    transform: scale(var(--scale-active));
+  }
+
+  .active {
+    color: var(--brand-ink);
+  }
+
+  .active svg {
+    stroke-width: 2.4;
+  }
+
+  .label {
+    font-size: 0.6rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.1;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

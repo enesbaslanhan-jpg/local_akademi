@@ -1,9 +1,15 @@
 import styles from './Card.module.css'
 
-export default function Card({ children, className = '', onClick, hoverable, selected, ...props }) {
+/*
+ * sweep: açık kartta hover'da TEK SEFERLİK ayna hüzmesi (koyu panellerdeki
+ * döngüsel varyantın karşılığı). Opsiyonel, çünkü hüzme `overflow: hidden`
+ * gerektirir — kartın içinde taşan bir menü/açılır liste varsa kırpar.
+ * Bu yüzden yalnızca hüzmenin istendiği kartlarda açılır.
+ */
+export default function Card({ children, className = '', onClick, hoverable, selected, sweep, ...props }) {
   return (
     <div
-      className={`${styles.card} ${hoverable ? styles.hoverable : ''} ${selected ? styles.selected : ''} ${onClick ? styles.clickable : ''} ${className}`}
+      className={`${styles.card} ${hoverable ? styles.hoverable : ''} ${sweep ? styles.sweep : ''} ${selected ? styles.selected : ''} ${onClick ? styles.clickable : ''} ${className}`}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
