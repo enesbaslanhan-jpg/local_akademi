@@ -1440,6 +1440,86 @@ model FeedInteraction {
 }
 
 // ==========================================
+// NEWS AUTOMATION
+// ==========================================
+
+enum NewsSourceType {
+  RSS
+  OFFICIAL_PAGE
+  OFFICIAL_API
+}
+
+enum NewsCategory {
+  FINANS
+  MEVZUAT
+  VERGI
+  IS_DUNYASI
+  DIJITALLESME
+  DESTEK
+  GENEL_EKONOMI
+}
+
+enum NewsStatus {
+  PROCESSING
+  PUBLISHED
+  FAILED
+  ARCHIVED
+}
+
+enum NewsImportance {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model NewsSource {
+  id             String         @id
+  name           String
+  baseUrl        String
+  feedUrl        String?
+  type           NewsSourceType
+  category       NewsCategory
+  isActive       Boolean        @default(true)
+  isOfficial     Boolean        @default(true)
+  allowedDomains String[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  articles       NewsArticle[]
+
+  @@index([isActive, type])
+}
+
+model NewsArticle {
+  id                  String         @id @default(uuid())
+  sourceId            String
+  category            NewsCategory
+  status              NewsStatus     @default(PROCESSING)
+  importance          NewsImportance?
+  title               String
+  canonicalUrl        String         @unique
+  contentHash         String         @unique
+  sourcePublishedAt   DateTime
+  sourceTextExcerpt   String?
+  summary             String?
+  whyItMatters        String?
+  tags                 String[]
+  affectedAudience    String[]
+  imageId             String?
+  aiProvider           String?
+  aiModel              String?
+  failureReason        String?
+  publishedAt         DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  source              NewsSource     @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+
+  @@index([status, sourcePublishedAt(sort: Desc), id])
+  @@index([category, status, sourcePublishedAt(sort: Desc), id])
+  @@index([sourceId, sourcePublishedAt(sort: Desc)])
+}
+
+// ==========================================
 // PHASE 8.0D-2 - LEARNING PROGRESS
 // ==========================================
 

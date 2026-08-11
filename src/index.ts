@@ -38,6 +38,8 @@ import { communityRoutes } from './services/community'
 import { financialModelRoutes } from './services/financial-models/routes'
 import { feedRoutes } from './routes/feed.js'
 import { learningProgressRoutes } from './routes/learning-progress.js'
+import { newsRoutes } from './services/news/routes.js'
+import { startNewsWorker } from './services/news/worker.js'
 import { ensureFinancialModelCatalog } from './services/financial-models/catalog'
 import { deleteExpiredReviewerTelemetry } from './services/ai-reviewer'
 import { disconnectPrisma, prisma } from './lib/prisma'
@@ -207,6 +209,7 @@ async function build() {
   server.register(decisionCheckRoutes, { prefix: '/api/v1/decision-checks' })
   server.register(feedRoutes, { prefix: '/api/v1/feed' })
   server.register(learningProgressRoutes, { prefix: '/api/v1/learning-progress' })
+  server.register(newsRoutes)
   const memoryApiEnabled = process.env.ENABLE_MEMORY_API !== 'false'
   if (memoryApiEnabled) {
     server.register(memoryRoutes, { prefix: '/api/memory' })
@@ -278,8 +281,10 @@ export async function start() {
 
   await ensureFinancialModelCatalog(prisma)
   let stopReminderWorker = () => {}
+  let stopNewsWorker = () => {}
   server.addHook('onClose', async () => {
     stopReminderWorker()
+    stopNewsWorker()
   })
   try {
     await server.listen({ port, host: process.env.HOST || '0.0.0.0' })
@@ -290,6 +295,10 @@ export async function start() {
 
   stopReminderWorker = startBusinessReminderWorker(undefined, {
     onError: error => server.log.error({ error }, 'Business reminder worker failed')
+  })
+  stopNewsWorker = startNewsWorker(undefined, {
+    runImmediately: process.env.NEWS_RUN_ON_START === 'true',
+    onError: error => server.log.error({ error }, 'Hourly Europe/Istanbul news worker failed')
   })
 
   void deleteExpiredReviewerTelemetry().catch(() => {
