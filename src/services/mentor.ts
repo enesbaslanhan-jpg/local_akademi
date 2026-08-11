@@ -117,7 +117,7 @@ async function getSingleKOContext(code: string): Promise<string> {
 }
 
 function buildSystemPrompt(user: any, koContext: string, bizProfile?: string): string {
-  let prompt = `Sen LocalAkademi'nin KOBİ, esnaf ve girişimcilere destek veren yapay zeka iş mentorusun. Görevin öğrencilere Türkçe olarak yardım etmek.
+  let prompt = `Sen LocalKarar'ın KOBİ, esnaf ve girişimcilere destek veren yapay zeka iş mentorusun. Görevin öğrencilere Türkçe olarak yardım etmek.
 
 Kurallar:
 - Her zaman TÜRKÇE cevap ver. Sadece teknik terimler İngilizce olabilir.

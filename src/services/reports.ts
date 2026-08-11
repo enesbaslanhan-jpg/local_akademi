@@ -22,7 +22,7 @@ export async function reportRoutes(fastify: FastifyInstance) {
     }
 
     const reportId = randomUUID()
-    const filename = `LocalAkademi_Rapor_${reportId}.${format === 'pdf' ? 'pdf' : 'xlsx'}`
+    const filename = `LocalKarar_Rapor_${reportId}.${format === 'pdf' ? 'pdf' : 'xlsx'}`
     const filepath = join(REPORT_DIR, filename)
 
     const profile = await (prisma as any).businessProfile?.findFirst({
@@ -42,7 +42,7 @@ export async function reportRoutes(fastify: FastifyInstance) {
         id: reportId,
         userId: user.id,
         reportType: 'user_summary',
-        title: 'LocalAkademi Kullanıcı Raporu',
+        title: 'LocalKarar Kullanıcı Raporu',
         format,
         storedName: filename
       }
@@ -50,7 +50,7 @@ export async function reportRoutes(fastify: FastifyInstance) {
 
     return {
       id: reportId,
-      title: 'LocalAkademi Kullanıcı Raporu',
+      title: 'LocalKarar Kullanıcı Raporu',
       format,
       download_url: `/reports/${reportId}/download`
     }
@@ -108,7 +108,7 @@ export async function reportRoutes(fastify: FastifyInstance) {
     }
 
     const backupId = randomUUID()
-    const backupName = `LocalAkademi_Backup_${new Date().toISOString().split('T')[0]}_${backupId}.zip`
+    const backupName = `LocalKarar_Backup_${new Date().toISOString().split('T')[0]}_${backupId}.zip`
     const backupPath = join(REPORT_DIR, backupName)
 
     try {
@@ -123,7 +123,7 @@ export async function reportRoutes(fastify: FastifyInstance) {
         id: backupId,
         userId: user.id,
         reportType: 'system_backup',
-        title: 'LocalAkademi Sistem Yedeği',
+        title: 'LocalKarar Sistem Yedeği',
         format: 'zip',
         storedName: backupName
       }
@@ -154,7 +154,7 @@ function generateReportContent(user: any, profile: any) {
 
 function generateSimplePdf(content: any) {
   const lines = [
-    'LocalAkademi Rapor',
+    'LocalKarar Rapor',
     '═'.repeat(50),
     '',
     `Kullanıcı: ${content.kullanici}`,

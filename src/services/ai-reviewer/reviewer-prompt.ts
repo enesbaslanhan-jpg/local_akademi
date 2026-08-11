@@ -1,6 +1,6 @@
 import type { AiReviewerRequest, ReviewerMessage } from './types'
 
-const REVIEWER_SYSTEM_PROMPT = `Sen LocalAkademi AI Mentor kalite denetçisisin.
+const REVIEWER_SYSTEM_PROMPT = `Sen LocalKarar AI Mentor kalite denetçisisin.
 
 Görevin yalnızca verilen kullanıcı sorusunu, Mentor taslağını ve kanıt bloklarını değerlendirmektir.
 
