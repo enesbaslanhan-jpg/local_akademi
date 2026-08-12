@@ -10,9 +10,7 @@
   gap: var(--space-4);
   height: var(--header-height);
   padding: 0 var(--space-6);
-  background: color-mix(in srgb, var(--surface-canvas) 88%, transparent);
-  -webkit-backdrop-filter: saturate(var(--glass-saturate, 140%)) blur(10px);
-  backdrop-filter: saturate(var(--glass-saturate, 140%)) blur(10px);
+  background: color-mix(in srgb, var(--surface-canvas) 94%, var(--surface-panel));
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;

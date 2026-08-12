@@ -759,6 +759,49 @@
 :global(.dark) .userArea { border-top: 1px solid #2a2e35; }
 :global(.dark) .logoutBtn:hover { border-color: #2a2e35; background: #1c1f24; }
 
+/* Approved Mineral Calm rail: tonal, compact and calm in both themes. */
+@media (min-width: 1024px) {
+  .sidebar {
+    background: var(--sidebar-bg);
+    border-right-color: var(--sidebar-divider);
+    box-shadow: none;
+  }
+
+  .navItem:hover { transform: none; }
+
+  .active::before,
+  .recommended::before {
+    background: var(--theme-primary);
+    box-shadow: none;
+  }
+
+  .quickAction {
+    border-radius: var(--radius-sm);
+    box-shadow: none;
+  }
+
+  .navSearch {
+    border-radius: var(--radius-sm);
+    background: var(--surface-sunken);
+    box-shadow: none;
+  }
+}
+
+:global(.dark) .sidebar {
+  background: var(--sidebar-bg);
+  border-color: var(--sidebar-divider);
+  box-shadow: none;
+}
+
+:global(.dark) .active,
+:global(.dark) .active:hover {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
+}
+
+:global(.dark) .active::before,
+:global(.dark) .recommended::before { background: var(--theme-primary); }
+
 /* Arama yalnızca etiketli masaüstü ve drawer görünümünde vardır. */
 .navSearch { flex-shrink: 0; }
 

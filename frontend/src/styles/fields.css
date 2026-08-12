@@ -4,10 +4,10 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="h
 textarea,
 select {
   border: 1px solid var(--border-strong) !important;
-  border-radius: 10px !important;
-  background: var(--surface-sunken) !important;
+  border-radius: 8px !important;
+  background: var(--input-bg) !important;
   color: var(--text) !important;
-  box-shadow: var(--shadow-1), inset 0 1px 1px rgba(255,255,255,.58) !important;
+  box-shadow: none !important;
   font-style: normal !important;
   transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }

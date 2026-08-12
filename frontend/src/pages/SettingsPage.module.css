@@ -49,9 +49,9 @@
 .dangerCard { border-color: color-mix(in srgb, var(--danger) 48%, var(--border)); }
 .dangerCard .cardHeader > span { background: var(--danger-bg); color: var(--danger); }
 .dangerNotice { margin-bottom: 15px; padding: 11px 13px; border-left: 3px solid var(--danger); background: var(--danger-bg); color: var(--text); font-size: .76rem; line-height: 1.5; }
-.deleteButton { min-height: 42px; padding: 10px 18px; border: 1px solid color-mix(in srgb, var(--danger) 70%, black); border-radius: 999px; background: var(--danger); color: #fff; font: inherit; font-size: .78rem; font-weight: 800; box-shadow: 0 5px 0 color-mix(in srgb, var(--danger) 72%, black); }
-.deleteButton:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 0 color-mix(in srgb, var(--danger) 72%, black), var(--shadow-3); }
-.deleteButton:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 2px 0 color-mix(in srgb, var(--danger) 72%, black); }
+.deleteButton { min-height: 42px; padding: 10px 18px; border: 1px solid transparent; border-radius: var(--radius-sm); background: var(--danger); color: var(--on-danger); font: inherit; font-size: .78rem; font-weight: 800; box-shadow: var(--shadow-2); }
+.deleteButton:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--shadow-3); }
+.deleteButton:active:not(:disabled) { transform: scale(.98); box-shadow: var(--shadow-1); }
 .deleteButton:disabled { opacity: .55; cursor: not-allowed; }
 @media (max-width: 850px) { .settingsShell { grid-template-columns: 1fr; } .settingsNav { position: static; display: flex; overflow-x: auto; } .settingsNav a { flex: 0 0 auto; } }
 @media (max-width: 620px) { .profileHeader { padding: 16px; } .avatar { width: 54px; height: 54px; border-radius: 17px; } .twoFields, .themeGrid { grid-template-columns: 1fr; } .cardBody { padding: 16px; } .sectionFoot, .emptyBlock, .switchRow { align-items: stretch; flex-direction: column; } .sectionFoot > div, .sectionFoot button { width: 100%; } }

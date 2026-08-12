@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const d=require\\('./content/full-curriculum-v1.json'\\); console.log\\(Array.isArray\\(d\\)? d.length : Object.keys\\(d\\)\\); if\\(!Array.isArray\\(d\\)\\){for\\(const k of Object.keys\\(d\\)\\){console.log\\(k, Array.isArray\\(d[k]\\)?d[k].length:typeof d[k]\\)}}\")",
+      "Bash(node -e ' *)",
+      "Bash(xargs -I{} node -e \"try{const d=require\\('{}'\\);console.log\\('{}', Array.isArray\\(d\\)?d.length:\\(d.items?d.items.length:Object.keys\\(d\\)\\)\\)}catch\\(e\\){}\")",
+      "Bash(git check-ignore *)",
+      "Bash(npx vitest *)",
+      "Bash(cp /tmp/course_report.mjs ./course_report_tmp.mjs)",
+      "Bash(node --env-file=.env course_report_tmp.mjs)",
+      "WebSearch",
+      "Bash(node --env-file=.env --import tsx scripts/seed-pilot-isletme-devri-course.ts)",
+      "Bash(node --env-file=.env --import tsx scripts/seed-practical-cards.ts)",
+      "Bash(npx tsc *)",
+      "Bash(node --env-file=.env --import tsx scripts/seed-pilot-category5-batch.ts)",
+      "Bash(node --env-file=.env check_latex_tmp.mjs)",
+      "Bash(rm check_latex_tmp.mjs)",
+      "Bash(netstat -ano)",
+      "Bash(node --env-file=.env --import tsx verify_api_logic_tmp.ts)",
+      "Bash(rm verify_api_logic_tmp.ts)",
+      "Bash(node --env-file=.env --import tsx scripts/fix-pilot-v5-metadata-and-sources.ts)",
+      "Bash(npx vite *)",
+      "Bash(node --env-file=.env --import tsx verify_cat1_tmp.ts)",
+      "Bash(node scripts/_check-inventory.js)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/api/v1/health)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5173)",
+      "Bash(npm run *)",
+      "Bash(disown)",
+      "Read(//tmp/**)",
+      "Bash(curl -s http://localhost:3000/api/v1/knowledge-v2/CUR-123-04)",
+      "Bash(node scripts/add-batch1-new-lesson-cards.js --apply)",
+      "Bash(npm ls *)"
+    ]
+  }
+}

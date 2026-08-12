@@ -164,13 +164,13 @@
   --shadow-lg: var(--shadow-4);
 
   /* Border Radius */
-  --radius-sm: 10px;
-  --radius: 16px;
+  --radius-sm: 8px;
+  --radius: 12px;
   --radius-full: 999px;
 
   /* Typography */
-  --font-family: 'Inter', 'Segoe UI', system-ui, Arial, sans-serif;
-  --font-heading: 'Manrope', 'Inter', 'Segoe UI', system-ui, Arial, sans-serif;
+  --font-family: 'Manrope', 'Segoe UI', system-ui, Arial, sans-serif;
+  --font-heading: 'Manrope', 'Segoe UI', system-ui, Arial, sans-serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -210,7 +210,7 @@
   --sidebar-width: 248px;
   --sidebar-collapsed-width: 64px;
   --header-height: 52px;
-  --content-max-width: 1180px;
+  --content-max-width: 1440px;
 
   /* Z-index layers */
   --z-sidebar: 100;

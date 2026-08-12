@@ -20,7 +20,7 @@
   min-height: 100vh;
   /* Yatay scroll'u engeller: grid/flex çocuklarının taşmasını keser */
   min-width: 0;
-  transition: margin-left var(--dur-panel) ease-in-out;
+  transition: none;
 }
 
 .content {
@@ -30,7 +30,7 @@
   margin: 0 auto;
   /* Referanstaki gibi dış boşluk cömert olsun: içerik kenara yapışınca
      her şey büyük ve sıkışık görünüyor. */
-  padding: var(--space-8) var(--space-10) var(--space-12);
+  padding: var(--space-5) var(--space-6) var(--space-8);
   min-width: 0;
 }
 

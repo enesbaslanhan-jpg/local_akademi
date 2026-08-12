@@ -13,10 +13,10 @@
   margin: 0 auto;
   min-width: 0;
   padding: var(--space-6) var(--space-6) var(--space-8);
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-lg);
+  background: color-mix(in srgb, var(--warning-bg) 34%, var(--surface-raised));
+  border: 1px solid color-mix(in srgb, var(--warning) 28%, var(--border));
+  border-radius: 5px 5px 14px 14px;
+  box-shadow: 0 18px 44px rgba(26, 28, 30, .14);
   color: var(--text);
   overflow: hidden;
 
@@ -222,16 +222,16 @@
 }
 
 /* Olumlu → zeytin, dikkat → hardal, olumsuz → bordo */
-.toneGood { border-color: var(--brand-olive); background: var(--success-bg); }
-.toneGood .verdictIcon { background: var(--brand-olive); color: var(--white); }
+.toneGood { border-color: var(--success); background: var(--success-bg); }
+.toneGood .verdictIcon { background: var(--success); color: var(--on-success); }
 .toneGood .verdictLabel { color: var(--success); }
 
 .toneWarn { border-color: var(--warning); background: var(--warning-bg); }
-.toneWarn .verdictIcon { background: var(--warning); color: var(--white); }
+.toneWarn .verdictIcon { background: var(--warning); color: var(--on-warning); }
 .toneWarn .verdictLabel { color: var(--warning); }
 
 .toneBad { border-color: var(--danger); background: var(--danger-bg); }
-.toneBad .verdictIcon { background: var(--brand-bordo); color: var(--white); }
+.toneBad .verdictIcon { background: var(--danger); color: var(--on-danger); }
 .toneBad .verdictLabel { color: var(--danger); }
 
 /* ---------- Aksiyon satırı ---------- */
@@ -252,7 +252,7 @@
   padding: var(--space-2) var(--space-1);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: var(--white);
+  background: color-mix(in srgb, var(--surface-raised) 82%, transparent);
   color: var(--text);
   font-size: 0.68rem;
   font-weight: var(--font-weight-medium);
@@ -288,6 +288,17 @@
   .receipt { animation: none; }
   .sweepBar { animation: none; display: none; }
   .action { transition: none; }
+}
+
+@media screen {
+:global(.dark) .receipt {
+  background: var(--evidence-paper);
+  border-color: var(--evidence-border);
+  color: var(--text);
+  box-shadow: var(--evidence-shadow);
+}
+
+:global(.dark) .action { background: var(--evidence-action); }
 }
 
 /* ==========================================================================
