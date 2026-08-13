@@ -113,11 +113,21 @@
   overflow: hidden;
 }
 
+/* Doluluk width yerine scaleX ile animasyon yapar — width layout thrash
+   üretiyordu. Ray zaten pill biçiminde kırptığı için doluluğun kendi
+   yarıçapına gerek yok; scaleX onu bozardı. */
 .pathFill {
+  width: 100%;
   height: 100%;
-  border-radius: var(--radius-full);
+  transform-origin: left center;
   background: var(--success-bg);
-  transition: width var(--dur-base) var(--ease-standard);
+  transition: transform var(--dur-base) var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pathFill {
+    transition: none;
+  }
 }
 
 .pathProgressHint {

@@ -335,7 +335,7 @@ export default function CoursesPage({ initialTab = 'all' }) {
                 aria-valuemin={0}
                 aria-valuemax={100}
               >
-                <div className={styles.pathFill} style={{ width: `${pathPercent}%` }} />
+                <div className={styles.pathFill} style={{ transform: `scaleX(${pathPercent / 100})` }} />
               </div>
               <span className={styles.pathProgressHint}>
                 {doneSteps} / {pathSteps.length} adım tamamlandı
