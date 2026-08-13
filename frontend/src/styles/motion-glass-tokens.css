@@ -1,68 +1,14 @@
 /*
- * Motion + Glass System — ortak tokenlar
- * Bu dosya mevcut tokens.css'i DEĞİŞTİRMEZ, üzerine ortak bir hareket ve
- * kontrollü glassmorphism katmanı ekler. Tüm component'ler animasyon
- * süresi/easing/lift değerlerini BURADAN okumalı — component başına farklı
- * süre veya easing üretilmemeli (kural 3 ve 4).
+ * Hareket ve cam katmanı — keyframe'ler ve utility sınıfları.
+ *
+ * Token TANIMLAMAZ. Süre, easing, lift ve cam değerleri tokens.css ve
+ * theme-modes.css'ten gelir; bu dosya yalnız onları kullanır. (Eskiden
+ * burada ikinci bir :root bloğu vardı ve sonra yüklendiği için tasarım
+ * sistemini eziyordu — kaldırıldı.)
+ *
+ * Karar fişinin fichOpen animasyonu burada tanımlıdır ve korunmaktadır.
  */
 
-:root {
-  /* ---------- Motion: easing ---------- */
-  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
-  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
-
-  /* ---------- Motion: süreler ---------- */
-  --dur-instant: 120ms;   /* buton active/scale gibi anlık geri bildirimler */
-  --dur-fast: 180ms;      /* hover, focus, ikon kaydırma */
-  --dur-base: 220ms;      /* kart hover, küçük panel açılışı, alt sınır */
-  --dur-page: 260ms;      /* sayfa içeriği geçişi (220–280ms aralığının ortası) */
-  --dur-slow: 320ms;      /* modal/drawer/karar fişi gibi büyük yüzeyler */
-  --dur-panel: 200ms;     /* bağlam panelinin açılıp kapanması */
-
-  /* ---------- Motion: hareket miktarları ---------- */
-  --lift-btn: -2px;       /* buton hover — buton küçük olduğu için kart kadar yükselmez */
-  --lift-card: -5px;      /* kart hover üst sınırı */
-  --scale-active: 0.98;   /* buton/kart active */
-  --shift-icon: 4px;      /* ikonlu buton hover'da ikon kayması */
-  --offset-page: 10px;    /* sayfa geçişinde main content'in geldiği mesafe */
-  --offset-sheet: 24px;   /* mobil bottom-sheet açılış mesafesi */
-
-  /* ---------- Glass yüzeyler (yalnızca izinli 7 alan için) ---------- */
-  --glass-bg: rgba(255, 255, 255, 0.68);
-  --glass-bg-strong: rgba(255, 255, 255, 0.82);
-  --glass-border: rgba(255, 255, 255, 0.45);
-  --glass-blur: 14px;
-  --glass-saturate: 140%;
-  --glass-shadow: 0 12px 40px rgba(17, 24, 39, 0.14);
-
-  /* ---------- Karar Fişi vurgu tonları (kural 10/11) ---------- */
-  --cta-orange: var(--primary);      /* turuncu kapalı — tek vurgu teal */
-  --risk-bordo: var(--danger);       /* risk / hata / yıkıcı işlem */
-
-  /* ---------- Signature Dark Panel ---------- */
-  --panel-bevel: 18px;        /* sağ üst köşe pahı */
-  --panel-sheen: rgba(255, 255, 255, 0.05);  /* iç yansıma gradyanının üst ucu */
-
-  /* ---------- Mirror Sweep ---------- */
-  --sweep-tint: rgba(255, 255, 255, 0.18);   /* tarama şeridinin tepe opaklığı */
-  --sweep-width: 42%;         /* şerit genişliği */
-  --sweep-skew: -18deg;       /* şeridin açısı */
-  --sweep-period: 5s;         /* koyu imza panellerde döngü aralığı */
-
-  /* ---------- Kabuk ölçüleri (Paket 5) ---------- */
-  --rail-width: 280px;        /* etiketli ana sidebar */
-  --context-width: 300px;     /* gerektiğinde açılan ikincil bağlam drawer'ı */
-
-  /* ---------- Dokunsal yüzey (Paket 5) ---------- */
-  /* Bu üçü TEMAYA GÖRE değişmeliydi ama sabit açık-mod değerleriydi:
-     koyu modda gölge görünmüyor, beyaz iç çizgi ise parlıyordu. Artık
-     theme-modes.css'teki rampalara bağlılar. */
-  --mirror-edge: var(--edge-highlight);      /* üst + sol 1px kenar ışığı */
-  --edge-inset: inset 1px 1px 0 0 var(--mirror-edge);
-  --shadow-tactile: var(--shadow-2);
-  --shadow-tactile-hover: var(--shadow-3);
-}
 
 /* Glass yüzey — utility sınıfı, yalnızca izin verilen 7 alanda kullanılır:
    üst bar, modal, drawer, AI Mentor bağlam paneli, Model Lab parametre

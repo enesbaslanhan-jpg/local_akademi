@@ -17,8 +17,11 @@
   border: none;
   cursor: pointer;
   transition: transform 0.2s ease;
-  background: var(--surface-dark-2);
-  color: var(--sidebar-active-text);
+  background: var(--surface-signature-2);
+  /* Koyu yüzey kendi ön planını taşır. Eskiden kenar çubuğunun aktif
+     metin rengi kullanılıyordu; kenar çubuğu nötr yüzeye geçince bu
+     koyu zeminde 1.95:1'e düşüyordu. */
+  color: var(--on-signature);
   border: 1px solid color-mix(in srgb, var(--primary) 46%, var(--border-dark));
 }
 

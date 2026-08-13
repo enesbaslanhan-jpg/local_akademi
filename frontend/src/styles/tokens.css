@@ -1,234 +1,176 @@
 /*
- * LocalKarar tasarım sistemi — renk/spacing/typography tokenları.
+ * LocalKarar — yapı tokenları
  *
- * PALET B: mavi-teal marka + soğutulmuş nötr zemin.
- * Tek tek hex seçmek yerine dört adet 11 kademeli RAMPA tanımlanır
- * (brand / neutral / accent / gold). Derinlik hissi rampalardan gelir:
- * zemin, panel ve kart artık üç ayrı değerde durur, hepsi birbirine
- * yakın tonlar değil.
+ * TEK KAYNAK: onaylanan 18 ekranlık masaüstü ailesi.
+ *   design/01..18-{light,dark}.png          → görsel doğrulama
+ *   LOCALKARAR_18_DESKTOP_{LIGHT,DARK}.png  → aile onay sayfası
+ * Prototipteki değerler bu dosyaya birebir taşınmıştır; buradaki hiçbir
+ * sayı "yaklaşık" değildir. Ekranla dosya çeliştiğinde ekran kazanır.
  *
- * Değişken İSİMLERİ korundu — mevcut ~70 CSS modülü ve component
- * hiç dokunulmadan yeni palete geçer. Yeni yazılan CSS'te doğrudan
- * rampa/surface tokenları kullanılmalı.
+ * GÖREV AYRIMI
+ *   tokens.css       → temadan BAĞIMSIZ olan her şey: ölçü, tipografi,
+ *                      yarıçap, kabuk, z-index, hareket.
+ *   theme-modes.css  → açık/koyu ROL değerleri (yüzey, metin, kenar,
+ *                      gölge, marka, durum). SONRA yüklenir.
+ *
+ * Sayfa CSS'i rol tokenlarını kullanır (--surface-*, --text-*, --primary).
+ * Rampalara doğrudan erişim yalnız tint/mix üretmek içindir.
+ *
+ * Dosya sonundaki LEGACY bloğu, henüz yeni sisteme taşınmamış modüllerin
+ * çalışmaya devam etmesi içindir. Ekranlar tek tek dönüştürüldükçe küçülür.
  */
 
 :root {
   /* ==============================================================
-     RAMPALAR — yeni CSS bunları kullanmalı
+     TİPOGRAFİ — tek aile: Manrope
+     Ekranlardaki gerçek ölçüler. Ara değer üretilmez.
      ============================================================== */
+  --font-family: Manrope, 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-heading: var(--font-family);
 
-  /* Marka — mavi-teal (hue ~190). Uçlar düzeltildi: 50 saf beyaz
-     değil, 800/900/950 birbirinden ayrılabilir koyuluklar. */
-  --brand-50:  #F1F6F7;
-  --brand-100: #D3DCDD;
-  --brand-200: #A7B9BD;
-  --brand-300: #7E989D;
-  --brand-400: #55787E;
-  --brand-500: #2C5961;
-  --brand-600: #1E4046;
-  --brand-700: #11282D;
-  --brand-800: #0B1B1E;
-  --brand-900: #051315;
-  --brand-950: #020809;
+  --font-page-title: 24px;      /* .pagehead h1 */
+  --font-display: 28px;         /* yalnız signature paneldeki büyük sonuç */
+  --font-metric: 23px;          /* .metric-item strong */
+  --font-section-title: 16px;   /* .section-title */
+  --font-domain-title: 15px;    /* kart/öğe başlığı */
+  --font-body: 13px;            /* gövde, .row strong, buton */
+  --font-body-sm: 12px;         /* .section-sub, .row, .message */
+  --font-meta: 11px;            /* .meta, ikincil satır */
+  --font-micro: 10px;           /* .pill, .chip, .navgroup */
 
-  /* Nötr — soğutulmuş gri-yeşil. Sıcak krem kaldırıldı; markayla
-     aynı soğuk aileden olduğu için koyu paneller zemine oturur. */
-  --neutral-50:  #FBFCFC;
-  --neutral-100: #F2F4F4;
-  --neutral-200: #E6E9E9;
-  --neutral-300: #D5DAD9;
-  --neutral-400: #B4BBBB;
-  --neutral-500: #8E9797;
-  --neutral-600: #6B7575;
-  --neutral-700: #4E5757;
-  --neutral-800: #353C3C;
-  --neutral-900: #1F2525;
-  --neutral-950: #121717;
+  --line-height-tight: 1.25;    /* başlıklar */
+  --line-height-normal: 1.5;    /* gövde */
+  --line-height-relaxed: 1.65;  /* uzun paragraf */
 
-  /* Vurgu — terracotta. Mavi-teal'in tamamlayıcısı olduğu için
-     soğuk zeminde daha da güçlü çıkar. YALNIZCA tek ana CTA. */
-  --accent-50:  #FDF4F0;
-  --accent-100: #FAE3D8;
-  --accent-200: #F3C2AB;
-  --accent-300: #E99E7B;
-  --accent-400: #DC7B52;
-  --accent-500: #C85A2E;
-  --accent-600: #A8481F;
-  --accent-700: #843718;
-  --accent-800: #5F2711;
-  --accent-900: #3C180A;
-  --accent-950: #220D05;
-
-  /* Altın — rozet, eyebrow, "Önerilen" çizgisi. */
-  --gold-50:  #FCF8EC;
-  --gold-100: #F6ECCC;
-  --gold-200: #EBD79C;
-  --gold-300: #DCBE6B;
-  --gold-400: #CAA748;
-  --gold-500: #B8923F;
-  --gold-600: #977535;
-  --gold-700: #765A29;
-  --gold-800: #55401D;
-  --gold-900: #362811;
-  --gold-950: #1E1609;
-
-  /* ==============================================================
-     YÜZEY KADEMELERİ — derinliğin asıl kaynağı
-     Zemin < panel < kart < yüzen kart, dört ayrı değer.
-     ============================================================== */
-  --surface-canvas: var(--neutral-200);  /* sayfa zemini */
-  --surface-sunken: var(--neutral-300);  /* içeri gömülü alan */
-  --surface-panel:  var(--neutral-100);  /* bölüm paneli */
-  --surface-card:   var(--neutral-50);   /* kart */
-  --surface-raised: #FFFFFF;             /* modal, dropdown, yüzen kart */
-  --surface-dark:   var(--brand-700);    /* koyu panel */
-  --surface-dark-2: var(--brand-600);    /* koyu panel içi kart */
-
-  /* HER İKİ TEMADA DA AÇIK kalan renkler. Sadece her zaman koyu olan
-     yüzeylerin (imza paneli, karar fişi) üstünde kullanılır. --success-bg
-     gibi ZEMİN tokenları metin rengi olarak kullanılmamalı: açık temada
-     tesadüfen okunuyorlardı, koyu temada kayboluyorlar. */
-  --on-dark-good: #5CCFD8;
-  --on-dark-bad:  #F0A0A0;
-  --on-dark-text: #E4E9ED;
-  --on-dark-dim:  #9FB3B7;
-
-  --border-subtle: var(--neutral-200);
-  --border-strong: var(--neutral-400);
-  --border-dark:   var(--brand-600);
-
-  /* ==============================================================
-     ESKİ İSİMLER — mevcut modüller için eşleme (silinmeyecek)
-     ============================================================== */
-  --brand-teal: var(--brand-600);
-  --brand-teal-deep: var(--brand-700);
-  --brand-olive: var(--brand-400);
-  --brand-ink: var(--brand-500);
-  /* TURUNCU KAPALI. Referans tasarımda tek vurgu rengi teal; turuncu CTA
-     paletle çakışıyordu. Geri açmak için: var(--accent-500). */
-  --brand-terracotta: var(--primary);
-  --brand-bordo: #8F2F2F;
-  --brand-gold: var(--gold-500);
-  --brand-mustard: var(--gold-600);
-
-  --primary: var(--brand-600);
-  --primary-dark: var(--brand-700);
-  --primary-light: var(--brand-50);
-  /* Yeşil YOK. Referanstaki gibi "olumlu" = vurgu teali, "olumsuz" = somon.
-     Ayrı bir yeşil aile paletle çakışıyordu. */
-  --success: #217A85;
-  --success-bg: #E1EFF1;
-  --warning: var(--gold-600);
-  --warning-bg: var(--gold-100);
-  --danger: #8F2F2F;
-  --danger-bg: #F7E7E7;
-
-  --bg: var(--surface-canvas);
-  --bg-hover: var(--neutral-300);
-  --white: var(--surface-card);
-  --border: var(--neutral-300);
-  --text: var(--neutral-900);
-  --text-light: var(--neutral-600);
-
-  /* Workspace sayfalarının kullandığı alternatif isimler */
-  --bg-primary: var(--surface-canvas);
-  --bg-secondary: var(--surface-card);
-  --bg-tertiary: var(--surface-panel);
-  --text-primary: var(--neutral-900);
-  --text-secondary: var(--neutral-600);
-
-  /* Sidebar'a özel tokenlar */
-  --sidebar-bg: var(--brand-700);
-  --sidebar-text: var(--brand-200);
-  --sidebar-text-dim: var(--brand-300);
-  --sidebar-active-bg: var(--brand-600);
-  --sidebar-active-text: var(--brand-50);
-  --sidebar-hover-bg: #17353B;
-  --sidebar-divider: #1B3B41;
-
-  /* ==============================================================
-     GÖLGE RAMPASI — 4 kademe, soğuk tonlu
-     Tek gölge yerine kademeli sistem; yükseklik farkı görünür olsun.
-     ============================================================== */
-  --shadow-1: 0 1px 2px rgba(18, 23, 23, 0.06);
-  --shadow-2: 0 2px 6px rgba(18, 23, 23, 0.08);
-  --shadow-3: 0 6px 18px -4px rgba(18, 23, 23, 0.14);
-  --shadow-4: 0 16px 40px -12px rgba(18, 23, 23, 0.24);
-  /* Koyu yüzeyler: dış gölge + üstte ince ışık çizgisi */
-  --shadow-dark: 0 8px 24px -6px rgba(5, 19, 21, 0.34),
-                 inset 0 1px 0 rgba(255, 255, 255, 0.09);
-
-  /* Eski isimler */
-  --shadow-sm: var(--shadow-1);
-  --shadow: var(--shadow-2);
-  --shadow-lg: var(--shadow-4);
-
-  /* Border Radius */
-  --radius-sm: 8px;
-  --radius: 12px;
-  --radius-full: 999px;
-
-  /* Typography */
-  --font-family: 'Manrope', 'Segoe UI', system-ui, Arial, sans-serif;
-  --font-heading: 'Manrope', 'Segoe UI', system-ui, Arial, sans-serif;
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
-  --font-size-3xl: 1.875rem;
-
-  /* Sayfa içi h1 için TEK ölçek. Üst barda sayfa adı zaten yazdığı için
-     sayfa başlığı ona rakip olmaz, destekleyici kalır. Mobilde küçülür. */
-  --font-size-page-title: 1.5rem;
-  --font-size-page-eyebrow: 0.7rem;
-  --font-size-page-intro: 0.9rem;
+  --tracking-title: -0.02em;
+  --tracking-display: -0.035em;
 
   --font-weight-normal: 400;
   --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
+  --font-weight-semibold: 650;
+  --font-weight-bold: 720;
+  --font-weight-heavy: 780;     /* .section-title, .brand */
+  --font-weight-black: 850;     /* .brandmark, .iconbox */
 
-  --line-height-tight: 1.25;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.75;
+  /* ==============================================================
+     BOŞLUK — 4px taban
+     ============================================================== */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
 
-  /* Spacing (4px base) */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
+  --gap-panel: 12px;            /* workspace grid boşluğu */
+  --pad-panel: 16px;            /* .panel iç boşluk */
+  --pad-signature: 24px;        /* .signature iç boşluk */
+  --pad-content: 20px 22px;     /* .content */
 
-  /* Layout */
-  --sidebar-width: 248px;
+  /* ==============================================================
+     YARIÇAP — soft-square
+     Prototipteki 9/10/11px sapmaları tek sisteme normalize edildi.
+     ============================================================== */
+  --radius-xs: 4px;             /* fiş üst kenarı, küçük etiket */
+  --radius-sm: 8px;             /* buton, input, navitem */
+  --radius-md: 12px;            /* panel, kart */
+  --radius-lg: 14px;            /* signature panel */
+  --radius-full: 999px;         /* pill, chip, arama */
+
+  /* ==============================================================
+     KONTROL ÖLÇÜLERİ
+     ============================================================== */
+  --control-h: 40px;            /* buton ve input tek yükseklik */
+  --control-h-sm: 34px;         /* topbar ikon/arama */
+  --control-px: 18px;
+  --chip-h: 28px;
+  --row-h: 44px;                /* liste satırı — dokunma hedefi */
+  --iconbox: 34px;
+  --avatar: 32px;
+  --brandmark: 30px;
+
+  /* ==============================================================
+     KABUK — 1440 × 900 kaynak çerçeve
+     ============================================================== */
+  --sidebar-width: 236px;
   --sidebar-collapsed-width: 64px;
   --header-height: 52px;
-  --content-max-width: 1440px;
+  --content-max-width: 1180px;
+  --context-width: 300px;
+  --workspace-height: 772px;    /* 900 − header − content padding */
+  --bottom-tab-height: 56px;
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 
-  /* Z-index layers */
+  /* ==============================================================
+     Z-INDEX — kabuk katman sırası
+     ============================================================== */
   --z-sidebar: 100;
-  --z-header: 200;
+  --z-header: 110;
+  --z-bottom-tab: 120;
+  --z-fab: 130;
+  --z-drawer: 210;
   --z-modal-overlay: 300;
-  --z-modal: 310;
-  --z-toast: 400;
+  --z-modal: 400;
+  --z-toast: 500;
 
-  /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-normal: 250ms ease;
-  --transition-slow: 350ms ease;
-}
+  /* ==============================================================
+     HAREKET
+     Tek eğri: prototipteki --ease. Basış 120ms, durum 240ms.
+     ============================================================== */
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --dur-press: 120ms;
+  --dur-fast: 150ms;
+  --dur-base: 240ms;
+  --dur-slow: 350ms;
 
-/* Sayfa başlığı ölçeği mobilde küçülür — ayrı bir media query yerine
-   token'ın kendisi güncellenir, böylece tüm sayfalar tek yerden değişir. */
-@media (max-width: 640px) {
-  :root {
-    --font-size-page-title: 1.3rem;
-  }
+  --scale-active: 0.98;         /* basılı buton */
+  --lift-card: -2px;            /* kart hover */
+
+  /* ==============================================================
+     LEGACY — henüz dönüştürülmemiş modüller için eşleme.
+     Ekranlar sisteme alındıkça bu blok küçülür; yeni CSS kullanmaz.
+     Renk içeren legacy adlar theme-modes.css'te.
+     ============================================================== */
+  --radius: var(--radius-md);
+  --radius-xl: var(--radius-lg);
+
+  --font-size-xs: var(--font-micro);
+  --font-size-sm: var(--font-body-sm);
+  --font-size-base: var(--font-body);
+  --font-size-lg: var(--font-domain-title);
+  --font-size-xl: var(--font-section-title);
+  --font-size-2xl: var(--font-page-title);
+  --font-size-3xl: var(--font-display);
+  --font-size-page-title: var(--font-page-title);
+  --font-size-page-intro: var(--font-body);
+  --font-size-page-eyebrow: var(--font-micro);
+
+  --space-16: 64px;
+
+  --ease-standard: var(--ease);
+  --ease-decelerate: var(--ease);
+  --dur-panel: var(--dur-base);
+  --dur-page: var(--dur-slow);
+  --transition-fast: var(--dur-fast);
+  --transition-normal: var(--dur-base);
+
+  --rail-width: var(--sidebar-width);
+  --app-rail-width: var(--sidebar-width);
+
+  --lift-btn: 0px;              /* 3B buton kalktı; taktil dil yok */
+  --shift-icon: 2px;
+  --offset-page: 0px;
+  --offset-sheet: 0px;
+
+  /* Sweep/glass efekt tamponları — yeni sistemde kapalı.
+     Değerler duruyor ki eski modüller geçersiz CSS üretmesin. */
+  --sweep-skew: 0deg;
+  --sweep-width: 0px;
+  --sweep-period: 0s;
+  --glass-blur: 12px;
+  --glass-saturate: 1;
 }

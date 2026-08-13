@@ -1,342 +1,363 @@
-/* LocalKarar themes: Persian Mosaic (light) and Midnight Premium (dark). */
+/*
+ * LocalKarar — açık/koyu rol tokenları
+ *
+ * Kaynak: onaylanan 18 ekranlık aile (design/*.png).
+ * tokens.css'ten SONRA yüklenir ve rol değerlerini burası belirler.
+ *
+ * KATMAN MANTIĞI (yüzey yükseldikçe açılır)
+ *   canvas  → sayfa zemini
+ *   sunken  → gömülü alan: input, chip, arama, pasif rozet
+ *   panel   → bölüm paneli, standart kart
+ *   raised  → yükseltilmiş aktif yüzey: modal, soru kartı, model düğümü
+ * Saf beyaz yalnız raised'dır; büyük alanlar tonal katmanlarla kurulur.
+ *
+ * SABİT YÜZEYLER (tema değiştirmez — ekranlarda da değişmiyor)
+ *   signature    → koyu petrol imza paneli, sayfanın tek güçlü sonucu
+ *   lesson-stage → ders sahnesi
+ *   editorial    → haber hero gradyanı
+ * Bunlar her iki modda aynı kalır; üzerlerindeki metin on-* tokenıdır.
+ */
+
 :root,
 :root[data-theme='light'] {
   color-scheme: light;
-  --theme-canvas: #f9f9fc;
-  /* Persian Mosaic matte surfaces: pure white is reserved for tiny highlights. */
-  --theme-surface: #f2f4f6;
-  --theme-surface-low: #eef1f3;
-  --theme-surface-container: #e9edef;
-  --theme-surface-high: #e3e8ea;
-  --theme-surface-highest: #dce3e5;
-  --theme-text: #1a1c1e;
-  --theme-text-muted: #3f484a;
-  --theme-outline: #6f797b;
-  --theme-outline-soft: #bfc8ca;
-  --theme-primary: #266e7a;
-  --theme-primary-strong: #005561;
-  --theme-primary-hover: #1d6773;
-  --theme-primary-soft: #a5eefb;
-  --theme-on-primary: #ffffff;
-  --theme-on-soft: #004f58;
-  --theme-focus: #266e7a;
 
-  /* Yükseklik arttıkça AÇIL. Önceden kart (#f2f4f6) zeminden (#f9f9fc)
-     daha koyuydu; bu kademelenmeyi ters çeviriyor ve düzlük hissi veriyordu. */
-  --surface-canvas: #edf0f2;   /* sayfa zemini */
-  --surface-sunken: #e4e8eb;   /* gömülü alan */
-  --surface-panel: #f4f6f8;    /* bölüm paneli */
-  --surface-card: #fbfcfd;     /* kart */
-  --surface-raised: #ffffff;   /* modal, dropdown */
-  --surface-dark: #24343a;
-  --surface-dark-2: #31444b;
-  /* Açık modda da ayrımı gölge taşır; çizgi sadece ipucu. */
-  --border-subtle: rgba(26, 28, 30, .07);
-  --border-strong: rgba(26, 28, 30, .14);
-  --border-dark: color-mix(in srgb, var(--theme-primary-strong) 72%, #001f24);
+  /* MARKA */
+  --primary: #0D556F;
+  --primary-hover: #306D88;
+  --primary-deep: #173F4E;
+  --primary-soft: #94CEED;
+  --on-primary: #FFFFFF;
+  --focus-ring: var(--primary);
 
-  --bg: var(--surface-canvas);
-  --bg-primary: var(--surface-canvas);
-  --bg-secondary: var(--surface-card);
-  --bg-tertiary: var(--surface-panel);
-  --bg-hover: #e7ecef;
-  --white: var(--surface-card);
-  --border: var(--border-subtle);
-  --text: var(--theme-text);
-  --text-primary: var(--theme-text);
-  --text-light: var(--theme-text-muted);
-  --text-secondary: var(--theme-text-muted);
-  --text-soft: var(--theme-text-muted);
-  --input-bg: var(--surface-raised);
-  --primary: var(--theme-primary);
-  --primary-dark: var(--theme-primary-strong);
-  --primary-light: color-mix(in srgb, var(--theme-primary-soft) 42%, var(--theme-surface));
+  /* YÜZEY */
+  --surface-canvas: #E1E2E5;
+  --surface-sunken: #D9DADC;
+  --surface-panel: #EDEEF0;
+  --surface-raised: #F8F9FC;
 
-  --sidebar-bg: #245f68;
-  --sidebar-text: #d7f4f8;
-  --sidebar-text-dim: #abeefc;
-  --sidebar-active-bg: color-mix(in srgb, #abeefc 18%, transparent);
-  --sidebar-active-text: #ffffff;
-  --sidebar-hover-bg: color-mix(in srgb, #abeefc 11%, transparent);
-  --sidebar-divider: color-mix(in srgb, #abeefc 18%, transparent);
+  /* METİN */
+  --text: #191C1E;
+  --text-secondary: #40484D;
+  --text-muted: #515B60;
 
-  /* Kart üstündeki 1px ışık çizgisi. Açık modda güçlü beyaz, koyu modda
-     çok zayıf olmalı — aksi halde koyu zeminde çizgi gibi parlar. */
-  --edge-highlight: rgba(255, 255, 255, .48);
+  /* ÇİZGİ */
+  --line: rgba(24, 62, 69, 0.11);
+  --line-strong: rgba(24, 62, 69, 0.2);
 
-  --shadow-1: 0 1px 2px rgba(26, 28, 30, .06);
-  --shadow-2: 0 3px 12px -2px rgba(26, 28, 30, .10);
-  --shadow-3: 0 12px 28px -8px rgba(26, 28, 30, .16);
-  --shadow-4: 0 26px 56px -14px rgba(26, 28, 30, .22);
-  --shadow-dark: 0 12px 30px -10px rgba(0, 55, 63, .42), inset 0 1px rgba(255, 255, 255, .16);
-  --shadow-card: var(--shadow-2);
-  --shadow-card-hover: var(--shadow-3);
+  /* GÖLGE — ofset + yumuşak bulanıklık; renkli hale yok */
+  --shadow: 0 10px 28px rgba(22, 26, 26, 0.08);
+  --shadow-deep: 0 24px 52px rgba(12, 16, 17, 0.2);
+
+  /* DURUM — teal yalnız marka; dikkat amber, başarı yeşil */
+  --success: #23735A;
+  --warning: #8A5D24;
+  --danger: #BA1A1A;
+  --warm: #8A5D24;
+  --sand: #D8E1E3;
+  --on-success: #FFFFFF;
+  --on-warning: #FFFFFF;
+  --on-danger: #FFFFFF;
+
+  /* RAMPALAR — tint/mix üretimi ve legacy erişim için */
+  --brand-50: #E8F1F5;
+  --brand-100: #C9DFE8;
+  --brand-200: #9CC3D3;
+  --brand-300: #6FA6BD;
+  --brand-400: #3E86A2;
+  --brand-500: #0D556F;
+  --brand-600: #0A465C;
+  --brand-700: #173F4E;
+  --brand-800: #12313C;
+  --brand-900: #0C222A;
+
+  --neutral-50: #F8F9FC;
+  --neutral-100: #EDEEF0;
+  --neutral-200: #E1E2E5;
+  --neutral-300: #D9DADC;
+  --neutral-400: #B9BDC0;
+  --neutral-500: #8A9295;
+  --neutral-600: #515B60;
+  --neutral-700: #40484D;
+  --neutral-800: #2A3134;
+  --neutral-900: #191C1E;
+
+  --gold-100: #F5E9D2;
+  --gold-200: #EBD5AC;
+  --gold-300: #DCBB7C;
+  --gold-500: #8A5D24;
+  --gold-600: #6E480F;
+  --warm-100: #F3E6D3;
+  --warm-500: #8A5D24;
+  --accent-500: var(--warm);
 }
 
-:root.dark,
 :root[data-theme='dark'] {
   color-scheme: dark;
-  /* Zemin saf siyah DEĞİL. #0b0d0e + #f8fafc metin ~19:1 kontrast üretiyordu;
-     bu kadar yüksek kontrast harflerin kenarında parlama (halation) yapar ve
-     uzun bakışta gözü yorar. Zemin açıldı, metin yumuşatıldı → ~12:1. */
-  --theme-canvas: #15181c;
-  --theme-surface: #1d2126;          /* kart */
-  --theme-surface-low: #191d21;      /* panel */
-  --theme-surface-container: #22272c;
-  --theme-surface-high: #282e34;     /* yüzen kart, modal */
-  --theme-surface-highest: #313840;
-  --theme-text: #e4e9ed;
-  --theme-text-muted: #9aa6ae;
-  --theme-outline: #8a959d;
-  /* Kenarlık ÇİZGİ değil, kenara vuran ışık. Katmanları çizgiyle ayırmak
-     her şeyi kutulanmış gösteriyordu; ayrımı artık gölge yapıyor. */
-  --theme-outline-soft: rgba(255, 255, 255, .045);
-  --theme-primary: #5cbcc8;
-  --theme-primary-strong: #3f97a3;
-  --theme-primary-hover: #74cdd8;
-  --theme-primary-soft: #18333a;
-  --theme-on-primary: #04262b;
-  --theme-on-soft: #e4e9ed;
-  --theme-focus: #74cdd8;
 
-  --surface-canvas: var(--theme-canvas);
-  --surface-sunken: #101317;
-  --surface-panel: var(--theme-surface-low);
-  --surface-card: var(--theme-surface);
-  --surface-raised: var(--theme-surface-high);
-  /* Açık modda "koyu panel" olan alanlar, koyu modda zemine gömülemez —
-     aksi halde kaybolurlar. Onun yerine bir kademe YÜKSELTİLİR. */
-  --surface-dark: #222831;
-  --surface-dark-2: #2b323c;
-  --border-subtle: var(--theme-outline-soft);
-  --border-strong: rgba(255, 255, 255, .10);
-  --border-dark: rgba(255, 255, 255, .07);
+  /* MARKA — koyu modda petrol açık maviye döner, metin koyulaşır.
+     Beyaz metin açık mavi CTA üstünde 1.71:1 veriyordu; on-primary
+     koyu petrole çekildi. */
+  --primary: #94CEED;
+  --primary-hover: #B4DDF2;
+  --primary-deep: #C0E8FF;
+  --primary-soft: #47758A;
+  --on-primary: #001E2B;
 
+  /* YÜZEY */
+  --surface-canvas: #121619;
+  --surface-sunken: #0C1013;
+  --surface-panel: #1D2429;
+  --surface-raised: #293137;
+
+  /* METİN */
+  --text: #F1F4F5;
+  --text-secondary: #D2D9DD;
+  --text-muted: #BBC5CA;
+
+  /* ÇİZGİ */
+  --line: rgba(238, 241, 243, 0.1);
+  --line-strong: rgba(238, 241, 243, 0.18);
+
+  /* GÖLGE — koyu zeminde zayıflamaz, yoksa katmanlar düzleşir */
+  --shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
+  --shadow-deep: 0 24px 56px rgba(0, 0, 0, 0.48);
+
+  /* DURUM */
+  --success: #72D3AD;
+  --warning: #F6BB79;
+  --danger: #FFB4AB;
+  --warm: #F6BB79;
+  --sand: #39454B;
+  --on-success: #00382A;
+  --on-warning: #2B1700;
+  --on-danger: #690005;
+
+  /* RAMPALAR — koyu modda uçlar ters çevrilir */
+  --brand-50: #0C222A;
+  --brand-100: #12313C;
+  --brand-200: #173F4E;
+  --brand-300: #47758A;
+  --brand-400: #6FA6BD;
+  --brand-500: #94CEED;
+  --brand-600: #B4DDF2;
+  --brand-700: #C0E8FF;
+  --brand-800: #D6EFFF;
+  --brand-900: #E8F6FF;
+
+  --neutral-50: #0C1013;
+  --neutral-100: #121619;
+  --neutral-200: #1D2429;
+  --neutral-300: #293137;
+  --neutral-400: #3E484E;
+  --neutral-500: #6B767C;
+  --neutral-600: #BBC5CA;
+  --neutral-700: #D2D9DD;
+  --neutral-800: #E4E9EB;
+  --neutral-900: #F1F4F5;
+
+  --gold-100: #2B1700;
+  --gold-200: #653E05;
+  --gold-300: #C08B3C;
+  --gold-500: #F6BB79;
+  --gold-600: #FFDDBA;
+  --warm-100: #38301D;
+  --warm-500: #F6BB79;
+  --accent-500: var(--warm);
+}
+
+/* ------------------------------------------------------------------
+   TEMADAN BAĞIMSIZ YÜZEYLER
+   Ekranlarda bu üç yüzey her iki modda da aynı kalır. Koyu modda
+   "bir kademe koyulaştırmak" yerine sabit tutulurlar; imza panelinin
+   kimliği tema değişiminde kaybolmasın diye.
+   ------------------------------------------------------------------ */
+:root {
+  --surface-signature: #173F4E;      /* finans/admin imza paneli */
+  --surface-signature-2: #23515A;    /* imza paneli içi kart */
+  --on-signature: #F4FAFC;
+  --on-signature-dim: #B7C6C3;
+  --on-signature-good: #72D3AD;
+  --on-signature-bad: #FFB4AB;
+
+  --surface-stage: #152126;          /* ders sahnesi */
+  --on-stage: #FFFFFF;
+  --on-stage-dim: #D6DDDA;
+
+  --editorial-gradient: linear-gradient(135deg, #173F4E, #6E450D);
+}
+
+/* ------------------------------------------------------------------
+   KARAR FİŞİ — kanıt yüzeyi
+   Kahverengi glow kaldırıldı; sıcak tonlu ama nötr yükseltme.
+   Her iki modda yüzeyden türetilir, sabit kâğıt rengi değildir.
+   ------------------------------------------------------------------ */
+:root {
+  --evidence-paper: color-mix(in srgb, var(--warm) 8%, var(--surface-panel));
+  --evidence-border: rgba(24, 62, 69, 0.22);
+  --evidence-shadow: 0 24px 50px rgba(20, 24, 26, 0.14);
+  --evidence-action: var(--primary);
+}
+
+:root[data-theme='dark'] {
+  --evidence-border: rgba(238, 241, 243, 0.18);
+  --evidence-shadow: 0 24px 50px rgba(0, 0, 0, 0.5);
+}
+
+/* ------------------------------------------------------------------
+   KENAR ÇUBUĞU
+   Zemin nötr; marka yalnız aktif/hover vurgusunda ve logoda görünür.
+   ------------------------------------------------------------------ */
+:root {
+  --sidebar-bg: var(--surface-panel);
+  --sidebar-text: var(--text-secondary);
+  --sidebar-dim: var(--text-muted);
+  --sidebar-text-dim: var(--sidebar-dim);   /* legacy — 13 modülde */
+  --sidebar-active-bg: color-mix(in srgb, var(--primary) 14%, var(--surface-panel));
+  --sidebar-active-text: var(--text);
+  --sidebar-active-rail: var(--primary);
+  --sidebar-hover-bg: color-mix(in srgb, var(--primary) 7%, var(--surface-panel));
+  --sidebar-divider: var(--line);
+}
+
+/* ------------------------------------------------------------------
+   LEGACY EŞLEME
+   Henüz 18 ekran sistemine taşınmamış modüller için. Ekranlar
+   dönüştürüldükçe küçülür; yeni CSS bu adları kullanmaz.
+   ------------------------------------------------------------------ */
+:root {
+  /* Arkaplan adları */
   --bg: var(--surface-canvas);
   --bg-primary: var(--surface-canvas);
-  --bg-secondary: var(--surface-card);
+  --bg-secondary: var(--surface-panel);
   --bg-tertiary: var(--surface-panel);
-  --bg-hover: var(--theme-surface-high);
-  --white: var(--surface-card);
-  --border: var(--border-subtle);
-  --text: var(--theme-text);
-  --text-primary: var(--theme-text);
-  --text-light: var(--theme-text-muted);
-  --text-secondary: var(--theme-text-muted);
-  --text-soft: var(--theme-text-muted);
-  --input-bg: var(--theme-surface-container);
-  --primary: var(--theme-primary);
-  /* Gradyan AÇIKTAN KOYUYA gitmeli. Önceden primary-dark = hover (daha da
-     açık) idi; buton bütün olarak parlıyordu ve bu yüzden koyu modda
-     butonların rengi tamamen alınmıştı. */
-  --primary-dark: var(--theme-primary-strong);
-  --primary-light: var(--theme-primary-soft);
+  --bg-hover: var(--surface-sunken);
+  --white: var(--surface-raised);
+  --surface-card: var(--surface-panel);
+  --surface-dark: var(--surface-signature);
+  --surface-dark-2: var(--surface-signature-2);
+  --input-bg: var(--surface-sunken);
 
-  /* Yeşil yok: olumlu = vurgu teali, olumsuz = somon (referanstaki gibi). */
-  --success: #5ccfd8;
-  --success-bg: #16323a;
-  --danger: #f0908c;
-  --danger-bg: #3d2523;
-  /* Legacy component aliases: dark mode uses graphite for large surfaces;
-     teal remains an accent instead of becoming a full-card background. */
-  --brand-teal: var(--theme-primary);
-  --brand-teal-deep: var(--surface-dark-2);
-  --brand-olive: var(--theme-primary);
-  --brand-ink: var(--theme-primary);
-  /* Bu dördü koyu modda override EDİLMİYORDU; açık mod için seçilmiş koyu
-     değerlerinde kalıyor ve koyu zeminde okunmuyorlardı. Rampaların açık
-     ucundan karşılıkları verildi. */
-  --brand-gold: var(--gold-300);
-  --brand-mustard: var(--gold-200);
-  /* Terracotta DOLGU rengi olarak kalır (üstünde beyaz metin okunuyor);
-     lighten edilirse buton yazısı okunmaz hale gelir. */
-  --brand-terracotta: var(--primary);
-  --brand-bordo: #e08a8a;
+  /* Metin */
+  --text-primary: var(--text);
+  --text-light: var(--text-muted);
+  --text-soft: var(--text-secondary);
+
+  /* Çizgi */
+  --border: var(--line);
+  --border-subtle: var(--line);
+  --border-strong: var(--line-strong);
+  --border-dark: var(--line-strong);
+
+  /* Marka */
+  --primary-dark: var(--primary-deep);
+  --primary-light: color-mix(in srgb, var(--primary) 12%, var(--surface-panel));
+  --primary-muted: var(--primary-hover);
+  --brand-teal: var(--primary);
+  --brand-teal-deep: var(--primary-deep);
+  --brand-olive: var(--primary-hover);
+  --brand-ink: var(--primary-deep);
+  --brand-terracotta: var(--warm);
+  --brand-gold: var(--warm);
+  --brand-mustard: var(--warm);
+  --brand-bordo: var(--danger);
+  --accent: var(--warm);
   --cta-orange: var(--primary);
   --risk-bordo: var(--danger);
 
-  /* Ray, zeminden bir kademe AŞAĞIDA — böylece yüzen panel gibi okunur. */
-  --sidebar-bg: #101317;
-  --sidebar-text: #b3bfc6;
-  --sidebar-text-dim: #8e9aa2;
-  --sidebar-active-bg: #253039;
-  --sidebar-active-text: #e4e9ed;
-  --sidebar-hover-bg: #1c2127;
-  --sidebar-divider: #2a313a;
+  /* Durum zeminleri */
+  --success-bg: color-mix(in srgb, var(--success) 13%, var(--surface-panel));
+  --warning-bg: color-mix(in srgb, var(--warning) 13%, var(--surface-panel));
+  --danger-bg: color-mix(in srgb, var(--danger) 13%, var(--surface-panel));
+  --info: var(--primary);
+  --info-bg: color-mix(in srgb, var(--primary) 9%, var(--surface-panel));
 
-  --warning: #e0b96a;
-  --warning-bg: #38301d;
+  /* Koyu yüzey üstü metin */
+  --on-dark-text: var(--on-signature);
+  --on-dark-dim: var(--on-signature-dim);
+  --on-dark-good: var(--on-signature-good);
+  --on-dark-bad: var(--on-signature-bad);
 
-  --edge-highlight: rgba(255, 255, 255, .05);
+  /* theme-* ailesi */
+  --theme-canvas: var(--surface-canvas);
+  --theme-surface: var(--surface-panel);
+  --theme-surface-low: var(--surface-panel);
+  --theme-surface-container: var(--surface-panel);
+  --theme-surface-high: var(--surface-raised);
+  --theme-text: var(--text);
+  --theme-text-muted: var(--text-muted);
+  --theme-outline: var(--line-strong);
+  --theme-outline-soft: var(--line);
+  --theme-primary: var(--primary);
+  --theme-primary-hover: var(--primary-hover);
+  --theme-primary-strong: var(--primary-deep);
+  --theme-primary-soft: var(--primary-soft);
+  --theme-on-primary: var(--on-primary);
+  --theme-on-soft: var(--text);
+  --theme-focus: var(--focus-ring);
 
-  /* Koyu modda gölge ZAYIF olmaz — yüzeyler zeminin üstünde yüzmeli.
-     Öncekiler (%24 opaklık, 8px bulanıklık) koyu zeminde görünmüyordu,
-     bu yüzden ayrımı 1px çizgiler taşımak zorunda kalıyordu. */
-  --shadow-1: 0 1px 3px rgba(0, 0, 0, .45);
-  --shadow-2: 0 4px 16px -2px rgba(0, 0, 0, .5);
-  --shadow-3: 0 14px 34px -8px rgba(0, 0, 0, .62);
-  --shadow-4: 0 30px 66px -14px rgba(0, 0, 0, .72);
-  --shadow-dark: 0 14px 34px -10px rgba(0, 0, 0, .7), inset 0 1px rgba(255, 255, 255, .07);
-  --shadow-card: var(--shadow-2);
-  --shadow-card-hover: var(--shadow-3);
-  --glass-bg: rgba(18, 20, 23, .94);
-  --glass-bg-strong: rgba(18, 20, 23, .99);
-  --glass-border: rgba(255, 255, 255, .09);
-  --glass-shadow: 0 16px 36px rgba(0, 0, 0, .36);
+  /* Gölge adları */
+  --shadow-sm: 0 1px 2px rgba(22, 26, 26, 0.06);
+  --shadow-1: var(--shadow-sm);
+  --shadow-2: var(--shadow);
+  --shadow-3: var(--shadow);
+  --shadow-4: var(--shadow-deep);
+  --shadow-lg: var(--shadow-deep);
+  --shadow-card: var(--shadow-sm);
+  --shadow-card-hover: var(--shadow);
+  --shadow-dark: var(--shadow-deep);
+  /* Taktil 3B buton dili kalktı — düz yüzeye eşitlendi. */
+  --shadow-tactile: var(--shadow-sm);
+  --shadow-tactile-hover: var(--shadow);
+
+  /* Yüzey süsleri — yeni sistemde kapalı, geçersiz CSS üretmesin diye
+     nötr değerde bırakıldı. */
+  --edge-inset: none;
+  --edge-highlight: transparent;
+  --panel-bevel: none;
+  --panel-sheen: none;
+  --mirror-edge: var(--line);
+  --sweep-tint: transparent;
+
+  /* Cam — yalnız izinli alanlar (header, mobil kenar çubuğu, modal) */
+  --glass-bg: color-mix(in srgb, var(--surface-panel) 86%, transparent);
+  --glass-bg-strong: color-mix(in srgb, var(--surface-panel) 96%, transparent);
+  --glass-border: var(--line);
+  --glass-shadow: var(--shadow);
 }
 
-html,
-body { background: var(--surface-canvas); color: var(--text); }
+:root[data-theme='dark'] {
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+/* ------------------------------------------------------------------
+   GLOBAL TEMA DAVRANIŞI
+   ------------------------------------------------------------------ */
+html {
+  background: var(--surface-canvas);
+}
 
 body,
 button,
 input,
 select,
 textarea {
-  transition: background-color 240ms ease, border-color 240ms ease, color 180ms ease, box-shadow 180ms ease;
+  transition: background-color var(--dur-base) var(--ease),
+    border-color var(--dur-base) var(--ease), color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
 }
 
-::selection { background: color-mix(in srgb, var(--theme-primary) 28%, transparent); color: var(--text); }
+::selection {
+  background: color-mix(in srgb, var(--primary) 28%, transparent);
+  color: var(--text);
+}
 
 @media (prefers-reduced-motion: reduce) {
-  body, button, input, select, textarea { transition: none; }
-}
-
-/* Approved Mineral Calm frontmatter is authoritative over legacy aliases. */
-:root,
-:root[data-theme='light'] {
-  --theme-canvas: #e1e2e5;
-  --theme-surface: #edeef0;
-  --theme-surface-low: #f2f4f6;
-  --theme-surface-container: #e7e8ea;
-  --theme-surface-high: #f8f9fc;
-  --theme-surface-highest: #ffffff;
-  --theme-text: #191c1e;
-  --theme-text-muted: #40484d;
-  --theme-outline: #70787d;
-  --theme-outline-soft: #c0c7cd;
-  --theme-primary: #0d556f;
-  --theme-primary-strong: #004d66;
-  --theme-primary-hover: #306d88;
-  --theme-primary-soft: #c0e8ff;
-  --theme-on-primary: #ffffff;
-  --success: #276247;
-  --success-bg: #e1ece5;
-  --on-success: #ffffff;
-  --warning: #765816;
-  --warning-bg: #f2e7c5;
-  --on-warning: #ffffff;
-  --danger: #8f2f2f;
-  --danger-bg: #f3e2e2;
-  --on-danger: #ffffff;
-  --evidence-paper: color-mix(in srgb, var(--surface-card) 88%, var(--warm-100));
-  --evidence-border: color-mix(in srgb, var(--warm-500) 28%, var(--border));
-  --evidence-action: color-mix(in srgb, var(--surface-panel) 82%, var(--warm-100));
-  --evidence-shadow: 0 18px 42px rgba(18, 28, 32, .16);
-  --theme-on-soft: #001e2b;
-  --theme-focus: #0d556f;
-  --surface-canvas: #e1e2e5;
-  --surface-sunken: #d9dadc;
-  --surface-panel: #edeef0;
-  --surface-card: #f8f9fc;
-  --surface-raised: #ffffff;
-  --surface-dark: #173f4e;
-  --surface-dark-2: #24596e;
-  --border-subtle: rgba(25, 28, 30, .09);
-  --border-strong: rgba(25, 28, 30, .18);
-  --bg: var(--surface-canvas);
-  --bg-primary: var(--surface-canvas);
-  --bg-secondary: var(--surface-card);
-  --bg-tertiary: var(--surface-panel);
-  --bg-hover: var(--surface-sunken);
-  --white: var(--surface-card);
-  --border: var(--border-subtle);
-  --text: var(--theme-text);
-  --text-primary: var(--theme-text);
-  --text-light: var(--theme-text-muted);
-  --text-secondary: var(--theme-text-muted);
-  --input-bg: var(--surface-raised);
-  --primary: var(--theme-primary);
-  --primary-dark: var(--theme-primary-strong);
-  --primary-light: color-mix(in srgb, var(--theme-primary-soft) 58%, var(--surface-panel));
-  --sidebar-bg: var(--surface-panel);
-  --sidebar-text: #40484d;
-  --sidebar-text-dim: #596368;
-  --sidebar-active-bg: color-mix(in srgb, var(--theme-primary) 13%, var(--surface-panel));
-  --sidebar-active-text: #191c1e;
-  --sidebar-hover-bg: var(--surface-sunken);
-  --sidebar-divider: #c0c7cd;
-  --shadow-1: 0 1px 2px rgba(26, 28, 30, .05);
-  --shadow-2: 0 4px 12px rgba(26, 28, 30, .06);
-  --shadow-3: 0 12px 28px rgba(26, 28, 30, .10);
-  --shadow-4: 0 24px 52px rgba(26, 28, 30, .14);
-}
-
-:root.dark,
-:root[data-theme='dark'] {
-  --theme-canvas: #121619;
-  --theme-surface: #1d2429;
-  --theme-surface-low: #171c20;
-  --theme-surface-container: #232b30;
-  --theme-surface-high: #293137;
-  --theme-surface-highest: #323b42;
-  --theme-text: #f1f4f5;
-  --theme-text-muted: #bbc5ca;
-  --theme-outline: #9aa7ad;
-  --theme-outline-soft: rgba(255, 255, 255, .08);
-  --theme-primary: #94ceed;
-  --theme-primary-strong: #66a9c8;
-  --theme-primary-hover: #b4ddf2;
-  --theme-primary-soft: #193442;
-  --theme-on-primary: #001e2b;
-  --success: #8fd0a8;
-  --success-bg: #183526;
-  --on-success: #071a0f;
-  --warning: #e5c46d;
-  --warning-bg: #3b3016;
-  --on-warning: #211700;
-  --danger: #f1a3a3;
-  --danger-bg: #442020;
-  --on-danger: #260707;
-  --evidence-paper: #292821;
-  --evidence-border: rgba(246, 187, 121, .24);
-  --evidence-action: #20252a;
-  --evidence-shadow: 0 22px 52px rgba(0, 0, 0, .46);
-  --theme-on-soft: #eaf6fb;
-  --theme-focus: #94ceed;
-  --surface-canvas: #121619;
-  --surface-sunken: #0c1013;
-  --surface-panel: #171c20;
-  --surface-card: #1d2429;
-  --surface-raised: #293137;
-  --surface-dark: #22333c;
-  --surface-dark-2: #2a414d;
-  --border-subtle: rgba(241, 244, 245, .08);
-  --border-strong: rgba(241, 244, 245, .16);
-  --bg: var(--surface-canvas);
-  --bg-primary: var(--surface-canvas);
-  --bg-secondary: var(--surface-card);
-  --bg-tertiary: var(--surface-panel);
-  --bg-hover: var(--surface-raised);
-  --white: var(--surface-card);
-  --border: var(--border-subtle);
-  --text: var(--theme-text);
-  --text-primary: var(--theme-text);
-  --text-light: var(--theme-text-muted);
-  --text-secondary: var(--theme-text-muted);
-  --input-bg: var(--theme-surface-container);
-  --primary: var(--theme-primary);
-  --primary-dark: var(--theme-primary-strong);
-  --primary-light: var(--theme-primary-soft);
-  --sidebar-bg: var(--surface-panel);
-  --sidebar-text: #d2d9dd;
-  --sidebar-text-dim: #aab5bb;
-  --sidebar-active-bg: #293841;
-  --sidebar-active-text: #f1f4f5;
-  --sidebar-hover-bg: #232b30;
-  --sidebar-divider: #344048;
-  --shadow-1: 0 1px 3px rgba(0, 0, 0, .38);
-  --shadow-2: 0 5px 18px rgba(0, 0, 0, .42);
-  --shadow-3: 0 14px 34px rgba(0, 0, 0, .50);
-  --shadow-4: 0 28px 62px rgba(0, 0, 0, .58);
+  body,
+  button,
+  input,
+  select,
+  textarea {
+    transition: none;
+  }
 }
