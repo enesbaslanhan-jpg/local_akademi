@@ -125,7 +125,9 @@
 
 .statusEyebrow {
   display: block;
-  color: var(--brand-gold);
+  /* İmza paneli koyu; tema renkleri burada geçersiz. --brand-gold açık modda
+     koyu amberdi ve bu zeminde 1.98:1 veriyordu. */
+  color: var(--on-signature-dim);
   font-size: var(--font-size-page-eyebrow);
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.12em;
@@ -135,7 +137,9 @@
 .statusSentence {
   margin: 8px 0 0;
   max-width: 46ch;
-  color: var(--sidebar-active-text);
+  /* Kenar çubuğu nötr yüzeye geçtiği için --sidebar-active-text artık koyu
+     mürekkep; koyu panelde 1.51:1 oluyordu. */
+  color: var(--on-signature);
   font-size: 1.02rem;
   font-weight: var(--font-weight-medium);
   line-height: 1.45;

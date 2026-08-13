@@ -44,7 +44,11 @@ button[class*="_headerBtnOutline_"] {
 }
 
 button[data-tactile="danger"] { border-radius: var(--radius-sm) !important; }
-button[data-tactile="control"] { box-shadow: var(--shadow-1); }
+
+/* "control" grubuna (navigasyon, sekme, ikon düğmeleri) artık gölge
+   basılmıyor. Bu kural attribute specificity'siyle bileşenlerin kendi
+   stilini yeniyordu — kenar çubuğunun aktif madde çizgisi bu yüzden
+   görünmüyordu. Kontrol düğmeleri düz yüzeydir. */
 
 [class*="_quickActions_"] > button,
 [class*="_quickGrid_"] > button,
@@ -73,7 +77,9 @@ button.decision-panel-tool[data-tactile] {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  button:hover:not(:disabled) { transform: translateY(-1px); }
+  /* Genel hover kalkışı kaldırıldı: onaylanan ekranlarda buton hover'da
+     yükselmiyor, yalnız rengi koyulaşıyor. Basış geri bildirimi
+     --scale-active ile veriliyor. */
 
   [class*="_quickActions_"] > button:hover:not(:disabled),
   [class*="_quickGrid_"] > button:hover:not(:disabled),

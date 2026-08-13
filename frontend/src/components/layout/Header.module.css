@@ -1,7 +1,9 @@
 /*
- * Kompakt üst alan — eski beyaz büyük header kaldırıldı.
- * Ana zemine (fildişi) entegre, 52px yükseklikte; glass yalnızca hafif
- * bir doygunluk katmanı olarak uygulanıyor (sticky durumda okunabilirlik).
+ * Üst bar — design/index.html `.topbar`
+ *   52px · alt kenarda 1px çizgi · zemine entegre, kendi kartı yok
+ *
+ * Rota adı burada KÜÇÜK durur; sayfanın büyük başlığı içerik alanındadır
+ * (prototipte de aynı ad iki yerde: üstte 12px etiket, gövdede 24px başlık).
  */
 .header {
   display: flex;
@@ -10,8 +12,10 @@
   gap: var(--space-4);
   height: var(--header-height);
   padding: 0 var(--space-6);
-  background: color-mix(in srgb, var(--surface-canvas) 94%, var(--surface-panel));
-  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-canvas) 86%, transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
   z-index: var(--z-header);
@@ -28,37 +32,75 @@
   display: none;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
   border-radius: var(--radius-sm);
   color: var(--text);
-  transition: background var(--dur-fast, 180ms) var(--ease-standard, ease);
+  background: transparent;
+  transition: background var(--dur-fast) var(--ease);
 }
 
 .menuBtn:hover {
-  background: var(--bg-hover);
+  background: var(--surface-panel);
 }
 
+/* Rota etiketi. Faz D'de sayfalar kendi PageHead h1'ini aldığında bu
+   eleman <span>'e döner; şu an bazı sayfaların tek başlığı bu. */
 .pageTitle {
-  font-size: 0.95rem;
-  font-weight: var(--font-weight-semibold);
-  color: var(--text);
+  margin: 0;
+  font-size: var(--font-body-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin: 0;
 }
 
 .right {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   flex-shrink: 0;
 }
 
+/* Arama — bilgi tabanında arar, adı da bunu söyler. */
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 230px;
+  height: var(--control-h-sm);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  transition: border-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+
+.search:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--font-meta);
+}
+
+.searchInput::placeholder {
+  color: var(--text-muted);
+}
+
 .date {
-  font-size: 0.76rem;
-  color: var(--text-light);
+  font-size: var(--font-meta);
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
@@ -66,41 +108,43 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
   border-radius: var(--radius-sm);
-  color: var(--text-light);
-  transition: background var(--dur-fast, 180ms) var(--ease-standard, ease),
-    color var(--dur-fast, 180ms) var(--ease-standard, ease);
+  background: var(--surface-panel);
+  color: var(--text-secondary);
+  transition: background var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
 }
 
 .iconBtn:hover {
-  background: var(--bg-hover);
-  color: var(--theme-primary);
+  background: var(--surface-sunken);
+  color: var(--primary);
 }
 
 .avatar {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: var(--avatar);
+  height: var(--avatar);
   border-radius: 50%;
-  background: var(--theme-primary);
-  color: var(--theme-on-primary);
-  font-size: 0.65rem;
-  font-weight: var(--font-weight-semibold);
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: var(--font-micro);
+  font-weight: var(--font-weight-bold);
   flex-shrink: 0;
   border: 0;
   cursor: pointer;
-  box-shadow: var(--shadow-2);
-  transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+  transition: transform var(--dur-fast) var(--ease);
 }
 
-.avatar:hover { transform: translateY(-2px); box-shadow: var(--shadow-3); }
+.avatar:hover {
+  transform: translateY(var(--lift-card));
+}
 
-/* Kabuk kırılımı 900px: bu noktanın altında ikon rayı gizlenir, menüye
-   yalnızca hamburger drawer'ından ulaşılır — düğme de burada görünür. */
+/* <1024px: ikon rayı gizlenir, menüye hamburger drawer'ından ulaşılır.
+   Arama ve tarih dar ekranda üst barı boğuyor; ikisi de düşer. */
 @media (max-width: 1023px) {
   .header {
     padding: 0 var(--space-4);
@@ -108,12 +152,18 @@
 
   .menuBtn {
     display: flex;
-    /* Dokunma hedefi alt sınırı */
-    width: 44px;
-    height: 44px;
+    width: var(--row-h);
+    height: var(--row-h);
   }
 
+  .search,
   .date {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar:hover {
+    transform: none;
   }
 }

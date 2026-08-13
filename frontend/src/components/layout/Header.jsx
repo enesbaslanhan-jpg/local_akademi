@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Menu, Bell, Moon, Sun } from 'lucide-react'
+import { Menu, Bell, Moon, Sun, Search } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useWorkspace } from '@/context/WorkspaceContext'
 import { useTheme } from '@/context/ThemeContext'
@@ -41,6 +42,17 @@ export default function Header({ onToggleSidebar }) {
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
   const navigate = useNavigate()
+  const [query, setQuery] = useState('')
+
+  /* Arama bilgi tabanında çalışır — placeholder da bunu söylüyor, çünkü
+     her şeyi arayan bir kutu gibi durup yalnız bir kaynağı taramak
+     kullanıcıyı yanıltır. */
+  const submitSearch = event => {
+    event.preventDefault()
+    const term = query.trim()
+    if (!term) return
+    navigate(`/app/knowledge?search=${encodeURIComponent(term)}`)
+  }
 
   const today = new Date().toLocaleDateString('tr-TR', {
     day: 'numeric', month: 'long', year: 'numeric', weekday: 'long'
@@ -64,6 +76,17 @@ export default function Header({ onToggleSidebar }) {
       </div>
 
       <div className={styles.right}>
+        <form className={styles.search} onSubmit={submitSearch} role="search">
+          <Search size={14} aria-hidden="true" />
+          <input
+            className={styles.searchInput}
+            type="search"
+            value={query}
+            onChange={event => setQuery(event.target.value)}
+            placeholder="Bilgi tabanında ara"
+            aria-label="Bilgi tabanında ara"
+          />
+        </form>
         <span className={styles.date}>{today}</span>
         <button
           type="button"

@@ -205,19 +205,23 @@
 }
 
 /* ------------------------------------------------------------------
-   KENAR ÇUBUĞU
-   Zemin nötr; marka yalnız aktif/hover vurgusunda ve logoda görünür.
+   KOYU YÜZEY PALETİ — legacy `--sidebar-*` adlarıyla
+   Bu aile adına rağmen kenar çubuğuna ait değil: 15 modül onu "koyu zemin
+   üstü içerik" paleti olarak kullanıyor (ders sahnesi, kurs hero'su,
+   bağlam paneli, karar araçları, fiş tetikleyicisi).
+   Kenar çubuğu nötr panele geçtiği için kendi renklerini doğrudan yüzey ve
+   metin tokenlarından alıyor; bu adlar tarihsel anlamlarında bırakıldı.
+   Faz D'de modüller --on-signature'a taşındıkça blok küçülecek.
    ------------------------------------------------------------------ */
 :root {
-  --sidebar-bg: var(--surface-panel);
-  --sidebar-text: var(--text-secondary);
-  --sidebar-dim: var(--text-muted);
-  --sidebar-text-dim: var(--sidebar-dim);   /* legacy — 13 modülde */
-  --sidebar-active-bg: color-mix(in srgb, var(--primary) 14%, var(--surface-panel));
-  --sidebar-active-text: var(--text);
-  --sidebar-active-rail: var(--primary);
-  --sidebar-hover-bg: color-mix(in srgb, var(--primary) 7%, var(--surface-panel));
-  --sidebar-divider: var(--line);
+  --sidebar-bg: var(--surface-signature);
+  --sidebar-text: var(--on-signature);
+  --sidebar-dim: var(--on-signature-dim);
+  --sidebar-text-dim: var(--on-signature-dim);
+  --sidebar-active-text: var(--on-signature);
+  --sidebar-active-bg: color-mix(in srgb, var(--primary-soft) 22%, var(--surface-signature));
+  --sidebar-hover-bg: color-mix(in srgb, var(--primary-soft) 12%, var(--surface-signature));
+  --sidebar-divider: rgba(244, 250, 252, 0.14);
 }
 
 /* ------------------------------------------------------------------

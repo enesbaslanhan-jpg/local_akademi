@@ -1,61 +1,58 @@
 /*
- * Signature Dark Panel — LocalKarar'ın imza koyu yüzeyi.
+ * İmza paneli — sayfanın tek güçlü sonucu ya da durumu.
  *
- * Kullanım sınırı: Ana Sayfa'da en fazla 3 adet (Net Durum KPI, Önerilen
- * Karar Aracı, Son Karar Sonucu). Başka hiçbir kart koyu olmaz.
+ * Sözleşme: design/index.html `.signature`
+ *   düz #173F4E zemin · 14px yarıçap · 24px iç boşluk · derin gölge
+ *   sağ üst köşede tek yumuşak radial vurgu
  *
- * Bu bir GLASS yüzey DEĞİLDİR — düz koyu zemin. Neon/parlama/hologram yok.
+ * Yüzey TEMADAN BAĞIMSIZDIR — açık ve koyu modda aynı kalır. Ekranlarda da
+ * öyle; panelin kimliği tema değişiminde kaybolmaz.
+ *
+ * Kullanım sınırı: sayfa başına en fazla bir "sonuç" paneli. Bu koyu yüzey
+ * dikkat çekiciliğini nadir olmasından alır; her kart koyu olursa hiçbiri
+ * imza olmaz.
+ *
+ * Cam değildir, gradyan değildir. Eski altın hairline, iç yansıma, köşe pahı
+ * ve mirror-sweep dili kaldırıldı — hiçbiri onaylanan ekranlarda yok.
  */
 
 .panel {
   position: relative;
   min-width: 0;
-  padding: var(--space-5);
-  background: linear-gradient(118deg, var(--surface-dark) 0%, var(--surface-dark-2) 100%);
-  color: var(--sidebar-text);
-  border-radius: var(--radius);
-  /* Dokunsal gölge + Mirror Edge tek bildirimde (Paket 5).
-     NOT: .beveled varyantında clip-path dış gölgeyi kırpar; orada yalnızca
-     iç parlak kenar görünür — pah zaten kartın imza öğesi olduğu için
-     gölgesizlik kasıtlı kabul ediliyor. */
-  box-shadow: var(--shadow-tactile), var(--edge-inset);
-  transition: transform var(--dur-base) var(--ease-standard),
-    box-shadow var(--dur-base) var(--ease-standard);
+  overflow: hidden;
+  padding: var(--pad-signature);
+  background: var(--surface-signature);
+  color: var(--on-signature);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-deep);
+  transition: transform var(--dur-base) var(--ease),
+    box-shadow var(--dur-base) var(--ease);
 }
 
-/* Sağ üst köşe pahı — dar kartlarda imza öğesi (varsayılan).
-   Geniş şeritlerde çentik gibi okunduğu için `bevel={false}` ile kapatılır;
-   o durumda diğer köşeler gibi --radius ile yuvarlak kalır. */
-.beveled {
-  clip-path: polygon(
-    0 0,
-    calc(100% - var(--panel-bevel)) 0,
-    100% var(--panel-bevel),
-    100% 100%,
-    0 100%
-  );
-}
-
-/* Üst kenarda çok ince altın hairline. Köşe pahı clip-path ile kesildiği için
-   hairline de pahın başladığı yerde biter — kasıtlı. */
-.panel::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--brand-gold);
-  opacity: 0.55;
-  pointer-events: none;
-}
-
-/* Hafif iç yansıma — üstten alta çok düşük opaklıkta beyaz gradyan. */
+/* Radial vurgu — sağ üstte, panelin dışına taşan tek yumuşak daire.
+   Dekorasyon değil: koyu yüzeyin düz bir dikdörtgen gibi okunmasını kırar. */
 .sheen {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, var(--panel-sheen), transparent 62%);
+  top: -120px;
+  right: -80px;
+  width: 330px;
+  height: 330px;
+  border-radius: 50%;
+  background: rgba(148, 206, 237, 0.08);
   pointer-events: none;
+}
+
+/* İkincil metin panelin kendi ölçeğinden okunur; tema metin tokenları
+   bu koyu yüzeyde geçersizdir. */
+.panel :global(.meta),
+.panel :global(small) {
+  color: var(--on-signature-dim);
+}
+
+.panel :global(a) {
+  color: var(--on-signature);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .clickable {
@@ -63,14 +60,13 @@
 }
 
 .clickable:focus-visible {
-  outline: 2px solid var(--brand-gold);
+  outline: 2px solid var(--primary-soft);
   outline-offset: 2px;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .clickable:hover {
     transform: translateY(var(--lift-card));
-    box-shadow: var(--shadow-tactile-hover), var(--edge-inset);
   }
 }
 
@@ -80,62 +76,24 @@
   }
 }
 
-/* ---------- Mirror Sweep (koyu panel varyantı) ----------
-   Koyu imza panellerde hüzme DÖNGÜSELDİR: --sweep-period (5sn) aralıklarla
-   kendiliğinden geçer, hover beklemez. Açık kartlardaki tek seferlik hover
-   varyantı Card.module.css'te. Mobilde döngü kapalı. */
-.sweep {
-  overflow: hidden;
-}
-
-.sweepBar {
-  display: none;
-}
-
-@media (min-width: 900px) {
-  .sweepBar {
-    display: block;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: var(--sweep-width);
-    background: linear-gradient(
-      90deg,
-      transparent,
-      var(--sweep-tint),
-      transparent
-    );
-    transform: translateX(-140%) skewX(var(--sweep-skew));
-    opacity: 0;
-    pointer-events: none;
-    animation: mirrorSweepLoop var(--sweep-period) var(--ease-standard) infinite;
-  }
-}
-
-/* Bileşen düzeyinde de açıkça kapat (global kural zaten var). */
 @media (prefers-reduced-motion: reduce) {
   .panel {
     transition: none;
   }
 
-  .sweepBar {
-    animation: none;
-    opacity: 0;
+  .clickable:hover {
+    transform: none;
   }
 }
 
-/* ---------- İçerik yardımcıları ---------- */
-.panel :global(a) {
-  color: var(--sidebar-active-text);
+/* Geriye dönük sınıf adları — DarkPanel.jsx hâlâ bevel/sweep proplarını
+   gönderiyor. Görsel karşılıkları kalktığı için etkisizler; proplar
+   Faz C'de bileşenden temizlenecek. */
+.beveled,
+.sweep {
+  border-radius: var(--radius-lg);
 }
 
-:global(.dark) .panel {
-  background: var(--surface-dark-2);
-  color: var(--text-light);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-3), inset 0 1px rgba(255, 255, 255, .045);
+.sweepBar {
+  display: none;
 }
-
-:global(.dark) .panel::before { background: var(--primary); opacity: .5; }
-:global(.dark) .sheen { background: linear-gradient(to bottom, rgba(255,255,255,.025), transparent 58%); }

@@ -5,7 +5,7 @@ import { useWorkspace } from '@/context/WorkspaceContext'
 import {
   Home, BookOpen, Bot, Settings, Shield,
   Users, Database, X, Calculator, Newspaper,
-  Building2, ListChecks, Scale, Bookmark, LogOut,
+  Building2, ListChecks, Scale, Bookmark, LogOut, FlaskConical,
   PanelLeftClose, PanelLeftOpen, MessagesSquare, Search, Plus, ChevronDown
 } from 'lucide-react'
 import styles from './Sidebar.module.css'
@@ -25,23 +25,47 @@ import { featureFlags } from '@/config/featureFlags'
  *   Model Laboratuvarı → Finans Merkezi'nde sekme (/app/finance/models çalışır)
  *   Pratik Kartlar / Flashcard / Quiz → feature flag'li legacy route'lar
  */
-/* MobileTabBar de bu diziyi kullanır — alt sekme çubuğunun 5 maddesi ile
-   masaüstü rayının ana grubu tek kaynaktan gelsin diye export ediliyor. */
+const dashboardLink = { id: 'dashboard', label: 'Ana Sayfa', icon: Home, path: '/app/dashboard' }
+const coursesLink = { id: 'courses', label: 'Kurslar', icon: BookOpen, path: '/app/courses' }
+const decisionLink = { id: 'decision-checks', label: 'Karar Araçları', icon: Scale, path: '/app/decision-checks', recommended: true }
+const toolsLink = { id: 'tools', label: 'Finans Merkezi', icon: Calculator, path: '/app/tools' }
+const modelLabLink = { id: 'model-lab', label: 'Model Lab', icon: FlaskConical, path: '/app/finance/models' }
+const mentorLink = { id: 'mentor', label: 'AI Mentor', icon: Bot, path: '/app/mentor' }
+
+const decisionGroup = featureFlags.decisionChecks ? [decisionLink] : []
+
+/* MobileTabBar bu diziyi kullanır. Alt sekme çubuğu en fazla 5 madde
+   taşıyabildiği için Model Lab burada YOK — masaüstü rayında var, mobilde
+   hamburger drawer'ından açılıyor. */
 export const primaryLinks = [
-  { id: 'dashboard', label: 'Ana Sayfa', icon: Home, path: '/app/dashboard' },
-  { id: 'courses', label: 'Kurslar', icon: BookOpen, path: '/app/courses' },
-  ...(featureFlags.decisionChecks
-    ? [{ id: 'decision-checks', label: 'Karar Araçları', icon: Scale, path: '/app/decision-checks', recommended: true }]
-    : []),
-  { id: 'tools', label: 'Finans Merkezi', icon: Calculator, path: '/app/tools' },
-  { id: 'mentor', label: 'AI Mentor', icon: Bot, path: '/app/mentor' }
+  dashboardLink,
+  coursesLink,
+  ...decisionGroup,
+  toolsLink,
+  mentorLink
 ]
 
+/* Masaüstü rayı — onaylanan ekranlardaki 11 öğe, o sıralamayla.
+   Model Lab, Finans Merkezi ile AI Mentor arasında üst seviye bir madde;
+   eskiden Finans Merkezi'nin `?view=models` sekmesi altında gizliydi. */
+const desktopPrimaryLinks = [
+  dashboardLink,
+  coursesLink,
+  ...decisionGroup,
+  toolsLink,
+  modelLabLink,
+  mentorLink
+]
+
+/* Sıra onaylanan ekranlardan: Haberler · Topluluk · Kaydedilenler · Ayarlar.
+   Kaydedilenler ile Ayarlar bileşen içinde ekleniyor (biri işletme durumuna
+   bakmıyor artık, diğeri grubun sonunda duruyor). */
 const secondaryLinks = [
   { id: 'community', label: 'Haberler', icon: Newspaper, path: '/app/community' },
-  { id: 'community-forum', label: 'Topluluk', icon: MessagesSquare, path: '/app/community/topluluk' },
-  { id: 'settings', label: 'Ayarlar', icon: Settings, path: '/app/settings' }
+  { id: 'community-forum', label: 'Topluluk', icon: MessagesSquare, path: '/app/community/topluluk' }
 ]
+
+const settingsLink = { id: 'settings', label: 'Ayarlar', icon: Settings, path: '/app/settings' }
 
 const adminLinks = [
   { id: 'admin-dashboard', label: 'Panel', icon: Shield, path: '/admin/dashboard' },
@@ -82,10 +106,15 @@ export default function Sidebar({
     ? { id: 'workspace-tracker', label: 'İşletme Takibi', icon: ListChecks, path: `/app/workspaces/${activeWorkspaceId}/tracker` }
     : { id: 'workspace-create', label: 'İşletme Takibi', icon: Building2, path: '/app/workspaces' }
 
-  /* DİĞER grubunun ilk maddesi — hedefi aktif işletmeye bağlı. */
+  /* Kaydedilenler henüz kendi sayfasına bağlanamıyor: onaylanan ekran
+     kaydedilen kurs/haber/araç/modeli tek yerde topluyor ama backend'de
+     kaydetme kavramı yok (api.js'te saved/bookmark endpoint'i bulunmuyor;
+     SavedPracticalCards var olmayan api.practicalCards'ı çağırıyor).
+     Menüdeki yeri ve adı onaylanan sıraya uygun; hedefi işletme belgeleri
+     olarak kalıyor. Gerçek sayfa için önce API gerekiyor. */
   const savedLink = activeWorkspaceId
-    ? { id: 'workspace-documents', label: 'Kaydedilenler', icon: Bookmark, path: `/app/workspaces/${activeWorkspaceId}/documents` }
-    : { id: 'workspace-documents', label: 'Kaydedilenler', icon: Bookmark, path: '/app/workspaces' }
+    ? { id: 'saved', label: 'Kaydedilenler', icon: Bookmark, path: `/app/workspaces/${activeWorkspaceId}/documents` }
+    : { id: 'saved', label: 'Kaydedilenler', icon: Bookmark, path: '/app/workspaces' }
 
   function handleNavigate(path) {
     navigate(path)
@@ -96,7 +125,9 @@ export default function Sidebar({
     if (linkPath === location.pathname) return true
     if (linkPath.includes('/app/workspaces/') && linkPath.endsWith('/tracker') && location.pathname.startsWith('/app/workspaces/')) return true
     if (linkPath === '/app/learning-path/pilot') return false
-    if (linkPath === '/app/tools' && location.pathname.startsWith('/app/finance/models')) return true
+    /* Model Lab kendi maddesi olduğu için Finans Merkezi artık model
+       yollarını sahiplenmez — aksi halde ikisi birden aktif görünür. */
+    if (linkPath === '/app/tools' && location.pathname.startsWith('/app/finance/models')) return false
     /* Topluluk, Haberler'in alt yolu ama ayrı bir menü maddesi — Haberler
        onun üzerindeyken aktif görünmemeli. */
     if (linkPath === '/app/community' && location.pathname.startsWith('/app/community/topluluk')) return false
@@ -110,9 +141,10 @@ export default function Sidebar({
   const submenuFor = link => {
     const view = new URLSearchParams(location.search).get('view')
     if (link.id === 'tools') {
+      /* 'Modeller' buradan çıktı — Model Lab artık üst seviye madde.
+         ToolsPage'in kendi sekmesi duruyor, yalnız raydaki kısayol kalktı. */
       return [
         { label: 'Araçlar', path: '/app/tools?view=calculator', active: location.pathname === '/app/tools' && !['models', 'history'].includes(view) },
-        { label: 'Modeller', path: '/app/tools?view=models', active: location.pathname.startsWith('/app/finance/models') || view === 'models' },
         { label: 'Geçmiş / Tamamlanan', path: '/app/tools?view=history', active: location.pathname === '/app/tools' && view === 'history' },
       ]
     }
@@ -223,14 +255,15 @@ export default function Sidebar({
         </label>
 
         <nav className={styles.nav}>
-          <div className={styles.sectionLabel}>Ana Menü</div>
-          {primaryLinks.map(renderLink)}
+          <div className={styles.sectionLabel}>Çalışma alanı</div>
+          {desktopPrimaryLinks.map(renderLink)}
           {renderLink(trackerLink)}
 
           <div className={styles.divider} />
           <div className={styles.sectionLabel}>Diğer</div>
-          {renderLink(savedLink)}
           {secondaryLinks.map(renderLink)}
+          {renderLink(savedLink)}
+          {renderLink(settingsLink)}
 
           {isAdmin && (
             <>
