@@ -1,34 +1,46 @@
+/*
+ * Rozet — design/index.html `.pill`
+ *   4px 8px · tam yuvarlak · 10px / 720 · içeriği kadar genişlik
+ *
+ * Durum renkleri DOLGU değil, yüzeyden türetilmiş soluk tint üstünde koyu
+ * metin. Böylece rozet satırdaki asıl içeriğin önüne geçmez.
+ * Teal yalnız markadır; "olumlu" yeşil, "dikkat" amber.
+ */
+
 .badge {
-  display: inline-block;
-  padding: 2px var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  white-space: nowrap;
+  font-size: var(--font-micro);
+  font-weight: var(--font-weight-bold);
   line-height: 1.5;
+  white-space: nowrap;
 }
 
+/* Nötr — durum taşımayan etiket (kategori, sürüm, sayaç). */
 .default {
-  background: var(--primary-light);
-  color: var(--primary-dark);
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
 }
 
 .success {
-  background: var(--success-bg);
+  background: color-mix(in srgb, var(--success) 13%, var(--surface-panel));
   color: var(--success);
 }
 
 .warning {
-  background: var(--warning-bg);
+  background: color-mix(in srgb, var(--warning) 13%, var(--surface-panel));
   color: var(--warning);
 }
 
 .danger {
-  background: var(--danger-bg);
+  background: color-mix(in srgb, var(--danger) 13%, var(--surface-panel));
   color: var(--danger);
 }
 
 .info {
-  background: var(--primary-light);
-  color: var(--brand-ink);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface-panel));
+  color: var(--primary-deep);
 }

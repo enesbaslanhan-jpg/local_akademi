@@ -1,15 +1,13 @@
 import styles from './Card.module.css'
 
 /*
- * sweep: açık kartta hover'da TEK SEFERLİK ayna hüzmesi (koyu panellerdeki
- * döngüsel varyantın karşılığı). Opsiyonel, çünkü hüzme `overflow: hidden`
- * gerektirir — kartın içinde taşan bir menü/açılır liste varsa kırpar.
- * Bu yüzden yalnızca hüzmenin istendiği kartlarda açılır.
+ * Kart. Varsayılan yüzey gölgesizdir; `raised` yalnız gerçekten yükselen
+ * yüzeylerde açılır (modal, açılır liste, aktif çalışma kartı).
  */
-export default function Card({ children, className = '', onClick, hoverable, selected, sweep, ...props }) {
+export default function Card({ children, className = '', onClick, hoverable, selected, raised, ...props }) {
   return (
     <div
-      className={`${styles.card} ${hoverable ? styles.hoverable : ''} ${sweep ? styles.sweep : ''} ${selected ? styles.selected : ''} ${onClick ? styles.clickable : ''} ${className}`}
+      className={`${styles.card} ${raised ? styles.raised : ''} ${hoverable ? styles.hoverable : ''} ${selected ? styles.selected : ''} ${onClick ? styles.clickable : ''} ${className}`}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}

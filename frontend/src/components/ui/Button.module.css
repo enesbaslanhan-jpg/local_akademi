@@ -1,48 +1,47 @@
+/*
+ * Buton — design/index.html `.btn`
+ *   40px · 0 18px · 8px yarıçap · 13px / 700 · tek satır
+ *
+ * DÜZ YÜZEY. Onaylanan ekranlarda butonun gölgesi, kalkışı, gradyanı ve
+ * ışık taraması yok. Hover'da yalnız rengi koyulaşır, basışta 0.98'e iner.
+ * Eski taktil dil (mirror sweep, lift, --shadow-2) kaldırıldı.
+ *
+ * Varyantlar prototipteki dörde iner:
+ *   primary   → petrol dolgu, on-primary metin
+ *   secondary → raised yüzey, 1px çizgi
+ *   quiet     → sunken yüzey, ikincil metin (üçüncül eylem)
+ *   ghost     → zeminsiz, marka metni
+ * danger ve success ürünün ihtiyacı; cta ve outline eski adların takma adı.
+ */
+
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  border: 0;
+  height: var(--control-h);
+  padding: 0 var(--control-px);
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   font-family: var(--font-family);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-standard),
-    transform var(--dur-fast) var(--ease-standard),
-    opacity var(--dur-fast) var(--ease-standard),
-    box-shadow var(--dur-fast) var(--ease-standard);
-  white-space: nowrap;
+  font-size: var(--font-body);
+  font-weight: var(--font-weight-bold);
   line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease),
+    transform var(--dur-press) var(--ease);
 }
 
-/* Masaüstü hover: hafif kalkış. Mobilde hover yerine dokunma geri bildirimi
-   kullanılır (kural 19) — bu yüzden yalnızca gerçek "hover" desteği olan
-   cihazlarda çalışır. */
-@media (hover: hover) and (pointer: fine) {
-  .btn:hover:not(:disabled) {
-    transform: translateY(var(--lift-btn));
-  }
-
-  .btn:hover:not(:disabled) svg:last-child {
-    transform: translateX(var(--shift-icon));
-  }
-}
-
-.btn svg:last-child {
-  transition: transform var(--dur-fast) var(--ease-standard);
+.btn:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .btn:active:not(:disabled) {
   transform: scale(var(--scale-active));
-}
-
-/* Mobil/dokunmatik tap geri bildirimi (kural 19) */
-@media (hover: none) {
-  .btn:active:not(:disabled) {
-    transform: scale(var(--scale-active));
-    opacity: 0.92;
-  }
 }
 
 .btn:disabled {
@@ -51,67 +50,49 @@
   transform: none;
 }
 
-/* Variants
- * Renk disiplini:
- *  - .cta      → terracotta. Sayfa başına YALNIZCA BİR kez kullanılır.
- *  - .primary  → koyu teal. Sıradan/tekrarlayan birincil butonlar.
- *  - .danger   → bordo. Yalnızca risk / yıkıcı işlem.
- */
+/* ---------- Varyantlar ---------- */
+
+/* cta, primary'nin takma adı: yeni palette tek dolgu rengi var.
+   Eski terracotta "tek sayfa CTA'sı" dili kalktı. */
+.primary,
 .cta {
-  position: relative;
-  overflow: hidden;
   background: var(--primary);
-  color: var(--theme-on-primary);
+  color: var(--on-primary);
 }
 
+.primary:hover:not(:disabled),
 .cta:hover:not(:disabled) {
-  background: var(--primary-dark);
+  background: var(--primary-hover);
 }
 
-/* Mirror Sweep — ana CTA'da hover'da tek seferlik ince ışık taraması.
-   Yalnızca gerçek hover destekleyen cihazlarda; mobilde yok. */
-@media (hover: hover) and (pointer: fine) {
-  .cta::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: var(--sweep-width);
-    background: linear-gradient(90deg, transparent, var(--sweep-tint), transparent);
-    transform: translateX(-140%) skewX(var(--sweep-skew));
-    pointer-events: none;
-  }
-
-  .cta:hover:not(:disabled)::after {
-    animation: mirrorSweep var(--dur-slow) var(--ease-standard) 1;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cta:hover:not(:disabled)::after {
-    animation: none;
-  }
-}
-
-.primary {
-  background: var(--primary);
-  color: var(--theme-on-primary);
-  box-shadow: var(--shadow-2);
-}
-
-.primary:hover:not(:disabled) {
-  background: var(--primary-dark);
-}
-
-.secondary {
+.secondary,
+.outline {
   background: var(--surface-raised);
   color: var(--text);
-  border: 1px solid var(--border-strong);
+  border-color: var(--line-strong);
 }
 
-.secondary:hover:not(:disabled) {
-  background: var(--bg-hover);
+.secondary:hover:not(:disabled),
+.outline:hover:not(:disabled) {
+  background: var(--surface-panel);
+}
+
+.quiet {
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+}
+
+.quiet:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--primary-deep);
+}
+
+.ghost:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
 }
 
 .danger {
@@ -120,7 +101,7 @@
 }
 
 .danger:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--danger) 82%, black);
+  background: color-mix(in srgb, var(--danger) 84%, black);
 }
 
 .success {
@@ -129,39 +110,40 @@
 }
 
 .success:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--success) 82%, black);
+  background: color-mix(in srgb, var(--success) 84%, black);
 }
 
-.ghost,
-.outline {
-  background: var(--white);
-  color: var(--text);
-  border: 1px solid var(--border);
-}
+/* ---------- Ölçüler ---------- */
 
-.ghost:hover:not(:disabled),
-.outline:hover:not(:disabled) {
-  background: var(--primary-light);
-  border-color: var(--brand-olive);
-  color: var(--brand-ink);
-}
-
-/* Sizes */
 .sm {
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-sm);
+  height: 32px;
+  padding: 0 var(--space-3);
+  font-size: var(--font-body-sm);
 }
 
 .md {
-  padding: var(--space-3) var(--space-5);
-  font-size: var(--font-size-base);
+  height: var(--control-h);
+  padding: 0 var(--control-px);
 }
 
 .lg {
-  padding: var(--space-4) var(--space-6);
-  font-size: var(--font-size-lg);
+  height: 48px;
+  padding: 0 var(--space-6);
+  font-size: var(--font-domain-title);
 }
 
 .full {
   width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: background var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease);
+  }
+
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
 }

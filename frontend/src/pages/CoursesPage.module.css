@@ -59,7 +59,9 @@
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--brand-gold);
+  /* Koyu hero üstünde; --brand-gold açık modda koyu amber olduğu için
+     1.98:1 veriyordu. */
+  color: var(--on-signature-dim);
   margin-bottom: 6px;
 }
 
@@ -151,7 +153,7 @@
 /* Sıradaki adım hafif vurgulu */
 .pathStepNext {
   background: rgba(255, 255, 255, 0.08);
-  border-left-color: var(--brand-gold);
+  border-left-color: var(--primary-soft);
 }
 
 .pathStepDone { color: var(--sidebar-text-dim); }
@@ -159,7 +161,7 @@
 
 .pathStepIcon { flex: 0 0 auto; }
 .pathStepIconDone { color: var(--on-dark-good); }
-.pathStepIconNext { color: var(--brand-gold); }
+.pathStepIconNext { color: var(--primary-soft); }
 .pathStepIconPending { color: var(--sidebar-text-dim); }
 
 .pathStepName {

@@ -1,36 +1,47 @@
+/*
+ * Girdi — design/index.html `.input` / `.field`
+ *   40px · 8px yarıçap · --surface-sunken zemin · 0 12px dolgu
+ *
+ * Girdi zeminden GÖMÜLÜR (sunken), üstüne binmez. Bu yüzden varsayılanda
+ * görünür bir kenarlığı yok; ayrımı yüzey kademesi taşıyor. Odakta marka
+ * kenarlığı ve %14 opaklıkta 3px dış halka belirir.
+ */
+
 .wrapper {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  min-width: 0;
 }
 
 .label {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-body-sm);
   font-weight: var(--font-weight-medium);
-  color: var(--text-light);
+  color: var(--text-secondary);
 }
 
 .input {
   width: 100%;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--border-strong);
+  height: var(--control-h);
+  padding: 0 var(--space-3);
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  font-size: var(--font-size-base);
-  font-family: var(--font-family);
+  background: var(--surface-sunken);
   color: var(--text);
-  background: var(--input-bg);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  font-family: var(--font-family);
+  font-size: var(--font-body-sm);
+  transition: border-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
 }
 
 .input::placeholder {
-  color: var(--text-light);
-  opacity: 0.6;
+  color: var(--text-muted);
 }
 
 .input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent);
 }
 
 .hasError {
@@ -38,17 +49,31 @@
 }
 
 .hasError:focus {
-  box-shadow: 0 0 0 3px rgba(163, 58, 58, 0.12);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 14%, transparent);
 }
 
 .input:disabled {
-  background: var(--bg);
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
+/* Çok satırlı girdi tek satır yüksekliğine sıkışmaz. */
+.input[rows],
+textarea.input {
+  height: auto;
+  min-height: calc(var(--control-h) * 2);
+  padding: var(--space-3);
+  line-height: var(--line-height-normal);
+}
+
 .error {
-  font-size: var(--font-size-xs);
-  color: var(--danger);
   margin-top: 2px;
+  font-size: var(--font-meta);
+  color: var(--danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .input {
+    transition: none;
+  }
 }

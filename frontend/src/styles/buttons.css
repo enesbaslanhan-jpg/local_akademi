@@ -1,104 +1,98 @@
-/* Mineral Calm interaction layer shared by all product areas. */
+/*
+ * Buton temel katmanı.
+ *
+ * GÖREV: yalnız her <button> için ortak taban (odak halkası, devre dışı
+ * durumu, basış geri bildirimi) ve henüz primitive'e taşınmamış HAM
+ * butonlara yüzey vermek.
+ *
+ * BURASI GÖRÜNÜM SAHİBİ DEĞİL. Buton görünümü components/ui/Button'dan
+ * gelir. Eskiden bu dosya `button[class*="_primary_"]` gibi seçicilerle
+ * CSS-module sınıf adlarının içine uzanıyor ve `!important` ile Button'ı
+ * eziyordu — aktif menü çizgisinin kaybolması da bu yüzdendi. O katman
+ * kaldırıldı; buradaki hiçbir kural artık !important kullanmıyor, böylece
+ * bileşenin kendi stili her zaman kazanır.
+ *
+ * NOT: buttonFeedback.js'in `data-tactile` sınıflandırması ve tıklama sesi
+ * duruyor (ses ürün sahibinin açık tercihi). Yalnız o attribute'e bağlı
+ * GÖRSEL override dili kaldırıldı.
+ */
+
 button {
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-  transform: translateZ(0);
-  transition: transform 160ms var(--ease-standard), box-shadow 160ms var(--ease-standard), background-color 160ms var(--ease-standard), border-color 160ms var(--ease-standard), color 160ms var(--ease-standard);
+  transition: background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease),
+    transform var(--dur-press) var(--ease);
 }
 
 button:active:not(:disabled),
 button.is-tactile-pressed:not(:disabled) {
-  transform: scale(.98) !important;
-  filter: none !important;
+  transform: scale(var(--scale-active));
 }
 
-.btn:not(.btn-danger):not(.btn-secondary):not(.btn-outline):not(.btn-success),
-button[data-tactile="action"],
-button[class*="_primary_"],
-button[class*="_cta_"],
-button[class*="_panelCta_"],
-button[class*="_headerBtnPrimary_"],
-button[class*="_newChatBtn_"] {
-  min-height: 40px;
-  padding: 10px 18px;
-  border: 1px solid transparent !important;
-  border-radius: var(--radius-sm) !important;
-  background: var(--primary) !important;
-  color: var(--theme-on-primary) !important;
-  font-weight: 700;
-  letter-spacing: -.005em;
-  box-shadow: var(--shadow-2) !important;
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
 }
 
-.btn-secondary,
-.btn-outline,
-button[data-tactile="secondary"],
-button[class*="_secondary_"],
-button[class*="_reopen_"],
-button[class*="_headerBtnOutline_"] {
-  border-radius: var(--radius-sm) !important;
-  background: var(--surface-card);
-  color: var(--text);
-  border-color: var(--border);
-  box-shadow: var(--shadow-1) !important;
+button:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
-button[data-tactile="danger"] { border-radius: var(--radius-sm) !important; }
-
-/* "control" grubuna (navigasyon, sekme, ikon düğmeleri) artık gölge
-   basılmıyor. Bu kural attribute specificity'siyle bileşenlerin kendi
-   stilini yeniyordu — kenar çubuğunun aktif madde çizgisi bu yüzden
-   görünmüyordu. Kontrol düğmeleri düz yüzeydir. */
-
+/* ------------------------------------------------------------------
+   HAM BUTON YÜZEYLERİ
+   Aşağıdaki kaplardaki butonlar kart gibi davranıyor ve kendi modül
+   CSS'lerinde yüzeyleri yok — görünümlerini buradan alıyorlar.
+   Faz D'de ilgili ekranlar sisteme alındıkça bu blok küçülecek.
+   ------------------------------------------------------------------ */
 [class*="_quickActions_"] > button,
 [class*="_quickGrid_"] > button,
 [class*="_actionsList_"] > button,
 [class*="_toolGrid_"] > button {
-  min-height: auto !important;
-  padding: 16px !important;
-  border-radius: var(--radius) !important;
-  border: 1px solid var(--border) !important;
-  background: var(--surface-card) !important;
-  color: var(--text) !important;
-  font-weight: var(--font-weight-medium) !important;
-  box-shadow: var(--shadow-1) !important;
-}
-
-button.decision-panel-tool[data-tactile] {
-  min-height: 38px !important;
-  padding: 8px 12px !important;
-  border: 1px solid var(--sidebar-divider) !important;
-  border-radius: var(--radius-sm) !important;
-  background: color-mix(in srgb, var(--surface-dark-2) 38%, transparent) !important;
-  color: var(--sidebar-text) !important;
-  box-shadow: none !important;
-  font-size: .8rem !important;
-  font-weight: 600 !important;
+  padding: var(--pad-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--text);
+  font-weight: var(--font-weight-medium);
+  text-align: left;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  /* Genel hover kalkışı kaldırıldı: onaylanan ekranlarda buton hover'da
-     yükselmiyor, yalnız rengi koyulaşıyor. Basış geri bildirimi
-     --scale-active ile veriliyor. */
-
   [class*="_quickActions_"] > button:hover:not(:disabled),
   [class*="_quickGrid_"] > button:hover:not(:disabled),
   [class*="_actionsList_"] > button:hover:not(:disabled),
   [class*="_toolGrid_"] > button:hover:not(:disabled) {
-    border-color: var(--primary) !important;
-    box-shadow: var(--shadow-2) !important;
-  }
-
-  button.decision-panel-tool[data-tactile]:hover:not(:disabled) {
-    background: var(--surface-dark-2) !important;
-    color: var(--sidebar-active-text) !important;
-    border-color: var(--brand-400) !important;
+    border-color: var(--primary);
+    background: var(--surface-panel);
   }
 }
 
-button:disabled { cursor: not-allowed; opacity: .58; box-shadow: none !important; }
-button:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+/* Koyu imza paneli içindeki karar aracı düğmeleri. */
+button.decision-panel-tool {
+  min-height: 38px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--sidebar-divider);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface-signature-2) 38%, transparent);
+  color: var(--on-signature);
+  font-size: var(--font-body-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+button.decision-panel-tool:hover:not(:disabled) {
+  background: var(--surface-signature-2);
+}
 
 @media (prefers-reduced-motion: reduce) {
-  button { transition: none; }
+  button {
+    transition: none;
+  }
+
+  button:active:not(:disabled),
+  button.is-tactile-pressed:not(:disabled) {
+    transform: none;
+  }
 }
