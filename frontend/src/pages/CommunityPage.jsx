@@ -140,6 +140,7 @@ export default function CommunityPage({ mode = 'news' }) {
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [composerOpen, setComposerOpen] = useState(false)
 
   const contributors = useMemo(() => Object.values(posts.reduce((result, post) => {
     const name = post.author?.name || 'LocalKarar kullanıcısı'
@@ -177,6 +178,7 @@ export default function CommunityPage({ mode = 'news' }) {
       const result = await api.community.submit({ ...userPost, ...(userMedia ? { mediaId: userMedia.id } : {}) })
       setUserPost(emptyUserPost)
       setUserMedia(null)
+      setComposerOpen(false)
       setNotice(result.message)
       if (isAdmin) await load()
     } catch (submitError) {
@@ -246,9 +248,8 @@ export default function CommunityPage({ mode = 'news' }) {
   return (
     <main className={`${styles.page} ${isNews ? styles.newsPage : styles.communityPage}`}>
       <header className={styles.pageHeading}>
-        <span className={styles.kicker}>{isNews ? 'LocalKarar Haber Merkezi' : 'Profesyonel Topluluk'}</span>
-        <h1>{isNews ? 'Haberler' : 'Topluluk Akışı'}</h1>
-        <p>{isNews ? 'İşletmenizi etkileyen resmî gelişmeleri kaynaklı ve kısa özetlerle takip edin.' : 'LocalKarar topluluğunda bugün neler konuşulduğunu keşfet ve deneyimini paylaş.'}</p>
+        <div><span className={styles.kicker}>{isNews ? 'LocalKarar Haber Merkezi' : 'YEREL İŞLETMELER'}</span><h1>{isNews ? 'Haberler' : 'Topluluk'}</h1><p>{isNews ? 'İşletmenizi etkileyen resmî gelişmeleri kaynaklı ve kısa özetlerle takip edin.' : 'Yerel işletmelerden gerçek deneyimler.'}</p></div>
+        {!isNews && <button type="button" className={styles.createPostButton} onClick={() => setComposerOpen(current => !current)}>{composerOpen ? 'Kapat' : 'Gönderi oluştur'}</button>}
       </header>
 
       {notice && <div className={styles.notice}>{notice}</div>}
@@ -257,7 +258,7 @@ export default function CommunityPage({ mode = 'news' }) {
       {!isNews && (
         <div className={styles.communityGrid}>
           <div className={styles.mainColumn}>
-            <section id="paylas" className={styles.composer}>
+            {composerOpen && <section id="paylas" className={styles.composer}>
               <div className={styles.composerTitle}>
                 <span className={styles.authorAvatar}>LK</span>
                 <span><h2>Deneyimini paylaş</h2><p>Gönderiler yayımlanmadan önce moderasyondan geçer.</p></span>
@@ -270,12 +271,13 @@ export default function CommunityPage({ mode = 'news' }) {
                   <button className={styles.primaryButton} type="submit" disabled={submitting}><Send size={17} />{submitting ? 'Gönderiliyor…' : 'Paylaş'}</button>
                 </div>
               </form>
-            </section>
+            </section>}
             {isAdmin && <AdminPanel {...{ pending, reports, officialPost, setOfficialPost, officialMedia, setOfficialMedia, submitting, submitOfficialPost, aiSourceText, setAiSourceText, aiLoading, createAiOfficialDraft, moderate, resolveReport }} />}
             <section className={styles.feed} aria-live="polite">
               {loading && <FeedSkeleton />}
               {!loading && posts.length === 0 && <EmptyState text="Henüz yayımlanmış paylaşım yok. İlk deneyimi sen paylaşabilirsin." />}
-              {posts.map(post => <CommunityCard key={post.id} post={post} onReport={reportPost} />)}
+              {posts[0] && <article className={styles.featuredDiscussion}><span>Öne çıkan tartışma</span><h2>{posts[0].title}</h2><p>{posts[0].summary}</p><small>{posts[0].author?.name || 'LocalKarar kullanıcısı'} · {timeAgo(posts[0].publishedAt)}</small><PostMedia media={posts[0].media} /></article>}
+              <div className={styles.discussionList}>{posts.slice(1).map(post => <CommunityCard key={post.id} post={post} onReport={reportPost} />)}</div>
             </section>
           </div>
           <CommunityRail posts={posts} contributors={contributors} />

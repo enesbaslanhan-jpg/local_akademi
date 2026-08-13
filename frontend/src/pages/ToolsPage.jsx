@@ -2,14 +2,15 @@ import { useMemo, useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '@/services/api'
 import { useWorkspace } from '@/context/WorkspaceContext'
-import { Badge, Button, Loading, EmptyState } from '@/components/ui'
+import { Badge, Button, Loading, EmptyState, PageHead } from '@/components/ui'
 import { ContextPanelSlot, useContextPanel } from '@/components/layout/ContextPanel'
 import {
   BarChart3, Calculator, CalendarDays, CreditCard, FileText, Globe, History,
-  PackageCheck, Percent, PieChart, ReceiptText, Search, ShoppingCart,
-  Store, TrendingUp, Users, WalletCards, FlaskConical, Plus, Repeat, X
+  PackageCheck, Percent, PieChart, ReceiptText, ShoppingCart,
+  Store, TrendingUp, Users, WalletCards, Plus, Repeat, X,
+  ArrowRight, AlertTriangle
 } from 'lucide-react'
-import FinancialModelLibrary from './FinancialModelLibrary'
+import { buildCalculationCatalog, CALCULATION_CATEGORIES, modeLabels } from '@/data/calculationCatalog'
 import styles from './ToolsPage.module.css'
 
 const ICONS = {
@@ -34,42 +35,16 @@ const ICONS = {
   pazaryeri_siparis_kari: ShoppingCart,
 }
 
-const CATEGORIES = {
-  all: 'Tümü',
-  daily: 'Günlük işlemler',
-  cash: 'Nakit ve vade',
-  sales: 'Satış ve fiyat',
-  stock: 'Stok ve maliyet',
-  growth: 'Büyüme',
-}
-
-const CATEGORY_FALLBACK = {
-  kar_hesabi: 'daily',
-  basabas_noktasi: 'sales',
-  nakit_pozisyonu: 'cash',
-  isletme_sermayesi: 'cash',
-  roi: 'growth',
-  stok_devir: 'stock',
-  cac: 'growth',
-  ltv: 'growth',
-  ltv_cac: 'growth',
-  indirim_kar: 'sales',
-  kredi_maliyeti: 'cash',
-  ihracat_maliyet: 'stock',
-  fiyat_mimarisi: 'sales',
-}
+const CATEGORIES = CALCULATION_CATEGORIES
 
 /*
  * Görünüm süzgeçleri. Mockup'taki KDV Hesaplama / Gelir Vergisi / Döviz Çevir
  * kartları BURADA YOK — backend'de böyle araçlar yok. Bunun yerine gerçek
- * formül kataloğu ve gerçek model kütüphanesi listeleniyor.
- * "Model Laboratuvarı" sekmesi Paket 4'te eklendi; kaybolmaması için süzgeç
- * satırında da yerini koruyor.
+ * formül kataloğu ve gerçek detaylı modeller tek niyet kataloğunda listeleniyor.
  */
 const VIEWS = [
   { id: 'all', label: 'Tümü', icon: null },
   { id: 'calculator', label: 'Hesaplamalar', icon: Calculator },
-  { id: 'models', label: 'Model Laboratuvarı', icon: FlaskConical },
   { id: 'history', label: 'Geçmiş', icon: History },
 ]
 
@@ -136,19 +111,31 @@ function formatValue(value) {
     : String(value)
 }
 
-export default function ToolsPage() {
+const money = new Intl.NumberFormat('tr-TR', {
+  style: 'currency', currency: 'TRY', maximumFractionDigits: 0
+})
+
+function shortDueDate(value) {
+  if (!value) return 'Tarih yok'
+  return new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' }).format(new Date(value))
+}
+
+export default function ToolsPage({ initialView = 'all' }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const { activeWorkspaceId } = useWorkspace()
   const [formulas, setFormulas] = useState([])
+  const [models, setModels] = useState([])
   const [selected, setSelected] = useState(null)
   const [inputs, setInputs] = useState({})
   const [result, setResult] = useState(null)
   const [history, setHistory] = useState([])
+  const [financeSummary, setFinanceSummary] = useState(null)
+  const [financeRecords, setFinanceRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [calculating, setCalculating] = useState(false)
-  const initialView = VIEWS.some(item => item.id === searchParams.get('view')) ? searchParams.get('view') : 'all'
-  const [view, setView] = useState(initialView)
+  const requestedInitialView = searchParams.get('view') === 'history' ? 'history' : initialView
+  const [view, setView] = useState(requestedInitialView)
   const [category, setCategory] = useState('all')
   const [error, setError] = useState('')
   const gridRef = useRef(null)
@@ -162,29 +149,46 @@ export default function ToolsPage() {
   useEffect(() => {
     Promise.all([
       api.formulas.list(),
+      api.financialModels.list(),
       api.formulas.getHistory().catch(() => ([])),
-    ]).then(([formulaResponse, historyResponse]) => {
-      const loaded = (Array.isArray(formulaResponse) ? formulaResponse : formulaResponse.formulas || [])
-        .map(formula => ({ ...formula, category: formula.category || CATEGORY_FALLBACK[formula.id] || 'daily' }))
+    ]).then(([formulaResponse, modelResponse, historyResponse]) => {
+      const loaded = Array.isArray(formulaResponse) ? formulaResponse : formulaResponse.formulas || []
       setFormulas(loaded)
+      setModels(modelResponse.models || [])
       setHistory(Array.isArray(historyResponse) ? historyResponse : [])
       const requested = loaded.find(item => item.id === searchParams.get('tool'))
       if (requested) {
         selectFormula(requested)
         setView('calculator')
       }
-    }).catch(() => setError('Finans Merkezi yüklenemedi.')).finally(() => setLoading(false))
+    }).catch(() => setError('Hesaplamalar yüklenemedi.')).finally(() => setLoading(false))
   }, [])
 
   useEffect(() => {
+    if (!activeWorkspaceId) {
+      setFinanceSummary(null)
+      setFinanceRecords([])
+      return
+    }
+    Promise.all([
+      api.workspace.tracker.summary(activeWorkspaceId).catch(() => null),
+      api.workspace.tracker.list(activeWorkspaceId, {}).catch(() => null)
+    ]).then(([summary, list]) => {
+      setFinanceSummary(summary)
+      setFinanceRecords(Array.isArray(list?.records) ? list.records : [])
+    })
+  }, [activeWorkspaceId])
+
+  useEffect(() => {
     const requestedView = searchParams.get('view')
-    if (VIEWS.some(item => item.id === requestedView)) setView(requestedView)
+    if (requestedView === 'history') setView('history')
+    else if (requestedView === 'models') setView('calculator')
   }, [searchParams])
 
   function changeView(nextView) {
     setView(nextView)
     const next = new URLSearchParams(searchParams)
-    if (nextView === 'all') next.delete('view')
+    if (nextView === initialView) next.delete('view')
     else next.set('view', nextView)
     setSearchParams(next, { replace: true })
   }
@@ -207,14 +211,16 @@ export default function ToolsPage() {
     }
   }, [selected])
 
-  const visibleFormulas = useMemo(() => {
+  const catalog = useMemo(() => buildCalculationCatalog(formulas, models), [formulas, models])
+
+  const visibleCalculations = useMemo(() => {
     const query = search.trim().toLocaleLowerCase('tr-TR')
-    return formulas.filter(formula => {
-      const categoryMatches = category === 'all' || formula.category === category
-      const searchMatches = !query || `${formula.name} ${formula.description || ''}`.toLocaleLowerCase('tr-TR').includes(query)
+    return catalog.filter(calculation => {
+      const categoryMatches = category === 'all' || calculation.category === category
+      const searchMatches = !query || `${calculation.title} ${calculation.description}`.toLocaleLowerCase('tr-TR').includes(query)
       return categoryMatches && searchMatches
     })
-  }, [category, formulas, search])
+  }, [catalog, category, search])
 
   /* Geçmişteki kullanım sıklığı — "favori" alanı backend'de olmadığı için
      favori listesi UYDURULMUYOR, gerçek kullanım verisinden türetiliyor. */
@@ -245,6 +251,15 @@ export default function ToolsPage() {
     setInputs(Object.fromEntries((formula.inputs || []).map(input => [input.name, ''])))
     setResult(null)
     setError('')
+  }
+
+  function openCalculation(calculation, preferredMode = 'simple') {
+    if (preferredMode === 'detailed' || !calculation.formula) {
+      navigate(`/app/finance/models/${calculation.detailed.modelCode}`)
+      return
+    }
+    selectFormula({ ...calculation.formula, category: calculation.category, calculation })
+    setView('calculator')
   }
 
   function startNewCalculation() {
@@ -280,14 +295,44 @@ export default function ToolsPage() {
     }
   }
 
+  function openHistoryResult(item) {
+    const formula = formulas.find(entry => entry.id === item.formulaId)
+    setSelected(formula || {
+      id: item.formulaId || item.id,
+      name: item.formulaName || 'Kaydedilmiş hesaplama',
+      description: 'Geçmişte kaydedilen gerçek hesaplama sonucu.',
+      category: 'daily',
+      inputs: []
+    })
+    setInputs(item.inputs || {})
+    setResult(item.result || {})
+    setError('')
+    changeView('calculator')
+  }
+
   function workspaceRoute(section) {
     navigate(activeWorkspaceId ? `/app/workspaces/${activeWorkspaceId}/${section}` : '/app/workspaces')
   }
 
-  if (loading) return <Loading text="Finans Merkezi yükleniyor..." />
+  if (loading) return <Loading text="Hesaplamalar yükleniyor..." />
 
-  const showTools = view === 'all' || view === 'calculator'
-  const showAside = view === 'all' && Boolean(lastCalculation)
+  const showTools = view === 'calculator'
+  const showAside = false
+  const openFinanceRecords = financeRecords
+    .filter(record => !['completed', 'cancelled'].includes(record.status))
+    .sort((a, b) => new Date(a.dueAt || '9999-12-31') - new Date(b.dueAt || '9999-12-31'))
+  const overdueRecords = openFinanceRecords.filter(record => record.dueAt && new Date(record.dueAt) < new Date())
+  const financeNet = Number(financeSummary?.nextThirtyDays?.net || 0)
+  const financeHeadline = !financeSummary
+    ? 'Finansal görünümünüzü işletme kayıtlarıyla kurun'
+    : overdueRecords.length > 0
+      ? `Nakit görünümü kontrollü, ${overdueRecords.length} kayıt dikkat istiyor`
+      : financeNet < 0
+        ? 'Önümüzdeki 30 gün için nakit planı gerekiyor'
+        : 'Nakit görünümü kontrollü'
+  const resultEntries = result
+    ? Object.entries(result).filter(([key]) => !['warnings', 'assumptions', 'durum'].includes(key))
+    : []
 
   return (
     <div className={styles.page}>
@@ -318,28 +363,21 @@ export default function ToolsPage() {
         )}
 
         <div className={styles.panelBlock}>
-          <div className={styles.panelLabel}>Hesaplama araçları</div>
-          {formulas.map(formula => (
+          <div className={styles.panelLabel}>Hesaplamalar</div>
+          {catalog.slice(0, 12).map(calculation => (
             <button
-              key={formula.id}
+              key={calculation.id}
               type="button"
-              className={`${styles.panelLink} ${selected?.id === formula.id && view === 'calculator' ? styles.panelLinkActive : ''}`}
-              onClick={() => { selectFormula(formula); changeView('calculator') }}
+              className={`${styles.panelLink} ${selected?.calculation?.id === calculation.id && view === 'calculator' ? styles.panelLinkActive : ''}`}
+              onClick={() => openCalculation(calculation)}
             >
-              <span className={styles.panelLinkText}>{formula.name}</span>
+              <span className={styles.panelLinkText}>{calculation.title}</span>
             </button>
           ))}
         </div>
 
         <div className={styles.panelBlock}>
-          <div className={styles.panelLabel}>Finansal modeller</div>
-          <button
-            type="button"
-            className={`${styles.panelLink} ${view === 'models' ? styles.panelLinkActive : ''}`}
-            onClick={() => changeView('models')}
-          >
-            <span className={styles.panelLinkText}>Model Laboratuvarı</span>
-          </button>
+          <div className={styles.panelLabel}>Kayıtlar</div>
           <button
             type="button"
             className={`${styles.panelLink} ${view === 'history' ? styles.panelLinkActive : ''}`}
@@ -351,26 +389,18 @@ export default function ToolsPage() {
         </div>
       </ContextPanelSlot>
 
-      <header className={`${styles.pageHead} ${styles.financeHero}`}>
-        <div className={styles.pageHeadText}>
-          <h1>Finans Merkezi</h1>
-          <p className={styles.intro}>
-            Kasa, gelir-gider, maliyet, fiyat, stok ve vadeli işlemleri tek yerde hesaplayın.
-          </p>
-        </div>
-        <label className={styles.search}>
-          <Search size={17} aria-hidden="true" />
-          <input
-            type="search"
-            value={search}
-            onChange={event => setSearch(event.target.value)}
-            placeholder="Hesaplama ara…"
-            aria-label="Hesaplamalarda ara"
-          />
-        </label>
-      </header>
+      <PageHead
+        title="Hesaplamalar"
+        subtitle="Bir sayı bulun; gerektiğinde aynı hesapta detaylı metodolojiye geçin."
+        actions={(
+          <>
+            <Button variant="secondary" onClick={() => workspaceRoute('documents')}><FileText size={15} /> İçe aktar</Button>
+            <Button onClick={startNewCalculation}><Calculator size={15} /> Hesaplama başlat</Button>
+          </>
+        )}
+      />
 
-      <div className={styles.viewChips} role="group" aria-label="Görünüm süzgeci">
+      {view !== 'all' && <div className={styles.viewChips} role="group" aria-label="Görünüm süzgeci">
         {VIEWS.map(item => {
           const Icon = item.icon
           return (
@@ -387,9 +417,57 @@ export default function ToolsPage() {
             </button>
           )
         })}
-      </div>
+      </div>}
 
       {view === 'all' && (
+        <div className={styles.financeOverview}>
+          <section className={styles.financeSignature}>
+            <div className={styles.financeStatus}>
+              <span>Finansal görünüm</span>
+              <h2>{financeHeadline}</h2>
+              <p>{financeSummary ? (overdueRecords.length > 0 ? 'Geciken kayıtları ve yaklaşan vadeleri gözden geçirin.' : 'Yaklaşan tahsilat ve ödemeler kayıtlarınıza göre dengede.') : 'İşletme takibine finansal kayıt eklediğinizde özet burada oluşur.'}</p>
+            </div>
+            {financeSummary ? (
+              <div className={styles.financeMetrics}>
+                <div><span>Alacak</span><strong>{money.format(financeSummary.nextThirtyDays?.receivable || 0)}</strong><small>30 gün</small></div>
+                <div><span>Borç</span><strong>{money.format(financeSummary.nextThirtyDays?.payable || 0)}</strong><small>30 gün</small></div>
+                <div><span>Net</span><strong className={financeNet < 0 ? styles.financeNegative : ''}>{money.format(financeNet)}</strong><small>{financeNet < 0 ? 'Plan gerekli' : 'Kontrollü'}</small></div>
+              </div>
+            ) : (
+              <Button variant="secondary" onClick={() => workspaceRoute('tracker')}>İşletme kaydı ekle</Button>
+            )}
+          </section>
+
+          <div className={styles.financeColumns}>
+            <section className={styles.financeLedger}>
+              <div className={styles.financePanelHead}><div><h2>Tahsilat ve ödeme defteri</h2><p>Yaklaşan açık kayıtlar</p></div><button type="button" onClick={() => workspaceRoute('tracker')}>Tümünü gör <ArrowRight size={14} /></button></div>
+              {openFinanceRecords.length === 0 ? <p className={styles.financeEmpty}>Açık finans kaydı bulunmuyor.</p> : (
+                <div className={styles.financeRows}>{openFinanceRecords.slice(0, 7).map(record => (
+                  <button type="button" key={record.id} onClick={() => workspaceRoute('tracker')}>
+                    <span><strong>{record.title}</strong><small>{shortDueDate(record.dueAt)} · {record.type === 'receivable' || record.direction === 'receivable' ? 'Tahsilat' : 'Ödeme'}</small></span>
+                    <b>{record.amount == null ? '—' : money.format(record.amount)}</b>
+                    <em className={record.dueAt && new Date(record.dueAt) < new Date() ? styles.financeRisk : ''}>{record.dueAt && new Date(record.dueAt) < new Date() ? 'Gecikti' : 'Planlı'}</em>
+                    <ArrowRight size={14} />
+                  </button>
+                ))}</div>
+              )}
+            </section>
+
+            <aside className={styles.financeInsights}>
+              <div className={styles.financePanelHead}><div><h2>İstisnalar</h2><p>Önce bakılması gerekenler</p></div></div>
+              {overdueRecords.length === 0 ? <p className={styles.financeEmpty}>Geciken kayıt yok.</p> : overdueRecords.slice(0, 3).map(record => (
+                <button type="button" key={record.id} onClick={() => workspaceRoute('tracker')}><AlertTriangle size={16} /><span><strong>{record.title}</strong><small>{shortDueDate(record.dueAt)} tarihinde gecikti</small></span><ArrowRight size={14} /></button>
+              ))}
+              <div className={styles.financeHistoryHead}><h3>Son hesaplamalar</h3><button type="button" onClick={() => changeView('history')}>Geçmiş</button></div>
+              {history.length === 0 ? <p className={styles.financeEmpty}>Henüz hesaplama yapılmadı.</p> : history.slice(0, 4).map(item => (
+                <button type="button" key={item.id} onClick={() => openHistoryResult(item)}><Calculator size={16} /><span><strong>{item.formulaName}</strong><small>{new Date(item.createdAt).toLocaleDateString('tr-TR')}</small></span><ArrowRight size={14} /></button>
+              ))}
+            </aside>
+          </div>
+        </div>
+      )}
+
+      {view === 'calculator' && (
         <section className={styles.quickActions} aria-label="Ön muhasebe işlemleri">
           <button type="button" onClick={() => workspaceRoute('tracker')}>
             <WalletCards aria-hidden="true" /><span><strong>Gelir, gider ve tahsilat</strong><small>Ödeme, alacak, senet ve işlem kaydı</small></span>
@@ -402,10 +480,6 @@ export default function ToolsPage() {
           </button>
         </section>
       )}
-
-      {/* Model Laboratuvarı — /app/finance/models route'u da aynı bileşeni
-          tam sayfa göstermeye devam eder. */}
-      {view === 'models' && <FinancialModelLibrary embedded />}
 
       {view === 'history' && (
         <div className={styles.historyList}>
@@ -437,23 +511,24 @@ export default function ToolsPage() {
               ))}
             </div>
 
-            {visibleFormulas.length === 0 ? (
+            {visibleCalculations.length === 0 ? (
               <EmptyState message="Aramanıza uygun hesaplama bulunamadı." />
             ) : (
               <div className={styles.toolGrid}>
-                {visibleFormulas.map(formula => {
-                  const Icon = ICONS[formula.id] || Calculator
+                {visibleCalculations.map(calculation => {
+                  const Icon = ICONS[calculation.simple?.formulaId] || Calculator
                   return (
                     <button
-                      key={formula.id}
+                      key={calculation.id}
                       type="button"
-                      className={`${styles.toolCard} ${selected?.id === formula.id ? styles.toolCardActive : ''}`}
-                      onClick={() => selectFormula(formula)}
-                      aria-pressed={selected?.id === formula.id}
+                      className={`${styles.toolCard} ${selected?.calculation?.id === calculation.id ? styles.toolCardActive : ''}`}
+                      onClick={() => openCalculation(calculation)}
+                      aria-pressed={selected?.calculation?.id === calculation.id}
                     >
                       <Icon className={styles.toolIcon} size={38} strokeWidth={1.2} aria-hidden="true" />
-                      <strong>{formula.name}</strong>
-                      <small>{formula.description || `${formula.inputs?.length || 0} bilgiyle hesaplanır`}</small>
+                      <strong>{calculation.title}</strong>
+                      <small>{calculation.description || `${calculation.inputCount} bilgiyle hesaplanır`}</small>
+                      <span className={styles.modeLabels}>{modeLabels(calculation).map(label => <em key={label}>{label}</em>)}</span>
                     </button>
                   )
                 })}
@@ -462,50 +537,64 @@ export default function ToolsPage() {
 
             {selected && (
               <div className={styles.calcOverlay} role="presentation" onMouseDown={() => setSelected(null)}>
-              <div ref={calcPanelRef} className={styles.calcPanel} role="dialog" aria-modal="true" aria-label={`${selected.name} hesaplama alanı`} tabIndex={-1} onMouseDown={event => event.stopPropagation()}>
+              <div ref={calcPanelRef} className={`${styles.calcPanel} ${result ? styles.calcResultPanel : ''}`} role="dialog" aria-modal="true" aria-label={`${selected.name} hesaplama alanı`} tabIndex={-1} onMouseDown={event => event.stopPropagation()}>
                 <button type="button" className={styles.calcClose} onClick={() => setSelected(null)} aria-label="Hesaplama alanını kapat"><X size={19} /></button>
-                <div className={styles.panelHeading}>
-                  <Badge variant="info">{CATEGORIES[selected.category]}</Badge>
-                  <h2>{selected.name}</h2>
-                  <p>{selected.description}</p>
-                </div>
-                {selected.warning && <div className={styles.warning}>{selected.warning}</div>}
-                <div className={styles.inputGrid}>
-                  {selected.inputs?.map(input => (
-                    <label key={input.name} className={styles.inputField}>
-                      <span>{input.label}</span>
-                      <div className={styles.inputWrap}>
-                        <input type="number" value={inputs[input.name] ?? ''} onChange={event => setInputs(current => ({ ...current, [input.name]: event.target.value }))} placeholder="0" min={input.min} max={input.max} step="any" />
-                        <small>{input.unit}</small>
+                {!result ? (
+                  <>
+                    <div className={styles.panelHeading}>
+                      <Badge variant="info">{CATEGORIES[selected.category]}</Badge>
+                      <h2>{selected.name}</h2>
+                      <p>{selected.description}</p>
+                    </div>
+                    {selected.calculation?.detailed && (
+                      <div className={styles.modeSwitch} role="tablist" aria-label="Hesaplama modu">
+                        <button type="button" role="tab" aria-selected="true">Basit</button>
+                        <button type="button" role="tab" aria-selected="false" onClick={() => openCalculation(selected.calculation, 'detailed')}>Detaylı</button>
                       </div>
-                    </label>
-                  ))}
-                </div>
-                {/* Turuncu bağlam panelindeki "Yeni Hesaplama"da kullanıldı;
-                    sayfada ikinci turuncu olmasın diye bu buton teal. */}
-                <Button variant="primary" onClick={calculate} disabled={calculating}>
-                  {calculating ? 'Hesaplanıyor…' : 'Sonucu Hesapla'}
-                </Button>
-                {error && <div className={styles.error}>{error}</div>}
-
-                {result && (
-                  <div className={styles.resultBox}>
-                    <div className={styles.resultHeading}>
-                      <h3>Hesaplama sonucu</h3>
-                      {result.durum && <span className={styles[resultTone(result.durum)]}>{result.durum}</span>}
-                    </div>
-                    {/* Ana metrik (ilk sonuç alanı) büyük ve ayrı; destekleyiciler altta ızgarada */}
-                    <div className={styles.resultGrid}>
-                      {Object.entries(result)
-                        .filter(([key]) => !['warnings', 'assumptions', 'durum'].includes(key))
-                        .map(([key, value], idx) => (
-                          <div key={key} className={`${styles.resultItem} ${idx === 0 ? styles.resultItemPrimary : ''}`}>
-                            <span>{RESULT_LABELS[key] || key.replaceAll('_', ' ')}</span>
-                            <strong>{formatValue(value)}</strong>
+                    )}
+                    {selected.warning && <div className={styles.warning}>{selected.warning}</div>}
+                    <div className={styles.inputGrid}>
+                      {selected.inputs?.map(input => (
+                        <label key={input.name} className={styles.inputField}>
+                          <span>{input.label}</span>
+                          <div className={styles.inputWrap}>
+                            <input type="number" value={inputs[input.name] ?? ''} onChange={event => setInputs(current => ({ ...current, [input.name]: event.target.value }))} placeholder="0" min={input.min} max={input.max} step="any" />
+                            <small>{input.unit}</small>
                           </div>
-                        ))}
+                        </label>
+                      ))}
                     </div>
-                    {result.warnings?.map((warning, index) => <p key={index} className={styles.resultWarning}>{warning}</p>)}
+                    <Button variant="primary" onClick={calculate} disabled={calculating}>
+                      {calculating ? 'Hesaplanıyor…' : 'Sonucu Hesapla'}
+                    </Button>
+                    {error && <div className={styles.error}>{error}</div>}
+                  </>
+                ) : (
+                  <div className={styles.financeResultView}>
+                    <header className={styles.financeResultHead}>
+                      <div><span>Finans Sonucu</span><h2>{selected.name}</h2><p>Hesaplama gerçek girdilerinizle tamamlandı ve geçmişe kaydedildi.</p></div>
+                      <Button variant="secondary" onClick={() => setResult(null)}>Varsayımları düzenle</Button>
+                    </header>
+                    <div className={styles.financeResultColumns}>
+                      <section className={styles.financeResultHero}>
+                        <Badge variant={resultTone(result.durum) === 'danger' ? 'danger' : resultTone(result.durum) === 'success' ? 'success' : 'warning'}>{result.durum || 'Hesaplandı'}</Badge>
+                        <span>{RESULT_LABELS[resultEntries[0]?.[0]] || resultEntries[0]?.[0]?.replaceAll('_', ' ') || 'Ana sonuç'}</span>
+                        <strong>{resultEntries[0] ? formatValue(resultEntries[0][1]) : '—'}</strong>
+                        <p>{selected.description}</p>
+                      </section>
+                      <section className={styles.financeResultDrivers}>
+                        <h3>Sonucu etkileyenler</h3>
+                        {resultEntries.slice(1).length === 0 ? <p>Ek sonuç alanı bulunmuyor.</p> : resultEntries.slice(1).map(([key, value]) => (
+                          <div key={key}><span>{RESULT_LABELS[key] || key.replaceAll('_', ' ')}</span><strong>{formatValue(value)}</strong></div>
+                        ))}
+                      </section>
+                    </div>
+                    {(result.warnings?.length > 0 || result.assumptions?.length > 0) && (
+                      <section className={styles.financeResultNotes}>
+                        <h3>Varsayım ve uyarılar</h3>
+                        {[...(result.assumptions || []), ...(result.warnings || [])].map((item, index) => <p key={index}>{item}</p>)}
+                      </section>
+                    )}
                   </div>
                 )}
               </div>
@@ -553,7 +642,7 @@ export default function ToolsPage() {
       )}
 
       {/* Son işlemler — gerçek geçmiş kayıtları. Kayıt yoksa hiç gösterilmez. */}
-      {view === 'all' && history.length > 0 && (
+      {view === 'calculator' && history.length > 0 && (
         <section className={styles.recent} aria-label="Son işlemler">
           <h2 className={styles.sectionTitle}>Son işlemler</h2>
           <div className={styles.historyList}>

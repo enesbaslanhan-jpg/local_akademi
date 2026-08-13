@@ -5,7 +5,7 @@ import { useWorkspace } from '@/context/WorkspaceContext'
 import {
   Home, BookOpen, Bot, Settings, Shield,
   Users, Database, X, Calculator, Newspaper,
-  Building2, ListChecks, Scale, LogOut, FlaskConical,
+  Building2, ListChecks, Scale, LogOut,
   PanelLeftClose, PanelLeftOpen, MessagesSquare, Search, Plus, ChevronDown
 } from 'lucide-react'
 import styles from './Sidebar.module.css'
@@ -22,21 +22,18 @@ import { featureFlags } from '@/config/featureFlags'
  *   Öğrenme Yolu     → Kurslar sayfasındaki koyu panel
  *   Pilot Program    → yalnızca route (/app/learning-path/pilot)
  *   Bilgi Nesneleri  → ders içinden (Lesson.knowledgeObjectId bağı)
- *   Model Laboratuvarı → Finans Merkezi'nde sekme (/app/finance/models çalışır)
+ *   Model Laboratuvarı → Hesaplamalar içindeki detaylı mod (/app/finance/models redirect olur)
  *   Pratik Kartlar / Flashcard / Quiz → feature flag'li legacy route'lar
  */
 const dashboardLink = { id: 'dashboard', label: 'Ana Sayfa', icon: Home, path: '/app/dashboard' }
 const coursesLink = { id: 'courses', label: 'Kurslar', icon: BookOpen, path: '/app/courses' }
 const decisionLink = { id: 'decision-checks', label: 'Karar Araçları', icon: Scale, path: '/app/decision-checks', recommended: true }
-const toolsLink = { id: 'tools', label: 'Finans Merkezi', icon: Calculator, path: '/app/tools' }
-const modelLabLink = { id: 'model-lab', label: 'Model Lab', icon: FlaskConical, path: '/app/finance/models' }
+const toolsLink = { id: 'tools', label: 'Hesaplamalar', icon: Calculator, path: '/app/calculations' }
 const mentorLink = { id: 'mentor', label: 'AI Mentor', icon: Bot, path: '/app/mentor' }
 
 const decisionGroup = featureFlags.decisionChecks ? [decisionLink] : []
 
-/* MobileTabBar bu diziyi kullanır. Alt sekme çubuğu en fazla 5 madde
-   taşıyabildiği için Model Lab burada YOK — masaüstü rayında var, mobilde
-   hamburger drawer'ından açılıyor. */
+/* MobileTabBar bu diziyi kullanır. Alt sekme çubuğu en fazla 5 madde taşır. */
 export const primaryLinks = [
   dashboardLink,
   coursesLink,
@@ -45,15 +42,12 @@ export const primaryLinks = [
   mentorLink
 ]
 
-/* Masaüstü rayı — onaylanan ekranlardaki 11 öğe, o sıralamayla.
-   Model Lab, Finans Merkezi ile AI Mentor arasında üst seviye bir madde;
-   eskiden Finans Merkezi'nin `?view=models` sekmesi altında gizliydi. */
+/* Masaüstü rayı — hesaplama derinliği ayrı destinasyon değil, hesap içi moddur. */
 const desktopPrimaryLinks = [
   dashboardLink,
   coursesLink,
   ...decisionGroup,
   toolsLink,
-  modelLabLink,
   mentorLink
 ]
 
@@ -72,6 +66,7 @@ const adminLinks = [
   { id: 'admin-knowledge', label: 'KO Yönetimi', icon: Database, path: '/admin/knowledge' },
   { id: 'admin-users', label: 'Kullanıcılar', icon: Users, path: '/admin/users' },
   { id: 'admin-imports', label: 'Toplu İçe Aktar', icon: Database, path: '/admin/imports' },
+  { id: 'admin-community', label: 'Haberler & Topluluk', icon: Newspaper, path: '/admin/community' },
   { id: 'admin-audit', label: 'Denetim Kayıtları', icon: Shield, path: '/admin/audit-logs' }
 ]
 
@@ -86,7 +81,7 @@ export default function Sidebar({
   const location = useLocation()
   const navigate = useNavigate()
   const [navQuery, setNavQuery] = useState('')
-  const routeGroup = location.pathname.startsWith('/app/tools') || location.pathname.startsWith('/app/finance/models')
+  const routeGroup = location.pathname.startsWith('/app/calculations') || location.pathname.startsWith('/app/tools') || location.pathname.startsWith('/app/finance/models')
     ? 'tools'
     : location.pathname.startsWith('/app/workspaces')
       ? 'workspace-tracker'
@@ -115,9 +110,7 @@ export default function Sidebar({
     if (linkPath === location.pathname) return true
     if (linkPath.includes('/app/workspaces/') && linkPath.endsWith('/tracker') && location.pathname.startsWith('/app/workspaces/')) return true
     if (linkPath === '/app/learning-path/pilot') return false
-    /* Model Lab kendi maddesi olduğu için Finans Merkezi artık model
-       yollarını sahiplenmez — aksi halde ikisi birden aktif görünür. */
-    if (linkPath === '/app/tools' && location.pathname.startsWith('/app/finance/models')) return false
+    if (linkPath === '/app/calculations' && (location.pathname.startsWith('/app/tools') || location.pathname.startsWith('/app/finance/models'))) return true
     /* Topluluk, Haberler'in alt yolu ama ayrı bir menü maddesi — Haberler
        onun üzerindeyken aktif görünmemeli. */
     if (linkPath === '/app/community' && location.pathname.startsWith('/app/community/topluluk')) return false
@@ -131,11 +124,9 @@ export default function Sidebar({
   const submenuFor = link => {
     const view = new URLSearchParams(location.search).get('view')
     if (link.id === 'tools') {
-      /* 'Modeller' buradan çıktı — Model Lab artık üst seviye madde.
-         ToolsPage'in kendi sekmesi duruyor, yalnız raydaki kısayol kalktı. */
       return [
-        { label: 'Araçlar', path: '/app/tools?view=calculator', active: location.pathname === '/app/tools' && !['models', 'history'].includes(view) },
-        { label: 'Geçmiş / Tamamlanan', path: '/app/tools?view=history', active: location.pathname === '/app/tools' && view === 'history' },
+        { label: 'Katalog', path: '/app/calculations', active: location.pathname === '/app/calculations' && view !== 'history' },
+        { label: 'Geçmiş / Tamamlanan', path: '/app/calculations?view=history', active: location.pathname === '/app/calculations' && view === 'history' },
       ]
     }
     if (link.id === 'workspace-tracker' && activeWorkspaceId) {
@@ -194,14 +185,11 @@ export default function Sidebar({
   }
 
   const quickAction = useMemo(() => {
-    if (location.pathname.startsWith('/app/community/topluluk')) {
-      return { label: 'Deneyim paylaş', path: '/app/community/topluluk#paylas' }
-    }
     if (location.pathname.startsWith('/app/community') && isAdmin) {
       return { label: 'Haber oluştur', path: '/app/community#yayin-araclari' }
     }
-    if (location.pathname.startsWith('/app/tools')) {
-      return { label: 'Yeni hesaplama', path: '/app/tools' }
+    if (location.pathname.startsWith('/app/calculations') || location.pathname.startsWith('/app/tools')) {
+      return { label: 'Yeni hesaplama', path: '/app/calculations' }
     }
     return null
   }, [isAdmin, location.pathname])

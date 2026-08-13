@@ -56,6 +56,10 @@ export function AuthProvider({ children }) {
     setUser(nextUser)
   }, [])
 
+  const updateUser = useCallback(changes => {
+    setUser(current => current ? { ...current, ...changes } : current)
+  }, [])
+
   const completeOnboarding = useCallback(async () => {
     await api.onboarding.complete()
     setOnboardingCompleted(true)
@@ -72,8 +76,9 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
-    replaceSession
-  }), [token, user, loading, onboardingCompleted, completeOnboarding, login, register, logout, replaceSession])
+    replaceSession,
+    updateUser
+  }), [token, user, loading, onboardingCompleted, completeOnboarding, login, register, logout, replaceSession, updateUser])
 
   return (
     <AuthContext.Provider value={value}>

@@ -8,8 +8,9 @@ import {
   History, Info, Play, Save, ShieldCheck
 } from 'lucide-react'
 import styles from './FinancialModelWorkspace.module.css'
+import { MODEL_TO_CALCULATION } from '@/data/calculationCatalog'
 
-const TABS = ['Genel Bakış', 'Girdiler', 'Senaryolar', 'Çıktılar', 'Kontroller', 'Kaynaklar', 'Değişiklikler']
+const TABS = ['Çalışma Alanı', 'Girdiler', 'Senaryolar', 'Çıktılar', 'Kontroller', 'Kaynaklar', 'Değişiklikler']
 const SCENARIOS = [
   { id: 'base', label: 'Baz' },
   { id: 'optimistic', label: 'İyimser' },
@@ -38,7 +39,7 @@ export default function FinancialModelWorkspace() {
   const { activeWorkspaceId, activeWorkspace } = useWorkspace()
   const [model, setModel] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState('Genel Bakış')
+  const [tab, setTab] = useState('Çalışma Alanı')
   const [inputs, setInputs] = useState({})
   const [metadata, setMetadata] = useState({})
   const [scenario, setScenario] = useState('base')
@@ -74,6 +75,9 @@ export default function FinancialModelWorkspace() {
   }, [modelCode, activeWorkspaceId, sourceDocumentId])
 
   const outputDefinitions = useMemo(() => Object.fromEntries((model?.outputs || []).map(item => [item.key, item])), [model])
+  const latestRun = currentRun || runs[0] || null
+  const latestMetrics = useMemo(() => Object.entries(latestRun?.outputs || {}).filter(([, value]) => typeof value !== 'object'), [latestRun])
+  const calculation = MODEL_TO_CALCULATION[modelCode]
 
   async function runModel() {
     if (!activeWorkspaceId) {
@@ -144,7 +148,9 @@ export default function FinancialModelWorkspace() {
 
   return (
     <main className={styles.page}>
-      <button className={styles.back} onClick={() => navigate('/app/finance/models')}><ArrowLeft size={17} /> Model kütüphanesi</button>
+      <button className={styles.back} onClick={() => navigate('/app/calculations')}><ArrowLeft size={17} /> Hesaplamalar</button>
+
+      {calculation?.simple && <div className={styles.modeSwitch} role="tablist" aria-label="Hesaplama modu"><button type="button" role="tab" aria-selected="false" onClick={() => navigate(`/app/calculations?tool=${calculation.simple.formulaId}`)}>Basit</button><button type="button" role="tab" aria-selected="true">Detaylı</button></div>}
 
       <header className={styles.header}>
         <div>
@@ -178,6 +184,73 @@ export default function FinancialModelWorkspace() {
       </nav>
 
       {error && <div className={styles.error}><AlertTriangle size={18} />{error}</div>}
+
+      {tab === 'Çalışma Alanı' && (
+        <section className={styles.workbench}>
+          <aside className={styles.parameterRail}>
+            <div className={styles.railHeading}>
+              <div><span className={styles.eyebrow}>PARAMETRELER</span><h2>Model girdileri</h2></div>
+              <span>{model.inputs.length}</span>
+            </div>
+            <div className={styles.quickInputs}>
+              {model.inputs.map(input => (
+                <label key={input.key}>
+                  <span>{input.label}</span>
+                  {input.type === 'number_array'
+                    ? <textarea value={inputs[input.key] || ''} onChange={event => setInputs(current => ({ ...current, [input.key]: event.target.value }))} placeholder="Değerleri virgülle ayırın" />
+                    : <div><input type="number" step="any" value={inputs[input.key] || ''} onChange={event => setInputs(current => ({ ...current, [input.key]: event.target.value }))} placeholder="0" /><small>{input.unit}</small></div>}
+                </label>
+              ))}
+            </div>
+            <button type="button" className={styles.detailLink} onClick={() => setTab('Girdiler')}>Kaynak ve doğrulamaları düzenle <ChevronRight size={15} /></button>
+          </aside>
+
+          <div className={styles.modelCanvas}>
+            <div className={styles.canvasHeading}>
+              <div><span className={styles.eyebrow}>MODEL AKIŞI</span><h2>{model.name}</h2></div>
+              <span className={latestRun ? styles.currentState : styles.waitingState}>{latestRun ? 'Güncel' : 'Hazır'}</span>
+            </div>
+            <p className={styles.canvasPurpose}>{model.purpose}</p>
+            <div className={styles.flowMap}>
+              <div className={styles.flowColumn}>
+                {(model.inputs || []).slice(0, 4).map(input => (
+                  <article key={input.key}><small>Girdi</small><strong>{input.label}</strong><span>{inputs[input.key] === '' || inputs[input.key] === undefined ? 'Değer bekleniyor' : `${formatValue(inputs[input.key])} ${input.unit || ''}`}</span></article>
+                ))}
+              </div>
+              <div className={styles.flowConnector} aria-hidden="true"><span>→</span><i /></div>
+              <div className={styles.flowColumn}>
+                {(model.outputs || []).slice(0, 4).map(output => {
+                  const value = latestRun?.outputs?.[output.key]
+                  return <article key={output.key}><small>Çıktı</small><strong>{output.label}</strong><span>{value === undefined ? 'Model çalışınca hesaplanır' : `${formatValue(value)} ${output.unit || ''}`}</span></article>
+                })}
+              </div>
+            </div>
+            <div className={styles.formulaStrip}><span>Hesap mantığı</span><code>{model.formula}</code></div>
+          </div>
+
+          <aside className={styles.outputRail}>
+            <div className={styles.railHeading}><div><span className={styles.eyebrow}>ÇIKTI</span><h2>Son çalışma</h2></div></div>
+            {latestRun ? (
+              <>
+                <div className={styles.primaryOutput}>
+                  <span>{outputDefinitions[latestMetrics[0]?.[0]]?.label || titleFromKey(latestMetrics[0]?.[0] || 'sonuç')}</span>
+                  <strong>{formatValue(latestMetrics[0]?.[1])}</strong>
+                  <small>{outputDefinitions[latestMetrics[0]?.[0]]?.unit || SCENARIOS.find(item => item.id === latestRun.scenarioName)?.label || latestRun.scenarioName}</small>
+                </div>
+                <div className={styles.outputList}>
+                  {latestMetrics.slice(1, 4).map(([key, value]) => <div key={key}><span>{outputDefinitions[key]?.label || titleFromKey(key)}</span><strong>{formatValue(value)}</strong></div>)}
+                </div>
+                <button type="button" className={styles.detailLink} onClick={() => { setCurrentRun(latestRun); setTab('Çıktılar') }}>Tüm çıktıları incele <ChevronRight size={15} /></button>
+              </>
+            ) : <div className={styles.noOutput}><FlaskConical size={28} /><strong>Henüz çalışma yok</strong><span>Parametreleri girip modeli çalıştırın.</span></div>}
+            <div className={styles.runHistory}>
+              <h3>Sürüm geçmişi</h3>
+              {runs.slice(0, 3).map((run, index) => <button type="button" key={run.id} onClick={() => { setCurrentRun(run); setTab('Çıktılar') }}><span>{run.scenarioName || 'Baz'} · {index === 0 ? 'son' : `${index + 1}.`}</span><small>{new Date(run.createdAt).toLocaleDateString('tr-TR')}</small><ChevronRight size={14} /></button>)}
+              {!runs.length && (model.versions || []).slice(0, 3).map(version => <div key={version.id}><span>v{version.version}</span><small>{new Date(version.createdAt).toLocaleDateString('tr-TR')}</small></div>)}
+            </div>
+          </aside>
+        </section>
+      )}
 
       {tab === 'Genel Bakış' && (
         <section className={styles.twoColumns}>

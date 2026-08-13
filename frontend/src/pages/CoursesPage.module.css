@@ -671,3 +671,47 @@
 @media (prefers-reduced-motion: reduce) {
   .pageTab { transition: none; }
 }
+
+/* Faz D / 02 — onaylı masaüstü kurs anatomisi */
+.page { width: 100%; max-width: var(--content-max-width); min-height: min(772px, calc(100vh - var(--header-height) - 40px)); margin: 0 auto; padding: 0; }
+.filterBar { display: grid; grid-template-columns: minmax(220px,1fr) 180px 160px auto; gap: var(--space-2); margin-bottom: var(--space-3); padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-panel); }
+.searchWrapper { display: flex; align-items: center; gap: var(--space-2); min-height: var(--control-h); padding: 0 var(--space-3); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--surface-sunken); color: var(--text-muted); }
+.searchWrapper input { width: 100%; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; }
+.activePath { display: grid; grid-template-columns: 220px minmax(0,1fr) auto; align-items: center; gap: var(--space-6); min-height: 228px; margin-bottom: var(--gap-panel); padding: 26px; }
+.courseCover { display: flex; min-height: 176px; flex-direction: column; justify-content: space-between; padding: var(--space-5); border-radius: var(--radius-md); background: color-mix(in srgb, var(--warm) 24%, var(--surface-raised)); color: var(--primary-deep); }
+.courseCover b { font-size: 24px; }
+.activeCopy { display: grid; min-width: 0; gap: var(--space-2); }
+.activeCopy > small { color: var(--text-muted); font-size: var(--font-micro); letter-spacing: .05em; }
+.activeCopy h2 { margin: 0; color: var(--text); font-size: var(--font-display); line-height: var(--line-height-tight); letter-spacing: var(--tracking-display); }
+.activeCopy p { margin: 0; color: var(--text-secondary); font-size: var(--font-body-sm); }
+.activeProgress { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: var(--space-3); margin-top: var(--space-2); }
+.activeProgress em { color: var(--text-muted); font-size: var(--font-meta); font-style: normal; }
+.courseWorkspace { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(320px,1fr); gap: var(--gap-panel); min-height: 408px; }
+.catalogPanel, .competencyPanel { min-height: 408px; overflow: hidden; }
+.categoryChips { display: flex; gap: var(--space-2); padding-bottom: var(--space-2); border-bottom: 1px solid var(--line); overflow-x: auto; }
+.categoryChips button { min-height: 28px; padding: 0 var(--space-3); border: 0; border-radius: var(--radius-full); background: var(--surface-sunken); color: var(--text-secondary); font: inherit; font-size: var(--font-micro); font-weight: var(--font-weight-bold); white-space: nowrap; cursor: pointer; }
+.categoryChips .chipActive { background: color-mix(in srgb, var(--primary) 13%, var(--surface-sunken)); color: var(--primary-deep); }
+.courseRows { max-height: 322px; overflow: auto; }
+.courseRow { display: grid; width: 100%; grid-template-columns: 116px minmax(0,1fr) auto; align-items: center; gap: var(--space-4); min-height: 102px; padding: var(--space-3) 0; border: 0; border-top: 1px solid var(--line); background: transparent; color: var(--text); text-align: left; cursor: pointer; }
+.courseRow:first-child { border-top: 0; }
+.courseRow:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+.miniCover { display: flex; min-height: 80px; align-items: flex-end; padding: var(--space-3); border-radius: var(--radius-md); background: color-mix(in srgb, var(--warm) 24%, var(--surface-raised)); color: var(--primary-deep); font-size: 20px; font-weight: var(--font-weight-heavy); }
+.courseInfo { display: grid; min-width: 0; gap: var(--space-1); }
+.courseInfo strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-domain-title); }
+.courseInfo small { color: var(--text-secondary); font-size: var(--font-meta); }
+.courseInfo em { width: max-content; padding: 3px var(--space-2); border-radius: var(--radius-full); background: var(--surface-sunken); color: var(--text-secondary); font-size: var(--font-micro); font-style: normal; font-weight: var(--font-weight-bold); }
+.compactPagination { display: flex; align-items: center; justify-content: center; gap: var(--space-3); padding-top: var(--space-2); border-top: 1px solid var(--line); font-size: var(--font-meta); }
+.compactPagination button { border: 0; background: transparent; color: var(--primary-deep); cursor: pointer; }
+.compactPagination button:disabled { opacity: .4; cursor: default; }
+.competencyPanel h2 { margin: 0 0 var(--space-3); font-size: var(--font-section-title); }
+.competencyRow { position: relative; display: grid; grid-template-columns: 20px minmax(0,1fr); gap: var(--space-3); min-height: 60px; }
+.competencyRow:not(:last-child)::before { position: absolute; top: 15px; bottom: -2px; left: 5px; width: 1px; background: var(--line-strong); content: ''; }
+.competencyDot { position: relative; z-index: 1; width: 10px; height: 10px; margin-top: 5px; border: 2px solid var(--primary); border-radius: 50%; background: var(--surface-panel); }
+.dotDone { background: var(--success); border-color: var(--success); }
+.dotNext { box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 15%, transparent); }
+.competencyRow > span:last-child { display: grid; align-content: start; gap: var(--space-1); }
+.competencyRow strong { font-size: var(--font-domain-title); }
+.competencyRow small { color: var(--text-muted); font-size: var(--font-meta); }
+.emptyCompetency { max-width: 34ch; color: var(--text-muted); font-size: var(--font-body-sm); line-height: var(--line-height-normal); }
+@media (max-width: 900px) { .activePath { grid-template-columns: 120px minmax(0,1fr); } .activePath > button { grid-column: 2; width: max-content; } .courseCover { min-height: 120px; } .courseWorkspace { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .filterBar { grid-template-columns: 1fr; } .activePath { grid-template-columns: 80px minmax(0,1fr); padding: var(--space-4); } .activeCopy h2 { font-size: var(--font-page-title); } .courseRow { grid-template-columns: 80px minmax(0,1fr) auto; } .miniCover { min-height: 68px; } }

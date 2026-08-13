@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '@/services/api'
 import { useWorkspace } from '@/context/WorkspaceContext'
-import { Loading } from '@/components/ui'
+import { Loading, PageHead } from '@/components/ui'
 import {
   ArrowRight, BarChart3, Calculator, CircleDollarSign, Gauge,
   Search, ShieldCheck, Sparkles, WalletCards
@@ -39,12 +39,13 @@ const LEVELS = { basic: 'Temel', intermediate: 'Orta', advanced: 'İleri' }
  */
 export default function FinancialModelLibrary({ embedded = false }) {
   const navigate = useNavigate()
-  const { activeWorkspace } = useWorkspace()
+  const { activeWorkspace, activeWorkspaceId } = useWorkspace()
   const [models, setModels] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [category, setCategory] = useState('all')
   const [search, setSearch] = useState('')
+  const [runs, setRuns] = useState([])
 
   const fetchModels = () => {
     setLoading(true)
@@ -59,6 +60,16 @@ export default function FinancialModelLibrary({ embedded = false }) {
     fetchModels()
   }, [])
 
+  useEffect(() => {
+    if (!activeWorkspaceId) {
+      setRuns([])
+      return
+    }
+    api.financialModels.runs(activeWorkspaceId)
+      .then(data => setRuns(Array.isArray(data) ? data : data.runs || []))
+      .catch(() => setRuns([]))
+  }, [activeWorkspaceId])
+
   const visibleModels = useMemo(() => {
     const query = search.trim().toLocaleLowerCase('tr-TR')
     return models.filter(model => {
@@ -72,32 +83,8 @@ export default function FinancialModelLibrary({ embedded = false }) {
 
   return (
     <main className={embedded ? styles.embedded : styles.page}>
-      <section className={styles.hero}>
-        <div>
-          <span>LOCALAKADEMİ FİNANSAL ZEKA</span>
-          {/* Sayfa adı üst barda yazıyor; görünür h1 yerine sr-only başlık.
-              Sekme içinde kabuk Finans Merkezi'ne ait olduğu için tekrarlanmaz. */}
-          {!embedded && <h1 className="sr-only">Model Laboratuvarı</h1>}
-          <p>Gerçek işletme verisini doğrulayın, doğru modeli seçin, hesabın her adımını görün ve kararınızı kaydedin.</p>
-        </div>
-        <div className={styles.heroStats}>
-          <strong>{models.length}</strong>
-          <small>sürümlü deterministik model</small>
-        </div>
-      </section>
-
-      <section className={styles.principles}>
-        <div><Calculator /><span><strong>Hesap makinesi değil</strong><small>Girdi, varsayım, kontrol ve karar akışı</small></span></div>
-        <div><ShieldCheck /><span><strong>Sonuç uydurulmaz</strong><small>Eksik veri varsa model çalışmaz</small></span></div>
-        <div><Sparkles /><span><strong>Mentor açıklaması</strong><small>Hesabı değiştirmez, sonucu yorumlar</small></span></div>
-      </section>
-
-      {activeWorkspace && (
-        <div className={styles.context}>
-          Aktif işletme: <strong>{activeWorkspace.name}</strong>
-          <span>Çalışmalar ve kararlar bu işletmeye kaydedilecek.</span>
-        </div>
-      )}
+      {!embedded && <PageHead title="Model Laboratuvarı" subtitle="Finansal modelleri bulun, karşılaştırın ve çalıştırın." />}
+      {embedded && <div className={styles.embeddedHead}><h2>Model Laboratuvarı</h2><p>Finansal modelleri bulun ve çalıştırın.</p></div>}
 
       <section className={styles.toolbar}>
         <label><Search size={18} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Nakit, sipariş, CAC, yatırım veya DCF ara..." /></label>
@@ -119,29 +106,38 @@ export default function FinancialModelLibrary({ embedded = false }) {
         <div className={styles.empty}>Henüz kullanılabilir model bulunmuyor.</div>
       )}
 
-      <section className={styles.grid}>
-        {visibleModels.map(model => {
-          const Icon = ICONS[model.category] || Calculator
-          return (
-            <article key={model.code} className={styles.card}>
-              <div className={styles.cardTop}>
-                <span className={styles.icon}><Icon size={21} /></span>
-                <span className={styles.level}>{LEVELS[model.level] || model.level}</span>
-              </div>
-              <span className={styles.category}>{CATEGORIES[model.category]}</span>
-              <h2>{model.name}</h2>
-              <p>{model.purpose}</p>
-              <div className={styles.meta}>
-                <span>{model.requirementCount} zorunlu girdi</span>
-                <span>v{model.engineVersion}</span>
-              </div>
-              <button onClick={() => navigate(`/app/finance/models/${model.code}`)}>
-                Modeli aç <ArrowRight size={17} />
-              </button>
-            </article>
-          )
-        })}
-      </section>
+      <div className={styles.libraryLayout}>
+        <section className={styles.modelList} aria-label="Finansal modeller">
+          {visibleModels.map((model, index) => (
+            <button key={model.code} type="button" onClick={() => navigate(`/app/finance/models/${model.code}`)}>
+              <span className={styles.modelIndex}>{index + 1}</span>
+              <span className={styles.modelName}><strong>{model.name}</strong><small>{CATEGORIES[model.category]} · {model.requirementCount} zorunlu girdi</small></span>
+              <span className={styles.modelVersion}>v{model.engineVersion}</span>
+              <span className={styles.modelLevel}>{LEVELS[model.level] || model.level}</span>
+              <ArrowRight size={15} />
+            </button>
+          ))}
+        </section>
+
+        <aside className={styles.libraryAside}>
+          <h2>Son çalışılan</h2>
+          {runs[0] ? (
+            <div className={styles.lastRun}>
+              <span>{CATEGORIES[models.find(model => model.code === runs[0].modelCode)?.category] || 'Finans'}</span>
+              <strong>{runs[0].modelName || models.find(model => model.code === runs[0].modelCode)?.name || 'Finansal model'}</strong>
+              <small>{new Date(runs[0].createdAt).toLocaleString('tr-TR')}</small>
+              <button type="button" onClick={() => navigate(`/app/finance/models/${runs[0].modelCode}`)}>Sürdür</button>
+            </div>
+          ) : <p className={styles.asideEmpty}>Henüz model çalışması yok.</p>}
+          <h2 className={styles.groupTitle}>Model grupları</h2>
+          {Object.entries(CATEGORIES).filter(([id]) => id !== 'all').map(([id, label]) => {
+            const count = models.filter(model => model.category === id).length
+            if (!count) return null
+            return <button type="button" className={styles.groupRow} key={id} onClick={() => setCategory(id)}><span>{label}</span><small>{count}</small><ArrowRight size={14} /></button>
+          })}
+          {activeWorkspace && <p className={styles.workspaceNote}>Çalışmalar <strong>{activeWorkspace.name}</strong> işletmesine kaydedilir.</p>}
+        </aside>
+      </div>
 
       {!loading && !error && models.length > 0 && visibleModels.length === 0 && (
         <div className={styles.empty}>Bu arama için model bulunamadı.</div>

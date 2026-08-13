@@ -1,488 +1,161 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { AlertCircle, AlertTriangle, CheckCircle2, ChevronRight, RefreshCw } from 'lucide-react'
 import { api } from '@/services/api'
-import { AlertTriangle, Clock, Users, BookOpen, Download, UserPlus, FileText, RefreshCw, AlertCircle, ArrowUpRight, Layers, Tag, CheckCircle, XCircle, Archive, Eye, Zap, Ban } from 'lucide-react'
 import { Select } from '@/components/ui'
 import styles from './AdminDashboard.module.css'
 
 const PERIODS = [
-  { value: 7, label: 'Son 7 Gün' },
-  { value: 30, label: 'Son 30 Gün' },
-  { value: 90, label: 'Son 90 Gün' },
-  { value: 0, label: 'Tüm Zamanlar' }
+  { value: 7, label: 'Son 7 gün' },
+  { value: 30, label: 'Son 30 gün' },
+  { value: 90, label: 'Son 90 gün' },
+  { value: 0, label: 'Tüm zamanlar' }
 ]
 
-function formatDate(dateStr) {
-  if (!dateStr) return '-'
-  try {
-    return new Date(dateStr).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-  } catch { return '-' }
+const shortDate = value => value
+  ? new Date(value).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })
+  : '—'
+
+const timeAgo = value => {
+  if (!value) return '—'
+  const minutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000))
+  if (minutes < 60) return `${minutes || 1} dk`
+  if (minutes < 1440) return `${Math.floor(minutes / 60)} sa`
+  return `${Math.floor(minutes / 1440)} gün`
 }
 
-function shortDate(dateStr) {
-  if (!dateStr) return '-'
-  try {
-    return new Date(dateStr).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })
-  } catch { return '-' }
+function normalizeExceptions(alerts = {}) {
+  return [
+    ...(alerts.overdueReviews || []).map(item => ({
+      id: `review-${item.id}`, kind: 'İçerik', tone: 'danger',
+      title: item.title || item.code || `İnceleme #${item.id}`,
+      detail: `İnceleme tarihi ${shortDate(item.reviewDue)} geçti`
+    })),
+    ...(alerts.failedImports || []).map(item => ({
+      id: `import-${item.id}`, kind: 'Veri', tone: 'warning',
+      title: 'Başarısız veri içe aktarımı',
+      detail: item.errors?.[0]?.message || `${item.id?.substring(0, 8) || 'İş'} yeniden incelenmeli`
+    })),
+    ...(alerts.draftWithoutSource || []).map(item => ({
+      id: `source-${item.id}`, kind: 'Kaynak', tone: 'neutral',
+      title: item.title || item.code || `Taslak #${item.id}`,
+      detail: 'Kaynak bilgisi eksik'
+    })),
+    ...(alerts.pendingHighRisk || []).map(item => ({
+      id: `risk-${item.id}`, kind: 'Risk', tone: 'warning',
+      title: item.title || item.code || `İçerik #${item.id}`,
+      detail: `İnsan incelemesi bekliyor${item.categoryName ? ` · ${item.categoryName}` : ''}`
+    }))
+  ]
 }
 
-function timeAgo(dateStr) {
-  if (!dateStr) return ''
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'az önce'
-  if (mins < 60) return `${mins}d`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}s`
-  const days = Math.floor(hours / 24)
-  if (days < 30) return `${days}g`
-  return shortDate(dateStr)
-}
-
-const KPI_DEFS = [
-  { key: 'totalUsers', label: 'Kullanıcı', icon: Users, color: '#3b82f6' },
-  { key: 'totalKOs', label: 'Toplam KO', icon: BookOpen, color: '#8b5cf6' },
-  { key: 'publishedKOs', label: 'Yayında', icon: CheckCircle, color: '#22c55e' },
-  { key: 'inReviewKOs', label: 'İncelemede', icon: Eye, color: '#f59e0b' },
-  { key: 'draftKOs', label: 'Taslak', icon: FileText, color: '#6b7280' },
-  { key: 'approvedKOs', label: 'Onaylı', icon: ArrowUpRight, color: '#3b82f6' },
-  { key: 'rejectedKOs', label: 'Reddedilen', icon: XCircle, color: '#ef4444' },
-  { key: 'archivedKOs', label: 'Arşivlenmiş', icon: Archive, color: '#8b5cf6' },
-  { key: 'professionalKOs', label: 'Profesyonel KO', icon: Zap, color: '#ec4899' },
-  { key: 'demoKOs', label: 'Demo KO', icon: Layers, color: '#14b8a6' },
-  { key: 'totalCategories', label: 'Kategori', icon: Tag, color: '#f97316' },
-  { key: 'overdueReviews', label: 'Gecikmiş İnceleme', icon: Clock, color: '#ef4444' },
-  { key: 'recentImportCount', label: 'Son Import', icon: Download, color: '#6366f1' },
-  { key: 'totalEnrollments', label: 'Kayıt', icon: UserPlus, color: '#a855f7' }
-]
-
-const STATUS_ICONS = {
-  draft: FileText,
-  in_review: Eye,
-  approved: CheckCircle,
-  published: ArrowUpRight,
-  rejected: XCircle,
-  archived: Archive
-}
-
-const STATUS_COLORS = {
-  draft: '#6b7280',
-  in_review: '#f59e0b',
-  approved: '#3b82f6',
-  published: '#22c55e',
-  rejected: '#ef4444',
-  archived: '#8b5cf6'
-}
-
-function KpiSkeleton() {
-  return (
-    <div className={styles.skeletonGrid}>
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className={styles.skeletonCard}>
-          <div className={`${styles.skeletonLine} ${styles.skeletonNarrow}`} />
-          <div className={`${styles.skeletonLine} ${styles.skeletonWide}`} />
-        </div>
-      ))}
-    </div>
-  )
+function normalizeOperations(activity = {}) {
+  const items = [
+    ...(activity.imports || []).map(item => ({
+      id: `import-${item.id}`, title: `Veri içe aktarımı · ${item.totalRows || 0} kayıt`,
+      owner: 'Veri', status: item.status === 'completed' ? 'Hazır' : item.status === 'failed' ? 'Hata' : 'Çalışıyor',
+      tone: item.status === 'completed' ? 'success' : item.status === 'failed' ? 'danger' : 'neutral', date: item.createdAt
+    })),
+    ...(activity.reviews || []).map(item => ({
+      id: `review-${item.id}`, title: item.koTitle || item.koCode || 'İçerik incelemesi',
+      owner: item.reviewerName || 'İnceleme', status: item.status === 'approved' ? 'Onaylandı' : item.status === 'rejected' ? 'Reddedildi' : 'Bekliyor',
+      tone: item.status === 'approved' ? 'success' : item.status === 'rejected' ? 'danger' : 'warning', date: item.createdAt
+    })),
+    ...(activity.publications || []).map(item => ({
+      id: `publication-${item.id || item.timestamp}`, title: item.koTitle || item.koCode || 'İçerik yayını',
+      owner: item.performerName || 'Yayın', status: item.action === 'published' ? 'Yayında' : 'Tamamlandı',
+      tone: 'success', date: item.timestamp
+    })),
+    ...(activity.newUsers || []).map(item => ({
+      id: `user-${item.id}`, title: item.name || item.email,
+      owner: 'Kullanıcı', status: 'Yeni kayıt', tone: 'neutral', date: item.createdAt
+    }))
+  ]
+  return items.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
 }
 
 export default function AdminDashboard() {
   const [data, setData] = useState(null)
+  const [reviewer, setReviewer] = useState(null)
+  const [period, setPeriod] = useState(30)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [reviewerData, setReviewerData] = useState(null)
-  const [reviewerError, setReviewerError] = useState('')
-  const [period, setPeriod] = useState(30)
-  const fetchIdRef = useRef(0)
+  const fetchId = useRef(0)
 
-  function fetchData() {
-    const fid = ++fetchIdRef.current
+  const load = () => {
+    const id = ++fetchId.current
     setLoading(true)
     setError('')
-    setReviewerError('')
-    api.admin.getStats(period)
-      .then(raw => {
-        if (fid !== fetchIdRef.current) return
-        setData(raw)
-      })
-      .catch(err => {
-        if (fid !== fetchIdRef.current) return
-        setError(err.message)
-      })
-      .finally(() => {
-        if (fid === fetchIdRef.current) setLoading(false)
-      })
-
-    Promise.all([
-      api.admin.getReviewerMetrics(),
-      api.admin.getReviewerHealth()
-    ])
-      .then(([metrics, health]) => {
-        if (fid !== fetchIdRef.current) return
-        setReviewerData({ ...metrics, health })
-      })
-      .catch(err => {
-        if (fid !== fetchIdRef.current) return
-        setReviewerError(err.message)
-      })
+    Promise.allSettled([
+      api.admin.getStats(period),
+      Promise.all([api.admin.getReviewerMetrics(), api.admin.getReviewerHealth()])
+    ]).then(([statsResult, reviewerResult]) => {
+      if (id !== fetchId.current) return
+      if (statsResult.status === 'fulfilled') setData(statsResult.value)
+      else setError(statsResult.reason?.message || 'Operasyon verileri alınamadı')
+      if (reviewerResult.status === 'fulfilled') {
+        const [metrics, health] = reviewerResult.value
+        setReviewer({ ...metrics, health })
+      }
+    }).finally(() => id === fetchId.current && setLoading(false))
   }
 
-  useEffect(() => { fetchData() }, [period])
+  useEffect(load, [period])
 
-  if (loading && !data) {
-    return (
-      <div className={styles.page}>
-        <div className={styles.header}>
-          <h2>Sistem Özeti</h2>
-          <Select className={styles.periodSelect} aria-label="Zaman aralığı" options={PERIODS.map(p => ({ value: String(p.value), label: p.label }))} value={String(period)} onChange={v => setPeriod(Number(v))} />
-        </div>
-        <KpiSkeleton />
-      </div>
-    )
-  }
-
-  if (error && !data) {
-    return (
-      <div className={styles.page}>
-        <div className={styles.header}><h2>Sistem Özeti</h2></div>
-        <div className={styles.errorInline}>
-          <AlertTriangle size={16} />
-          <span>{error} — <button onClick={fetchData}>Tekrar dene</button></span>
-        </div>
-      </div>
-    )
-  }
-
-  const { kpi = {}, statusDistribution = [], categoryDistribution = [], recentActivity = {}, alerts = {} } = data || {}
+  const kpi = data?.kpi || {}
+  const exceptions = normalizeExceptions(data?.alerts)
+  const operations = normalizeOperations(data?.recentActivity)
+  const reviewerQueue = reviewer?.health?.queue || reviewer?.queue || {}
+  const systemHealthy = !error && reviewer?.health?.ollama?.reachable !== false
+  const queueSize = (kpi.inReviewKOs || 0) + (reviewerQueue.active || 0) + (reviewerQueue.pending || 0)
+  const criticalCount = (data?.alerts?.overdueReviews?.length || 0) + (data?.alerts?.failedImports?.length || 0)
 
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <h2>Sistem Özeti</h2>
-        <Select className={styles.periodSelect} aria-label="Zaman aralığı" options={PERIODS.map(p => ({ value: String(p.value), label: p.label }))} value={String(period)} onChange={v => setPeriod(Number(v))} />
-      </div>
-
-      {error && data && (
-        <div className={styles.partialWarning}>
-          <AlertCircle size={14} />
-          <span>Bazı veriler güncellenemedi: {error} — <button onClick={fetchData} style={{ background: 'none', border: 'none', color: '#92400e', textDecoration: 'underline', cursor: 'pointer', font: 'inherit', padding: 0 }}>Tekrar dene</button></span>
+    <main className={styles.page}>
+      <header className={styles.header}>
+        <div><h1>Admin Operasyonları</h1><p>Sistem sağlığı, SLA ve öncelikli istisnalar.</p></div>
+        <div className={styles.headerActions}>
+          <Select aria-label="Zaman aralığı" options={PERIODS.map(item => ({ value: String(item.value), label: item.label }))} value={String(period)} onChange={value => setPeriod(Number(value))} />
+          <button type="button" className={styles.refreshButton} onClick={load} disabled={loading}><RefreshCw size={15} /> Yenile</button>
         </div>
-      )}
+      </header>
 
-      {loading && data && (
-        <div className={styles.partialWarning}>
-          <RefreshCw size={14} />
-          <span>Veriler güncelleniyor...</span>
-        </div>
-      )}
+      {error && <div className={styles.warning}><AlertTriangle size={15} /><span>{error}</span><button onClick={load}>Tekrar dene</button></div>}
 
-      {/* A. Sistem Özeti - KPI Cards */}
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}><h3>Sistem Özeti</h3></div>
-        <div className={styles.kpiGrid}>
-          {KPI_DEFS.map(def => {
-            const val = kpi[def.key] ?? 0
-            const Icon = def.icon
-            return (
-              <div key={def.key} className={styles.kpiCard}>
-                <div className={styles.kpiLabel}>{def.label}</div>
-                <div className={styles.kpiValue}>{typeof val === 'number' ? val.toLocaleString() : val}</div>
-              </div>
-            )
-          })}
+      <section className={styles.signature} aria-label="Sistem sağlığı özeti">
+        <div className={styles.healthSummary}>
+          <span className={styles.healthBadge}>{systemHealthy ? <CheckCircle2 size={13} /> : <AlertCircle size={13} />} Sistem sağlığı · canlı</span>
+          <h2>{loading && !data ? 'Operasyon verileri yükleniyor' : systemHealthy ? `Hizmetler çalışıyor, ${exceptions.length} istisna bekliyor` : 'Bazı hizmetler dikkat gerektiriyor'}</h2>
+          <p>Yerel AI reviewer {reviewer?.health?.ollama?.reachable === true ? 'erişilebilir' : reviewer?.health?.ollama?.reachable === false ? 'erişilemiyor' : 'kontrol ediliyor'}.</p>
         </div>
+        <dl className={styles.signatureMetrics}>
+          <div><dt>Toplam kullanıcı</dt><dd>{(kpi.totalUsers || 0).toLocaleString('tr-TR')}</dd></div>
+          <div><dt>İş kuyruğu</dt><dd>{queueSize.toLocaleString('tr-TR')}</dd></div>
+          <div><dt>Kritik olay</dt><dd>{criticalCount.toLocaleString('tr-TR')}</dd></div>
+        </dl>
       </section>
 
-      <ReviewerOperations
-        data={reviewerData}
-        error={reviewerError}
-      />
-
-      <div className={styles.col2}>
-        {/* B. KO Durum Dağılımı */}
-        <section className={styles.section}>
-          <div className={styles.sectionHeader}><h3>KO Durum Dağılımı</h3></div>
-          <div className={styles.card}>
-            {statusDistribution.length === 0 ? (
-              <div className={styles.emptySmall}>Veri bulunamadı</div>
-            ) : (
-              <div className={styles.barChart} role="img" aria-label={`KO durum dağılımı: ${statusDistribution.map(s => `${s.label}: ${s.count}`).join(', ')}`}>
-                {statusDistribution.map(s => {
-                  const maxVal = Math.max(...statusDistribution.map(x => x.count), 1)
-                  const pct = (s.count / maxVal) * 100
-                  const Icon = STATUS_ICONS[s.status] || FileText
-                  return (
-                    <div key={s.status} className={styles.barRow}>
-                      <span className={styles.barLabel}><Icon size={12} style={{ marginRight: 4, verticalAlign: -1 }} /> {s.label}</span>
-                      <div className={styles.barTrack}>
-                        <div className={styles.barFill} style={{ width: `${pct}%`, backgroundColor: STATUS_COLORS[s.status] || '#6b7280' }} />
-                      </div>
-                      <span className={styles.barCount}>{s.count}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
+      <section className={styles.panel}>
+        <div className={styles.panelHead}><h2>Öncelikli istisnalar</h2><span>{exceptions.length} açık kayıt</span></div>
+        {exceptions.length ? <div className={styles.rows}>{exceptions.slice(0, 5).map(item => (
+          <div className={styles.exceptionRow} key={item.id}>
+            <span className={`${styles.kind} ${styles[item.tone]}`}>{item.kind}</span>
+            <div><strong>{item.title}</strong><small>{item.detail}</small></div>
+            <ChevronRight size={15} aria-hidden="true" />
           </div>
-        </section>
-
-        {/* C. Kategori Dağılımı */}
-        <section className={styles.section}>
-          <div className={styles.sectionHeader}><h3>Kategori Dağılımı</h3></div>
-          <div className={styles.card}>
-            {categoryDistribution.length === 0 ? (
-              <div className={styles.emptySmall}>Henüz kategori eklenmemiş</div>
-            ) : (
-              <table className={styles.catTable}>
-                <thead>
-                  <tr>
-                    <th>Kategori</th>
-                    <th>Toplam</th>
-                    <th>Yayın</th>
-                    <th>İnceleme</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {categoryDistribution.map(cat => {
-                    const maxTotal = Math.max(...categoryDistribution.map(c => c.total), 1)
-                    return (
-                      <tr key={cat.name}>
-                        <td style={{ fontWeight: 500 }}>{cat.name}</td>
-                        <td>{cat.total}</td>
-                        <td>
-                          <div className={styles.catBar}>
-                            <div className={`${styles.catBarFill} ${styles.catBarFillGreen}`} style={{ width: `${(cat.published / maxTotal) * 100}%` }} />
-                          </div>
-                          <span style={{ fontSize: 11, color: 'var(--text-light)' }}>{cat.published}</span>
-                        </td>
-                        <td>
-                          <div className={styles.catBar}>
-                            <div className={`${styles.catBarFill} ${styles.catBarFillAmber}`} style={{ width: `${(cat.inReview / maxTotal) * 100}%` }} />
-                          </div>
-                          <span style={{ fontSize: 11, color: 'var(--text-light)' }}>{cat.inReview}</span>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </section>
-      </div>
-
-      {/* D. Son Aktiviteler */}
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}><h3>Son Aktiviteler</h3></div>
-        <div className={styles.col2}>
-          <ActivitySection title="Import İşleri" icon={Download} items={recentActivity.imports} renderItem={item => ({
-            title: `${item.status === 'completed' ? 'Tamamlandı' : item.status === 'failed' ? 'Başarısız' : 'İşleniyor'} — ${item.totalRows} KO`,
-            meta: `ID: ${item.id?.substring(0, 8)}...`,
-            time: timeAgo(item.createdAt)
-          })} emptyText="Henüz import yapılmamış" />
-
-          <ActivitySection title="Review İşlemleri" icon={Eye} items={recentActivity.reviews} renderItem={item => ({
-            title: `${item.koTitle || item.koCode || 'Bilinmeyen KO'} — ${item.status === 'approved' ? 'Onaylandı' : item.status === 'rejected' ? 'Reddedildi' : 'Beklemede'}`,
-            meta: `${item.reviewerName}`,
-            time: timeAgo(item.createdAt)
-          })} emptyText="Henüz review yapılmamış" />
-
-          <ActivitySection title="Yayınlama İşlemleri" icon={ArrowUpRight} items={recentActivity.publications} renderItem={item => ({
-            title: `${item.koTitle || item.koCode || 'Bilinmeyen KO'} — ${item.action === 'published' ? 'Yayınlandı' : item.action}`,
-            meta: item.performerName,
-            time: timeAgo(item.timestamp)
-          })} emptyText="Henüz yayınlama yapılmamış" />
-
-          <ActivitySection title="Yeni Kullanıcılar" icon={UserPlus} items={recentActivity.newUsers} renderItem={item => ({
-            title: item.name || item.email,
-            meta: `Rol: ${({ learner: 'Öğrenci', content_editor: 'Editör', subject_expert: 'Uzman', admin: 'Admin' })[item.role] || item.role}`,
-            time: timeAgo(item.createdAt)
-          })} emptyText="Henüz kullanıcı yok" />
-        </div>
+        ))}</div> : <div className={styles.empty}>Bu dönemde açık istisna bulunmuyor.</div>}
       </section>
 
-      {/* E. Dikkat Gerektirenler */}
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}><h3>Dikkat Gerektirenler</h3></div>
-        <div className={styles.col2}>
-          <AlertSection
-            title="Gecikmiş Review'ler"
-            icon={Clock}
-            iconColor="#ef4444"
-            items={alerts.overdueReviews}
-            variant="danger"
-            renderItem={item => `${item.title || item.code || '#' + item.id} — Son: ${shortDate(item.reviewDue)}`}
-            emptyText="Gecikmiş review bulunmuyor"
-          />
-
-          <AlertSection
-            title="Kaynaksız Taslaklar"
-            icon={Ban}
-            iconColor="#f59e0b"
-            items={alerts.draftWithoutSource}
-            variant="warning"
-            renderItem={item => `${item.title || item.code || '#' + item.id}`}
-            emptyText="Tüm taslakların kaynağı var"
-          />
-
-          <AlertSection
-            title="Yüksek Riskli Bekleyenler"
-            icon={AlertCircle}
-            iconColor="#f97316"
-            items={alerts.pendingHighRisk}
-            variant="warning"
-            renderItem={item => `${item.title || item.code || '#' + item.id} — Gate: ${item.reviewGate}${item.categoryName ? ` (${item.categoryName})` : ''}`}
-            emptyText="Yüksek riskli bekleyen yok"
-          />
-
-          <AlertSection
-            title="Başarısız Import'lar"
-            icon={XCircle}
-            iconColor="#ef4444"
-            items={alerts.failedImports}
-            variant="danger"
-            renderItem={item => {
-              const firstErr = item.errors?.[0]
-              return `${item.id?.substring(0, 8)}... — ${firstErr ? `${firstErr.message?.substring(0, 50)}` : 'Bilinmeyen hata'}`
-            }}
-            emptyText="Başarısız import yok"
-          />
-        </div>
+      <section className={`${styles.panel} ${styles.queuePanel}`}>
+        <div className={styles.panelHead}><h2>Operasyon kuyruğu</h2><span>{operations.length} son hareket</span></div>
+        {operations.length ? <div className={styles.rows}>{operations.slice(0, 6).map(item => (
+          <div className={styles.operationRow} key={item.id}>
+            <div><strong>{item.title}</strong><small>{item.owner}</small></div>
+            <time>{timeAgo(item.date)}</time>
+            <span className={`${styles.status} ${styles[item.tone]}`}>{item.status}</span>
+            <ChevronRight size={15} aria-hidden="true" />
+          </div>
+        ))}</div> : <div className={styles.empty}>Bu dönemde operasyon hareketi bulunmuyor.</div>}
       </section>
-    </div>
-  )
-}
-
-function ReviewerOperations({ data, error }) {
-  const persistent = data?.persistentMetrics
-  const totals = persistent?.totals || {}
-  const rates = persistent?.rates || {}
-  const latency = persistent?.latencyMs || {}
-  const health = data?.health?.ollama || {}
-  const queue = data?.health?.queue || data?.queue || {}
-
-  const cards = [
-    {
-      label: 'Ollama',
-      value: health.reachable === true
-        ? 'Çevrimiçi'
-        : health.reachable === false
-          ? 'Erişilemiyor'
-          : 'Kontrol ediliyor'
-    },
-    {
-      label: 'Reviewer Modeli',
-      value: health.modelAvailable === true
-        ? 'Hazır'
-        : health.modelAvailable === false
-          ? 'Bulunamadı'
-          : data?.reviewer?.enabled
-            ? 'Bekleniyor'
-            : 'Kapalı'
-    },
-    { label: 'Kalıcı Örnek', value: totals.sampled ?? 0 },
-    {
-      label: 'Availability',
-      value: typeof rates.availability === 'number'
-        ? `%${(rates.availability * 100).toFixed(1)}`
-        : '-'
-    },
-    {
-      label: 'p95 Gecikme',
-      value: typeof latency.p95 === 'number'
-        ? `${latency.p95.toLocaleString()} ms`
-        : '-'
-    },
-    {
-      label: 'Kuyruk',
-      value: `${queue.active ?? 0} aktif / ${queue.pending ?? 0} bekleyen`
-    },
-    { label: 'Kuyruk Reddi', value: queue.rejected ?? 0 },
-    {
-      label: 'Pilot Modu',
-      value: `${data?.reviewer?.effectiveMode || 'shadow'} · %${((data?.reviewer?.sampleRate || 0) * 100).toFixed(0)}`
-    }
-  ]
-
-  return (
-    <section className={styles.section}>
-      <div className={styles.sectionHeader}>
-        <h3>Yerel AI Reviewer Pilot</h3>
-      </div>
-      {error && (
-        <div className={styles.partialWarning}>
-          <AlertCircle size={14} />
-          <span>Reviewer metrikleri alınamadı: {error}</span>
-        </div>
-      )}
-      <div className={styles.kpiGrid}>
-        {cards.map(card => (
-          <div key={card.label} className={styles.kpiCard}>
-            <div className={styles.kpiLabel}>{card.label}</div>
-            <div className={styles.kpiValue}>{card.value}</div>
-          </div>
-        ))}
-      </div>
-      <div className={styles.emptySmall}>
-        İçerik saklanmaz. Reviewer yalnız shadow modunda gözlem yapar.
-      </div>
-    </section>
-  )
-}
-
-function ActivitySection({ title, icon: Icon, items, renderItem, emptyText }) {
-  if (!items || items.length === 0) {
-    return (
-      <div className={styles.card}>
-        <h4 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: 4 }}>{title}</h4>
-        <div className={styles.emptySmall}>{emptyText}</div>
-      </div>
-    )
-  }
-  return (
-    <div className={styles.card}>
-      <h4 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: 4 }}>{title}</h4>
-      <div className={styles.activityList}>
-        {items.map((item, i) => {
-          const r = renderItem(item)
-          return (
-            <div key={item.id || i} className={styles.activityItem}>
-              <div className={styles.activityIcon}><Icon size={16} /></div>
-              <div className={styles.activityContent}>
-                <div className={styles.activityTitle}>{r.title}</div>
-                <div className={styles.activityMeta}>{r.meta}</div>
-              </div>
-              <span className={styles.activityTime}>{r.time}</span>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-function AlertSection({ title, icon: Icon, iconColor, items, variant, renderItem, emptyText }) {
-  if (!items || items.length === 0) {
-    return (
-      <div className={styles.card}>
-        <h4 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: 4 }}>{title}</h4>
-        <div className={styles.emptySmall}>{emptyText}</div>
-      </div>
-    )
-  }
-  return (
-    <div className={styles.card}>
-      <h4 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: 4 }}>{title} ({items.length})</h4>
-      <div className={styles.alertList}>
-        {items.map((item, i) => (
-          <div key={item.id || i} className={`${styles.alertItem} ${styles[`alert${variant === 'danger' ? 'Danger' : variant === 'warning' ? 'Warning' : 'Info'}`]}`}>
-            <div className={styles.alertIcon} style={{ color: iconColor }}><Icon size={16} /></div>
-            <div className={styles.alertContent}>
-              <div className={styles.alertTitle}>{renderItem(item)}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    </main>
   )
 }

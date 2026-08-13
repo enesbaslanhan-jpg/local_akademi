@@ -14,13 +14,14 @@ const TITLES = [
   ['/app/dashboard', 'Ana Sayfa'],
   ['/app/courses', 'Kurslar'],
   ['/app/decision-checks', 'Karar Araçları'],
-  ['/app/tools', 'Finans Merkezi'],
+  ['/app/calculations', 'Hesaplamalar'],
+  ['/app/tools', 'Hesaplamalar'],
   ['/app/mentor', 'AI Mentor'],
   ['/app/practical-cards', 'Pratik Kartlar'],
   ['/app/knowledge', 'Bilgi Nesneleri'],
   ['/app/enrollments', 'Kayıtlarım'],
   ['/app/learning-path', 'Öğrenme Yolu'],
-  ['/app/finance/models', 'Model Laboratuvarı'],
+  ['/app/finance/models', 'Hesaplamalar'],
   ['/app/flashcards', 'Flashcard'],
   ['/app/quiz', 'Quiz'],
   /* Daha spesifik olan önce gelmeli: resolveTitle ilk eşleşeni döndürür. */
@@ -112,7 +113,7 @@ export default function Header({ onToggleSidebar }) {
           title={`${user?.name || user?.email || 'Profil'} profilini aç`}
           aria-label="Profil ve hesap ayarlarını aç"
           onClick={() => navigate('/app/settings#hesap')}
-        >{initials}</button>
+        >{user?.avatarUrl ? <img src={user.avatarUrl} alt="" /> : initials}</button>
       </div>
     </header>
   )

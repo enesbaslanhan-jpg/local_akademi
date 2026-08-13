@@ -20,7 +20,6 @@ const LearningPathPage = lazy(() => import('@/pages/LearningPathPage'))
 const MentorPage = lazy(() => import('@/pages/MentorPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
 const ToolsPage = lazy(() => import('@/pages/ToolsPage'))
-const FinancialModelLibrary = lazy(() => import('@/pages/FinancialModelLibrary'))
 const FinancialModelWorkspace = lazy(() => import('@/pages/FinancialModelWorkspace'))
 const FlashcardDashboardPage = lazy(() => import('@/pages/FlashcardDashboardPage'))
 const FlashcardStudyPage = lazy(() => import('@/pages/FlashcardStudyPage'))
@@ -54,6 +53,7 @@ const AdminKOReview = lazy(() => import('@/pages/admin/AdminKOReview'))
 const AdminUsers = lazy(() => import('@/pages/admin/AdminUsers'))
 const AdminImports = lazy(() => import('@/pages/admin/AdminImports'))
 const AdminAuditLog = lazy(() => import('@/pages/admin/AdminAuditLog'))
+const AdminCommunity = lazy(() => import('@/pages/admin/AdminCommunity'))
 
 function SuspenseWrapper({ children }) {
   return <Suspense fallback={<Loading text="Sayfa yükleniyor..." />}>{children}</Suspense>
@@ -93,9 +93,10 @@ export default function AppRoutes() {
             <Route path="community" element={<SuspenseWrapper><NewsPage /></SuspenseWrapper>} />
             <Route path="community/topluluk" element={<SuspenseWrapper><CommunityPage mode="community" /></SuspenseWrapper>} />
             <Route path="tools" element={<SuspenseWrapper><ToolsPage /></SuspenseWrapper>} />
+            <Route path="calculations" element={<SuspenseWrapper><ToolsPage initialView="calculator" /></SuspenseWrapper>} />
             <Route path="decision-checks" element={<SuspenseWrapper><DecisionCheckList /></SuspenseWrapper>} />
             <Route path="decision-checks/:code" element={<SuspenseWrapper><DecisionCheckSession /></SuspenseWrapper>} />
-            <Route path="finance/models" element={<SuspenseWrapper><FinancialModelLibrary /></SuspenseWrapper>} />
+            <Route path="finance/models" element={<Navigate to="/app/calculations" replace />} />
             <Route path="finance/models/:modelCode" element={<SuspenseWrapper><FinancialModelWorkspace /></SuspenseWrapper>} />
             <Route path="flashcards" element={featureFlags.legacyFlashcards ? <SuspenseWrapper><FlashcardDashboardPage /></SuspenseWrapper> : <LegacyFeatureUnavailable feature="flashcards" />} />
             <Route path="flashcards/study" element={featureFlags.legacyFlashcards ? <SuspenseWrapper><FlashcardStudyPage /></SuspenseWrapper> : <LegacyFeatureUnavailable feature="flashcards" />} />
@@ -133,6 +134,7 @@ export default function AppRoutes() {
               <Route path="users" element={<SuspenseWrapper><AdminUsers /></SuspenseWrapper>} />
               <Route path="imports" element={<SuspenseWrapper><AdminImports /></SuspenseWrapper>} />
               <Route path="audit-logs" element={<SuspenseWrapper><AdminAuditLog /></SuspenseWrapper>} />
+              <Route path="community" element={<SuspenseWrapper><AdminCommunity /></SuspenseWrapper>} />
             </Route>
           </Route>
         </Route>

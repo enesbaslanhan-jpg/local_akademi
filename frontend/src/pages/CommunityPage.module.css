@@ -1,12 +1,14 @@
 .page { width: min(100%, 1240px); margin: 0 auto; padding: 4px 0 30px; color: var(--text); }
-.pageHeading { margin-bottom: 18px; }
+.pageHeading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 14px; }
 .kicker { color: var(--primary); font-size: .72rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
 .pageHeading h1 { margin: 4px 0 5px; color: var(--text); font-family: var(--font-heading); font-size: clamp(1.7rem, 3vw, 2.45rem); line-height: 1.05; letter-spacing: -.035em; }
 .pageHeading p { max-width: 720px; margin: 0; color: var(--text-light); font-size: .96rem; line-height: 1.6; }
+.createPostButton { min-height: 40px; padding: 10px 15px; border: 0; border-radius: var(--radius-sm); background: var(--primary); color: var(--theme-on-primary); cursor: pointer; font: inherit; font-size: .78rem; font-weight: 850; }
 .notice, .error { margin: 0 0 18px; padding: 12px 15px; border-radius: var(--radius-sm); }
 .notice { background: var(--success-bg); color: var(--success); }
 .error { background: var(--danger-bg); color: var(--danger); }
 .communityGrid, .newsGrid { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 26px; align-items: start; }
+.communityPage .communityGrid { gap: 12px; }
 .mainColumn, .newsMain { min-width: 0; }
 .composer, .adminPanel, .communityCard, .newsCard, .railCard, .sourcePromise, .empty { border: 1px solid var(--border); background: var(--surface-card); box-shadow: var(--shadow-card); }
 .composer { padding: 20px; border-radius: 18px; }
@@ -34,7 +36,23 @@
 .primaryButton:hover, .aiDraft button:hover { transform: translateY(-1px); box-shadow: var(--shadow-3); }
 .primaryButton:active, .aiDraft button:active { transform: scale(.98); box-shadow: var(--shadow-1); }
 .primaryButton:disabled, .aiDraft button:disabled { opacity: .55; cursor: not-allowed; transform: none; }
-.feed { display: grid; gap: 14px; margin-top: 16px; }
+.feed { display: grid; gap: 0; margin-top: 0; padding: 15px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface-panel); }
+.composer + .feed { margin-top: 14px; }
+.featuredDiscussion { padding: 19px 17px; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in srgb, var(--warning-bg) 42%, var(--surface-card)); }
+.featuredDiscussion > span { display: inline-block; padding: 5px 8px; border-radius: 99px; background: var(--warning-bg); color: var(--warning); font-size: .64rem; font-weight: 850; }
+.featuredDiscussion h2 { margin: 11px 0 8px; font-size: 1.25rem; }
+.featuredDiscussion p { margin: 0 0 12px; color: var(--text-soft); font-size: .8rem; line-height: 1.55; }
+.featuredDiscussion small { color: var(--text-light); font-size: .68rem; }
+.discussionList { display: grid; }
+.discussionList .communityCard { display: grid; grid-template-columns: 42px minmax(0, 1fr); column-gap: 12px; padding: 15px 0; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background: transparent; box-shadow: none; }
+.discussionList .communityCard:hover { transform: none; border-color: var(--border); box-shadow: none; }
+.discussionList .authorRow { grid-row: 1 / span 4; align-self: start; }
+.discussionList .authorRow > span:last-child { display: none; }
+.discussionList .communityCard h2 { margin: 1px 0 5px; font-size: .9rem; }
+.discussionList .communityCard > p { color: var(--text-soft); font-size: .75rem; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.discussionList .cardActions { margin-top: 8px; padding-top: 0; border-top: 0; }
+.discussionList .cardActions > span { color: var(--text-light); }
+.discussionList .postImage, .discussionList .fileAttachment { grid-column: 2; max-height: 180px; }
 .communityCard { padding: 20px; border-radius: 18px; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
 .communityCard:hover, .newsCard:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); box-shadow: var(--shadow-card-hover); }
 .authorRow strong, .contributorRow strong { display: block; color: var(--text); font-size: .82rem; }
@@ -110,5 +128,5 @@
 .skeleton span { height: 110px; border-radius: 15px; background: linear-gradient(90deg, var(--surface-panel), var(--surface-card), var(--surface-panel)); background-size: 220% 100%; animation: shimmer 1.4s infinite; }
 @keyframes shimmer { to { background-position: -220% 0; } }
 @media (max-width: 1050px) { .communityGrid, .newsGrid { grid-template-columns: minmax(0, 1fr); } .communityRail, .newsRail { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 700px) { .page { padding-top: 2px; } .pageHeading { margin-bottom: 18px; } .communityRail, .newsRail, .twoFields, .moderationGrid { grid-template-columns: 1fr; } .composerFooter { align-items: stretch; flex-direction: column; } .primaryButton { align-self: flex-end; } .newsCard { grid-template-columns: 1fr; } .newsThumb { min-height: 160px; } .featuredNews, .featuredContent { min-height: 280px; } .featuredOverlay { background: linear-gradient(0deg, rgba(5,20,23,.94), rgba(5,20,23,.35)); } .toolButton span { display: none; } }
+@media (max-width: 700px) { .page { padding-top: 2px; } .pageHeading { align-items: stretch; flex-direction: column; margin-bottom: 18px; } .createPostButton { align-self: flex-start; } .communityRail, .newsRail, .twoFields, .moderationGrid { grid-template-columns: 1fr; } .composerFooter { align-items: stretch; flex-direction: column; } .primaryButton { align-self: flex-end; } .newsCard { grid-template-columns: 1fr; } .newsThumb { min-height: 160px; } .featuredNews, .featuredContent { min-height: 280px; } .featuredOverlay { background: linear-gradient(0deg, rgba(5,20,23,.94), rgba(5,20,23,.35)); } .toolButton span { display: none; } }
 @media (prefers-reduced-motion: reduce) { .skeleton span { animation: none; } .communityCard, .newsCard, .primaryButton, .toolButton { transition: none; } }

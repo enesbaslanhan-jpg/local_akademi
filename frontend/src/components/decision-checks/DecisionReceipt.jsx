@@ -1,4 +1,5 @@
-import { Scale, Printer, Bookmark, Share2, PenLine, Check, AlertTriangle, X } from 'lucide-react'
+import { Scale, Printer, Bot, Check, AlertTriangle, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import styles from './DecisionReceipt.module.css'
 
 /*
@@ -103,6 +104,7 @@ function buildTotal(snapshot) {
 const VERDICT_ICON = { Good: Check, Warn: AlertTriangle, Bad: X }
 
 export default function DecisionReceipt({ snapshot, title, completedAt }) {
+  const navigate = useNavigate()
   if (!snapshot) return null
 
   const tone = toneOf(snapshot)
@@ -112,6 +114,16 @@ export default function DecisionReceipt({ snapshot, title, completedAt }) {
   const lines = buildLines(snapshot, total?.key)
   const date = longDate(completedAt || snapshot?.completedAt)
   const VerdictIcon = tone ? VERDICT_ICON[tone] : null
+  const evidence = [
+    ...(snapshot?.calculationOutput?.formulas || []).map(item => typeof item === 'string' ? item : item?.description || item?.label || item?.formula),
+    ...(snapshot?.calculationOutput?.riskWarnings || []),
+  ].filter(Boolean).slice(0, 3)
+  const nextSteps = (snapshot?.calculationOutput?.safeNextSteps || []).filter(Boolean).slice(0, 3)
+
+  function askMentor() {
+    const context = [title, verdict, summary].filter(Boolean).join(' — ')
+    navigate(`/app/mentor?prompt=${encodeURIComponent(`${context} karar fişini yorumla; kanıtları, riskleri ve en güvenli sonraki adımı açıkla.`)}`)
+  }
 
   // `dr-print-root` global bir işaretçidir: CSS Module sınıf adları
   // hash'lendiği için styles/print.css fişi bu sabit adla bulur.
@@ -163,24 +175,28 @@ export default function DecisionReceipt({ snapshot, title, completedAt }) {
         </div>
       )}
 
-      {/* Yalnızca çalışan aksiyon "Yazdır". Diğerleri devre dışı görünümlü —
-          var olmayan işlev çalışıyormuş gibi gösterilmez. */}
+      {evidence.length > 0 && (
+        <section className={styles.receiptSection}>
+          <h4>Kanıt ve risk notları</h4>
+          <ul>{evidence.map((item, index) => <li key={index}>{item}</li>)}</ul>
+        </section>
+      )}
+
+      {nextSteps.length > 0 && (
+        <section className={styles.receiptSection}>
+          <h4>Sonraki adım</h4>
+          <ol>{nextSteps.map((item, index) => <li key={index}>{item}</li>)}</ol>
+        </section>
+      )}
+
       <div className={styles.actions}>
         <button type="button" className={styles.action} onClick={() => window.print()}>
           <Printer size={16} aria-hidden="true" />
-          Yazdır
+          Yazdır / PDF
         </button>
-        <button type="button" className={styles.action} disabled title="Yakında">
-          <Bookmark size={16} aria-hidden="true" />
-          Kaydet
-        </button>
-        <button type="button" className={styles.action} disabled title="Yakında">
-          <Share2 size={16} aria-hidden="true" />
-          Paylaş
-        </button>
-        <button type="button" className={styles.action} disabled title="Yakında">
-          <PenLine size={16} aria-hidden="true" />
-          Not Ekle
+        <button type="button" className={styles.action} onClick={askMentor}>
+          <Bot size={16} aria-hidden="true" />
+          Mentora sor
         </button>
       </div>
 

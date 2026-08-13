@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import {
   AlertTriangle, CalendarDays, Check, Package, Plus, WalletCards, X,
-  Receipt, HandCoins, FileSignature, Truck
+  Receipt, HandCoins, FileSignature, Truck, Search, ChevronRight
 } from 'lucide-react'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
@@ -71,6 +71,7 @@ export default function Tracker() {
   const [summary, setSummary] = useState(null)
   const [records, setRecords] = useState([])
   const [filters, setFilters] = useState({ status: '', type: '' })
+  const [search, setSearch] = useState('')
   const [form, setForm] = useState(emptyForm)
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -114,6 +115,12 @@ export default function Tracker() {
     records.filter(record => record.dueAt && new Date(record.dueAt) < new Date() && !['completed', 'cancelled'].includes(record.status)).map(record => record.id)
   ), [records])
 
+  const visibleRecords = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase('tr-TR')
+    if (!query) return records
+    return records.filter(record => `${record.title} ${record.description || ''} ${record.contact?.name || ''}`.toLocaleLowerCase('tr-TR').includes(query))
+  }, [records, search])
+
   async function createRecord(event) {
     event.preventDefault()
     setSaving(true)
@@ -149,86 +156,37 @@ export default function Tracker() {
     <section className={styles.page}>
       <div className={styles.heading}>
         <div>
-          <h2>İşletme Takibi</h2>
-          <p>Ödemeleri, tahsilatları, senetleri, alımları ve kargo günlerini tek yerde izleyin.</p>
+          <h2>İşletme Kayıtları</h2>
+          <p>Ödeme, tahsilat, sözleşme ve operasyon kayıtlarını yönetin.</p>
         </div>
-        {/* Sayfanın TEK turuncu ana CTA'sı. Kayıt yokken boş durumdaki
-            "İlk kaydı ekle" turuncu olduğu için bu düğme gizlenir —
-            sayfada aynı anda iki turuncu bulunmaz. */}
-        {records.length > 0 && (
-          <button className={styles.cta} onClick={() => openForm()}>
-            <Plus size={18} /> Yeni kayıt
-          </button>
-        )}
+        <button className={styles.cta} onClick={() => openForm()}>
+          <Plus size={18} /> Kayıt ekle
+        </button>
       </div>
 
-      {/* Hızlı aksiyon şeridi — mevcut kayıt akışını tür ön seçimiyle açar. */}
-      <div className={styles.quickStrip} role="group" aria-label="Hızlı kayıt oluştur">
-        {QUICK_ACTIONS.map(action => {
-          const ActionIcon = action.icon
-          return (
-            <button
-              key={action.id}
-              type="button"
-              className={styles.quickCard}
-              onClick={() => openForm(action.preset)}
-            >
-              <ActionIcon size={19} aria-hidden="true" />
-              <span>{action.label}</span>
-            </button>
-          )
-        })}
-      </div>
-
-      <div className={styles.metrics}>
-        <Metric icon={<CalendarDays />} label="Açık kayıt" value={summary?.counts.open ?? 0} />
-        <Metric icon={<AlertTriangle />} label="Geciken" value={summary?.counts.overdue ?? 0} danger />
-        <Metric icon={<WalletCards />} label="30 günlük net" value={money(summary?.nextThirtyDays.net ?? 0)} />
-        <Metric icon={<Package />} label="Bekleyen kargo" value={summary?.counts.shipments ?? 0} />
-      </div>
-
-      <div className={styles.toolbar}>
-        <Select aria-label="Durum filtresi" placeholder="Tüm durumlar" options={Object.entries(statusLabels).map(([value, label]) => ({ value, label }))} value={filters.status} onChange={v => setFilters(current => ({ ...current, status: v }))} />
-        <Select aria-label="Kayıt türü filtresi" placeholder="Tüm kayıt türleri" options={Object.entries(typeLabels).map(([value, label]) => ({ value, label }))} value={filters.type} onChange={v => setFilters(current => ({ ...current, type: v }))} />
-      </div>
-
-      {loading ? (
-        <div className={styles.empty}>Kayıtlar yükleniyor…</div>
-      ) : records.length === 0 ? (
-        <div className={styles.empty}>
-          <CalendarDays size={40} />
-          <h3>Henüz takip kaydı yok</h3>
-          <p>İlk ödeme, tahsilat veya yapılacak işinizi ekleyerek başlayın.</p>
-          {/* Boş durumda sayfanın tek turuncu CTA'sı burası */}
-          <button className={styles.cta} onClick={() => openForm()}><Plus size={17} /> İlk kaydı ekle</button>
+      <section className={styles.registry}>
+        <div className={styles.registryToolbar}>
+          <label><Search size={16} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Kayıtlarda ara" /></label>
+          <div className={styles.filterChips}>
+            <button className={!filters.type ? styles.activeChip : ''} onClick={() => setFilters(current => ({ ...current, type: '' }))}>Tümü</button>
+            {['payment', 'receivable', 'promissory_note', 'shipment', 'task'].map(type => <button key={type} className={filters.type === type ? styles.activeChip : ''} onClick={() => setFilters(current => ({ ...current, type }))}>{typeLabels[type]}</button>)}
+          </div>
+          <Select aria-label="Durum filtresi" placeholder="Tüm durumlar" options={Object.entries(statusLabels).map(([value, label]) => ({ value, label }))} value={filters.status} onChange={v => setFilters(current => ({ ...current, status: v }))} />
         </div>
-      ) : (
-        <div className={styles.list}>
-          {records.map(record => (
-            <article className={`${styles.record} ${overdueIds.has(record.id) ? styles.overdue : ''}`} key={record.id}>
-              <div className={styles.recordMain}>
-                <div className={styles.badges}>
-                  <span className={styles.type}>{typeLabels[record.type] || record.type}</span>
-                  <span className={`${styles.status} ${styles[record.status] || ''}`}>{statusLabels[record.status] || record.status}</span>
-                  {overdueIds.has(record.id) && <span className={styles.late}>Gecikti</span>}
-                </div>
-                <h3>{record.title}</h3>
-                <p>{record.description || record.contact?.name || 'Açıklama eklenmedi.'}</p>
-              </div>
-              <div className={styles.recordSide}>
-                {record.amount !== null && <strong>{money(record.amount, record.currency)}</strong>}
-                <span>{localDate(record.dueAt)}</span>
-                <button
-                  className={record.status === 'completed' ? styles.reopen : styles.complete}
-                  onClick={() => setStatus(record.id, record.status === 'completed' ? 'open' : 'completed')}
-                >
-                  <Check size={15} /> {record.status === 'completed' ? 'Yeniden aç' : 'Tamamla'}
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
+
+        <div className={styles.tableHead}><span>Kayıt</span><span>Tür</span><span>Güncelleme</span><span>Durum</span><span /></div>
+        {loading ? <div className={styles.tableState}>Kayıtlar yükleniyor…</div> : visibleRecords.length === 0 ? (
+          <div className={styles.tableState}><CalendarDays size={30} /><strong>{records.length ? 'Aramayla eşleşen kayıt yok' : 'Henüz işletme kaydı yok'}</strong><span>{records.length ? 'Arama veya filtreyi değiştirin.' : 'İlk kaydı ekleyerek işletme takibini başlatın.'}</span></div>
+        ) : <div className={styles.recordTable}>{visibleRecords.map(record => (
+          <article className={`${styles.tableRow} ${overdueIds.has(record.id) ? styles.overdueRow : ''}`} key={record.id}>
+            <div><strong>{record.title}</strong><small>{record.description || record.contact?.name || (record.amount !== null ? money(record.amount, record.currency) : 'Açıklama eklenmedi')}</small></div>
+            <span>{typeLabels[record.type] || record.type}</span>
+            <span>{localDate(record.updatedAt || record.dueAt || record.createdAt)}</span>
+            <button className={`${styles.rowStatus} ${styles[record.status] || ''} ${overdueIds.has(record.id) ? styles.late : ''}`} onClick={() => setStatus(record.id, record.status === 'completed' ? 'open' : 'completed')}><Check size={13} />{overdueIds.has(record.id) ? 'Gecikti' : statusLabels[record.status] || record.status}</button>
+            <ChevronRight size={15} />
+          </article>
+        ))}</div>}
+      </section>
 
       {showForm && (
         <div className={styles.overlay} onMouseDown={() => setShowForm(false)}>

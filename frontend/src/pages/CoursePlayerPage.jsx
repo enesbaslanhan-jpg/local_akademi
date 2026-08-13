@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '@/services/api'
-import { Card, Badge, Button, Progress, Loading, DarkPanel } from '@/components/ui'
+import { Card, Badge, Button, Progress, Loading, DarkPanel, PageHead } from '@/components/ui'
 import QuizWidget from '@/components/ui/QuizWidget'
 import TaskWorkspace from '@/components/ui/TaskWorkspace'
 import FlashcardSection from '@/components/ui/FlashcardSection'
@@ -114,6 +114,14 @@ export default function CoursePlayerPage() {
 
   return (
     <div className={styles.player}>
+      <PageHead
+        className={styles.pageHead}
+        title="Ders Oynatıcı"
+        subtitle={`${course.title}${lessonIndex >= 0 ? ` · Ders ${lessonIndex + 1}` : ''}`}
+        actions={lesson && (!lesson.progress || lesson.progress.readingPercent < 100) ? (
+          <Button onClick={handleStartReading}><CheckCircle size={15} /> Dersi tamamla</Button>
+        ) : undefined}
+      />
       {/* Mobile toggle */}
       <button className={styles.mobileToggle} onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Ders listesi">
         {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
@@ -158,6 +166,17 @@ export default function CoursePlayerPage() {
             )
           })}
         </nav>
+        {ko?.sources?.length > 0 && (
+          <div className={styles.sidebarSources}>
+            <h3>Kaynaklar</h3>
+            {ko.sources.map(ks => (
+              <div key={ks.id} className={styles.sidebarSourceRow}>
+                <FileText size={13} aria-hidden="true" />
+                {ks.source.url ? <a href={ks.source.url} target="_blank" rel="noopener noreferrer">{ks.source.title}</a> : <span>{ks.source.title}</span>}
+              </div>
+            ))}
+          </div>
+        )}
       </aside>
 
       {/* Main content */}
@@ -205,7 +224,9 @@ export default function CoursePlayerPage() {
                 okunuyor; altın hairline ve iç yansıma korunur. */}
             <DarkPanel bevel={false} className={styles.lessonHeaderPanel}>
               <div className={styles.lessonHeaderMain}>
+                <span className={styles.stageEyebrow}>Ders {lessonIndex + 1} · {lesson.estimatedMinutes || 0} dakika</span>
                 <h1 className={styles.lessonHeaderTitle}>{lesson.title}</h1>
+                {shortSummary && <p className={styles.stageSummary}>{shortSummary}</p>}
                 <div className={styles.lessonMetaRow}>
                   {lessonIndex >= 0 && totalLessons > 0 && (
                     <span>Ders {lessonIndex + 1}/{totalLessons}</span>
@@ -216,21 +237,23 @@ export default function CoursePlayerPage() {
                   {meta.level && <span>{meta.level}</span>}
                   {ko?.code && <span>{ko.code}</span>}
                 </div>
-              </div>
-              {totalLessons > 0 && (
-                <div className={styles.headerProgress}>
-                  <span className={styles.headerProgressLabel}>Kurs ilerlemesi %{coursePercent}</span>
-                  <div
-                    className={styles.headerProgressTrack}
-                    role="progressbar"
-                    aria-valuenow={coursePercent}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                  >
-                    <div className={styles.headerProgressFill} style={{ width: `${coursePercent}%` }} />
+                {meta.learningOutcomes?.length > 0 && (
+                  <div className={styles.stageOutcomes}>
+                    {meta.learningOutcomes.slice(0, 3).map((outcome, index) => (
+                      <div key={index}><span>Kazanım {index + 1}</span><strong>{outcome}</strong></div>
+                    ))}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+              <div className={styles.stageFooter}>
+                {totalLessons > 0 && (
+                  <div className={styles.stageSegments} role="progressbar" aria-valuenow={coursePercent} aria-valuemin={0} aria-valuemax={100}>
+                    {lessons.map((item, index) => <span key={item.id} className={item.progress?.status === 'completed' || index <= lessonIndex ? styles.segmentDone : ''} />)}
+                  </div>
+                )}
+                <span className={styles.headerProgressLabel}>Kurs ilerlemesi %{coursePercent}</span>
+                {lesson.nextLesson && <Button variant="secondary" size="sm" onClick={() => navigateLesson('next')}>Sonraki bölüm <ChevronRight size={14} /></Button>}
+              </div>
             </DarkPanel>
 
             {/* Tabs */}

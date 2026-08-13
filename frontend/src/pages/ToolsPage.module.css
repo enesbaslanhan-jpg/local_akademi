@@ -1,5 +1,41 @@
 .page { max-width: 1220px; margin: 0 auto; padding: 4px 0 26px; color: var(--text-primary); min-width: 0; }
 
+/* ---------- Finans Merkezi ana görünümü ---------- */
+.financeOverview { display: grid; gap: 14px; min-width: 0; }
+.financeSignature { position: relative; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(440px, .9fr); align-items: center; gap: 28px; min-height: 146px; padding: 24px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border)); border-radius: var(--radius); background: var(--surface-signature); color: var(--on-signature); box-shadow: var(--shadow-3); }
+.financeSignature::after { content: ''; position: absolute; width: 260px; height: 260px; right: -90px; top: -95px; border-radius: 50%; background: color-mix(in srgb, var(--on-signature) 7%, transparent); pointer-events: none; }
+.financeStatus, .financeMetrics { position: relative; z-index: 1; min-width: 0; }
+.financeStatus > span { display: inline-flex; padding: 5px 10px; border-radius: var(--radius-full); background: color-mix(in srgb, var(--on-signature) 12%, transparent); color: var(--on-signature); font-size: .68rem; font-weight: 800; }
+.financeStatus h2 { margin: 10px 0 0; color: var(--on-signature); font-size: clamp(1.3rem, 2.1vw, 1.85rem); line-height: 1.14; letter-spacing: -.025em; }
+.financeStatus p { margin: 7px 0 0; color: var(--on-signature-dim); font-size: .82rem; line-height: 1.5; }
+.financeMetrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.financeMetrics > div { display: grid; gap: 3px; padding: 5px 18px; border-left: 1px solid color-mix(in srgb, var(--on-signature) 18%, transparent); min-width: 0; }
+.financeMetrics span, .financeMetrics small { color: var(--on-signature-dim); font-size: .7rem; }
+.financeMetrics strong { overflow-wrap: anywhere; color: var(--on-signature); font-size: 1.35rem; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.financeMetrics .financeNegative { color: var(--on-signature-bad); }
+.financeColumns { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, .9fr); gap: 14px; min-height: 480px; min-width: 0; }
+.financeLedger, .financeInsights { min-width: 0; padding: 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-card); box-shadow: var(--shadow-2); }
+.financePanelHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-bottom: 13px; border-bottom: 1px solid var(--border); }
+.financePanelHead h2 { margin: 0; color: var(--text); font-size: 1rem; }
+.financePanelHead p { margin: 3px 0 0; color: var(--text-light); font-size: .74rem; }
+.financePanelHead button, .financeHistoryHead button { display: inline-flex; align-items: center; gap: 5px; padding: 0; border: 0; background: transparent; color: var(--primary); font: inherit; font-size: .75rem; font-weight: 750; cursor: pointer; }
+.financeRows { display: grid; }
+.financeRows > button { display: grid; grid-template-columns: minmax(0, 1fr) minmax(90px, auto) 70px 16px; align-items: center; gap: 12px; width: 100%; padding: 13px 0; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--text); text-align: left; cursor: pointer; }
+.financeRows > button:last-child { border-bottom: 0; }
+.financeRows span, .financeInsights button span { min-width: 0; }
+.financeRows strong, .financeRows small, .financeInsights strong, .financeInsights small { display: block; }
+.financeRows strong, .financeInsights strong { overflow: hidden; color: var(--text); font-size: .83rem; text-overflow: ellipsis; white-space: nowrap; }
+.financeRows small, .financeInsights small { margin-top: 3px; color: var(--text-light); font-size: .7rem; }
+.financeRows b { color: var(--text); font-size: .8rem; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.financeRows em { justify-self: end; padding: 4px 8px; border-radius: var(--radius-full); background: var(--bg-tertiary); color: var(--text-light); font-size: .66rem; font-style: normal; font-weight: 750; }
+.financeRows .financeRisk { background: var(--warning-bg); color: var(--warning); }
+.financeInsights { align-content: start; }
+.financeInsights > button { display: grid; grid-template-columns: 18px minmax(0, 1fr) 16px; align-items: center; gap: 10px; width: 100%; padding: 13px 0; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--text); text-align: left; cursor: pointer; }
+.financeInsights > button > svg:first-child { color: var(--warning); }
+.financeHistoryHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.financeHistoryHead h3 { margin: 0; font-size: .9rem; }
+.financeEmpty { margin: 14px 0 0; color: var(--text-light); font-size: .8rem; }
+
 /* ---------- Sayfa başı: ad + tek satır açıklama solda, arama sağda ---------- */
 .pageHead {
   display: flex;
@@ -129,6 +165,12 @@
 .toolIcon { color: var(--brand-ink); opacity: .88; margin-bottom: 10px; }
 .toolCard strong { font-size: .92rem; font-weight: var(--font-weight-semibold); line-height: 1.3; overflow-wrap: anywhere; }
 .toolCard small { color: var(--text-light); font-size: .76rem; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.modeLabels { display:flex; flex-wrap:wrap; gap:6px; margin-top:auto; }
+.modeLabels em { padding:3px 7px; border:1px solid var(--border); border-radius:var(--radius-pill); background:var(--surface-raised); color:var(--text-light); font-size:.68rem; font-style:normal; line-height:1.2; }
+.modeSwitch { display:inline-flex; gap:4px; padding:4px; margin:0 0 16px; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface-sunken); }
+.modeSwitch button { min-height:36px; padding:7px 14px; border:0; border-radius:var(--radius-sm); background:transparent; color:var(--text-light); font:inherit; cursor:pointer; }
+.modeSwitch button[aria-selected="true"] { background:var(--surface-card); color:var(--text); box-shadow:var(--shadow-sm); font-weight:var(--font-weight-semibold); }
+.modeSwitch button:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
 
 @media (hover: hover) and (pointer: fine) {
   .toolCard:hover { transform: translateY(var(--lift-card)); box-shadow: var(--shadow-tactile-hover), var(--edge-inset); }
@@ -146,6 +188,7 @@
 /* ---------- Hesaplama paneli ---------- */
 .calcOverlay { position: fixed; inset: 0; z-index: var(--z-modal-overlay); display: grid; place-items: center; padding: 72px 22px 22px; background: rgba(0,0,0,.48); animation: fadeSlideIn var(--dur-fast) var(--ease-standard) both; }
 .calcPanel { position: relative; width: min(720px, 100%); max-height: calc(100vh - 94px); overflow-y: auto; padding: 24px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--surface-raised); box-shadow: var(--shadow-4); min-width: 0; animation: calcPanelIn var(--dur-panel) var(--ease-standard) both; transform-origin: center; }
+.calcResultPanel { width: min(980px, 100%); }
 @keyframes calcPanelIn { from { opacity: 0; transform: translateY(18px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .calcClose { position: sticky; top: 0; float: right; display: grid; place-items: center; width: 38px; height: 38px; margin: -8px -8px 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-panel); color: var(--text); z-index: 2; }
 .calcClose:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: var(--shadow-2); }
@@ -175,6 +218,30 @@
 .resultItemPrimary { grid-column: 1 / -1; background: var(--primary-light); border-color: var(--brand-teal); }
 .resultItemPrimary strong { font-size: 1.5rem; font-weight: var(--font-weight-bold); }
 .resultWarning { margin: 12px 0 0; color: var(--warning); font-size: .8rem; }
+
+/* ---------- Hesaplama sonrası: Finans Sonucu ---------- */
+.financeResultView { display: grid; gap: 14px; min-width: 0; }
+.financeResultHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding-right: 40px; }
+.financeResultHead > div { min-width: 0; }
+.financeResultHead span { color: var(--text-light); font-size: .7rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.financeResultHead h2 { margin: 5px 0 0; font-size: var(--font-size-page-title); }
+.financeResultHead p { margin: 5px 0 0; color: var(--text-light); font-size: .8rem; }
+.financeResultColumns { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .9fr); gap: 12px; min-width: 0; }
+.financeResultHero { position: relative; display: flex; min-height: 310px; flex-direction: column; align-items: flex-start; padding: 24px; overflow: hidden; border-radius: var(--radius); background: var(--surface-signature); color: var(--on-signature); }
+.financeResultHero::after { content: ''; position: absolute; width: 260px; height: 260px; right: -55px; top: -105px; border-radius: 50%; background: color-mix(in srgb, var(--on-signature) 7%, transparent); }
+.financeResultHero > * { position: relative; z-index: 1; }
+.financeResultHero > span:not(:first-child) { margin-top: 30px; color: var(--on-signature-dim); font-size: .78rem; }
+.financeResultHero > strong { display: block; margin-top: 7px; color: var(--on-signature); font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1; overflow-wrap: anywhere; }
+.financeResultHero > p { max-width: 58ch; margin: auto 0 0; color: var(--on-signature-dim); line-height: 1.55; }
+.financeResultDrivers { padding: 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-card); }
+.financeResultDrivers h3, .financeResultNotes h3 { margin: 0 0 12px; font-size: .95rem; }
+.financeResultDrivers > div { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.financeResultDrivers > div:last-child { border-bottom: 0; }
+.financeResultDrivers span { color: var(--text-light); font-size: .78rem; }
+.financeResultDrivers strong { text-align: right; font-size: .86rem; overflow-wrap: anywhere; }
+.financeResultDrivers > p { color: var(--text-light); font-size: .8rem; }
+.financeResultNotes { padding: 18px 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-card); }
+.financeResultNotes p { margin: 7px 0 0; color: var(--text-light); font-size: .8rem; line-height: 1.5; }
 
 /* ---------- Sağ sütun: son hesaplama + en sık kullanılan ---------- */
 .aside { display: grid; gap: 12px; align-content: start; min-width: 0; }
@@ -329,6 +396,10 @@
 /* ---------- Responsive ---------- */
 @media (max-width: 1100px) {
   .workAreaWithAside { grid-template-columns: minmax(0, 1fr); }
+  .financeSignature { grid-template-columns: 1fr; }
+  .financeMetrics > div:first-child { border-left: 0; }
+  .financeColumns { grid-template-columns: 1fr; min-height: 0; }
+  .financeResultColumns { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 899px) {
@@ -339,6 +410,12 @@
   .quickActions { grid-template-columns: minmax(0, 1fr); }
   .inputGrid { grid-template-columns: minmax(0, 1fr); }
   .toolGrid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .financeSignature { min-height: 0; padding: 20px; }
+  .financeResultHead { flex-direction: column; padding-right: 36px; }
+  .financeResultHero { min-height: 260px; }
+  .financeMetrics { grid-template-columns: 1fr; gap: 10px; }
+  .financeMetrics > div { padding: 3px 0 10px; border-left: 0; border-bottom: 1px solid color-mix(in srgb, var(--on-signature) 16%, transparent); }
+  .financeMetrics > div:last-child { border-bottom: 0; }
   /* Dokunma hedefi alt sınırı */
   .viewChip, .categories button { min-height: 44px; }
 }
@@ -348,5 +425,9 @@
   .toolCard { min-height: 132px; padding: 14px; }
   .toolIcon { margin-bottom: 4px; }
   .calcPanel { padding: 18px; }
+  .financeLedger, .financeInsights { padding: 16px; }
+  .financeRows > button { grid-template-columns: minmax(0, 1fr) 16px; }
+  .financeRows b, .financeRows em { grid-column: 1; justify-self: start; text-align: left; }
+  .financeRows > button > svg { grid-column: 2; grid-row: 1 / span 2; }
   .resultHeading, .historyItem > div { align-items: flex-start; flex-direction: column; }
 }

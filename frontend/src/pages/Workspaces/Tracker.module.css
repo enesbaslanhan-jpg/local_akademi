@@ -1,4 +1,4 @@
-.page { display: grid; gap: 20px; min-width: 0; }
+.page { display: grid; gap: 14px; min-width: 0; }
 .heading { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
 .heading h2 { margin: 0 0 6px; color: var(--text-primary); }
 .heading p, .dialogTitle p { margin: 0; color: var(--text-secondary); }
@@ -16,8 +16,8 @@
 }
 /* Sayfanın TEK turuncu ana CTA'sı: üstteki "Yeni kayıt".
    Boş durumdaki ve modaldaki butonlar teal kalır. */
-.cta { background: var(--brand-terracotta); color: var(--white); }
-.cta:hover:not(:disabled) { background: color-mix(in srgb, var(--brand-terracotta) 88%, black); transform: translateY(var(--lift-btn)); }
+.cta { background: var(--primary); color: var(--theme-on-primary); }
+.cta:hover:not(:disabled) { background: var(--theme-primary-hover); transform: translateY(var(--lift-btn)); }
 .cta:active:not(:disabled) { transform: scale(var(--scale-active)); }
 
 .primary { background: var(--brand-teal); color: var(--white); }
@@ -57,6 +57,30 @@
 .toolbar { display: flex; gap: 10px; }
 .dialog input, .dialog textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); background: var(--bg-primary); }
 .toolbar > div { min-width: 180px; }
+.registry { min-height: 560px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg-secondary); }
+.registryToolbar { display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.registryToolbar > label { display: flex; align-items: center; gap: 8px; flex: 1 1 280px; max-width: 350px; min-height: 40px; padding: 0 12px; border: 1px solid var(--brand-ink); border-radius: 9px; background: var(--bg-primary); color: var(--brand-ink); }
+.registryToolbar input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text-primary); font: inherit; }
+.filterChips { display: flex; gap: 6px; flex: 1; overflow-x: auto; }
+.filterChips button { flex: 0 0 auto; min-height: 32px; padding: 6px 11px; border: 0; border-radius: 99px; background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; font: inherit; font-size: .7rem; font-weight: 800; }
+.filterChips .activeChip { background: var(--primary-light); color: var(--brand-ink); }
+.registryToolbar > div:last-child { flex: 0 0 160px; min-width: 0; }
+.tableHead, .tableRow { display: grid; grid-template-columns: minmax(250px, 1.7fr) minmax(100px, .7fr) minmax(145px, .8fr) minmax(120px, .65fr) 18px; align-items: center; gap: 14px; }
+.tableHead { min-height: 42px; padding: 0 0; color: var(--text-secondary); font-size: .68rem; font-weight: 800; }
+.recordTable { display: grid; }
+.tableRow { min-height: 60px; border-top: 1px solid var(--border); color: var(--text-primary); }
+.tableRow > div { display: grid; gap: 3px; min-width: 0; }
+.tableRow strong, .tableRow small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tableRow small, .tableRow > span { color: var(--text-secondary); font-size: .7rem; }
+.tableRow > svg { color: var(--brand-ink); }
+.overdueRow { box-shadow: inset 3px 0 var(--warning); }
+.rowStatus { justify-self: start; display: inline-flex; align-items: center; gap: 4px; padding: 5px 8px; border: 0; border-radius: 99px; background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; font: inherit; font-size: .66rem; font-weight: 800; }
+.rowStatus.completed { background: var(--success-bg); color: var(--success); }
+.rowStatus.deferred { background: var(--warning-bg); color: var(--warning); }
+.rowStatus.late { background: var(--warning-bg); color: var(--warning); }
+.tableState { display: grid; place-items: center; align-content: center; gap: 7px; min-height: 380px; color: var(--text-secondary); text-align: center; }
+.tableState strong { color: var(--text-primary); }
+.tableState span { font-size: .78rem; }
 .list { display: grid; gap: 10px; min-width: 0; }
 .record { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; justify-content: space-between; gap: 20px; min-width: 0; }
 .record.overdue { border-left: 4px solid var(--danger); }
@@ -97,3 +121,5 @@
   /* Dokunma hedefi alt sınırı */
   .quickCard { min-height: 56px; }
 }
+@media (max-width: 1000px) { .registryToolbar { align-items: stretch; flex-wrap: wrap; } .registryToolbar > label { max-width: none; } .registryToolbar > div:last-child { flex-basis: 180px; } .tableHead, .tableRow { grid-template-columns: minmax(210px, 1fr) 110px 120px 18px; } .tableHead span:nth-child(3), .tableRow > span:nth-child(3) { display: none; } }
+@media (max-width: 700px) { .registry { padding: 12px; } .registryToolbar > label, .registryToolbar > div:last-child { flex-basis: 100%; } .tableHead { display: none; } .tableRow { grid-template-columns: minmax(0, 1fr) auto 18px; gap: 8px; padding: 10px 0; } .tableRow > span:nth-child(2), .tableRow > span:nth-child(3) { display: none; } }

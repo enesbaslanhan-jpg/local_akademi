@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '@/services/api'
-import { Select, Card, Badge, Button, Progress, Loading, EmptyState, DarkPanel } from '@/components/ui'
+import { Select, Card, Badge, Button, Progress, Loading, EmptyState, PageHead } from '@/components/ui'
 import {
   BookOpen, Clock, ChevronRight, Play, Search, Target,
-  LayoutGrid, List, Map, CheckCircle, Circle, ArrowRight
+  LayoutGrid, List, Map, CheckCircle, Circle, ArrowRight, SlidersHorizontal
 } from 'lucide-react'
 import EnrollmentsPage from './EnrollmentsPage'
 import styles from './CoursesPage.module.css'
@@ -76,6 +76,7 @@ export default function CoursesPage({ initialTab = 'all' }) {
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
   const [view, setView] = useState('grid')
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   // "Devam ettiğin kurslar" ve toplam ilerleme gerçek kayıt verisinden gelir.
   const [enrollments, setEnrollments] = useState([])
@@ -291,284 +292,75 @@ export default function CoursesPage({ initialTab = 'all' }) {
     )
   }
 
+  const activeCourse = continueCourses[0]
+
+  if (tab === 'enrollments') {
+    return (
+      <div className={styles.page}>
+        <PageHead title="Kayıtlarım" subtitle="Başladığın kurslara ve ilerlemene dön." actions={<Button variant="secondary" onClick={() => setTab('all')}>Tüm kurslar</Button>} />
+        <EnrollmentsPage embedded />
+      </div>
+    )
+  }
+
   return (
     <div className={styles.page}>
-      {/* Sayfa adı üst barda yazıyor; görünür h1 yerine sr-only başlık. */}
-      <h1 className="sr-only">İşletme Akademisi</h1>
+      <PageHead
+        title="Kurslar"
+        subtitle="Öğrenme yolunu kaldığın yerden sürdür."
+        actions={<Button variant="quiet" onClick={() => setFiltersOpen(value => !value)}><SlidersHorizontal size={15} /> Filtrele</Button>}
+      />
 
-      {!showPath && (
-        <DarkPanel bevel={false} sweep className={styles.catalogHero}>
-          <div>
-            <span className={styles.pathEyebrow}>LocalKarar Akademi</span>
-            <h2>İşletmeni güçlendiren uygulamalı kurslar</h2>
-            <p>Finans, satış, operasyon ve büyüme kararlarını gerçek iş senaryolarıyla çalış.</p>
-          </div>
-          <div className={styles.catalogCount}>
-            <strong>{total || '—'}</strong>
-            <span>{categories.length > 0 ? `${categories.length} alanda kurs` : 'kurs hazırlanıyor'}</span>
-          </div>
-        </DarkPanel>
+      {filtersOpen && (
+        <div className={styles.filterBar}>
+          <label className={styles.searchWrapper}><Search size={15} /><input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSearch()} placeholder="Kurs ara" /></label>
+          <Select placeholder="Tüm alanlar" options={categories.map(c => ({ value: c, label: c }))} value={category} onChange={v => { setCategory(v); setPage(1) }} />
+          <Select placeholder="Tüm türler" options={[{ value: 'uygulamalı', label: 'Uygulamalı' }]} value={level} onChange={v => { setLevel(v); setPage(1) }} />
+          <Button variant="ghost" size="sm" onClick={resetFilters}>Temizle</Button>
+        </div>
       )}
 
-      {/* ---------- Öğrenme yolu şeridi — sayfanın TEK koyu paneli.
-           Pahsız (geniş şerit), sweep kapalı. Veri yoksa hiç render edilmez. ---------- */}
-      {showPath && (
-        <DarkPanel bevel={false} className={styles.pathPanel}>
-          <div className={styles.pathMain}>
-            <span className={styles.pathEyebrow}>Öğrenme Yolun</span>
-            <h2 className={styles.pathTitle}>{learningPath.title}</h2>
-            {pathSteps[nextStepIndex]?.description && (
-              <p className={styles.pathDesc}>{pathSteps[nextStepIndex].description}</p>
-            )}
+      <Card raised className={styles.activePath}>
+        <span className={styles.courseCover} aria-hidden="true"><BookOpen size={28} /><b>LK</b></span>
+        <span className={styles.activeCopy}>
+          <small>{activeCourse ? 'AKTİF ÖĞRENME' : showPath ? 'AKTİF ÖĞRENME YOLU' : 'KURS KATALOĞU'}</small>
+          <h2>{activeCourse?.courseTitle || learningPath?.title || 'İşletmeni güçlendiren uygulamalı kurslar'}</h2>
+          <p>{activeCourse ? `${activeCourse.courseLessonCount || 0} derslik kursunda ilerliyorsun.` : showPath ? `${pathSteps.length} adımlık öğrenme yolun hazır.` : `${total || 0} yayınlanmış kursu keşfet.`}</p>
+          <span className={styles.activeProgress}><Progress value={activeCourse?.progress ?? pathPercent} size="md" variant="primary" /><em>%{activeCourse?.progress ?? pathPercent}</em></span>
+        </span>
+        <Button onClick={() => activeCourse ? navigate(`/app/courses/${activeCourse.courseId}/learn`) : showPath ? navigate('/app/learning-path') : listTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+          {activeCourse || showPath ? 'Derse devam et' : 'Kursları keşfet'} <ArrowRight size={15} />
+        </Button>
+      </Card>
 
-            <div className={styles.pathMeta}>
-              <span>{pathSteps.length} adım</span>
-              {totalDays > 0 && <span>~{totalDays} gün</span>}
-            </div>
-
-            <div className={styles.pathProgressRow}>
-              <span className={styles.pathPercent}>%{pathPercent}</span>
-              <div
-                className={styles.pathTrack}
-                role="progressbar"
-                aria-valuenow={pathPercent}
-                aria-valuemin={0}
-                aria-valuemax={100}
-              >
-                <div className={styles.pathFill} style={{ transform: `scaleX(${pathPercent / 100})` }} />
-              </div>
-              <span className={styles.pathProgressHint}>
-                {doneSteps} / {pathSteps.length} adım tamamlandı
-              </span>
-            </div>
-
-            {/* Sayfanın TEK turuncu CTA'sı */}
-            <div className={styles.pathCta}>
-              <Button variant="cta" size="md" onClick={() => navigate('/app/learning-path')}>
-                Yolculuğa Devam Et <ArrowRight size={16} />
-              </Button>
-            </div>
+      <div className={styles.courseWorkspace}>
+        <Card className={styles.catalogPanel}>
+          <div className={styles.categoryChips}>
+            <button className={!category ? styles.chipActive : ''} onClick={() => { setCategory(''); setPage(1) }}>Tümü</button>
+            {categories.slice(0, 4).map(item => <button key={item} className={category === item ? styles.chipActive : ''} onClick={() => { setCategory(item); setPage(1) }}>{item}</button>)}
           </div>
-
-          <div className={styles.pathSteps}>
-            {pathSteps.map((step, i) => {
-              const done = isStepDone(step)
-              const isNext = i === nextStepIndex
-              return (
-                <div
-                  key={step.step ?? i}
-                  className={`${styles.pathStep} ${done ? styles.pathStepDone : ''} ${isNext ? styles.pathStepNext : ''} ${!done && !isNext ? styles.pathStepPending : ''}`}
-                >
-                  {done
-                    ? <CheckCircle size={14} className={`${styles.pathStepIcon} ${styles.pathStepIconDone}`} aria-hidden="true" />
-                    : <Circle size={14} className={`${styles.pathStepIcon} ${isNext ? styles.pathStepIconNext : styles.pathStepIconPending}`} aria-hidden="true" />}
-                  <span className={styles.pathStepName}>{step.title || step.domain}</span>
-                  <span className={styles.pathStepState}>
-                    {done ? 'Tamamlandı' : isNext ? 'Sıradaki' : 'Başlamadı'}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </DarkPanel>
-      )}
-
-      {/* ---------- Sekmeler: Tüm Kurslar / Kayıtlarım ---------- */}
-      <div className={styles.pageTabs} role="tablist" aria-label="Kurs görünümü">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'all'}
-          className={`${styles.pageTab} ${tab === 'all' ? styles.pageTabActive : ''}`}
-          onClick={() => setTab('all')}
-        >
-          Tüm Kurslar
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'enrollments'}
-          className={`${styles.pageTab} ${tab === 'enrollments' ? styles.pageTabActive : ''}`}
-          onClick={() => setTab('enrollments')}
-        >
-          Kayıtlarım
-        </button>
-      </div>
-
-      {tab === 'enrollments' ? (
-        <EnrollmentsPage embedded />
-      ) : (
-      <>
-      {/* ---------- Filtre ve görünüm satırı ---------- */}
-      <div className={styles.toolbar}>
-        <div className={styles.searchWrapper}>
-          <Search size={16} aria-hidden="true" />
-          <input
-            type="text"
-            className={styles.searchInput}
-            placeholder="Kurs ara..."
-            aria-label="Kurs ara"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') handleSearch() }}
-          />
-        </div>
-
-        <div className={styles.toolbarMid}>
-          <Select
-            className={styles.select}
-            aria-label="Alan filtresi"
-            placeholder="Tüm alanlar"
-            options={categories.map(c => ({ value: c, label: c }))}
-            value={category}
-            onChange={v => { setCategory(v); setPage(1) }}
-          />
-          <Select
-            className={styles.select}
-            aria-label="Kurs türü filtresi"
-            placeholder="Tüm kurs türleri"
-            options={[{ value: 'uygulamalı', label: 'Uygulamalı' }]}
-            value={level}
-            onChange={v => { setLevel(v); setPage(1) }}
-          />
-        </div>
-
-        <div className={styles.toolbarRight}>
-          <div className={styles.viewToggle} role="group" aria-label="Görünüm">
-            <button
-              type="button"
-              className={`${styles.viewBtn} ${view === 'grid' ? styles.viewBtnActive : ''}`}
-              onClick={() => setView('grid')}
-              aria-label="Izgara görünümü"
-              aria-pressed={view === 'grid'}
-              title="Izgara görünümü"
-            >
-              <LayoutGrid size={16} />
-            </button>
-            <button
-              type="button"
-              className={`${styles.viewBtn} ${view === 'list' ? styles.viewBtnActive : ''}`}
-              onClick={() => setView('list')}
-              aria-label="Liste görünümü"
-              aria-pressed={view === 'list'}
-              title="Liste görünümü"
-            >
-              <List size={16} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {error && <div className={styles.error}>{error}</div>}
-
-      {/* ---------- A. Devam ettiğin kurslar (sayfalamaya dahil değil) ---------- */}
-      {continueCourses.length > 0 && (
-        <section className={styles.section} aria-label="Devam ettiğin kurslar">
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}><Play size={15} /> Devam ettiğin kurslar</h2>
-            <div className={styles.sectionAside}>
-              {overallProgress !== null && <span>Toplam ilerleme: %{overallProgress}</span>}
-              <button type="button" className={styles.seeAll} onClick={() => setTab('enrollments')}>
-                Tümünü gör
+          {error && <div className={styles.error}>{error}</div>}
+          <div className={styles.courseRows} ref={listTopRef}>
+            {loading ? <Loading text="Kurslar yükleniyor..." /> : courses.length === 0 ? <EmptyState message="Kurs bulunamadı" action actionLabel="Filtreleri temizle" onAction={resetFilters} /> : courses.map(course => (
+              <button type="button" className={styles.courseRow} key={course.id} onClick={() => course.enrollment ? navigate(`/app/courses/${course.id}/learn`) : handleEnroll(course.id)}>
+                <span className={styles.miniCover}>LK</span>
+                <span className={styles.courseInfo}><strong>{course.title}</strong><small>{course.lessonCount || 0} ders{course.estimatedMinutes ? ` · ${course.estimatedMinutes} dk` : ''}</small><em>{course.enrollment ? `%${course.enrollment.progress} tamamlandı` : course.level || 'Yeni'}</em></span>
+                <ChevronRight size={16} />
               </button>
-            </div>
-          </div>
-          <div className={styles.continueGrid}>
-            {continueCourses.map(e => (
-              /* Kompakt varyant: kayıt endpoint'i açıklama/süre döndürmüyor,
-                 bu yüzden o alanlara yer ayrılmaz. */
-              <Card key={e.id} className={styles.continueCard} hoverable>
-                {(e.courseCategory || e.courseLevel) && (
-                  <div className={styles.badgesLeft}>
-                    {e.courseCategory && <Badge variant="info">{e.courseCategory}</Badge>}
-                    {e.courseLevel && <Badge variant="default">{e.courseLevel}</Badge>}
-                  </div>
-                )}
-
-                <h3 className={styles.continueTitle}>{e.courseTitle}</h3>
-
-                {e.courseLessonCount > 0 && (
-                  <span className={styles.continueMeta}>
-                    <BookOpen size={13} aria-hidden="true" /> {e.courseLessonCount} ders
-                  </span>
-                )}
-
-                <div>
-                  <Progress value={e.progress} size="sm" variant="primary" />
-                  <span className={styles.progressText}>İlerleme: %{e.progress}</span>
-                </div>
-
-                <div className={styles.continueAction}>
-                  <Button variant="primary" size="sm" onClick={() => navigate(`/app/courses/${e.courseId}/learn`)}>
-                    <Play size={14} /> Devam Et
-                  </Button>
-                </div>
-              </Card>
             ))}
           </div>
-        </section>
-      )}
+          {totalPages > 1 && <div className={styles.compactPagination}><button disabled={page <= 1} onClick={() => goToPage(page - 1)}>Önceki</button><span>{page} / {totalPages}</span><button disabled={page >= totalPages} onClick={() => goToPage(page + 1)}>Sonraki</button></div>}
+        </Card>
 
-      {/* ---------- B. Tüm kurslar (sayfalanmış) ---------- */}
-      <section className={styles.section} aria-label="Tüm kurslar" ref={listTopRef}>
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitle}>
-            <Map size={15} /> Tüm kurslar{total > 0 ? ` (${total})` : ''}
-          </h2>
-        </div>
-
-        {loading ? (
-          <Loading text="Kurslar yükleniyor..." />
-        ) : courses.length === 0 ? (
-          <EmptyState
-            message="Kurs bulunamadı"
-            action
-            actionLabel="Filtreleri Temizle"
-            onAction={resetFilters}
-          />
-        ) : (
-          <>
-            <div className={view === 'grid' ? styles.grid : styles.list}>
-              {courses.map(c => view === 'grid' ? renderCourseCard(c) : renderCourseRow(c))}
-            </div>
-
-            {totalPages > 1 && (
-              <nav className={styles.pagination} aria-label="Sayfalama">
-                <button
-                  type="button"
-                  className={styles.pageBtn}
-                  disabled={page <= 1}
-                  onClick={() => goToPage(page - 1)}
-                >
-                  Önceki
-                </button>
-                {pageWindow(page, totalPages).map(n => (
-                  <button
-                    key={n}
-                    type="button"
-                    className={`${styles.pageBtn} ${n === page ? styles.pageBtnActive : ''}`}
-                    onClick={() => goToPage(n)}
-                    aria-current={n === page ? 'page' : undefined}
-                  >
-                    {n}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  className={styles.pageBtn}
-                  disabled={page >= totalPages}
-                  onClick={() => goToPage(page + 1)}
-                >
-                  Sonraki
-                </button>
-                <span className={styles.pageInfo}>Sayfa {page} / {totalPages}</span>
-              </nav>
-            )}
-          </>
-        )}
-      </section>
-      </>
-      )}
+        <Card className={styles.competencyPanel}>
+          <h2>Yetkinlik görünümü</h2>
+          {showPath ? pathSteps.slice(0, 6).map((step, index) => {
+            const done = isStepDone(step)
+            const next = index === nextStepIndex
+            return <div className={styles.competencyRow} key={step.step ?? index}><span className={`${styles.competencyDot} ${done ? styles.dotDone : next ? styles.dotNext : ''}`} /><span><strong>{step.title || step.domain}</strong><small>{done ? 'Tamamlandı' : next ? 'İlerliyor' : 'Başlamaya hazır'}</small></span></div>
+          }) : <p className={styles.emptyCompetency}>Kişisel öğrenme yolunuz oluşturulduğunda yetkinlik ilerlemeniz burada görünecek.</p>}
+        </Card>
+      </div>
     </div>
   )
 }

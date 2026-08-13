@@ -25,6 +25,18 @@ const STATUS_LABELS = {
   cancelled: 'İptal', deferred: 'Ertelendi'
 }
 
+const ACTIVITY_LABELS = {
+  'workspace.created': 'İşletme oluşturuldu',
+  'workspace.updated': 'İşletme bilgileri güncellendi',
+  'workspace.archived': 'İşletme arşivlendi',
+  'member.role.updated': 'Üye rolü güncellendi',
+  'member.removed': 'Üye çıkarıldı',
+  'invitation.sent': 'Davet gönderildi',
+  'invitation.accepted': 'Davet kabul edildi',
+  'contact.created': 'Kişi eklendi',
+  'contact.updated': 'Kişi güncellendi'
+}
+
 function money(value, currency = 'TRY') {
   return new Intl.NumberFormat('tr-TR', { style: 'currency', currency }).format(Number(value || 0))
 }
@@ -40,6 +52,8 @@ export default function Overview() {
   const { activeWorkspace } = useWorkspace()
   const [summary, setSummary] = useState(null)
   const [records, setRecords] = useState([])
+  const [documents, setDocuments] = useState([])
+  const [activities, setActivities] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -49,11 +63,15 @@ export default function Overview() {
     setError('')
     Promise.all([
       api.workspace.tracker.summary(workspaceId),
-      api.workspace.tracker.list(workspaceId, {})
-    ]).then(([summaryData, listData]) => {
+      api.workspace.tracker.list(workspaceId, {}),
+      api.workspace.documents.list(workspaceId).catch(() => ({ documents: [] })),
+      api.workspace.activity.list(workspaceId, { limit: 8 }).catch(() => ({ items: [] }))
+    ]).then(([summaryData, listData, documentData, activityData]) => {
       if (!active) return
       setSummary(summaryData)
       setRecords(listData.records || [])
+      setDocuments(documentData.documents || [])
+      setActivities(activityData.items || [])
     }).catch(err => {
       if (active) setError(err.message || 'İşletme özeti yüklenemedi.')
     }).finally(() => {
@@ -66,6 +84,51 @@ export default function Overview() {
   if (!activeWorkspace) return <div className={styles.state}>İşletme bilgileri hazırlanıyor…</div>
 
   const ws = activeWorkspace
+  const upcomingRecords = records
+    .filter(record => !['completed', 'cancelled'].includes(record.status))
+    .sort((a, b) => new Date(a.dueAt || '9999-12-31') - new Date(b.dueAt || '9999-12-31'))
+    .slice(0, 5)
+  const recentActivity = activities.slice(0, 5)
+  const latestChange = recentActivity[0]?.createdAt || records[0]?.updatedAt || records[0]?.createdAt
+
+  return (
+    <section className={styles.overviewPage}>
+      <header className={styles.overviewHead}>
+        <div><h2>İşletme Genel Bakış</h2><p>Yükümlülükleri, takvimi ve son değişimleri izleyin.</p></div>
+        <button onClick={() => navigate(`/app/workspaces/${workspaceId}/tracker?new=task`)}>Yeni kayıt ekle</button>
+      </header>
+
+      {error && <div className={styles.error}>{error}</div>}
+
+      <section className={styles.statusBand} aria-label="İşletme durumu">
+        <article><span>Açık yükümlülük</span><strong>{loading ? '—' : summary?.counts.open ?? 0}</strong><small>{summary?.counts.overdue ? `${summary.counts.overdue} geciken` : 'Geciken yok'}</small></article>
+        <article><span>Belge</span><strong>{loading ? '—' : documents.length}</strong><small>{documents.length ? 'İşletme arşivinde' : 'Henüz belge yok'}</small></article>
+        <article><span>Son değişiklik</span><strong>{loading ? '—' : latestChange ? new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' }).format(new Date(latestChange)) : 'Yok'}</strong><small>{ACTIVITY_LABELS[recentActivity[0]?.action] || records[0]?.title || 'Hareket bulunmuyor'}</small></article>
+        <article><span>Takip durumu</span><strong>{summary?.counts.overdue ? 'Dikkat' : 'Kontrollü'}</strong><small>{summary?.counts.overdue ? `${summary.counts.overdue} kayıt bekliyor` : 'Acil kayıt yok'}</small></article>
+      </section>
+
+      <div className={styles.operationsGrid}>
+        <section className={styles.obligationsPanel}>
+          <div className={styles.panelTitle}><div><span>TAKVİM</span><h3>Yaklaşan ve gecikenler</h3></div><button onClick={() => navigate(`/app/workspaces/${workspaceId}/tracker`)}>Tümünü aç <ArrowRight size={15} /></button></div>
+          {loading ? <p className={styles.inlineState}>Kayıtlar hazırlanıyor…</p> : upcomingRecords.length ? (
+            <div className={styles.obligationList}>
+              {upcomingRecords.map(record => {
+                const overdue = record.dueAt && new Date(record.dueAt) < new Date()
+                return <button key={record.id} onClick={() => navigate(`/app/workspaces/${workspaceId}/tracker`)}><span><strong>{record.title}</strong><small>{localDate(record.dueAt)}</small></span><span>{TYPE_LABELS[record.type] || record.type}</span><em className={overdue ? styles.attention : ''}>{overdue ? 'Gecikti' : STATUS_LABELS[record.status] || record.status}</em><ArrowRight size={14} /></button>
+              })}
+            </div>
+          ) : <p className={styles.inlineState}>Yaklaşan açık yükümlülük yok.</p>}
+        </section>
+
+        <aside className={styles.activityPanel}>
+          <div className={styles.panelTitle}><div><span>AKIŞ</span><h3>Son hareketler</h3></div></div>
+          {recentActivity.length ? <div className={styles.activityList}>{recentActivity.map(item => <article key={item.id}><i /><div><strong>{ACTIVITY_LABELS[item.action] || 'İşletme hareketi'}</strong><small>{localDate(item.createdAt)}</small></div></article>)}</div> : recentRecords.length ? <div className={styles.activityList}>{recentRecords.map(record => <article key={record.id}><i /><div><strong>{record.title}</strong><small>{localDate(record.updatedAt || record.createdAt)}</small></div></article>)}</div> : <p className={styles.inlineState}>Henüz işletme hareketi yok.</p>}
+        </aside>
+      </div>
+    </section>
+  )
+
+  /* Önceki uzun kompozisyon, yeni operasyon özeti tarafından kullanılmıyor. */
 
   return (
     <section className={styles.page}>

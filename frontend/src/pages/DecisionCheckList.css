@@ -592,3 +592,35 @@
     animation-duration: 1.5s;
   }
 }
+
+/* Faz D / 04 — yöntem listesi + gerçek son oturumlar */
+.decision-list-page { min-height: min(772px, calc(100vh - var(--header-height) - 40px)); padding: 0; background: transparent; }
+.decision-list-shell { max-width: var(--content-max-width); }
+.decision-hero-wrap { display: none; }
+.decision-list-summary { margin: 0; }
+.decision-list-summary h2, .decision-list-summary p { display: none; }
+.decision-workspace { display: grid; grid-template-columns: minmax(0,1fr) 288px; gap: var(--gap-panel); min-height: 650px; }
+.decision-list-content, .decision-recent { padding: var(--pad-panel); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-panel); }
+.decision-recommended { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); margin-bottom: var(--space-3); padding: var(--space-4); border: 1px solid color-mix(in srgb, var(--warm) 18%, var(--line)); border-radius: var(--radius-md); background: color-mix(in srgb, var(--warm) 7%, var(--surface-panel)); }
+.decision-recommended > div { min-width: 0; }
+.decision-recommended span { color: var(--warning); font-size: var(--font-micro); font-weight: var(--font-weight-bold); }
+.decision-recommended h3 { margin: var(--space-2) 0 var(--space-1); font-size: var(--font-section-title); }
+.decision-recommended p { margin: 0; color: var(--text-muted); font-size: var(--font-meta); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.decision-list-grid { display: flex; flex-direction: column; gap: 0; }
+.decision-card { display: grid; min-height: 58px; grid-template-columns: minmax(0,1fr) 120px; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: transparent; box-shadow: none; }
+.decision-card-topline { align-items: center; }
+.decision-card-heading { display: grid; grid-template-columns: 34px minmax(0,1fr); align-items: center; gap: var(--space-3); }
+.decision-card-heading::before { display: grid; width: 34px; height: 34px; place-items: center; border-radius: var(--radius-sm); background: color-mix(in srgb, var(--primary) 9%, var(--surface-sunken)); color: var(--primary-deep); font-weight: var(--font-weight-bold); content: '›'; }
+.decision-card-heading h3 { margin: 0; font-size: var(--font-domain-title); }
+.decision-card-category { grid-column: 2; grid-row: 2; color: var(--text-muted); font-size: var(--font-meta); letter-spacing: 0; text-transform: none; }
+.decision-card-icon, .decision-card-desc { display: none; }
+.decision-card-cta { width: auto; min-height: 34px; margin: 0; padding: 0 var(--space-3); background: transparent; color: var(--primary-deep); }
+.decision-card-cta:hover:not(:disabled) { background: var(--surface-sunken); transform: none; }
+.decision-recent h2 { margin: 0 0 var(--space-3); font-size: var(--font-section-title); }
+.decision-recent > button { display: grid; width: 100%; grid-template-columns: minmax(0,1fr) auto 16px; align-items: center; gap: var(--space-2); min-height: var(--row-h); padding: var(--space-2) 0; border: 0; border-top: 1px solid var(--line); background: transparent; color: var(--text); text-align: left; cursor: pointer; }
+.decision-recent > button:first-of-type { border-top: 0; }
+.decision-recent > button > span:first-child { display: grid; min-width: 0; }
+.decision-recent strong { overflow: hidden; font-size: var(--font-body-sm); text-overflow: ellipsis; white-space: nowrap; }
+.decision-recent small, .decision-recent p { color: var(--text-muted); font-size: var(--font-meta); }
+.decision-recent > button > span:nth-child(2) { padding: 3px var(--space-2); border-radius: var(--radius-full); background: var(--surface-sunken); font-size: var(--font-micro); font-weight: var(--font-weight-bold); }
+@media (max-width: 900px) { .decision-workspace { grid-template-columns: 1fr; min-height: 0; } .decision-recommended { align-items: flex-start; flex-direction: column; } }

@@ -8,7 +8,7 @@ import styles from './ContextPanel.module.css'
 /*
  * BAĞLAM PANELİ — ikon rayının yanında duran, 240px genişliğinde ikinci
  * yüzen kart. YALNIZCA gerçekten alt navigasyonu olan 4 sayfada açılır:
- * Karar Araçları, Finans Merkezi, İşletme Takibi, AI Mentor.
+ * Karar Araçları, Hesaplamalar, İşletme Takibi, AI Mentor.
  * Diğer sayfalarda hiç render edilmez, içerik alanı tam genişler.
  *
  * Panel iki tür içerik taşır:
@@ -73,11 +73,11 @@ export function resolveContextPanel(pathname, { activeWorkspaceId, workspaces } 
     }
   }
 
-  if (pathname.startsWith('/app/tools') || pathname.startsWith('/app/finance/models')) {
+  if (pathname.startsWith('/app/calculations') || pathname.startsWith('/app/tools') || pathname.startsWith('/app/finance/models')) {
     return {
       key: 'tools',
-      title: 'Finans Merkezi',
-      links: [{ label: 'Hesaplama araçları', path: '/app/tools' }]
+      title: 'Hesaplamalar',
+      links: [{ label: 'Hesaplama kataloğu', path: '/app/calculations' }]
     }
   }
 

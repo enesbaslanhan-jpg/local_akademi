@@ -188,6 +188,7 @@ export default function ProfitabilityDecisionTool({ session, result, navigate, m
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const completedFieldCount = fields.filter(field => values[field.code] !== '' && values[field.code] != null).length
 
   if (session.status === 'completed' && result) {
     return <ResultView {...{ session, result, navigate, mentorContext, mentorEnabled }} />
@@ -224,9 +225,20 @@ export default function ProfitabilityDecisionTool({ session, result, navigate, m
 
   return (
     <main className="profit-tool">
-      <button onClick={() => navigate('/app/decision-checks')} className="profit-back">
-        <ArrowLeft size={17} /> Karar araçlarına dön
-      </button>
+      <header className="profit-session-head">
+        <div>
+          <p>Kontrollü değerlendirme</p>
+          <h1>Karar Oturumu</h1>
+          <strong>Ürünüm Gerçekten Kârlı mı?</strong>
+          <span>{completedFieldCount} / {fields.length} alan tamamlandı</span>
+        </div>
+        <button onClick={() => navigate('/app/decision-checks')} className="profit-back">
+          <ArrowLeft size={17} /> Araçlara dön
+        </button>
+      </header>
+      <div className="profit-progress" aria-label={`${completedFieldCount} / ${fields.length} alan tamamlandı`}>
+        {fields.map((field, index) => <span key={field.code} className={index < completedFieldCount ? 'is-complete' : ''} />)}
+      </div>
       <div className="profit-layout">
         <form onSubmit={submit} className="profit-card profit-form">
           <div className="profit-title-row">

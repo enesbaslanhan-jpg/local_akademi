@@ -55,6 +55,30 @@ describe('account management', () => {
     expect(response.statusCode).toBe(422)
   })
 
+  it('validates, stores and removes a profile photo', async () => {
+    const boundary = `avatar-boundary-${Date.now()}`
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Zr2AAAAAASUVORK5CYII=', 'base64')
+    const body = Buffer.concat([
+      Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="avatar"; filename="profile.png"\r\nContent-Type: image/png\r\n\r\n`),
+      png,
+      Buffer.from(`\r\n--${boundary}--\r\n`),
+    ])
+    const uploaded = await app.inject({
+      method: 'POST', url: '/auth/avatar',
+      headers: { authorization: `Bearer ${token}`, 'content-type': `multipart/form-data; boundary=${boundary}` },
+      payload: body,
+    })
+    expect(uploaded.statusCode).toBe(201)
+    expect(uploaded.json().avatarUrl).toMatch(/^\/auth\/avatar\/[0-9a-f-]{36}\.png$/)
+
+    const served = await app.inject({ method: 'GET', url: uploaded.json().avatarUrl })
+    expect(served.statusCode).toBe(200)
+    expect(served.headers['content-type']).toContain('image/png')
+
+    const removed = await app.inject({ method: 'DELETE', url: '/auth/avatar', headers: { authorization: `Bearer ${token}` } })
+    expect(removed.statusCode).toBe(204)
+  })
+
   it('anonymizes and disables the account', async () => {
     const response = await app.inject({
       method: 'DELETE', url: '/auth/account',

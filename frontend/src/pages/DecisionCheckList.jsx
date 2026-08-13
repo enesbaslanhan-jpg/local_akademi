@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ArrowRight, RotateCcw, Search, CircleDashed,
+  ArrowRight, ChevronRight, RotateCcw, Search, CircleDashed,
   Percent, Truck, Store, Target, UserPlus, Landmark, Wallet,
   Building2, Megaphone, Boxes, PackageSearch, TrendingUp, Scale
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '@/services/api'
 import DarkPanel from '@/components/ui/DarkPanel'
+import { Button, PageHead } from '@/components/ui'
 import { ContextPanelSlot, useContextPanel } from '@/components/layout/ContextPanel'
 import './DecisionCheckList.css'
 
@@ -211,8 +212,7 @@ export default function DecisionCheckList() {
       </ContextPanelSlot>
 
       <div className="decision-list-shell">
-        {/* Sayfa adı üst barda yazıyor; görünür h1 yerine sr-only başlık. */}
-        <h1 className="sr-only">Karar Araçları</h1>
+        <PageHead title="Karar Araçları" subtitle="Doğru karar yöntemini seç." actions={<Button variant="quiet" onClick={() => setStatusFilter('completed')}>Geçmiş kararlar</Button>} />
 
         <div className="decision-hero-wrap">
           <DarkPanel bevel={false} sweep className="decision-hero">
@@ -284,6 +284,7 @@ export default function DecisionCheckList() {
         )}
 
         {hasChecks && (
+          <div className="decision-workspace">
           <section className="decision-list-content" aria-label="Karar araçları">
             <div className="decision-list-summary">
               <div>
@@ -297,6 +298,13 @@ export default function DecisionCheckList() {
             </div>
 
             {actionError && <p className="decision-list-action-error" role="alert">{actionError}</p>}
+
+            {visibleChecks.length > 1 && !filtersActive && (
+              <article className="decision-recommended">
+                <div><span>Bağlamınıza göre önerilen</span><h3>{visibleChecks[0].title}</h3><p>{visibleChecks[0].description}</p></div>
+                <Button onClick={() => openCheck(visibleChecks[0])}>Karar sürecini başlat <ArrowRight size={15} /></Button>
+              </article>
+            )}
 
             {visibleChecks.length === 0 && (
               <div className="decision-list-state">
@@ -349,6 +357,17 @@ export default function DecisionCheckList() {
               </div>
             )}
           </section>
+          <aside className="decision-recent">
+            <h2>Son oturumlar</h2>
+            {checks.filter(check => check.sessionId).slice(0, 5).map(check => (
+              <button key={check.sessionId} onClick={() => openCheck(check)}>
+                <span><strong>{check.title}</strong><small>{normalizeStatus(check.status) === 'completed' ? 'Sonuç hazır' : 'Sürdürmeye hazır'}</small></span>
+                <span>{normalizeStatus(check.status) === 'completed' ? 'Aç' : 'Sürdür'}</span><ChevronRight size={14} />
+              </button>
+            ))}
+            {checks.every(check => !check.sessionId) && <p>Henüz bir karar oturumu yok.</p>}
+          </aside>
+          </div>
         )}
       </div>
     </main>

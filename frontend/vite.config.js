@@ -57,7 +57,12 @@ export default defineConfig({
       '/learning': backendProxy,
       '/onboarding': backendProxy,
       '/assessment': backendProxy,
-      '/admin': backendProxy,
+      '/admin': {
+        ...backendProxy,
+        bypass(request) {
+          if (request.headers.accept?.includes('text/html')) return '/index.html'
+        }
+      },
       '/dashboard': backendProxy,
       '/quizzes': backendProxy,
       '/tasks': backendProxy,

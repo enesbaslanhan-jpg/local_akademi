@@ -7,15 +7,26 @@
  */
 
 .receipt {
+  --receipt-paper: #f3ead8;
+  --receipt-ink: #25302d;
+  --receipt-muted: #5c645f;
+  --receipt-line: #cbbd9f;
+  --text: var(--receipt-ink);
+  --text-light: var(--receipt-muted);
+  --border: var(--receipt-line);
+  --white: #f8f2e7;
+  --surface-raised: #f8f2e7;
+  --bg-tertiary: #ebe1cf;
+  --primary-light: #dce8df;
   position: relative;
   width: 100%;
   max-width: 420px;
   margin: 0 auto;
   min-width: 0;
   padding: var(--space-6) var(--space-6) var(--space-8);
-  background: color-mix(in srgb, var(--warning-bg) 34%, var(--surface-raised));
-  border: 1px solid color-mix(in srgb, var(--warning) 28%, var(--border));
-  border-radius: 5px 5px 14px 14px;
+  background: var(--receipt-paper);
+  border: 1px solid var(--receipt-line);
+  border-radius: 2px;
   box-shadow: 0 18px 44px rgba(26, 28, 30, .14);
   color: var(--text);
   overflow: hidden;
@@ -31,24 +42,18 @@
      birleşir: tam alan eksi (alt 10px şeridindeki daireler). */
   -webkit-mask-image:
     linear-gradient(#000 0 0),
+    radial-gradient(circle at 7px 0, transparent 6px, #000 6.5px),
     radial-gradient(circle at 7px 10px, transparent 6px, #000 6.5px);
   mask-image:
     linear-gradient(#000 0 0),
+    radial-gradient(circle at 7px 0, transparent 6px, #000 6.5px),
     radial-gradient(circle at 7px 10px, transparent 6px, #000 6.5px);
-  -webkit-mask-size: 100% calc(100% - 10px), 14px 10px;
-  mask-size: 100% calc(100% - 10px), 14px 10px;
-  -webkit-mask-position: top left, bottom left;
-  mask-position: top left, bottom left;
-  -webkit-mask-repeat: no-repeat, repeat-x;
-  mask-repeat: no-repeat, repeat-x;
-
-  clip-path: polygon(
-    0 0,
-    calc(100% - var(--panel-bevel)) 0,
-    100% var(--panel-bevel),
-    100% 100%,
-    0 100%
-  );
+  -webkit-mask-size: 100% calc(100% - 20px), 14px 10px, 14px 10px;
+  mask-size: 100% calc(100% - 20px), 14px 10px, 14px 10px;
+  -webkit-mask-position: center, top left, bottom left;
+  mask-position: center, top left, bottom left;
+  -webkit-mask-repeat: no-repeat, repeat-x, repeat-x;
+  mask-repeat: no-repeat, repeat-x, repeat-x;
 
   /* Keskin ve hızlı açılış — mevcut fichOpen, --dur-slow'u aşmaz. */
   animation: fichOpen var(--dur-slow) var(--ease-decelerate) both;
@@ -90,8 +95,8 @@
   height: 40px;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: var(--primary-light);
-  color: var(--brand-ink);
+  background: #dce8df;
+  color: #174b58;
 }
 
 .headText {
@@ -222,22 +227,47 @@
 }
 
 /* Olumlu → zeytin, dikkat → hardal, olumsuz → bordo */
-.toneGood { border-color: var(--success); background: var(--success-bg); }
+.toneGood { border-color: var(--success); background: transparent; }
 .toneGood .verdictIcon { background: var(--success); color: var(--on-success); }
 .toneGood .verdictLabel { color: var(--success); }
 
-.toneWarn { border-color: var(--warning); background: var(--warning-bg); }
+.toneWarn { border-color: var(--warning); background: transparent; }
 .toneWarn .verdictIcon { background: var(--warning); color: var(--on-warning); }
 .toneWarn .verdictLabel { color: var(--warning); }
 
-.toneBad { border-color: var(--danger); background: var(--danger-bg); }
+.toneBad { border-color: var(--danger); background: transparent; }
 .toneBad .verdictIcon { background: var(--danger); color: var(--on-danger); }
 .toneBad .verdictLabel { color: var(--danger); }
+
+.receiptSection {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--border);
+}
+
+.receiptSection h4 {
+  margin: 0 0 var(--space-2);
+  color: var(--text);
+  font-size: var(--font-size-xs);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.receiptSection ul,
+.receiptSection ol {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: var(--space-5);
+  color: var(--text-light);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
 
 /* ---------- Aksiyon satırı ---------- */
 .actions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-2);
   margin-top: var(--space-5);
   padding-top: var(--space-4);
@@ -246,7 +276,8 @@
 
 .action {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: center;
   align-items: center;
   gap: 5px;
   padding: var(--space-2) var(--space-1);
@@ -292,13 +323,14 @@
 
 @media screen {
 :global(.dark) .receipt {
-  background: var(--evidence-paper);
-  border-color: var(--evidence-border);
-  color: var(--text);
-  box-shadow: var(--evidence-shadow);
+  background: var(--receipt-paper);
+  border-color: var(--receipt-line);
+  color: var(--receipt-ink);
+  box-shadow: 0 26px 58px rgba(0, 0, 0, .5);
 }
 
-:global(.dark) .action { background: var(--evidence-action); }
+:global(.dark) .action { background: color-mix(in srgb, var(--receipt-paper) 78%, white); color: var(--receipt-ink); }
+:global(.dark) .action:disabled { background: #e7dcc8; color: var(--receipt-muted); }
 }
 
 /* ==========================================================================

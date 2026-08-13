@@ -150,6 +150,7 @@ export default function StructuredDecisionTool({ session, result, navigate, ment
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const completedFieldCount = fields.filter(field => values[field.code] !== '' && values[field.code] != null).length
 
   if (session.status === 'completed' && result) {
     return <ResultView {...{ session, result, navigate, mentorContext, mentorEnabled }} />
@@ -187,9 +188,20 @@ export default function StructuredDecisionTool({ session, result, navigate, ment
 
   return (
     <main className="structured-tool">
-      <button type="button" onClick={() => navigate('/app/decision-checks')} className="structured-back">
-        <ArrowLeft size={17} /> Karar araçlarına dön
-      </button>
+      <header className="structured-session-head">
+        <div>
+          <p>Kontrollü değerlendirme</p>
+          <h1>Karar Oturumu</h1>
+          <strong>{session.decisionCheckTitle}</strong>
+          <span>{completedFieldCount} / {fields.length} alan tamamlandı</span>
+        </div>
+        <button type="button" onClick={() => navigate('/app/decision-checks')} className="structured-back">
+          <ArrowLeft size={17} /> Araçlara dön
+        </button>
+      </header>
+      <div className="structured-progress" aria-label={`${completedFieldCount} / ${fields.length} alan tamamlandı`}>
+        {fields.map((field, index) => <span key={field.code} className={index < completedFieldCount ? 'is-complete' : ''} />)}
+      </div>
 
       <div className="structured-layout">
         <form className="structured-surface structured-form" onSubmit={submit} noValidate>

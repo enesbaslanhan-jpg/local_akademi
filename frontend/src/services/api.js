@@ -208,6 +208,14 @@ export const api = {
         method: 'DELETE',
         body: JSON.stringify({ currentPassword, confirmation })
       });
+    },
+    async uploadAvatar(file) {
+      const body = new FormData();
+      body.append('avatar', file);
+      return api.request('/auth/avatar', { method: 'POST', body });
+    },
+    async removeAvatar() {
+      return api.request('/auth/avatar', { method: 'DELETE' });
     }
   },
 

@@ -33,7 +33,8 @@ describe('Sidebar', () => {
     // Sadeleştirilmiş ana menü (Paket 4)
     expect(screen.getByText('Ana Sayfa')).toBeInTheDocument()
     expect(screen.getByText('Kurslar')).toBeInTheDocument()
-    expect(screen.getByText('Finans Merkezi')).toBeInTheDocument()
+    expect(screen.getByText('Hesaplamalar')).toBeInTheDocument()
+    expect(screen.queryByText('Model Lab')).not.toBeInTheDocument()
     expect(screen.getByText('AI Mentor')).toBeInTheDocument()
   })
 

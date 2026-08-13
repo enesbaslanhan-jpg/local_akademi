@@ -484,9 +484,9 @@ const sessionLabel = useMemo(() => {
           </button>
           <div className={styles.topBarTitleWrap}>
             <h2 className={styles.topBarTitle}>
-              LocalKarar
+              AI Mentor
             </h2>
-            <span className={styles.topBarProvider}>Mentor Desk{selectedConv?.title ? ` · ${selectedConv.title}` : ''}</span>
+            <span className={styles.topBarProvider}>İşletme bağlamınla birlikte düşün{selectedConv?.title ? ` · ${selectedConv.title}` : ''}</span>
           </div>
           {contextTitle && (
             <span className={styles.contextBadge}>Bağlam: {contextTitle}</span>

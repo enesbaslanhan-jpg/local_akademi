@@ -6,6 +6,7 @@ import {
   Building2,
   Check,
   Info,
+  ImageUp,
   Laptop,
   Mail,
   Moon,
@@ -34,7 +35,7 @@ function initials(name = 'LK') {
 }
 
 export default function SettingsPage() {
-  const { user, logout, replaceSession } = useAuth()
+  const { user, logout, replaceSession, updateUser } = useAuth()
   const { activeWorkspaceId, activeWorkspace } = useWorkspace()
   const { theme, setTheme } = useTheme()
   const navigate = useNavigate()
@@ -57,6 +58,9 @@ export default function SettingsPage() {
   const [profileSaving, setProfileSaving] = useState(false)
   const [profileMsg, setProfileMsg] = useState(null)
   const [systemInfo, setSystemInfo] = useState(null)
+  const [activeSection, setActiveSection] = useState('profile')
+  const [avatarSaving, setAvatarSaving] = useState(false)
+  const [avatarMsg, setAvatarMsg] = useState(null)
 
   useEffect(() => {
     api.onboarding.getProfile().then(setProfile).catch(() => setProfile(null))
@@ -78,6 +82,31 @@ export default function SettingsPage() {
     try { await api.onboarding.updateProfile({ name }); flash(setAccountMsg, 'ok', 'Hesap bilgileri kaydedildi.') }
     catch (error) { flash(setAccountMsg, 'err', error.message || 'Kaydedilemedi.') }
     finally { setAccountSaving(false) }
+  }
+
+  async function uploadAvatar(event) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    if (!['image/png', 'image/jpeg'].includes(file.type)) return flash(setAvatarMsg, 'err', 'Yalnız PNG veya JPEG fotoğraf yükleyin.')
+    if (file.size > 5 * 1024 * 1024) return flash(setAvatarMsg, 'err', 'Profil fotoğrafı en fazla 5 MB olabilir.')
+    setAvatarSaving(true)
+    try {
+      const result = await api.auth.uploadAvatar(file)
+      updateUser({ avatarUrl: `${result.avatarUrl}?v=${Date.now()}` })
+      flash(setAvatarMsg, 'ok', 'Profil fotoğrafınız güncellendi.')
+    } catch (error) { flash(setAvatarMsg, 'err', error.message || 'Fotoğraf yüklenemedi.') }
+    finally { setAvatarSaving(false) }
+  }
+
+  async function removeAvatar() {
+    setAvatarSaving(true)
+    try {
+      await api.auth.removeAvatar()
+      updateUser({ avatarUrl: null })
+      flash(setAvatarMsg, 'ok', 'Profil fotoğrafı kaldırıldı.')
+    } catch (error) { flash(setAvatarMsg, 'err', error.message || 'Fotoğraf kaldırılamadı.') }
+    finally { setAvatarSaving(false) }
   }
 
   async function savePassword(event) {
@@ -148,17 +177,27 @@ export default function SettingsPage() {
 
   return (
     <main className={styles.page}>
-      <header className={styles.pageHeading}><span>Hesap merkezi</span><h1>Ayarlar</h1><p>Hesabınızı, güvenliğinizi, görünümü ve işletme tercihlerinizi tek yerden yönetin.</p></header>
-      <section className={styles.profileHeader}>
-        <div className={styles.avatar}>{initials(name || user?.name)}</div>
-        <div><h2>{name || user?.name}</h2><p>{user?.email}</p><div><Badge variant="info">{ROLE_LABELS[user?.role] || user?.role || 'Üye'}</Badge>{activeWorkspace?.name && <Badge>{activeWorkspace.name}</Badge>}</div></div>
-      </section>
+      <header className={styles.pageHeading}><span>HESAP MERKEZİ</span><h1>Ayarlar ve Profil</h1><p>Profil, işletme, güvenlik ve erişilebilirlik tercihlerinizi yönetin.</p></header>
+      {activeSection === 'profile' && <section className={styles.profileHeader}>
+        <div className={styles.avatar}>{user?.avatarUrl ? <img src={user.avatarUrl} alt={`${name || user?.name || 'Kullanıcı'} profil fotoğrafı`} /> : initials(name || user?.name)}</div>
+        <div className={styles.profileIdentity}><h2>{name || user?.name}</h2><p>{user?.email}</p><div><Badge variant="info">{ROLE_LABELS[user?.role] || user?.role || 'Üye'}</Badge>{activeWorkspace?.name && <Badge>{activeWorkspace.name}</Badge>}</div>
+          <div className={styles.avatarActions}>
+            <label className={styles.avatarUpload}><ImageUp size={15} />{avatarSaving ? 'İşleniyor…' : user?.avatarUrl ? 'Fotoğrafı değiştir' : 'Fotoğraf ekle'}<input type="file" accept="image/png,image/jpeg" onChange={uploadAvatar} disabled={avatarSaving} /></label>
+            {user?.avatarUrl && <button type="button" onClick={removeAvatar} disabled={avatarSaving}>Kaldır</button>}
+          </div>
+          <Message msg={avatarMsg} />
+        </div>
+      </section>}
 
       <div className={styles.settingsShell}>
         <nav className={styles.settingsNav} aria-label="Ayar bölümleri">
-          <a href="#hesap"><User size={18} /> Hesap</a><a href="#eposta"><Mail size={18} /> E-posta</a><a href="#guvenlik"><ShieldCheck size={18} /> Güvenlik</a><a href="#gorunum"><Laptop size={18} /> Görünüm</a><a href="#bildirimler"><Bell size={18} /> Bildirimler</a><a href="#isletme-ayarlari"><Building2 size={18} /> İşletme</a><a href="#isletme-profili"><BriefcaseBusiness size={18} /> Profil</a><a href="#yasal"><Scale size={18} /> Gizlilik</a><a href="#hesap-sil"><Trash2 size={18} /> Hesabı sil</a><a href="#uygulama"><Info size={18} /> Uygulama</a>
+          <button className={activeSection === 'profile' ? styles.activeNav : ''} onClick={() => setActiveSection('profile')}><User size={17} /> Profil ve işletme</button>
+          <button className={activeSection === 'notifications' ? styles.activeNav : ''} onClick={() => setActiveSection('notifications')}><Bell size={17} /> Bildirimler</button>
+          <button className={activeSection === 'appearance' ? styles.activeNav : ''} onClick={() => setActiveSection('appearance')}><Laptop size={17} /> Erişilebilirlik</button>
+          <button className={activeSection === 'security' ? styles.activeNav : ''} onClick={() => setActiveSection('security')}><ShieldCheck size={17} /> Güvenlik</button>
+          <button className={activeSection === 'privacy' ? styles.activeNav : ''} onClick={() => setActiveSection('privacy')}><Scale size={17} /> Veri ve gizlilik</button>
         </nav>
-        <div className={styles.flow}>
+        <div className={`${styles.flow} ${styles[`show_${activeSection}`]}`}>
           <SettingsSection id="hesap" icon={<User />} title="Hesap bilgileri" description="Hesabınızda görünen temel kimlik bilgileri.">
             <form onSubmit={saveAccount}><Field label="Görünen ad"><input value={name} onChange={event => setName(event.target.value)} minLength={2} maxLength={100} required /></Field><Readonly label="E-posta" value={user?.email} /><Readonly label="Hesap rolü" value={ROLE_LABELS[user?.role] || user?.role || 'Üye'} /><Footer message={<Message msg={accountMsg} />}><Button type="submit" disabled={accountSaving}>{accountSaving ? 'Kaydediliyor…' : 'Değişiklikleri kaydet'}</Button></Footer></form>
           </SettingsSection>
