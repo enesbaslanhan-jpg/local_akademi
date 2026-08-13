@@ -97,7 +97,7 @@ describe('Sidebar', () => {
     expect(screen.getByText('İşletme Takibi')).toBeInTheDocument()
   })
 
-  it('shows tracker and saved links for the active workspace', () => {
+  it('shows the tracker link for the active workspace', () => {
     mockUseWorkspace.mockReturnValue({ activeWorkspaceId: 'workspace-1', hasWorkspaces: true })
 
     render(
@@ -107,6 +107,22 @@ describe('Sidebar', () => {
     )
 
     expect(screen.getByText('İşletme Takibi')).toBeInTheDocument()
-    expect(screen.getByText('Kaydedilenler')).toBeInTheDocument()
+  })
+
+  /* "Kaydedilenler" menüden kaldırıldı: uygulamada kaydetme kavramı yok.
+     Bookmark eylemi hiç yok, karar günlüğü yazılıp okunamıyor ve
+     SavedPracticalCards var olmayan bir API'yi çağırıyor. Kullanıcının
+     kaydettiği şeylerin kendi ekranları var (Kurslar, Model Lab, İşletme
+     Takibi). Gerçek bir kaydetme özelliği önce backend işi. */
+  it('does not show a saved link while there is nothing to save', () => {
+    mockUseWorkspace.mockReturnValue({ activeWorkspaceId: 'workspace-1', hasWorkspaces: true })
+
+    render(
+      <MemoryRouter initialEntries={['/app/dashboard']}>
+        <Sidebar open={true} onClose={() => {}} />
+      </MemoryRouter>
+    )
+
+    expect(screen.queryByText('Kaydedilenler')).not.toBeInTheDocument()
   })
 })

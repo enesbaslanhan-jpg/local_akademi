@@ -5,7 +5,7 @@ import { useWorkspace } from '@/context/WorkspaceContext'
 import {
   Home, BookOpen, Bot, Settings, Shield,
   Users, Database, X, Calculator, Newspaper,
-  Building2, ListChecks, Scale, Bookmark, LogOut, FlaskConical,
+  Building2, ListChecks, Scale, LogOut, FlaskConical,
   PanelLeftClose, PanelLeftOpen, MessagesSquare, Search, Plus, ChevronDown
 } from 'lucide-react'
 import styles from './Sidebar.module.css'
@@ -105,16 +105,6 @@ export default function Sidebar({
   const trackerLink = activeWorkspaceId
     ? { id: 'workspace-tracker', label: 'İşletme Takibi', icon: ListChecks, path: `/app/workspaces/${activeWorkspaceId}/tracker` }
     : { id: 'workspace-create', label: 'İşletme Takibi', icon: Building2, path: '/app/workspaces' }
-
-  /* Kaydedilenler henüz kendi sayfasına bağlanamıyor: onaylanan ekran
-     kaydedilen kurs/haber/araç/modeli tek yerde topluyor ama backend'de
-     kaydetme kavramı yok (api.js'te saved/bookmark endpoint'i bulunmuyor;
-     SavedPracticalCards var olmayan api.practicalCards'ı çağırıyor).
-     Menüdeki yeri ve adı onaylanan sıraya uygun; hedefi işletme belgeleri
-     olarak kalıyor. Gerçek sayfa için önce API gerekiyor. */
-  const savedLink = activeWorkspaceId
-    ? { id: 'saved', label: 'Kaydedilenler', icon: Bookmark, path: `/app/workspaces/${activeWorkspaceId}/documents` }
-    : { id: 'saved', label: 'Kaydedilenler', icon: Bookmark, path: '/app/workspaces' }
 
   function handleNavigate(path) {
     navigate(path)
@@ -262,7 +252,6 @@ export default function Sidebar({
           <div className={styles.divider} />
           <div className={styles.sectionLabel}>Diğer</div>
           {secondaryLinks.map(renderLink)}
-          {renderLink(savedLink)}
           {renderLink(settingsLink)}
 
           {isAdmin && (

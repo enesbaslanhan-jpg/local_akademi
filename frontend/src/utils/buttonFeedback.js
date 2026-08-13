@@ -1,3 +1,14 @@
+/*
+ * Buton geri bildirimi: basış sınıfı + kısa tıklama sesi.
+ *
+ * SES BİLİNÇLİ BİR TERCİHTİR — ürün sahibi açıkça istedi (2026-08-13).
+ * Onaylanan 18 ekranlık tasarım dosyasında sesten söz edilmemesi onu
+ * gereksiz yapmaz; kaldırmayın.
+ *
+ * Buradaki `data-tactile` sınıflandırması ayrı bir konu: buttons.css onu
+ * attribute seçicileriyle kullanıyor ve bileşenlerin kendi stilini
+ * ezebiliyor. O katman Faz C'de ele alınacak; ses tarafı korunacak.
+ */
 let installed = false
 let audioContext = null
 let lastSoundAt = 0
