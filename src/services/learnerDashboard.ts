@@ -97,6 +97,7 @@ export async function learnerDashboardRoutes(fastify: FastifyInstance) {
         const activeMatch = await prisma.course.findFirst({
           where: {
             published: true,
+            archivedAt: null,
             AND: [
               { title: { not: { startsWith: '[Eski Kopya]' } } },
               { title: { contains: stripLegacyCourseTitle(legacyEnrollment.course.title).slice(0, 60) } }

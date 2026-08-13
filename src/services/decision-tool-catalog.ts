@@ -3,11 +3,22 @@ import { z } from 'zod'
 export type DecisionMetricFormat = 'money' | 'percent' | 'number' | 'months' | 'days'
 export type DecisionTone = 'good' | 'warning' | 'bad' | 'neutral'
 
+/**
+ * Seçenekli girdi. Değer yine SAYIDIR; böylece hesaplama katmanının
+ * Record<string, number> sözleşmesi değişmez ve mevcut 11 araç etkilenmez.
+ * Sıralı ölçekler için değerler anlamlı sırada verilir (0 = en düşük).
+ */
+export interface DecisionToolOption {
+  value: number
+  label: string
+  description?: string
+}
+
 export interface DecisionToolQuestion {
   code: string
   label: string
   description: string
-  type: 'money' | 'percentage' | 'number' | 'days' | 'months'
+  type: 'money' | 'percentage' | 'number' | 'days' | 'months' | 'choice'
   required: true
   allowUnknown: false
   min: number
@@ -15,6 +26,7 @@ export interface DecisionToolQuestion {
   step?: number
   suffix: string
   order: number
+  options?: DecisionToolOption[]
 }
 
 export interface DecisionToolConfig {
@@ -30,8 +42,20 @@ export interface DecisionToolConfig {
   decisionChecks: string[]
 }
 
+/**
+ * Sonuç etiketleri. İlk yedisi finansal araçların ortak dili.
+ * Son dördü DC-TAX-013'e özgüdür: şirket türü kararı "uygun/riskli"
+ * ölçeğine oturmaz, bir yön önerisidir ve kesin hüküm bildirmez.
+ */
+export type DecisionLabel =
+  | 'UYGUN' | 'SINIRDA' | 'RİSKLİ' | 'ZARAR' | 'DEVAM' | 'GÖZDEN GEÇİR' | 'BIRAK'
+  | 'ŞAHIS İŞLETMESİNİ DEĞERLENDİR'
+  | 'LİMİTED ŞİRKETİ DEĞERLENDİR'
+  | 'ANONİM ŞİRKETİ DEĞERLENDİR'
+  | 'PROFESYONEL DOĞRULAMA GEREKLİ'
+
 export interface DecisionToolCalculation {
-  decisionLabel: 'UYGUN' | 'SINIRDA' | 'RİSKLİ' | 'ZARAR' | 'DEVAM' | 'GÖZDEN GEÇİR' | 'BIRAK'
+  decisionLabel: DecisionLabel
   decisionTone: DecisionTone
   summary: string
   metrics: Array<{ key: string; label: string; value: number; format: DecisionMetricFormat }>
@@ -52,6 +76,20 @@ const q = (
   min = 0,
   max?: number
 ): DecisionToolQuestion => ({ code, label, description, type, required: true, allowUnknown: false, min, max, step: 0.01, suffix, order })
+
+/** Seçenekli soru. Sınırlar seçenek değerlerinden türetilir. */
+const choice = (
+  code: string,
+  label: string,
+  description: string,
+  order: number,
+  options: DecisionToolOption[]
+): DecisionToolQuestion => ({
+  code, label, description, type: 'choice', required: true, allowUnknown: false,
+  min: Math.min(...options.map(o => o.value)),
+  max: Math.max(...options.map(o => o.value)),
+  step: 1, suffix: '', order, options
+})
 
 export const STRUCTURED_TOOL_CONFIGS: DecisionToolConfig[] = [
   {
@@ -238,6 +276,52 @@ export const STRUCTURED_TOOL_CONFIGS: DecisionToolConfig[] = [
     ],
     formulas: ['Düzeltilmiş birim katkı = Fiyat − değişken maliyet − iade oranı × iade kaybı', 'Net aylık katkı = Düzeltilmiş katkı × adet − stok maliyeti', 'Fırsat farkı = Net aylık katkı − alternatif ürün katkısı'],
     decisionChecks: ['Düzeltilmiş birim katkı pozitif mi?', 'Net aylık katkı alternatif fırsatı geçiyor mu?', 'İade oranı katkıyı kırılgan hale getiriyor mu?']
+  },
+  {
+    code: 'DC-TAX-013', title: 'Hangi şirket türü bana uygun?', category: 'Hukuk ve Vergi', version: '1.0',
+    description: 'Şahıs işletmesi, limited ve anonim şirket seçeneklerini kâr beklentisi, ortaklık, sorumluluk ve büyüme planına göre karşılaştırır.',
+    intro: 'Bu araç bir vergi veya hukuk danışmanlığı değildir. Amacı, mali müşavirinizle görüşmeye hangi soruları taşıyacağınızı netleştirmektir. Kesin kuruluş kararı uzman doğrulaması ister.',
+    submitLabel: 'Şirket türü değerlendirmemi göster',
+    questions: [
+      q('estimatedAnnualProfit', 'Tahmini yıllık kâr', 'Gider ve maaşlar düşüldükten sonra beklediğiniz yıllık kâr.', 'money', '₺', 1, 0),
+      choice('profitRetentionIntent', 'Kârı ne yapmayı planlıyorsunuz?',
+        'Kârın işletmede kalması ile kişisel olarak çekilmesi farklı vergi davranışı üretir.', 2, [
+          { value: 0, label: 'Tamamına yakınını kendime dağıtacağım', description: 'Kâr kişisel gelire dönüşecek.' },
+          { value: 1, label: 'Bir kısmını bırakıp bir kısmını dağıtacağım' },
+          { value: 2, label: 'Büyük kısmını işletmede bırakacağım', description: 'Kâr yeniden yatırıma gidecek.' }
+        ]),
+      choice('investorGoal', 'Dışarıdan yatırım almayı hedefliyor musunuz?',
+        'Pay devri ve ortak alma kolaylığı şirket türüne göre değişir.', 3, [
+          { value: 0, label: 'Hayır, planlamıyorum' },
+          { value: 1, label: 'Belirsiz / ileride olabilir' },
+          { value: 2, label: 'Evet, yakın vadede hedefliyorum' }
+        ]),
+      q('partnerCount', 'Kaç ortakla yola çıkıyorsunuz?', 'Kendiniz dahil toplam ortak sayısı.', 'number', 'kişi', 4, 1, 50),
+      choice('liabilitySensitivity', 'Kişisel mal varlığı riski sizin için ne kadar önemli?',
+        'Şahıs işletmesinde işletme borcu kişisel mal varlığına ulaşabilir.', 5, [
+          { value: 0, label: 'Düşük önem', description: 'Risk düşük, borçlanma planım yok.' },
+          { value: 1, label: 'Orta önem' },
+          { value: 2, label: 'Yüksek önem', description: 'Kişisel varlığımı ayırmak istiyorum.' }
+        ]),
+      choice('growthPlan', 'Önümüzdeki 3 yıl için büyüme planınız nedir?',
+        'Ölçek, kurumsallaşma ihtiyacını ve uyum yükünü değiştirir.', 6, [
+          { value: 0, label: 'Mevcut ölçekte kalmak' },
+          { value: 1, label: 'Kademeli büyüme' },
+          { value: 2, label: 'Hızlı ölçeklenme / çok şube veya ihracat' }
+        ])
+    ],
+    formulas: [
+      'Kurumsallaşma sinyali = kâr eşiği + kâr bırakma niyeti + yatırımcı hedefi + ortak sayısı + sorumluluk hassasiyeti + büyüme planı',
+      'Anonim sinyali = yatırımcı hedefi ve hızlı ölçeklenme ağırlıklı',
+      'Sonuç bir YÖN önerisidir; vergi tutarı veya hukuki hüküm hesaplamaz'
+    ],
+    decisionChecks: [
+      'Kârı işletmede mi bırakacaksınız yoksa kendinize mi aktaracaksınız?',
+      'Kişisel mal varlığınızı işletme borcundan ayırmanız gerekiyor mu?',
+      'Yakın vadede ortak veya yatırımcı alacak mısınız?',
+      'Kuruluş ve yıllık uyum maliyetini karşılayabiliyor musunuz?',
+      'Sonucu mali müşavir ve hukukçuyla doğruladınız mı?'
+    ]
   }
 ]
 
@@ -251,10 +335,23 @@ const numberMetric = (key: string, label: string, value: number, format: Decisio
 export function validateStructuredToolAnswers(code: string, rawAnswers: Record<string, unknown>) {
   const config = STRUCTURED_TOOL_BY_CODE.get(code)
   if (!config) return { success: false as const, fields: [], message: 'Karar aracı hesaplayıcısı bulunamadı.' }
-  const shape = Object.fromEntries(config.questions.map(question => [
-    question.code,
-    z.coerce.number().finite().min(question.min).max(question.max ?? Number.MAX_SAFE_INTEGER)
-  ]))
+  const shape = Object.fromEntries(config.questions.map(question => {
+    /* Seçenekli soru aralık değil, TANIMLI DEĞER kümesi ister. Aralık
+       kontrolü 0-2 arasında 1.5 gibi anlamsız bir değeri geçirirdi. */
+    if (question.type === 'choice' && question.options?.length) {
+      const allowed = new Set(question.options.map(option => option.value))
+      return [
+        question.code,
+        z.coerce.number().finite().refine(value => allowed.has(value), {
+          message: 'Tanımlı seçeneklerden biri gerekli.'
+        })
+      ]
+    }
+    return [
+      question.code,
+      z.coerce.number().finite().min(question.min).max(question.max ?? Number.MAX_SAFE_INTEGER)
+    ]
+  }))
   const parsed = z.object(shape).safeParse(rawAnswers)
   if (!parsed.success) {
     return {
@@ -482,6 +579,75 @@ export function calculateStructuredDecisionTool(code: string, a: Record<string, 
         STRUCTURED_TOOL_BY_CODE.get(code)!.formulas,
         [adjustedUnitContribution <= 0 ? 'İade etkisi sonrası ürün başı katkı negatif.' : '', opportunityDifference < 0 ? 'Alternatif ürün daha yüksek aylık katkı sunuyor.' : '', a.returnRate >= 20 ? 'İade oranı ürün katkısını kırılgan hale getiriyor.' : ''].filter(Boolean),
         [leave ? 'Yeni stok alımını durdurun ve mevcut stoğu zarar büyütmeden planlayın.' : review ? 'Ürünü sınırlı dönem izleyip alternatifle kontrollü test yapın.' : 'Fiyat ve iade oranını aylık izleyerek devam edin.', a.returnRate >= 20 ? 'İade nedenlerini ürün ve müşteri segmenti bazında inceleyin.' : 'Stok maliyetini satış hızına göre güncelleyin.', 'Vergi ve genel gider etkisini nihai portföy kararında ayrıca değerlendirin.'])
+    }
+    case 'DC-TAX-013': {
+      /* Bu araç vergi TUTARI hesaplamaz ve hukuki hüküm vermez.
+         Girdilerden bir kurumsallaşma sinyali üretir ve kullanıcıyı
+         hangi seçeneği mali müşavirle konuşacağı konusunda yönlendirir.
+         Oranlar mevzuata bağlı olduğu ve sık değiştiği için burada
+         bilinçli olarak hiçbir vergi oranı kullanılmaz. */
+      const profit = a.estimatedAnnualProfit
+      const retain = a.profitRetentionIntent      // 0 dağıt · 1 karma · 2 bırak
+      const investor = a.investorGoal             // 0 hayır · 1 belirsiz · 2 evet
+      const partners = a.partnerCount
+      const liability = a.liabilitySensitivity    // 0 düşük · 1 orta · 2 yüksek
+      const growth = a.growthPlan                 // 0 sabit · 1 kademeli · 2 hızlı
+
+      /* Kâr eşiği: mutlak tutar değil, ölçek göstergesi. Eşikler mevzuat
+         değil, "uyum maliyeti anlamlı hale geliyor mu" sorusunun proxy'si. */
+      const profitSignal = profit >= 3_000_000 ? 2 : profit >= 1_000_000 ? 1 : 0
+
+      const incorporationSignal =
+        profitSignal + retain + (partners > 1 ? 2 : 0) + liability + growth + (investor >= 1 ? 1 : 0)
+
+      // Anonim sinyali yatırımcı ve ölçek ağırlıklıdır.
+      const publicCompanySignal = (investor === 2 ? 3 : investor === 1 ? 1 : 0) + (growth === 2 ? 2 : 0) + (partners >= 5 ? 2 : partners > 1 ? 1 : 0) + profitSignal
+
+      /* Çelişkili sinyal: tek ortak + yüksek yatırımcı hedefi gibi
+         kombinasyonlarda araç yön önermez, uzmana yönlendirir. */
+      const conflicting = (investor === 2 && profit < 250_000) || (liability === 2 && partners === 1 && profitSignal === 0 && growth === 0)
+
+      const label: DecisionLabel = conflicting
+        ? 'PROFESYONEL DOĞRULAMA GEREKLİ'
+        : publicCompanySignal >= 7
+          ? 'ANONİM ŞİRKETİ DEĞERLENDİR'
+          : incorporationSignal >= 5
+            ? 'LİMİTED ŞİRKETİ DEĞERLENDİR'
+            : 'ŞAHIS İŞLETMESİNİ DEĞERLENDİR'
+
+      const summary = conflicting
+        ? 'Verdiğiniz yanıtlar birbirini destekleyen tek bir yön üretmiyor. Bu tablo tek başına bir şirket türü önerisi taşımıyor; mali müşavirle birlikte değerlendirilmeli.'
+        : label === 'ANONİM ŞİRKETİ DEĞERLENDİR'
+          ? 'Yatırımcı hedefi, ortak yapısı ve büyüme planınız pay devrinin kolay olduğu bir yapıya işaret ediyor.'
+          : label === 'LİMİTED ŞİRKETİ DEĞERLENDİR'
+            ? 'Kârı işletmede bırakma niyeti, ortaklık ve sorumluluk hassasiyetiniz sermaye şirketi yönünde bir sinyal üretiyor.'
+            : 'Mevcut ölçek, ortaklık ve risk tablonuz şahıs işletmesinin kuruluş ve uyum yükü avantajını koruduğunu gösteriyor.'
+
+      return result(label, conflicting ? 'warning' : 'neutral', summary,
+        [
+          moneyMetric('estimatedAnnualProfit', 'Tahmini yıllık kâr', profit),
+          numberMetric('incorporationSignal', 'Kurumsallaşma sinyali', incorporationSignal),
+          numberMetric('publicCompanySignal', 'Anonim şirket sinyali', publicCompanySignal),
+          numberMetric('partnerCount', 'Ortak sayısı', partners)
+        ],
+        [
+          { label: 'Şahıs işletmesi', value: Math.max(0, 8 - incorporationSignal), format: 'number', detail: 'Kuruluş ve uyum yükü en düşük seçenek', tone: label === 'ŞAHIS İŞLETMESİNİ DEĞERLENDİR' ? 'good' : 'neutral' },
+          { label: 'Limited şirket', value: incorporationSignal, format: 'number', detail: 'Sınırlı sorumluluk, orta uyum yükü', tone: label === 'LİMİTED ŞİRKETİ DEĞERLENDİR' ? 'good' : 'neutral' },
+          { label: 'Anonim şirket', value: publicCompanySignal, format: 'number', detail: 'Pay devri ve yatırımcı girişi en esnek', tone: label === 'ANONİM ŞİRKETİ DEĞERLENDİR' ? 'good' : 'neutral' }
+        ],
+        STRUCTURED_TOOL_BY_CODE.get(code)!.formulas,
+        [
+          'Bu sonuç vergi veya hukuk danışmanlığı değildir; kesin karar uzman doğrulaması ister.',
+          liability === 2 && label === 'ŞAHIS İŞLETMESİNİ DEĞERLENDİR' ? 'Şahıs işletmesinde işletme borcu kişisel mal varlığınıza ulaşabilir; bu tercihi sorumluluk beklentinizle birlikte tartın.' : '',
+          partners > 1 && label === 'ŞAHIS İŞLETMESİNİ DEĞERLENDİR' ? 'Birden fazla ortakla şahıs işletmesi yapısı ortaklık haklarını sınırlı biçimde tanımlar.' : '',
+          investor === 2 ? 'Yatırımcı girişi planlıyorsanız pay devri kolaylığını kuruluş aşamasında konuşun.' : '',
+          label !== 'ŞAHIS İŞLETMESİNİ DEĞERLENDİR' ? 'Sermaye şirketlerinde yıllık muhasebe, denetim ve uyum maliyeti artar.' : ''
+        ].filter(Boolean),
+        [
+          'Bu çıktıyı mali müşavirinize götürüp güncel mevzuat karşısında doğrulayın.',
+          'Kuruluş maliyeti ile yıllık uyum maliyetini iki seçenek için ayrı ayrı çıkarın.',
+          partners > 1 ? 'Ortaklık yapısını ve pay oranlarını yazılı olarak netleştirin.' : 'Sorumluluk riskinizi sigorta ve sözleşme tarafında da değerlendirin.'
+        ])
     }
     default:
       throw new Error(`Unsupported structured decision tool: ${code}`)

@@ -10,7 +10,11 @@ export async function courseRoutes(fastify: FastifyInstance) {
     const pageSize = Math.min(50, Math.max(1, parseInt(query.pageSize) || 12))
     const skip = (page - 1) * pageSize
 
-    const where: any = { published: true }
+    /* Arşivlenmiş kurslar kullanıcı kataloğunda görünmez.
+       Kayıt SİLİNMEZ; yalnız listeden düşer. Mevcut enrollment ve
+       ilerleme kayıtları etkilenmez, kurs kendi id'siyle okunabilir
+       kalır (bkz. GET /:id — arşiv durumu ayrıca işaretlenir). */
+    const where: any = { published: true, archivedAt: null }
 
     if (query.category) where.category = { contains: query.category, mode: 'insensitive' }
     if (query.level) where.level = query.level
@@ -107,6 +111,12 @@ export async function courseRoutes(fastify: FastifyInstance) {
       return reply.status(404).send({ error: 'Course not found' })
     }
 
+    /* Arşivlenmiş kurs katalogda listelenmez ama kendi adresinden OKUNABİLİR
+       kalır. 404 vermek, o kursa kayıtlı kullanıcının ilerleme ve tamamlama
+       geçmişine erişimini koparırdı; ürün kararı geçmişin korunması yönünde.
+       İstemci `archived` bayrağıyla "bu içerik arşivlendi" uyarısı gösterir. */
+    const isArchived = course.archivedAt !== null
+
     const user = request.user as any
     let enrollment: any = null
     let lessonProgressMap: Record<number, any> = {}
@@ -186,6 +196,8 @@ export async function courseRoutes(fastify: FastifyInstance) {
         outcomes: JSON.parse(course.outcomes || '[]'),
         sourceType: course.sourceType,
         sortOrder: course.sortOrder,
+        archived: isArchived,
+        archivedAt: course.archivedAt,
         metadata: (() => {
           try { return JSON.parse(course.metadata || '{}') } catch { return {} }
         })(),

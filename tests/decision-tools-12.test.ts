@@ -16,21 +16,23 @@ export const validInputs: Record<string, Record<string, number>> = {
   'DC-BRANCH-009': { initialInvestment: 500000, monthlyFixedCost: 120000, expectedMonthlyRevenue: 500000, contributionMarginRate: 35, cashReserve: 1000000, rampUpMonths: 4, downsideRevenuePercent: 25 },
   'DC-CAMPAIGN-010': { currentUnitPrice: 500, unitVariableCost: 250, discountRate: 10, campaignFixedCost: 10000, baselineUnits: 100, expectedLiftLow: 20, expectedLiftMedium: 50, expectedLiftHigh: 90 },
   'DC-STOCK-011': { currentStock: 500, averageDailySales: 20, leadTimeDays: 14, demandVariabilityPercent: 25, unitHoldingCostMonthly: 3, plannedOrderQuantity: 250 },
-  'DC-CONTINUE-012': { salePrice: 500, unitVariableCost: 300, monthlyUnits: 100, returnRate: 10, returnLossPerUnit: 100, monthlyHoldingCost: 2000, alternativeMonthlyContribution: 12000 }
+  'DC-CONTINUE-012': { salePrice: 500, unitVariableCost: 300, monthlyUnits: 100, returnRate: 10, returnLossPerUnit: 100, monthlyHoldingCost: 2000, alternativeMonthlyContribution: 12000 },
+  // Secenekli girdiler sayi olarak tasinir: 0 en dusuk, 2 en yuksek kademe.
+  'DC-TAX-013': { estimatedAnnualProfit: 1500000, profitRetentionIntent: 2, investorGoal: 1, partnerCount: 2, liabilitySensitivity: 2, growthPlan: 1 }
 }
 
 describe('12 Decision Tools - architecture guardrails', () => {
   it('defines exactly 11 additional tools with unique codes and field signatures', () => {
-    expect(STRUCTURED_TOOL_CONFIGS).toHaveLength(11)
-    expect(new Set(STRUCTURED_TOOL_CONFIGS.map(tool => tool.code)).size).toBe(11)
+    expect(STRUCTURED_TOOL_CONFIGS).toHaveLength(12)
+    expect(new Set(STRUCTURED_TOOL_CONFIGS.map(tool => tool.code)).size).toBe(12)
     const signatures = STRUCTURED_TOOL_CONFIGS.map(tool => tool.questions.map(question => question.code).sort().join('|'))
-    expect(new Set(signatures).size).toBe(11)
+    expect(new Set(signatures).size).toBe(12)
   })
 
   it('gives every tool unique formulas, checks and submit language', () => {
-    expect(new Set(STRUCTURED_TOOL_CONFIGS.map(tool => tool.formulas.join('|'))).size).toBe(11)
-    expect(new Set(STRUCTURED_TOOL_CONFIGS.map(tool => tool.decisionChecks.join('|'))).size).toBe(11)
-    expect(new Set(STRUCTURED_TOOL_CONFIGS.map(tool => tool.submitLabel)).size).toBe(11)
+    expect(new Set(STRUCTURED_TOOL_CONFIGS.map(tool => tool.formulas.join('|'))).size).toBe(12)
+    expect(new Set(STRUCTURED_TOOL_CONFIGS.map(tool => tool.decisionChecks.join('|'))).size).toBe(12)
+    expect(new Set(STRUCTURED_TOOL_CONFIGS.map(tool => tool.submitLabel)).size).toBe(12)
   })
 
   it.each(STRUCTURED_TOOL_CONFIGS.map(tool => [tool.code]))('%s validates its own complete input and produces an explainable snapshot', (code) => {

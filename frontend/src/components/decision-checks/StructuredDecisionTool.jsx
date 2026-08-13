@@ -215,26 +215,63 @@ export default function StructuredDecisionTool({ session, result, navigate, ment
           </div>
 
           <div className="structured-fields">
-            {fields.map(field => (
-              <label className="structured-field" key={field.code}>
-                <span className="structured-field-label">{field.label}</span>
-                <span className="structured-field-hint">{field.description}</span>
-                <span className={`structured-input ${errors[field.code] ? 'invalid' : ''}`}>
-                  <input
-                    aria-label={field.label}
-                    type="number"
-                    inputMode="decimal"
-                    step={field.step || 0.01}
-                    min={field.min}
-                    max={field.max}
-                    value={values[field.code]}
-                    onChange={event => setValues(previous => ({ ...previous, [field.code]: event.target.value }))}
-                  />
-                  <span>{field.suffix || ''}</span>
-                </span>
-                {errors[field.code] && <span className="structured-field-error">{errors[field.code]}</span>}
-              </label>
-            ))}
+            {fields.map(field => {
+              /* Seçenekli soru: sayı kutusu yerine radyo grubu. Değer yine
+                 sayıdır, hesaplama sözleşmesi değişmez. */
+              if (field.type === 'choice' && Array.isArray(field.options) && field.options.length > 0) {
+                return (
+                  <fieldset className="structured-field" key={field.code}>
+                    <legend className="structured-field-label">{field.label}</legend>
+                    <span className="structured-field-hint">{field.description}</span>
+                    <div className={`structured-choices ${errors[field.code] ? 'invalid' : ''}`}>
+                      {field.options.map(option => {
+                        const selected = String(values[field.code]) === String(option.value)
+                        return (
+                          <label
+                            key={option.value}
+                            className={`structured-choice ${selected ? 'is-selected' : ''}`}
+                          >
+                            <input
+                              type="radio"
+                              name={field.code}
+                              value={option.value}
+                              checked={selected}
+                              onChange={() => setValues(previous => ({ ...previous, [field.code]: String(option.value) }))}
+                            />
+                            <span className="structured-choice-label">{option.label}</span>
+                            {option.description && (
+                              <span className="structured-choice-hint">{option.description}</span>
+                            )}
+                          </label>
+                        )
+                      })}
+                    </div>
+                    {errors[field.code] && <span className="structured-field-error">{errors[field.code]}</span>}
+                  </fieldset>
+                )
+              }
+
+              return (
+                <label className="structured-field" key={field.code}>
+                  <span className="structured-field-label">{field.label}</span>
+                  <span className="structured-field-hint">{field.description}</span>
+                  <span className={`structured-input ${errors[field.code] ? 'invalid' : ''}`}>
+                    <input
+                      aria-label={field.label}
+                      type="number"
+                      inputMode="decimal"
+                      step={field.step || 0.01}
+                      min={field.min}
+                      max={field.max}
+                      value={values[field.code]}
+                      onChange={event => setValues(previous => ({ ...previous, [field.code]: event.target.value }))}
+                    />
+                    <span>{field.suffix || ''}</span>
+                  </span>
+                  {errors[field.code] && <span className="structured-field-error">{errors[field.code]}</span>}
+                </label>
+              )
+            })}
           </div>
 
           {submitError && <p className="structured-submit-error" role="alert">{submitError}</p>}

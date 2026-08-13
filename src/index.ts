@@ -137,8 +137,8 @@ async function build() {
   server.get('/health', { config: { rateLimit: false } }, async (_request, reply) => {
     try {
       const [publishedCourses, publishedLessons, publishedKnowledgeObjects] = await Promise.all([
-        prisma.course.count({ where: { published: true } }),
-        prisma.lesson.count({ where: { course: { published: true } } }),
+        prisma.course.count({ where: { published: true, archivedAt: null } }),
+        prisma.lesson.count({ where: { course: { published: true, archivedAt: null } } }),
         prisma.knowledgeObject.count({ where: { status: 'published' } }),
       ])
       return {

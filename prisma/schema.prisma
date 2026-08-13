@@ -584,6 +584,14 @@ model Course {
   sortOrder        Int                    @default(0)
   metadata         String                 @default("{}")
   published        Boolean                @default(false)
+  /// Arşiv sınırı Course seviyesidir. Lesson'da arşiv alanı YOKTUR;
+  /// dersler parent Course üzerinden görünürlük dışına çıkar.
+  /// Geçerli durumlar:
+  ///   ACTIVE   published = true  · archivedAt = null
+  ///   DRAFT    published = false · archivedAt = null
+  ///   ARCHIVED published = false · archivedAt != null
+  /// published = true + archivedAt != null GEÇERSİZDİR.
+  archivedAt       DateTime?
   createdAt        DateTime               @default(now())
   updatedAt        DateTime               @updatedAt
   enrollments      Enrollment[]
@@ -591,7 +599,8 @@ model Course {
   financialCases   FinancialCase[]
   financialModels  FinancialModelCourse[]
 
-  @@index([published, sortOrder])
+  @@index([published, archivedAt, sortOrder])
+  @@index([archivedAt])
 }
 
 model Lesson {
