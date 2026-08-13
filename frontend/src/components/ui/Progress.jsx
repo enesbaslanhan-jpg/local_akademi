@@ -7,7 +7,7 @@ export default function Progress({ value = 0, max = 100, showLabel = false, size
   return (
     <div className={styles.wrapper}>
       <div className={`${styles.track} ${styles[size]}`} role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={max}>
-        <div className={`${styles.fill} ${styles[variant]}`} style={{ width: `${pctDisplay}%` }} />
+        <div className={`${styles.fill} ${styles[variant]}`} style={{ transform: `scaleX(${pctDisplay / 100})` }} />
       </div>
       {showLabel && (
         <span className={styles.label}>%{pctDisplay}</span>

@@ -22,7 +22,7 @@
   white-space: nowrap;
   font-size: var(--font-size-xs);
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.04em;
 }
 
 .sortable {
@@ -39,7 +39,7 @@
 }
 
 .tr {
-  transition: background var(--transition-fast);
+  transition: background var(--dur-fast) var(--ease);
 }
 
 .tr:hover {
@@ -66,7 +66,7 @@
   background: linear-gradient(90deg, var(--border) 25%, var(--bg) 50%, var(--border) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
 }
 
 @keyframes shimmer {
@@ -94,14 +94,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--white);
   color: var(--text);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all var(--dur-fast) var(--ease);
 }
 
 .pageBtn:hover:not(:disabled) {

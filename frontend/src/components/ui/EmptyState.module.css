@@ -1,43 +1,57 @@
+/*
+ * Boş durum.
+ *
+ * Ölçüler sistemden; eylem düğmesi Button sözleşmesiyle aynı (40px, 8px
+ * yarıçap, on-primary metin). İkon opaklıkla soldurulmuyor — rengi
+ * doğrudan --text-muted, böylece koyu modda da doğru kalıyor.
+ */
+
 .empty {
-  text-align: center;
   padding: var(--space-12) var(--space-6);
-  color: var(--text-light);
+  text-align: center;
+  color: var(--text-muted);
 }
 
 .icon {
-  font-size: 48px;
-  margin-bottom: var(--space-4);
-  opacity: 0.5;
   display: flex;
   justify-content: center;
+  margin-bottom: var(--space-4);
+  color: var(--text-muted);
 }
 
 .title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text);
   margin-bottom: var(--space-2);
+  font-size: var(--font-domain-title);
+  font-weight: var(--font-weight-heavy);
+  color: var(--text);
 }
 
 .message {
-  font-size: var(--font-size-base);
-  color: var(--text-light);
-  max-width: 360px;
+  max-width: 46ch;
   margin: 0 auto;
+  font-size: var(--font-body);
+  line-height: var(--line-height-normal);
+  color: var(--text-muted);
 }
 
 .action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--control-h);
   margin-top: var(--space-4);
-  padding: var(--space-3) var(--space-5);
-  background: var(--primary);
-  color: var(--white);
-  border: none;
+  padding: 0 var(--control-px);
+  border: 0;
   border-radius: var(--radius-sm);
-  font-weight: var(--font-weight-semibold);
+  background: var(--primary);
+  color: var(--on-primary);
+  font-family: var(--font-family);
+  font-size: var(--font-body);
+  font-weight: var(--font-weight-bold);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: background var(--dur-fast) var(--ease);
 }
 
 .action:hover {
-  background: var(--primary-dark);
+  background: var(--primary-hover);
 }

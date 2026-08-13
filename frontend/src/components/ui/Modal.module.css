@@ -1,31 +1,37 @@
+/*
+ * Modal.
+ *
+ * Panel gerçekten yükselen bir yüzeydir: --surface-raised zemin, 14px
+ * yarıçap, derin gölge. Cam ARTIK PANELDE DEĞİL — arkasındaki içeriği
+ * bulanıklaştırmak overlay'in işi; panelin kendisi opak durur, üzerindeki
+ * metin ve girdiler net okunur.
+ */
+
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.52);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: var(--z-modal-overlay);
   padding: var(--space-4);
-  animation: fadeSlideIn var(--dur-fast) var(--ease-standard) both;
+  background: var(--surface-overlay);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  z-index: var(--z-modal-overlay);
+  animation: fadeSlideIn var(--dur-fast) var(--ease) both;
 }
 
-/* Modal paneli — izin verilen glass alanlarından biri (kural 5) */
 .modal {
-  background: var(--glass-bg-strong);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
-  box-shadow: var(--glass-shadow);
-  width: 100%;
-  max-height: 85vh;
   display: flex;
   flex-direction: column;
-  animation: fadeSlideUp var(--dur-slow) var(--ease-decelerate) both;
+  width: 100%;
+  max-height: 85vh;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-deep);
   outline: none;
+  animation: fadeSlideUp var(--dur-base) var(--ease) both;
 }
 
 .sm { max-width: 400px; }
@@ -37,9 +43,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-5) var(--space-6);
-  border-bottom: 1px solid var(--border);
+  gap: var(--space-3);
   flex-shrink: 0;
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--line);
 }
 
 /* Başlıksız kullanım — modal yalnızca çerçeve, içerik kendi başlığını taşır. */
@@ -50,8 +57,8 @@
 }
 
 .title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-section-title);
+  font-weight: var(--font-weight-heavy);
   color: var(--text);
 }
 
@@ -59,28 +66,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
   border-radius: var(--radius-sm);
-  color: var(--text-light);
-  transition: background var(--transition-fast), color var(--transition-fast);
+  background: transparent;
+  color: var(--text-muted);
+  transition: background var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
 }
 
 .close:hover {
-  background: var(--bg);
+  background: var(--surface-sunken);
   color: var(--text);
 }
 
 .body {
-  padding: var(--space-6);
   /* Kaydırma her zaman modal gövdesinde olur, içeriğin kendi içinde değil;
-     böylece açılış konumu daima en üsttir (içeriğin üst bloğu görünür). */
-  overflow-y: auto;
+     böylece açılış konumu daima en üsttir. */
   flex: 1 1 auto;
   min-height: 0;
+  padding: var(--space-6);
+  overflow-y: auto;
 }
 
-/* Mobilde tam genişlik, kenar boşluğu dar. */
 @media (max-width: 640px) {
   .overlay {
     padding: var(--space-2);
@@ -88,10 +96,19 @@
   }
 
   .modal {
-    max-width: none;
     width: 100%;
+    max-width: none;
     max-height: calc(100vh - var(--space-4));
   }
 
-  .body { padding: var(--space-4); }
+  .body {
+    padding: var(--space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .modal {
+    animation: none;
+  }
 }

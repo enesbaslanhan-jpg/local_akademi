@@ -1,13 +1,24 @@
+/*
+ * İlerleme — design/index.html `.progress`
+ *   6px yükseklik · tam yuvarlak · marka dolgu · soluk marka ray
+ *
+ * Doluluk width DEĞİL scaleX ile animasyon yapar; width animasyonu layout
+ * thrash üretir. Ray pill biçiminde kırptığı için dolulugun kendi yarıçapı
+ * yok — scaleX onu bozardı.
+ */
+
 .wrapper {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-width: 0;
 }
 
 .track {
   flex: 1;
-  background: var(--border);
+  min-width: 0;
   border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface-sunken));
   overflow: hidden;
 }
 
@@ -16,27 +27,35 @@
 .lg { height: 14px; }
 
 .fill {
+  width: 100%;
   height: 100%;
-  border-radius: var(--radius-full);
-  transition: width 300ms ease;
+  transform-origin: left center;
+  transition: transform var(--dur-base) var(--ease);
 }
 
 .primary {
-  background: var(--brand-teal);
+  background: var(--primary);
 }
 
 .success {
-  background: var(--brand-olive);
+  background: var(--success);
 }
 
 .warning {
-  background: var(--brand-mustard);
+  background: var(--warning);
 }
 
 .label {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-light);
   min-width: 36px;
   text-align: right;
+  font-size: var(--font-body-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    transition: none;
+  }
 }
