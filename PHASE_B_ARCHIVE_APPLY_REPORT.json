@@ -1,0 +1,191 @@
+{
+  "report": "PHASE_B_ARCHIVE_APPLY",
+  "generated_at": "2026-08-17T18:20:00.000Z",
+  "checkpoint": "356a0aa",
+  "applied": true,
+  "apply_status": "SUCCESS",
+  "transaction": "single",
+  "git_committed": false,
+
+  "forbidden_operations_performed": {
+    "hard_delete": false,
+    "lesson_update_or_delete": false,
+    "ko_update_or_delete": false,
+    "shared_ko_mutation": false,
+    "progress_remap": false,
+    "enrollment_update_or_delete": false,
+    "canonical_reimport": false,
+    "canonical_course_mutation": false,
+    "qa_debug_cleanup": false,
+    "git_add_commit_push": false
+  },
+
+  "pre_apply_gates": [
+    { "gate": "hedef kümedeki canonical kurs", "found": 0, "expected": 0, "result": "PASS" },
+    { "gate": "canonical kurs toplamı", "found": 38, "expected": 38, "result": "PASS" },
+    { "gate": "canonical kurs aktif", "found": 38, "expected": 38, "result": "PASS" },
+    { "gate": "toplam kurs", "found": 326, "expected": 326, "result": "PASS" },
+    { "gate": "toplam ders", "found": 1208, "expected": 1208, "result": "PASS" },
+    { "gate": "toplam KO", "found": 993, "expected": 993, "result": "PASS" },
+    { "gate": "arşivlenecek legacy kurs", "found": 288, "expected": 288, "result": "PASS" }
+  ],
+  "gates_rechecked_inside_transaction": true,
+
+  "mutation": {
+    "table_scope": ["Course"],
+    "rows_updated": 288,
+    "shape": { "published": false, "archivedAt": "<now>" },
+    "distinct_archived_at_values": 1,
+    "lesson_mutations": 0,
+    "ko_mutations": 0,
+    "shared_ko_mutations": 0,
+    "deletes": 0,
+    "hard_deletes": 0,
+    "relation_deletes": 0,
+    "progress_remaps": 0,
+    "canonical_mutations": 0
+  },
+
+  "snapshot_diff": {
+    "method": "aynı SQL anlık görüntüsü apply öncesi ve sonrası, diff",
+    "changed_lines": 2,
+    "changes": [
+      { "key": "course.legacy.archived", "before": 0, "after": 288 },
+      { "key": "course.legacy.notArchived", "before": 288, "after": 0 }
+    ],
+    "unchanged": {
+      "course.total": 326,
+      "course.canonical": 38,
+      "course.canonical.active": 38,
+      "course.canonical.idhash": "1fb6203469a0f8a2f0dbe49c9583a78e",
+      "course.legacy.idhash": "3621b08da0cd52d6e06f453644ec970a",
+      "course.invalidState": 0,
+      "lesson.total": 1208,
+      "lesson.idhash": "3e9fe61e9f7998094a4aa052a6dc4be5",
+      "ko.total": 993,
+      "ko.idhash": "d1e7d58781d8260e84c30074e5adc9f7",
+      "ko.statushash": "f46883e926d2299363d3d79d7ea7b3e4",
+      "ko.canonical": 38,
+      "ko.legacy.nullsafe": 955,
+      "ko.legacy.nullcode": 5,
+      "ko.nullcode.idhash": "8bafb1f513d3f85ca6483a18b8160e06",
+      "ko.inconsistent4": 4,
+      "ko.inconsistent4.idhash": "b078fca5ba16d66f1f261affbaa339ee"
+    }
+  },
+
+  "post_verify": {
+    "legacy_published_false_and_archived": 288,
+    "legacy_still_published": 0,
+    "legacy_archivedAt_null": 0,
+    "canonical_published_true": 38,
+    "canonical_archivedAt_null": 38,
+    "invalid_state_published_and_archived": 0,
+    "lessons_under_archived_courses_still_present": 1170
+  },
+
+  "user_history": {
+    "read_live": true,
+    "static_counts_used_as_gate": false,
+    "before": { "Enrollment": 57, "LessonProgress": 14, "KnowledgeProgress": 6, "DecisionCheckSession": 46, "FormulaCalculation": 7, "ActivityEvent": 5, "QuizAttempt": 3, "TaskAssignment": 3, "total": 141 },
+    "after":  { "Enrollment": 57, "LessonProgress": 14, "KnowledgeProgress": 6, "DecisionCheckSession": 46, "FormulaCalculation": 7, "ActivityEvent": 5, "QuizAttempt": 3, "TaskAssignment": 3, "total": 141 },
+    "id_hashes_changed": 0,
+    "enrollment_datahash": { "field": "id:courseId:progress:status", "before": "6a6462e8a8c24cb096f1a75bf8950c94", "after": "6a6462e8a8c24cb096f1a75bf8950c94", "changed": false },
+    "identity_preserved": true,
+    "deletes": 0,
+    "updates": 0,
+    "remaps": 0
+  },
+
+  "api_smoke": {
+    "total": 16,
+    "passed": 16,
+    "failed": 0,
+    "test_user_id": 6,
+    "archived_legacy_course_id": 3,
+    "canonical_course_id": 439,
+    "scenarios": {
+      "A_catalog_hides_archived_legacy": "PASS",
+      "A_catalog_total_is_38": "PASS",
+      "B_search_hides_archived_legacy": "PASS",
+      "C_canonical_38_visible_in_catalog": "PASS",
+      "D_archived_detail_200": "PASS",
+      "D_archived_flag_true": "PASS",
+      "D_enrollment_preserved_in_response": "PASS",
+      "D_progress_not_reset": "PASS",
+      "E_archived_lesson_200": "PASS",
+      "F_draft_detail_404": "PASS",
+      "F_draft_lesson_404": "PASS",
+      "G_canonical_detail_200": "PASS",
+      "G_canonical_archived_false": "PASS",
+      "G_canonical_lesson_not_404": "PASS",
+      "H_dashboard_200": "PASS",
+      "H_dashboard_enrollments_array": "PASS"
+    },
+    "temp_draft_course_cleaned_up": true
+  },
+
+  "observation_dashboard_resume": {
+    "severity": "info",
+    "summary": "learnerDashboard.ts:78 aktif listeyi e.course.published ile süzüyor; arşivlenen legacy kurslar dashboard'un aktif listesinden düşüyor, bu yüzden yalnız legacy kayıtlı kullanıcıların 'devam et' kartı boş görünüyor.",
+    "data_loss": false,
+    "legacy_enrollment_rows_preserved": 49,
+    "direct_access_works": true,
+    "enrolled_users_total": 5,
+    "legacy_only_users_affected": 3,
+    "users_with_canonical_enrollment": 2,
+    "changed_in_this_task": false
+  },
+
+  "idempotency": {
+    "second_run_mode": "dry-run",
+    "apply_flag_passed": false,
+    "legacy_archive_targets": 0,
+    "planned_mutations": 0,
+    "proof": true
+  },
+
+  "verification": {
+    "backend_tests": { "files": 88, "tests": 1315, "result": "PASS" },
+    "frontend_tests": { "files": 28, "tests": 201, "result": "PASS" },
+    "frontend_build": "SUCCESS",
+    "errors": "NONE"
+  },
+
+  "final": {
+    "apply_status": "SUCCESS",
+    "legacy_archive_target_before": 288,
+    "legacy_courses_archived": 288,
+    "legacy_archive_target_after": 0,
+    "canonical_courses_mutated": 0,
+    "lesson_mutations": 0,
+    "ko_mutations": 0,
+    "shared_ko_mutations": 0,
+    "deletes": 0,
+    "hard_deletes": 0,
+    "relation_deletes": 0,
+    "progress_remaps": 0,
+    "user_history_before": 141,
+    "user_history_after": 141,
+    "history_identity_preserved": "YES",
+    "total_course_before_after": "326 / 326",
+    "total_lesson_before_after": "1208 / 1208",
+    "total_ko_before_after": "993 / 993",
+    "canonical_active_after": 38,
+    "legacy_archived_after": 288,
+    "archived_direct_course_access": "PASS",
+    "archived_lesson_access": "PASS",
+    "catalog_hidden": "PASS",
+    "search_hidden": "PASS",
+    "canonical_catalog": "PASS",
+    "recent_continue_regression": "PASS",
+    "second_dry_run_targets": 0,
+    "backend_api_smoke": "16/16 PASS",
+    "errors": "NONE",
+    "phase_b_pass": "YES"
+  },
+
+  "stopped_after_phase_b": true,
+  "phase_c_or_cleanup_executed": false,
+  "legacy_delete_executed": false
+}
