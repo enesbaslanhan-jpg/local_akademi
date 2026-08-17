@@ -1,0 +1,418 @@
+{
+  "generated_at": "2026-08-15T22:40:00.000Z",
+  "policy_round": "SOURCE_POLICY_FINAL — 2026-08-16",
+  "applied": false,
+  "applied_to_canonical_json": true,
+  "applied_to_database": true,
+  "note": "Yalnız web üzerinden tek tek doğrulanmış replacement'lar. Tahmini/türetilmiş URL YOK. DB güncellemesi YAPILMADI. Kayıtlar content/migration/transformed-courses-combined.json içindeki 38 canonical Course'un verified_sources alanına uygulandı (SOURCE_POLICY_FINAL raporuna bakın).",
+  "evidence_levels": {
+    "DOCUMENT": "Belgenin kendi metni okundu (Resmî Gazete tarih/sayı veya standart başlığı teyit edildi).",
+    "KANUN": "Kanunun resmî künye sayfası doğrulandı; dersin atıf yaptığı tebliğ bu sayfanın alt sekmesinde.",
+    "CATEGORY": "Kurumun gerçek liste/kategori sayfası doğrulandı; tekil belge sayfası kurumda adreslenebilir değil."
+  },
+  "replacements": [
+    {
+      "course_id": "COURSE-001",
+      "source_name": "T.C. Gelir İdaresi Başkanlığı - Vergi Usul Kanunu",
+      "old_url": "https://ebelge.gib.gov.tr/",
+      "new_url": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=213&MevzuatTur=1&MevzuatTertip=4",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "Resmî domain mevzuat.gov.tr; sayfa Resmî Gazete 10.01.1961 / 10705 künyesini gösteriyor — 213 sayılı Vergi Usul Kanunu. Eski URL ebelge.gib.gov.tr ana sayfasıydı, kanun metnini içermiyordu."
+    },
+    {
+      "course_id": "COURSE-021",
+      "source_name": "6102 Sayılı Türk Ticaret Kanunu (TTK)",
+      "old_url": "https://www.mevzuat.gov.tr",
+      "new_url": "https://www.mevzuat.gov.tr/Metin1.Aspx?MevzuatKod=1.5.6102&MevzuatIliski=0&sourceXmlSearch=&Tur=1&Tertip=5&No=6102",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "1.5.6102 kodu ve RG 14.02.2011 / 27846 künyesi doğrulandı. Ders şirket türü kararını işliyor; TTK bu düzenlemenin kaynağı."
+    },
+    {
+      "course_id": "COURSE-029",
+      "source_name": "T.C. Ticaret Kanunu",
+      "old_url": "https://www.mevzuat.gov.tr",
+      "new_url": "https://www.mevzuat.gov.tr/Metin1.Aspx?MevzuatKod=1.5.6102&MevzuatIliski=0&sourceXmlSearch=&Tur=1&Tertip=5&No=6102",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "Kaynak adı \"T.C. Ticaret Kanunu\" = 6102 sayılı TTK. Aynı doğrulanmış sayfa (RG 14.02.2011 / 27846)."
+    },
+    {
+      "course_id": "COURSE-035",
+      "source_name": "213 Sayılı Vergi Usul Kanunu - Kasa Envanteri Esasları",
+      "old_url": "https://www.mevzuat.gov.tr",
+      "new_url": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=213&MevzuatTur=1&MevzuatTertip=4",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "213 sayılı VUK, RG 10.01.1961 / 10705. Ders kasa envanteri esaslarını işliyor; VUK bu esasların kaynağı."
+    },
+    {
+      "course_id": "COURSE-012",
+      "source_name": "Mevzuat.gov.tr - 6502 Sayılı Kanun",
+      "old_url": "https://www.mevzuat.gov.tr",
+      "new_url": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6502&MevzuatTur=1&MevzuatTertip=5",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "6502 sayılı Tüketicinin Korunması Hakkında Kanun, RG 28.11.2013 / 28835 künyesi sayfada doğrulandı."
+    },
+    {
+      "course_id": "COURSE-022",
+      "source_name": "4857 Sayılı İş Kanunu",
+      "old_url": "https://www.mevzuat.gov.tr",
+      "new_url": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4857&MevzuatTur=1&MevzuatTertip=5",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "4857 sayılı İş Kanunu, RG 10.06.2003 / 25134 künyesi sayfada doğrulandı."
+    },
+    {
+      "course_id": "COURSE-023",
+      "source_name": "6098 Sayılı Türk Borçlar Kanunu - İşyeri Kira Sözleşmeleri Bölümü",
+      "old_url": "https://www.mevzuat.gov.tr",
+      "new_url": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6098&MevzuatTur=1&MevzuatTertip=5",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "6098 sayılı Türk Borçlar Kanunu, RG 04.02.2011 / 27836 künyesi doğrulandı. İşyeri kira sözleşmeleri bu kanunun konusu."
+    },
+    {
+      "course_id": "COURSE-030",
+      "source_name": "T.C. Borçlar Kanunu",
+      "old_url": "https://www.mevzuat.gov.tr",
+      "new_url": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6098&MevzuatTur=1&MevzuatTertip=5",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "Kaynak adı \"T.C. Borçlar Kanunu\" = 6098 sayılı TBK. Aynı doğrulanmış sayfa (RG 04.02.2011 / 27836)."
+    },
+    {
+      "course_id": "COURSE-019",
+      "source_name": "6698 Sayılı Kişisel Verilerin Korunması Kanunu",
+      "old_url": "https://www.kvkk.gov.tr",
+      "new_url": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6698&MevzuatTur=1&MevzuatTertip=5",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "Render edilen sayfada RG 07.04.2016 / 29677 künyesi görüldü — 6698 sayılı KVKK. Kaynak adı zaten kanunu işaret ediyordu, eski URL kurum ana sayfasıydı."
+    },
+    {
+      "course_id": "COURSE-003",
+      "source_name": "T.C. Ticaret Bakanlığı Fiyat Etiketi Mevzuatı",
+      "old_url": "https://ticaret.gov.tr/",
+      "new_url": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=19819&MevzuatTur=7&MevzuatTertip=5",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "Fiyat Etiketi Yönetmeliği. Aynı sistemin PDF çıktısı okundu: 'FİYAT ETİKETİ YÖNETMELİĞİ ... MADDE 1 - Bu Yönetmeliğin amacı; perakende olarak satışa sunulan mal ve hizmetlerin etiket, tarife ve fiyat listelerinin şekli, içeriği...'"
+    },
+    {
+      "course_id": "COURSE-004",
+      "source_name": "T.C. Ticaret Bakanlığı Perakende Mevzuatı",
+      "old_url": "https://ticaret.gov.tr/",
+      "new_url": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6585&MevzuatTur=1&MevzuatTertip=5",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "6585 sayılı Perakende Ticaretin Düzenlenmesi Hakkında Kanun. PDF metni okundu: 'Kanun Numarası: 6585, Kabul Tarihi: 14/1/2015, Resmî Gazete: 29/1/2015, Sayı: 29251'."
+    },
+    {
+      "course_id": "COURSE-004",
+      "source_name": "T.C. Ticaret Bakanlığı Tüketicinin Korunması Genel Müdürlüğü",
+      "old_url": "https://www.ticaret.gov.tr/",
+      "new_url": "https://tuketici.ticaret.gov.tr/",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "CATEGORY",
+      "verification_reason": "Kaynak adı doğrudan bu genel müdürlüğü işaret ediyor. Sayfa başlığı doğrulandı: 'Tüketicinin Korunması ve Piyasa Gözetimi Genel Müdürlüğü | T.C. Ticaret Bakanlığı'. Bakanlık ana sayfası yerine ilgili genel müdürlük sitesi."
+    },
+    {
+      "course_id": "COURSE-021",
+      "source_name": "Gelir İdaresi Başkanlığı (GİB) - Gelir Vergisi Tarifesi",
+      "old_url": "https://www.gib.gov.tr",
+      "new_url": "https://www.gib.gov.tr/yardim-kaynaklar/yararli-bilgiler/gelir-vergisi-tarifesi",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "Tarayıcıda render edildi: başlık 'GELİR VERGİSİ TARİFELERİ', 2013-2026 yıllarının tarifeleri listeleniyor. WebFetch bu sayfada içerik alamıyordu; DOM doğrulaması yapıldı."
+    },
+    {
+      "course_id": "COURSE-014",
+      "source_name": "GİB Yeni Nesil ÖKC Portalı",
+      "old_url": "https://www.gib.gov.tr/ynokc",
+      "new_url": "https://ynokc.gib.gov.tr/",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "fixes_broken_url": true,
+      "verification_reason": "KIRIK URL DÜZELTMESİ. Mevcut /ynokc adresi soft-404 veriyor ('ARADIĞINIZ SAYFA BULUNAMIYOR') — GİB her URL'e HTTP 200 döndüğü için yalnız DOM ile tespit edildi. Doğru adres GİB'in kendi Yararlı Bilgiler sayfasındaki bağlantıdan alındı; başlık 'Yeni Nesil Ödeme Kaydedici Cihaz-GİB'."
+    },
+    {
+      "course_id": "COURSE-003",
+      "source_name": "T.C. Gelir İdaresi Başkanlığı KDV Tebliği",
+      "old_url": "https://www.gib.gov.tr/",
+      "new_url": "https://www.gib.gov.tr/mevzuat/kanun/436",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "KANUN",
+      "verification_reason": "Render edildi: 3065 sayılı Katma Değer Vergisi Kanunu, RG 02.11.1984 / 18563. Sayfada TEBLİĞLER sekmesi var. Tekil tebliğ sayfaları JS ile açılıyor ve ayrı URL üretmiyor; kanun sayfası adreslenebilir en derin seviye."
+    },
+    {
+      "course_id": "COURSE-028",
+      "source_name": "Gelir İdaresi Başkanlığı KDV Tebliği",
+      "old_url": "https://www.gib.gov.tr",
+      "new_url": "https://www.gib.gov.tr/mevzuat/kanun/436",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "KANUN",
+      "verification_reason": "Aynı doğrulanmış KDV Kanunu sayfası (3065, RG 02.11.1984 / 18563)."
+    },
+    {
+      "course_id": "COURSE-005",
+      "source_name": "Kamu Gözetimi Kurumu TFRS Standartları",
+      "old_url": "https://www.kgk.gov.tr/",
+      "new_url": "https://www.kgk.gov.tr/DynamicContentDetail/5305/Tms-Tfrs-Setleri",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "CATEGORY",
+      "verification_reason": "Başlık 'Türkiye Muhasebe Standartları / Türkiye Finansal Raporlama Standartları (TMS/TFRS)'; TFRS 2011-2026 setleri listeleniyor. Kaynak adı da set düzeyinde ('TFRS Standartları')."
+    },
+    {
+      "course_id": "COURSE-031",
+      "source_name": "Kamu Gözetimi Kurumu TMS 2",
+      "old_url": "https://www.kgk.gov.tr",
+      "new_url": "https://www.kgk.gov.tr/Portalv2Uploads/files/DynamicContentFiles/T%C3%BCrkiye%20Muhasebe%20Standartlar%C4%B1/TMSTFRS2019Seti/TMS/TMS%202.pdf",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "PDF metni okundu: 'TMS 2 STOKLAR ... Standardı 01/01/2006 tarihinden sonra başlayan hesap dönemlerinde uygulanmak üzere 24/05/2018 tarihli ve 30430 sayılı Resmî Gazete'de yayımlanmıştır.' Ders stok/envanter değerlemesini işliyor."
+    },
+    {
+      "course_id": "COURSE-026",
+      "source_name": "Kamu Gözetimi Kurumu TFRS 13",
+      "old_url": "https://www.kgk.gov.tr",
+      "new_url": "https://www.kgk.gov.tr/Portalv2Uploads/files/Duyurular/v2/TFRS/TFRS_2020/TFRS%2013.pdf",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "PDF metni okundu: 'TFRS 13 GERÇEĞE UYGUN DEĞER ÖLÇÜMÜ ... 15/01/2019 tarihli ve 30656 sayılı Resmî Gazete'de (Mükerrer) yayımlanmıştır.'"
+    },
+    {
+      "course_id": "COURSE-009",
+      "source_name": "T.C. Kamu Gözetimi Kurumu Nakit Akış Rehberi",
+      "old_url": "https://www.kgk.gov.tr/",
+      "new_url": "https://www.kgk.gov.tr/Portalv2Uploads/files/DynamicContentFiles/T%C3%BCrkiye%20Muhasebe%20Standartlar%C4%B1/TMSTFRS2018Seti/TMS/TMS_7_2018.pdf",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "PDF metni okundu: 'TMS 7 NAKİT AKIŞ TABLOLARI ... ilk olarak 18/01/2005 tarih ve 25704 sayılı Resmî Gazete'de yayımlanmıştır.' Kaynak adındaki 'Nakit Akış Rehberi' karşılığı TMS 7'dir."
+    },
+    {
+      "course_id": "COURSE-033",
+      "source_name": "KOSGEB Yeşil Destek Programı",
+      "old_url": "https://www.kosgeb.gov.tr",
+      "new_url": "https://www.kosgeb.gov.tr/site/tr/genel/destekler/3/destekler",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "CATEGORY",
+      "verification_reason": "Render edilen Destekler Listesi sayfasında 'Yeşil Sanayi Destek Programı' kalemi görüldü. KOSGEB'in tekil program sayfaları (ör. /destekler/6524/...) boş şablon render ediyor — içerik doğrulanamadığı için kullanılmadı."
+    },
+    {
+      "course_id": "COURSE-025",
+      "source_name": "KOSGEB Girişimcilik Destekleri",
+      "old_url": "https://www.kosgeb.gov.tr",
+      "new_url": "https://www.kosgeb.gov.tr/site/tr/genel/destekler/3/destekler",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "CATEGORY",
+      "verification_reason": "Aynı doğrulanmış Destekler Listesi sayfası; kaynak adı da program listesi düzeyinde."
+    },
+    {
+      "course_id": "COURSE-010",
+      "source_name": "NYU Stern School of Business, Prof. Aswath Damodaran — Corporate Finance and Cost of Capital Databases",
+      "old_url": "https://pages.stern.nyu.edu/",
+      "new_url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/wacccentral.html",
+      "source_class": "PROFESSIONAL_AUTHORITY",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "Başlık 'Cost of Capital Central'; sayfa sermaye maliyeti veri setlerinin merkezi. Ders 'Yatırım Değerlendirmesi ve Sermaye Maliyeti (WACC)' — birebir konu eşleşmesi. Damodaran'ın sermaye maliyeti veri setleri finans pratiğinde standart referans, otoriter kabul edildi."
+    },
+    {
+      "course_id": "COURSE-037",
+      "source_name": "Milletlerarası Ticaret Odası (ICC) Incoterms 2020 Kuralları",
+      "old_url": "https://www.iccwbo.org",
+      "new_url": "https://iccwbo.org/business-solutions/incoterms-rules/incoterms-2020/",
+      "source_class": "PROFESSIONAL_AUTHORITY",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "Başlık 'Incoterms® 2020 - ICC - International Chamber of Commerce'. Incoterms kurallarının sahibi ve tek resmî yayıncısı ICC'dir. Ders 'Uluslararası Teslim Şekilleri (Incoterms)' — birebir eşleşme."
+    },
+    {
+      "course_id": "COURSE-017",
+      "source_name": "IFRS 15 Revenue Standard",
+      "old_url": "https://www.ifrs.org",
+      "new_url": "https://www.ifrs.org/issued-standards/list-of-standards/ifrs-15-revenue-from-contracts-with-customers/",
+      "source_class": "PROFESSIONAL_AUTHORITY",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "Başlık 'IFRS - IFRS 15 Revenue from Contracts with Customers'. IFRS Foundation standardın yayıncısı. Ders LTV/hasılat tanıma bağlamında bu standarda atıf yapıyor."
+    },
+    {
+      "course_id": "COURSE-020",
+      "source_name": "NIST Siber ve Tedarik Zinciri Güvenliği",
+      "old_url": "https://www.nist.gov",
+      "new_url": "https://csrc.nist.gov/projects/cyber-supply-chain-risk-management",
+      "source_class": "PROFESSIONAL_AUTHORITY",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "Başlık 'Cybersecurity Supply Chain Risk Management | CSRC'. Ders 'Tedarikçi Seçimi ve Satın Alma Risk Yönetimi' — tedarik zinciri risk yönetimi konusu birebir örtüşüyor. www.nist.gov altındaki C-SCRM yolu 404 döndü; doğru adres csrc.nist.gov alt alanında."
+    },
+    {
+      "course_id": "COURSE-011",
+      "source_name": "GİB e-Belge Uygulamaları",
+      "old_url": "https://ebelge.gib.gov.tr",
+      "new_url": "https://ebelge.gib.gov.tr/earsivhakkinda.html",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "Sayfa gövdesi okundu: 'e-Arşiv Fatura uygulamasına dâhil olacak sektör ve mükellef grupları genişletilerek, e-Arşiv Faturanın elektronik ortamda oluşturulması... usul ve esaslar yeniden düzenlenmiştir.' Ders 'E-Ticarete Başlangıç ve Kanal Ekonomisi' — e-ticaret satıcısının düzenlemek zorunda olduğu belge e-Arşiv Faturadır."
+    },
+    {
+      "course_id": "COURSE-015",
+      "source_name": "GİB e-Belge Entegrasyon Kılavuzları",
+      "old_url": "https://ebelge.gib.gov.tr",
+      "new_url": "https://ebelge.gib.gov.tr/efaturaentegratorluk.html",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "Sayfa gövdesi okundu: 'Entegrasyon Yöntemi... kendilerine ait bilgi işlem sistemini Başkanlığın sistemine entegre ederek 7/24 kesintisiz bağlantı sağlayabilecek mükelleflerin kullanabilmeleri amacıyla geliştirilmiştir... e-Fatura Uygulaması Entegrasyon Kılavuzu - v1.3'. Ders 'Süreç Entegrasyonu ve Manuel İşlemlerin Maliyet-Fayda Dengesi' — birebir eşleşme."
+    },
+    {
+      "course_id": "COURSE-012, COURSE-013",
+      "shared_source_row": true,
+      "source_name": "T.C. Ticaret Bakanlığı Tüketici Portalı",
+      "old_url": "https://tuketici.ticaret.gov.tr",
+      "new_url": "https://tuketici.ticaret.gov.tr/yayinlar/tuketici-bilgi-rehberi/mesafeli-sozlesmeler-hakkinda-bilgilendirme",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "PAYLAŞILAN SATIR — tek Source kaydı iki derse bağlı, bu yüzden hedef ikisini birden karşılamalı. Sayfa gövdesi okundu: 'Varsa tüm nakliye, teslim ve benzeri ek masraflar' + 'Cayma hakkının kullanımı'. COURSE-012 iade yönetimi (cayma hakkı), COURSE-013 teslimat lojistiği (nakliye/teslim) — Mesafeli Sözleşmeler bilgilendirmesi ikisini de kapsıyor. Rehberin 23 alt sayfası kurumun kendi DOM'undan listelendi."
+    },
+    {
+      "course_id": "COURSE-011, COURSE-025",
+      "shared_source_row": true,
+      "source_name": "T.C. Ticaret Bakanlığı ETBİS",
+      "old_url": "https://www.etbis.gov.tr",
+      "new_url": "https://etbis.ticaret.gov.tr/",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "fixes_broken_url": true,
+      "verification_reason": "KIRIK URL DÜZELTMESİ. www.etbis.gov.tr ve etbis.gov.tr DNS'te YOK (NXDOMAIN) — alan adı hiç var olmamış, bu kayıt hiçbir zaman çalışmadı. Gerçek ETBİS portalı etbis.ticaret.gov.tr; içerik doğrulandı: 'ETBİS'e giriş yap · İşletme Girişi · SİTE SORGULAMA · MEVZUAT · TÜRKİYE'DE E-TİCARETİN GÖRÜNÜMÜ 2025 RAPORU'."
+    },
+    {
+      "course_id": "COURSE-022",
+      "source_name": "Sosyal Güvenlik Kurumu (SGK) - İşveren Teşvikleri",
+      "old_url": "https://www.sgk.gov.tr",
+      "new_url": "https://www.sgk.gov.tr/Content/Post/c52f99f0-da6c-4029-9b9a-a0d6f96a6a42/Guncel-Sigorta-Primi-Tesvik-Destek-ve-Indirimleri-2026-08-04-10-29-55",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "url_stability_warning": "SGK bu sayfayı tarih ekli slug ile yayımlıyor; güncellemede slug değişebilir. GUID kısmı (c52f99f0-...) sabit görünüyor. Periyodik link kontrolü önerilir.",
+      "verification_reason": "Başlık 'GÜNCEL SİGORTA PRİMİ TEŞVİK, DESTEK VE İNDİRİMLERİ - Sosyal Güvenlik Kurumu'. Gövde: 'malullük, yaşlılık ve ölüm sigortaları işveren hissesinin 2 puanlık kısmı Hazinece karşılanmaktadır. İmalat sektörü için indirim oranı 2026 yılı sonuna kadar 5 puan'. Ders 'Yeni Personel İstihdamı ve Tam Yüklü İşçilik Maliyeti' — işveren teşvikleri işçilik maliyetinin doğrudan bileşeni."
+    },
+    {
+      "course_id": "COURSE-027",
+      "source_name": "TÜBİTAK TEYDEB Rehberi",
+      "old_url": "https://www.tubitak.gov.tr",
+      "new_url": "https://tubitak.gov.tr/tr/destekler/sanayi/ulusal-destek-programlari",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "CATEGORY",
+      "verification_reason": "Başlık 'Ulusal Destek Programları | TÜBİTAK'. TEYDEB'in yürüttüğü 1501/1507 sanayi Ar-Ge destek programlarının resmî sayfası. Ders 'Yatırımcı Sunumu ve Finansal Projeksiyon Hazırlama' — destek başvuruları finansal projeksiyon gerektirir. TEYDEB adında ayrı bir 'Rehber' belgesi adreslenebilir değil; program sayfası en derin doğrulanabilir seviye."
+    },
+    {
+      "course_id": "COURSE-038",
+      "source_name": "TÜBİTAK BİLGEM Yapay Zekâ Enstitüsü",
+      "old_url": "https://www.tubitak.gov.tr",
+      "new_url": "https://bilgem.tubitak.gov.tr/yze/",
+      "source_class": "OFFICIAL_GOV",
+      "evidence_level": "DOCUMENT",
+      "verification_reason": "Başlık 'YZE - TÜBİTAK BİLGEM'. yze.bilgem.tubitak.gov.tr bu kanonik adrese yönleniyor; final URL kullanıldı. bilgem.tubitak.gov.tr/yapay-zeka-enstitusu/ denendi ve 404 döndü — tahmin patch'e girmedi."
+    }
+  ],
+  "policy_final_round_2026_08_16": [
+    {
+      "course_id": "COURSE-018",
+      "source_name": "İleti Yönetim Sistemi Resmi Portalı",
+      "old_url": "https://www.iys.org.tr",
+      "new_url": "https://iys.org.tr/",
+      "source_class": "PROFESSIONAL_AUTHORITY",
+      "evidence_level": "CATEGORY",
+      "fixes_broken_url": true,
+      "verification_reason": "KIRIK URL DÜZELTMESİ. www.iys.org.tr ana sayfası HTTP 404 döndürüyor (www alt alanı yayında değil). https://iys.org.tr/ HTTP 200 ve sayfa başlığı 'İleti Yönetim Sistemi' ile doğrulandı. Ders 'Sadakat Programı Tasarımı ve Pilot Test Kararı' — izinli pazarlama/sadakat verisi İYS üzerinden yönetiliyor."
+    },
+    {
+      "course_id": "COURSE-036",
+      "source_name": "TOCICO — Theory of Constraints International Certification Organization (Kısıtlar Teorisi)",
+      "old_url": "https://www.ispat.gov.tr",
+      "new_url": "https://www.tocico.org/",
+      "source_class": "PROFESSIONAL_AUTHORITY",
+      "evidence_level": "CATEGORY",
+      "fixes_broken_url": true,
+      "verification_reason": "KIRIK URL DÜZELTMESİ. www.ispat.gov.tr ve ispat.gov.tr DNS'te YOK (NXDOMAIN) — alan adı hiç var olmamış, kayıt hiçbir zaman çalışmadı. Kısıtlar Teorisi'nin otoriter kuruluşu TOCICO'nun portalı canlı doğrulandı (DNS + HTTP 200 + render). Ders 'İşletmede Darboğaz (Bottleneck) Analizi ve Kapasite Planlama' — TOC, darboğaz analizinin metodoloji kaynağı."
+    }
+  ],
+  "content_correction_round_2026_08_17": [
+    {
+      "course_id": "COURSE-006",
+      "source_name": "U.S. Small Business Administration - Break-even Point",
+      "old_name": "T.C. Kamu Gözetimi Kurumu",
+      "old_url": "https://www.kgk.gov.tr/",
+      "new_url": "https://www.sba.gov/business-guide/plan-your-business/calculate-your-startup-costs/break-even-point",
+      "source_class": "PROFESSIONAL_AUTHORITY",
+      "evidence_level": "DOCUMENT",
+      "content_correction": "REPLACE_WITH_VALID_SOURCE",
+      "verification_reason": "İÇERİK DÜZELTMESİ (CLAIM_SOURCE_MISMATCH). KGK genel portalı 'Başa Baş Noktası ve Güvenlik Marjı' dersini desteklemiyordu. Sayfa canlı doğrulandı (HTTP 200): başlık 'Break-even point | U.S. Small Business Administration'; gövde başa baş formülü, sabit/değişken maliyet ve katkı payı analizini veriyor — ders iddiasıyla birebir eşleşme. Resmî ABD hükûmet kurumu."
+    },
+    {
+      "course_id": "COURSE-007",
+      "source_name": "CFA Institute Financial Resources",
+      "old_name": "T.C. Kamu Gözetimi Kurumu",
+      "old_url": "https://www.kgk.gov.tr/",
+      "new_url": "https://rpc.cfainstitute.org/",
+      "source_class": "PROFESSIONAL_AUTHORITY",
+      "evidence_level": "CATEGORY",
+      "content_correction": "REPLACE_WITH_VALID_SOURCE",
+      "verification_reason": "İÇERİK DÜZELTMESİ (CLAIM_SOURCE_MISMATCH). KGK genel portalı 'Ürün Portföyü ve SKU Kârlılık Yönetimi' dersini desteklemiyordu. CFA Institute Research & Policy Center portalı canlı doğrulandı (HTTP 200); ürün katkı payı ve maliyet analizi CFA müfredatının konusudur. Belge adı uydurulmadı — kurum adıyla jenerik kayıt (mevcut CFA ×4 kaydıyla aynı seviye, kural 7/8)."
+    },
+    {
+      "course_id": "COURSE-007",
+      "source_name": null,
+      "old_name": "Kamuyu Aydınlatma Platformu",
+      "old_url": "https://www.kap.org.tr/",
+      "new_url": null,
+      "source_class": null,
+      "evidence_level": null,
+      "content_correction": "REMOVE_SOURCE",
+      "verification_reason": "İÇERİK DÜZELTMESİ (CLAIM_SOURCE_MISMATCH). KAP, halka açık şirket bildirim/bilgilendirme platformudur; SKU kârlılık analizini destekleyen içerik barındırmaz. Dersi gerçekten destekleyen doğrulanmış alternatif bulunamadı (mükerrer CFA eklemek kabul edilmedi) — kayıt kaldırıldı, kaynak sayısı kaybı kabul edildi."
+    },
+    {
+      "course_id": "COURSE-008",
+      "source_name": "U.S. Small Business Administration - Manage Your Finances",
+      "old_name": "T.C. Kamu Gözetimi Kurumu",
+      "old_url": "https://www.kgk.gov.tr/",
+      "new_url": "https://www.sba.gov/business-guide/manage-your-business/manage-your-finances",
+      "source_class": "PROFESSIONAL_AUTHORITY",
+      "evidence_level": "DOCUMENT",
+      "content_correction": "REPLACE_WITH_VALID_SOURCE",
+      "verification_reason": "İÇERİK DÜZELTMESİ (CLAIM_SOURCE_MISMATCH). KGK genel portalı 'Net İşletme Sermayesi ve Büyümenin Nakit Bedeli' dersini desteklemiyordu. Sayfa canlı doğrulandı (HTTP 200): bilanço, nakit akışı projeksiyonu, alacak/borç (accounts receivable/payable) ve nakit yönetimi konularını kapsıyor — işletme sermayesi/nakit iddiasını destekliyor. Resmî ABD hükûmet kurumu."
+    },
+    {
+      "course_id": "COURSE-017",
+      "source_name": "Harvard Business Review - What Most Companies Miss About Customer Lifetime Value",
+      "old_name": "KAP Finansal Raporlama Portalı",
+      "old_url": "https://www.kap.org.tr",
+      "new_url": "https://hbr.org/2017/04/what-most-companies-miss-about-customer-lifetime-value",
+      "source_class": "PROFESSIONAL_AUTHORITY",
+      "evidence_level": "DOCUMENT",
+      "content_correction": "REPLACE_WITH_VALID_SOURCE",
+      "verification_reason": "İÇERİK DÜZELTMESİ (CLAIM_SOURCE_MISMATCH). KAP portalı 'Müşteri Yaşam Boyu Değeri (LTV) ve Churn Analizi' dersini desteklemiyordu. Makale canlı doğrulandı (HTTP 200): başlık 'What Most Companies Miss About Customer Lifetime Value' (Harvard Business Review, Michael Schrage, 18 Nisan 2017) — müşteri yaşam boyu değeri ölçümü ve müşteri kazanım/elde tutma kararları, ders iddiasıyla birebir eşleşme. Harvard Business School Publishing otoritesi."
+    },
+    {
+      "course_id": "COURSE-034",
+      "source_name": null,
+      "old_name": "Kamu Gözetimi Kurumu Analiz Standartları",
+      "old_url": "https://www.kgk.gov.tr",
+      "new_url": null,
+      "source_class": null,
+      "evidence_level": null,
+      "content_correction": "REMOVE_SOURCE",
+      "verification_reason": "İÇERİK DÜZELTMESİ (NONEXISTENT_SOURCE). 'Kamu Gözetimi Kurumu Analiz Standartları' adı KGK yayın kataloğunda karşılığı olmayan uydurma belge adıdır; kurum bu adla bir yayın yayımlamamaktadır. Gerçek yayın karşılığı bulunamadığı için kayıt kaldırıldı; kaynak sayısını korumak için sahte replacement üretilmedi (kullanıcı talimatı)."
+    },
+    {
+      "course_id": "COURSE-034",
+      "source_name": null,
+      "old_name": "Gelir İdaresi Başkanlığı Analiz Rehberi",
+      "old_url": "https://www.gib.gov.tr",
+      "new_url": null,
+      "source_class": null,
+      "evidence_level": null,
+      "content_correction": "REMOVE_SOURCE",
+      "verification_reason": "İÇERİK DÜZELTMESİ (NONEXISTENT_SOURCE). 'Gelir İdaresi Başkanlığı Analiz Rehberi' adı GİB yayın kataloğunda karşılığı olmayan uydurma belge adıdır; kurum bu adla bir rehber yayımlamamaktadır. Gerçek yayın karşılığı bulunamadığı için kayıt kaldırıldı; sahte replacement üretilmedi (kullanıcı talimatı)."
+    }
+  ]
+}

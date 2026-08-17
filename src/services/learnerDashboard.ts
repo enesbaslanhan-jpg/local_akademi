@@ -85,9 +85,39 @@ export async function learnerDashboardRoutes(fastify: FastifyInstance) {
       ? Math.round(visibleEnrollments.reduce((s, e) => s + e.progress, 0) / visibleEnrollments.length)
       : 0
 
-    let resumeItem = visibleEnrollments
-      .filter(e => e.status === 'in_progress')
-      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0] || null
+    /* "Devam et" kartı EN SON GÖRÜNTÜLENEN dersin kursunu göstermeli.
+       Enrollment.updatedAt yalnız ilerleme kaydedildiğinde değişiyor; tek
+       başına kullanıldığında kullanıcı başka bir kursu açsa bile kart aynı
+       kursta kalıyordu. Bu yüzden önce LessonProgress.lastViewedAt'e
+       bakıyoruz, karşılığı yoksa eski davranışa düşüyoruz. */
+    const inProgress = visibleEnrollments.filter(e => e.status === 'in_progress')
+
+    let resumeItem = null as (typeof visibleEnrollments)[number] | null
+
+    if (inProgress.length > 0) {
+      /* Bu dosyadaki diğer sorgular gibi hataya dayanıklı: tek bir alt
+         sorgunun düşmesi Ana Sayfa'nın tamamını 500 yapmamalı. `?.` ayrıca
+         delegate'in hiç bulunmadığı durumu da karşılıyor — eksik alana
+         erişim SENKRON atar ve `.catch()` onu yakalamaz. */
+      const lastViewed = await (prisma as any).lessonProgress?.findFirst({
+        where: {
+          userId: user.id,
+          lastViewedAt: { not: null },
+          lesson: { courseId: { in: inProgress.map(e => e.courseId) } }
+        },
+        orderBy: { lastViewedAt: 'desc' },
+        select: { lesson: { select: { courseId: true } } }
+      })?.catch(() => null)
+
+      if (lastViewed?.lesson?.courseId) {
+        resumeItem = inProgress.find(e => e.courseId === lastViewed.lesson.courseId) ?? null
+      }
+    }
+
+    if (!resumeItem) {
+      resumeItem = inProgress
+        .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0] || null
+    }
 
     if (!resumeItem) {
       const legacyEnrollment = enrollments

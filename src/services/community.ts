@@ -32,6 +32,8 @@ export const communityPostSchema = z.object({
 })
 
 export const officialPostSchema = communityPostSchema.extend({
+  content: z.string().trim().max(10000).optional(),
+  category: z.string().trim().max(60).optional(),
   sourceUrl: z.string().url().max(1000),
   sourceTitle: z.string().trim().min(2).max(200),
   sourcePublishedAt: z.string().datetime().optional(),
@@ -392,6 +394,8 @@ export async function communityRoutes(
         postType: 'official',
         title: parsed.data.title,
         summary: parsed.data.summary,
+        content: parsed.data.content || null,
+        category: parsed.data.category || null,
         sourceUrl: parsed.data.sourceUrl,
         sourceTitle: parsed.data.sourceTitle,
         sourcePublishedAt: parsed.data.sourcePublishedAt

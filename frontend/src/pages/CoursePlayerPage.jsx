@@ -9,6 +9,11 @@ import VideoPlayer from '@/components/ui/VideoPlayer'
 import { EmbeddedPracticeBlock } from '@/components/practice/EmbeddedPracticeBlock'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
+import rehypeKatex from 'rehype-katex'
+import 'katex/dist/katex.min.css'
+import CanonicalLessonSections from '@/components/course/CanonicalLessonSections'
+import { splitCanonicalMarkdown } from '@/utils/canonicalContent'
 import {
   ChevronLeft, ChevronRight, Menu, X, CheckCircle, BookOpen,
   Clock, Target, FileText, ListChecks, Zap, ArrowLeft, AlertCircle,
@@ -34,6 +39,22 @@ function buildShortSummary(metadata, content) {
   return summary.length > 320 ? `${summary.slice(0, 317).trim()}...` : summary
 }
 
+/**
+ * Ders id'si verilmediğinde hangi derse açılacağını seçer.
+ *
+ * Sıra: (1) en son görüntülenen ders, (2) tamamlanmamış ilk ders,
+ * (3) ilk ders. Böylece kursa dönen kullanıcı başa atılmaz.
+ */
+function resumeLessonId(lessons) {
+  const viewed = lessons
+    .filter(item => item.progress?.lastViewedAt)
+    .sort((a, b) => new Date(b.progress.lastViewedAt) - new Date(a.progress.lastViewedAt))[0]
+  if (viewed) return viewed.id
+
+  const firstIncomplete = lessons.find(item => item.progress?.status !== 'completed')
+  return (firstIncomplete ?? lessons[0]).id
+}
+
 export default function CoursePlayerPage() {
   const { courseId, lessonId } = useParams()
   const navigate = useNavigate()
@@ -56,9 +77,15 @@ export default function CoursePlayerPage() {
 
       if (lessonData) {
         setLesson(lessonData.lesson)
+        /* Kaldığın yeri işaretle. Sessizce başarısız olabilir — okuma
+           akışını bloke etmemeli. İlerleme yüzdesine dokunmuyor. */
+        api.learning.lessonView(lessonData.lesson.id).catch(() => {})
       } else if (courseData.course.lessons?.length > 0) {
-        const firstLessonId = courseData.course.lessons[0].id
-        navigate(`/app/courses/${courseId}/learn/${firstLessonId}`, { replace: true })
+        /* Ders id'si verilmemiş. İLK derse değil, EN SON GÖRÜNTÜLENEN derse
+           dön; yoksa ilk derse. Eskiden hep ilk ders açılıyordu, bu yüzden
+           kursa geri dönmek kullanıcıyı başa atıyordu. */
+        const target = resumeLessonId(courseData.course.lessons)
+        navigate(`/app/courses/${courseId}/learn/${target}`, { replace: true })
         return
       }
     } catch (err) {
@@ -104,6 +131,14 @@ export default function CoursePlayerPage() {
   const ko = lesson?.knowledgeObject
   const meta = ko?.metadata || {}
   const shortSummary = buildShortSummary(meta, ko?.content)
+
+  /* Canonical ders: gövdeden yapısal olarak tekrar eden bölümler ayrılır
+     ve matematik render edilir. Legacy derslerde hiçbir şey değişmez. */
+  const isCanonical = Boolean(ko?.code?.startsWith('CANON-'))
+  const canonicalMeta = isCanonical ? meta : {}
+  const { body: canonicalBody, sections: canonicalSections } = isCanonical
+    ? splitCanonicalMarkdown(ko?.content || '')
+    : { body: '', sections: {} }
 
   /* Kurs ilerlemesi — tümü gerçek veriden türetilir. */
   const lessons = course.lessons || []
@@ -313,15 +348,30 @@ export default function CoursePlayerPage() {
 
                 {/* Öğrenme çıktıları sağ sütuna taşındı ("Bu derste kazanacaklarınız") */}
 
-                {/* Main content */}
+                {/* Main content
+                    Canonical derste gövde, yapısal olarak tekrar eden
+                    bölümlerden (karar araçları / pratik kartlar / kaynakça)
+                    ayrılır; onlar aşağıda bileşen olarak render edilir.
+                    Legacy derslerde içerik olduğu gibi basılır. */}
                 <Card className={styles.section}>
                   <h2 className={styles.sectionTitle}><BookOpen size={16} /> İçerik</h2>
                   <div className={styles.markdown}>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {ko.content || ''}
+                    <ReactMarkdown
+                      remarkPlugins={isCanonical ? [remarkGfm, remarkMath] : [remarkGfm]}
+                      rehypePlugins={isCanonical ? [rehypeKatex] : []}
+                    >
+                      {isCanonical ? canonicalBody : (ko.content || '')}
                     </ReactMarkdown>
                   </div>
                 </Card>
+
+                {isCanonical && (
+                  <CanonicalLessonSections
+                    decisionToolCode={canonicalMeta.decisionToolCode}
+                    strippedSections={canonicalSections}
+                    embeddedPracticeBlocks={lesson.embeddedPracticeBlocks}
+                  />
+                )}
 
                 {/* Examples */}
                 {meta.examples?.length > 0 && (
@@ -370,8 +420,11 @@ export default function CoursePlayerPage() {
                   </Card>
                 )}
 
-                {/* Embedded Practice Blocks */}
-                {lesson.embeddedPracticeBlocks?.length > 0 && (
+                {/* Embedded Practice Blocks
+                    Canonical derste bu kutular tam sadakat kartları olarak
+                    CanonicalLessonSections içinde render edilir; burada
+                    jenerik halini tekrar basmaya gerek yok. */}
+                {!isCanonical && lesson.embeddedPracticeBlocks?.length > 0 && (
                   <Card className={styles.section}>
                     <h2 className={styles.sectionTitle}><Zap size={16} /> Uygulama Kutuları</h2>
                     <EmbeddedPracticeBlock

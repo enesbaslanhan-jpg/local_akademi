@@ -157,6 +157,9 @@ export async function courseRoutes(fastify: FastifyInstance) {
           videoPercent: progress.videoPercent,
           quizPercent: progress.quizPercent,
           taskPercent: progress.taskPercent,
+          /* Kaldığı yere dönebilmek için gerekli: ders id'si verilmediğinde
+             Course Player ilk derse değil, en son görüntülenen derse açar. */
+          lastViewedAt: progress.lastViewedAt,
         } : null,
         isLocked,
       }
@@ -346,6 +349,9 @@ export async function courseRoutes(fastify: FastifyInstance) {
           videoPercent: progress.videoPercent,
           quizPercent: progress.quizPercent,
           taskPercent: progress.taskPercent,
+          /* Kaldığı yere dönebilmek için gerekli: ders id'si verilmediğinde
+             Course Player ilk derse değil, en son görüntülenen derse açar. */
+          lastViewedAt: progress.lastViewedAt,
         } : null,
         embeddedPracticeBlocks,
         prevLesson: prevLesson ? { id: prevLesson.id, title: prevLesson.title } : null,

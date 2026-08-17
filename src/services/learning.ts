@@ -206,6 +206,65 @@ export async function learningRoutes(fastify: FastifyInstance, opts?: { prisma?:
     return recomputeLessonAndEnrollment(prisma, user.id, validated.lessonId, { readingPercent: 100 })
   })
 
+  /* Ders açıldığında "kaldığın yer" işaretini yazar.
+   *
+   * İLERLEME YÜZDESİNE DOKUNMAZ — bir dersi açmak onu okumuş saymaz.
+   * Yalnız `lastViewedAt` güncellenir; Course Player ders id'si olmadan
+   * açıldığında ve Ana Sayfa'daki "devam et" kartı bunu kullanır.
+   * Bu kayıt olmadan ikisi de her zaman ilk dersi/aynı kursu gösterir.
+   */
+  const lessonViewSchema = z.object({
+    lessonId: z.number().int().positive()
+  })
+
+  fastify.post('/learning/lesson-view', {
+    preHandler: [fastify.authenticate]
+  }, async (request, reply) => {
+    const user = request.user as { id: number }
+    let validated: z.infer<typeof lessonViewSchema>
+    try {
+      validated = lessonViewSchema.parse(request.body)
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return reply.status(422).send({ error: 'Validation failed', details: err.errors })
+      }
+      return reply.status(422).send({ error: 'Invalid request body' })
+    }
+
+    const lesson = await prisma.lesson.findUnique({ where: { id: validated.lessonId } })
+    if (!lesson) return reply.status(404).send({ error: 'Lesson not found' })
+    const enrollment = await prisma.enrollment.findUnique({
+      where: { userId_courseId: { userId: user.id, courseId: lesson.courseId } },
+    })
+    if (!enrollment) return reply.status(403).send({ error: 'Not enrolled' })
+
+    const now = new Date()
+    await prisma.$transaction([
+      prisma.lessonProgress.upsert({
+        where: { userId_lessonId: { userId: user.id, lessonId: validated.lessonId } },
+        create: {
+          userId: user.id,
+          lessonId: validated.lessonId,
+          status: 'in_progress',
+          startedAt: now,
+          lastViewedAt: now
+        },
+        /* Tamamlanmış dersin durumunu geri almıyoruz. */
+        update: { lastViewedAt: now }
+      }),
+      /* Kayıt "başlamadı" ise ilk görüntülemede "devam ediyor" olur.
+         Ayrıca `@updatedAt` tetiklenir; Ana Sayfa sıralaması için gerekli. */
+      prisma.enrollment.update({
+        where: { id: enrollment.id },
+        data: enrollment.status === 'not_started'
+          ? { status: 'in_progress' }
+          : { status: enrollment.status }
+      })
+    ])
+
+    return { ok: true, lessonId: validated.lessonId, lastViewedAt: now }
+  })
+
   // Update lesson overall progress (called from quiz/task completion)
   const lessonProgressSchema = z.object({
     lessonId: z.number().int().positive(),

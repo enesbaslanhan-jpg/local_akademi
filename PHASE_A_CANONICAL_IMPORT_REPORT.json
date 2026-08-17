@@ -1,0 +1,89 @@
+{
+  "generated_at": "2026-08-15T09:09:14.157Z",
+  "mode": "apply",
+  "status": "ALREADY_APPLIED",
+  "phase_b_executed": false,
+  "preflight": {
+    "canonical_valid": true,
+    "canonical_records": 38,
+    "duplicate_ids": 0,
+    "duplicate_slugs": 0,
+    "decision_tools_required": 13,
+    "decision_tools_found": 13,
+    "missing_decision_tools": [],
+    "legacy_courses": 288,
+    "legacy_lessons": 1170
+  },
+  "plan_or_created": {
+    "courses": 38,
+    "lessons": 38,
+    "kos": 38,
+    "koVersions": 38,
+    "sources": 80,
+    "sourceLinks": 80,
+    "practiceCards": 76
+  },
+  "legacy_before": {
+    "courses": 288,
+    "lessons": 1170,
+    "kos": 950,
+    "inconsistentKos": 4,
+    "archivedCourses": 0
+  },
+  "legacy_after": {
+    "courses": 288,
+    "lessons": 1170,
+    "kos": 950,
+    "inconsistentKos": 4,
+    "archivedCourses": 0
+  },
+  "user_history_before": {
+    "Enrollment": 47,
+    "DecisionCheckSession": 45,
+    "LessonProgress": 12,
+    "KnowledgeProgress": 6,
+    "FormulaCalculation": 6,
+    "ActivityEvent": 5,
+    "QuizAttempt": 3,
+    "TaskAssignment": 3
+  },
+  "user_history_after": {
+    "Enrollment": 47,
+    "DecisionCheckSession": 45,
+    "LessonProgress": 12,
+    "KnowledgeProgress": 6,
+    "FormulaCalculation": 6,
+    "ActivityEvent": 5,
+    "QuizAttempt": 3,
+    "TaskAssignment": 3
+  },
+  "user_history_deletes": 0,
+  "progress_remaps": 0,
+  "verify": {
+    "canonical_courses": 38,
+    "canonical_lessons": 38,
+    "canonical_kos": 38,
+    "canonical_ko_versions": 38,
+    "canonical_source_links": 80,
+    "canonical_practice_blocks": 76,
+    "decision_tool_links_valid": 38,
+    "dc_tax_013_valid": true,
+    "duplicate_canonical_slugs": 0,
+    "legacy_courses_modified": 0,
+    "legacy_lessons_modified": 0,
+    "legacy_kos_modified": 0,
+    "legacy_courses_archived": 0,
+    "inconsistent_kos_untouched": true
+  },
+  "smoke": {
+    "catalog_api_visible_canonical": 38,
+    "course_detail_reads": true,
+    "lesson_content_present": true,
+    "sources_present": true,
+    "practice_cards_present": true,
+    "decision_tool_cta_resolvable": true,
+    "course_021_tax_link": true,
+    "course_021_slug": "sirket-kurulumu-ve-vergi-planlamasi"
+  },
+  "phase_a_pass": true
+}

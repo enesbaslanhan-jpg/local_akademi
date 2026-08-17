@@ -144,6 +144,63 @@ function buildBlockFromCard(
   }
 }
 
+/**
+ * Canonical bloklarin duz aciklamasini yapisal alanlara ayirir.
+ *
+ * - common_mistake: "Yaygin Hata" / "Dogru Yaklasim" ayrimini cikarir.
+ * - formula: aciklamadaki formulu content.formula'ya tasir.
+ *
+ * Ayrilan metin shortDescription'dan DUSURULUR; yoksa istemci ayni
+ * icerigi hem ozet hem yapisal kutuda basiyor.
+ */
+function deriveCanonicalFields(
+  type: EmbeddedBlockType,
+  shortDescription: string | null,
+  content: EmbeddedPracticeBlock['content']
+): { shortDescription: string | null; content: EmbeddedPracticeBlock['content'] } {
+  const text = (shortDescription ?? '').replace(/\*\*/g, '').trim()
+  if (!text) return { shortDescription, content }
+
+  if (type === 'common_mistake') {
+    const hasLabels = /Yayg[ıi]n\s+Hata\s*:|Do[ğg]ru\s+Yakla[şs][ıi]m\s*:/i.test(text)
+
+    if (hasLabels) {
+      const wrong = text.match(/Yayg[ıi]n\s+Hata\s*:?\s*([\s\S]*?)(?=Do[ğg]ru\s+Yakla[şs][ıi]m\s*:|$)/i)?.[1]?.trim()
+      const correct = text.match(/Do[ğg]ru\s+Yakla[şs][ıi]m\s*:?\s*([\s\S]*)$/i)?.[1]?.trim()
+      return {
+        // Ozet ve mainContent dusuruldu: ayni metin yapisal kutularda.
+        shortDescription: null,
+        content: {
+          ...content,
+          mainContent: undefined,
+          ...(wrong ? { mistake: wrong } : {}),
+          ...(correct ? { correctApproach: correct } : { correctApproach: undefined })
+        }
+      }
+    }
+
+    /* Etiket yok: tek cumlelik uyari. Bunu HEM ozet HEM "dogru yaklasim"
+       olarak basmak ayni metni iki kez gosteriyordu. Tek yere, "yaygin
+       hata" tarafina yaziyoruz; uydurma bir "dogru yaklasim" uretmiyoruz. */
+    if (text) {
+      return {
+        shortDescription: null,
+        content: { ...content, mainContent: undefined, mistake: text, correctApproach: undefined }
+      }
+    }
+  }
+
+  if (type === 'formula' && !content.formula) {
+    /* "Ad = a + b + c" bicimindeki formulu ayir. Esitlik yoksa aciklama
+       oldugu gibi kalir; uydurma formul uretilmez. */
+    if (/=/.test(text)) {
+      return { shortDescription: null, content: { ...content, formula: text } }
+    }
+  }
+
+  return { shortDescription, content }
+}
+
 function buildScopedMetadataBlocks(metadataValue: string | null, koId: number): EmbeddedPracticeBlock[] {
   let metadata: any
   try {
@@ -161,14 +218,30 @@ function buildScopedMetadataBlocks(metadataValue: string | null, koId: number): 
       typeof block.title === 'string' &&
       ['formula', 'checklist', 'common_mistake', 'quick_application'].includes(block.type)
     )
-    .map((block: any, index: number) => ({
-      id: `ko-${koId}-${String(block.id || index)}`,
-      type: block.type as EmbeddedBlockType,
-      title: String(block.title),
-      shortDescription: block.shortDescription ? String(block.shortDescription) : null,
-      content: extractContentFields(block.content, block.type as EmbeddedBlockType),
-      relatedDecisionCheckCode: null
-    }))
+    .map((block: any, index: number) => {
+      const shortDescription = block.shortDescription ? String(block.shortDescription) : null
+      const content = extractContentFields(block.content, block.type as EmbeddedBlockType)
+
+      /* Canonical import bloklari duz aciklama olarak tasiyor:
+         "**Yaygin Hata:** ... **Dogru Yaklasim:** ..." veya ham formul.
+         Bunlari yapisal alanlara burada ayiriyoruz — aksi halde istemci
+         ham markdown basiyor ve ayni metin iki kez gorunuyor.
+         Veri yeniden import edilmiyor; yalniz okuma katmani duzeltiliyor. */
+      const derived = deriveCanonicalFields(
+        block.type as EmbeddedBlockType,
+        shortDescription,
+        content
+      )
+
+      return {
+        id: `ko-${koId}-${String(block.id || index)}`,
+        type: block.type as EmbeddedBlockType,
+        title: String(block.title),
+        shortDescription: derived.shortDescription,
+        content: derived.content,
+        relatedDecisionCheckCode: null
+      }
+    })
 }
 
 async function fetchPublishedCardWithLatestVersion(code: string) {

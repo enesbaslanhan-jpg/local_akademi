@@ -1,0 +1,153 @@
+{
+  "generated_at": "2026-08-17T00:00:00.000Z",
+  "round": "CANONICAL_SOURCE_CONTENT_CORRECTION — 2026-08-17",
+  "scope": "Yalnız 7 problemli canonical source kaydı (SOURCE_POLICY_FINAL_REPORT: 2 NONEXISTENT_SOURCE + 5 CLAIM_SOURCE_MISMATCH). Tüm 80 kaynak yeniden araştırılmadı.",
+  "applied": true,
+  "applied_to_canonical_json": true,
+  "applied_to_database": true,
+  "source_of_truth": "content/migration/transformed-courses-combined.json -> verified_sources",
+  "summary": {
+    "problem_sources_before": 7,
+    "replaced": 4,
+    "removed": 3,
+    "renamed_and_kept": 0,
+    "manual_review": 0,
+    "nonexistent_remaining": 0,
+    "claim_mismatch_remaining": 0
+  },
+  "entries": [
+    {
+      "course_ids": [
+        "COURSE-006"
+      ],
+      "source_id": "verified_sources[1]",
+      "current_source_identity": {
+        "name": "T.C. Kamu Gözetimi Kurumu",
+        "url": "https://www.kgk.gov.tr/",
+        "policy_status": "CLAIM_SOURCE_MISMATCH",
+        "source_class": "OFFICIAL_GOV"
+      },
+      "old_name": "T.C. Kamu Gözetimi Kurumu",
+      "old_url": "https://www.kgk.gov.tr/",
+      "action": "REPLACE_WITH_VALID_SOURCE",
+      "new_name": "U.S. Small Business Administration - Break-even Point",
+      "new_url": "https://www.sba.gov/business-guide/plan-your-business/calculate-your-startup-costs/break-even-point",
+      "new_source_class": "PROFESSIONAL_AUTHORITY",
+      "reason": "Ders 'Başa Baş Noktası ve Güvenlik Marjı Hesaplama'. KGK genel portalı bu konuyu desteklemiyor. SBA sayfası canlı doğrulandı (HTTP 200, başlık 'Break-even point', gövde başa baş formülü/sabit-değişken maliyet/katkı payı) — ders iddiasıyla birebir eşleşme. Tahmini URL değil."
+    },
+    {
+      "course_ids": [
+        "COURSE-007"
+      ],
+      "source_id": "verified_sources[0]",
+      "current_source_identity": {
+        "name": "T.C. Kamu Gözetimi Kurumu",
+        "url": "https://www.kgk.gov.tr/",
+        "policy_status": "CLAIM_SOURCE_MISMATCH",
+        "source_class": "OFFICIAL_GOV"
+      },
+      "old_name": "T.C. Kamu Gözetimi Kurumu",
+      "old_url": "https://www.kgk.gov.tr/",
+      "action": "REPLACE_WITH_VALID_SOURCE",
+      "new_name": "CFA Institute Financial Resources",
+      "new_url": "https://rpc.cfainstitute.org/",
+      "new_source_class": "PROFESSIONAL_AUTHORITY",
+      "reason": "Ders 'Ürün Portföyü ve SKU Kârlılık Yönetimi' (katkı payı, ortak gider dağıtımı). KGK genel portalı konuyu desteklemiyor. CFA Institute portalı canlı doğrulandı (HTTP 200); ürün kârlılık/maliyet analizi CFA müfredatının konusu. Mevcut CFA x4 kayıt seviyesiyle tutarlı portal kaydı; belge adı uydurulmadı."
+    },
+    {
+      "course_ids": [
+        "COURSE-007"
+      ],
+      "source_id": "verified_sources[1]",
+      "current_source_identity": {
+        "name": "Kamuyu Aydınlatma Platformu",
+        "url": "https://www.kap.org.tr/",
+        "policy_status": "CLAIM_SOURCE_MISMATCH",
+        "source_class": "PROFESSIONAL_AUTHORITY"
+      },
+      "old_name": "Kamuyu Aydınlatma Platformu",
+      "old_url": "https://www.kap.org.tr/",
+      "action": "REMOVE_SOURCE",
+      "new_name": null,
+      "new_url": null,
+      "new_source_class": null,
+      "reason": "Ders 'Ürün Portföyü ve SKU Kârlılık Yönetimi'. KAP halka açık şirket bildirim platformudur; SKU kârlılığını destekleyen içerik barındırmaz. Konuyu gerçekten destekleyen doğrulanmış alternatif bulunamadı (mükerrer CFA kaydı kabul edilmedi) — REMOVE_SOURCE, kaynak sayısı kaybı kabul edildi."
+    },
+    {
+      "course_ids": [
+        "COURSE-008"
+      ],
+      "source_id": "verified_sources[1]",
+      "current_source_identity": {
+        "name": "T.C. Kamu Gözetimi Kurumu",
+        "url": "https://www.kgk.gov.tr/",
+        "policy_status": "CLAIM_SOURCE_MISMATCH",
+        "source_class": "OFFICIAL_GOV"
+      },
+      "old_name": "T.C. Kamu Gözetimi Kurumu",
+      "old_url": "https://www.kgk.gov.tr/",
+      "action": "REPLACE_WITH_VALID_SOURCE",
+      "new_name": "U.S. Small Business Administration - Manage Your Finances",
+      "new_url": "https://www.sba.gov/business-guide/manage-your-business/manage-your-finances",
+      "new_source_class": "PROFESSIONAL_AUTHORITY",
+      "reason": "Ders 'Net İşletme Sermayesi ve Büyümenin Nakit Bedeli'. KGK genel portalı konuyu desteklemiyor. SBA sayfası canlı doğrulandı (HTTP 200): bilanço, nakit akışı, alacak/borç ve nakit yönetimi — işletme sermayesi/nakit iddiasını destekliyor. Tahmini URL değil."
+    },
+    {
+      "course_ids": [
+        "COURSE-017"
+      ],
+      "source_id": "verified_sources[1]",
+      "current_source_identity": {
+        "name": "KAP Finansal Raporlama Portalı",
+        "url": "https://www.kap.org.tr",
+        "policy_status": "CLAIM_SOURCE_MISMATCH",
+        "source_class": "PROFESSIONAL_AUTHORITY"
+      },
+      "old_name": "KAP Finansal Raporlama Portalı",
+      "old_url": "https://www.kap.org.tr",
+      "action": "REPLACE_WITH_VALID_SOURCE",
+      "new_name": "Harvard Business Review - What Most Companies Miss About Customer Lifetime Value",
+      "new_url": "https://hbr.org/2017/04/what-most-companies-miss-about-customer-lifetime-value",
+      "new_source_class": "PROFESSIONAL_AUTHORITY",
+      "reason": "Ders 'Müşteri Yaşam Boyu Değeri (LTV) ve Churn Analizi'. KAP portalı konuyu desteklemiyor. Makale canlı doğrulandı (HTTP 200): HBR, Michael Schrage, 18 Nisan 2017, müşteri yaşam boyu değeri ve kazanım/elde tutma kararları — ders iddiasıyla birebir eşleşme. Harvard Business School Publishing otoritesi. Tahmini URL değil."
+    },
+    {
+      "course_ids": [
+        "COURSE-034"
+      ],
+      "source_id": "verified_sources[0]",
+      "current_source_identity": {
+        "name": "Kamu Gözetimi Kurumu Analiz Standartları",
+        "url": "https://www.kgk.gov.tr",
+        "policy_status": "NONEXISTENT_SOURCE",
+        "source_class": "OFFICIAL_GOV"
+      },
+      "old_name": "Kamu Gözetimi Kurumu Analiz Standartları",
+      "old_url": "https://www.kgk.gov.tr",
+      "action": "REMOVE_SOURCE",
+      "new_name": null,
+      "new_url": null,
+      "new_source_class": null,
+      "reason": "Uydurma kaynak adı: 'Kamu Gözetimi Kurumu Analiz Standartları' adında bir yayın KGK kataloğunda yok. Gerçek yayın karşılığı bulunamadığı için REMOVE_SOURCE. Kaynak sayısını korumak için sahte replacement üretilmedi."
+    },
+    {
+      "course_ids": [
+        "COURSE-034"
+      ],
+      "source_id": "verified_sources[1]",
+      "current_source_identity": {
+        "name": "Gelir İdaresi Başkanlığı Analiz Rehberi",
+        "url": "https://www.gib.gov.tr",
+        "policy_status": "NONEXISTENT_SOURCE",
+        "source_class": "OFFICIAL_GOV"
+      },
+      "old_name": "Gelir İdaresi Başkanlığı Analiz Rehberi",
+      "old_url": "https://www.gib.gov.tr",
+      "action": "REMOVE_SOURCE",
+      "new_name": null,
+      "new_url": null,
+      "new_source_class": null,
+      "reason": "Uydurma kaynak adı: 'Gelir İdaresi Başkanlığı Analiz Rehberi' adında bir rehber GİB kataloğunda yok. Gerçek yayın karşılığı bulunamadığı için REMOVE_SOURCE. Kaynak sayısını korumak için sahte replacement üretilmedi."
+    }
+  ]
+}

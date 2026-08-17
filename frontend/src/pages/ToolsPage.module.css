@@ -88,7 +88,10 @@
 .search input { width: 100%; min-width: 0; padding: 10px 0; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; font-size: .875rem; }
 
 /* ---------- Görünüm süzgeci hapları ---------- */
-.viewChips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 22px; }
+/* Görünüm çipleri yalnız mobilde. Masaüstünde kenar çubuğu alt menüsü
+   (Katalog / Finansal Görünüm / Geçmiş) aynı işi yapıyor; ikisi birlikte
+   görününce aynı üç görünüm için iki kumanda oluyordu. */
+.viewChips { display: none; flex-wrap: wrap; gap: 7px; margin-bottom: 22px; }
 
 .viewChip {
   display: inline-flex;
@@ -112,7 +115,6 @@
 .viewChip:hover { border-color: var(--brand-olive); color: var(--brand-ink); }
 .viewChip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .viewChipActive, .viewChipActive:hover { background: var(--brand-teal); border-color: var(--brand-teal); color: var(--white); }
-.viewChipMobileOnly { display: none; }
 .chipCount { font-size: .72rem; opacity: .75; }
 
 /* ---------- Çalışma alanı ---------- */
@@ -193,6 +195,27 @@
 .calcClose { position: sticky; top: 0; float: right; display: grid; place-items: center; width: 38px; height: 38px; margin: -8px -8px 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-panel); color: var(--text); z-index: 2; }
 .calcClose:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: var(--shadow-2); }
 @media (prefers-reduced-motion: reduce) { .calcPanel { animation: none; } }
+
+/* ---------- Hesaplama başlat seçicisi ---------- */
+.startOverlay { position: fixed; inset: 0; z-index: var(--z-modal-overlay); display: grid; place-items: start center; padding: 72px 22px 22px; background: rgba(0,0,0,.48); overflow-y: auto; animation: fadeSlideIn var(--dur-fast) var(--ease-standard) both; }
+.startDialog { position: relative; width: min(680px, 100%); margin: auto 0; padding: 24px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--surface-raised); box-shadow: var(--shadow-4); min-width: 0; animation: calcPanelIn var(--dur-panel) var(--ease-standard) both; transform-origin: center; }
+.startSearch { width: 100%; box-sizing: border-box; margin-bottom: 14px; padding: 12px 14px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); outline: 0; background: var(--bg-primary); color: var(--text-primary); font: inherit; }
+.startSearch:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent); }
+.startLabel { margin: 2px 0 8px; color: var(--text-secondary); font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.startRecent { margin-bottom: 14px; }
+.startList { display: grid; gap: 7px; max-height: min(46vh, 380px); overflow-y: auto; }
+.startItem { display: flex; align-items: center; gap: 11px; width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-card); color: var(--text); text-align: left; cursor: pointer; transition: border-color var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard); }
+.startItem:hover { border-color: var(--brand-olive); transform: translateY(-1px); box-shadow: var(--shadow-2); }
+.startItem .toolIcon { margin: 0; flex: 0 0 auto; }
+.startItem > span { display: grid; gap: 3px; min-width: 0; }
+.startItem strong { font-size: .85rem; font-weight: var(--font-weight-semibold); line-height: 1.3; }
+.startItem small { color: var(--text-light); font-size: .74rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.startModes { display: flex; flex: 0 0 auto; flex-wrap: wrap; gap: 5px; }
+.startModes b { padding: 3px 7px; border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--surface-raised); color: var(--text-light); font-size: .66rem; font-weight: 600; }
+.startItem > svg { flex: 0 0 auto; color: var(--primary); }
+.startEmpty { padding: 22px 12px; border: 1px dashed var(--border-strong); border-radius: var(--radius-sm); color: var(--text-light); text-align: center; font-size: .8rem; }
+@media (max-width: 620px) { .startDialog { padding: 18px; } .startModes { display: none; } }
+@media (prefers-reduced-motion: reduce) { .startDialog { animation: none; } }
 .panelHeading h2 { margin: 9px 0 5px; font-size: 1.15rem; }
 .panelHeading p { margin: 0 0 18px; color: var(--text-secondary); }
 .warning { margin-bottom: 18px; padding: 11px 13px; border: 1px solid var(--warning); border-radius: var(--radius-sm); background: var(--warning-bg); color: var(--warning); font-size: .82rem; line-height: 1.45; }
@@ -403,7 +426,7 @@
 }
 
 @media (max-width: 899px) {
-  .viewChipMobileOnly { display: inline-flex; }
+  .viewChips { display: flex; }
   .pageHead { flex-direction: column; align-items: stretch; gap: 12px; }
   .search { flex: 1 1 auto; }
   .search input { padding: 12px 0; }

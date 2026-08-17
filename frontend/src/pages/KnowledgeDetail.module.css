@@ -680,3 +680,39 @@
   font-size: 0.75rem;
   color: var(--text-light, var(--text-light));
 }
+
+/* Canonical içerik uyarı şeridi — bu ekran referans, öğrenme yolu
+   Course Player. Marka tinti üstünde tek birincil aksiyon. */
+.canonicalNotice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface-panel));
+  border-color: color-mix(in srgb, var(--primary) 28%, transparent);
+}
+
+.canonicalNoticeText {
+  min-width: 0;
+}
+
+.canonicalNoticeText strong {
+  display: block;
+  font-size: var(--font-domain-title);
+  font-weight: var(--font-weight-heavy);
+  color: var(--text);
+}
+
+.canonicalNoticeText p {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-body-sm);
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .canonicalNotice {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

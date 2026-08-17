@@ -1,0 +1,396 @@
+{
+  "counts": {
+    "FOUND": 29,
+    "MISSING": 7,
+    "DECISION_TOOL": 3
+  },
+  "rows": [
+    {
+      "course": "COURSE-001",
+      "label": "Gerçek Birim Maliyet Hesaplayıcısını Aç",
+      "cleaned": "Gerçek Birim Maliyet",
+      "status": "FOUND",
+      "matchId": "unit-cost",
+      "matchTitle": "Gerçek Birim Maliyet",
+      "best": "Gerçek Birim Maliyet (1.00)",
+      "runnerUp": "İhracat Birim Maliyeti (0.33)"
+    },
+    {
+      "course": "COURSE-002",
+      "label": "Pazar Yeri Sipariş Kârlılığı Aracını Aç",
+      "cleaned": "Pazar Yeri Sipariş Kârlılığı",
+      "status": "FOUND",
+      "matchId": "order-profitability",
+      "matchTitle": "Sipariş Kârlılığı",
+      "best": "Sipariş Kârlılığı (0.67)",
+      "runnerUp": "Ürün Kârlılığı (0.33)"
+    },
+    {
+      "course": "COURSE-003",
+      "label": "Fiyat Mimarisi ve Hedef Marj Aracını Aç",
+      "cleaned": "Fiyat Mimarisi ve Hedef Marj",
+      "status": "FOUND",
+      "matchId": "price-architecture",
+      "matchTitle": "Fiyat Mimarisi ve Hedef Marj",
+      "best": "Fiyat Mimarisi ve Hedef Marj (1.00)",
+      "runnerUp": "İade Sonrası Gerçek Marj (0.25)"
+    },
+    {
+      "course": "COURSE-004",
+      "label": "İndirim/Kampanya Kârlılığı Aracını Aç",
+      "cleaned": "İndirim/Kampanya Kârlılığı",
+      "status": "FOUND",
+      "matchId": "discount-profit",
+      "matchTitle": "İndirim/Kampanya Kârlılığı",
+      "best": "İndirim/Kampanya Kârlılığı (1.00)",
+      "runnerUp": "Sipariş Kârlılığı (0.40)"
+    },
+    {
+      "course": "COURSE-005",
+      "label": "Katkı Payı > Detaylı mod",
+      "cleaned": "Katkı Payı",
+      "status": "FOUND",
+      "matchId": "contribution-margin",
+      "matchTitle": "Katkı Payı",
+      "best": "Katkı Payı (1.00)",
+      "runnerUp": "Müşteri Edinme Maliyeti (CAC) (0.00)"
+    },
+    {
+      "course": "COURSE-006",
+      "label": "Başabaş Noktası Aracını Aç",
+      "cleaned": "Başabaş Noktası",
+      "status": "MISSING",
+      "matchId": null,
+      "matchTitle": null,
+      "best": "Müşteri Edinme Maliyeti (CAC) (0.00)",
+      "runnerUp": "Müşteri Yaşam Boyu Değeri (LTV) (0.00)"
+    },
+    {
+      "course": "COURSE-006",
+      "label": "Başa Baş Satış Adedi > Detaylı mod",
+      "cleaned": "Başa Baş Satış Adedi",
+      "status": "FOUND",
+      "matchId": "break-even-quantity",
+      "matchTitle": "Başa Baş Satış Adedi",
+      "best": "Başa Baş Satış Adedi (1.00)",
+      "runnerUp": "Müşteri Edinme Maliyeti (CAC) (0.00)"
+    },
+    {
+      "course": "COURSE-007",
+      "label": "Ürün Kârlılığı > Detaylı mod",
+      "cleaned": "Ürün Kârlılığı",
+      "status": "FOUND",
+      "matchId": "product-profitability",
+      "matchTitle": "Ürün Kârlılığı",
+      "best": "Ürün Kârlılığı (1.00)",
+      "runnerUp": "Sipariş Kârlılığı (0.50)"
+    },
+    {
+      "course": "COURSE-008",
+      "label": "İşletme Sermayesi Aracını Aç",
+      "cleaned": "İşletme Sermayesi",
+      "status": "FOUND",
+      "matchId": "net-working-capital",
+      "matchTitle": "Net İşletme Sermayesi",
+      "best": "Net İşletme Sermayesi (0.90)",
+      "runnerUp": "Müşteri Edinme Maliyeti (CAC) (0.00)"
+    },
+    {
+      "course": "COURSE-008",
+      "label": "Net İşletme Sermayesi > Detaylı mod",
+      "cleaned": "Net İşletme Sermayesi",
+      "status": "FOUND",
+      "matchId": "net-working-capital",
+      "matchTitle": "Net İşletme Sermayesi",
+      "best": "Net İşletme Sermayesi (1.00)",
+      "runnerUp": "Net Nakit Tüketimi (0.33)"
+    },
+    {
+      "course": "COURSE-009",
+      "label": "Nakit Dönüşüm Döngüsü > Detaylı mod",
+      "cleaned": "Nakit Dönüşüm Döngüsü",
+      "status": "FOUND",
+      "matchId": "cash-conversion-cycle",
+      "matchTitle": "Nakit Dönüşüm Döngüsü",
+      "best": "Nakit Dönüşüm Döngüsü (1.00)",
+      "runnerUp": "Nakit Pozisyonu (0.40)"
+    },
+    {
+      "course": "COURSE-009",
+      "label": "Stok Devir Hızı Aracını Aç",
+      "cleaned": "Stok Devir Hızı",
+      "status": "FOUND",
+      "matchId": "inventory-turnover-dio",
+      "matchTitle": "Stok Devir ve DIO",
+      "best": "Stok Devir ve DIO (0.67)",
+      "runnerUp": "Müşteri Edinme Maliyeti (CAC) (0.00)"
+    },
+    {
+      "course": "COURSE-010",
+      "label": "Net Bugünkü Değer (NPV) > Detaylı mod",
+      "cleaned": "Net Bugünkü Değer (NPV)",
+      "status": "FOUND",
+      "matchId": "npv",
+      "matchTitle": "Net Bugünkü Değer",
+      "best": "Net Bugünkü Değer (0.86)",
+      "runnerUp": "Net İşletme Sermayesi (0.29)"
+    },
+    {
+      "course": "COURSE-010",
+      "label": "İç Verim Oranı (IRR) > Detaylı mod",
+      "cleaned": "İç Verim Oranı (IRR)",
+      "status": "FOUND",
+      "matchId": "irr",
+      "matchTitle": "İç Verim Oranı",
+      "best": "İç Verim Oranı (0.80)",
+      "runnerUp": "LTV/CAC Oranı (0.33)"
+    },
+    {
+      "course": "COURSE-011",
+      "label": "Pazar Yeri Sipariş Kârlılığı Aracını Aç",
+      "cleaned": "Pazar Yeri Sipariş Kârlılığı",
+      "status": "FOUND",
+      "matchId": "order-profitability",
+      "matchTitle": "Sipariş Kârlılığı",
+      "best": "Sipariş Kârlılığı (0.67)",
+      "runnerUp": "Ürün Kârlılığı (0.33)"
+    },
+    {
+      "course": "COURSE-012",
+      "label": "Pazar Yeri Sipariş Kârlılığı Aracını Aç",
+      "cleaned": "Pazar Yeri Sipariş Kârlılığı",
+      "status": "FOUND",
+      "matchId": "order-profitability",
+      "matchTitle": "Sipariş Kârlılığı",
+      "best": "Sipariş Kârlılığı (0.67)",
+      "runnerUp": "Ürün Kârlılığı (0.33)"
+    },
+    {
+      "course": "COURSE-013",
+      "label": "ROI Aracını Aç",
+      "cleaned": "ROI",
+      "status": "FOUND",
+      "matchId": "roi",
+      "matchTitle": "Yatırım Getirisi (ROI)",
+      "best": "Yatırım Getirisi (ROI) (0.90)",
+      "runnerUp": "Müşteri Edinme Maliyeti (CAC) (0.00)"
+    },
+    {
+      "course": "COURSE-014",
+      "label": "Stok Devir Hızı Aracını Aç",
+      "cleaned": "Stok Devir Hızı",
+      "status": "FOUND",
+      "matchId": "inventory-turnover-dio",
+      "matchTitle": "Stok Devir ve DIO",
+      "best": "Stok Devir ve DIO (0.67)",
+      "runnerUp": "Müşteri Edinme Maliyeti (CAC) (0.00)"
+    },
+    {
+      "course": "COURSE-015",
+      "label": "ROI Aracını Aç",
+      "cleaned": "ROI",
+      "status": "FOUND",
+      "matchId": "roi",
+      "matchTitle": "Yatırım Getirisi (ROI)",
+      "best": "Yatırım Getirisi (ROI) (0.90)",
+      "runnerUp": "Müşteri Edinme Maliyeti (CAC) (0.00)"
+    },
+    {
+      "course": "COURSE-016",
+      "label": "Müşteri Edinme Maliyeti Aracını Aç",
+      "cleaned": "Müşteri Edinme Maliyeti",
+      "status": "FOUND",
+      "matchId": "customer-acquisition-cost",
+      "matchTitle": "Müşteri Edinme Maliyeti (CAC)",
+      "best": "Müşteri Edinme Maliyeti (CAC) (0.90)",
+      "runnerUp": "İhracat Birim Maliyeti (0.33)"
+    },
+    {
+      "course": "COURSE-017",
+      "label": "LTV/CAC Oranı Aracını Aç",
+      "cleaned": "LTV/CAC Oranı",
+      "status": "FOUND",
+      "matchId": "ltv-cac-ratio",
+      "matchTitle": "LTV/CAC Oranı",
+      "best": "LTV/CAC Oranı (1.00)",
+      "runnerUp": "İç Verim Oranı (0.40)"
+    },
+    {
+      "course": "COURSE-018",
+      "label": "ROI Aracını Aç",
+      "cleaned": "ROI",
+      "status": "FOUND",
+      "matchId": "roi",
+      "matchTitle": "Yatırım Getirisi (ROI)",
+      "best": "Yatırım Getirisi (ROI) (0.90)",
+      "runnerUp": "Müşteri Edinme Maliyeti (CAC) (0.00)"
+    },
+    {
+      "course": "COURSE-019",
+      "label": "ROI Aracını Aç",
+      "cleaned": "ROI",
+      "status": "FOUND",
+      "matchId": "roi",
+      "matchTitle": "Yatırım Getirisi (ROI)",
+      "best": "Yatırım Getirisi (ROI) (0.90)",
+      "runnerUp": "Müşteri Edinme Maliyeti (CAC) (0.00)"
+    },
+    {
+      "course": "COURSE-020",
+      "label": "Stok Devir Hızı Aracını Aç",
+      "cleaned": "Stok Devir Hızı",
+      "status": "FOUND",
+      "matchId": "inventory-turnover-dio",
+      "matchTitle": "Stok Devir ve DIO",
+      "best": "Stok Devir ve DIO (0.67)",
+      "runnerUp": "Müşteri Edinme Maliyeti (CAC) (0.00)"
+    },
+    {
+      "course": "COURSE-021",
+      "label": "Şirket Türü ve Vergi Optimizasyon Modelini Aç",
+      "cleaned": "Şirket Türü ve Vergi Optimizasyon",
+      "status": "MISSING",
+      "matchId": null,
+      "matchTitle": null,
+      "best": "Müşteri Edinme Maliyeti (CAC) (0.00)",
+      "runnerUp": "Müşteri Yaşam Boyu Değeri (LTV) (0.00)"
+    },
+    {
+      "course": "COURSE-022",
+      "label": "Yeni Personel Alabilir miyim? Aracını Aç (DC-HIRE-006)",
+      "status": "DECISION_TOOL",
+      "matchId": "DC-HIRE-006",
+      "matchTitle": null,
+      "best": null,
+      "runnerUp": null
+    },
+    {
+      "course": "COURSE-023",
+      "label": "Yeni Şube Açmaya Hazır mıyım? Aracını Aç (DC-BRANCH-009)",
+      "status": "DECISION_TOOL",
+      "matchId": "DC-BRANCH-009",
+      "matchTitle": null,
+      "best": null,
+      "runnerUp": null
+    },
+    {
+      "course": "COURSE-024",
+      "label": "Kredi Taksitini Karşılayabilir miyim? Aracını Aç (DC-LOAN-007)",
+      "status": "DECISION_TOOL",
+      "matchId": "DC-LOAN-007",
+      "matchTitle": null,
+      "best": null,
+      "runnerUp": null
+    },
+    {
+      "course": "COURSE-026",
+      "label": "Şirket Değerleme Modelleri",
+      "cleaned": "Şirket Değerleme Modelleri",
+      "status": "MISSING",
+      "matchId": null,
+      "matchTitle": null,
+      "best": "Müşteri Edinme Maliyeti (CAC) (0.00)",
+      "runnerUp": "Müşteri Yaşam Boyu Değeri (LTV) (0.00)"
+    },
+    {
+      "course": "COURSE-027",
+      "label": "Finansal Projeksiyon ve Senaryo Analizi",
+      "cleaned": "Finansal Projeksiyon ve Senaryo Analizi",
+      "status": "MISSING",
+      "matchId": null,
+      "matchTitle": null,
+      "best": "Müşteri Edinme Maliyeti (CAC) (0.00)",
+      "runnerUp": "Müşteri Yaşam Boyu Değeri (LTV) (0.00)"
+    },
+    {
+      "course": "COURSE-028",
+      "label": "İhracat Birim Maliyeti Hesaplama",
+      "cleaned": "İhracat Birim Maliyeti Hesaplama",
+      "status": "FOUND",
+      "matchId": "export-unit-cost",
+      "matchTitle": "İhracat Birim Maliyeti",
+      "best": "İhracat Birim Maliyeti (0.86)",
+      "runnerUp": "Gerçek Birim Maliyet (0.29)"
+    },
+    {
+      "course": "COURSE-029",
+      "label": "Satış ve Fiyat > Fiyat Mimarisi ve Hedef Marj",
+      "cleaned": "Satış ve Fiyat > Fiyat Mimarisi ve Hedef Marj",
+      "status": "FOUND",
+      "matchId": "price-architecture",
+      "matchTitle": "Fiyat Mimarisi ve Hedef Marj",
+      "best": "Fiyat Mimarisi ve Hedef Marj (0.89)",
+      "runnerUp": "Başa Baş Satış Adedi (0.22)"
+    },
+    {
+      "course": "COURSE-032",
+      "label": "Nakit Yönetimi > Döviz Pozisyonu ve Kur Riski Analizi",
+      "cleaned": "Nakit Yönetimi > Döviz Pozisyonu ve Kur Riski Analizi",
+      "status": "MISSING",
+      "matchId": null,
+      "matchTitle": null,
+      "best": "Nakit Pozisyonu (0.44)",
+      "runnerUp": "Nakit Dayanma Süresi (0.20)"
+    },
+    {
+      "course": "COURSE-033",
+      "label": "Modeller > Tedarikçi Seçim Matrisi",
+      "cleaned": "Modeller > Tedarikçi Seçim Matrisi",
+      "status": "MISSING",
+      "matchId": null,
+      "matchTitle": null,
+      "best": "Tedarikçi Ödeme Süresi (DPO) (0.25)",
+      "runnerUp": "Müşteri Edinme Maliyeti (CAC) (0.00)"
+    },
+    {
+      "course": "COURSE-034",
+      "label": "Finansal Sağlık Dashboard",
+      "cleaned": "Finansal Sağlık Dashboard",
+      "status": "MISSING",
+      "matchId": null,
+      "matchTitle": null,
+      "best": "Müşteri Edinme Maliyeti (CAC) (0.00)",
+      "runnerUp": "Müşteri Yaşam Boyu Değeri (LTV) (0.00)"
+    },
+    {
+      "course": "COURSE-035",
+      "label": "Günlük Kasa Kapanışı Aracını Aç",
+      "cleaned": "Günlük Kasa Kapanışı",
+      "status": "FOUND",
+      "matchId": "cash-closing",
+      "matchTitle": "Günlük Kasa Kapanışı",
+      "best": "Günlük Kasa Kapanışı (1.00)",
+      "runnerUp": "Müşteri Edinme Maliyeti (CAC) (0.00)"
+    },
+    {
+      "course": "COURSE-036",
+      "label": "Yatırım Getirisi Aracını Aç",
+      "cleaned": "Yatırım Getirisi",
+      "status": "FOUND",
+      "matchId": "roi",
+      "matchTitle": "Yatırım Getirisi (ROI)",
+      "best": "Yatırım Getirisi (ROI) (0.90)",
+      "runnerUp": "Müşteri Edinme Maliyeti (CAC) (0.00)"
+    },
+    {
+      "course": "COURSE-037",
+      "label": "İhracat Birim Maliyeti Aracını Aç",
+      "cleaned": "İhracat Birim Maliyeti",
+      "status": "FOUND",
+      "matchId": "export-unit-cost",
+      "matchTitle": "İhracat Birim Maliyeti",
+      "best": "İhracat Birim Maliyeti (1.00)",
+      "runnerUp": "Gerçek Birim Maliyet (0.33)"
+    },
+    {
+      "course": "COURSE-038",
+      "label": "Yatırım Getirisi Aracını Aç",
+      "cleaned": "Yatırım Getirisi",
+      "status": "FOUND",
+      "matchId": "roi",
+      "matchTitle": "Yatırım Getirisi (ROI)",
+      "best": "Yatırım Getirisi (ROI) (0.90)",
+      "runnerUp": "Müşteri Edinme Maliyeti (CAC) (0.00)"
+    }
+  ]
+}

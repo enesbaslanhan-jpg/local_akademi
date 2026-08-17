@@ -10,7 +10,13 @@ export async function knowledgeRoutes(fastify: FastifyInstance) {
       limit?: string
     }
 
-    const where: any = { status: 'published', isDemo: false }
+    /* Canonical KO'lar arama sonuclarinda da listelenmez; ogrenme yolu
+       Course Player'dir. Detay endpoint'i (/:id) etkilenmez. */
+    const where: any = {
+      status: 'published',
+      isDemo: false,
+      NOT: { code: { startsWith: 'CANON-' } }
+    }
     if (type) where.type = type
     if (q) {
       where.OR = [

@@ -1,0 +1,313 @@
+{
+  "leakedHeadings": 0,
+  "counts": {
+    "FOUND": 31,
+    "MISSING": 5,
+    "DECISION_TOOL": 3
+  },
+  "rows": [
+    {
+      "course": "COURSE-001",
+      "raw": "Gerçek Birim Maliyet Hesaplayıcısını Aç",
+      "cleaned": "Gerçek Birim Maliyet",
+      "status": "FOUND",
+      "id": "unit-cost",
+      "title": "Gerçek Birim Maliyet"
+    },
+    {
+      "course": "COURSE-002",
+      "raw": "Pazar Yeri Sipariş Kârlılığı Aracını Aç",
+      "cleaned": "Pazar Yeri Sipariş Kârlılığı",
+      "status": "FOUND",
+      "id": "order-profitability",
+      "title": "Sipariş Kârlılığı"
+    },
+    {
+      "course": "COURSE-003",
+      "raw": "Fiyat Mimarisi ve Hedef Marj Aracını Aç",
+      "cleaned": "Fiyat Mimarisi ve Hedef Marj",
+      "status": "FOUND",
+      "id": "price-architecture",
+      "title": "Fiyat Mimarisi ve Hedef Marj"
+    },
+    {
+      "course": "COURSE-004",
+      "raw": "İndirim/Kampanya Kârlılığı Aracını Aç",
+      "cleaned": "İndirim/Kampanya Kârlılığı",
+      "status": "FOUND",
+      "id": "discount-profit",
+      "title": "İndirim/Kampanya Kârlılığı"
+    },
+    {
+      "course": "COURSE-005",
+      "raw": "Katkı Payı > Detaylı mod",
+      "cleaned": "Katkı Payı",
+      "status": "FOUND",
+      "id": "contribution-margin",
+      "title": "Katkı Payı"
+    },
+    {
+      "course": "COURSE-006",
+      "raw": "Başabaş Noktası Aracını Aç",
+      "cleaned": "Başabaş Noktası",
+      "status": "FOUND",
+      "id": "break-even-quantity",
+      "title": "Başa Baş Satış Adedi"
+    },
+    {
+      "course": "COURSE-006",
+      "raw": "Başa Baş Satış Adedi > Detaylı mod",
+      "cleaned": "Başa Baş Satış Adedi",
+      "status": "FOUND",
+      "id": "break-even-quantity",
+      "title": "Başa Baş Satış Adedi"
+    },
+    {
+      "course": "COURSE-007",
+      "raw": "Ürün Kârlılığı > Detaylı mod",
+      "cleaned": "Ürün Kârlılığı",
+      "status": "FOUND",
+      "id": "product-profitability",
+      "title": "Ürün Kârlılığı"
+    },
+    {
+      "course": "COURSE-008",
+      "raw": "İşletme Sermayesi Aracını Aç",
+      "cleaned": "İşletme Sermayesi",
+      "status": "FOUND",
+      "id": "net-working-capital",
+      "title": "Net İşletme Sermayesi"
+    },
+    {
+      "course": "COURSE-008",
+      "raw": "Net İşletme Sermayesi > Detaylı mod",
+      "cleaned": "Net İşletme Sermayesi",
+      "status": "FOUND",
+      "id": "net-working-capital",
+      "title": "Net İşletme Sermayesi"
+    },
+    {
+      "course": "COURSE-009",
+      "raw": "Nakit Dönüşüm Döngüsü > Detaylı mod",
+      "cleaned": "Nakit Dönüşüm Döngüsü",
+      "status": "FOUND",
+      "id": "cash-conversion-cycle",
+      "title": "Nakit Dönüşüm Döngüsü"
+    },
+    {
+      "course": "COURSE-009",
+      "raw": "Stok Devir Hızı Aracını Aç",
+      "cleaned": "Stok Devir Hızı",
+      "status": "FOUND",
+      "id": "inventory-turnover-dio",
+      "title": "Stok Devir ve DIO"
+    },
+    {
+      "course": "COURSE-010",
+      "raw": "Net Bugünkü Değer (NPV) > Detaylı mod",
+      "cleaned": "Net Bugünkü Değer (NPV)",
+      "status": "FOUND",
+      "id": "npv",
+      "title": "Net Bugünkü Değer"
+    },
+    {
+      "course": "COURSE-010",
+      "raw": "İç Verim Oranı (IRR) > Detaylı mod",
+      "cleaned": "İç Verim Oranı (IRR)",
+      "status": "FOUND",
+      "id": "irr",
+      "title": "İç Verim Oranı"
+    },
+    {
+      "course": "COURSE-011",
+      "raw": "Pazar Yeri Sipariş Kârlılığı Aracını Aç",
+      "cleaned": "Pazar Yeri Sipariş Kârlılığı",
+      "status": "FOUND",
+      "id": "order-profitability",
+      "title": "Sipariş Kârlılığı"
+    },
+    {
+      "course": "COURSE-012",
+      "raw": "Pazar Yeri Sipariş Kârlılığı Aracını Aç",
+      "cleaned": "Pazar Yeri Sipariş Kârlılığı",
+      "status": "FOUND",
+      "id": "order-profitability",
+      "title": "Sipariş Kârlılığı"
+    },
+    {
+      "course": "COURSE-013",
+      "raw": "ROI Aracını Aç",
+      "cleaned": "ROI",
+      "status": "FOUND",
+      "id": "roi",
+      "title": "Yatırım Getirisi (ROI)"
+    },
+    {
+      "course": "COURSE-014",
+      "raw": "Stok Devir Hızı Aracını Aç",
+      "cleaned": "Stok Devir Hızı",
+      "status": "FOUND",
+      "id": "inventory-turnover-dio",
+      "title": "Stok Devir ve DIO"
+    },
+    {
+      "course": "COURSE-015",
+      "raw": "ROI Aracını Aç",
+      "cleaned": "ROI",
+      "status": "FOUND",
+      "id": "roi",
+      "title": "Yatırım Getirisi (ROI)"
+    },
+    {
+      "course": "COURSE-016",
+      "raw": "Müşteri Edinme Maliyeti Aracını Aç",
+      "cleaned": "Müşteri Edinme Maliyeti",
+      "status": "FOUND",
+      "id": "customer-acquisition-cost",
+      "title": "Müşteri Edinme Maliyeti (CAC)"
+    },
+    {
+      "course": "COURSE-017",
+      "raw": "LTV/CAC Oranı Aracını Aç",
+      "cleaned": "LTV/CAC Oranı",
+      "status": "FOUND",
+      "id": "ltv-cac-ratio",
+      "title": "LTV/CAC Oranı"
+    },
+    {
+      "course": "COURSE-018",
+      "raw": "ROI Aracını Aç",
+      "cleaned": "ROI",
+      "status": "FOUND",
+      "id": "roi",
+      "title": "Yatırım Getirisi (ROI)"
+    },
+    {
+      "course": "COURSE-019",
+      "raw": "ROI Aracını Aç",
+      "cleaned": "ROI",
+      "status": "FOUND",
+      "id": "roi",
+      "title": "Yatırım Getirisi (ROI)"
+    },
+    {
+      "course": "COURSE-020",
+      "raw": "Stok Devir Hızı Aracını Aç",
+      "cleaned": "Stok Devir Hızı",
+      "status": "FOUND",
+      "id": "inventory-turnover-dio",
+      "title": "Stok Devir ve DIO"
+    },
+    {
+      "course": "COURSE-021",
+      "raw": "Şirket Türü ve Vergi Optimizasyon Modelini Aç",
+      "cleaned": "Şirket Türü ve Vergi Optimizasyon",
+      "status": "MISSING",
+      "id": null,
+      "title": null
+    },
+    {
+      "course": "COURSE-022",
+      "raw": "Yeni Personel Alabilir miyim? Aracını Aç (DC-HIRE-006)",
+      "status": "DECISION_TOOL"
+    },
+    {
+      "course": "COURSE-023",
+      "raw": "Yeni Şube Açmaya Hazır mıyım? Aracını Aç (DC-BRANCH-009)",
+      "status": "DECISION_TOOL"
+    },
+    {
+      "course": "COURSE-024",
+      "raw": "Kredi Taksitini Karşılayabilir miyim? Aracını Aç (DC-LOAN-007)",
+      "status": "DECISION_TOOL"
+    },
+    {
+      "course": "COURSE-026",
+      "raw": "Şirket Değerleme Modelleri",
+      "cleaned": "Şirket Değerleme Modelleri",
+      "status": "FOUND",
+      "id": "wacc-fcff-dcf",
+      "title": "Basitleştirilmiş WACC ve FCFF DCF"
+    },
+    {
+      "course": "COURSE-027",
+      "raw": "Finansal Projeksiyon ve Senaryo Analizi",
+      "cleaned": "Finansal Projeksiyon ve Senaryo Analizi",
+      "status": "MISSING",
+      "id": null,
+      "title": null
+    },
+    {
+      "course": "COURSE-028",
+      "raw": "İhracat Birim Maliyeti Hesaplama",
+      "cleaned": "İhracat Birim Maliyeti Hesaplama",
+      "status": "FOUND",
+      "id": "export-unit-cost",
+      "title": "İhracat Birim Maliyeti"
+    },
+    {
+      "course": "COURSE-029",
+      "raw": "Satış ve Fiyat > Fiyat Mimarisi ve Hedef Marj",
+      "cleaned": "Fiyat Mimarisi ve Hedef Marj",
+      "status": "FOUND",
+      "id": "price-architecture",
+      "title": "Fiyat Mimarisi ve Hedef Marj"
+    },
+    {
+      "course": "COURSE-032",
+      "raw": "Nakit Yönetimi > Döviz Pozisyonu ve Kur Riski Analizi",
+      "cleaned": "Döviz Pozisyonu ve Kur Riski Analizi",
+      "status": "MISSING",
+      "id": null,
+      "title": null
+    },
+    {
+      "course": "COURSE-033",
+      "raw": "Modeller > Tedarikçi Seçim Matrisi",
+      "cleaned": "Tedarikçi Seçim Matrisi",
+      "status": "MISSING",
+      "id": null,
+      "title": null
+    },
+    {
+      "course": "COURSE-034",
+      "raw": "Finansal Sağlık Dashboard",
+      "cleaned": "Finansal Sağlık Dashboard",
+      "status": "MISSING",
+      "id": null,
+      "title": null
+    },
+    {
+      "course": "COURSE-035",
+      "raw": "Günlük Kasa Kapanışı Aracını Aç",
+      "cleaned": "Günlük Kasa Kapanışı",
+      "status": "FOUND",
+      "id": "cash-closing",
+      "title": "Günlük Kasa Kapanışı"
+    },
+    {
+      "course": "COURSE-036",
+      "raw": "Yatırım Getirisi Aracını Aç",
+      "cleaned": "Yatırım Getirisi",
+      "status": "FOUND",
+      "id": "roi",
+      "title": "Yatırım Getirisi (ROI)"
+    },
+    {
+      "course": "COURSE-037",
+      "raw": "İhracat Birim Maliyeti Aracını Aç",
+      "cleaned": "İhracat Birim Maliyeti",
+      "status": "FOUND",
+      "id": "export-unit-cost",
+      "title": "İhracat Birim Maliyeti"
+    },
+    {
+      "course": "COURSE-038",
+      "raw": "Yatırım Getirisi Aracını Aç",
+      "cleaned": "Yatırım Getirisi",
+      "status": "FOUND",
+      "id": "roi",
+      "title": "Yatırım Getirisi (ROI)"
+    }
+  ]
+}

@@ -18,6 +18,8 @@ vi.mock('../src/lib/prisma', () => ({
     taskAssignment: { findMany: vi.fn() },
     quizAttempt: { findMany: vi.fn() },
     course: { findFirst: vi.fn() },
+    /* "Devam et" kartı en son GÖRÜNTÜLENEN dersin kursunu seçiyor. */
+    lessonProgress: { findFirst: vi.fn() },
   },
 }))
 
@@ -31,6 +33,7 @@ const prismaMock = prisma as unknown as {
   taskAssignment: { findMany: ReturnType<typeof vi.fn> }
   quizAttempt: { findMany: ReturnType<typeof vi.fn> }
   course: { findFirst: ReturnType<typeof vi.fn> }
+  lessonProgress: { findFirst: ReturnType<typeof vi.fn> }
 }
 
 async function buildApp() {
@@ -76,6 +79,8 @@ describe('learner dashboard course/task presentation', () => {
     prismaMock.taskAssignment.findMany.mockResolvedValue([])
     prismaMock.quizAttempt.findMany.mockResolvedValue([])
     prismaMock.course.findFirst.mockResolvedValue(null)
+    /* Varsayılan: görüntülenmiş ders yok → resume Enrollment.updatedAt'e düşer. */
+    prismaMock.lessonProgress.findFirst.mockResolvedValue(null)
   })
 
   it('yayınlanmamış [Eski Kopya] kurs kaydı yanıttan ve istatistiklerden dışlanır', async () => {
@@ -109,6 +114,52 @@ describe('learner dashboard course/task presentation', () => {
     expect(body.enrollments).toHaveLength(2)
     expect(body.stats.totalEnrollments).toBe(2)
     expect(body.resumeItem).toMatchObject({ courseId: 215, progress: 40 })
+  })
+
+  it('resume, Enrollment.updatedAt değil EN SON GÖRÜNTÜLENEN dersin kursu olur', async () => {
+    /* Kullanıcı 216'yı daha yeni açtı ama ilerleme kaydetmedi; bu yüzden
+       216'nın updatedAt'i daha ESKİ. Eski davranış 215'i gösteriyordu ve
+       "devam et" hep aynı kursta takılı kalıyordu. */
+    prismaMock.enrollment.findMany.mockResolvedValue([
+      activeEnrollment(new Date('2026-08-11T09:00:00Z')),
+      { ...activeEnrollment(new Date('2026-08-01T09:00:00Z')), id: 23, courseId: 216, progress: 5,
+        course: { id: 216, title: 'Nakit Akışını Planla', published: true } },
+    ])
+    prismaMock.lessonProgress.findFirst.mockResolvedValue({ lesson: { courseId: 216 } })
+
+    const app = await buildApp()
+    const body = (await app.inject({ method: 'GET', url: '/dashboard' })).json()
+    await app.close()
+
+    expect(body.resumeItem).toMatchObject({ courseId: 216 })
+  })
+
+  it('görüntülenmiş ders yoksa resume Enrollment.updatedAt sırasına düşer', async () => {
+    prismaMock.enrollment.findMany.mockResolvedValue([
+      activeEnrollment(new Date('2026-08-10T08:00:00Z')),
+      activeEnrollment(new Date('2026-08-11T09:00:00Z')),
+    ])
+    prismaMock.lessonProgress.findFirst.mockResolvedValue(null)
+
+    const app = await buildApp()
+    const body = (await app.inject({ method: 'GET', url: '/dashboard' })).json()
+    await app.close()
+
+    expect(body.resumeItem).toMatchObject({ courseId: 215 })
+  })
+
+  it('lastViewedAt sorgusu düşse bile Ana Sayfa 500 vermez', async () => {
+    prismaMock.enrollment.findMany.mockResolvedValue([
+      activeEnrollment(new Date('2026-08-11T09:00:00Z')),
+    ])
+    prismaMock.lessonProgress.findFirst.mockRejectedValue(new Error('db down'))
+
+    const app = await buildApp()
+    const response = await app.inject({ method: 'GET', url: '/dashboard' })
+    await app.close()
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json().resumeItem).toMatchObject({ courseId: 215 })
   })
 
   it('yalnızca eski kopya ilerlemesi varsa aktif kursta sürdürülür, eski veri değiştirilmez', async () => {

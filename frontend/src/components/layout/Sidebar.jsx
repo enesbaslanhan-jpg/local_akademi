@@ -124,9 +124,15 @@ export default function Sidebar({
   const submenuFor = link => {
     const view = new URLSearchParams(location.search).get('view')
     if (link.id === 'tools') {
+      /* Etiketler ToolsPage'deki VIEWS ile BİREBİR AYNI olmalı. Önceden
+         aynı görünümün iki adı vardı ("Genel Bakış" / "Tümü", "Katalog" /
+         "Hesaplamalar") ve kullanıcı ikisinin ayrı şeyler olduğunu
+         sanıyordu. Sıra da aynı: girişte açılan görünüm (Katalog) ilk. */
+      const onTools = location.pathname === '/app/calculations' || location.pathname === '/app/tools'
       return [
-        { label: 'Katalog', path: '/app/calculations', active: location.pathname === '/app/calculations' && view !== 'history' },
-        { label: 'Geçmiş / Tamamlanan', path: '/app/calculations?view=history', active: location.pathname === '/app/calculations' && view === 'history' },
+        { label: 'Katalog', path: '/app/calculations?view=calculator', active: onTools && (view === null || view === 'calculator' || view === 'models') },
+        { label: 'Finansal Görünüm', path: '/app/calculations?view=all', active: onTools && view === 'all' },
+        { label: 'Geçmiş', path: '/app/calculations?view=history', active: onTools && view === 'history' },
       ]
     }
     if (link.id === 'workspace-tracker' && activeWorkspaceId) {
@@ -154,7 +160,15 @@ export default function Sidebar({
       <button
         className={`${styles.navItem} ${active ? styles.active : ''} ${link.recommended ? styles.recommended : ''}`}
         onClick={() => {
-          if (submenu.length > 0) setExpandedMenu(current => current === link.id ? null : link.id)
+          if (submenu.length > 0) {
+            setExpandedMenu(current => current === link.id ? null : link.id)
+            /* Zaten bu bölümün içindeysek YALNIZ menüyü aç/kapat.
+               Önceden üst maddeye basmak aynı anda bölüm köküne
+               gidiyordu; yani alt menüyü görmek isteyen kullanıcı
+               bulunduğu görünümden (ör. Finansal Görünüm) koparılıp
+               Katalog'a atılıyordu. */
+            if (active) return
+          }
           handleNavigate(link.path)
         }}
         aria-current={active ? 'page' : undefined}
@@ -185,11 +199,11 @@ export default function Sidebar({
   }
 
   const quickAction = useMemo(() => {
-    if (location.pathname.startsWith('/app/community') && isAdmin) {
-      return { label: 'Haber oluştur', path: '/app/community#yayin-araclari' }
+if (location.pathname.startsWith('/app/community') && isAdmin) {
+      return { label: 'Haber oluştur', path: '/app/community/topluluk#yayin-araclari' }
     }
     if (location.pathname.startsWith('/app/calculations') || location.pathname.startsWith('/app/tools')) {
-      return { label: 'Yeni hesaplama', path: '/app/calculations' }
+      return { label: 'Hesaplama başlat', path: '/app/calculations?start=1' }
     }
     return null
   }, [isAdmin, location.pathname])

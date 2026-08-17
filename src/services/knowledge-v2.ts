@@ -198,6 +198,12 @@ export async function knowledgeV2Routes(fastify: FastifyInstance) {
     if (!isAdmin) {
       where.status = 'published'
       where.isDemo = false
+      /* Canonical KO'lar Bilgi katalogunda LISTELENMEZ. Bunlarin ogrenme
+         deneyimi Course Player'dir; katalogda gorunmeleri kullaniciyi
+         KnowledgeDetail'e yonlendiriyordu. Kayit silinmez, yalniz listeden
+         duser — KO detayi, mentor atifi ve ders bagi calismaya devam eder.
+         Admin icin gorunur kalir. */
+      where.NOT = { ...(where.NOT ?? {}), code: { startsWith: 'CANON-' } }
     }
 
     const { skip, take } = parsePagination(query)
@@ -283,12 +289,31 @@ export async function knowledgeV2Routes(fastify: FastifyInstance) {
 
     const embeddedPracticeBlocks = await getEmbeddedPracticeBlocksForKnowledgeObject(ko.id)
 
+    /* Canonical KO'nun ogrenme deneyimi Course Player'dir. Detay ekrani
+       referans olarak acilabilir; istemci bu bagla "Dersi Ac" CTA'si
+       gosterir. Bag yoksa alan null doner ve CTA cikmaz. */
+    let canonicalLesson: { courseId: number; lessonId: number; courseTitle: string } | null = null
+    if (ko.code?.startsWith('CANON-')) {
+      const lesson = await prisma.lesson.findFirst({
+        where: { knowledgeObjectId: ko.id, course: { sourceType: 'canonical-v1' } },
+        select: { id: true, courseId: true, course: { select: { title: true } } }
+      })
+      if (lesson) {
+        canonicalLesson = {
+          courseId: lesson.courseId,
+          lessonId: lesson.id,
+          courseTitle: lesson.course.title
+        }
+      }
+    }
+
     return {
       knowledgeObject: ko,
       quizzes,
       taskTemplates,
       relatedKOs,
-      embeddedPracticeBlocks
+      embeddedPracticeBlocks,
+      canonicalLesson
     }
   })
 
@@ -297,7 +322,7 @@ export async function knowledgeV2Routes(fastify: FastifyInstance) {
     const query = request.query as any
     const { skip, take } = parsePagination(query)
 
-    const where: any = { status: 'published', isDemo: false }
+    const where: any = { status: 'published', isDemo: false, archivedAt: null }
     if (query.category) where.category = { name: query.category }
     if (query.search) {
       where.OR = [
@@ -374,7 +399,7 @@ export async function knowledgeV2Routes(fastify: FastifyInstance) {
     const level = (request.query as any).level
 
     const kos = await prisma.knowledgeObject.findMany({
-      where: { status: 'published', isDemo: false },
+      where: { status: 'published', isDemo: false, archivedAt: null },
       select: KO_TOPIC_SELECT,
       orderBy: { createdAt: 'desc' }
     })
@@ -791,6 +816,100 @@ export async function knowledgeV2Routes(fastify: FastifyInstance) {
       pageSize: take,
       pages: Math.ceil(total / take)
     }
+  })
+
+  // GET /api/v2/search – global cross-content search (public, authenticated users)
+  // Kurslar, bilgi nesneleri, karar araçları ve haberler TEK sorguda taranır.
+  // Görünürlük kuralları: yayında, demo değil, arşivlenmemiş; canonical içerik
+  // (CANON- kodu) legacy bilgi nesnelerinden ayrı tutulur.
+  fastify.get('/api/v2/search', {
+    preHandler: [fastify.authenticate],
+    config: {
+      rateLimit: { max: 60, timeWindow: '1 minute' },
+    },
+  }, async (request) => {
+    const term = String((request.query as any).q || '').trim().slice(0, 100)
+    if (!term) {
+      return { courses: [], knowledge: [], decisionChecks: [], news: [] }
+    }
+    const contains = { contains: term, mode: 'insensitive' as const }
+
+    const [courses, knowledge, decisionChecks, news] = await Promise.all([
+      prisma.course.findMany({
+        where: {
+          published: true,
+          archivedAt: null,
+          OR: [{ title: contains }, { description: contains }],
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          category: true,
+          level: true,
+          slug: true,
+        },
+        orderBy: [{ sortOrder: 'asc' }, { updatedAt: 'desc' }],
+        take: 5,
+      }),
+      prisma.knowledgeObject.findMany({
+        where: {
+          status: 'published',
+          isDemo: false,
+          archivedAt: null,
+          NOT: { code: { startsWith: 'CANON-' } },
+          OR: [
+            { title: contains },
+            { summary: contains },
+            { quickAnswer: contains },
+            { content: contains },
+            { code: contains },
+          ],
+        },
+        select: {
+          id: true,
+          code: true,
+          title: true,
+          summary: true,
+          category: { select: { name: true } },
+        },
+        orderBy: { updatedAt: 'desc' },
+        take: 5,
+      }),
+      prisma.decisionCheck.findMany({
+        where: {
+          published: true,
+          deletedAt: null,
+          OR: [{ title: contains }, { description: contains }, { code: contains }],
+        },
+        select: {
+          id: true,
+          code: true,
+          title: true,
+          description: true,
+          category: true,
+        },
+        orderBy: { updatedAt: 'desc' },
+        take: 5,
+      }),
+      prisma.newsArticle.findMany({
+        where: {
+          status: 'PUBLISHED',
+          OR: [{ title: contains }, { summary: contains }],
+        },
+        select: {
+          id: true,
+          title: true,
+          summary: true,
+          category: true,
+          sourcePublishedAt: true,
+        },
+        orderBy: { sourcePublishedAt: 'desc' },
+        take: 5,
+      }),
+    ])
+
+    return { courses, knowledge, decisionChecks, news }
   })
 }
 

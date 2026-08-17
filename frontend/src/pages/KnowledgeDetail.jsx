@@ -79,6 +79,9 @@ export default function KnowledgeDetail() {
   const [taskTemplates, setTaskTemplates] = useState([])
   const [relatedKOs, setRelatedKOs] = useState([])
   const [embeddedPracticeBlocks, setEmbeddedPracticeBlocks] = useState([])
+  /* Canonical KO'nun ders bagi. Varsa bu ekran referans olarak kalir ve
+     kullaniciyi asil ogrenme deneyimine (Course Player) yonlendirir. */
+  const [canonicalLesson, setCanonicalLesson] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [notFound, setNotFound] = useState(false)
@@ -122,6 +125,7 @@ export default function KnowledgeDetail() {
       setTaskTemplates(res.taskTemplates || [])
       setRelatedKOs(res.relatedKOs || [])
       setEmbeddedPracticeBlocks(res.embeddedPracticeBlocks || [])
+      setCanonicalLesson(res.canonicalLesson || null)
       if (!res.knowledgeObject) setNotFound(true)
       else {
         const koId = res.knowledgeObject.id
@@ -252,6 +256,27 @@ export default function KnowledgeDetail() {
         <span className={styles.breadcrumbSep}>/</span>
         <span className={styles.breadcrumbCurrent}>{ko.code}</span>
       </nav>
+
+      {/* Canonical içerik için bu ekran yalnız REFERANSTIR; asıl öğrenme
+          deneyimi Course Player'dır. Kullanıcı buraya mentor atfı veya
+          doğrudan bağlantıyla düşebilir, o yüzden yol geri gösterilir. */}
+      {canonicalLesson && (
+        <Card className={styles.canonicalNotice}>
+          <div className={styles.canonicalNoticeText}>
+            <strong>Bu içeriğin dersi var</strong>
+            <p>
+              {canonicalLesson.courseTitle} dersini ilerleme takibi, uygulama
+              kutuları ve kaynaklarla birlikte aç.
+            </p>
+          </div>
+          <Button
+            variant="primary"
+            onClick={() => navigate(`/app/courses/${canonicalLesson.courseId}/learn/${canonicalLesson.lessonId}`)}
+          >
+            Dersi Aç
+          </Button>
+        </Card>
+      )}
 
       {/* Learning Session */}
       <div className={styles.sessionBar}>

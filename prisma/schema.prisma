@@ -73,6 +73,8 @@ model CommunityPost {
   postType          String
   title             String
   summary           String
+  content           String?
+  category          String?
   sourceUrl         String?
   sourceTitle       String?
   sourcePublishedAt DateTime?

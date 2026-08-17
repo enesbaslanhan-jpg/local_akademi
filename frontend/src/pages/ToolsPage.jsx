@@ -10,7 +10,7 @@ import {
   Store, TrendingUp, Users, WalletCards, Plus, Repeat, X,
   ArrowRight, AlertTriangle
 } from 'lucide-react'
-import { buildCalculationCatalog, CALCULATION_CATEGORIES, modeLabels } from '@/data/calculationCatalog'
+import { buildCalculationCatalog, CALCULATION_CATEGORIES, CALCULATION_DEFINITIONS, modeLabels } from '@/data/calculationCatalog'
 import styles from './ToolsPage.module.css'
 
 const ICONS = {
@@ -42,9 +42,21 @@ const CATEGORIES = CALCULATION_CATEGORIES
  * kartları BURADA YOK — backend'de böyle araçlar yok. Bunun yerine gerçek
  * formül kataloğu ve gerçek detaylı modeller tek niyet kataloğunda listeleniyor.
  */
+/* İSİMLER KENAR ÇUBUĞUYLA BİREBİR AYNI OLMALI.
+ *
+ * Önceden aynı üç görünümün iki ayrı adı vardı — çipte "Tümü" / kenar
+ * çubuğunda "Genel Bakış", çipte "Hesaplamalar" / kenar çubuğunda
+ * "Katalog" — ve iki ayrı geçiş yeri aynı işi yapıyordu. Tek isim seti:
+ *
+ *   calculator → Katalog            (hesaplama kataloğu, varsayılan)
+ *   all        → Finansal Görünüm   (panelin kendi etiketi bu)
+ *   history    → Geçmiş
+ *
+ * `all` id'si geriye dönük uyumluluk için korundu (URL `?view=all`).
+ * Sıra, girişte açılan görünümle (Katalog) başlıyor. */
 const VIEWS = [
-  { id: 'all', label: 'Tümü', icon: null },
-  { id: 'calculator', label: 'Hesaplamalar', icon: Calculator },
+  { id: 'calculator', label: 'Katalog', icon: Calculator },
+  { id: 'all', label: 'Finansal Görünüm', icon: null },
   { id: 'history', label: 'Geçmiş', icon: History },
 ]
 
@@ -140,6 +152,10 @@ export default function ToolsPage({ initialView = 'all' }) {
   const [error, setError] = useState('')
   const gridRef = useRef(null)
   const calcPanelRef = useRef(null)
+  const pickerRef = useRef(null)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [pickerQuery, setPickerQuery] = useState('')
+  const [pickerCategory, setPickerCategory] = useState('all')
 
   /* Arama kutusu kabuğun bağlam paneliyle ortak (İŞ 2). */
   const panel = useContextPanel()
@@ -156,7 +172,16 @@ export default function ToolsPage({ initialView = 'all' }) {
       setFormulas(loaded)
       setModels(modelResponse.models || [])
       setHistory(Array.isArray(historyResponse) ? historyResponse : [])
-      const requested = loaded.find(item => item.id === searchParams.get('tool'))
+      /* `?tool=` iki biçimi de kabul eder:
+           - ham formül id'si            (ör. birim_maliyet)
+           - hesaplama katalog id'si     (ör. unit-cost)
+         Course Player katalog id'siyle bağlantı kuruyor; burada karşılığı
+         olan formüle çevrilir. Karşılığı yoksa katalog görünümü açık
+         kalır — uydurma bir seçim yapılmaz. */
+      const toolParam = searchParams.get('tool')
+      const catalogEntry = CALCULATION_DEFINITIONS.find(entry => entry.id === toolParam)
+      const targetFormulaId = catalogEntry?.simple?.formulaId ?? toolParam
+      const requested = loaded.find(item => item.id === targetFormulaId)
       if (requested) {
         selectFormula(requested)
         setView('calculator')
@@ -179,17 +204,30 @@ export default function ToolsPage({ initialView = 'all' }) {
     })
   }, [activeWorkspaceId])
 
+  /* Görünüm URL'den TÜREİR — tek doğruluk kaynağı burası.
+   *
+   * Önceden bu effect yalnız `history` ve `models` değerlerine tepki
+   * veriyordu; parametre KALKTIĞINDA hiçbir şey yapmıyordu. Bu yüzden
+   * kenar çubuğundaki "Katalog" (parametresiz `/app/calculations`)
+   * URL'yi değiştiriyor ama sayfa geçmiş görünümünde takılı kalıyordu. */
   useEffect(() => {
     const requestedView = searchParams.get('view')
-    if (requestedView === 'history') setView('history')
-    else if (requestedView === 'models') setView('calculator')
-  }, [searchParams])
+    if (requestedView === 'history') { setView('history'); return }
+    if (requestedView === 'calculator' || requestedView === 'models') { setView('calculator'); return }
+    if (requestedView === 'all') { setView('all'); return }
+    /* Görünüm parametresi yok. `?tool=` varsa hesap makinesi açık kalmalı —
+       Course Player bu biçimde derin bağlantı veriyor. Yoksa rotanın
+       varsayılanına dön. */
+    setView(searchParams.get('tool') ? 'calculator' : initialView)
+  }, [searchParams, initialView])
 
+  /* Görünüm her zaman URL'ye yazılır. Eskiden varsayılana eşitse parametre
+     siliniyordu; o durumda kenar çubuğu hangi alt maddenin aktif olduğunu
+     bilemiyordu. */
   function changeView(nextView) {
     setView(nextView)
     const next = new URLSearchParams(searchParams)
-    if (nextView === initialView) next.delete('view')
-    else next.set('view', nextView)
+    next.set('view', nextView)
     setSearchParams(next, { replace: true })
   }
 
@@ -221,6 +259,29 @@ export default function ToolsPage({ initialView = 'all' }) {
       return categoryMatches && searchMatches
     })
   }, [catalog, category, search])
+
+  const pickerResults = useMemo(() => {
+    const query = pickerQuery.trim().toLocaleLowerCase('tr-TR')
+    return catalog.filter(calculation => {
+      const categoryMatches = pickerCategory === 'all' || calculation.category === pickerCategory
+      const searchMatches = !query || `${calculation.title} ${calculation.description}`.toLocaleLowerCase('tr-TR').includes(query)
+      return categoryMatches && searchMatches
+    })
+  }, [catalog, pickerCategory, pickerQuery])
+
+  /* Seçicide "Son kullanılanlar": gerçek geçmiş kayıtlarından türetilir. */
+  const recentCalculations = useMemo(() => {
+    if (history.length === 0) return []
+    const seen = new Set()
+    const rows = []
+    history.forEach(item => {
+      if (!item.formulaId || seen.has(item.formulaId)) return
+      seen.add(item.formulaId)
+      const calculation = catalog.find(entry => entry.simple?.formulaId === item.formulaId)
+      if (calculation) rows.push(calculation)
+    })
+    return rows.slice(0, 5)
+  }, [catalog, history])
 
   /* Geçmişteki kullanım sıklığı — "favori" alanı backend'de olmadığı için
      favori listesi UYDURULMUYOR, gerçek kullanım verisinden türetiliyor. */
@@ -263,13 +324,44 @@ export default function ToolsPage({ initialView = 'all' }) {
   }
 
   function startNewCalculation() {
-    setSelected(null)
-    setResult(null)
-    setError('')
-    setCategory('all')
-    setSearch('')
-    changeView('calculator')
-    gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setPickerOpen(true)
+    setPickerQuery('')
+    setPickerCategory('all')
+  }
+
+  /* `?start=1` (Sidebar hızlı aksiyonu) gelince seçiciyi aç, sonra URL'i temizle. */
+  useEffect(() => {
+    if (searchParams.get('start') === '1') {
+      setPickerOpen(true)
+      setPickerQuery('')
+      setPickerCategory('all')
+      const next = new URLSearchParams(searchParams)
+      next.delete('start')
+      setSearchParams(next, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
+
+  useEffect(() => {
+    if (!pickerOpen) return undefined
+
+    const previousOverflow = document.body.style.overflow
+    const handleKeyDown = event => {
+      if (event.key === 'Escape') setPickerOpen(false)
+    }
+
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', handleKeyDown)
+    pickerRef.current?.focus()
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [pickerOpen])
+
+  function openPickerCalculation(calculation) {
+    setPickerOpen(false)
+    openCalculation(calculation)
   }
 
   async function calculate() {
@@ -341,7 +433,7 @@ export default function ToolsPage({ initialView = 'all' }) {
           {/* Sayfanın TEK turuncu ana CTA'sı */}
           <button type="button" className={styles.panelCta} onClick={startNewCalculation}>
             <Plus size={16} aria-hidden="true" />
-            Yeni Hesaplama
+            Hesaplama Başlat
           </button>
         </div>
 
@@ -400,14 +492,18 @@ export default function ToolsPage({ initialView = 'all' }) {
         )}
       />
 
-      {view !== 'all' && <div className={styles.viewChips} role="group" aria-label="Görünüm süzgeci">
+      {/* Çipler YALNIZ MOBİLDE görünür (CSS). Masaüstünde geçişi kenar
+          çubuğu alt menüsü yapıyor; ikisini birlikte göstermek aynı iş için
+          iki ayrı kumanda demekti. Mobilde kenar çubuğu bir çekmece
+          olduğu için çipler orada tek geçiş yolu. */}
+      <div className={styles.viewChips} role="group" aria-label="Görünüm süzgeci">
         {VIEWS.map(item => {
           const Icon = item.icon
           return (
             <button
               key={item.id}
               type="button"
-              className={`${styles.viewChip} ${['models', 'history'].includes(item.id) ? styles.viewChipMobileOnly : ''} ${view === item.id ? styles.viewChipActive : ''}`}
+              className={`${styles.viewChip} ${view === item.id ? styles.viewChipActive : ''}`}
               onClick={() => changeView(item.id)}
               aria-pressed={view === item.id}
             >
@@ -417,7 +513,7 @@ export default function ToolsPage({ initialView = 'all' }) {
             </button>
           )
         })}
-      </div>}
+      </div>
 
       {view === 'all' && (
         <div className={styles.financeOverview}>
@@ -654,6 +750,67 @@ export default function ToolsPage({ initialView = 'all' }) {
             ))}
           </div>
         </section>
+      )}
+
+      {pickerOpen && (
+        <div className={styles.startOverlay} role="presentation" onMouseDown={() => setPickerOpen(false)}>
+          <div ref={pickerRef} className={styles.startDialog} role="dialog" aria-modal="true" aria-label="Hesaplama seçici" tabIndex={-1} onMouseDown={event => event.stopPropagation()}>
+            <button type="button" className={styles.calcClose} onClick={() => setPickerOpen(false)} aria-label="Seçiciyi kapat"><X size={19} /></button>
+            <div className={styles.panelHeading}>
+              <h2>Hesaplama Başlat</h2>
+              <p>Katalogdan bir hesaplama seçin; seçtiğinizde girdi alanı açılır.</p>
+            </div>
+            <input
+              type="search"
+              className={styles.startSearch}
+              placeholder="Hesaplama ara (ör. kâr, stok, KDV…)"
+              value={pickerQuery}
+              onChange={event => setPickerQuery(event.target.value)}
+              autoFocus
+            />
+            <div className={styles.categories} role="group" aria-label="Hesaplama kategorileri">
+              <button type="button" className={pickerCategory === 'all' ? styles.categoryActive : ''} onClick={() => setPickerCategory('all')} aria-pressed={pickerCategory === 'all'}>Tümü</button>
+              {Object.entries(CATEGORIES).map(([id, label]) => (
+                <button key={id} type="button" className={pickerCategory === id ? styles.categoryActive : ''} onClick={() => setPickerCategory(id)} aria-pressed={pickerCategory === id}>{label}</button>
+              ))}
+            </div>
+            {!pickerQuery && pickerCategory === 'all' && recentCalculations.length > 0 && (
+              <div className={styles.startRecent}>
+                <div className={styles.startLabel}>Son kullanılanlar</div>
+                <div className={styles.startList}>
+                  {recentCalculations.map(calculation => {
+                    const Icon = ICONS[calculation.simple?.formulaId] || Calculator
+                    return (
+                      <button key={calculation.id} type="button" className={styles.startItem} onClick={() => openPickerCalculation(calculation)}>
+                        <Icon className={styles.toolIcon} size={20} strokeWidth={1.4} aria-hidden="true" />
+                        <span><strong>{calculation.title}</strong><small>{calculation.description}</small></span>
+                        <ArrowRight size={15} aria-hidden="true" />
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+            <div className={styles.startLabel}>{pickerQuery || pickerCategory !== 'all' ? 'Sonuçlar' : 'Tüm hesaplamalar'}</div>
+            {pickerResults.length === 0 ? (
+              <div className={styles.startEmpty}>Aramanıza uygun hesaplama bulunamadı.</div>
+            ) : (
+              <div className={styles.startList}>
+                {pickerResults.map(calculation => {
+                  const Icon = ICONS[calculation.simple?.formulaId] || Calculator
+                  return (
+                    <button key={calculation.id} type="button" className={styles.startItem} onClick={() => openPickerCalculation(calculation)}>
+                      <Icon className={styles.toolIcon} size={20} strokeWidth={1.4} aria-hidden="true" />
+                      <span><strong>{calculation.title}</strong><small>{calculation.description}</small></span>
+                      <em className={styles.startModes}>{modeLabels(calculation).map(label => <b key={label}>{label}</b>)}</em>
+                      <ArrowRight size={15} aria-hidden="true" />
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
     </div>
