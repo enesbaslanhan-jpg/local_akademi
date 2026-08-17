@@ -251,6 +251,14 @@ export default function CoursePlayerPage() {
           </div>
         </div>
 
+        {/* Arşivlenmiş kurs okunabilir kalır; kullanıcı yalnızca artık aktif
+            katalogda olmadığını bilsin. İçerik ve ilerleme aynen korunur. */}
+        {course.archived && (
+          <p className={styles.archivedNotice} role="status">
+            Bu kurs artık aktif katalogda yer almıyor. İçeriğe ve ilerlemene erişmeye devam edebilirsin.
+          </p>
+        )}
+
         {lesson && (
           <>
             {/* Sayfanın TEK koyu paneli — aktif ders başlığı bloğu.

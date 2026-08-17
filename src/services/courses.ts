@@ -107,15 +107,23 @@ export async function courseRoutes(fastify: FastifyInstance) {
       },
     })
 
-    if (!course || !course.published) {
-      return reply.status(404).send({ error: 'Course not found' })
-    }
-
     /* Arşivlenmiş kurs katalogda listelenmez ama kendi adresinden OKUNABİLİR
        kalır. 404 vermek, o kursa kayıtlı kullanıcının ilerleme ve tamamlama
        geçmişine erişimini koparırdı; ürün kararı geçmişin korunması yönünde.
        İstemci `archived` bayrağıyla "bu içerik arşivlendi" uyarısı gösterir. */
-    const isArchived = course.archivedAt !== null
+    const isArchived = course !== null && course.archivedAt !== null
+
+    /* Üç durum AYRI AYRI ele alınır:
+         ACTIVE   published=true,  archivedAt=null  → açık
+         ARCHIVED published=false, archivedAt!=null → doğrudan adresten açık
+         DRAFT    published=false, archivedAt=null  → kapalı
+       `published=false` TEK BAŞINA 404 sebebi değildir; yalnız "yayınlanmamış
+       VE arşivlenmemiş" (taslak) içerik gizlenir. Önceki guard bu ayrımı
+       yapmadığı için arşivleme, kayıtlı kullanıcının geçmişini erişilemez
+       kılıyordu. */
+    if (!course || (!course.published && !isArchived)) {
+      return reply.status(404).send({ error: 'Course not found' })
+    }
 
     const user = request.user as any
     let enrollment: any = null
@@ -285,7 +293,14 @@ export async function courseRoutes(fastify: FastifyInstance) {
       },
     })
 
-    if (!lesson || lesson.courseId !== cid || !lesson.course.published ||
+    /* Ebeveyn kurs ACTIVE ya da ARCHIVED ise ders okunabilir; yalnız DRAFT
+       (yayınsız + arşivsiz) kapalıdır. Bu uç zaten yukarıda enrollment
+       şartı arıyor (403), yani arşiv erişimi kendiliğinden o kursa kayıtlı
+       kullanıcıyla sınırlı — taslak içerik public olmuyor. */
+    const parentArchived = lesson !== null && lesson.course.archivedAt !== null
+    const parentReadable = lesson !== null && (lesson.course.published || parentArchived)
+
+    if (!lesson || lesson.courseId !== cid || !parentReadable ||
       (lesson.knowledgeObject && (lesson.knowledgeObject.status !== 'published' || lesson.knowledgeObject.isDemo))) {
       return reply.status(404).send({ error: 'Lesson not found' })
     }

@@ -1,0 +1,252 @@
+{
+  "report": "PHASE_B_ARCHIVE_DRY_RUN",
+  "generated_at": "2026-08-17T16:05:00.000Z",
+  "mode": "DRY_RUN",
+  "applied": false,
+  "checkpoint": "92c7140",
+  "notes": "Tüm sayılar canlı DB'den okundu. Statik/eski sayı kullanılmadı. DB write, apply, re-import, remap, git add/commit/push yapılmadı.",
+
+  "counts": {
+    "course": { "total": 326, "canonical": 38, "legacy": 288 },
+    "lesson": { "total": 1208, "canonical": 38, "legacy": 1170, "orphan": 0 },
+    "knowledgeObject": { "total": 993, "canonical": 38, "legacy": 955 }
+  },
+
+  "canonical_definition": "Course.sourceType = 'canonical-v1'",
+
+  "legacy_source_types": {
+    "topic": { "active": 0, "draft": 200, "total": 200 },
+    "curated-v4": { "active": 40, "draft": 0, "total": 40 },
+    "phase6-financial-lab": { "active": 7, "draft": 17, "total": 24 },
+    "curated-pilot-v5-source-doc": { "active": 12, "draft": 0, "total": 12 },
+    "curated-pilot-v5-gdr": { "active": 7, "draft": 0, "total": 7 },
+    "legacy": { "active": 0, "draft": 3, "total": 3 },
+    "curated-operational-pilot-v1": { "active": 0, "draft": 1, "total": 1 },
+    "curated-pilot-v5": { "active": 1, "draft": 0, "total": 1 }
+  },
+
+  "null_code_ko_trap": {
+    "naive_filter_result": 950,
+    "null_safe_filter_result": 955,
+    "missed_by_naive_filter": 5,
+    "canonical_ko": 38,
+    "legacy_coded_ko": 950,
+    "legacy_null_code_ko": 5,
+    "null_code_ko_ids": [621, 622, 623, 624, 625],
+    "null_code_ko_state": "status='archived', archivedAt set, isDemo=false",
+    "touched_by_phase_b": 0
+  },
+
+  "archive_semantics": {
+    "source": "prisma/schema.prisma Course doc comment",
+    "ACTIVE": "published=true, archivedAt=null",
+    "DRAFT": "published=false, archivedAt=null",
+    "ARCHIVED": "published=false, archivedAt!=null",
+    "INVALID": "published=true, archivedAt!=null"
+  },
+
+  "target_set": {
+    "LEGACY_TARGET_total": 288,
+    "LEGACY_TARGET_active": { "count": 67, "id_range": "207-438", "id_md5": "ec9b60cdc7f06c1a19f5958c56947f2b" },
+    "LEGACY_TARGET_draft": { "count": 221, "id_range": "1-394", "id_md5": "2a0ad1c29f7a8847e8be8face9711b62" },
+    "ALREADY_ARCHIVED": { "count": 0 },
+    "UNEXPECTED_STATE": { "count": 0 },
+    "CANONICAL_EXCLUDED": { "count": 38, "id_range": "439-476", "id_md5": "1fb6203469a0f8a2f0dbe49c9583a78e" },
+    "deviation_from_expected_288": 0,
+    "sourceType_null_rows": 0
+  },
+
+  "canonical_snapshot": {
+    "published_true": 38,
+    "archivedAt_null": 38,
+    "slug_present": 38,
+    "slug_distinct": 38,
+    "metadata_present": 38,
+    "exactly_one_lesson": 38,
+    "without_lesson": 0,
+    "lesson_to_ko_linked": 38,
+    "ko_with_source_link": 37,
+    "note": "37/38 KO kaynak bağı — Phase B ile ilgisiz, önceden var olan durum",
+    "canonical_in_plan": 0
+  },
+
+  "planned_mutations": {
+    "table_scope": ["Course"],
+    "course_archive": 288,
+    "course_archive_currently_published": 67,
+    "course_archive_currently_draft": 221,
+    "mutation_shape": { "published": false, "archivedAt": "<now>" },
+    "lesson_updates": 0,
+    "ko_updates": 0,
+    "shared_ko_mutations": 0,
+    "deletes": 0,
+    "hard_deletes": 0,
+    "relation_deletes": 0,
+    "progress_remaps": 0,
+    "user_history_mutations": 0
+  },
+
+  "inconsistent_kos": {
+    "count": 4,
+    "definition": "status='published' AND archivedAt IS NOT NULL",
+    "ids": [106, 196, 626, 627],
+    "codes": ["CUR-021-01", "CUR-039-01", "FIN-CASHFLOW-001", "FIN-REVENUE-001"],
+    "touched_by_phase_b": 0
+  },
+
+  "user_history_snapshot": {
+    "total_rows": 139,
+    "tables": {
+      "Enrollment": { "count": 57, "id_md5": "a3a5eba79573db805e9b7dc0c2d78443" },
+      "LessonProgress": { "count": 14, "id_md5": "7982af76de186f91511921cc7ae5648d" },
+      "KnowledgeProgress": { "count": 6, "id_md5": "92efbd047d71b1b08175b5cc5967de5e" },
+      "DecisionCheckSession": { "count": 46, "id_md5": "6bdd6fca935bd293d4eed588022ffc38" },
+      "FormulaCalculation": { "count": 7, "id_md5": "171d764eb26d3b40488d0c422f2c9e88" },
+      "ActivityEvent": { "count": 5, "id_md5": "1e2c9ef44d083fd0d0fbe33ff1087b90" },
+      "QuizAttempt": { "count": 3, "id_md5": "cfa459a2e147fd0494774e8387d1cafd" },
+      "TaskAssignment": { "count": 3, "id_md5": "4d887cc43b7b46e067ef94f58f26d87e" }
+    },
+    "planned_for_mutation": 0
+  },
+
+  "blocker_fix": {
+    "id": "ARCHIVED_COURSE_READ_404",
+    "status": "RESOLVED",
+    "root_cause": "guard published=false olan kursu 404 yapıyordu; arşivleme published=false yapmak zorunda",
+    "state_semantics": {
+      "ACTIVE":   { "published": true,  "archivedAt": null,      "catalog": true,  "search": true,  "detail": true,  "lesson": true },
+      "DRAFT":    { "published": false, "archivedAt": null,      "catalog": false, "search": false, "detail": false, "lesson": false },
+      "ARCHIVED": { "published": false, "archivedAt": "not null","catalog": false, "search": false, "detail": true,  "lesson": true }
+    },
+    "changes": [
+      { "file": "src/services/courses.ts", "endpoint": "GET /courses/:id", "from": "!course.published -> 404", "to": "!course.published && !isArchived -> 404" },
+      { "file": "src/services/courses.ts", "endpoint": "GET /courses/:courseId/lessons/:lessonId", "from": "!lesson.course.published -> 404", "to": "!(published || parentArchived) -> 404" },
+      { "file": "frontend/src/pages/CoursePlayerPage.jsx", "change": "archived durumunda sakin bilgi notu" },
+      { "file": "frontend/src/pages/CoursePlayerPage.module.css", "change": ".archivedNotice stili (token tabanlı)" }
+    ],
+    "no_new_endpoint": true,
+    "response_contract_unchanged": true,
+    "draft_leak": false,
+    "lesson_endpoint_requires_enrollment": true,
+    "catalog_filter_unchanged": "src/services/courses.ts:17 published:true, archivedAt:null",
+    "search_filter_unchanged": "src/services/knowledge-v2.ts:838 published:true, archivedAt:null",
+    "regression_scan": {
+      "learnerDashboard_legacy_branch": "isLegacyCourseTitle sadece [...kopya...] başlıklarını yakalıyor; 288 legacy kursun 1'i uyuyor, Phase B sonrası dal genişlemiyor"
+    }
+  },
+
+  "access_semantics_tests": {
+    "file": "tests/archived-course-access.test.ts",
+    "total": 15,
+    "passed": 15,
+    "scenarios": {
+      "A_active_detail_and_lesson": "PASS",
+      "B_draft_hidden": "PASS",
+      "C_archived_direct_read": "PASS",
+      "D_archived_catalog_absent": "PASS",
+      "E_archived_search_absent": "PASS",
+      "F_user_history_unchanged": "PASS",
+      "G_canonical_regression": "PASS"
+    },
+    "mutation_check": {
+      "performed": true,
+      "method": "guard geçici olarak eski haline çevrildi",
+      "tests_failed_without_fix": 4,
+      "failing_block": "C · ARCHIVED kurs doğrudan adresten okunabilir",
+      "file_restored": true,
+      "tests_pass_after_restore": 15
+    }
+  },
+
+  "enrollment_impact": {
+    "enrollment_to_legacy_course": 49,
+    "enrollment_to_legacy_active_course": 27,
+    "enrollment_to_canonical_course": 8,
+    "lessonprogress_to_legacy_lesson": 13,
+    "enrollment_deletes_planned": 0,
+    "enrollment_updates_planned": 0,
+    "cascade_risk": "NONE — Course satırı silinmiyor, FK tetiklenmiyor"
+  },
+
+  "catalog_and_search": {
+    "course_catalog": { "file": "src/services/courses.ts:17", "filter": "published:true, archivedAt:null", "archived_legacy_hidden": true },
+    "global_search_courses": { "file": "src/services/knowledge-v2.ts:838", "filter": "published:true, archivedAt:null", "archived_legacy_hidden": true },
+    "knowledge_search": { "file": "src/services/knowledge.ts:16-18", "filter": "status:'published', isDemo:false, NOT startsWith 'CANON-'", "canonical_excluded_by_design": true },
+    "broken_legacy_ko_surfaced": false,
+    "canonical_stays_in_catalog": true,
+    "phase_b_compatible": true
+  },
+
+  "idempotency": {
+    "first_apply_planned_mutations": 288,
+    "second_apply_planned_mutations": 0,
+    "reason": "hedef sorgusu archivedAt:null koşulu taşıyor",
+    "safe_no_op": true
+  },
+
+  "script": {
+    "path": "scripts/content-migration-phase-b.ts",
+    "default_mode": "dry-run",
+    "apply_flag": "--apply",
+    "dry_run_executed": true,
+    "gates_passed": 7,
+    "gates_failed": 0,
+    "db_unchanged_after_dry_run": true,
+    "safeguards": [
+      "gate'ler apply sırasında transaction içinde yeniden çalışır",
+      "hedef kümede canonical bulunursa throw -> rollback",
+      "yazma sonrası canonical aktif != 38 ise throw -> rollback",
+      "canonical hariç tutma NULL-safe",
+      "gate fail -> apply hiç başlamaz"
+    ]
+  },
+
+  "post_apply_verify_plan": [
+    "Legacy Course: published=false AND archivedAt!=null -> 288",
+    "Canonical Course: 38 aktif, archivedAt NULL",
+    "Total Course/Lesson/KO: 326/1208/993 değişmemiş",
+    "Kullanıcı geçmişi: 8 tablonun satır sayısı ve ID hash'i birebir aynı",
+    "Deletes 0, canonical mutation 0",
+    "API smoke: katalog canonical-only, Course Player açılıyor, devam-et çalışıyor, karar/hesaplama CTA çalışıyor",
+    "EK: legacy kursa kayıtlı kullanıcı kendi kurs geçmişini açabiliyor mu"
+  ],
+
+  "final": {
+    "total_courses": 326,
+    "canonical_courses": 38,
+    "legacy_courses": 288,
+    "legacy_archive_targets": 288,
+    "already_archived_legacy": 0,
+    "unexpected_legacy_states": 0,
+    "canonical_courses_in_target_set": 0,
+    "lessons_planned_for_update": 0,
+    "kos_planned_for_update": 0,
+    "shared_kos_planned_for_mutation": 0,
+    "deletes_planned": 0,
+    "hard_deletes_planned": 0,
+    "relation_deletes_planned": 0,
+    "progress_remaps_planned": 0,
+    "current_user_history_rows": 139,
+    "user_history_rows_planned_for_mutation": 0,
+    "legacy_null_code_kos": 5,
+    "null_code_kos_touched": 0,
+    "inconsistent_kos_touched": 0,
+    "second_run_planned_mutations": 0,
+
+    "archived_course_detail_access": "PASS",
+    "archived_lesson_access": "PASS",
+    "draft_course_still_hidden": "PASS",
+    "archived_course_catalog_hidden": "PASS",
+    "archived_course_search_hidden": "PASS",
+
+    "backend_tests": { "files": 88, "tests": 1315, "result": "PASS" },
+    "frontend_tests": { "files": 28, "tests": 201, "result": "PASS" },
+    "frontend_build": "SUCCESS",
+    "typecheck": "CLEAN",
+    "dry_run_gates": "7/7 PASS",
+    "db_changed_by_dry_run": false,
+
+    "safe_for_phase_b_apply": "YES",
+    "blockers": []
+  }
+}
