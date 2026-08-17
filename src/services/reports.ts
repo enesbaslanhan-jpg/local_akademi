@@ -4,13 +4,26 @@ import { randomUUID } from 'crypto'
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { createZip } from './zipHelper'
+import { keyValueToPdf, keyValueToXlsx, type KeyValueSection } from './report-formats.js'
 
 const REPORT_DIR = join(process.cwd(), 'reports')
 
+/**
+ * Kullanıcı özeti raporları (legacy, per-user `BusinessProfile` tabanlı).
+ *
+ * NOT: İşletme takibi dışa aktarımı burada DEĞİL — `workspace-exports.ts`
+ * içinde ve workspace kapsamlıdır. Bu dosya yalnız eski kullanıcı özeti
+ * ile admin yedeğini taşıyor.
+ *
+ * Rota yolları bilerek öneksiz: bu eklenti `index.ts` içinde
+ * `{ prefix: '/reports' }` ile kaydediliyor. Handler'lar da `/reports/...`
+ * dediği için yollar `/reports/reports/...` oluyordu ve hiçbir rotaya
+ * erişilemiyordu; dönen `download_url` de var olmayan bir yolu gösteriyordu.
+ */
 export async function reportRoutes(fastify: FastifyInstance) {
   mkdirSync(REPORT_DIR, { recursive: true })
 
-  fastify.post('/reports/generate/:fmt', {
+  fastify.post('/generate/:fmt', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
     const user = request.user
@@ -29,13 +42,15 @@ export async function reportRoutes(fastify: FastifyInstance) {
       where: { userId: user.id }
     }).catch(() => null)
 
-    const content = generateReportContent(user, profile)
+    const sections = buildReportSections(user, profile)
+    const title = 'LocalKarar Kullanıcı Raporu'
 
-    if (format === 'xlsx') {
-      writeFileSync(filepath, generateSimpleXlsx(content))
-    } else {
-      writeFileSync(filepath, generateSimplePdf(content))
-    }
+    /* Gerçek dosya baytı. Önceki sürüm burada düz metin yazıp gerçek
+       PDF/OOXML MIME tipiyle sunuyordu; hiçbir uygulama açamıyordu. */
+    const bytes = format === 'xlsx'
+      ? await keyValueToXlsx(title, sections)
+      : await keyValueToPdf(title, sections)
+    writeFileSync(filepath, bytes)
 
     await (prisma as any).generatedReport?.create({
       data: {
@@ -56,7 +71,7 @@ export async function reportRoutes(fastify: FastifyInstance) {
     }
   })
 
-  fastify.get('/reports', {
+  fastify.get('/', {
     preHandler: [fastify.authenticate]
   }, async (request) => {
     const user = request.user
@@ -74,7 +89,7 @@ export async function reportRoutes(fastify: FastifyInstance) {
     }))
   })
 
-  fastify.get('/reports/:reportId/download', {
+  fastify.get('/:reportId/download', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
     const user = request.user
@@ -94,9 +109,15 @@ export async function reportRoutes(fastify: FastifyInstance) {
     }
 
     const fileContent = readFileSync(filepath)
-    const media = report.format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    /* `zip` (admin yedeği) eskiden XLSX MIME tipiyle sunuluyordu. */
+    const media = MEDIA_TYPES[report.format as keyof typeof MEDIA_TYPES]
+      ?? 'application/octet-stream'
 
-    return reply.header('Content-Type', media).send(fileContent)
+    return reply
+      .header('Content-Type', media)
+      .header('Content-Disposition', `attachment; filename="${report.storedName}"`)
+      .header('Content-Length', fileContent.length)
+      .send(fileContent)
   })
 
   fastify.post('/admin/backup', {
@@ -137,52 +158,41 @@ export async function reportRoutes(fastify: FastifyInstance) {
   })
 }
 
-function generateReportContent(user: any, profile: any) {
-  return {
-    kullanici: user.name || user.email,
-    isletme: profile?.name || '',
-    sektor: profile?.sector || '',
-    sehir: profile?.city || '',
-    aylik_satis: profile?.monthlySales || 0,
-    aylik_gider: profile?.monthlyExpenses || 0,
-    tahmini_kar: (profile?.monthlySales || 0) - (profile?.monthlyExpenses || 0),
-    nakit: profile?.cashBalance || 0,
-    borc: profile?.debtBalance || 0,
-    tarih: new Date().toLocaleString('tr-TR')
-  }
-}
+const MEDIA_TYPES = {
+  pdf: 'application/pdf',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  csv: 'text/csv; charset=utf-8',
+  zip: 'application/zip'
+} as const
 
-function generateSimplePdf(content: any) {
-  const lines = [
-    'LocalKarar Rapor',
-    '═'.repeat(50),
-    '',
-    `Kullanıcı: ${content.kullanici}`,
-    `Tarih: ${content.tarih}`,
-    '',
-    '─'.repeat(50),
-    'İşletme Bilgileri',
-    '─'.repeat(50),
-    `İşletme: ${content.isletme}`,
-    `Sektör: ${content.sektor}`,
-    `Şehir: ${content.sehir}`,
-    '',
-    '─'.repeat(50),
-    'Finansal Özet',
-    '─'.repeat(50),
-    `Aylık Satış: ${content.aylik_satis} ₺`,
-    `Aylık Gider: ${content.aylik_gider} ₺`,
-    `Tahmini Kar: ${content.tahmini_kar} ₺`,
-    `Nakit: ${content.nakit} ₺`,
-    `Borç: ${content.borc} ₺`,
-    '',
-    '═'.repeat(50)
+function buildReportSections(user: any, profile: any): KeyValueSection[] {
+  const sales = profile?.monthlySales ?? 0
+  const expenses = profile?.monthlyExpenses ?? 0
+  return [
+    {
+      heading: 'Rapor Bilgisi',
+      rows: [
+        ['Kullanıcı', user.name || user.email],
+        ['Tarih', new Date().toLocaleString('tr-TR')]
+      ]
+    },
+    {
+      heading: 'İşletme Bilgileri',
+      rows: [
+        ['İşletme', profile?.name || '—'],
+        ['Sektör', profile?.sector || '—'],
+        ['Şehir', profile?.city || '—']
+      ]
+    },
+    {
+      heading: 'Finansal Özet',
+      rows: [
+        ['Aylık satış', sales],
+        ['Aylık gider', expenses],
+        ['Tahmini kâr', sales - expenses],
+        ['Nakit', profile?.cashBalance ?? 0],
+        ['Borç', profile?.debtBalance ?? 0]
+      ]
+    }
   ]
-  return lines.join('\n')
-}
-
-function generateSimpleXlsx(content: any) {
-  const header = 'Kullanıcı\tİşletme\tSektör\tŞehir\tAylık Satış\tAylık Gider\tTahmini Kar\tNakit\tBorç\tTarih'
-  const row = `${content.kullanici}\t${content.isletme}\t${content.sektor}\t${content.sehir}\t${content.aylik_satis}\t${content.aylik_gider}\t${content.tahmini_kar}\t${content.nakit}\t${content.borc}\t${content.tarih}`
-  return `${header}\n${row}\n`
 }

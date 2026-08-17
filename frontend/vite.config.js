@@ -20,6 +20,13 @@ export default defineConfig({
     }
   },
   server: {
+    /* PORT verilmişse ona bağlan (araçların atadığı portu kullanabilmek
+       için). PORT yoksa `undefined` kalır ve Vite kendi varsayılanı olan
+       5173'ü kullanır — `npm run dev` davranışı değişmez.
+       strictPort yalnız PORT verildiğinde açık: atanan port doluysa
+       sessizce başka bir porta kaymak yerine hata vermesi doğru. */
+    port: process.env.PORT ? Number(process.env.PORT) : undefined,
+    strictPort: Boolean(process.env.PORT),
     proxy: {
       '/api/memory': {
         target: 'http://localhost:3000',

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import {
   AlertTriangle, CalendarDays, Check, Package, Plus, WalletCards, X,
-  Receipt, HandCoins, FileSignature, Truck, Search, ChevronRight
+  Receipt, HandCoins, FileSignature, Truck, Search, ChevronRight, Download
 } from 'lucide-react'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
@@ -35,10 +35,6 @@ const typeLabels = {
 /*
  * HIZLI AKSİYON ŞERİDİ — her biri MEVCUT kayıt oluşturma akışını `type`
  * (ve mantıklı olduğunda `direction`) ön seçili açar. Yeni endpoint yok.
- *
- * Mockup'taki "Hızlı Rapor" BURADA YOK: backend'de rapor/dışa aktarım
- * endpoint'i bulunmuyor, karşılığı olmayan aksiyon eklenmedi. Özet rakamlar
- * zaten hemen altındaki KPI şeridinde ve Genel Bakış sekmesinde.
  */
 const QUICK_ACTIONS = [
   { id: 'payment', label: 'Yeni Ödeme', icon: Receipt, preset: { type: 'payment', direction: 'payable' } },
@@ -76,6 +72,7 @@ export default function Tracker() {
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [exporting, setExporting] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -142,6 +139,29 @@ export default function Tracker() {
     }
   }
 
+  /* Dışa aktarım, ekranda uygulanan filtrenin AYNISINI kullanır: tür ve
+     durum sunucu tarafında, arama metni `q` olarak gönderilir. Böylece
+     indirilen dosya kullanıcının gördüğü listeyle örtüşür. Tablo ilk 50
+     kaydı gösterirken dosya filtreye uyan tüm kayıtları taşır. */
+  async function downloadExport(format) {
+    setExporting(format)
+    try {
+      const query = Object.fromEntries(
+        Object.entries({ ...filters, q: search.trim() }).filter(([, value]) => value)
+      )
+      const result = await api.workspace.exports.downloadRecords(workspaceId, format, query)
+      toast.success(
+        result.truncated
+          ? `${result.rowCount} kayıt indirildi (üst sınıra ulaşıldı, filtre daraltın).`
+          : `${result.rowCount} kayıt indirildi.`
+      )
+    } catch (error) {
+      toast.error(error.message || 'Dışa aktarım başarısız.')
+    } finally {
+      setExporting('')
+    }
+  }
+
   async function setStatus(recordId, status) {
     try {
       await api.workspace.tracker.update(workspaceId, recordId, { status })
@@ -159,9 +179,30 @@ export default function Tracker() {
           <h2>İşletme Kayıtları</h2>
           <p>Ödeme, tahsilat, sözleşme ve operasyon kayıtlarını yönetin.</p>
         </div>
-        <button className={styles.cta} onClick={() => openForm()}>
-          <Plus size={18} /> Kayıt ekle
-        </button>
+        <div className={styles.headingActions}>
+          <div className={styles.exportGroup} role="group" aria-label="Kayıtları dışa aktar">
+            {[
+              { fmt: 'csv', label: 'CSV' },
+              { fmt: 'xlsx', label: 'Excel' },
+              { fmt: 'pdf', label: 'PDF' }
+            ].map(({ fmt, label }) => (
+              <button
+                key={fmt}
+                type="button"
+                className={styles.exportButton}
+                onClick={() => downloadExport(fmt)}
+                disabled={Boolean(exporting)}
+                title={`Ekrandaki filtreye uyan kayıtları ${label} olarak indir`}
+              >
+                <Download size={15} aria-hidden="true" />
+                {exporting === fmt ? 'Hazırlanıyor…' : label}
+              </button>
+            ))}
+          </div>
+          <button className={styles.cta} onClick={() => openForm()}>
+            <Plus size={18} /> Kayıt ekle
+          </button>
+        </div>
       </div>
 
       <section className={styles.registry}>

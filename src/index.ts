@@ -17,6 +17,7 @@ import { documentRoutes } from './services/documents'
 import { businessRoutes } from './services/business'
 import { workspaceRoutes } from './services/workspace'
 import { businessTrackerRoutes } from './services/business-tracker'
+import { workspaceExportRoutes } from './services/workspace-exports'
 import { startBusinessReminderWorker } from './services/business-reminder-worker'
 import { formulaRoutes } from './services/formulas'
 import { adminRoutes } from './services/admin'
@@ -189,6 +190,7 @@ async function build() {
   server.register(businessRoutes, { prefix: '/business' })
   server.register(workspaceRoutes, { prefix: '/workspaces' })
   server.register(businessTrackerRoutes, { prefix: '/workspaces' })
+  server.register(workspaceExportRoutes, { prefix: '/workspaces' })
   server.register(formulaRoutes)
   server.register(adminRoutes, { prefix: '/admin' })
   server.register(reportRoutes, { prefix: '/reports' })

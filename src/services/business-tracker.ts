@@ -72,7 +72,10 @@ function recordJson(record: any) {
   }
 }
 
-async function access(
+/** Üyelik + workspace aktifliği + (istenirse) yazma yetkisi kontrolü.
+ *  Başarısızsa yanıtı kendisi gönderir ve `null` döner.
+ *  `workspace-exports.ts` aynı kuralı tekrar yazmamak için bunu kullanıyor. */
+export async function access(
   prisma: PrismaClient,
   userId: number,
   workspaceId: string,
