@@ -128,13 +128,13 @@ describe('E2E: Auth & Registration', () => {
   const email = `e2e-auth-${Date.now()}@test.local`
 
   it('POST /auth/register creates user and returns token', async () => {
-    const res = await post('/auth/register', { email, password: 'StrongPass123!', name: 'Auth Test' })
+    const res = await post('/auth/register', { email, password: 'StrongPass123!', name: 'Auth Test', acceptedLegal: true })
     expect(res.statusCode).toBe(200)
     expect(res.json().token).toBeDefined()
   })
 
   it('POST /auth/register rejects duplicate email', async () => {
-    const res = await post('/auth/register', { email, password: 'StrongPass123!', name: 'Duplicate' })
+    const res = await post('/auth/register', { email, password: 'StrongPass123!', name: 'Duplicate', acceptedLegal: true })
     expect(res.statusCode).toBe(400)
   })
 

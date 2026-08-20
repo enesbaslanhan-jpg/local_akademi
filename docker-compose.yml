@@ -12,16 +12,33 @@ services:
       - PORT=3000
       # JWT_SECRET is REQUIRED — set in .env or shell environment
       - JWT_SECRET=${JWT_SECRET}
-      - DATABASE_URL=postgresql://localakademi:${DB_PASSWORD:-localakademi}@postgres:5432/localakademi?schema=public
+      # Çalışma zamanı bağlantısı: EN AZ YETKİLİ rol — yalnız SELECT/INSERT/
+      # UPDATE/DELETE. DDL, TRUNCATE ve superuser yok. Rolü oluşturmak için:
+      #   APP_DB_PASSWORD="..." npx tsx scripts/setup-app-db-role.ts
+      - DATABASE_URL=postgresql://localakademi_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD tanimlanmali}@postgres:5432/localakademi?schema=public
+      # Göç adımı DDL gerektirir, bu yüzden sahip rolüyle çalışır.
+      # Yalnız docker-entrypoint.sh içindeki migrate deploy kullanır.
+      - MIGRATE_DATABASE_URL=postgresql://localakademi:${DB_PASSWORD:?DB_PASSWORD tanimlanmali}@postgres:5432/localakademi?schema=public
       # CORS_ORIGIN is REQUIRED for production — set to your frontend URL
       - CORS_ORIGIN=${CORS_ORIGIN}
-      - NVIDIA_API_KEY=${NVIDIA_API_KEY:-}
-      - NVIDIA_MODEL=${NVIDIA_MODEL:-deepseek-ai/deepseek-v4-flash}
-      - AI_PROVIDER=${AI_PROVIDER:-nvidia}
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-5}
-      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
-      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-v4-flash}
+      # AI sağlayıcı — ÜRÜN KARARI: yalnız OmniRoute / yerel Ollama.
+      # Buradaki varsayılan eskiden `nvidia` idi; AI_PROVIDER ortamda
+      # tanımlanmazsa mentor trafiği sessizce ABD'ye gidiyordu. Artık
+      # varsayılan YOK — açıkça verilmeli.
+      - AI_PROVIDER=${AI_PROVIDER}
+      - OMNIROUTE_BASE_URL=${OMNIROUTE_BASE_URL}
+      - OMNIROUTE_API_KEY=${OMNIROUTE_API_KEY}
+      - OMNIROUTE_MODEL=${OMNIROUTE_MODEL:-auto/best-free}
+      # Yurt dışı sağlayıcılar bilinçli olarak açılmadıkça reddedilir.
+      - AI_ALLOW_EXTERNAL_PROVIDERS=${AI_ALLOW_EXTERNAL_PROVIDERS:-false}
+      # Ters vekil arkasındaysanız ayarlayın (ör. 1). Tanımsızsa
+      # X-Forwarded-For yok sayılır — hız sınırları soket adresine göre işler.
+      - TRUST_PROXY=${TRUST_PROXY:-}
+      # E-posta — şifre sıfırlama ve e-posta doğrulama buna bağlı.
+      # Üretimde eksikse sunucu açılışta durur (bkz. mailer.ts).
+      - RESEND_API_KEY=${RESEND_API_KEY:?RESEND_API_KEY tanimlanmali}
+      - MAIL_FROM=${MAIL_FROM:?MAIL_FROM tanimlanmali}
+      - APP_PUBLIC_URL=${APP_PUBLIC_URL:?APP_PUBLIC_URL tanimlanmali}
     volumes:
       - server-data:/app/prisma
       - server-uploads:/app/uploads
@@ -39,7 +56,8 @@ services:
     shm_size: 256mb
     environment:
       - POSTGRES_USER=localakademi
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-localakademi}
+      # Varsayılan YOK: "localakademi" zayıf parolası üretime sızmasın.
+      - POSTGRES_PASSWORD=${DB_PASSWORD:?DB_PASSWORD tanimlanmali}
       - POSTGRES_DB=localakademi
     ports:
       - "127.0.0.1:5432:5432"

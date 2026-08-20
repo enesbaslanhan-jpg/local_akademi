@@ -8,6 +8,8 @@ import { featureFlags } from '@/config/featureFlags'
 
 
 const AuthPage = lazy(() => import('@/pages/AuthPage'))
+const PasswordResetPage = lazy(() => import('@/pages/PasswordResetPage'))
+const EmailVerifyPage = lazy(() => import('@/pages/PasswordResetPage').then(m => ({ default: m.EmailVerifyPage })))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const OnboardingPage = lazy(() => import('@/pages/OnboardingPage'))
 const AssessmentPage = lazy(() => import('@/pages/AssessmentPage'))
@@ -66,6 +68,9 @@ export default function AppRoutes() {
         {/* Public auth routes */}
         <Route path="/login" element={<SuspenseWrapper><AuthPage mode="login" /></SuspenseWrapper>} />
         <Route path="/register" element={<SuspenseWrapper><AuthPage mode="register" /></SuspenseWrapper>} />
+        <Route path="/forgot-password" element={<SuspenseWrapper><PasswordResetPage mode="request" /></SuspenseWrapper>} />
+        <Route path="/reset-password" element={<SuspenseWrapper><PasswordResetPage mode="confirm" /></SuspenseWrapper>} />
+        <Route path="/verify-email" element={<SuspenseWrapper><EmailVerifyPage /></SuspenseWrapper>} />
         <Route path="/unauthorized" element={<SuspenseWrapper><Unauthorized /></SuspenseWrapper>} />
         <Route path="/privacy" element={<SuspenseWrapper><LegalPage type="privacy" /></SuspenseWrapper>} />
         <Route path="/terms" element={<SuspenseWrapper><LegalPage type="terms" /></SuspenseWrapper>} />

@@ -187,9 +187,25 @@ export function extractInlineReferences(markdown) {
  * graceful fallback gösterir.
  * ------------------------------------------------------------------ */
 
-const TR_MAP = { 'ı': 'i', 'İ': 'i', 'ş': 's', 'Ş': 's', 'ğ': 'g', 'Ğ': 'g', 'ü': 'u', 'Ü': 'u', 'ö': 'o', 'Ö': 'o', 'ç': 'c', 'Ç': 'c' }
+/*
+ * Türkçe harf eşlemesi.
+ *
+ * DÜZELTİLDİ — inceltme işaretli harfler (â, î, û) eksikti. Bunlar
+ * eşlenmeyince `[^a-z0-9]` kuralına takılıp siliniyordu ve "kâr" kelimesi
+ * "k r" olup token filtresinden (uzunluk > 2) tamamen düşüyordu.
+ *
+ * Sonucu somut: "Kâr ve Kâr Marjı" başlığı yalnız ["marji"]'ye iniyordu.
+ * Bu yüzden "Brüt Kâr Marjı" (doğru eşleşme) ile "Güvenlik Marjı" (yanlış
+ * eşleşme) matcher'a birebir aynı görünüyor, ikisi de aynı hesaplamaya
+ * bağlanıyordu.
+ */
+const TR_MAP = {
+  'ı': 'i', 'İ': 'i', 'ş': 's', 'Ş': 's', 'ğ': 'g', 'Ğ': 'g',
+  'ü': 'u', 'Ü': 'u', 'ö': 'o', 'Ö': 'o', 'ç': 'c', 'Ç': 'c',
+  'â': 'a', 'Â': 'a', 'î': 'i', 'Î': 'i', 'û': 'u', 'Û': 'u'
+}
 const normalize = s => (s || '')
-  .replace(/[ıİşŞğĞüÜöÖçÇ]/g, m => TR_MAP[m])
+  .replace(/[ıİşŞğĞüÜöÖçÇâÂîÎûÛ]/g, m => TR_MAP[m])
   .toLowerCase()
   .replace(/[^a-z0-9]+/g, ' ')
   .trim()
@@ -289,7 +305,36 @@ export function resolveCalculation(rawLabel, definitions = []) {
   }
 
   if (best.score >= 0.85) return { status: 'FOUND', definition: best.definition }
-  if (best.score >= 0.5 && best.score - (second?.score ?? 0) >= 0.15) {
+
+  /*
+   * Orta bantta (0.5–0.85) TEK KELİME örtüşmesi yeterli sayılmaz.
+   *
+   * Eski kural yalnız "skor >= 0.5 ve ikinciyle arası >= 0.15" idi. Bu,
+   * ters bir mantık üretiyordu: bir etiket başka hiçbir şeye benzemiyorsa
+   * "fark" büyük çıkıyor ve tek kelimelik rastlantı kendinden emin
+   * eşleşme gibi görünüyordu.
+   *
+   * Somut vaka: "Güvenlik Marjı" → "Kâr ve Kâr Marjı" ile yalnız "marjı"
+   * kelimesini paylaşıyor (skor tam 0.500, fark 0.500) ve kullanıcıyı
+   * alakasız bir hesaplamaya götürüyordu. Güvenlik marjı başa baş
+   * noktasına uzaklıktır; kâr marjı bambaşka bir şey.
+   *
+   * Yeni kural: en az İKİ anlamlı kelime paylaşılmalı. Kesin eşleşmeler
+   * (>= 0.85), tam eşitlik, doğrulanmış eş anlamlılar ve alt küme kuralı
+   * ("ROI" ⊂ "Yatırım Getirisi (ROI)") bundan etkilenmez.
+   */
+  const paylasilanKelime = (a, b) => {
+    const A = new Set(tokenize(a)), B = new Set(tokenize(b))
+    let n = 0
+    for (const t of A) if (B.has(t)) n++
+    return n
+  }
+
+  if (
+    best.score >= 0.5 &&
+    best.score - (second?.score ?? 0) >= 0.15 &&
+    paylasilanKelime(label, best.definition.title) >= 2
+  ) {
     return { status: 'FOUND', definition: best.definition }
   }
   if (best.score >= 0.45) return { status: 'AMBIGUOUS', definition: null }

@@ -3,7 +3,7 @@ import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import { Select, DataTable, Badge, Button, Modal } from '@/components/ui'
-import { MoreVertical, Shield, AlertTriangle } from 'lucide-react'
+import { MoreVertical, Shield, AlertTriangle, UserCheck, UserMinus, Trash2 } from 'lucide-react'
 import styles from './AdminUsers.module.css'
 
 const ROLE_LABELS = {
@@ -50,6 +50,10 @@ export default function AdminUsers() {
 
   const [openDropdownId, setOpenDropdownId] = useState(null)
   const [roleChangeUser, setRoleChangeUser] = useState(null)
+  /* `{ row, eylem }` — onay kutusu açıkken dolu. */
+  const [moderationUser, setModerationUser] = useState(null)
+  const [moderationReason, setModerationReason] = useState('')
+  const [moderationLoading, setModerationLoading] = useState(false)
   const [newRole, setNewRole] = useState('')
   const [roleLoading, setRoleLoading] = useState(false)
 
@@ -81,7 +85,41 @@ export default function AdminUsers() {
       email: u.email,
       name: u.name || u.display_name,
       role: u.role,
-      createdAt: u.createdAt || u.created_at
+      createdAt: u.createdAt || u.created_at,
+      suspendedAt: u.suspendedAt || null,
+      anonymized: Boolean(u.anonymized)
+    }
+  }
+
+  /*
+   * Askıya alma / askıyı kaldırma / anonimleştirme.
+   *
+   * Kalıcı silme YOK: denetim kayıtları, topluluk gönderileri ve yasal
+   * saklama yükümlülükleri kaydın kendisine bağlı. "Sil" isteği
+   * anonimleştirmeyle karşılanıyor — kişisel alanlar temizlenir, ilişkiler
+   * ayakta kalır. Bu yüzden onay metni de bunu açıkça söylüyor.
+   */
+  async function moderasyonUygula(row, eylem) {
+    if (moderationLoading) return
+    setModerationLoading(true)
+    try {
+      if (eylem === 'suspend') {
+        await api.admin.suspendUser(row.id, moderationReason.trim())
+        toast.success(`${row.email} askıya alındı. Açık oturumları kapatıldı.`)
+      } else if (eylem === 'unsuspend') {
+        await api.admin.unsuspendUser(row.id)
+        toast.success(`${row.email} yeniden aktif.`)
+      } else {
+        await api.admin.anonymizeUser(row.id)
+        toast.success('Hesap anonimleştirildi.')
+      }
+      setModerationUser(null)
+      setModerationReason('')
+      fetchUsers()
+    } catch (err) {
+      toast.error(err.message || 'İşlem tamamlanamadı.')
+    } finally {
+      setModerationLoading(false)
     }
   }
 
@@ -177,7 +215,14 @@ export default function AdminUsers() {
       label: 'Rol',
       sortable: true,
       render: (row) => (
-        <Badge variant={ROLE_BADGE[row.role] || 'default'}>{ROLE_LABELS[row.role] || row.role}</Badge>
+        <span className={styles.roleCell}>
+          <Badge variant={ROLE_BADGE[row.role] || 'default'}>{ROLE_LABELS[row.role] || row.role}</Badge>
+          {/* Askı durumu listede görünmeli; yoksa kimin kapalı olduğu
+              ancak menü açılınca anlaşılırdı. */}
+          {row.anonymized
+            ? <Badge variant="default">Anonim</Badge>
+            : row.suspendedAt && <Badge variant="danger">Askıda</Badge>}
+        </span>
       )
     },
     {
@@ -205,6 +250,28 @@ export default function AdminUsers() {
               <button className={styles.dropdownItem} role="menuitem" onClick={() => openRoleModal(row)}>
                 <Shield size={16} /> Rol Değiştir
               </button>
+              {/* Kendi hesabına uygulanamaz: kendini askıya alan admin
+                  sistemden kilitlenir ve geri dönemez. Sunucu da reddediyor,
+                  burada da göstermiyoruz. */}
+              {row.id !== currentUser?.id && !row.anonymized && (
+                row.suspendedAt ? (
+                  <button className={styles.dropdownItem} role="menuitem"
+                    onClick={() => { setOpenDropdownId(null); setModerationUser({ row, eylem: 'unsuspend' }) }}>
+                    <UserCheck size={16} /> Askıyı Kaldır
+                  </button>
+                ) : (
+                  <button className={styles.dropdownItem} role="menuitem"
+                    onClick={() => { setOpenDropdownId(null); setModerationReason(''); setModerationUser({ row, eylem: 'suspend' }) }}>
+                    <UserMinus size={16} /> Askıya Al
+                  </button>
+                )
+              )}
+              {row.id !== currentUser?.id && !row.anonymized && (
+                <button className={`${styles.dropdownItem} ${styles.dropdownDanger}`} role="menuitem"
+                  onClick={() => { setOpenDropdownId(null); setModerationUser({ row, eylem: 'anonymize' }) }}>
+                  <Trash2 size={16} /> Hesabı Anonimleştir
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -295,6 +362,82 @@ export default function AdminUsers() {
           </div>
         </Modal>
       )}
+
+      {moderationUser && (() => {
+        const { row, eylem } = moderationUser
+        const anonim = eylem === 'anonymize'
+        const askiyaAl = eylem === 'suspend'
+        return (
+          <Modal
+            open={true}
+            onClose={() => { setModerationUser(null); setModerationReason('') }}
+            title={anonim ? 'Hesabı Anonimleştir' : askiyaAl ? 'Hesabı Askıya Al' : 'Askıyı Kaldır'}
+            size="sm"
+          >
+            <div className={styles.roleModalBody}>
+              <div className={styles.roleModalInfo}>
+                <div><b>Kullanıcı:</b> {row.name || row.email}</div>
+                <div><b>E-posta:</b> {row.email}</div>
+              </div>
+
+              {askiyaAl && (
+                <>
+                  <p className={styles.moderationNote}>
+                    Hesap kapanır ve <b>açık oturumları anında sonlandırılır</b>.
+                    Giriş yapamaz. Bu işlem geri alınabilir.
+                  </p>
+                  <label className={styles.reasonField}>
+                    <span>Sebep (denetim kaydına yazılır, isteğe bağlı)</span>
+                    <input
+                      value={moderationReason}
+                      onChange={e => setModerationReason(e.target.value)}
+                      maxLength={500}
+                      placeholder="Örn. topluluk kurallarının ihlali"
+                    />
+                  </label>
+                </>
+              )}
+
+              {eylem === 'unsuspend' && (
+                <p className={styles.moderationNote}>
+                  Hesap yeniden aktif olur. Kullanıcının <b>yeniden giriş yapması</b>
+                  {' '}gerekir; askıdan önceki oturumları geçersiz kalır.
+                </p>
+              )}
+
+              {anonim && (
+                <div className={styles.dangerNote}>
+                  <AlertTriangle size={16} />
+                  <div>
+                    <b>Bu işlem geri alınamaz.</b>
+                    <p>
+                      E-posta, ad ve profil fotoğrafı kalıcı olarak silinir. Hesap
+                      kaydı <b>silinmez</b> — denetim kayıtları, topluluk gönderileri
+                      ve yasal saklama yükümlülükleri kayda bağlı olduğu için
+                      ilişkiler korunur.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className={styles.roleModalActions}>
+                <Button variant="ghost" onClick={() => { setModerationUser(null); setModerationReason('') }}>
+                  Vazgeç
+                </Button>
+                <Button
+                  variant={anonim || askiyaAl ? 'danger' : 'primary'}
+                  disabled={moderationLoading}
+                  onClick={() => moderasyonUygula(row, eylem)}
+                >
+                  {moderationLoading
+                    ? 'İşleniyor…'
+                    : anonim ? 'Anonimleştir' : askiyaAl ? 'Askıya Al' : 'Askıyı Kaldır'}
+                </Button>
+              </div>
+            </div>
+          </Modal>
+        )
+      })()}
     </div>
   )
 }

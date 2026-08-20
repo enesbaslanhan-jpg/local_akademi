@@ -3,6 +3,16 @@ import { prisma } from '../lib/prisma.js'
 import { getEmbeddedPracticeBlocksForCourse, getEmbeddedPracticeBlocksForLesson } from './embedded-practice-blocks.js'
 
 export async function courseRoutes(fastify: FastifyInstance) {
+  // Mobile Support: Get distinct categories
+  fastify.get('/categories', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const courses = await prisma.course.findMany({
+      where: { published: true, archivedAt: null },
+      select: { category: true }
+    })
+    const categories = Array.from(new Set(courses.map(c => c.category).filter(c => c !== null && c !== '')))
+    return categories
+  })
+
   // List with pagination, filters, search
   fastify.get('/', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const query = request.query as any
@@ -414,3 +424,4 @@ export async function courseRoutes(fastify: FastifyInstance) {
     return reply.status(204).send()
   })
 }
+

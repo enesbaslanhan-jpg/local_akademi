@@ -66,7 +66,23 @@ export default function CanonicalLessonSections({
       .map(label => ({ label, ...resolveCalculation(label, CALCULATION_DEFINITIONS) }))
   }, [strippedSections])
 
-  const openable = calculations.filter(c => c.status === 'FOUND' && c.definition)
+  /*
+   * Tekilleştirme ÇÖZÜLEN HESAPLAMAYA göre yapılır, etikete göre değil.
+   *
+   * Yukarıdaki filtre yalnız aynı metni ikinci kez yazmayı engelliyor. Ama
+   * farklı iki etiket (ör. "Başa Baş Satış Adedi" ve "Başa Baş Noktası")
+   * aynı hesaplamaya çözülebiliyor; o zaman liste iki satır basıyor ve
+   * ikisi de AYNI yere gidiyordu. İlk görülen etiket kalır, sırası korunur.
+   */
+  const openable = useMemo(() => {
+    const gorulen = new Set()
+    return calculations.filter(c => {
+      if (c.status !== 'FOUND' || !c.definition) return false
+      if (gorulen.has(c.definition.id)) return false
+      gorulen.add(c.definition.id)
+      return true
+    })
+  }, [calculations])
 
   /* 3. bölüm → karar aracı kartı. Markdown'da karar aracı sinyali yoksa
      bile metadata decisionToolCode ile kart basılır; ama o zaman içerik

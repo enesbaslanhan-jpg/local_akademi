@@ -805,3 +805,35 @@
   .stageFooter { grid-template-columns: 1fr; }
   .stageFooter > button { width: max-content; }
 }
+
+/* Kayıtsız kullanıcıya gösterilen eylemler. Önceden 403 sessizce kurs
+   kataloğuna atıyordu; artık sebep ve çıkış yolu burada. */
+.errorActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.errorActions button {
+  min-height: 38px;
+  padding: 9px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.errorActions button:hover { background: var(--surface-sunken); }
+.errorActions button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.errorPrimary {
+  border-color: transparent !important;
+  background: var(--primary) !important;
+  color: var(--theme-on-primary, #fff) !important;
+  font-weight: 600;
+}

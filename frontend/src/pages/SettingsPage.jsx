@@ -21,6 +21,7 @@ import { useWorkspace } from '@/context/WorkspaceContext'
 import { useTheme } from '@/context/ThemeContext'
 import { api } from '@/services/api'
 import { Badge, Button, Select } from '@/components/ui'
+import ImageViewer from '@/components/ui/ImageViewer'
 import styles from './SettingsPage.module.css'
 
 const TIMEZONES = ['Europe/Istanbul', 'Europe/London', 'Europe/Berlin', 'America/New_York', 'Asia/Dubai', 'UTC']
@@ -51,6 +52,8 @@ export default function SettingsPage() {
   const [pw, setPw] = useState({ current: '', next: '', repeat: '' })
   const [pwSaving, setPwSaving] = useState(false)
   const [pwMsg, setPwMsg] = useState(null)
+  const [sessionsSaving, setSessionsSaving] = useState(false)
+  const [sessionsMsg, setSessionsMsg] = useState(null)
   const [wsSettings, setWsSettings] = useState(null)
   const [wsSaving, setWsSaving] = useState(false)
   const [wsMsg, setWsMsg] = useState(null)
@@ -61,6 +64,7 @@ export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState('profile')
   const [avatarSaving, setAvatarSaving] = useState(false)
   const [avatarMsg, setAvatarMsg] = useState(null)
+  const [avatarBuyuk, setAvatarBuyuk] = useState(false)
 
   useEffect(() => {
     api.onboarding.getProfile().then(setProfile).catch(() => setProfile(null))
@@ -111,12 +115,32 @@ export default function SettingsPage() {
 
   async function savePassword(event) {
     event.preventDefault(); setPwMsg(null)
-    if (pw.next.length < 8) return flash(setPwMsg, 'err', 'Yeni şifre en az 8 karakter olmalı.')
+    if (pw.next.length < 10) return flash(setPwMsg, 'err', 'Yeni şifre en az 10 karakter olmalı.')
     if (pw.next !== pw.repeat) return flash(setPwMsg, 'err', 'Yeni şifreler eşleşmiyor.')
     setPwSaving(true)
-    try { await api.auth.changePassword(pw.current, pw.next); setPw({ current: '', next: '', repeat: '' }); flash(setPwMsg, 'ok', 'Şifreniz güncellendi.') }
+    try {
+      /* Sunucu sifre degisiminde tum oturumlari iptal edip taze token doner.
+         Saklamazsak kullanici kendi cihazindan da atilir. */
+      const session = await api.auth.changePassword(pw.current, pw.next)
+      if (session?.token) replaceSession(session)
+      setPw({ current: '', next: '', repeat: '' })
+      flash(setPwMsg, 'ok', 'Şifreniz güncellendi. Diğer cihazlardaki oturumlar kapatıldı.')
+    }
     catch (error) { flash(setPwMsg, 'err', error.message || 'Şifre değiştirilemedi.') }
     finally { setPwSaving(false) }
+  }
+
+  /* Şifre değiştirmeden tüm oturumları kapatmak isteyenler için: cihaz
+     kaybı ya da bir yerde açık kalmış oturum şüphesi. */
+  async function endAllSessions() {
+    setSessionsMsg(null); setSessionsSaving(true)
+    try {
+      const session = await api.auth.logoutAll()
+      if (session?.token) replaceSession(session)
+      flash(setSessionsMsg, 'ok', 'Diğer tüm cihazlardaki oturumlar kapatıldı.')
+    }
+    catch (error) { flash(setSessionsMsg, 'err', error.message || 'Oturumlar kapatılamadı.') }
+    finally { setSessionsSaving(false) }
   }
 
   async function saveEmail(event) {
@@ -179,7 +203,15 @@ export default function SettingsPage() {
     <main className={styles.page}>
       <header className={styles.pageHeading}><span>HESAP MERKEZİ</span><h1>Ayarlar ve Profil</h1><p>Profil, işletme, güvenlik ve erişilebilirlik tercihlerinizi yönetin.</p></header>
       {activeSection === 'profile' && <section className={styles.profileHeader}>
-        <div className={styles.avatar}>{user?.avatarUrl ? <img src={user.avatarUrl} alt={`${name || user?.name || 'Kullanıcı'} profil fotoğrafı`} /> : initials(name || user?.name)}</div>
+        {/* Fotoğraf varsa tıklanabilir: büyütür ve oradan değiştirme/kaldırma
+            sunar. Fotoğraf yoksa baş harfler duruyor, tıklanacak bir şey yok. */}
+        {user?.avatarUrl ? (
+          <button type="button" className={styles.avatarButton} onClick={() => setAvatarBuyuk(true)} aria-label="Profil fotoğrafını büyüt">
+            <span className={styles.avatar}><img src={user.avatarUrl} alt={`${name || user?.name || 'Kullanıcı'} profil fotoğrafı`} /></span>
+          </button>
+        ) : (
+          <div className={styles.avatar}>{initials(name || user?.name)}</div>
+        )}
         <div className={styles.profileIdentity}><h2>{name || user?.name}</h2><p>{user?.email}</p><div><Badge variant="info">{ROLE_LABELS[user?.role] || user?.role || 'Üye'}</Badge>{activeWorkspace?.name && <Badge>{activeWorkspace.name}</Badge>}</div>
           <div className={styles.avatarActions}>
             <label className={styles.avatarUpload}><ImageUp size={15} />{avatarSaving ? 'İşleniyor…' : user?.avatarUrl ? 'Fotoğrafı değiştir' : 'Fotoğraf ekle'}<input type="file" accept="image/png,image/jpeg" onChange={uploadAvatar} disabled={avatarSaving} /></label>
@@ -187,6 +219,38 @@ export default function SettingsPage() {
           </div>
           <Message msg={avatarMsg} />
         </div>
+
+        {avatarBuyuk && user?.avatarUrl && (
+          <ImageViewer
+            url={user.avatarUrl}
+            alt={`${name || user?.name || 'Kullanıcı'} profil fotoğrafı`}
+            onClose={() => setAvatarBuyuk(false)}
+            actions={
+              <>
+                {/* Aynı yükleme akışı; dosya seçilince görüntüleyici kapanır
+                    ki kullanıcı yeni fotoğrafı listede görsün. */}
+                <label className={styles.viewerAction}>
+                  <ImageUp size={15} />
+                  {avatarSaving ? 'İşleniyor…' : 'Fotoğrafı değiştir'}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg"
+                    onChange={event => { setAvatarBuyuk(false); uploadAvatar(event) }}
+                    disabled={avatarSaving}
+                  />
+                </label>
+                <button
+                  type="button"
+                  className={`${styles.viewerAction} ${styles.viewerDanger}`}
+                  onClick={async () => { setAvatarBuyuk(false); await removeAvatar() }}
+                  disabled={avatarSaving}
+                >
+                  <Trash2 size={15} /> Kaldır
+                </button>
+              </>
+            }
+          />
+        )}
       </section>}
 
       <div className={styles.settingsShell}>
@@ -207,7 +271,12 @@ export default function SettingsPage() {
           </SettingsSection>
 
           <SettingsSection id="guvenlik" icon={<ShieldCheck />} title="Güvenlik" description="Parolanızı düzenli aralıklarla yenileyin; yeni parola eskisiyle aynı olamaz.">
-            <form onSubmit={savePassword}><Field label="Mevcut şifre"><input type="password" autoComplete="current-password" value={pw.current} onChange={event => setPw(current => ({ ...current, current: event.target.value }))} required /></Field><div className={styles.twoFields}><Field label="Yeni şifre" hint="En az 8 karakter"><input type="password" autoComplete="new-password" minLength={8} value={pw.next} onChange={event => setPw(current => ({ ...current, next: event.target.value }))} required /></Field><Field label="Yeni şifre tekrar"><input type="password" autoComplete="new-password" value={pw.repeat} onChange={event => setPw(current => ({ ...current, repeat: event.target.value }))} required /></Field></div><Footer message={<Message msg={pwMsg} />}><Button type="submit" disabled={pwSaving}>{pwSaving ? 'Güncelleniyor…' : 'Şifreyi değiştir'}</Button></Footer></form>
+            <form onSubmit={savePassword}><Field label="Mevcut şifre"><input type="password" autoComplete="current-password" value={pw.current} onChange={event => setPw(current => ({ ...current, current: event.target.value }))} required /></Field><div className={styles.twoFields}><Field label="Yeni şifre" hint="En az 10 karakter"><input type="password" autoComplete="new-password" minLength={10} value={pw.next} onChange={event => setPw(current => ({ ...current, next: event.target.value }))} required /></Field><Field label="Yeni şifre tekrar"><input type="password" autoComplete="new-password" value={pw.repeat} onChange={event => setPw(current => ({ ...current, repeat: event.target.value }))} required /></Field></div><Footer message={<Message msg={pwMsg} />}><Button type="submit" disabled={pwSaving}>{pwSaving ? 'Güncelleniyor…' : 'Şifreyi değiştir'}</Button></Footer></form>
+            <div className={styles.switchRow}>
+              <span><strong>Açık oturumlar</strong><small>Cihazınızı kaybettiyseniz veya bir yerde oturumunuzu açık bıraktıysanız, şifrenizi değiştirmeden diğer tüm oturumları kapatabilirsiniz. Bu cihazda oturumunuz açık kalır.</small></span>
+              <Button type="button" onClick={endAllSessions} disabled={sessionsSaving}>{sessionsSaving ? 'Kapatılıyor…' : 'Diğer cihazlardan çık'}</Button>
+            </div>
+            <Message msg={sessionsMsg} />
           </SettingsSection>
 
           <SettingsSection id="gorunum" icon={<Laptop />} title="Görünüm" description="Tema tercihiniz bu cihazda saklanır ve tüm LocalKarar ekranlarına uygulanır.">

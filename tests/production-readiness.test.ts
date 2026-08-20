@@ -258,10 +258,23 @@ describe('PostgreSQL development infrastructure (FAZ 6B)', () => {
     expect(compose).toContain('127.0.0.1:5432:5432')
   })
 
-  it('DB credentials come from environment or default', () => {
-    expect(compose).toContain('POSTGRES_PASSWORD=${DB_PASSWORD:-')
+  it('DB credentials come from environment and are MANDATORY', () => {
+    /*
+     * Eskiden `${DB_PASSWORD:-localakademi}` idi: değişken tanımlanmazsa
+     * üretim parolası sessizce "localakademi" oluyordu. Artık `:?` ile
+     * zorunlu — tanımsızsa Compose hiç başlamıyor.
+     */
+    expect(compose).toContain('POSTGRES_PASSWORD=${DB_PASSWORD:?')
+    expect(compose).not.toContain('DB_PASSWORD:-')
     expect(compose).toContain('POSTGRES_USER=localakademi')
     expect(compose).toContain('POSTGRES_DB=localakademi')
+  })
+
+  it('uygulama veritabanına EN AZ YETKİLİ rolle bağlanır', () => {
+    /* Çalışma zamanı bağlantısı bootstrap superuser'ı kullanmamalı. */
+    expect(compose).toMatch(/DATABASE_URL=postgresql:\/\/localakademi_app:/)
+    /* Göç adımı sahip rolüyle ayrı yürür — bkz. docker-entrypoint.sh. */
+    expect(compose).toMatch(/MIGRATE_DATABASE_URL=postgresql:\/\/localakademi:/)
   })
 
   it('no literal secrets hardcoded in compose', () => {

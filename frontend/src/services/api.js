@@ -185,8 +185,23 @@ export const api = {
     async login(email, password) {
       return api.request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }, false);
     },
-    async register(email, password, name) {
-      return api.request('/auth/register', { method: 'POST', body: JSON.stringify({ email, password, name }) }, false);
+    /* `acceptedLegal`: sunucu onaysız kaydı reddeder (bkz. auth.ts).
+       Arayüzdeki kutu tek başına yeterli değil — uç nokta doğrudan da
+       çağrılabilir. */
+    async register(email, password, name, acceptedLegal = false) {
+      return api.request('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ email, password, name, acceptedLegal })
+      }, false);
+    },
+    async getLegalDocuments() {
+      return api.request('/auth/legal-documents', {}, false);
+    },
+    async getConsents() {
+      return api.request('/auth/consents');
+    },
+    async acceptConsents() {
+      return api.request('/auth/consents', { method: 'POST', body: JSON.stringify({}) });
     },
     async me() {
       return api.request('/auth/me');
@@ -195,6 +210,36 @@ export const api = {
       return api.request('/auth/password', {
         method: 'PUT',
         body: JSON.stringify({ currentPassword, newPassword })
+      });
+    },
+    /* Tum cihazlardaki oturumlari kapatir; cagirana taze token doner. */
+    async logoutAll() {
+      /* Bos govde gonderilemez: getHeaders her istege Content-Type:
+         application/json ekliyor, Fastify de govdesiz boyle bir istegi 400
+         ile reddediyor. Bos nesne gonderiyoruz. */
+      return api.request('/auth/logout-all', { method: 'POST', body: JSON.stringify({}) });
+    },
+    /* Sifre sifirlama istegi. Sunucu KAYITLI OLMAYAN adres icin de 200
+       doner (e-posta sayimini engellemek icin) - arayuz de ayni mesaji
+       gostermeli, "boyle bir kullanici yok" DEMEMELI. */
+    async requestPasswordReset(email) {
+      return api.request('/auth/password-reset/request', {
+        method: 'POST', body: JSON.stringify({ email })
+      }, false);
+    },
+    async confirmPasswordReset(token, newPassword) {
+      return api.request('/auth/password-reset/confirm', {
+        method: 'POST', body: JSON.stringify({ token, newPassword })
+      }, false);
+    },
+    async requestEmailVerification() {
+      return api.request('/auth/email/verify-request', {
+        method: 'POST', body: JSON.stringify({})
+      });
+    },
+    async confirmEmailVerification(code) {
+      return api.request('/auth/email/verify-confirm', {
+        method: 'POST', body: JSON.stringify({ code })
       });
     },
     async changeEmail(newEmail, currentPassword) {
@@ -258,6 +303,12 @@ export const api = {
     },
     async getById(id) { return api.request(`/knowledge/${id}`); },
     async getRelated(id) { return api.request(`/knowledge/related/${id}`); }
+  },
+
+  search: {
+    async query(q) {
+      return api.request(`/api/v2/search?q=${encodeURIComponent(q)}`);
+    }
   },
 
   conversation: {
@@ -452,6 +503,24 @@ export const api = {
         method: 'PATCH', body: JSON.stringify({ role })
       });
     },
+    /* Askıya alma: hesap kapanır, açık oturumlar ölür. Geri alınabilir. */
+    async suspendUser(userId, reason = '') {
+      return api.request(`/admin/users/${userId}/suspend`, {
+        method: 'POST', body: JSON.stringify({ reason })
+      });
+    },
+    async unsuspendUser(userId) {
+      return api.request(`/admin/users/${userId}/unsuspend`, {
+        method: 'POST', body: JSON.stringify({})
+      });
+    },
+    /* Anonimleştirme: kişisel alanlar temizlenir, kayıt silinmez.
+       GERİ ALINAMAZ — denetim izleri ve ilişkiler için kayıt durur. */
+    async anonymizeUser(userId) {
+      return api.request(`/admin/users/${userId}/anonymize`, {
+        method: 'POST', body: JSON.stringify({})
+      });
+    },
     async getAuditLogs(filters = {}) {
       const query = buildQuery(filters);
       return api.request(`/admin/audit-logs${query}`);
@@ -635,6 +704,10 @@ export const api = {
     },
     async updateLessonProgress(lessonId, data) {
       return api.request('/learning/lesson-progress', { method: 'POST', body: JSON.stringify({ lessonId, ...data }) });
+    },
+    /* "Kaldığın yer" işareti. İlerleme yüzdesine dokunmaz. */
+    async lessonView(lessonId) {
+      return api.request('/learning/lesson-view', { method: 'POST', body: JSON.stringify({ lessonId }) });
     },
   },
 
@@ -831,6 +904,52 @@ export const api = {
         return api.request(`/workspaces/${workspaceId}/records/${recordId}/documents/${documentId}`, {
           method: 'POST'
         })
+      }
+    },
+    exports: {
+      /**
+       * Kayıt dışa aktarımını indirir.
+       *
+       * `api.request` JSON çözer, bu yüzden ikili içerik için kullanılamaz;
+       * burada Blob okunup tarayıcıya indirtiliyor. Dosya adı sunucunun
+       * gönderdiği Content-Disposition başlığından alınır.
+       */
+      async downloadRecords(workspaceId, format, filters = {}) {
+        const token = localStorage.getItem('token')
+        const query = buildQuery(filters)
+        const res = await fetch(
+          `${API_URL}/workspaces/${workspaceId}/exports/records.${format}${query}`,
+          { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+        )
+
+        if (!res.ok) {
+          let data = null
+          try { data = await res.json() } catch { /* ikili/boş yanıt */ }
+          throw new ApiError(data?.error || 'Dışa aktarım başarısız', res.status, data)
+        }
+
+        const disposition = res.headers.get('Content-Disposition') || ''
+        const match = disposition.match(/filename="?([^";]+)"?/i)
+        const filename = match ? match[1] : `kayitlar.${format}`
+
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        try {
+          const link = document.createElement('a')
+          link.href = url
+          link.download = filename
+          document.body.appendChild(link)
+          link.click()
+          link.remove()
+        } finally {
+          URL.revokeObjectURL(url)
+        }
+
+        return {
+          filename,
+          rowCount: Number(res.headers.get('X-Export-Row-Count') ?? 0),
+          truncated: res.headers.get('X-Export-Truncated') === 'true'
+        }
       }
     },
     documents: {

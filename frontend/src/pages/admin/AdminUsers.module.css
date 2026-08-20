@@ -200,3 +200,44 @@
     width: 100%;
   }
 }
+
+/* --- Kullanıcı moderasyonu --------------------------------------------- */
+
+.roleCell { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+/* Yıkıcı eylem menüde de ayırt edilebilir olmalı. */
+.dropdownDanger { color: var(--danger); }
+.dropdownDanger:hover { background: var(--danger-bg, rgba(192, 57, 43, .1)); }
+
+.moderationNote {
+  margin: 0;
+  color: var(--text-light);
+  font-size: .8rem;
+  line-height: 1.55;
+}
+
+.reasonField { display: grid; gap: 6px; }
+.reasonField span { color: var(--text-light); font-size: .75rem; }
+.reasonField input {
+  min-height: 38px;
+  padding: 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  color: var(--text);
+  font: inherit;
+  font-size: .82rem;
+}
+.reasonField input:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.dangerNote {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  background: var(--danger-bg, rgba(192, 57, 43, .08));
+  color: var(--text);
+}
+.dangerNote p { margin: 5px 0 0; color: var(--text-light); font-size: .78rem; line-height: 1.55; }
+.dangerNote svg { flex: 0 0 auto; color: var(--danger); margin-top: 2px; }

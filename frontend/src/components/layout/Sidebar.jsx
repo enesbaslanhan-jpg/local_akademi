@@ -199,8 +199,19 @@ export default function Sidebar({
   }
 
   const quickAction = useMemo(() => {
-if (location.pathname.startsWith('/app/community') && isAdmin) {
-      return { label: 'Haber oluştur', path: '/app/community/topluluk#yayin-araclari' }
+/*
+     * Haber oluşturma YALNIZ Haberler ekranında önerilir.
+     *
+     * Önceden `startsWith('/app/community')` kullanılıyordu; bu, Topluluk
+     * sayfasını (`/app/community/topluluk`) da kapsadığı için Toplulukta da
+     * "Haber oluştur" düğmesi çıkıyordu. Ayrıca hedefi `#yayin-araclari`
+     * çapasıydı — resmî içerik formu artık orada değil, yönetim panelinde.
+     *
+     * Toplulukta hızlı eylem yok: sayfanın kendi "Gönderi oluştur" düğmesi
+     * zaten en üstte duruyor.
+     */
+    if (location.pathname === '/app/community' && isAdmin) {
+      return { label: 'Haber oluştur', path: '/admin/community' }
     }
     if (location.pathname.startsWith('/app/calculations') || location.pathname.startsWith('/app/tools')) {
       return { label: 'Hesaplama başlat', path: '/app/calculations?start=1' }
@@ -214,7 +225,9 @@ if (location.pathname.startsWith('/app/community') && isAdmin) {
       <aside className={`${styles.sidebar} ${open ? styles.open : ''} ${collapsed ? styles.collapsed : ''}`} aria-label="Ana navigasyon">
         <div className={styles.logoArea}>
           <div className={styles.brand}>
-            <BrandMark size={26} />
+            {/* Uygulamaya girildiğinde bir kez oynar; imleç üstüne gelince
+                tekrar. Giriş ekranındaki hareketin devamı. */}
+            <BrandMark size={26} animated interactive />
             <span className={styles.logoText}>
               <strong>LocalKarar</strong>
               <small>Professional Community</small>
@@ -243,6 +256,11 @@ if (location.pathname.startsWith('/app/community') && isAdmin) {
             value={navQuery}
             onChange={event => setNavQuery(event.target.value)}
             placeholder="Menüde ara..."
+            /* Tarayıcı, arama alanlarında daha önce yazılanları gri bir
+               öneri kutusunda gösteriyordu. Burası menüyü süzen yerel bir
+               alan; geçmiş değerlerin anlamı yok, kutu yalnızca menüyü
+               kapatıyordu. */
+            autoComplete="off"
           />
         </label>
 

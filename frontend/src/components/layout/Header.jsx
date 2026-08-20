@@ -156,6 +156,10 @@ export default function Header({ onToggleSidebar }) {
               onFocus={() => { if (term.length >= 2 && hasAny) setOpen(true) }}
               placeholder="Kurs, karar aracı, hesaplama ara…"
               aria-label="Sitede ara"
+              /* Bu alanın KENDİ öneri paneli var (aşağıdaki searchDropdown).
+                 Tarayıcının arama geçmişi kutusu onun üstüne biniyor ve iki
+                 ayrı öneri listesi aynı anda görünüyordu. */
+              autoComplete="off"
             />
           </form>
           {open && (

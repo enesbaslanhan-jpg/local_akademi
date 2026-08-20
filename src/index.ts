@@ -3,6 +3,7 @@ import cors from '@fastify/cors'
 import rateLimit from '@fastify/rate-limit'
 import fastifyStatic from '@fastify/static'
 import { authRoutes, registerJwtPlugin } from './services/auth'
+import { mailYapilandirmasiniDogrula } from './services/mailer'
 import { decisionCheckRoutes } from './services/decision-checks'
 import { courseRoutes } from './services/courses'
 import { lessonRoutes } from './services/lessons'
@@ -52,6 +53,48 @@ const isProduction = process.env.NODE_ENV === 'production'
   || process.env.BETA_MODE === 'true'
   || process.env.BETA_MODE === 'invite_only'
 
+/*
+ * `trustProxy` — hız sınırlarının kime uygulandığını belirler.
+ *
+ * SORUN: burada eskiden sabit `true` vardı. Bu, `X-Forwarded-For` başlığına
+ * KOŞULSUZ güvenmek demek. Uygulamaya doğrudan erişilebiliyorsa saldırgan her
+ * istekte başlığı değiştirerek IP tabanlı sınırların TAMAMINI aşabilir —
+ * giriş (10/dk), kayıt (5/saat), şifre sıfırlama (3/saat) dahil 22 uç nokta.
+ * Yani kaba kuvvet korumasının tamamı bir başlıkla devre dışı kalıyordu.
+ *
+ * ÇÖZÜM: varsayılan `false` (soket adresi kullanılır, uydurulamaz). Ters vekil
+ * ARKASINDA çalışıyorsanız TRUST_PROXY'yi açıkça ayarlayın.
+ *
+ * DİKKAT — ters vekil arkasındayken TRUST_PROXY ayarlanmazsa tüm istekler
+ * vekilin IP'sinden geliyormuş gibi görünür ve tek kullanıcı herkesin kotasını
+ * tüketebilir. Yani bu değişken ya doğru ayarlanmalı ya da uygulama doğrudan
+ * internete bakmalı; arada kalmak iki yönden de hatalı.
+ *
+ * Kabul edilen değerler:
+ *   (tanımsız) | false  → vekile güvenilmez  [varsayılan, güvenli]
+ *   1, 2, ...           → güvenilecek vekil sayısı (tek nginx için: 1)
+ *   10.0.0.5, 10.0.0.0/8 → güvenilecek adres/aralık listesi
+ *   true                → her kaynağa güvenilir  [sınırlar aşılabilir]
+ */
+function resolveTrustProxy(): boolean | number | string[] {
+  const raw = (process.env.TRUST_PROXY || '').trim()
+  if (!raw || raw.toLowerCase() === 'false') return false
+
+  if (raw.toLowerCase() === 'true') {
+    console.warn(
+      '[GÜVENLİK] TRUST_PROXY=true — X-Forwarded-For başlığına koşulsuz güveniliyor. ' +
+      'IP tabanlı hız sınırları (giriş, kayıt, şifre sıfırlama) başlık uydurularak aşılabilir. ' +
+      'Bunun yerine vekil sayısını (ör. TRUST_PROXY=1) veya vekil adresini yazın.'
+    )
+    return true
+  }
+
+  const hop = Number(raw)
+  if (Number.isInteger(hop) && hop > 0) return hop
+
+  return raw.split(',').map(s => s.trim()).filter(Boolean)
+}
+
 const UNSAFE_JWT_SECRETS = [
   'secret', 'password', 'changeme', 'jwt_secret',
   'your-secret-key', 'default', '12345678901234567890123456789012',
@@ -96,7 +139,7 @@ async function build() {
       }
     },
     bodyLimit: 1048576,
-    trustProxy: true
+    trustProxy: resolveTrustProxy()
   })
 
   const corsOriginRaw = process.env.CORS_ORIGIN || (isProduction ? 'http://localhost:5173' : true)
@@ -106,24 +149,75 @@ async function build() {
   console.log('[CORS] raw:', corsOriginRaw, '| parsed:', JSON.stringify(corsOrigin))
   await server.register(cors, { origin: corsOrigin, credentials: true })
 
+  /* İçerik Güvenliği Politikası.
+     Token `localStorage`'da tutulduğu için XSS'in bedeli yüksek; CSP en
+     ucuz ikinci savunma katmanı.
+
+     - `script-src 'self'`: harici script yok. `index.html`'deki tema
+       bootstrap'i satır içi olduğu için `'unsafe-inline'` gerekiyor;
+       nonce'a geçmek ayrı bir iş (SPA build'i etkiler).
+     - `style-src` satır içi stile izin verir: CSS Modules ve React'in
+       `style` prop'u satır içi üretiyor.
+     - `font-src 'self'`: fontlar artık kendi sunucumuzdan (Google Fonts
+       kaldırıldı), harici font kaynağı yok.
+     - `connect-src 'self'`: tarayıcıdan dışarı istek yok; AI çağrıları
+       sunucu tarafında yapılıyor.
+     - `frame-ancestors 'none'`: X-Frame-Options'ın modern karşılığı. */
+  const CONTENT_SECURITY_POLICY = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self' data:",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'"
+  ].join('; ')
+
   server.addHook('onSend', async (_request, reply, payload) => {
     reply.header('X-Content-Type-Options', 'nosniff')
     reply.header('X-Frame-Options', 'DENY')
     reply.header('Referrer-Policy', 'strict-origin-when-cross-origin')
     reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+    reply.header('Content-Security-Policy', CONTENT_SECURITY_POLICY)
+    reply.header('Cross-Origin-Opener-Policy', 'same-origin')
+    reply.header('Cross-Origin-Resource-Policy', 'same-origin')
     if (isProduction) {
       reply.header('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
     }
     return payload
   })
 
+  /*
+   * Genel hız sınırı.
+   *
+   * TESTTE YÜKSEK TUTULUYOR — sebebi şu: `app.inject` ile yapılan her istek
+   * aynı soket adresinden gelmiş sayılıyor, dolayısıyla 95 test dosyasının
+   * tamamı TEK bir kovayı paylaşıyor. Gerçek kullanımda 300 istek/15 dakika
+   * tek bir kullanıcının sınırıyken, testte bütün takımın toplamı oluyor ve
+   * eşiği aşınca alakasız testler 429 alıp kırılıyordu.
+   *
+   * Bu bir zayıflatma değil: rota bazlı sınırlar (giriş 10/dk, şifre
+   * sıfırlama 3/saat vb.) testte de aynen geçerli ve testler ONLARI
+   * doğruluyor. Global sınırı doğrulayan bir test yok.
+   */
   await server.register(rateLimit, {
     global: true,
-    max: 300,
+    max: process.env.NODE_ENV === 'test' ? 100_000 : 300,
     timeWindow: '15 minutes'
   })
 
   registerJwtPlugin(server)
+
+  /*
+   * E-posta yapılandırması açılışta doğrulanır. Üretimde eksikse süreç hiç
+   * başlamamalı: şifre sıfırlama sessizce çalışmayan bir özelliğe dönüşürse
+   * kullanıcı hesabına erişimini kaybeder ve kimse fark etmez.
+   * Geliştirme ve testte bu çağrı hiçbir şey yapmaz.
+   */
+  mailYapilandirmasiniDogrula()
 
   const publicPath = join(__dirname, 'public')
   const hasPublicDir = existsSync(publicPath)
@@ -217,7 +311,34 @@ async function build() {
     server.register(memoryRoutes, { prefix: '/api/memory' })
   }
 
+  /*
+   * SPA yedeği — ama API yollarında DEĞİL.
+   *
+   * Önceden bilinmeyen HER yol `index.html`'i 200 ile döndürüyordu. Bu,
+   * var olmayan bir API uç noktasını hata gibi değil BAŞARI gibi
+   * gösteriyor: istemci 200 alıyor, gövdeyi JSON sanıp ayrıştıramıyor ya
+   * da sessizce hiçbir şey yapmıyor. Geliştirme sırasında iki kez buna
+   * yakalandık — bir kez eksik rota, bir kez de bayat sunucu süreci
+   * yüzünden; ikisinde de "çalışıyor ama hiçbir şey olmuyor" görünümü
+   * vardı ve sebebi bulmak zaman aldı.
+   *
+   * Bilinen API ön ekleri artık dürüstçe 404 döner. Geri kalan her yol
+   * (SPA rotaları) index.html almaya devam eder.
+   */
+  const API_PREFIXES = ['/api', '/auth', '/admin', '/courses', '/lessons', '/enrollments',
+    '/knowledge', '/learning', '/community', '/business', '/workspaces', '/mentor',
+    '/conversations', '/formulas', '/reports', '/quiz', '/flashcards', '/news',
+    '/decision-checks', '/health', '/memory', '/feed', '/assessment', '/onboarding']
+
+  function isApiPath(url: string): boolean {
+    const path = url.split('?')[0]
+    return API_PREFIXES.some(p => path === p || path.startsWith(p + '/'))
+  }
+
   server.setNotFoundHandler(async (request, reply) => {
+    if (isApiPath(request.url)) {
+      return reply.status(404).send({ error: 'Route not found', path: request.url.split('?')[0] })
+    }
     if (hasPublicDir && process.env.NODE_ENV !== 'test') {
       return reply.sendFile('index.html', publicPath)
     }

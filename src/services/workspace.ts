@@ -3,6 +3,7 @@ import type { PrismaClient, Prisma } from '@prisma/client'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { z } from 'zod'
 import crypto from 'crypto'
+import { hashToken } from '../lib/tokens.js'
 
 const ROLE_ORDER = ['viewer', 'accountant', 'staff', 'manager', 'owner'] as const
 type WorkspaceRole = typeof ROLE_ORDER[number]
@@ -25,9 +26,8 @@ function roleAtLeast(role: string, minRole: WorkspaceRole): boolean {
   return idx >= minIdx
 }
 
-function hashToken(token: string): string {
-  return crypto.createHash('sha256').update(token).digest('hex')
-}
+/* `hashToken` ortak modüle taşındı (`src/lib/tokens.ts`) — şifre sıfırlama ve
+   e-posta doğrulama da aynı deseni kullanıyor, üç kopya olmasın. */
 
 function parseJsonArray(val: string | string[]): string[] {
   if (Array.isArray(val)) return val

@@ -1,6 +1,7 @@
-import { FastifyInstance } from 'fastify'
+import { FastifyInstance, FastifyReply } from 'fastify'
 import { prisma } from '../lib/prisma.js'
-import { randomUUID } from 'crypto'
+import bcrypt from 'bcryptjs'
+import { randomBytes, randomUUID } from 'crypto'
 import { z } from 'zod'
 import { createAuditLog, queryAuditLogs } from './audit.js'
 import {
@@ -357,12 +358,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
     const [
       totalUsers,
       totalKOs,
-      publishedKOs,
-      inReviewKOs,
-      draftKOs,
-      archivedKOs,
-      rejectedKOs,
-      approvedKOs,
+      koStatusGroups,
       demoKOs,
       totalCategories,
       overdueReviews,
@@ -380,12 +376,16 @@ export async function adminRoutes(fastify: FastifyInstance) {
     ] = await Promise.all([
       prisma.user.count(),
       prisma.knowledgeObject.count(),
-      prisma.knowledgeObject.count({ where: { status: 'published' } }),
-      prisma.knowledgeObject.count({ where: { status: 'in_review' } }),
-      prisma.knowledgeObject.count({ where: { status: 'draft' } }),
-      prisma.knowledgeObject.count({ where: { status: 'archived' } }),
-      prisma.knowledgeObject.count({ where: { status: 'rejected' } }),
-      prisma.knowledgeObject.count({ where: { status: 'approved' } }),
+      /*
+       * Altı ayrı `count()` yerine TEK `groupBy`.
+       *
+       * Bu uç nokta tek istekte 20'den fazla eşzamanlı sorgu açıyordu ve
+       * uygulamadaki en ağır fan-out'a sahipti; test takımında düzenli
+       * olarak bağlantı havuzunu tüketip 500 döndüren tek uç nokta buydu
+       * (Postgres `max_connections` 100, her test dosyası kendi
+       * PrismaClient'ını açıyor). Aynı bilgi tek sorguyla alınıyor.
+       */
+      prisma.knowledgeObject.groupBy({ by: ['status'], _count: { _all: true } }),
       prisma.knowledgeObject.count({ where: { isDemo: true } }),
       prisma.category.count(),
       prisma.knowledgeObject.count({ where: { reviewDue: { lt: now }, status: 'in_review' } }),
@@ -424,6 +424,18 @@ export async function adminRoutes(fastify: FastifyInstance) {
       }),
       prisma.knowledgeObject.count({ where: { status: 'in_review', reviewGate: { in: EXPERT_GATES } } })
     ])
+
+    /* `groupBy` yalnız VAR OLAN durumları döndürür; hiç kaydı olmayan bir
+       durum dizide bulunmaz ve 0 sayılmalı. */
+    const koSayisi = (durum: string): number =>
+      koStatusGroups.find(g => g.status === durum)?._count._all ?? 0
+
+    const publishedKOs = koSayisi('published')
+    const inReviewKOs = koSayisi('in_review')
+    const draftKOs = koSayisi('draft')
+    const archivedKOs = koSayisi('archived')
+    const rejectedKOs = koSayisi('rejected')
+    const approvedKOs = koSayisi('approved')
 
     const professionalKOs = totalKOs - demoKOs
 
@@ -567,7 +579,12 @@ export async function adminRoutes(fastify: FastifyInstance) {
         email: u.email,
         name: u.name,
         role: u.role,
-        createdAt: u.createdAt
+        createdAt: u.createdAt,
+        /* Askı durumu listede gerekli: aksi halde arayüz kimin askıda
+           olduğunu bilemez ve "Askıya al" ile "Askıyı kaldır" arasında
+           doğru eylemi gösteremez. */
+        suspendedAt: u.deletedAt,
+        anonymized: u.email.endsWith('@deleted.local')
       })),
       total,
       page,
@@ -624,6 +641,176 @@ export async function adminRoutes(fastify: FastifyInstance) {
     })
 
     return { id: updated.id, role: updated.role }
+  })
+
+  /*
+   * KULLANICI ASKIYA ALMA / ANONİMLEŞTİRME
+   *
+   * Yönetimde yalnız rol değiştirme vardı; kötüye kullanan bir hesabı
+   * durdurmanın hiçbir yolu yoktu.
+   *
+   * Askıya alma `deletedAt` alanını kullanıyor — `authenticate` zaten
+   * `deletedAt` dolu kullanıcıyı reddediyor, yani oturumu kesen şey bu.
+   *
+   * `tokenVersion` de artırılıyor ve işlevi AYRI: askı KALKINCA `deletedAt`
+   * temizleniyor; sürüm artırılmasaydı askıdan önce üretilmiş tokenlar o
+   * anda yeniden geçerli olurdu. Yani askıya alınan kişi, elindeki eski
+   * tokenla hiç giriş yapmadan geri dönerdi. Sürüm artışı bunu engelliyor.
+   *
+   * KALICI SİLME YOK. Denetim kayıtları, topluluk gönderileri ve yasal
+   * saklama yükümlülükleri kaydın kendisine bağlı. "Sil" isteği
+   * anonimleştirme olarak karşılanıyor: kişisel alanlar temizlenir,
+   * ilişkiler ayakta kalır.
+   */
+
+  /** Ortak kontroller: hedef var mı, kendisi mi, son admin mi. */
+  async function hedefKullaniciyiDogrula(
+    targetId: number,
+    currentUser: { id: number },
+    reply: FastifyReply
+  ) {
+    if (Number.isNaN(targetId)) {
+      reply.status(400).send({ error: 'Invalid user id' })
+      return null
+    }
+    const target = await prisma.user.findUnique({ where: { id: targetId } })
+    if (!target) {
+      reply.status(404).send({ error: 'User not found' })
+      return null
+    }
+    if (targetId === currentUser.id) {
+      /* Kendini askıya alan admin sistemden kilitlenir ve geri dönemez. */
+      reply.status(403).send({ error: 'SELF_ACTION_FORBIDDEN', message: 'Kendi hesabınıza bu işlemi uygulayamazsınız.' })
+      return null
+    }
+    if (target.role === 'admin' && !target.deletedAt) {
+      const aktifAdmin = await prisma.user.count({ where: { role: 'admin', deletedAt: null } })
+      if (aktifAdmin <= 1) {
+        reply.status(403).send({ error: 'LAST_ADMIN', message: 'Son yöneticiyi askıya alamazsınız.' })
+        return null
+      }
+    }
+    return target
+  }
+
+  fastify.post('/users/:userId/suspend', {
+    preHandler: [fastify.authenticate]
+  }, async (request, reply) => {
+    const currentUser = request.user
+    if (currentUser.role !== 'admin') {
+      return reply.status(403).send({ error: 'Admin access required' })
+    }
+    const targetId = parseInt((request.params as { userId: string }).userId)
+    const target = await hedefKullaniciyiDogrula(targetId, currentUser, reply)
+    if (!target) return
+    if (target.deletedAt) {
+      return reply.status(409).send({ error: 'ALREADY_SUSPENDED', message: 'Bu hesap zaten askıda.' })
+    }
+
+    const { reason } = (request.body ?? {}) as { reason?: string }
+
+    await prisma.user.update({
+      where: { id: targetId },
+      /* `tokenVersion` artışı açık oturumları ANINDA geçersiz kılar. */
+      data: { deletedAt: new Date(), tokenVersion: { increment: 1 } }
+    })
+
+    await createAuditLog({
+      action: 'user.suspended',
+      entityType: 'user',
+      entityId: targetId,
+      actorId: currentUser.id,
+      actorName: currentUser.email,
+      metadata: { userId: targetId, email: target.email, reason: reason?.slice(0, 500) || null }
+    })
+
+    return { id: targetId, suspended: true }
+  })
+
+  fastify.post('/users/:userId/unsuspend', {
+    preHandler: [fastify.authenticate]
+  }, async (request, reply) => {
+    const currentUser = request.user
+    if (currentUser.role !== 'admin') {
+      return reply.status(403).send({ error: 'Admin access required' })
+    }
+    const targetId = parseInt((request.params as { userId: string }).userId)
+    if (Number.isNaN(targetId)) return reply.status(400).send({ error: 'Invalid user id' })
+
+    const target = await prisma.user.findUnique({ where: { id: targetId } })
+    if (!target) return reply.status(404).send({ error: 'User not found' })
+    if (!target.deletedAt) {
+      return reply.status(409).send({ error: 'NOT_SUSPENDED', message: 'Bu hesap zaten aktif.' })
+    }
+    /* Anonimleştirilmiş hesap geri getirilemez: e-posta ve ad kalıcı olarak
+       silinmiş durumda, canlandırmak boş bir kabuk üretirdi. */
+    if (target.email.endsWith('@deleted.local')) {
+      return reply.status(409).send({
+        error: 'ANONYMIZED',
+        message: 'Anonimleştirilmiş hesap geri alınamaz.'
+      })
+    }
+
+    await prisma.user.update({ where: { id: targetId }, data: { deletedAt: null } })
+
+    await createAuditLog({
+      action: 'user.unsuspended',
+      entityType: 'user',
+      entityId: targetId,
+      actorId: currentUser.id,
+      actorName: currentUser.email,
+      metadata: { userId: targetId, email: target.email }
+    })
+
+    return { id: targetId, suspended: false }
+  })
+
+  fastify.post('/users/:userId/anonymize', {
+    preHandler: [fastify.authenticate]
+  }, async (request, reply) => {
+    const currentUser = request.user
+    if (currentUser.role !== 'admin') {
+      return reply.status(403).send({ error: 'Admin access required' })
+    }
+    const targetId = parseInt((request.params as { userId: string }).userId)
+    const target = await hedefKullaniciyiDogrula(targetId, currentUser, reply)
+    if (!target) return
+    if (target.email.endsWith('@deleted.local')) {
+      return reply.status(409).send({ error: 'ALREADY_ANONYMIZED', message: 'Bu hesap zaten anonimleştirilmiş.' })
+    }
+
+    /* Kullanıcının kendi hesabını silme akışıyla (auth.ts) aynı desen. */
+    const anonEmail = `deleted-${target.id}-${Date.now()}@deleted.local`
+    const kullanilamazParola = await bcrypt.hash(randomBytes(32).toString('hex'), 10)
+
+    await prisma.$transaction([
+      prisma.businessMember.updateMany({ where: { userId: targetId }, data: { status: 'inactive' } }),
+      prisma.user.update({
+        where: { id: targetId },
+        data: {
+          email: anonEmail,
+          name: 'Silinmiş Kullanıcı',
+          password: kullanilamazParola,
+          avatarStoredName: null,
+          avatarMimeType: null,
+          deletedAt: new Date(),
+          tokenVersion: { increment: 1 }
+        }
+      })
+    ])
+
+    await createAuditLog({
+      action: 'user.anonymized',
+      entityType: 'user',
+      entityId: targetId,
+      actorId: currentUser.id,
+      actorName: currentUser.email,
+      /* Eski e-posta denetim kaydında TUTULMUYOR: amaç kişisel veriyi
+         silmekse, onu denetim kaydına kopyalamak amacı boşa çıkarır. */
+      metadata: { userId: targetId }
+    })
+
+    return { id: targetId, anonymized: true }
   })
 
   fastify.get('/activity', {

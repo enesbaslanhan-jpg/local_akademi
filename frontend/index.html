@@ -16,9 +16,16 @@
       })();
     </script>
     <title>LocalKarar — İşletmen için doğru kararlar</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!--
+      Fontlar KENDİ SUNUCUMUZDAN servis ediliyor (@fontsource/manrope,
+      src/main.jsx içinde import edilir).
+
+      Önceden Google Fonts CDN'den yükleniyordu; bu, giriş ve hukuki sayfalar
+      dahil HER ziyaretçinin IP adresini ve User-Agent bilgisini Google'a
+      (ABD) gönderiyordu — hiçbir hukuki metinde açıklanmadan. Çerez
+      kullanılmadığı için "üçüncü taraf çerezi yok" ifadesi teknik olarak
+      doğruydu, ama IP aktarımı yine de bir veri aktarımıdır.
+    -->
   </head>
   <body>
     <div id="root"></div>

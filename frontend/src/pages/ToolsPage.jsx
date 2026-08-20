@@ -323,6 +323,25 @@ export default function ToolsPage({ initialView = 'all' }) {
     setView('calculator')
   }
 
+  /* Geçmiş kaydına tıklandığında o hesaplama KAYITLI GİRDİLERİYLE geri
+     açılır. Önceden satırlar <article> idi ve hiçbir tıklama davranışı
+     yoktu — liste görünüyordu ama tıklamak hiçbir şey yapmıyordu. */
+  function openHistoryEntry(entry) {
+    const formula = formulas.find(item => item.id === entry.formulaId)
+    if (!formula) {
+      setError('Bu hesaplama artık katalogda yok.')
+      return
+    }
+    setSelected(formula)
+    /* Kayıtlı girdiler forma yazılır; o kayıtta olmayan alan boş kalır. */
+    setInputs(Object.fromEntries(
+      (formula.inputs || []).map(input => [input.name, entry.inputs?.[input.name] ?? ''])
+    ))
+    setResult(entry.result && Object.keys(entry.result).length > 0 ? entry.result : null)
+    setError('')
+    changeView('calculator')
+  }
+
   function startNewCalculation() {
     setPickerOpen(true)
     setPickerQuery('')
@@ -580,10 +599,16 @@ export default function ToolsPage({ initialView = 'all' }) {
       {view === 'history' && (
         <div className={styles.historyList}>
           {history.length === 0 ? <EmptyState message="Henüz hesaplama geçmişi yok." /> : history.map(item => (
-            <article key={item.id} className={styles.historyItem}>
+            <button
+              key={item.id}
+              type="button"
+              className={styles.historyItem}
+              onClick={() => openHistoryEntry(item)}
+              title={`${item.formulaName} hesaplamasını girdileriyle aç`}
+            >
               <div><strong>{item.formulaName}</strong><span>{new Date(item.createdAt).toLocaleString('tr-TR')}</span></div>
               <p>{Object.entries(item.result || {}).filter(([key]) => key !== 'durum').slice(0, 4).map(([key, value]) => `${RESULT_LABELS[key] || key}: ${value}`).join(' · ')}</p>
-            </article>
+            </button>
           ))}
         </div>
       )}
@@ -743,10 +768,16 @@ export default function ToolsPage({ initialView = 'all' }) {
           <h2 className={styles.sectionTitle}>Son işlemler</h2>
           <div className={styles.historyList}>
             {history.slice(0, 5).map(item => (
-              <article key={item.id} className={styles.historyItem}>
+              <button
+                key={item.id}
+                type="button"
+                className={styles.historyItem}
+                onClick={() => openHistoryEntry(item)}
+                title={`${item.formulaName} hesaplamasını girdileriyle aç`}
+              >
                 <div><strong>{item.formulaName}</strong><span>{new Date(item.createdAt).toLocaleString('tr-TR')}</span></div>
                 <p>{Object.entries(item.result || {}).filter(([key]) => key !== 'durum').slice(0, 4).map(([key, value]) => `${RESULT_LABELS[key] || key}: ${value}`).join(' · ')}</p>
-              </article>
+              </button>
             ))}
           </div>
         </section>

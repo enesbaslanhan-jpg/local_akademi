@@ -69,3 +69,56 @@
 @media (max-width: 850px) { .profileHeader { margin-left: 0; } .settingsShell { grid-template-columns: 1fr; } .settingsNav { position: static; display: flex; overflow-x: auto; } .settingsNav button { flex: 0 0 auto; width: auto; } }
 @media (max-width: 620px) { .profileHeader { padding: 16px; } .avatar { width: 54px; height: 54px; border-radius: 17px; } .twoFields, .themeGrid { grid-template-columns: 1fr; } .cardBody { padding: 16px; } .sectionFoot, .emptyBlock, .switchRow { align-items: stretch; flex-direction: column; } .sectionFoot > div, .sectionFoot button { width: 100%; } }
 @media (prefers-reduced-motion: reduce) { .settingsNav a, .themeChoice, .switchRow input, .switchRow input::after { transition: none; } }
+
+/* --- Profil fotoğrafı: tıklayınca büyütme ------------------------------ */
+
+/* Avatar bir düğmenin içinde; düğmenin görünümü sıfırlanıyor ki daire
+   bozulmasın. Tıklanabilir olduğu imleçten ve odak halkasından anlaşılıyor. */
+.avatarButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 50%;
+  cursor: zoom-in;
+  line-height: 0;
+}
+
+.avatarButton:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+/* Büyütülmüş görünümdeki eylemler. Koyu zemin üstünde durdukları için
+   sayfa yüzeylerinden bağımsız, açık/koyu temada aynı görünürler. */
+.viewerAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, .24);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, .1);
+  color: #fff;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.viewerAction:hover { background: rgba(255, 255, 255, .18); }
+.viewerAction:focus-visible, .viewerAction:focus-within { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* Dosya girişi görünmez ama etikete tıklanınca açılır. */
+.viewerAction input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.viewerDanger { border-color: rgba(255, 180, 171, .5); color: #FFB4AB; }
+.viewerDanger:hover { background: rgba(255, 180, 171, .16); }
+
+.viewerAction:disabled, .viewerAction:has(input:disabled) { opacity: .55; cursor: not-allowed; }

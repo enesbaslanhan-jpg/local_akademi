@@ -1,0 +1,84 @@
+/*
+ * Marka işareti animasyonu — pusulanın kuzeyi bulması.
+ *
+ * Tek seferlik ve kısa: logo sık görülen bir yüzey, sürekli hareket
+ * yorucu olur. İğne hafifçe sapmış başlar ve yerine oturur; yay aynı
+ * anda çizilir.
+ */
+.mark {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.needle {
+  transform-origin: 50% 50%;
+}
+
+.arc {
+  /* pathLength="1" ile normalize edildi; uzunluktan bağımsız çalışır. */
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+.animated .needle {
+  animation: needleSettle 700ms var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)) both;
+}
+
+.animated .arc {
+  animation: arcDraw 700ms var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)) both;
+}
+
+@keyframes needleSettle {
+  0%   { transform: rotate(-28deg); opacity: 0; }
+  55%  { transform: rotate(6deg);   opacity: 1; }
+  100% { transform: rotate(0deg);   opacity: 1; }
+}
+
+@keyframes arcDraw {
+  0%   { stroke-dashoffset: 1; }
+  100% { stroke-dashoffset: 0; }
+}
+
+/*
+ * İmleç üstündeyken açılıştaki hareketin aynısı oynar: iğne belirir, yay
+ * çizilir. Yalnız gerçek imleçli cihazlarda — dokunmatikte tetiklenmesin.
+ *
+ * KEYFRAME ADLARI BİLEREK FARKLI. Aynı işaret hem `animated` hem
+ * `interactive` olduğunda (giriş ekranı böyle), hover kuralı da
+ * `needleSettle` deseydi tarayıcı animasyon adını değişmemiş sayar ve
+ * yeniden başlatmaz — açılışta bir kez oynar, sonra imleç ne yaparsa
+ * yapsın hiçbir şey olmazdı. Ad değişince animasyon baştan tetiklenir.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .interactive:hover .needle {
+    animation: needleSettleHover 700ms var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)) both;
+  }
+  .interactive:hover .arc {
+    animation: arcDrawHover 700ms var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)) both;
+  }
+}
+
+@keyframes needleSettleHover {
+  0%   { transform: rotate(-28deg); opacity: 0; }
+  55%  { transform: rotate(6deg);   opacity: 1; }
+  100% { transform: rotate(0deg);   opacity: 1; }
+}
+
+@keyframes arcDrawHover {
+  0%   { stroke-dashoffset: 1; }
+  100% { stroke-dashoffset: 0; }
+}
+
+/* Hareket azaltma tercihi mutlak: hiçbir animasyon çalışmaz. */
+@media (prefers-reduced-motion: reduce) {
+  .animated .needle,
+  .animated .arc,
+  .interactive:hover .needle,
+  .interactive:hover .arc {
+    animation: none;
+    transition: none;
+    transform: none;
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}

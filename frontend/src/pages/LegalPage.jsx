@@ -49,7 +49,7 @@ export default function LegalPage({ type = 'privacy' }) {
     <main className={styles.page}>
       <header className={styles.header}>
         <button type="button" onClick={() => navigate(-1)} aria-label="Geri dön"><ArrowLeft size={19} /></button>
-        <BrandMark size={30} />
+        <BrandMark size={30} interactive />
         <strong>LocalKarar</strong>
       </header>
       <article className={styles.document}>

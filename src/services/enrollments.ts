@@ -38,8 +38,27 @@ export async function enrollmentRoutes(fastify: FastifyInstance) {
     preHandler: [fastify.authenticate],
   }, async (request) => {
     const user = request.user as any
+    const { includeArchived } = request.query as { includeArchived?: string }
+
+    /*
+     * Arşivlenmiş kurslar varsayılan olarak listelenmez.
+     *
+     * Phase B'de 288 eski kurs arşivlendi ama bu sorgu kursun durumuna
+     * hiç bakmıyordu; sonuçta kullanıcılar "kayıtlı olduğun kurslar"
+     * listesinde arşivdeki kursları görmeye ve açmaya devam ediyordu.
+     * Ölçüldüğünde 69 kaydın 49'u arşivli kursa aitti.
+     *
+     * Kayıtlar SİLİNMİYOR — kullanıcının ilerlemesini yok etmek geri
+     * alınamaz bir işlem. Yalnız listeden düşüyorlar; kurs arşivden
+     * çıkarsa kayıt kendiliğinden geri gelir.
+     *
+     * `includeArchived=true` yönetim/teşhis için bırakıldı.
+     */
     const enrollments = await prisma.enrollment.findMany({
-      where: { userId: user.id },
+      where: {
+        userId: user.id,
+        ...(includeArchived === 'true' ? {} : { course: { archivedAt: null } })
+      },
       include: {
         course: {
           include: { _count: { select: { lessons: true } } },

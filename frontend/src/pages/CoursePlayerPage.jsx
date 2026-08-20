@@ -89,13 +89,35 @@ export default function CoursePlayerPage() {
         return
       }
     } catch (err) {
-      if (err.status === 403) navigate('/app/courses')
+      /*
+       * 403 = "Not enrolled". Önceden sessizce kurs kataloğuna atıyorduk;
+       * kullanıcı derse tıklayıp kendini listede buluyor, sebebini asla
+       * öğrenemiyordu. Artık nedeni söyleyip kayıt olma yolunu sunuyoruz.
+       */
+      if (err.status === 403) setError('NOT_ENROLLED')
       else setError(err.message || 'Yüklenemedi')
     }
     setLoading(false)
   }, [courseId, lessonId, navigate])
 
   useEffect(() => { fetchLesson() }, [courseId, lessonId])
+
+  const [katiliyor, setKatiliyor] = useState(false)
+
+  /* Kayıt uç noktası idempotent; zaten kayıtlıysa mevcut kaydı döner. */
+  async function katilVeAc() {
+    if (katiliyor) return
+    setKatiliyor(true)
+    try {
+      await api.enrollments.enroll(Number(courseId))
+      setError('')
+      await fetchLesson()
+    } catch (err) {
+      setError(err.message || 'Kursa kaydolunamadı.')
+    } finally {
+      setKatiliyor(false)
+    }
+  }
 
   async function handleStartReading() {
     if (!lesson) return
@@ -125,6 +147,18 @@ export default function CoursePlayerPage() {
   }
 
   if (loading) return <Loading text="Ders yükleniyor..." />
+  if (error === 'NOT_ENROLLED') return (
+    <div className={styles.errorContainer}>
+      <AlertCircle size={48} />
+      <p>Bu derse erişmek için önce kursa kaydolman gerekiyor.</p>
+      <div className={styles.errorActions}>
+        <button type="button" className={styles.errorPrimary} onClick={katilVeAc}>
+          {katiliyor ? 'Kaydolunuyor…' : 'Kursa katıl ve dersi aç'}
+        </button>
+        <button type="button" onClick={() => navigate('/app/courses')}>Kurslara dön</button>
+      </div>
+    </div>
+  )
   if (error) return <div className={styles.errorContainer}><AlertCircle size={48} /><p>{error}</p></div>
   if (!course) return null
 

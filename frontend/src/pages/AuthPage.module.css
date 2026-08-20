@@ -1,0 +1,616 @@
+/*
+ * Giriş / kayıt ekranı.
+ *
+ * TEK YÜZEY, KOLON YOK. Koyu petrol sol üstten açığa çapraz akar; marka ve
+ * vaat koyu bölgenin, form kartı açık bölgenin üzerinde durur. Önceki
+ * sürüm ekranı dikey bir çizgiyle ikiye bölüyordu — renk orada sertçe
+ * kesildiği için iki yarım ayrı görüntü gibi duruyordu.
+ *
+ * Renkler burada SABİT yazılıdır, tema değişkenlerinden gelmez: bu ekranın
+ * kendi atmosferi var ve açık/koyu tema tercihiyle dönmemeli. Uygulamanın
+ * içindeki her şey token kullanır; burası bilinçli istisna.
+ */
+
+.page {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(40px, 6vw, 120px);
+  min-height: 100dvh;
+  padding: var(--space-6, 32px) clamp(24px, 6vw, 112px);
+  /*
+   * Ara duraklar sık ve birbirine yakın: önceki sürümde 50%→61% arasında
+   * ani bir açılma vardı ve ortada beyaza yakın bir bant oluşuyordu.
+   * Açık uç da tam beyaza gitmiyor; kart kendi beyazıyla ayrışabilsin.
+   */
+  background: linear-gradient(
+    116deg,
+    #12333F 0%,
+    #16404F 24%,
+    #1C4B5C 40%,
+    #2C6072 52%,
+    #5A8494 62%,
+    #8FA8B2 71%,
+    #B6C3C9 80%,
+    #CFD5D8 90%,
+    #DBDEE0 100%
+  );
+  overflow: hidden;
+}
+
+/* Vaat bölümü olmayan ekranlar (şifre sıfırlama, e-posta doğrulama):
+   kart ortalanır. */
+.soloPage {
+  justify-content: center;
+}
+
+/* Atmosfer — degradenin üstünde yumuşak ışık havuzları. */
+.glowCool,
+.glowLight,
+.glowWarm {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.glowCool {
+  left: 120px;
+  top: -180px;
+  width: 620px;
+  height: 620px;
+  background: radial-gradient(circle at 50% 50%, rgba(148, 206, 237, .16), rgba(148, 206, 237, 0) 70%);
+}
+
+/* Beyaz havuz sağa çekildi ve zayıflatıldı: ortaya taşınca degradeyi
+   solduruyordu. */
+.glowLight {
+  right: -260px;
+  bottom: -300px;
+  width: 720px;
+  height: 720px;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .3), rgba(255, 255, 255, 0) 66%);
+}
+
+.glowWarm {
+  right: 300px;
+  top: 40px;
+  width: 240px;
+  height: 240px;
+  background: radial-gradient(circle at 50% 50%, rgba(192, 138, 62, .14), rgba(192, 138, 62, 0) 72%);
+}
+
+/* --- Sol: marka ve vaat ------------------------------------------------ */
+
+.pitch {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7, 30px);
+  width: clamp(380px, 33vw, 640px);
+  flex: 0 0 auto;
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  align-self: flex-start;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.brandText strong {
+  color: #F4FAFC;
+  font-size: clamp(1.19rem, 1.35vw, 1.45rem);
+  font-weight: var(--font-weight-heavy, 780);
+  letter-spacing: -0.012em;
+}
+
+.brandText small {
+  color: #93A8AC;
+  font-size: 0.655rem;
+  font-weight: var(--font-weight-semibold, 650);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.pitchCopy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+}
+
+.pitchCopy h2 {
+  margin: 0;
+  color: #F4FAFC;
+  font-size: clamp(1.9rem, 3.4vw, 3.5rem);
+  line-height: 1.14;
+  font-weight: var(--font-weight-heavy, 780);
+  letter-spacing: -0.028em;
+  text-wrap: pretty;
+}
+
+.pitchCopy p {
+  margin: 0;
+  max-width: 26em;
+  color: #C3D1D4;
+  font-size: clamp(0.905rem, 1.05vw, 1.06rem);
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.points {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.points li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #DCE6E8;
+  font-size: clamp(0.845rem, 0.98vw, 1rem);
+  font-weight: var(--font-weight-semibold, 650);
+}
+
+.pointIcon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-sm, 8px);
+  background: rgba(148, 206, 237, .16);
+  color: #94CEED;
+}
+
+.origin {
+  margin: 0;
+  color: #7C9298;
+  font-size: 0.69rem;
+}
+
+/* --- Sağ: cam kart ----------------------------------------------------- */
+
+.cardWrap {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  flex-grow: 1;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 1.3vw, 22px);
+  width: clamp(380px, 29vw, 540px);
+  padding: clamp(30px, 2.1vw, 40px) clamp(30px, 2.1vw, 40px) clamp(24px, 1.7vw, 32px);
+  border: 1px solid rgba(255, 255, 255, .7);
+  border-radius: 18px;
+  background: rgba(251, 252, 253, .8);
+  /*
+   * Kart temayı TAKİP ETMİYOR (her zaman açık), bu yüzden metin rengini de
+   * temadan miras almamalı. Bu satır olmadan koyu temada kart içindeki her
+   * yazı `--text` (#F1F4F5) devralıyor ve beyaz zeminde kayboluyor.
+   */
+  color: #191C1E;
+  backdrop-filter: blur(20px);
+  /* Nötr yükseklik gölgesi — renkli parlama uygulamanın düz diline aykırı. */
+  box-shadow: 0 24px 52px -22px rgba(20, 20, 19, .28), 0 2px 6px rgba(20, 20, 19, .06);
+}
+
+.cardHead {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.cardHead h2 {
+  margin: 0;
+  color: #191C1E;
+  font-size: clamp(1.44rem, 1.75vw, 1.85rem);
+  font-weight: var(--font-weight-heavy, 780);
+  letter-spacing: -0.022em;
+}
+
+.cardHead p {
+  margin: 0;
+  color: #515B60;
+  font-size: clamp(0.81rem, 0.92vw, 0.94rem);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field > span:first-child {
+  color: #40484D;
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-semibold, 650);
+}
+
+.inputShell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: clamp(44px, 3.4vw, 52px);
+  padding: 0 14px;
+  border: 1px solid rgba(24, 62, 69, .14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .75);
+  color: #515B60;
+  transition: border-color var(--dur-fast, .15s) var(--ease, ease),
+    box-shadow var(--dur-fast, .15s) var(--ease, ease);
+}
+
+.inputShell:focus-within {
+  border-color: #0D556F;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(13, 85, 111, .11);
+  color: #0D556F;
+}
+
+/*
+ * Global input kuralları bu kabuğun içindeki alanı yeniden çerçevelemesin.
+ * `:not()` zinciri ve `!important`, `main.css` içindeki eşit özgüllükteki
+ * kuralları geçmek için gerekli — kabuk zaten çerçeveyi çiziyor.
+ */
+.inputShell input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):not([type='search']) {
+  flex-grow: 1;
+  min-width: 0;
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  /*
+   * `!important`: yazı rengi miras yoluyla uygulamanın TEMASINDAN geliyordu.
+   * Bu ekran sabit açık renkli bir kart çiziyor ama gövde koyu temadayken
+   * `--text` açık (#F1F4F5) oluyor ve yazılan metin beyaz zeminde
+   * görünmez hale geliyordu. Kart teması takip etmediği için metin de
+   * etmemeli.
+   */
+  color: #191C1E !important;
+  font: inherit;
+  font-size: clamp(0.845rem, 0.95vw, 0.98rem);
+}
+
+.inputShell input:focus,
+.inputShell input:focus-visible {
+  outline: none !important;
+}
+
+.inputShell input::placeholder {
+  color: #9AA3A7;
+}
+
+/*
+ * Tarayıcının otomatik doldurma zemini.
+ *
+ * Chrome/Edge, kayıtlı bir kullanıcı adı-parola çiftini doldurduğunda alanın
+ * üstüne KENDİ zeminini boyar (soluk sarı/gri) ve metin rengini sabitler.
+ * Bu, kullanıcı arayüzü katmanında çizildiği için `background: transparent`
+ * onu geçmez — alan içinde gri bir kutu olarak görünür.
+ *
+ * Tek çare, o katmanı kalın bir iç gölgeyle yeniden boyamak. Metin ve imleç
+ * rengi de ayrıca zorlanmalı, yoksa açık zeminde okunmaz kalır.
+ */
+.inputShell input:-webkit-autofill,
+.inputShell input:-webkit-autofill:hover,
+.inputShell input:-webkit-autofill:focus,
+.inputShell input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  -webkit-text-fill-color: #191C1E !important;
+  caret-color: #191C1E;
+  /* Doldurulan alanın rengi anında değil, uzun bir geçişle gelsin —
+     Chrome kendi zeminini geri boyamaya çalışırsa yakalayamaz. */
+  transition: background-color 100000s ease-in-out 0s;
+}
+
+/* --- Şifre sıfırlama / doğrulama ekranları ----------------------------- */
+
+/* Bu ekranlarda kartın içindeki form kendi dikey ritmini kurar. */
+.cardForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+}
+
+.note {
+  margin: 0;
+  color: #515B60;
+  font-size: clamp(0.78rem, 0.9vw, 0.9rem);
+  line-height: 1.6;
+}
+
+.backLink {
+  align-self: center;
+  color: #0D556F;
+  font-size: 0.81rem;
+  font-weight: var(--font-weight-semibold, 650);
+  text-decoration: none;
+}
+
+.backLink:hover { text-decoration: underline; }
+.backLink:focus-visible { outline: 2px solid #0D556F; outline-offset: 2px; border-radius: 3px; }
+
+/*
+ * Sıfırlama kartında marka satırı üstte ve ortalı durur.
+ *
+ * RENK BURADA DEĞİŞMEK ZORUNDA: giriş ekranında marka satırı KOYU zeminin
+ * üzerinde olduğu için açık renkli yazılmış. Bu ekranlarda ise AÇIK kartın
+ * içinde duruyor — aynı açık renk beyaz üstünde kayboluyordu.
+ */
+.soloPage .brandRow { align-self: center; }
+.soloPage .brandText strong { color: #191C1E; }
+.soloPage .brandText small { color: #515B60; }
+.soloPage .cardHead { text-align: center; }
+.soloPage .cardWrap { flex-grow: 0; }
+
+/* --- Parola gereksinimleri --------------------------------------------- */
+
+.pwHints {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 12px;
+  margin: -2px 0 0;
+  padding: 11px 13px;
+  border-radius: 10px;
+  background: rgba(216, 221, 224, .6);
+  list-style: none;
+}
+
+.pwHints li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #515B60;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+/* Karşılanan madde hem RENK hem İKON değiştirir — tek ayırt edici işaret
+   renk olsaydı renk körlüğünde okunmazdı. */
+.pwOk {
+  color: #1E8E5A;
+  font-weight: var(--font-weight-semibold, 650);
+}
+
+.forgot {
+  align-self: flex-end;
+  margin-top: -6px;
+  color: #0D556F;
+  font-size: 0.78rem;
+  font-weight: var(--font-weight-semibold, 650);
+  text-decoration: none;
+}
+
+.forgot:hover {
+  color: #306D88;
+  text-decoration: underline;
+}
+
+/* --- Eylemler ---------------------------------------------------------- */
+
+.submit {
+  min-height: clamp(46px, 3.6vw, 56px);
+  border: 0;
+  border-radius: 10px;
+  background: #0D556F;
+  color: #FFFFFF;
+  font: inherit;
+  font-size: clamp(0.875rem, 1vw, 1rem);
+  font-weight: var(--font-weight-bold, 720);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(20, 20, 19, .10);
+  transition: background var(--dur-fast, .15s) var(--ease, ease);
+}
+
+.submit:hover:not(:disabled) { background: #14607C; }
+.submit:focus-visible { outline: 2px solid #0D556F; outline-offset: 2px; }
+.submit:disabled { opacity: .6; cursor: not-allowed; }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: #515B60;
+  font-size: 0.69rem;
+  font-weight: var(--font-weight-semibold, 650);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex-grow: 1;
+  height: 1px;
+  background: rgba(24, 62, 69, .13);
+}
+
+.socialRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/*
+ * Apple / Google — hesaplar açılmadığı için BAĞLI DEĞİL.
+ * Görünür ama devre dışı: tıklanınca sessizce hiçbir şey yapmak yerine
+ * neden çalışmadığını `title` ile söylüyoruz.
+ */
+.social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: clamp(44px, 3.4vw, 52px);
+  border: 1px solid rgba(24, 62, 69, .16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .82);
+  color: #191C1E;
+  font: inherit;
+  font-size: 0.81rem;
+  font-weight: var(--font-weight-semibold, 650);
+  cursor: pointer;
+}
+
+.social:hover:not(:disabled) { background: #FFFFFF; }
+.social:focus-visible { outline: 2px solid #0D556F; outline-offset: 2px; }
+.social:disabled { opacity: .55; cursor: not-allowed; }
+
+.switchLine {
+  margin: 0;
+  text-align: center;
+  color: #515B60;
+  font-size: 0.78rem;
+}
+
+.modeSwitch {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #0D556F;
+  font: inherit;
+  font-size: inherit;
+  font-weight: var(--font-weight-bold, 720);
+  cursor: pointer;
+}
+
+.modeSwitch:hover { text-decoration: underline; }
+.modeSwitch:focus-visible { outline: 2px solid #0D556F; outline-offset: 2px; border-radius: 3px; }
+
+.error {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #C0392B;
+  border-radius: var(--radius-sm, 8px);
+  background: rgba(192, 57, 43, .08);
+  color: #8E2A20;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+/* --- Yasal ------------------------------------------------------------- */
+
+.legal {
+  position: absolute;
+  right: clamp(24px, 5.6vw, 72px);
+  bottom: 26px;
+  display: flex;
+  gap: 16px;
+}
+
+.legal a {
+  color: #5D686C;
+  font-size: 0.69rem;
+  text-decoration: none;
+}
+
+.legal a:hover { color: #191C1E; text-decoration: underline; }
+
+/* --- Dar ekran --------------------------------------------------------- */
+
+/*
+ * 1040px altında düzen dikeye döner: marka üstte, kart altında.
+ *
+ * Vaat metni ve madde listesi gizlenir — dar ekranda amaç giriş yapmak,
+ * ürünü tanıtmak değil. Ama MARKA SATIRI KALIR: bütün bölümü gizlemek
+ * logoyu da götürüyordu ve giriş ekranı markasız kalıyordu. Bunun için
+ * ayrı bir mobil başlık yazmak yerine aynı bölüm daraltıldı.
+ */
+@media (max-width: 1040px) {
+  .page {
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-6, 28px);
+    padding: var(--space-7, 36px) var(--space-4, 20px) 64px;
+    background: linear-gradient(158deg, #133441 0%, #1E5062 26%, #6E96A3 48%, #C3CBCF 70%, #E6E7E9 100%);
+  }
+
+  .pitch {
+    width: 100%;
+    max-width: 420px;
+    gap: 0;
+  }
+
+  .brandRow { align-self: center; }
+
+  .pitchCopy,
+  .points,
+  .origin { display: none; }
+
+  .cardWrap {
+    justify-content: center;
+    flex-grow: 0;
+    width: 100%;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .legal {
+    position: static;
+    justify-content: center;
+    margin-top: 4px;
+  }
+
+  .legal a { color: #40484D; }
+}
+
+@media (max-width: 460px) {
+  .card { padding: 26px 20px 22px; }
+  .pwHints { grid-template-columns: 1fr; }
+  .legal { gap: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inputShell,
+  .submit { transition: none; }
+}
+
+/* --- Yasal onay --------------------------------------------------------- */
+
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: -2px;
+  color: #40484D;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+/* Onay kutusu metinle hizalansın; satır yüksekliği büyüdükçe kaymasın. */
+.consent input[type='checkbox'] {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin: 1px 0 0;
+  accent-color: #0D556F;
+  cursor: pointer;
+}
+
+.consent a {
+  color: #0D556F;
+  font-weight: var(--font-weight-semibold, 650);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.consent a:hover { color: #306D88; }
+.consent:focus-within input { outline: 2px solid #0D556F; outline-offset: 2px; }

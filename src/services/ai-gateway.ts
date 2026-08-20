@@ -145,9 +145,13 @@ export function getActiveAiRuntimeInfo(): AiRuntimeInfo {
 function selectAutoProvider(): AiProviderName {
   if (process.env.OLLAMA_API_URL || process.env.OLLAMA_MODEL) return 'ollama'
   if (process.env.OMNIROUTE_API_KEY) return 'omniroute'
-  if (process.env.NVIDIA_API_KEY) return 'nvidia'
-  if (process.env.OPENAI_API_KEY) return 'openai'
-  if (process.env.DEEPSEEK_API_KEY) return 'deepseek'
+  /* Dış sağlayıcılara YALNIZ bilinçli açıldıysa düşülür — ortamda unutulmuş
+     bir NVIDIA/OpenAI anahtarı otomatik olarak yurt dışına yönlendirmesin. */
+  if (externalProvidersEnabled()) {
+    if (process.env.NVIDIA_API_KEY) return 'nvidia'
+    if (process.env.OPENAI_API_KEY) return 'openai'
+    if (process.env.DEEPSEEK_API_KEY) return 'deepseek'
+  }
   throw new GatewayConfigError('MENTOR_CONFIG_ERROR: AI sağlayıcısı için hiçbir API anahtarı yapılandırılmamış.')
 }
 
@@ -188,6 +192,62 @@ function joinChatCompletionsUrl(baseUrl: string): string {
   return `${baseUrl.trim().replace(/\/+$/, '')}/chat/completions`
 }
 
+/* OmniRoute adresi doğrulanır.
+   OmniRoute bir YÖNLENDİRİCİ: loopback'te çalışması, çıkarımın nerede
+   yapıldığını garanti etmez — ama en azından adresin sessizce uzak bir
+   host'a çevrilmesini engelleyebiliriz. Ollama'daki `getLoopbackOllamaUrl`
+   ile aynı mantık; fark, OmniRoute'un bilinçli olarak uzak bir adrese
+   yönlendirilebilmesi (`AI_ALLOW_EXTERNAL_PROVIDERS=true`).
+   Kimlik bilgisi gömülü URL her durumda reddedilir. */
+function resolveOmniRouteUrl(): string {
+  const rawUrl = process.env.OMNIROUTE_BASE_URL || 'http://localhost:20128/v1'
+
+  let url: URL
+  try {
+    url = new URL(rawUrl)
+  } catch {
+    throw new GatewayConfigError('OMNIROUTE_INVALID_URL')
+  }
+
+  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) {
+    throw new GatewayConfigError('OMNIROUTE_INVALID_URL')
+  }
+
+  const loopbackHosts = new Set(['127.0.0.1', 'localhost', '::1', '[::1]'])
+  if (!loopbackHosts.has(url.hostname) && !externalProvidersEnabled()) {
+    throw new GatewayConfigError(
+      'OMNIROUTE_NON_LOOPBACK_URL: OMNIROUTE_BASE_URL yerel değil. ' +
+      'Uzak bir OmniRoute kullanmak veriyi sunucu dışına çıkarır; ' +
+      'bilinçliyse AI_ALLOW_EXTERNAL_PROVIDERS=true verin.'
+    )
+  }
+
+  return joinChatCompletionsUrl(url.toString())
+}
+
+/* ÜRÜN KARARI: kullanıcı verisi yurt dışındaki AI sağlayıcılarına
+   gönderilmeyecek. Yalnız yerel Ollama ve OmniRoute kullanılıyor.
+   Bu sağlayıcılar kodda duruyor ama VARSAYILAN OLARAK KAPALI; açmak için
+   `AI_ALLOW_EXTERNAL_PROVIDERS=true` bilinçli olarak verilmeli.
+
+   Gerekçe: `docker-compose.yml` eskiden `AI_PROVIDER` için `nvidia`
+   varsayılanı taşıyordu; ortam değişkeni unutulursa mentor trafiği sessizce
+   ABD'ye gidiyordu. Sessiz sızıntı yerine gürültülü hata tercih edildi. */
+const EXTERNAL_PROVIDERS: readonly AiProviderName[] = ['nvidia', 'openai', 'deepseek']
+
+function externalProvidersEnabled(): boolean {
+  return process.env.AI_ALLOW_EXTERNAL_PROVIDERS === 'true'
+}
+
+function assertProviderAllowedByPolicy(provider: AiProviderName): void {
+  if (EXTERNAL_PROVIDERS.includes(provider) && !externalProvidersEnabled()) {
+    throw new GatewayConfigError(
+      `MENTOR_EXTERNAL_PROVIDER_DISABLED: '${provider}' yurt dışı bir sağlayıcı ve ` +
+      'ürün kararıyla kapalı. Bilinçli olarak açmak için AI_ALLOW_EXTERNAL_PROVIDERS=true verin.'
+    )
+  }
+}
+
 function getProviderConfig(options: { provider?: string; model?: string } = {}): ProviderConfig {
   const raw = (
     options.provider && options.provider !== 'auto'
@@ -203,6 +263,8 @@ function getProviderConfig(options: { provider?: string; model?: string } = {}):
   } else {
     throw new GatewayConfigError(`MENTOR_INVALID_PROVIDER: ${raw} allowlist dışı`)
   }
+
+  assertProviderAllowedByPolicy(provider)
 
   const configs: Record<AiProviderName, ProviderConfig> = {
     ollama: {
@@ -238,7 +300,7 @@ function getProviderConfig(options: { provider?: string; model?: string } = {}):
     },
     omniroute: {
       provider: 'omniroute',
-      apiUrl: joinChatCompletionsUrl(process.env.OMNIROUTE_BASE_URL || 'http://localhost:20128/v1'),
+      apiUrl: resolveOmniRouteUrl(),
       apiKey: process.env.OMNIROUTE_API_KEY,
       model: process.env.OMNIROUTE_MODEL || 'auto/best-free',
       timeout: REQUEST_TIMEOUT,

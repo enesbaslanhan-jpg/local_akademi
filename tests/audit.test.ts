@@ -527,7 +527,7 @@ describe('Auth registration audit', () => {
     const email = `register-audit-${unique}-${Date.now()}@test.com`
     const res = await app.inject({
       method: 'POST', url: '/auth/register',
-      body: { email, password: 'password12345', name: 'Register Test' }
+      body: { email, password: 'password12345', name: 'Register Test', acceptedLegal: true }
     })
     expect(res.statusCode).toBe(200)
     const body = JSON.parse(res.body)
@@ -542,11 +542,11 @@ describe('Auth registration audit', () => {
     const email = `dup-register-${unique}@test.com`
     await app.inject({
       method: 'POST', url: '/auth/register',
-      body: { email, password: 'password12345', name: 'Dup' }
+      body: { email, password: 'password12345', name: 'Dup', acceptedLegal: true }
     })
     const res = await app.inject({
       method: 'POST', url: '/auth/register',
-      body: { email, password: 'password12345', name: 'Dup' }
+      body: { email, password: 'password12345', name: 'Dup', acceptedLegal: true }
     })
     expect(res.statusCode).toBe(400)
   })

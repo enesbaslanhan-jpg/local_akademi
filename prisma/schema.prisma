@@ -13,6 +13,11 @@ model User {
   password                String
   name                    String
   role                    String                   @default("student")
+  /// Oturum iptali: token icindeki surum bununla eslesmezse istek reddedilir.
+  /// Sifre degisiminde ve "tum cihazlardan cik" isleminde artirilir.
+  tokenVersion            Int                      @default(0)
+  /// E-posta dogrulandiysa zamani. Null = dogrulanmamis.
+  emailVerifiedAt         DateTime?
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
   deletedAt               DateTime?
@@ -62,8 +67,60 @@ model User {
   practicalCardFeedbacks  PracticalCardFeedback[]
   feedInteractions        FeedInteraction[]
   LearningProgress        LearningProgress[]
+  passwordResetTokens     PasswordResetToken[]
+  emailVerificationCodes  EmailVerificationCode[]
+  consents                UserConsent[]
 
   @@index([deletedAt])
+}
+
+/// Sifre sifirlama tokeni. BusinessInvitation ile ayni desen: ham token
+/// e-postayla gider, veritabaninda yalniz sha256 ozeti durur. Veritabani
+/// sizarsa tokenlar kullanilamaz.
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    Int
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+}
+
+/// E-posta dogrulama kodu (6 hane). Kod da ozetlenerek saklanir.
+/// `attempts` deneme sayaci: kaba kuvvetle 6 hane denenmesini engeller.
+model EmailVerificationCode {
+  id        String    @id @default(uuid())
+  userId    Int
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int       @default(0)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+}
+
+/// Yasal metin onaylari. KVKK acisindan onemli olan onayi KANITLAYABILMEK:
+/// kim, ne zaman, metnin hangi surumunu onayladi.
+/// IP adresi BILEREK saklanmiyor - kendisi kisisel veridir; saklamak korunmasi
+/// gereken veriyi artirir ve ayri bir saklama gerekcesi ister.
+model UserConsent {
+  id           String   @id @default(uuid())
+  userId       Int
+  documentType String
+  version      String
+  acceptedAt   DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, documentType, version])
+  @@index([userId])
 }
 
 model CommunityPost {
@@ -139,6 +196,9 @@ model QuizAttempt {
   createdAt DateTime @default(now())
   quizId    String?
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, koId])
 }
 
 model TaskAssignment {
@@ -393,6 +453,8 @@ model FormulaCalculation {
   result      String
   createdAt   DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 model ActivityEvent {
@@ -403,6 +465,8 @@ model ActivityEvent {
   detail    String   @default("{}")
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 model GeneratedReport {
@@ -785,6 +849,8 @@ model QuizQuestion {
   order         Int      @default(0)
   createdAt     DateTime @default(now())
   quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([quizId])
 }
 
 model TaskTemplate {
@@ -1044,6 +1110,8 @@ model MentorSession {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, updatedAt])
 }
 
 model Conversation {
@@ -1061,6 +1129,8 @@ model Conversation {
   user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages        ConversationMessage[]
   summary         ConversationSummary?
+
+  @@index([userId, lastMessageAt])
 }
 
 model ConversationMessage {
@@ -1084,6 +1154,8 @@ model ConversationMessage {
   regeneratedMessages      ConversationMessage[] @relation("RegeneratedMessages")
   conversation             Conversation          @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   memorySources            UserMemory[]
+
+  @@index([conversationId, createdAt])
 }
 
 model UserMemory {
@@ -1525,28 +1597,28 @@ model NewsSource {
 }
 
 model NewsArticle {
-  id                  String         @id @default(uuid())
-  sourceId            String
-  category            NewsCategory
-  status              NewsStatus     @default(PROCESSING)
-  importance          NewsImportance?
-  title               String
-  canonicalUrl        String         @unique
-  contentHash         String         @unique
-  sourcePublishedAt   DateTime
-  sourceTextExcerpt   String?
-  summary             String?
-  whyItMatters        String?
-  tags                 String[]
-  affectedAudience    String[]
-  imageId             String?
-  aiProvider           String?
-  aiModel              String?
-  failureReason        String?
-  publishedAt         DateTime?
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  source              NewsSource     @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+  id                String          @id @default(uuid())
+  sourceId          String
+  category          NewsCategory
+  status            NewsStatus      @default(PROCESSING)
+  importance        NewsImportance?
+  title             String
+  canonicalUrl      String          @unique
+  contentHash       String          @unique
+  sourcePublishedAt DateTime
+  sourceTextExcerpt String?
+  summary           String?
+  whyItMatters      String?
+  tags              String[]
+  affectedAudience  String[]
+  imageId           String?
+  aiProvider        String?
+  aiModel           String?
+  failureReason     String?
+  publishedAt       DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  source            NewsSource      @relation(fields: [sourceId], references: [id], onDelete: Restrict)
 
   @@index([status, sourcePublishedAt(sort: Desc), id])
   @@index([category, status, sourcePublishedAt(sort: Desc), id])

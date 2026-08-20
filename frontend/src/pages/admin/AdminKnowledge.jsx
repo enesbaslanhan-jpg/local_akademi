@@ -236,7 +236,11 @@ export default function AdminKnowledge() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h2>KO Yönetimi</h2>
+        {/* Toplam sayı başlıkta: liste güncelleme tarihine göre sıralı olduğu
+            için ilk sayfa çoğunlukla yayındaki kayıtlardan oluşuyor ve
+            arşivdekilerin varlığı hiç görünmüyordu. Filtre seçiliyken de
+            kaç kayıt olduğu buradan okunur. */}
+        <h2>KO Yönetimi {total > 0 && <span className={styles.totalBadge}>{total.toLocaleString('tr-TR')} kayıt</span>}</h2>
         {isEditor && (
           <Button onClick={() => navigate('/admin/knowledge/new')}>
             <Plus size={16} /> Yeni KO

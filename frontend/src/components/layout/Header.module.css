@@ -94,6 +94,14 @@
   font-size: var(--font-meta);
 }
 
+/* Odak göstergesi `.search:focus-within` halkasında. `base.css` içindeki
+   `input:focus-visible { outline: 2px solid }` aynı özgüllükte olduğu için
+   halkanın üstüne sert bir dikdörtgen biniyordu; burada geçersiz kılınıyor. */
+.searchInput:focus,
+.searchInput:focus-visible {
+  outline: none;
+}
+
 .searchInput::placeholder {
   color: var(--text-muted);
 }

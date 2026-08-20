@@ -138,3 +138,64 @@
 @media (max-width: 1050px) { .communityGrid, .newsGrid { grid-template-columns: minmax(0, 1fr); } .communityRail, .newsRail { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .page { padding-top: 2px; } .pageHeading { align-items: stretch; flex-direction: column; margin-bottom: 18px; } .createPostButton { align-self: flex-start; } .communityRail, .newsRail, .twoFields, .moderationGrid { grid-template-columns: 1fr; } .composerFooter { align-items: stretch; flex-direction: column; } .primaryButton { align-self: flex-end; } .newsCard { grid-template-columns: 1fr; } .newsThumb { min-height: 160px; } .featuredNews, .featuredContent { min-height: 280px; } .featuredOverlay { background: linear-gradient(0deg, rgba(5,20,23,.94), rgba(5,20,23,.35)); } .toolButton span { display: none; } }
 @media (prefers-reduced-motion: reduce) { .skeleton span { animation: none; } .communityCard, .newsCard, .primaryButton, .toolButton { transition: none; } }
+
+/* --- Görsel büyütme ---------------------------------------------------- */
+
+/* Görsel bir düğmenin içinde; düğmenin varsayılan görünümü sıfırlanıyor
+   ki kartın düzeni değişmesin. */
+.imageButton {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  border-radius: var(--radius-md, 12px);
+  overflow: hidden;
+}
+
+.imageButton:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: rgba(6, 10, 12, .88);
+  backdrop-filter: blur(4px);
+}
+
+.lightboxImage {
+  max-width: min(100%, 1100px);
+  max-height: calc(100vh - 96px);
+  object-fit: contain;
+  border-radius: var(--radius-md, 12px);
+}
+
+.lightboxClose {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, .22);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .1);
+  color: #fff;
+  cursor: pointer;
+}
+
+.lightboxClose:hover { background: rgba(255, 255, 255, .2); }
+.lightboxClose:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox { backdrop-filter: none; }
+}

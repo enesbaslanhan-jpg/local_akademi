@@ -112,6 +112,33 @@ export default function KnowledgeDetail() {
     }
   }
 
+  /*
+   * "Dersi Aç" — canonical KO'nun dersini açar.
+   *
+   * ÖNCEDEN doğrudan `/app/courses/:id/learn/:lessonId` adresine gidiyordu.
+   * Ders uç noktası kayıt (enrollment) ZORUNLU tutuyor; kayıtlı olmayan
+   * kullanıcı 403 alıyor, Course Player da 403'te sessizce kurs kataloğuna
+   * geri atıyordu. Kullanıcı "Dersi Aç" deyip kendini kurs listesinde
+   * buluyordu, sebebini görmeden.
+   *
+   * Çözüm: aynı sayfadaki "Öğrenmeye Başla" akışıyla AYNI deseni izle —
+   * gerekiyorsa kaydı oluştur, sonra derse git. Kayıt uç noktası idempotent,
+   * zaten kayıtlıysa mevcut kaydı döner.
+   */
+  async function acCanonicalDers() {
+    if (!canonicalLesson || courseNavigating) return
+    setCourseNavigating(true)
+    setCourseNavError('')
+    try {
+      await api.enrollments.enroll(canonicalLesson.courseId)
+      navigate(`/app/courses/${canonicalLesson.courseId}/learn/${canonicalLesson.lessonId}`)
+    } catch (err) {
+      setCourseNavError(err.message || 'Ders açılamadı. Lütfen tekrar deneyin.')
+    } finally {
+      setCourseNavigating(false)
+    }
+  }
+
   const fetchData = useCallback(async () => {
     if (!code) return
     setLoading(true)
@@ -271,9 +298,10 @@ export default function KnowledgeDetail() {
           </div>
           <Button
             variant="primary"
-            onClick={() => navigate(`/app/courses/${canonicalLesson.courseId}/learn/${canonicalLesson.lessonId}`)}
+            disabled={courseNavigating}
+            onClick={acCanonicalDers}
           >
-            Dersi Aç
+            {courseNavigating ? 'Açılıyor…' : 'Dersi Aç'}
           </Button>
         </Card>
       )}

@@ -139,3 +139,16 @@
     font-size: var(--font-size-lg);
   }
 }
+
+/* Başlıktaki kayıt sayısı. Başlıkla aynı satırda ama ondan zayıf. */
+.totalBadge {
+  margin-left: 10px;
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full, 999px);
+  background: var(--surface-sunken);
+  color: var(--text-light);
+  font-size: .72rem;
+  font-weight: 600;
+  vertical-align: middle;
+}

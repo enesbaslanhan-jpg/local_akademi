@@ -340,7 +340,26 @@
 /* ---------- Son işlemler ---------- */
 .recent { margin-top: 28px; }
 .historyList { display: grid; gap: 10px; }
-.historyItem { padding: 15px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--white); box-shadow: var(--edge-inset); }
+/* Geçmiş satırı tıklanabilir: hesaplamayı kayıtlı girdileriyle geri açar.
+   <button> olduğu için tarayıcı varsayılanları sıfırlanıyor. */
+.historyItem {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  box-shadow: var(--edge-inset);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  .historyItem:hover { border-color: var(--brand-ink); transform: translateY(var(--lift-btn)); }
+}
+.historyItem:active { transform: scale(var(--scale-active)); }
 .historyItem > div { display: flex; justify-content: space-between; gap: 12px; }
 .historyItem strong { min-width: 0; overflow-wrap: anywhere; }
 .historyItem span { color: var(--text-secondary); font-size: .78rem; flex-shrink: 0; }
