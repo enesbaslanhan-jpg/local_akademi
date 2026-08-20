@@ -6,6 +6,13 @@
     girmiyor, favicon statik bir dosya olmak zorunda).
 
     Renkler bilerek sabit: bir marka isareti tema ile donmemeli.
+
+    PNG karsiliklari (Safari/iOS SVG favicon desteklemiyor):
+      favicon-16x16.png · favicon-32x32.png · apple-touch-icon.png
+    Bu dosya degisirse ONLAR DA yeniden uretilmeli -- @resvg/resvg-js
+    ile. apple-touch-icon ayri bir kaynaktan uretiliyor: tam kare,
+    yuvarlak kose YOK (iOS koseleri kendi maskeler; bizim yuvarlak
+    kosemiz ustune binince cift kose cikardi).
   -->
   <defs>
     <linearGradient id="bm-govde" x1="0" y1="0" x2="0.6" y2="1">
