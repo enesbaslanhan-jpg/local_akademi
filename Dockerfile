@@ -12,6 +12,9 @@ RUN npm ci
 COPY tsconfig.json ./
 COPY src ./src
 COPY prisma ./prisma
+# src/services/learningPath.ts bu klasordeki bir JSON'u import ediyor.
+# Kopyalanmazsa derleme "TS2307: Cannot find module" ile duser.
+COPY content ./content
 
 RUN npx prisma generate --schema=./prisma/schema.prisma
 RUN npm run build
@@ -45,6 +48,16 @@ COPY --from=backend-build /app/node_modules/@prisma/client ./node_modules/@prism
 
 # Migration files
 COPY prisma ./prisma
+
+# Icerik manifestleri.
+#
+# CALISMA ANINDA da gerekli: tsconfig'de rootDir=./src oldugu icin tsc bu
+# dosyalari dist'e kopyalamiyor, ama derlenen cikti
+# require("../../content/learning-pilot-v1.json") diyor -- yani
+# /app/content/ altinda durmalari sart. Yalniz derleme asamasina
+# kopyalamak yetmez; imaj derlenir ama sunucu acilista MODULE_NOT_FOUND
+# ile coker.
+COPY content ./content
 
 # Backend build output
 COPY --from=backend-build /app/dist ./dist
