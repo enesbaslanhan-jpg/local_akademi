@@ -14,6 +14,29 @@
 # 3000'i kapatiyor -- iki katman, biri unutulursa digeri tutar.)
 
 services:
+  # Ozellik bayraklari.
+  #
+  # Kodda yedi FEATURE_* bayragi var ve hicbirinin varsayilani acik degil
+  # (kod `=== 'true'` karsilastiriyor). Iletilmezlerse Karar Araclari,
+  # ogrenme ilerlemesi, kisisellestirilmis akis ve baglamsal mentor
+  # 404 FEATURE_DISABLED doner -- arayuzde "yuklenemedi" olarak gorunur.
+  #
+  # Bu blok eklenmeden once uretimde yedisi de KAPALIYDI: ne .env
+  # orneginde vardilar ne de compose onlari kapsayiciya iletiyordu.
+  #
+  # Varsayilanlar gelistirme .env'indeki degerlerle ayni. .env'de
+  # tanimlarsan oradaki kazanir.
+  server:
+    environment:
+      - FEATURE_DECISION_CHECKS_ENABLED=${FEATURE_DECISION_CHECKS_ENABLED:-true}
+      - FEATURE_LEARNING_PROGRESS_ENABLED=${FEATURE_LEARNING_PROGRESS_ENABLED:-true}
+      - FEATURE_PERSONALIZED_FEED_ENABLED=${FEATURE_PERSONALIZED_FEED_ENABLED:-true}
+      - FEATURE_CONTEXTUAL_MENTOR_ENABLED=${FEATURE_CONTEXTUAL_MENTOR_ENABLED:-true}
+      # Bu ucu gelistirmede de KAPALI -- eski surumler, yerlerine gecenler var.
+      - FEATURE_LEGACY_QUIZ_ENABLED=${FEATURE_LEGACY_QUIZ_ENABLED:-false}
+      - FEATURE_LEGACY_FLASHCARDS_ENABLED=${FEATURE_LEGACY_FLASHCARDS_ENABLED:-false}
+      - FEATURE_PRACTICAL_CARDS_ENABLED=${FEATURE_PRACTICAL_CARDS_ENABLED:-false}
+
   caddy:
     image: caddy:2-alpine
     container_name: localakademi-caddy
