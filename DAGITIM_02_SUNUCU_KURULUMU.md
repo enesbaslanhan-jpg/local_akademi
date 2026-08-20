@@ -49,12 +49,23 @@ docker run --rm hello-world
 
 ```bash
 cd ~
-git clone https://github.com/enesbaslanhan-jpg/local_akademi.git localkarar
+git clone -b design/localkarar-18 https://github.com/enesbaslanhan-jpg/local_akademi.git localkarar
 cd localkarar
 ```
 
-> Depoda commit edilmemiş çalışmalar var. Bu makinedeki güncel hâli
-> kullanmak istersen `scp` ile kopyalarız — söyle, birlikte yaparız.
+> ⚠️ **Dal adı önemli.** Bütün bu çalışma `design/localkarar-18`
+> dalında; varsayılan dal ESKİ kodu verir.
+
+**Doğrula** — doğru dalda ve doğru commit'te misin:
+
+```bash
+git log --oneline -1
+ls deploy/
+```
+
+`deploy/` içinde dört dosya olmalı
+(`Caddyfile`, `docker-compose.prod.yml`, `env.production.example`,
+`firewall.sh`). Yoksa yanlış dal çekilmiş.
 
 ---
 
@@ -152,45 +163,122 @@ Fastify**, yani iki sıçrama.
 
 ---
 
-## 7. Başlat
+## 7. Kısayol
+
+Bundan sonraki her komut iki `-f` bayrağı istiyor. Bir kez kısaltalım:
 
 ```bash
-docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d
-docker compose logs -f server
+echo "alias lk='docker compose -f ~/localkarar/docker-compose.yml -f ~/localkarar/deploy/docker-compose.prod.yml --project-directory ~/localkarar'" >> ~/.bashrc && source ~/.bashrc
 ```
 
-Göçler açılışta otomatik çalışır (`docker-entrypoint.sh`).
+`--project-directory` önemli: proje adı (`localkarar`) oradan türüyor.
+Onsuz komutu başka bir klasörden çalıştırınca Compose farklı bir proje
+adı uydurup **yeni ve boş** kapsayıcılar açar — mevcut veritabanını
+görmezden gelerek. Birkaç gün sonra "verilerim gitti" gibi görünen,
+bulması sinir bozucu bir hatadır.
 
-Başlayan servisler: **postgres**, **server**, **caddy**.
+---
+
+## 8. Önce veritabanı, sonra uygulama rolü — sıra ÖNEMLİ
+
+> ⚠️ Bu bölüm bir kez yanlış sırada yazılmıştı ve kurulum orada takıldı.
+> Sebep: `docker-compose.yml` **iki ayrı rol** kullanıyor.
+>
+> | Rol | Nerede | Yetki |
+> |---|---|---|
+> | `localakademi` | yalnız `prisma migrate deploy` | sahip, DDL var |
+> | `localakademi_app` | uygulamanın kendisi | yalnız `SELECT/INSERT/UPDATE/DELETE` |
+>
+> Uygulama ikinci rolle bağlanıyor. O rol yoksa göçler geçer ama sunucu
+> açılışta `Authentication failed ... localakademi_app` ile döngüye
+> girer. Yani rol, uygulamadan **önce** var olmalı.
+
+### 8.1 Yalnız veritabanını başlat
+
+```bash
+lk up -d postgres
+```
+
+`lk ps` çıktısında `localakademi-postgres` **(healthy)** olmalı.
+
+### 8.2 Uygulama rolünü oluştur
+
+```bash
+cd ~/localkarar && oku() { grep -m1 "^$1=" .env | cut -d= -f2- | sed -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'\$/\1/"; }; lk exec -T -e PGPASSWORD="$(oku DB_PASSWORD)" postgres psql -U localakademi -d localakademi -v ON_ERROR_STOP=1 -v pw="$(oku APP_DB_PASSWORD)" <<'SQL'
+SELECT format('CREATE ROLE %I LOGIN', 'localakademi_app')
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'localakademi_app')
+\gexec
+ALTER ROLE "localakademi_app" LOGIN PASSWORD :'pw';
+ALTER ROLE "localakademi_app" NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+GRANT CONNECT ON DATABASE "localakademi" TO "localakademi_app";
+GRANT USAGE ON SCHEMA public TO "localakademi_app";
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO "localakademi_app";
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO "localakademi_app";
+ALTER DEFAULT PRIVILEGES FOR ROLE "localakademi" IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO "localakademi_app";
+ALTER DEFAULT PRIVILEGES FOR ROLE "localakademi" IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO "localakademi_app";
+REVOKE CREATE ON SCHEMA public FROM "localakademi_app";
+SELECT rolname, rolsuper, rolcreatedb, rolcreaterole, rolbypassrls
+FROM pg_roles WHERE rolname = 'localakademi_app';
+SQL
+```
+
+**Beklenen son satır:** `localakademi_app | f | f | f | f`
+
+Tekrar çalıştırmak güvenli — rol varsa yalnız parolayı ve yetkileri
+günceller.
+
+> **`scripts/setup-app-db-role.ts` neden kullanılmıyor:** aynı işi yapar
+> ama **son imajda çalıştırılamaz** — imaj `npm ci --production` ile
+> kuruluyor, `tsx` bir dev bağımlılığı ve `scripts/` klasörü imaja hiç
+> kopyalanmıyor. Betik geliştirme ortamı için duruyor; sunucuda
+> yukarıdaki SQL kullanılıyor.
+
+### 8.3 Rolün gerçekten kısıtlı olduğunu doğrula
+
+```bash
+cd ~/localkarar && oku() { grep -m1 "^$1=" .env | cut -d= -f2- | sed -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'\$/\1/"; }; lk exec -T -e PGPASSWORD="$(oku APP_DB_PASSWORD)" postgres psql -h 127.0.0.1 -U localakademi_app -d localakademi -c 'CREATE TABLE sizinti(x int);'
+```
+
+**`ERROR: permission denied for schema public` beklenen çıktı.**
+Komut başarılı olursa rol yanlış kurulmuş demektir — durdur, bana söyle.
+
+> `DROP TABLE` yerine `CREATE TABLE` deneniyor, çünkü `DROP` başarılı
+> olsaydı tabloyu gerçekten silerdi. Yetki testinin kendisi veri
+> kaybettirmemeli.
+
+---
+
+## 9. Tümünü başlat
+
+```bash
+lk up -d --build
+lk logs --tail=40 server
+```
+
+Göçler açılışta otomatik çalışır (`docker-entrypoint.sh`) ve sahip
+rolüyle koşar (`MIGRATE_DATABASE_URL`).
+
+Aranan: göç satırları ve sonunda **`Server listening`**.
+
+Ayakta olması gerekenler: **postgres**, **server**, **caddy**.
 
 > Compose'da bir `redis` servisi de tanımlı ama `with-redis` profili
 > arkasında ve **kod onu hiç kullanmıyor** (`REDIS_URL` yok, istemci
 > yok). Varsayılanda başlamıyor — doğru davranış, dokunma.
 
----
-
-## 8. En az yetkili veritabanı rolü
-
-Uygulama superuser olarak bağlanmamalı.
+**Doğrula** — uygulamanın kendisi ve dış zincir ayrı ayrı:
 
 ```bash
-docker compose exec server npx tsx scripts/setup-app-db-role.ts
-docker compose restart server
+curl -s -o /dev/null -w "yerel health: %{http_code}\n" http://127.0.0.1:3000/health && curl -sI https://localkarar.com | head -3
 ```
 
-**Doğrula** — uygulama rolü tablo düşüremiyor olmalı:
-
-```bash
-docker compose exec postgres psql -U localakademi_app -d localakademi \
-  -c 'DROP TABLE IF EXISTS "User";'
-```
-
-**`ERROR: permission denied` (42501) beklenen çıktı.** Komut başarılı
-olursa rol yanlış kurulmuş demektir — durdur, bana söyle.
+İlki uygulamayı, ikincisi **Cloudflare → Caddy → uygulama** zincirini
+ölçüyor. İlki 200 verip ikincisi vermezse sorun ağ/sertifika
+tarafındadır, uygulamada değil.
 
 ---
 
-## 9. Yedekleme zamanlaması
+## 10. Yedekleme zamanlaması
 
 ```bash
 crontab -e
@@ -219,7 +307,7 @@ veritabanına yükleyip satırları sayıyor. `ok: true` ve
 
 ---
 
-## 10. Kabul testleri — hepsi geçmeli
+## 11. Kabul testleri — hepsi geçmeli
 
 ### 10.1 Site açılıyor ve şifreli
 
@@ -268,7 +356,7 @@ Gelen postada kontrol et:
 
 ### 10.4 Yedek geri yükleniyor
 
-9. adımdaki `backup:restore:verify` çıktısı.
+10. adımdaki `backup:restore:verify` çıktısı.
 
 ---
 
@@ -281,6 +369,8 @@ Gelen postada kontrol et:
 | Sayfa açılıyor ama API 404 | Frontend derlenmemiş; `docker compose logs server` |
 | E-posta gitmiyor | `RESEND_API_KEY` boş → günlükte "gerçek gönderim KAPALI" satırı görünür |
 | Hepsi `200`, `429` yok | `TRUST_PROXY` ya da güvenlik duvarı yanlış → **durdur** |
+| `server` sürekli **Restarting**, günlükte `Authentication failed ... localakademi_app` | Uygulama rolü yok ya da parolası `.env` ile uyuşmuyor → 8.2 |
+| Derleme `TS2307: Cannot find module ...content/...` ile düşüyor | Eski kod; `git pull` (düzeltme `c7e1302`) |
 
 ---
 
