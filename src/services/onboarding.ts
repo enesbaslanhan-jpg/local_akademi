@@ -126,6 +126,9 @@ export async function onboardingRoutes(fastify: FastifyInstance, opts?: { prisma
     const hasEssentialFields = !!(profile?.name || profile?.sector)
     return {
       onboardingCompleted: pref?.onboardingCompleted || false,
+      /* Turdan AYRI bayrak. Anket bittiginde tur daha baslamamis olur;
+         ikisini tek alana baglamak birini gormeyi imkansiz kilardi. */
+      tourCompleted: !!pref?.tourCompletedAt,
       profileComplete: hasEssentialFields,
       hasProfile: !!profile
     }
@@ -272,6 +275,39 @@ export async function onboardingRoutes(fastify: FastifyInstance, opts?: { prisma
     })
 
     return { onboardingCompleted: false }
+  })
+
+  /*
+   * Karsilama turu.
+   *
+   * Anketin uc noktalarindan AYRI: '/onboarding/reset' anketi sifirlar,
+   * asagidaki ikisi turu. Ayni uca baglansaydi "anketi tekrar yap" demek
+   * turu de geri getirirdi (ya da tersi) ve kullanici istemedigi ekrani
+   * gorurdu.
+   */
+  fastify.post('/onboarding/tour/complete', {
+    preHandler: [fastify.authenticate]
+  }, async (request) => {
+    const user = request.user as { id: number }
+    const now = new Date()
+    await prisma.userPreference.upsert({
+      where: { userId: user.id },
+      create: { userId: user.id, tourCompletedAt: now },
+      update: { tourCompletedAt: now }
+    })
+    return { tourCompleted: true }
+  })
+
+  fastify.post('/onboarding/tour/reset', {
+    preHandler: [fastify.authenticate]
+  }, async (request) => {
+    const user = request.user as { id: number }
+    await prisma.userPreference.upsert({
+      where: { userId: user.id },
+      create: { userId: user.id, tourCompletedAt: null },
+      update: { tourCompletedAt: null }
+    })
+    return { tourCompleted: false }
   })
 }
 

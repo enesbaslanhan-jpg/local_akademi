@@ -70,6 +70,7 @@ model User {
   passwordResetTokens     PasswordResetToken[]
   emailVerificationCodes  EmailVerificationCode[]
   consents                UserConsent[]
+  refreshTokens           RefreshToken[]
 
   @@index([deletedAt])
 }
@@ -497,6 +498,8 @@ model UserPreference {
   id                  Int                @id @default(autoincrement())
   userId              Int                @unique
   onboardingCompleted Boolean            @default(false)
+  /// Karsilama turu. Ankete (onboardingCompleted) BAGLI DEGIL - ayri bayrak.
+  tourCompletedAt     DateTime?
   defaultCurrency     String             @default("TRY")
   compactMode         Boolean            @default(false)
   activityLimit       Int                @default(50)
@@ -1652,4 +1655,34 @@ model LearningProgress {
   @@index([userId, status])
   @@index([userId, contentType])
   @@index([userId, lastViewedAt])
+}
+
+/// Oturum yenileme tokeni.
+///
+/// tokenVersion BURADA da tutuluyor: yenileme sirasinda kullanicinin
+/// guncel surumuyle karsilastiriliyor. Boylece sifre degisimi,
+/// "tum cihazlardan cik", sifre sifirlama, askiya alma ve
+/// anonimlestirme -- yani tokenVersion i artiran HER yol -- acik
+/// yenileme tokenlarini kendiliginden gecersiz kiliyor. Bes ayri
+/// cagri yerine "yenileme tokenini de iptal et" eklenseydi, ileride
+/// eklenecek altincisinin unutulmasi sessiz bir guvenlik acigi olurdu.
+///
+/// familyId: donus (rotation) ailesi. Kullanilmis bir token TEKRAR
+/// sunulursa (usedAt dolu) bu, tokenin calindiginin isaretidir; o
+/// zaman ailenin tamami iptal edilir.
+model RefreshToken {
+  id           String    @id @default(uuid())
+  userId       Int
+  tokenHash    String    @unique
+  familyId     String
+  tokenVersion Int
+  expiresAt    DateTime
+  usedAt       DateTime?
+  revokedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([familyId])
+  @@index([expiresAt])
 }

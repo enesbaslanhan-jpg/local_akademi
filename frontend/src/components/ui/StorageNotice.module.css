@@ -1,0 +1,55 @@
+/* Tokenlarla yazıldı — koyu/açık temaya kendiliğinden uyar. */
+.notice {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  /* Depoda z-index OLCEGI var (tokens.css). Ham 60 yazmistim ve bu
+     --z-sidebar (100) degerinin ALTINDA kaliyordu: bildirimin sol yarisi
+     kenar cubugunun arkasinda kayboluyordu. Bildirim gecici bir katman,
+     dogru basamak --z-toast. */
+  z-index: var(--z-toast, 500);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 420px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-panel);
+  box-shadow: var(--shadow-deep);
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.icon { flex-shrink: 0; margin-top: 1px; color: var(--text-muted); }
+.text { flex: 1; margin: 0; min-width: 0; }
+.text strong { color: var(--text); }
+.link { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+
+.dismiss {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.dismiss:hover { background: var(--surface-raised); color: var(--text); }
+.dismiss:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* Mobilde mentor düğmesi ve alt sekme çubuğu var — bildirim onların
+   üstüne binmesin diye tam genişlik ve daha yukarı. */
+@media (max-width: 640px) {
+  .notice {
+    left: 12px;
+    right: 12px;
+    bottom: 76px;
+    max-width: none;
+  }
+}

@@ -285,7 +285,8 @@ export default function DecisionCheckList() {
 
         {hasChecks && (
           <div className="decision-workspace">
-          <section className="decision-list-content" aria-label="Karar araçları">
+          {/* data-tour: karsilama turu tutunma noktasi (WelcomeTour.jsx) */}
+          <section className="decision-list-content" aria-label="Karar araçları" data-tour="karar-kartlari">
             <div className="decision-list-summary">
               <div>
                 <h2>İşinize uygun araçlar</h2>

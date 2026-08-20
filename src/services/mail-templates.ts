@@ -134,3 +134,49 @@ export function sifreDegistiMaili(to: string, ad: string): MailMesaji {
     ])
   }
 }
+
+/**
+ * İşletme çalışma alanı daveti. 7 gün, tek kullanımlık.
+ *
+ * Ham token YALNIZ burada — e-postanın içinde — geçer; veritabanında
+ * sadece sha256 özeti duruyor (`BusinessInvitation.tokenHash`).
+ *
+ * Önceden ham token API yanıtında dönüyor ve arayüzde ekranda
+ * gösteriliyordu; daveti oluşturan kişi onu kopyalayıp kendi bildiği bir
+ * yolla iletiyordu. Bu, davetin gerçekten o e-posta adresinin sahibine
+ * gittiğine dair hiçbir garanti olmaması demekti.
+ */
+export function isletmeDavetiMaili(
+  to: string,
+  isletmeAdi: string,
+  davetEden: string,
+  rawToken: string
+): MailMesaji {
+  const link = `${uygulamaAdresi()}/davet?token=${encodeURIComponent(rawToken)}`
+  const govde = [
+    `${davetEden}, sizi LocalKarar'da "${isletmeAdi}" işletmesine davet etti.`,
+    '',
+    'Daveti kabul etmek için aşağıdaki bağlantıyı açın:',
+    '',
+    link,
+    '',
+    'Bağlantı 7 gün geçerlidir ve yalnızca bu e-posta adresiyle açılmış',
+    'bir hesapla kullanılabilir.'
+  ].join('\n')
+
+  return {
+    to,
+    subject: `LocalKarar — ${isletmeAdi} işletmesine davet edildiniz`,
+    text: cerceve(
+      'İşletme daveti',
+      govde,
+      'Bu daveti beklemiyorsanız bağlantıyı açmayın; hiçbir işlem yapılmaz ve davet 7 gün sonra kendiliğinden geçersiz olur.'
+    ),
+    html: htmlCerceve('İşletme daveti', [
+      `<strong>${davetEden}</strong>, sizi LocalKarar'da <strong>${isletmeAdi}</strong> işletmesine davet etti.`,
+      `<a href="${link}" style="color:#0d556f;font-weight:600">Daveti kabul et</a>`,
+      'Bağlantı <strong>7 gün</strong> geçerlidir ve yalnızca bu e-posta adresiyle açılmış bir hesapla kullanılabilir.',
+      '<span style="color:#6b7780;font-size:13px">Bu daveti beklemiyorsanız bağlantıyı açmayın; hiçbir işlem yapılmaz.</span>'
+    ])
+  }
+}

@@ -1,0 +1,79 @@
+/*
+ * Renkler tamamen tokenlardan geliyor — `--warning` hem açık hem koyu
+ * temada tanımlı, bu yüzden şerit tema değişince kendiliğinden uyar.
+ * Sabit hex yazılsaydı koyu modda ya okunmaz ya da göz alıcı olurdu.
+ */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 0 0 16px;
+  border: 1px solid color-mix(in srgb, var(--warning) 42%, transparent);
+  background: color-mix(in srgb, var(--warning) 12%, var(--surface-panel));
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.icon {
+  flex-shrink: 0;
+  color: var(--warning);
+}
+
+.text {
+  flex: 1;
+  margin: 0;
+  min-width: 0;
+}
+
+.detail {
+  color: var(--text-secondary);
+}
+
+.error {
+  color: var(--danger);
+}
+
+.action {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: var(--on-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.action:hover:not(:disabled) { background: var(--primary-hover); }
+.action:disabled { opacity: 0.6; cursor: default; }
+
+.dismiss {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.dismiss:hover { background: var(--surface-raised); color: var(--text); }
+
+.action:focus-visible,
+.dismiss:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Dar ekranda açıklama düşer — şerit iki satıra taşıp içeriği aşağı
+   itmesin. Başlık ve eylem her zaman görünür kalır. */
+@media (max-width: 640px) {
+  .detail { display: none; }
+}

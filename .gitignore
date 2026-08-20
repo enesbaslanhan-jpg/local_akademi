@@ -11,3 +11,8 @@ BACKUPS/
 uploads/
 *.vsix
 reports/phase7/*.tmp.*
+
+# TLS ozel anahtari — ASLA depoya girmemeli.
+# Cloudflare Origin sertifikasinin anahtari burada duruyor; sizarsa
+# Cloudflare ile sunucu arasindaki trafik taklit edilebilir.
+deploy/certs/

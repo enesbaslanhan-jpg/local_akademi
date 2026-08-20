@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { BookOpen, Check, ClipboardList, LockKeyhole, Mail, Minus, Sheet, UserRound } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import BrandMark from '@/components/ui/BrandMark'
 import { passwordChecks, passwordMeetsMinimum } from '@/constants/password'
+import { guvenliNext } from '@/utils/safeNext'
+import AuthThemeToggle from './AuthThemeToggle'
 import styles from './AuthPage.module.css'
 
 /**
@@ -75,6 +77,7 @@ export default function AuthPage({ mode: initialMode }) {
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  const [searchParams] = useSearchParams()
   const isLogin = mode === 'login'
 
   async function handleSubmit(event) {
@@ -84,7 +87,10 @@ export default function AuthPage({ mode: initialMode }) {
     try {
       if (isLogin) await login(form.email, form.password)
       else await register(form.email, form.password, form.name, legalOk)
-      navigate('/app/dashboard', { replace: true })
+      /* `?next=` ile geldiyse oraya dön (ör. davet bağlantısı). Değer
+         KULLANICIDAN geldiği için `guvenliNext` süzüyor — doğrudan
+         kullanılsaydı açık yönlendirme açığı olurdu. */
+      navigate(guvenliNext(searchParams.get('next')), { replace: true })
     } catch (err) {
       setError(err.message)
     } finally {
@@ -105,19 +111,23 @@ export default function AuthPage({ mode: initialMode }) {
      * ayrı görüntü gibi duruyordu.
      */
     <div className={styles.page}>
+      <AuthThemeToggle />
       <div className={styles.glowCool} aria-hidden="true" />
       <div className={styles.glowLight} aria-hidden="true" />
       <div className={styles.glowWarm} aria-hidden="true" />
 
       <section className={styles.pitch}>
-        <div className={styles.brandRow}>
+        {/* Marka satiri tanitim sayfasina gider. Alt seritteki "Hakkında"
+            baglantisi 11px ve solgun; yer imiyle dogrudan /login e gelen
+            ziyaretcinin urunu gorebilmesi icin daha bulunur bir yol lazimdi. */}
+        <Link to="/hakkinda" className={styles.brandRow} aria-label="LocalKarar hakkında">
           {/* Girişte bir kez oynar; imleç üstüne gelince tekrar. */}
           <BrandMark size={46} animated interactive />
           <span className={styles.brandText}>
             <strong>LocalKarar</strong>
-            <small>Professional Community</small>
+            <small lang="en">Professional Community</small>
           </span>
-        </div>
+        </Link>
 
         <div className={styles.pitchCopy}>
           <h2>İşletmen için doğru kararlar</h2>
@@ -247,7 +257,10 @@ export default function AuthPage({ mode: initialMode }) {
         </form>
       </div>
 
+      {/* "Hakkında": yer imiyle dogrudan /login e gelen ziyaretcinin
+          urunun ne oldugunu gorebilecegi tek yol. */}
       <div className={styles.legal} aria-label="Yasal belgeler">
+        <Link to="/hakkinda">Hakkında</Link>
         <Link to="/privacy">Gizlilik</Link>
         <Link to="/terms">Kullanım koşulları</Link>
         <Link to="/cookies">Çerezler</Link>

@@ -173,6 +173,10 @@ export default function Sidebar({
         }}
         aria-current={active ? 'page' : undefined}
         aria-expanded={submenu.length > 0 ? expanded : undefined}
+        /* Karsilama turunun tutundugu nokta. Tur, menu maddesini bu
+           nitelikle buluyor; sinif adlari CSS Modules tarafindan
+           hashlendigi icin onlara gore aranamaz. */
+        data-tour={link.id}
       >
         <Icon size={17} aria-hidden="true" />
         <span className={styles.navLabel}>{link.label}</span>
@@ -230,7 +234,7 @@ export default function Sidebar({
             <BrandMark size={26} animated interactive />
             <span className={styles.logoText}>
               <strong>LocalKarar</strong>
-              <small>Professional Community</small>
+              <small lang="en">Professional Community</small>
             </span>
           </div>
           <button className={styles.closeBtn} onClick={onClose} aria-label="Menüyü kapat">

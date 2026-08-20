@@ -1,0 +1,162 @@
+/* Tokenlarla — koyu/açık temaya kendiliğinden uyar. */
+
+.katman {
+  position: fixed;
+  inset: 0;
+  /* Tur bir kip (modal) katmanidir: kenar cubugu, baslik, alt sekme
+     cubugu ve cekmecenin USTUNDE durmali. Ham 120 yazmistim; bu
+     --z-bottom-tab ile ayni ve --z-drawer (210) altindaydi. */
+  z-index: var(--z-modal, 400);
+}
+
+.perde {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 15, 20, .52);
+}
+
+/*
+ * Işık halkası: hedefi karartmadan öne çıkarır. `box-shadow` ile delik
+ * açmak yerine sadece çerçeve çiziliyor — perde zaten arkada, delik
+ * açmaya çalışmak ray üstünde kırpma sorunları çıkarıyordu.
+ */
+.isik {
+  position: absolute;
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 28%, transparent);
+  pointer-events: none;
+}
+
+.balon {
+  position: absolute;
+  width: min(330px, calc(100vw - 32px));
+  padding: 16px 18px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-panel);
+  box-shadow: var(--shadow-deep);
+  color: var(--text);
+}
+
+/* Hedef bulunamadığında (dar ekranda ray gizli) balon ortalanır. */
+.balonOrta {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.kapat {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.kapat:hover { background: var(--surface-raised); color: var(--text); }
+
+.sayac {
+  margin: 0 0 4px;
+  color: var(--text-muted);
+  font-size: 0.69rem;
+  font-weight: var(--font-weight-semibold, 650);
+  letter-spacing: 0.06em;
+}
+
+.baslik {
+  margin: 0 0 6px;
+  padding-right: 24px;
+  font-size: 1.02rem;
+  font-weight: var(--font-weight-bold, 720);
+  letter-spacing: -0.012em;
+}
+
+.metin {
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.eylemler {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ilerleme { display: flex; gap: 8px; }
+
+.atla {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.atla:hover { color: var(--text); text-decoration: underline; }
+
+.geri,
+.ileri {
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-semibold, 650);
+  cursor: pointer;
+}
+
+.geri {
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.geri:hover { background: var(--surface-raised); color: var(--text); }
+
+.ileri {
+  border: 0;
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.ileri:hover { background: var(--primary-hover); }
+
+.kapat:focus-visible,
+.atla:focus-visible,
+.geri:focus-visible,
+.ileri:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Dar ekranda ray gizli olduğu için balon zaten ortalanır; yine de
+   konumlandırma stili gelirse ezilir. */
+@media (max-width: 1023px) {
+  .balon {
+    top: auto !important;
+    left: 50% !important;
+    bottom: 88px;
+    transform: translateX(-50%);
+    width: calc(100vw - 32px);
+  }
+  .isik { display: none; }
+}
+
+/* Sayfa acilirken kisa bir bilgi - balon bos beklemesin. */
+.bekliyor {
+  margin: -8px 0 12px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}

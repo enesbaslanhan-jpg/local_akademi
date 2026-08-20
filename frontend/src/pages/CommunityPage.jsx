@@ -316,7 +316,7 @@ export default function CommunityPage({ mode = 'news' }) {
 
   return (
     <main className={`${styles.page} ${isNews ? styles.newsPage : styles.communityPage}`}>
-      <header className={styles.pageHeading}>
+      <header className={styles.pageHeading} data-tour="topluluk-baslik">
         <div><span className={styles.kicker}>{isNews ? 'LocalKarar Haber Merkezi' : 'YEREL İŞLETMELER'}</span><h1>{isNews ? 'Haberler' : 'Topluluk'}</h1><p>{isNews ? 'İşletmenizi etkileyen resmî gelişmeleri kaynaklı ve kısa özetlerle takip edin.' : 'Yerel işletmelerden gerçek deneyimler.'}</p></div>
         {!isNews && <button type="button" className={styles.createPostButton} onClick={() => setComposerOpen(current => !current)}>{composerOpen ? 'Kapat' : 'Gönderi oluştur'}</button>}
       </header>

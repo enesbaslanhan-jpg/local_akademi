@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
-import { api } from '@/services/api'
+import { api, oturumTokenleriniSil, oturumTokenleriniYaz } from '@/services/api'
 
 const AuthContext = createContext(null)
 
@@ -17,7 +17,9 @@ export function AuthProvider({ children }) {
           setOnboardingCompleted(data.onboardingCompleted ?? true)
         })
         .catch(() => {
-          localStorage.removeItem('token')
+          /* Buraya gelindiyse yenileme de basarisiz olmus demektir
+             (api.request 401'de bir kez deniyor). */
+          oturumTokenleriniSil()
           setToken('')
         })
         .finally(() => setLoading(false))
@@ -28,7 +30,7 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const data = await api.auth.login(email, password)
-    localStorage.setItem('token', data.token)
+    oturumTokenleriniYaz(data.token, data.refreshToken)
     setToken(data.token)
     setUser(data.user)
     setOnboardingCompleted(data.user.onboardingCompleted ?? true)
@@ -37,7 +39,7 @@ export function AuthProvider({ children }) {
 
   const register = useCallback(async (email, password, name, acceptedLegal) => {
     const data = await api.auth.register(email, password, name, acceptedLegal)
-    localStorage.setItem('token', data.token)
+    oturumTokenleriniYaz(data.token, data.refreshToken)
     setToken(data.token)
     setUser(data.user)
     setOnboardingCompleted(data.user.onboardingCompleted ?? true)
@@ -45,13 +47,23 @@ export function AuthProvider({ children }) {
   }, [])
 
   const logout = useCallback(() => {
-    localStorage.removeItem('token')
+    /*
+     * Sunucudaki yenileme tokeni de iptal ediliyor. Yalniz yerel
+     * depolamayi temizlemek yetmezdi: token 30 gun daha gecerli kalir
+     * ve kopyalanmis olsaydi cikis yapmak hicbir sey degistirmezdi.
+     *
+     * Cevap BEKLENMIYOR - cikis, ag hatasi yuzunden takilmamali;
+     * yereldeki tokenler her halukarda siliniyor.
+     */
+    const refreshToken = localStorage.getItem('refreshToken')
+    if (refreshToken) api.auth.logout(refreshToken).catch(() => {})
+    oturumTokenleriniSil()
     setToken('')
     setUser(null)
   }, [])
 
-  const replaceSession = useCallback(({ token: nextToken, user: nextUser }) => {
-    localStorage.setItem('token', nextToken)
+  const replaceSession = useCallback(({ token: nextToken, refreshToken: nextRefresh, user: nextUser }) => {
+    oturumTokenleriniYaz(nextToken, nextRefresh)
     setToken(nextToken)
     setUser(nextUser)
   }, [])

@@ -90,3 +90,65 @@ describe('learning progress API contract', () => {
     )
   })
 })
+
+/*
+ * GÖVDESİZ İSTEKLERDE CONTENT-TYPE.
+ *
+ * `getHeaders` her isteğe `Content-Type: application/json` koyuyordu.
+ * Gövdesiz bir POST/PATCH/DELETE'te bu, Fastify'ın JSON ayrıştırıcısını
+ * tetikliyor ve istek daha ROTAYA VARMADAN 400 ile reddediliyor.
+ *
+ * Ölçüldü (20.08.2026): yedi uç nokta bu yüzden arayüzden hiç
+ * çalışmıyordu — sohbet arşivleme/geri alma, mentor hafızası itiraz ve
+ * doğrulama, değerlendirme yeniden başlatma, anket sıfırlama, eski
+ * profil eşitleme.
+ *
+ * Bu testler kök sebebi bekliyor: gövde yoksa başlık da gönderilmemeli.
+ */
+describe('api.request gövdesiz isteklerde Content-Type göndermez', () => {
+  function gonderilenBaslik() {
+    return global.fetch.mock.calls[0][1].headers
+  }
+
+  it('gövdesiz POST Content-Type göndermez', async () => {
+    mockFetch(makeResponse({ ok: true, status: 200, contentType: 'application/json', body: {} }))
+    await api.request('/onboarding/tour/complete', { method: 'POST' })
+    expect(gonderilenBaslik()['Content-Type']).toBeUndefined()
+  })
+
+  it('gövdesiz PATCH Content-Type göndermez', async () => {
+    mockFetch(makeResponse({ ok: true, status: 200, contentType: 'application/json', body: {} }))
+    await api.request('/conversations/abc/archive', { method: 'PATCH' })
+    expect(gonderilenBaslik()['Content-Type']).toBeUndefined()
+  })
+
+  it('gövdesiz DELETE Content-Type göndermez', async () => {
+    mockFetch(makeResponse({ ok: true, status: 204, contentType: 'application/json' }))
+    await api.request('/auth/avatar', { method: 'DELETE' })
+    expect(gonderilenBaslik()['Content-Type']).toBeUndefined()
+  })
+
+  it('GÖVDE VARSA Content-Type gönderilir', async () => {
+    mockFetch(makeResponse({ ok: true, status: 200, contentType: 'application/json', body: {} }))
+    await api.request('/auth/login', { method: 'POST', body: JSON.stringify({ a: 1 }) }, false)
+    expect(gonderilenBaslik()['Content-Type']).toBe('application/json')
+  })
+
+  it('yetki başlığı gövdesiz istekte de korunur', async () => {
+    mockFetch(makeResponse({ ok: true, status: 200, contentType: 'application/json', body: {} }))
+    await api.request('/onboarding/tour/reset', { method: 'POST' })
+    expect(gonderilenBaslik()['Authorization']).toBe('Bearer test-token')
+  })
+
+  it('gerçek çağrılar da gövdesiz gidiyor: logoutAll, resetTour, archive', async () => {
+    for (const cagri of [
+      () => api.auth.logoutAll(),
+      () => api.onboarding.resetTour(),
+      () => api.conversation.archive('abc')
+    ]) {
+      mockFetch(makeResponse({ ok: true, status: 200, contentType: 'application/json', body: {} }))
+      await cagri()
+      expect(gonderilenBaslik()['Content-Type']).toBeUndefined()
+    }
+  })
+})

@@ -120,18 +120,30 @@ async function main() {
   }
 
   // ── 404 ──
-  const notFound = await fetch('GET', '/non-existent-path')
-  if (notFound.status === 404) {
-    pass('Unknown routes return 404')
+  //
+  // API DISI bir yol denenmemeli: SPA yedegi onlar icin bilerek
+  // index.html (200) donuyor ve sonuc `public/` klasorunun varligina
+  // gore degisiyordu -- yani kontrol ortama bagliydi, hicbir sey
+  // kanitlamiyordu.
+  //
+  // Bilinen bir API on ekiyle deneniyor ve yanittaki `path` alani
+  // araniyor: o alani YALNIZ API dali donuyor, dolayisiyla 404'un
+  // gercekten API yolundan geldigi kanitlanmis oluyor.
+  const notFound = await fetch('GET', '/api/non-existent-path')
+  if (notFound.status === 404 && notFound.body?.path) {
+    pass('Unknown API routes return 404')
   } else {
-    fail(`Expected 404, got ${notFound.status}`)
+    fail(`Expected API 404 with path field, got ${notFound.status}`)
   }
 
   // ── Register ──
   const registerRes = await fetch('POST', '/auth/register', {
     email: `smoke-${Date.now()}@test.local`,
     password: 'SmokeTestPass123!',
-    name: 'Smoke Test'
+    name: 'Smoke Test',
+    // Faz 6'da zorunlu oldu; eksikligi 422 donduruyordu ve CI'daki
+    // `|| true` bunu yutuyordu.
+    acceptedLegal: true
   })
   if (registerRes.status === 200 && registerRes.body?.token) {
     pass('/auth/register creates user and returns token')
@@ -186,10 +198,17 @@ async function main() {
 
     // Dashboard
     const dash = await fetch('GET', '/dashboard', null, token)
-    if (dash.status === 200 && dash.body?.monthly_sales !== undefined) {
-      pass('/dashboard returns KPI data')
-    } else {
+    // `monthly_sales` araniyordu; o alan /business/business-profile'a
+    // ait, /dashboard'a DEGIL. Uc nokta bir noktada yeniden
+    // sekillendirilmis ama kontrol guncellenmemis -- `|| true` yuzunden
+    // de kimse fark etmemis. Simdi ucun GERCEKTEN dondurdugu alanlara
+    // bakiliyor.
+    if (dash.status !== 200) {
       fail(`/dashboard expected 200, got ${dash.status}`)
+    } else if (!dash.body?.user || !dash.body?.stats) {
+      fail(`/dashboard 200 döndü ama beklenen alanlar yok: ${Object.keys(dash.body || {}).join(', ')}`)
+    } else {
+      pass('/dashboard returns user and stats')
     }
   }
 

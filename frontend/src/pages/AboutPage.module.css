@@ -1,0 +1,351 @@
+/*
+ * Hakkında sayfası — giriş ekranıyla AYNI yüzey.
+ *
+ * Renkler `styles/auth-surface.css` içindeki `--auth-*` paletinden
+ * geliyor. İki sayfanın ayrı palet tutması, zamanla iki farklı görsel
+ * dile bölünmek demekti.
+ *
+ * DEGRADE YALNIZ ÜST BANTTA.
+ *
+ * İlk sürümde degrade bütün sayfayı kaplıyordu (`fixed`). Sayfa uzun ve
+ * kayıyor; aşağı inen bölümler degradenin AÇIK ucunun üstüne geliyordu
+ * ve açık renkli başlıklar kayboluyordu. Ölçüldü: açık modda başlık
+ * #F4FAFC, arkası #E1E2E5 — yaklaşık 1.1:1 kontrast, yani okunmuyor.
+ *
+ * Şimdi degrade yalnız başlık + kahraman bandını kaplıyor; gerisi düz
+ * `--auth-page` zemininde ve metinler tema değişkenlerini kullanıyor.
+ * Böylece hangi bölüm nerede biterse bitsin okunurluk sabit kalıyor.
+ */
+
+.page {
+  position: relative;
+  min-height: 100dvh;
+  padding: 0 0 clamp(48px, 6vw, 88px);
+  background: var(--auth-page);
+  color: var(--auth-text);
+  overflow-x: hidden;
+}
+
+/* Üst bant: degradenin yaşadığı tek yer. */
+.ustAlan {
+  position: relative;
+  padding: clamp(20px, 3vw, 40px) clamp(20px, 6vw, 96px) clamp(52px, 6vw, 88px);
+  background: var(--auth-gradient-band);
+  overflow: hidden;
+}
+
+.glowCool,
+.glowLight {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.glowCool {
+  left: 8%;
+  top: -260px;
+  width: 620px;
+  height: 620px;
+  background: radial-gradient(circle at 50% 50%, rgba(148, 206, 237, .16), transparent 70%);
+}
+
+.glowLight {
+  right: -260px;
+  bottom: -300px;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle at 50% 50%, var(--auth-glow-light), transparent 66%);
+}
+
+.ustIcerik {
+  position: relative;
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(36px, 4.5vw, 64px);
+}
+
+.icerik {
+  position: relative;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: clamp(44px, 5vw, 72px) clamp(20px, 6vw, 96px) 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(44px, 5vw, 72px);
+}
+
+/* --- Üst şerit ---------------------------------------------------------- */
+
+.ust {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+/* Marka yazısı koyu degradenin üzerinde duruyor; iki modda da açık
+   kalır. Marka İŞARETİ zaten sabit (BrandMark). */
+.brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.brandText strong {
+  color: #F4FAFC;
+  font-size: clamp(1.15rem, 1.3vw, 1.4rem);
+  font-weight: var(--font-weight-heavy, 780);
+  letter-spacing: -0.012em;
+}
+
+.brandText small {
+  color: #93A8AC;
+  font-size: 0.645rem;
+  font-weight: var(--font-weight-semibold, 650);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.ustEylemler {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  /* Tema düğmesi sağ üstte sabit duruyor; üst şerit onun altına
+     girmesin. */
+  margin-right: 52px;
+}
+
+/* Aciklik #DCE6E8 iken acik modda bandin sag ustunde 3.59:1 olculdu;
+   kucuk metin icin yetersiz. En acik tona cekildi. */
+.girisLink {
+  color: #F4FAFC;
+  font-size: 0.86rem;
+  font-weight: var(--font-weight-semibold, 650);
+  text-decoration: none;
+}
+
+.girisLink:hover { color: #F4FAFC; text-decoration: underline; }
+
+.kayitDugmesi {
+  padding: 9px 18px;
+  border-radius: 10px;
+  background: var(--auth-card);
+  border: 1px solid var(--auth-card-border);
+  color: var(--auth-text);
+  font-size: 0.86rem;
+  font-weight: var(--font-weight-bold, 720);
+  text-decoration: none;
+  backdrop-filter: blur(12px);
+}
+
+/* --- Kahraman ----------------------------------------------------------- */
+
+.kahraman {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 30ch;
+}
+
+.kahraman h1 {
+  margin: 0;
+  color: #F4FAFC;
+  font-size: clamp(2rem, 4.4vw, 3.6rem);
+  line-height: 1.12;
+  font-weight: var(--font-weight-heavy, 780);
+  letter-spacing: -0.028em;
+  text-wrap: pretty;
+}
+
+.kahramanMetin {
+  margin: 0;
+  max-width: 46ch;
+  color: #C3D1D4;
+  font-size: clamp(0.95rem, 1.15vw, 1.12rem);
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.kahramanEylemler {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.birincilDugme,
+.ikincilDugme {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 10px;
+  font-size: 0.94rem;
+  font-weight: var(--font-weight-bold, 720);
+  text-decoration: none;
+}
+
+.birincilDugme {
+  background: var(--auth-accent);
+  color: var(--auth-on-accent);
+  border: 0;
+}
+
+.birincilDugme:hover { background: var(--auth-accent-hover); }
+
+.ikincilDugme {
+  background: transparent;
+  border: 1px solid rgba(238, 241, 243, .28);
+  color: #DCE6E8;
+}
+
+.ikincilDugme:hover { border-color: rgba(238, 241, 243, .5); color: #F4FAFC; }
+
+/* --- Bölümler ----------------------------------------------------------- */
+
+/*
+ * Bant ALTINDAKİ metinler tema değişkenlerini kullanır — sabit açık renk
+ * DEĞİL. Sabit yazılsaydı açık modda düz zeminde kaybolurdu; ilk sürümün
+ * hatası tam olarak buydu.
+ */
+.bolumBaslik,
+.kimeSection h2,
+.sinirlar h2,
+.kapanis h2 {
+  margin: 0 0 14px;
+  color: var(--auth-text);
+  font-size: clamp(1.3rem, 1.9vw, 1.75rem);
+  font-weight: var(--font-weight-heavy, 780);
+  letter-spacing: -0.02em;
+}
+
+.kimeSection p,
+.sinirlar p,
+.kapanis p {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--auth-text-soft);
+  font-size: clamp(0.9rem, 1.05vw, 1rem);
+  line-height: 1.68;
+  text-wrap: pretty;
+}
+
+.izgara {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(272px, 1fr));
+  gap: 16px;
+}
+
+.kart {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 22px;
+  border: 1px solid var(--auth-card-border);
+  border-radius: 14px;
+  background: var(--auth-card);
+  box-shadow: var(--auth-card-shadow);
+  backdrop-filter: blur(20px);
+  color: var(--auth-text);
+}
+
+.kartIkon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--auth-accent) 14%, transparent);
+  color: var(--auth-accent);
+}
+
+.kart h3 {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: var(--font-weight-bold, 720);
+  letter-spacing: -0.012em;
+}
+
+.kart p {
+  margin: 0;
+  color: var(--auth-text-soft);
+  font-size: 0.855rem;
+  line-height: 1.6;
+}
+
+/* Sınırlar bölümü ayrı bir yüzeyde: "neyi yapmaz" bilgisi övgü
+   metinlerinin arasında kaybolmasın. */
+.sinirlar {
+  padding: 24px 26px;
+  border: 1px solid var(--auth-card-border);
+  border-radius: 14px;
+  background: var(--auth-card);
+  backdrop-filter: blur(20px);
+}
+
+.sinirlar h2 { color: var(--auth-text); }
+.sinirlar p { color: var(--auth-text-soft); }
+
+.kapanis {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+/* --- Alt --------------------------------------------------------------- */
+
+.alt {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 26px;
+  border-top: 1px solid var(--auth-divider);
+}
+
+.altBaglantilar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.altBaglantilar a {
+  color: var(--auth-text-soft);
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+.altBaglantilar a:hover { color: var(--auth-text); text-decoration: underline; }
+
+.altNot {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--auth-legal);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.girisLink:focus-visible,
+.kayitDugmesi:focus-visible,
+.birincilDugme:focus-visible,
+.ikincilDugme:focus-visible,
+.altBaglantilar a:focus-visible {
+  outline: 2px solid var(--auth-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (max-width: 640px) {
+  .ustEylemler { margin-right: 44px; }
+  .kahraman { max-width: none; }
+  .sinirlar { padding: 20px; }
+}

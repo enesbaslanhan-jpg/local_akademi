@@ -1,0 +1,38 @@
+# Uretim eklentisi.
+#
+# Kullanim:
+#   docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d
+#
+# NOT: docker-compose.yml icindeki `server` servisinin port satirini
+# sunucuda SU HALE getir:
+#
+#     ports:
+#       - "127.0.0.1:3000:3000"
+#
+# Boylece uygulama yalniz makine icinden erisilebilir olur; disariya
+# acilan tek sey Caddy'nin 80/443'u kalir. (Guvenlik duvari de ayrica
+# 3000'i kapatiyor -- iki katman, biri unutulursa digeri tutar.)
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: localakademi-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./deploy/certs:/etc/caddy/certs:ro
+      - caddy-data:/data
+      - caddy-config:/config
+      - caddy-logs:/var/log/caddy
+    depends_on:
+      - server
+    networks:
+      - localakademi-network
+
+volumes:
+  caddy-data:
+  caddy-config:
+  caddy-logs:

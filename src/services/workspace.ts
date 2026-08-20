@@ -4,6 +4,8 @@ import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { z } from 'zod'
 import crypto from 'crypto'
 import { hashToken } from '../lib/tokens.js'
+import { sendMail } from './mailer.js'
+import { isletmeDavetiMaili } from './mail-templates.js'
 
 const ROLE_ORDER = ['viewer', 'accountant', 'staff', 'manager', 'owner'] as const
 type WorkspaceRole = typeof ROLE_ORDER[number]
@@ -733,7 +735,44 @@ export async function workspaceRoutes(fastify: FastifyInstance, opts?: { prisma?
       return inv
     })
 
-    return { id: invitation.id, email: invitation.email, role: invitation.role, token: rawToken }
+    /*
+     * Davet e-postası. Ham token YANITTA DÖNMÜYOR — yalnız bu postanın
+     * içinde gidiyor.
+     *
+     * Önceden `token: rawToken` yanıta konuyordu ve arayüz onu ekranda
+     * gösteriyordu (Team.jsx'te "geliştirme aşamasında" notuyla). Bu,
+     * davetin gerçekten o adresin sahibine ulaştığına dair hiçbir garanti
+     * olmaması demekti: tokeni gören herkes daveti başka bir yere
+     * iletebilirdi.
+     *
+     * Posta gönderilemezse davet SİLİNİYOR. Aksi halde kimsenin kabul
+     * edemeyeceği bekleyen bir davet kalır ve aynı e-postaya yeniden
+     * davet göndermek "zaten bekleyen davet var" hatasına takılırdı.
+     */
+    const [ws, davetEden] = await Promise.all([
+      prisma.businessWorkspace.findUnique({ where: { id: workspaceId }, select: { name: true } }),
+      prisma.user.findUnique({ where: { id: user.id }, select: { name: true } })
+    ])
+
+    try {
+      await sendMail(isletmeDavetiMaili(
+        normalizedEmail,
+        ws?.name || 'İşletme',
+        davetEden?.name || 'Bir ekip yöneticisi',
+        rawToken
+      ))
+    } catch (err) {
+      await prisma.businessInvitation.delete({ where: { id: invitation.id } }).catch(() => {})
+      request.log.error({ err, invitationId: invitation.id }, 'davet e-postasi gonderilemedi')
+      return reply.status(502).send({ error: 'Davet e-postası gönderilemedi. Lütfen tekrar deneyin.' })
+    }
+
+    return {
+      id: invitation.id,
+      email: invitation.email,
+      role: invitation.role,
+      expiresAt: invitation.expiresAt
+    }
   })
 
   fastify.get('/:workspaceId/invitations', async (request, reply) => {

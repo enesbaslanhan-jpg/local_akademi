@@ -34,7 +34,8 @@ export default function WorkspaceList() {
     <div className={styles.container}>
       {/* Sayfa adı üst barda yazıyor; görünür h1 yerine sr-only başlık. */}
       <h1 className="sr-only">İşletmelerim</h1>
-      <div className={styles.header}>
+      {/* data-tour: karsilama turu tutunma noktasi (WelcomeTour.jsx) */}
+      <div className={styles.header} data-tour="isletme-baslik">
         <p className={styles.subtitle}>
           {workspaces.length > 0 ? `${workspaces.length} işletme` : 'Henüz işletme yok'}
         </p>

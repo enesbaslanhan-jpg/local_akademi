@@ -12,7 +12,10 @@ export default function Team() {
   const [showInvite, setShowInvite] = useState(false)
   const [inviteForm, setInviteForm] = useState({ email: '', role: 'staff' })
   const [sending, setSending] = useState(false)
-  const [inviteToken, setInviteToken] = useState(null)
+  /* Token artik gosterilmiyor: yalniz e-postayla gidiyor. Burada
+     tutulan sey, davetin HANGI ADRESE gonderildigi. */
+  const [inviteSent, setInviteSent] = useState(null)
+  const [inviteError, setInviteError] = useState('')
 
   async function loadData() {
     const [m, i] = await Promise.all([
@@ -28,13 +31,20 @@ export default function Team() {
   async function handleInvite(e) {
     e.preventDefault()
     setSending(true)
-    setInviteToken(null)
+    setInviteSent(null)
+    setInviteError('')
     try {
       const result = await api.workspace.invitations.create(workspaceId, inviteForm)
-      setInviteToken(result.token)
+      setInviteSent(result.email || inviteForm.email)
       setInviteForm({ email: '', role: 'staff' })
       await loadData()
-    } catch { }
+    } catch (err) {
+      /* Onceden hata SESSIZCE yutuluyordu (`catch { }`): davet
+         gonderilemese bile ekranda hicbir sey olmuyordu. Posta
+         gonderimi eklendigi icin artik gercek bir basarisizlik yolu
+         da var (sunucu 502 donuyor), gizlenmesi kabul edilemez. */
+      setInviteError(err.message || 'Davet gönderilemedi.')
+    }
     finally { setSending(false) }
   }
 
@@ -113,18 +123,17 @@ export default function Team() {
       )}
 
       {showInvite && (
-        <div className={styles.overlay} onClick={() => { setShowInvite(false); setInviteToken(null) }}>
+        <div className={styles.overlay} onClick={() => { setShowInvite(false); setInviteSent(null); setInviteError('') }}>
           <div className={styles.dialog} onClick={e => e.stopPropagation()}>
             <h3>Ekip Üyesi Davet Et</h3>
-            {inviteToken ? (
+            {inviteSent ? (
               <div>
-                <p style={{ marginBottom: 12 }}>Davet bağlantısı oluşturuldu. (Geliştirme aşamasında e-posta gönderimi yerine token gösteriliyor)</p>
-                <div className={styles.field}>
-                  <label>Davet Kodu</label>
-                  <input value={inviteToken} readOnly onClick={e => e.target.select()} />
-                </div>
+                <p style={{ marginBottom: 12 }}>
+                  <strong>{inviteSent}</strong> adresine davet e-postası gönderildi.
+                  Bağlantı 7 gün geçerli ve yalnızca bu adresle açılmış bir hesapla kullanılabilir.
+                </p>
                 <div className={styles.actions}>
-                  <Button onClick={() => { setShowInvite(false); setInviteToken(null) }}>Kapat</Button>
+                  <Button onClick={() => { setShowInvite(false); setInviteSent(null) }}>Kapat</Button>
                 </div>
               </div>
             ) : (
@@ -137,6 +146,7 @@ export default function Team() {
                   <label>Rol</label>
                   <Select aria-label="Rol" options={[{ value: 'admin', label: 'Yönetici' }, { value: 'staff', label: 'Personel' }, { value: 'viewer', label: 'İzleyici' }]} value={inviteForm.role} onChange={v => setInviteForm(f => ({ ...f, role: v }))} />
                 </div>
+                {inviteError && <p role="alert" style={{ color: 'var(--danger)', fontSize: '0.82rem', margin: '0 0 10px' }}>{inviteError}</p>}
                 <div className={styles.actions}>
                   <Button type="button" variant="secondary" onClick={() => setShowInvite(false)}>İptal</Button>
                   <Button type="submit" disabled={!inviteForm.email || sending}>{sending ? 'Gönderiliyor...' : 'Davet Et'}</Button>

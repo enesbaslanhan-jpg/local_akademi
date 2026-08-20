@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext'
 import BrandMark from '@/components/ui/BrandMark'
 import { api } from '@/services/api'
 import { passwordChecks, passwordMeetsMinimum } from '@/constants/password'
+import AuthThemeToggle from './AuthThemeToggle'
 import styles from './AuthPage.module.css'
 
 /*
@@ -22,6 +23,7 @@ function Kart({ baslik, aciklama, children }) {
     /* Giriş ekranıyla aynı yüzey: çapraz degrade + üzerinde yüzen cam kart.
        `soloPage` vaat bölümü olmadığı için kartı ortalar. */
     <div className={`${styles.page} ${styles.soloPage}`}>
+      <AuthThemeToggle />
       <div className={styles.glowCool} aria-hidden="true" />
       <div className={styles.glowLight} aria-hidden="true" />
 
@@ -31,7 +33,7 @@ function Kart({ baslik, aciklama, children }) {
             <BrandMark size={40} interactive />
             <span className={styles.brandText}>
               <strong>LocalKarar</strong>
-              <small>Professional Community</small>
+              <small lang="en">Professional Community</small>
             </span>
           </div>
 
@@ -213,6 +215,7 @@ export function EmailVerifyPage() {
   const [hata, setHata] = useState('')
   const [calisiyor, setCalisiyor] = useState(false)
   const navigate = useNavigate()
+  const { updateUser } = useAuth()
 
   async function kodIste() {
     setHata(''); setMesaj(''); setCalisiyor(true)
@@ -229,6 +232,9 @@ export function EmailVerifyPage() {
     setHata(''); setCalisiyor(true)
     try {
       await api.auth.confirmEmailVerification(kod)
+      /* Oturumdaki kullanici da guncellenir; yoksa dogrulama seridi
+         sayfa yenilenene kadar ekranda kalirdi. */
+      updateUser({ emailVerified: true })
       navigate('/app/dashboard', { replace: true })
     } catch (err) {
       setHata(err.message || 'Kod doğrulanamadı.')

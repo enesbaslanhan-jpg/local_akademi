@@ -6,6 +6,8 @@ import { ContextPanelProvider } from './ContextPanel'
 import MobileTabBar from './MobileTabBar'
 import MentorLauncher from '../mentor/MentorLauncher'
 import MentorPanel from '../mentor/MentorPanel'
+import VerificationBanner from './VerificationBanner'
+import WelcomeTour from './WelcomeTour'
 import styles from './AppLayout.module.css'
 
 export default function AppLayout() {
@@ -39,6 +41,7 @@ export default function AppLayout() {
         <div className={styles.main}>
           <Header onToggleSidebar={() => setDrawerOpen(prev => !prev)} />
           <main className={styles.content}>
+            <VerificationBanner />
             {/* key={pathname}: route değiştiğinde ortak fadeSlideUp ile yeniden görünür,
                 içerik/route/iş mantığı değişmez, sadece giriş animasyonu tetiklenir. */}
             <div key={location.pathname} className={`${styles.pageTransition} ${styles.pageTransitionAnim}`}>
@@ -50,6 +53,7 @@ export default function AppLayout() {
         <MobileTabBar />
         <MentorLauncher />
         <MentorPanel />
+        <WelcomeTour />
       </div>
     </ContextPanelProvider>
   )

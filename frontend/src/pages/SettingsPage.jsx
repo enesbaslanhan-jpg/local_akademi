@@ -5,6 +5,7 @@ import {
   BriefcaseBusiness,
   Building2,
   Check,
+  Compass,
   Info,
   ImageUp,
   Laptop,
@@ -75,6 +76,9 @@ export default function SettingsPage() {
     if (!activeWorkspaceId) { setWsSettings(null); return }
     api.workspace.settings.get(activeWorkspaceId).then(setWsSettings).catch(() => setWsSettings(null))
   }, [activeWorkspaceId])
+
+  const [tourMsg, setTourMsg] = useState(null)
+  const [tourSaving, setTourSaving] = useState(false)
 
   const flash = useCallback((setter, type, text) => {
     setter({ type, text })
@@ -283,6 +287,31 @@ export default function SettingsPage() {
             <div className={styles.themeGrid}><ThemeChoice active={theme === 'light'} icon={<Sun />} title="Persian Mosaic" text="Açık, serin ve yüksek okunabilirlik." onClick={() => setTheme('light')} /><ThemeChoice active={theme === 'dark'} icon={<Moon />} title="Midnight Premium" text="Koyu yüzeyler ve canlı cyan vurgu." onClick={() => setTheme('dark')} /></div>
           </SettingsSection>
 
+          {/* Tur, profil ANKETINDEN ayri sifirlanir: ikisi ayri bayrak
+              tasiyor, bu yuzden "turu tekrar goster" anketi geri
+              getirmez. */}
+          <SettingsSection id="karsilama-turu" icon={<Compass />} title="Karşılama turu" description="Uygulamanın bölümlerini tanıtan kısa turu yeniden izleyebilirsiniz.">
+            <Footer message={<Message msg={tourMsg} />}>
+              <Button
+                variant="secondary"
+                disabled={tourSaving}
+                onClick={async () => {
+                  setTourSaving(true)
+                  try {
+                    await api.onboarding.resetTour()
+                    flash(setTourMsg, 'ok', "Tur sıfırlandı. Ana Sayfa’ya gidince yeniden başlayacak.")
+                  } catch (err) {
+                    flash(setTourMsg, 'error', err.message || 'Tur sıfırlanamadı.')
+                  } finally {
+                    setTourSaving(false)
+                  }
+                }}
+              >
+                {tourSaving ? 'Sıfırlanıyor…' : 'Turu yeniden göster'}
+              </Button>
+            </Footer>
+          </SettingsSection>
+
           <SettingsSection id="bildirimler" icon={<Bell />} title="Bildirimler" description="İşletme kayıtlarının yaklaşan tarihleri için uygulama içi uyarıları yönetin.">
             {!activeWorkspaceId || !wsSettings ? <p className={styles.muted}>Bildirim tercihi için etkin bir işletme seçin.</p> : <label className={styles.switchRow}><span><strong>Yaklaşan kayıt hatırlatmaları</strong><small>Ödeme, tahsilat ve diğer tarihli kayıtlar yaklaşınca bildirim oluşturur.</small></span><input type="checkbox" checked={wsSettings.notificationPrefs?.dueReminders !== false} onChange={event => setWsSettings(current => ({ ...current, notificationPrefs: { ...(current.notificationPrefs || {}), dueReminders: event.target.checked } }))} /></label>}
           </SettingsSection>
@@ -294,7 +323,7 @@ export default function SettingsPage() {
           {profile && <SettingsSection id="isletme-profili" icon={<BriefcaseBusiness />} title="İşletme profili" description="Mentor ve karar araçlarının kullandığı işletme bağlamını güncel tutun."><form onSubmit={saveProfile}><div className={styles.twoFields}><Field label="Sektör"><input value={profile.sector || ''} onChange={event => setProfile(current => ({ ...current, sector: event.target.value }))} /></Field><Field label="Şehir"><input value={profile.city || ''} onChange={event => setProfile(current => ({ ...current, city: event.target.value }))} /></Field><Field label="İşletme aşaması"><Select placeholder="Seçilmedi" options={STAGES.map(([value, label]) => ({ value, label }))} value={profile.businessStage || ''} onChange={v => setProfile(current => ({ ...current, businessStage: v }))} /></Field><Field label="Çalışan sayısı"><input type="number" min="0" value={profile.employeeCount ?? ''} onChange={event => setProfile(current => ({ ...current, employeeCount: event.target.value }))} /></Field></div><Field label="Öncelikli hedef"><input value={profile.primaryGoal || ''} onChange={event => setProfile(current => ({ ...current, primaryGoal: event.target.value }))} /></Field><Footer message={<Message msg={profileMsg} />}><Button type="submit" disabled={profileSaving}>{profileSaving ? 'Kaydediliyor…' : 'Profili kaydet'}</Button></Footer></form></SettingsSection>}
 
           <SettingsSection id="yasal" icon={<Scale />} title="Gizlilik ve yasal bilgiler" description="Verilerinizin nasıl işlendiğini ve LocalKarar kullanım koşullarını inceleyin.">
-            <div className={styles.legalLinks}><button type="button" onClick={() => navigate('/privacy')}>Gizlilik ve KVKK aydınlatma metni</button><button type="button" onClick={() => navigate('/terms')}>Kullanım koşulları</button><button type="button" onClick={() => navigate('/cookies')}>Çerez ve yerel depolama politikası</button></div>
+            <div className={styles.legalLinks}><button type="button" onClick={() => navigate('/hakkinda')}>LocalKarar hakkında</button><button type="button" onClick={() => navigate('/privacy')}>Gizlilik ve KVKK aydınlatma metni</button><button type="button" onClick={() => navigate('/terms')}>Kullanım koşulları</button><button type="button" onClick={() => navigate('/cookies')}>Çerez ve yerel depolama politikası</button></div>
           </SettingsSection>
 
           <section id="hesap-sil" className={`${styles.card} ${styles.dangerCard}`}><header className={styles.cardHeader}><span><Trash2 /></span><div><h2>Hesabı sil</h2><p>Bu işlem hesabınızı devre dışı bırakır, kişisel kimlik bilgilerinizi anonimleştirir ve oturumunuzu kapatır.</p></div></header><div className={styles.cardBody}><form onSubmit={deleteAccount}><div className={styles.dangerNotice}>Tek sahibi olduğunuz bir işletme varsa önce başka bir üyeyi sahip yapmanız gerekir. Bu işlem geri alınamaz.</div><Field label="Mevcut şifre"><input type="password" autoComplete="current-password" value={deleteForm.password} onChange={event => setDeleteForm(current => ({ ...current, password: event.target.value }))} required /></Field><Field label="Onay"><input value={deleteForm.confirmation} onChange={event => setDeleteForm(current => ({ ...current, confirmation: event.target.value }))} placeholder="HESABIMI SİL" required /></Field><Footer message={<Message msg={deleteMsg} />}><button type="submit" className={styles.deleteButton} disabled={deleteSaving}>{deleteSaving ? 'Hesap siliniyor…' : 'Hesabımı kalıcı olarak sil'}</button></Footer></form></div></section>

@@ -10,6 +10,8 @@ import { featureFlags } from '@/config/featureFlags'
 const AuthPage = lazy(() => import('@/pages/AuthPage'))
 const PasswordResetPage = lazy(() => import('@/pages/PasswordResetPage'))
 const EmailVerifyPage = lazy(() => import('@/pages/PasswordResetPage').then(m => ({ default: m.EmailVerifyPage })))
+const AboutPage = lazy(() => import('@/pages/AboutPage'))
+const InvitationPage = lazy(() => import('@/pages/InvitationPage'))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const OnboardingPage = lazy(() => import('@/pages/OnboardingPage'))
 const AssessmentPage = lazy(() => import('@/pages/AssessmentPage'))
@@ -75,6 +77,11 @@ export default function AppRoutes() {
         <Route path="/privacy" element={<SuspenseWrapper><LegalPage type="privacy" /></SuspenseWrapper>} />
         <Route path="/terms" element={<SuspenseWrapper><LegalPage type="terms" /></SuspenseWrapper>} />
         <Route path="/cookies" element={<SuspenseWrapper><LegalPage type="cookies" /></SuspenseWrapper>} />
+        <Route path="/hakkinda" element={<SuspenseWrapper><AboutPage /></SuspenseWrapper>} />
+        {/* Davet baglantisinin dustugu yer. Giris GEREKMIYOR: davetli
+            cogunlukla oturum acmamis geliyor, sayfa onu ?next= ile giris
+            ekranina yonlendirip geri getiriyor. */}
+        <Route path="/davet" element={<SuspenseWrapper><InvitationPage /></SuspenseWrapper>} />
 
         {/* Protected learner routes */}
         <Route element={<ProtectedRoute />}>
@@ -154,7 +161,15 @@ export default function AppRoutes() {
   )
 }
 
+/*
+ * Kok yol.
+ *
+ * Giris YAPMIS kullanici panoya gider. Giris yapmamis ziyaretci artik
+ * dogrudan giris formuna DUSURULMUYOR: onceden urunun ne oldugunu
+ * anlatan hicbir sayfa yoktu, ilk karsilasma bir parola alaniydi.
+ */
 function RootRedirect() {
   const token = localStorage.getItem('token')
-  return <Navigate to={token ? '/app/dashboard' : '/login'} replace />
+  if (token) return <Navigate to="/app/dashboard" replace />
+  return <SuspenseWrapper><AboutPage /></SuspenseWrapper>
 }

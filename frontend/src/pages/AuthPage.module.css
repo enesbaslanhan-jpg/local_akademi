@@ -11,6 +11,12 @@
  * içindeki her şey token kullanır; burası bilinçli istisna.
  */
 
+/*
+ * Palet artık `styles/auth-surface.css` içinde (main.jsx'te yükleniyor).
+ * Hakkında sayfası da aynı değişkenleri kullanıyor; iki yerde ayrı
+ * tanımlansaydı zamanla ayrışırlardı.
+ */
+
 .page {
   position: relative;
   display: flex;
@@ -24,18 +30,7 @@
    * ani bir açılma vardı ve ortada beyaza yakın bir bant oluşuyordu.
    * Açık uç da tam beyaza gitmiyor; kart kendi beyazıyla ayrışabilsin.
    */
-  background: linear-gradient(
-    116deg,
-    #12333F 0%,
-    #16404F 24%,
-    #1C4B5C 40%,
-    #2C6072 52%,
-    #5A8494 62%,
-    #8FA8B2 71%,
-    #B6C3C9 80%,
-    #CFD5D8 90%,
-    #DBDEE0 100%
-  );
+  background: var(--auth-gradient);
   overflow: hidden;
 }
 
@@ -69,7 +64,7 @@
   bottom: -300px;
   width: 720px;
   height: 720px;
-  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .3), rgba(255, 255, 255, 0) 66%);
+  background: radial-gradient(circle at 50% 50%, var(--auth-glow-light), transparent 66%);
 }
 
 .glowWarm {
@@ -96,6 +91,13 @@
   align-items: center;
   gap: 13px;
   align-self: flex-start;
+  text-decoration: none;
+}
+
+.brandRow:focus-visible {
+  outline: 2px solid #94CEED;
+  outline-offset: 6px;
+  border-radius: 8px;
 }
 
 .brandText {
@@ -194,18 +196,19 @@
   gap: clamp(16px, 1.3vw, 22px);
   width: clamp(380px, 29vw, 540px);
   padding: clamp(30px, 2.1vw, 40px) clamp(30px, 2.1vw, 40px) clamp(24px, 1.7vw, 32px);
-  border: 1px solid rgba(255, 255, 255, .7);
+  border: 1px solid var(--auth-card-border);
   border-radius: 18px;
-  background: rgba(251, 252, 253, .8);
+  background: var(--auth-card);
   /*
-   * Kart temayı TAKİP ETMİYOR (her zaman açık), bu yüzden metin rengini de
-   * temadan miras almamalı. Bu satır olmadan koyu temada kart içindeki her
-   * yazı `--text` (#F1F4F5) devralıyor ve beyaz zeminde kayboluyor.
+   * Kart artık iki modda da çalışıyor ama rengini yine de uygulamanın
+   * genel `--text`'inden ALMIYOR: kendi paletinden alıyor. Miras yoluna
+   * dönülürse koyu temada kart açık kaldığı senaryoda yazı yine kaybolur —
+   * bu hata bir kez yaşandı.
    */
-  color: #191C1E;
+  color: var(--auth-text);
   backdrop-filter: blur(20px);
   /* Nötr yükseklik gölgesi — renkli parlama uygulamanın düz diline aykırı. */
-  box-shadow: 0 24px 52px -22px rgba(20, 20, 19, .28), 0 2px 6px rgba(20, 20, 19, .06);
+  box-shadow: var(--auth-card-shadow);
 }
 
 .cardHead {
@@ -216,7 +219,7 @@
 
 .cardHead h2 {
   margin: 0;
-  color: #191C1E;
+  color: var(--auth-text);
   font-size: clamp(1.44rem, 1.75vw, 1.85rem);
   font-weight: var(--font-weight-heavy, 780);
   letter-spacing: -0.022em;
@@ -224,7 +227,7 @@
 
 .cardHead p {
   margin: 0;
-  color: #515B60;
+  color: var(--auth-text-soft);
   font-size: clamp(0.81rem, 0.92vw, 0.94rem);
 }
 
@@ -235,7 +238,7 @@
 }
 
 .field > span:first-child {
-  color: #40484D;
+  color: var(--auth-label);
   font-size: 0.75rem;
   font-weight: var(--font-weight-semibold, 650);
 }
@@ -246,19 +249,19 @@
   gap: 10px;
   min-height: clamp(44px, 3.4vw, 52px);
   padding: 0 14px;
-  border: 1px solid rgba(24, 62, 69, .14);
+  border: 1px solid var(--auth-field-border);
   border-radius: 10px;
-  background: rgba(255, 255, 255, .75);
-  color: #515B60;
+  background: var(--auth-field);
+  color: var(--auth-text-soft);
   transition: border-color var(--dur-fast, .15s) var(--ease, ease),
     box-shadow var(--dur-fast, .15s) var(--ease, ease);
 }
 
 .inputShell:focus-within {
-  border-color: #0D556F;
-  background: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(13, 85, 111, .11);
-  color: #0D556F;
+  border-color: var(--auth-accent);
+  background: var(--auth-field-focus);
+  box-shadow: 0 0 0 3px var(--auth-focus-ring);
+  color: var(--auth-accent);
 }
 
 /*
@@ -274,13 +277,12 @@
   background: transparent !important;
   box-shadow: none !important;
   /*
-   * `!important`: yazı rengi miras yoluyla uygulamanın TEMASINDAN geliyordu.
-   * Bu ekran sabit açık renkli bir kart çiziyor ama gövde koyu temadayken
-   * `--text` açık (#F1F4F5) oluyor ve yazılan metin beyaz zeminde
-   * görünmez hale geliyordu. Kart teması takip etmediği için metin de
-   * etmemeli.
+   * `!important`: `main.css` içindeki eşit özgüllükteki global input
+   * kuralı yazı rengini uygulamanın `--text`'inden veriyor. O kazanırsa
+   * alan, kartın paleti yerine gövdenin temasını izler ve yazılan metin
+   * kaybolur. Bu tam olarak bir kez yaşandı; kural o yüzden burada.
    */
-  color: #191C1E !important;
+  color: var(--auth-text) !important;
   font: inherit;
   font-size: clamp(0.845rem, 0.95vw, 0.98rem);
 }
@@ -291,7 +293,7 @@
 }
 
 .inputShell input::placeholder {
-  color: #9AA3A7;
+  color: var(--auth-placeholder);
 }
 
 /*
@@ -309,10 +311,10 @@
 .inputShell input:-webkit-autofill:hover,
 .inputShell input:-webkit-autofill:focus,
 .inputShell input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
-  box-shadow: 0 0 0 1000px #FFFFFF inset !important;
-  -webkit-text-fill-color: #191C1E !important;
-  caret-color: #191C1E;
+  -webkit-box-shadow: 0 0 0 1000px var(--auth-autofill) inset !important;
+  box-shadow: 0 0 0 1000px var(--auth-autofill) inset !important;
+  -webkit-text-fill-color: var(--auth-text) !important;
+  caret-color: var(--auth-text);
   /* Doldurulan alanın rengi anında değil, uzun bir geçişle gelsin —
      Chrome kendi zeminini geri boyamaya çalışırsa yakalayamaz. */
   transition: background-color 100000s ease-in-out 0s;
@@ -329,21 +331,21 @@
 
 .note {
   margin: 0;
-  color: #515B60;
+  color: var(--auth-text-soft);
   font-size: clamp(0.78rem, 0.9vw, 0.9rem);
   line-height: 1.6;
 }
 
 .backLink {
   align-self: center;
-  color: #0D556F;
+  color: var(--auth-accent);
   font-size: 0.81rem;
   font-weight: var(--font-weight-semibold, 650);
   text-decoration: none;
 }
 
 .backLink:hover { text-decoration: underline; }
-.backLink:focus-visible { outline: 2px solid #0D556F; outline-offset: 2px; border-radius: 3px; }
+.backLink:focus-visible { outline: 2px solid var(--auth-accent); outline-offset: 2px; border-radius: 3px; }
 
 /*
  * Sıfırlama kartında marka satırı üstte ve ortalı durur.
@@ -353,8 +355,8 @@
  * içinde duruyor — aynı açık renk beyaz üstünde kayboluyordu.
  */
 .soloPage .brandRow { align-self: center; }
-.soloPage .brandText strong { color: #191C1E; }
-.soloPage .brandText small { color: #515B60; }
+.soloPage .brandText strong { color: var(--auth-text); }
+.soloPage .brandText small { color: var(--auth-text-soft); }
 .soloPage .cardHead { text-align: center; }
 .soloPage .cardWrap { flex-grow: 0; }
 
@@ -367,7 +369,7 @@
   margin: -2px 0 0;
   padding: 11px 13px;
   border-radius: 10px;
-  background: rgba(216, 221, 224, .6);
+  background: var(--auth-hint-bg);
   list-style: none;
 }
 
@@ -375,7 +377,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #515B60;
+  color: var(--auth-text-soft);
   font-size: 0.72rem;
   line-height: 1.35;
 }
@@ -383,21 +385,21 @@
 /* Karşılanan madde hem RENK hem İKON değiştirir — tek ayırt edici işaret
    renk olsaydı renk körlüğünde okunmazdı. */
 .pwOk {
-  color: #1E8E5A;
+  color: var(--auth-ok);
   font-weight: var(--font-weight-semibold, 650);
 }
 
 .forgot {
   align-self: flex-end;
   margin-top: -6px;
-  color: #0D556F;
+  color: var(--auth-accent);
   font-size: 0.78rem;
   font-weight: var(--font-weight-semibold, 650);
   text-decoration: none;
 }
 
 .forgot:hover {
-  color: #306D88;
+  color: var(--auth-link-hover);
   text-decoration: underline;
 }
 
@@ -407,8 +409,8 @@
   min-height: clamp(46px, 3.6vw, 56px);
   border: 0;
   border-radius: 10px;
-  background: #0D556F;
-  color: #FFFFFF;
+  background: var(--auth-accent);
+  color: var(--auth-on-accent);
   font: inherit;
   font-size: clamp(0.875rem, 1vw, 1rem);
   font-weight: var(--font-weight-bold, 720);
@@ -418,15 +420,15 @@
   transition: background var(--dur-fast, .15s) var(--ease, ease);
 }
 
-.submit:hover:not(:disabled) { background: #14607C; }
-.submit:focus-visible { outline: 2px solid #0D556F; outline-offset: 2px; }
+.submit:hover:not(:disabled) { background: var(--auth-accent-hover); }
+.submit:focus-visible { outline: 2px solid var(--auth-accent); outline-offset: 2px; }
 .submit:disabled { opacity: .6; cursor: not-allowed; }
 
 .divider {
   display: flex;
   align-items: center;
   gap: 11px;
-  color: #515B60;
+  color: var(--auth-text-soft);
   font-size: 0.69rem;
   font-weight: var(--font-weight-semibold, 650);
 }
@@ -436,7 +438,7 @@
   content: '';
   flex-grow: 1;
   height: 1px;
-  background: rgba(24, 62, 69, .13);
+  background: var(--auth-divider);
 }
 
 .socialRow {
@@ -456,24 +458,24 @@
   justify-content: center;
   gap: 8px;
   min-height: clamp(44px, 3.4vw, 52px);
-  border: 1px solid rgba(24, 62, 69, .16);
+  border: 1px solid var(--auth-field-border);
   border-radius: 10px;
-  background: rgba(255, 255, 255, .82);
-  color: #191C1E;
+  background: var(--auth-field);
+  color: var(--auth-text);
   font: inherit;
   font-size: 0.81rem;
   font-weight: var(--font-weight-semibold, 650);
   cursor: pointer;
 }
 
-.social:hover:not(:disabled) { background: #FFFFFF; }
-.social:focus-visible { outline: 2px solid #0D556F; outline-offset: 2px; }
+.social:hover:not(:disabled) { background: var(--auth-field-focus); }
+.social:focus-visible { outline: 2px solid var(--auth-accent); outline-offset: 2px; }
 .social:disabled { opacity: .55; cursor: not-allowed; }
 
 .switchLine {
   margin: 0;
   text-align: center;
-  color: #515B60;
+  color: var(--auth-text-soft);
   font-size: 0.78rem;
 }
 
@@ -481,7 +483,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #0D556F;
+  color: var(--auth-accent);
   font: inherit;
   font-size: inherit;
   font-weight: var(--font-weight-bold, 720);
@@ -489,15 +491,15 @@
 }
 
 .modeSwitch:hover { text-decoration: underline; }
-.modeSwitch:focus-visible { outline: 2px solid #0D556F; outline-offset: 2px; border-radius: 3px; }
+.modeSwitch:focus-visible { outline: 2px solid var(--auth-accent); outline-offset: 2px; border-radius: 3px; }
 
 .error {
   margin: 0;
   padding: 10px 12px;
-  border: 1px solid #C0392B;
+  border: 1px solid var(--auth-error-border);
   border-radius: var(--radius-sm, 8px);
-  background: rgba(192, 57, 43, .08);
-  color: #8E2A20;
+  background: var(--auth-error-bg);
+  color: var(--auth-error-text);
   font-size: 0.78rem;
   line-height: 1.45;
 }
@@ -513,12 +515,12 @@
 }
 
 .legal a {
-  color: #5D686C;
+  color: var(--auth-legal);
   font-size: 0.69rem;
   text-decoration: none;
 }
 
-.legal a:hover { color: #191C1E; text-decoration: underline; }
+.legal a:hover { color: var(--auth-text); text-decoration: underline; }
 
 /* --- Dar ekran --------------------------------------------------------- */
 
@@ -536,7 +538,7 @@
     justify-content: center;
     gap: var(--space-6, 28px);
     padding: var(--space-7, 36px) var(--space-4, 20px) 64px;
-    background: linear-gradient(158deg, #133441 0%, #1E5062 26%, #6E96A3 48%, #C3CBCF 70%, #E6E7E9 100%);
+    background: var(--auth-gradient-narrow);
   }
 
   .pitch {
@@ -568,7 +570,7 @@
     margin-top: 4px;
   }
 
-  .legal a { color: #40484D; }
+  .legal a { color: var(--auth-legal); }
 }
 
 @media (max-width: 460px) {
@@ -589,7 +591,7 @@
   align-items: flex-start;
   gap: 10px;
   margin-top: -2px;
-  color: #40484D;
+  color: var(--auth-label);
   font-size: 0.75rem;
   line-height: 1.5;
   cursor: pointer;
@@ -601,16 +603,55 @@
   width: 16px;
   height: 16px;
   margin: 1px 0 0;
-  accent-color: #0D556F;
+  accent-color: var(--auth-accent);
   cursor: pointer;
 }
 
 .consent a {
-  color: #0D556F;
+  color: var(--auth-accent);
   font-weight: var(--font-weight-semibold, 650);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
-.consent a:hover { color: #306D88; }
-.consent:focus-within input { outline: 2px solid #0D556F; outline-offset: 2px; }
+.consent a:hover { color: var(--auth-link-hover); }
+.consent:focus-within input { outline: 2px solid var(--auth-accent); outline-offset: 2px; }
+
+/* --- Tema düğmesi ------------------------------------------------------- */
+
+/*
+ * Sağ üstte, degradenin orta tonlarının üzerinde durur. Cam yüzey her iki
+ * modda da okunur: açık modda koyu ikon açık zeminde, koyu modda açık ikon
+ * koyu zeminde.
+ */
+.themeToggle {
+  position: absolute;
+  top: clamp(16px, 2.2vw, 28px);
+  right: clamp(16px, 2.2vw, 28px);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--auth-card-border);
+  border-radius: var(--radius-full, 999px);
+  background: var(--auth-card);
+  color: var(--auth-text-soft);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: color var(--dur-fast, .15s) var(--ease, ease),
+    border-color var(--dur-fast, .15s) var(--ease, ease);
+}
+
+.themeToggle:hover { color: var(--auth-text); }
+.themeToggle:focus-visible { outline: 2px solid var(--auth-accent); outline-offset: 2px; }
+
+/* Dar ekranda yasal bağlantılar akışa giriyor; düğme de akmasın diye
+   sabit kalır ama küçülür. */
+@media (max-width: 460px) {
+  .themeToggle { width: 34px; height: 34px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .themeToggle { transition: none; }
+}

@@ -452,7 +452,25 @@ describe('Workspace API', () => {
     it('owner creates invitation', async () => {
       const res = await post(`/workspaces/${wsAId}/invitations`, { email: 'invitee@example.com', role: 'staff' }, userToken)
       expect(res.statusCode).toBe(200)
-      expect(res.json().token).toBeDefined()
+      expect(res.json().id).toBeDefined()
+    })
+
+    /*
+     * Ham token YANITTA DONMEMELI.
+     *
+     * Onceden donuyordu ve arayuz onu ekranda gosteriyordu; daveti
+     * olusturan kisi tokeni kopyalayip elle iletiyordu. Bu, davetin
+     * gercekten o e-posta adresinin sahibine gittigine dair hicbir
+     * garanti olmamasi demekti. Token artik yalniz e-postayla gidiyor.
+     */
+    it('🔴 davet yaniti ham token SIZDIRMAZ', async () => {
+      const res = await post(`/workspaces/${wsAId}/invitations`, { email: 'sizinti@example.com', role: 'staff' }, userToken)
+      expect(res.statusCode).toBe(200)
+      const govde = res.json()
+      expect(govde.token).toBeUndefined()
+      /* Alan adi degisse bile 64 hanelik hex bir degerin yanitta
+         bulunmadigi kontrol ediliyor. */
+      expect(JSON.stringify(govde)).not.toMatch(/[0-9a-f]{64}/)
     })
 
     it('manager can invite staff/accountant/viewer', async () => {
@@ -559,10 +577,26 @@ describe('Workspace API', () => {
     let rawToken: string
     let invitationId: string
 
+    /*
+     * Davet DOGRUDAN veritabaninda aciliyor: uc nokta artik ham tokeni
+     * dondurmuyor (bilerek). Kabul akisini sinamak icin ham degere
+     * ihtiyac var, o yuzden token burada uretilip ozeti yaziliyor —
+     * sunucunun yaptiginin aynisi.
+     */
     beforeAll(async () => {
-      const res = await post(`/workspaces/${wsAId}/invitations`, { email: 'security-test@example.com', role: 'staff' }, userToken)
-      rawToken = res.json().token
-      invitationId = res.json().id
+      rawToken = crypto.randomBytes(32).toString('hex')
+      const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex')
+      const inv = await prisma.businessInvitation.create({
+        data: {
+          workspaceId: wsAId,
+          email: 'security-test@example.com',
+          role: 'staff',
+          tokenHash,
+          invitedById: userId,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        }
+      })
+      invitationId = inv.id
     })
 
     it('unauthenticated accept returns 401', async () => {

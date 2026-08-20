@@ -1,0 +1,139 @@
+/*
+ * GİRİŞ YÜZEYİ PALETİ — login, şifre sıfırlama, e-posta doğrulama ve
+ * hakkında sayfasının ortak renkleri.
+ *
+ * Neden ayrı bir dosya: bu değişkenler önce AuthPage.module.css içinde,
+ * `.page` sınıfının üzerinde tanımlıydı. Hakkında sayfası da aynı görsel
+ * dili kullanacağı için ya kopyalanacaktı ya paylaşılacaktı. Kopyalansaydı
+ * iki palet zamanla ayrışır ve ürün iki farklı görsel dile bölünürdü.
+ *
+ * Uygulamanın genel tokenlarından (`--text`, `--surface-*`) BİLEREK
+ * ayrı: bu yüzeyin kendi atmosferi var. Kart içindeki yazının uygulamanın
+ * temasından miras alması, bir kez gerçek bir hataya yol açtı (koyu temada
+ * beyaz kartın üstünde beyaz yazı).
+ *
+ * Marka işareti (BrandMark) bu palete DAHİL DEĞİL — sabit kalır.
+ */
+
+/* --- Giriş yüzeyi paleti ------------------------------------------------------
+ *
+ * Bu ekran ARTIK iki modda çalışıyor. Renkler daha önce sabit yazılmıştı
+ * ve gerekçesi geçerliydi: kart her zaman açıktı, uygulamanın `--text`'ini
+ * miras alınca koyu temada yazı beyaz zeminde kayboluyordu.
+ *
+ * Çözüm sabitlemeyi kaldırmak değil, ekrana KENDİ iki paletini vermek.
+ * Aşağıdaki değişkenler yalnız bu ekrana ait; uygulamanın genel
+ * tokenlarından bilinçli olarak ayrı duruyorlar ki tema değişince kart
+ * içindeki yazı bir daha asla temadan miras almasın.
+ *
+ * Marka işareti (BrandMark) bu palete DAHİL DEĞİL — o sabit kalır, çünkü
+ * bir marka işareti tema tercihiyle dönmemeli. Yanındaki `.brandText` ise
+ * sayfa yazısıdır ve temayı izler.
+ */
+:root {
+  --auth-gradient: linear-gradient(
+    116deg,
+    #12333F 0%, #16404F 24%, #1C4B5C 40%, #2C6072 52%, #5A8494 62%,
+    #8FA8B2 71%, #B6C3C9 80%, #CFD5D8 90%, #DBDEE0 100%
+  );
+  --auth-gradient-narrow: linear-gradient(158deg, #133441 0%, #1E5062 26%, #6E96A3 48%, #C3CBCF 70%, #E6E7E9 100%);
+  --auth-glow-light: rgba(255, 255, 255, .3);
+
+  --auth-card: rgba(251, 252, 253, .8);
+  --auth-card-border: rgba(255, 255, 255, .7);
+  --auth-card-shadow: 0 24px 52px -22px rgba(20, 20, 19, .28), 0 2px 6px rgba(20, 20, 19, .06);
+
+  --auth-text: #191C1E;
+  --auth-text-soft: #515B60;
+  --auth-label: #40484D;
+  --auth-placeholder: #9AA3A7;
+  --auth-legal: #5D686C;
+
+  --auth-field: rgba(255, 255, 255, .75);
+  --auth-field-focus: #FFFFFF;
+  --auth-field-border: rgba(24, 62, 69, .15);
+  --auth-divider: rgba(24, 62, 69, .13);
+  --auth-hint-bg: rgba(216, 221, 224, .6);
+  /* Otomatik doldurmanın üzerine basılacak DOLU renk — yarı saydam
+     olamaz, tarayıcının kendi zemini altından sızar. */
+  --auth-autofill: #FFFFFF;
+
+  --auth-accent: #0D556F;
+  --auth-accent-hover: #14607C;
+  --auth-link-hover: #306D88;
+  --auth-on-accent: #FFFFFF;
+  --auth-focus-ring: rgba(13, 85, 111, .11);
+  --auth-ok: #1E8E5A;
+
+  --auth-error-border: #C0392B;
+  --auth-error-bg: rgba(192, 57, 43, .08);
+  --auth-error-text: #8E2A20;
+
+  /* Kayan sayfalar icin duz zemin. Degrade yalnizca ust bantta kalir;
+     asagi inen icerik degradenin ACIK ucunun uzerine gelirse acik renkli
+     yazi okunmaz oluyordu (olculdu: 1.1:1 kontrast). */
+  --auth-page: #EDEEF0;
+
+  /* KAYAN sayfalarin ust bandi icin ayri degrade.
+     Tam degrade acik uca kadar gidiyor; bandin sag ustu orta tona
+     dusunce uzerindeki acik yazi 4.26:1 e kadar iniyordu (olculdu).
+     Bant zaten "koyu yuzey + acik yazi" isini goruyor, o yuzden acik
+     uca hic gitmiyor. Ayni renk yolu, daha dar aralik. */
+  --auth-gradient-band: linear-gradient(
+    116deg,
+    #0E2A34 0%, #12333F 22%, #16404F 42%, #1C4B5C 60%, #24596C 80%, #2C6072 100%
+  );
+}
+
+/*
+ * KOYU MOD. `ThemeContext` `dark` sınıfını `<html>` üzerine koyuyor.
+ * (Bu dosya bir CSS modülü DEĞİL, bu yüzden `:global()` sarmalayıcısı
+ * gerekmiyor — seçici doğrudan yazılıyor.)
+ *
+ * Degradenin açık ucu beyaza ÇIKMIYOR: koyu temada ekranın yarısının
+ * beyaza dönmesi tema tercihini anlamsız kılardı. Aynı çapraz kompozisyon
+ * daha dar ve karanlık bir aralıkta kalıyor, kart onun üstünde koyu
+ * duruyor.
+ */
+html.dark {
+  --auth-gradient: linear-gradient(
+    116deg,
+    #060F14 0%, #0A1A22 24%, #0F2833 40%, #16374A 52%, #1D485C 62%,
+    #24566C 71%, #2A6178 80%, #2F6A82 90%, #33708A 100%
+  );
+  --auth-gradient-narrow: linear-gradient(158deg, #060F14 0%, #0E2530 26%, #1B4356 48%, #275C72 70%, #2F6A82 100%);
+  --auth-glow-light: rgba(148, 206, 237, .12);
+
+  --auth-card: rgba(23, 29, 34, .82);
+  --auth-card-border: rgba(238, 241, 243, .13);
+  --auth-card-shadow: 0 24px 52px -22px rgba(0, 0, 0, .55), 0 2px 6px rgba(0, 0, 0, .3);
+
+  --auth-text: #F1F4F5;
+  --auth-text-soft: #BBC5CA;
+  --auth-label: #D2D9DD;
+  --auth-placeholder: #8A959B;
+  --auth-legal: #A8B3B8;
+
+  --auth-field: rgba(8, 12, 15, .46);
+  --auth-field-focus: rgba(8, 12, 15, .72);
+  --auth-field-border: rgba(238, 241, 243, .17);
+  --auth-divider: rgba(238, 241, 243, .15);
+  --auth-hint-bg: rgba(238, 241, 243, .06);
+  --auth-autofill: #12181C;
+
+  --auth-accent: #94CEED;
+  --auth-accent-hover: #B4DDF2;
+  --auth-link-hover: #B4DDF2;
+  --auth-on-accent: #001E2B;
+  --auth-focus-ring: rgba(148, 206, 237, .22);
+  --auth-ok: #72D3AD;
+
+  --auth-error-border: #FFB4AB;
+  --auth-error-bg: rgba(255, 180, 171, .12);
+  --auth-error-text: #FFB4AB;
+
+  --auth-page: #0B1114;
+
+  /* Koyu modda tam degrade zaten karanlik; bant onu aynen kullanir. */
+  --auth-gradient-band: var(--auth-gradient);
+}

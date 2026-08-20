@@ -15,6 +15,12 @@ import { generateNumericCode, generateRawToken, hashToken, safeEqual } from '../
 import { LEGAL_DOCUMENTS, missingConsents, requiredDocuments } from '../config/legal-documents.js'
 import { sendMail } from './mailer.js'
 import { dogrulamaKoduMaili, sifreDegistiMaili, sifreSifirlamaMaili } from './mail-templates.js'
+import {
+  suresiGecenleriTemizle,
+  tokenIptalEt,
+  tokenYenile,
+  yeniAileOlustur
+} from './refresh-tokens.js'
 
 const AVATAR_MAX_BYTES = 5 * 1024 * 1024
 const AVATAR_NAME_RE = /^[0-9a-f-]{36}\.(png|jpg)$/i
@@ -187,7 +193,13 @@ export async function authRoutes(fastify: FastifyInstance) {
       actorName: email
     })
 
-    return { token, user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName) } }
+    const yenileme = await yeniAileOlustur(prisma, user.id, user.tokenVersion)
+
+    return {
+      token,
+      refreshToken: yenileme.rawToken,
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName), emailVerified: !!user.emailVerifiedAt }
+    }
   })
 
   fastify.post('/login', {
@@ -214,7 +226,17 @@ export async function authRoutes(fastify: FastifyInstance) {
 
     const token = issueToken(fastify, user)
 
-    return { token, user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName) } }
+    const yenileme = await yeniAileOlustur(prisma, user.id, user.tokenVersion)
+    /* Fırsatçı temizlik: tablo yalnız giriş/yenileme ile büyüdüğü için
+       temizliğin de aynı yolda olması yeterli. Hata bastırılıyor —
+       bakım işi girişi düşürmemeli. */
+    suresiGecenleriTemizle(prisma).catch(() => {})
+
+    return {
+      token,
+      refreshToken: yenileme.rawToken,
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName), emailVerified: !!user.emailVerifiedAt }
+    }
   })
 
   fastify.get('/me', {
@@ -232,7 +254,8 @@ export async function authRoutes(fastify: FastifyInstance) {
       name: found.name,
       role: found.role,
       avatarUrl: avatarUrl(found.avatarStoredName),
-      onboardingCompleted: pref?.onboardingCompleted ?? false
+      onboardingCompleted: pref?.onboardingCompleted ?? false,
+      emailVerified: !!found.emailVerifiedAt
     }
   })
 
@@ -370,7 +393,17 @@ export async function authRoutes(fastify: FastifyInstance) {
      * token dönüyoruz: şifresini değiştiren cihaz oturumda kalır, DİĞER tüm
      * cihazlar düşer. İstenen davranış bu.
      */
-    return reply.send({ success: true, token: issueToken(fastify, updated), user: { id: updated.id, email: updated.email, name: updated.name, role: updated.role, avatarUrl: avatarUrl(updated.avatarStoredName) } })
+    /* `tokenVersion` arttığı için çağıranın elindeki yenileme tokeni de
+       geçersiz oldu; tazesi veriliyor. Verilmeseydi kullanıcı kendi
+       cihazından da düşerdi — iki uç noktanın da amacı bu değil. */
+    const yenileme = await yeniAileOlustur(prisma, updated.id, updated.tokenVersion)
+
+    return reply.send({
+      success: true,
+      token: issueToken(fastify, updated),
+      refreshToken: yenileme.rawToken,
+      user: { id: updated.id, email: updated.email, name: updated.name, role: updated.role, avatarUrl: avatarUrl(updated.avatarStoredName) }
+    })
   })
 
   /**
@@ -400,7 +433,17 @@ export async function authRoutes(fastify: FastifyInstance) {
       actorName: updated.name
     }).catch(() => {})
 
-    return reply.send({ success: true, token: issueToken(fastify, updated), user: { id: updated.id, email: updated.email, name: updated.name, role: updated.role, avatarUrl: avatarUrl(updated.avatarStoredName) } })
+    /* `tokenVersion` arttığı için çağıranın elindeki yenileme tokeni de
+       geçersiz oldu; tazesi veriliyor. Verilmeseydi kullanıcı kendi
+       cihazından da düşerdi — iki uç noktanın da amacı bu değil. */
+    const yenileme = await yeniAileOlustur(prisma, updated.id, updated.tokenVersion)
+
+    return reply.send({
+      success: true,
+      token: issueToken(fastify, updated),
+      refreshToken: yenileme.rawToken,
+      user: { id: updated.id, email: updated.email, name: updated.name, role: updated.role, avatarUrl: avatarUrl(updated.avatarStoredName) }
+    })
   })
 
   /**
@@ -409,6 +452,72 @@ export async function authRoutes(fastify: FastifyInstance) {
    * Frontend sürümü buradan alır; iki yerde ayrı ayrı yazılsaydı
    * kaydedilen onay ile gösterilen metin zamanla ayrışırdı.
    */
+  /**
+   * POST /auth/refresh — erişim tokenini yeniler.
+   *
+   * Kimlik doğrulama İSTEMEZ: çağrının amacı zaten süresi dolmuş bir
+   * erişim tokenini değiştirmek. Yetki, sunulan yenileme tokeninin
+   * kendisinden geliyor.
+   */
+  fastify.post('/refresh', {
+    config: { rateLimit: { max: 60, timeWindow: '1 hour' } }
+  }, async (request, reply) => {
+    const parsed = z.object({ refreshToken: z.string().min(32).max(256) }).safeParse(request.body)
+    if (!parsed.success) return reply.status(422).send({ error: 'Geçersiz istek' })
+
+    const sonuc = await tokenYenile(prisma, parsed.data.refreshToken)
+    if (!sonuc.ok) {
+      /*
+       * İstemciye TEK bir hata dönüyor: "bulunamadı", "süresi doldu" ve
+       * "tekrar kullanım" ayrımı saldırgana bilgi verirdi. Ayrım yalnız
+       * günlükte kalıyor — tekrar kullanım bir hırsızlık sinyali ve
+       * ayırt edilebilmeli.
+       */
+      if (sonuc.hata === 'TEKRAR_KULLANIM') {
+        request.log.warn('yenileme tokeni TEKRAR kullanildi - aile iptal edildi')
+      }
+      return reply.status(401).send({ error: 'Oturum süresi doldu', reason: 'REFRESH_REJECTED' })
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: sonuc.userId } })
+    if (!user || user.deletedAt) {
+      return reply.status(401).send({ error: 'Oturum süresi doldu', reason: 'REFRESH_REJECTED' })
+    }
+
+    return reply.send({
+      token: issueToken(fastify, user),
+      refreshToken: sonuc.yeni.rawToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        avatarUrl: avatarUrl(user.avatarStoredName),
+        emailVerified: !!user.emailVerifiedAt
+      }
+    })
+  })
+
+  /**
+   * POST /auth/logout — YALNIZ bu cihazın oturumunu kapatır.
+   *
+   * `logout-all`den farkı: `tokenVersion` artmıyor, diğer cihazlar
+   * etkilenmiyor. Kimlik doğrulama istemiyor — elinde tokeni olan zaten
+   * onu iptal edebilmeli ve süresi dolmuş erişim tokeniyle de çıkış
+   * yapılabilmeli.
+   */
+  fastify.post('/logout', {
+    config: { rateLimit: { max: 60, timeWindow: '1 hour' } }
+  }, async (request, reply) => {
+    const parsed = z.object({ refreshToken: z.string().min(32).max(256).optional() }).safeParse(request.body)
+    if (parsed.success && parsed.data.refreshToken) {
+      await tokenIptalEt(prisma, parsed.data.refreshToken)
+    }
+    /* Token verilmese ya da tanınmasa bile 200: çıkış kullanıcıya asla
+       hata göstermemeli. */
+    return reply.send({ success: true })
+  })
+
   fastify.get('/legal-documents', async () => {
     return { documents: LEGAL_DOCUMENTS }
   })
@@ -589,10 +698,17 @@ export async function authRoutes(fastify: FastifyInstance) {
     await sendMail(sifreDegistiMaili(updated.email, updated.name))
       .catch(err => request.log.error({ err }, 'şifre değişikliği bildirimi gönderilemedi'))
 
-    /* Taze token: kullanıcı sıfırlama sonrası doğrudan oturum açmış olur. */
+    /*
+     * Taze token: kullanıcı sıfırlama sonrası doğrudan oturum açmış olur.
+     * Yenileme tokeni de tazeleniyor — `tokenVersion` arttığı için varsa
+     * eskisi geçersiz; verilmeseydi kullanıcı ilk yenilemede atılırdı.
+     */
+    const yenileme = await yeniAileOlustur(prisma, updated.id, updated.tokenVersion)
+
     return reply.send({
       success: true,
       token: issueToken(fastify, updated),
+      refreshToken: yenileme.rawToken,
       user: { id: updated.id, email: updated.email, name: updated.name, role: updated.role, avatarUrl: avatarUrl(updated.avatarStoredName) }
     })
   })

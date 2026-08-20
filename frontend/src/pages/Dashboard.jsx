@@ -229,7 +229,8 @@ export default function Dashboard() {
       />
 
       <div className={styles.workspaceGrid}>
-        <DarkPanel className={styles.statusPanel} bevel={false}>
+        {/* data-tour: karsilama turunun tutundugu nokta (WelcomeTour.jsx) */}
+        <DarkPanel className={styles.statusPanel} bevel={false} data-tour="dash-durum">
           <div className={styles.statusText}>
             <span className={styles.statusEyebrow}>Bugünkü durum</span>
             <h2 className={styles.statusHeadline}>{statusHeadline}</h2>

@@ -554,7 +554,7 @@ const sessionLabel = useMemo(() => {
         </div>
 
         {!showArchived ? (
-          <div className={styles.composerWrap}>
+          <div className={styles.composerWrap} data-tour="mentor-girdi">
             <MentorComposer
               value={inputValue}
               onChange={setInputValue}

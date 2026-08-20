@@ -9,6 +9,73 @@ const getHeaders = (includeAuth = true) => {
   return headers;
 };
 
+/*
+ * OTURUM YENILEME
+ *
+ * Erisim tokeni 8 saat gecerli ve eskiden yenilenmiyordu: suresi dolan
+ * kullanici sessizce disari atiliyordu. Artik 401 alinca bir kez
+ * yenileme denenip istek TEKRARLANIYOR.
+ *
+ * TEK UCUS (single flight): sayfa acilisinda birden cok istek ayni anda
+ * 401 alabiliyor. Her biri ayri yenileme baslatsaydi, ilki tokeni
+ * harcadigi icin digerleri "tekrar kullanim" sayilir ve sunucu AILEYI
+ * IPTAL EDERDI - yani otomatik yenileme, kullaniciyi atmanin yeni bir
+ * yolu olurdu. Bu yuzden ayni anda yalniz BIR yenileme ucusu var,
+ * digerleri onu bekliyor.
+ */
+const REFRESH_KEY = 'refreshToken';
+
+/* Yenilemenin UYGULANMAYACAGI yollar: kimlik akisinin kendisi. Bunlarda
+   401 gercekten "kimlik dogrulanamadi" demek, "token eskidi" degil. */
+const YENILEME_DISI = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/refresh',
+  '/auth/logout',
+  '/auth/password-reset'
+];
+
+let yenilemeUcusu = null;
+
+export function oturumTokenleriniYaz(token, refreshToken) {
+  if (token) localStorage.setItem('token', token);
+  if (refreshToken) localStorage.setItem(REFRESH_KEY, refreshToken);
+}
+
+export function oturumTokenleriniSil() {
+  localStorage.removeItem('token');
+  localStorage.removeItem(REFRESH_KEY);
+}
+
+async function tokenYenile() {
+  const refreshToken = localStorage.getItem(REFRESH_KEY);
+  if (!refreshToken) return false;
+
+  const response = await fetch(`${API_URL}/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken })
+  });
+  if (!response.ok) {
+    oturumTokenleriniSil();
+    return false;
+  }
+  const data = await response.json().catch(() => null);
+  if (!data?.token) {
+    oturumTokenleriniSil();
+    return false;
+  }
+  oturumTokenleriniYaz(data.token, data.refreshToken);
+  return true;
+}
+
+function yenilemeyiPaylas() {
+  if (!yenilemeUcusu) {
+    yenilemeUcusu = tokenYenile().finally(() => { yenilemeUcusu = null; });
+  }
+  return yenilemeUcusu;
+}
+
 class ApiError extends Error {
   constructor(message, status, data) {
     super(message);
@@ -133,9 +200,29 @@ function buildQuery(params) {
 };
 
 export const api = {
-  async request(path, options = {}, includeAuth = true) {
+  async request(path, options = {}, includeAuth = true, tekrarMi = false) {
     const headers = { ...getHeaders(includeAuth), ...options.headers };
     if (typeof FormData !== 'undefined' && options.body instanceof FormData) {
+      delete headers['Content-Type'];
+    }
+    /*
+     * GOVDE YOKSA CONTENT-TYPE DA YOK.
+     *
+     * getHeaders her istege 'Content-Type: application/json' koyuyordu.
+     * Govdesiz bir POST/PATCH/DELETE'te bu, Fastify'in JSON ayristiricisini
+     * tetikliyor ve istek daha ROTAYA VARMADAN 400 ile reddediliyor:
+     * "Body cannot be empty when content-type is set to 'application/json'".
+     *
+     * Hata sessiz: arayuz "Islem basarisiz" diyor, rota hic calismadigi
+     * icin sunucu tarafinda da iz kalmiyor. Olculdu (20.08.2026) - bu
+     * yuzden su uc noktalar arayuzden HIC calismiyordu: sohbet arsivleme
+     * ve geri alma, mentor hafizasi itiraz ve dogrulama, degerlendirme
+     * yeniden baslatma, anket sifirlama, eski profil esitleme.
+     *
+     * Daha once bu, TEK bir cagri yerinde bos nesne gondererek yamanmisti;
+     * kok sebep durdugu icin digerleri kirik kaldi. Duzeltme artik burada.
+     */
+    if (options.body === undefined || options.body === null) {
       delete headers['Content-Type'];
     }
     const response = await fetch(`${API_URL}${path}`, {
@@ -151,8 +238,13 @@ export const api = {
       const data = isJson ? await response.json().catch(() => ({})) : {};
       const message = data.error || data.message || 'İşlem başarısız';
       const error = new ApiError(message, response.status, data);
-      if (response.status === 401 && !path.startsWith('/auth/')) {
-        localStorage.removeItem('token');
+      if (response.status === 401 && includeAuth && !tekrarMi && !YENILEME_DISI.some(y => path.startsWith(y))) {
+        /* FormData govdesi tek kullanimlik bir akis; tekrarlanamaz. */
+        const govdeTekrarlanabilir = !(typeof FormData !== 'undefined' && options.body instanceof FormData);
+        if (govdeTekrarlanabilir && await yenilemeyiPaylas()) {
+          return api.request(path, options, includeAuth, true);
+        }
+        oturumTokenleriniSil();
       }
       throw error;
     }
@@ -214,10 +306,15 @@ export const api = {
     },
     /* Tum cihazlardaki oturumlari kapatir; cagirana taze token doner. */
     async logoutAll() {
-      /* Bos govde gonderilemez: getHeaders her istege Content-Type:
-         application/json ekliyor, Fastify de govdesiz boyle bir istegi 400
-         ile reddediyor. Bos nesne gonderiyoruz. */
-      return api.request('/auth/logout-all', { method: 'POST', body: JSON.stringify({}) });
+      return api.request('/auth/logout-all', { method: 'POST' });
+    },
+    /* Yalniz BU cihazin oturumunu kapatir. Kimlik dogrulama istemez:
+       suresi dolmus erisim tokeniyle de cikilabilmeli. */
+    async logout(refreshToken) {
+      return api.request('/auth/logout', {
+        method: 'POST',
+        body: JSON.stringify({ refreshToken })
+      }, false);
     },
     /* Sifre sifirlama istegi. Sunucu KAYITLI OLMAYAN adres icin de 200
        doner (e-posta sayimini engellemek icin) - arayuz de ayni mesaji
@@ -683,7 +780,9 @@ export const api = {
     async getProfile() { return api.request('/onboarding/profile'); },
     async updateProfile(data) { return api.request('/onboarding/profile', { method: 'PUT', body: JSON.stringify(data) }); },
     async complete() { return api.request('/onboarding/complete', { method: 'POST', body: JSON.stringify({ onboardingCompleted: true }) }); },
-    async reset() { return api.request('/onboarding/reset', { method: 'POST' }); }
+    async reset() { return api.request('/onboarding/reset', { method: 'POST' }); },
+    async completeTour() { return api.request('/onboarding/tour/complete', { method: 'POST' }); },
+    async resetTour() { return api.request('/onboarding/tour/reset', { method: 'POST' }); }
   },
 
   business: {

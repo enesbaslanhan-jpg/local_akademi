@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import {
   existsSync,
+  readFileSync,
   mkdirSync,
   readdirSync,
   rmSync,
@@ -8,9 +9,20 @@ import {
 } from 'fs'
 import { join, resolve } from 'path'
 import { execSync } from 'child_process'
+import { pgIstemciUrl } from './lib/pg-url.js'
 
 const root = resolve(import.meta.dirname, '..')
 const backupDirectory = join(root, 'BACKUPS')
+
+/*
+ * Docker'daki Postgres icin kacis yolu.
+ *
+ * Bu projenin kendi docker-compose'unda veritabani kapsayicida
+ * calisiyor ve pg_dump ana makinede olmayabiliyor (bu gelistirme
+ * makinesinde yok). PG_DOCKER_CONTAINER verilirse dokum kapsayicinin
+ * icindeki pg_dump ile aliniyor.
+ */
+const dockerContainer = process.env.PG_DOCKER_CONTAINER || ''
 
 function timestamp(): string {
   return new Date().toISOString().replace(/[:.]/g, '-')
@@ -34,14 +46,37 @@ async function main(): Promise<void> {
     console.log('Backing up PostgreSQL database via pg_dump...')
     const backupPath = join(backupDirectory, `auto_dev_${timestamp()}.sql`)
     try {
-      execSync(`pg_dump "${dbUrl}" > "${backupPath}"`, {
+      /* Prisma'ya ozel parametreler (schema, connection_limit...)
+          temizlenmeden pg_dump URL'i reddediyor. */
+      const dumpUrl = pgIstemciUrl(dbUrl)
+      const komut = dockerContainer
+        ? `docker exec ${dockerContainer} pg_dump "${dumpUrl}" > "${backupPath}"`
+        : `pg_dump "${dumpUrl}" > "${backupPath}"`
+      execSync(komut, {
         stdio: 'pipe',
         timeout: 120000,
       })
     } catch (e: any) {
+      rmSync(backupPath, { force: true })
       throw new Error(`PG_DUMP_FAILED: ${e.stderr || e.message}`)
     }
-    const size = statSync(backupPath).size
+
+    /*
+     * Kabuk yonlendirmesi (> dosya) hedefi pg_dump CALISMADAN ONCE
+     * olusturuyor; pg_dump duserse geriye 0 baytlik bir "yedek" kaliyordu.
+     * Olculdu (20.08.2026): BACKUPS/ icindeki otomatik .sql yedeklerinin
+     * BESI DE 0 bayttı ve dogrulama betigi yine de ok:true diyordu.
+     */
+    const size = existsSync(backupPath) ? statSync(backupPath).size : 0
+    if (size === 0) {
+      rmSync(backupPath, { force: true })
+      throw new Error('PG_DUMP_EMPTY: pg_dump hata vermedi ama dosya boş')
+    }
+    const bas = readFileSync(backupPath, { encoding: 'utf8' }).slice(0, 400)
+    if (!bas.includes('PostgreSQL database dump')) {
+      rmSync(backupPath, { force: true })
+      throw new Error('PG_DUMP_INVALID: dosya pg_dump çıktısına benzemiyor')
+    }
     const candidates = readdirSync(backupDirectory)
       .filter(name => /^auto_dev_\d{4}-\d{2}-\d{2}T.*\.sql$/.test(name))
       .map(name => ({

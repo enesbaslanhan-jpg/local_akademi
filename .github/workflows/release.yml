@@ -85,13 +85,23 @@ jobs:
         env:
           SKIP_NPM_INSTALL: 'true'
 
-      - name: Frontend smoke test
+      # Adi "Frontend smoke test" idi ama betik BACKEND uc noktalarini
+      # deniyor (/health, /auth/register, /business/business-profile,
+      # /dashboard). Yanlis ad, frontend'in CI'da hic kapsanmadigini
+      # gizliyordu.
+      #
+      # `|| true` de kaldirildi: betik process.exit(EXIT_CODE) ile
+      # duzgun cikiyor, ama `|| true` her basarisizligi yutuyordu --
+      # yani bu adim ASLA yapiyi kiramiyordu.
+      - name: API smoke test
         run: |
           npx tsx src/server.ts &
           SERVER_PID=$!
           sleep 5
-          node scripts/frontend-smoke.js || true
+          node scripts/frontend-smoke.js
+          SMOKE_EXIT=$?
           kill $SERVER_PID 2>/dev/null || true
+          exit $SMOKE_EXIT
         env:
           PORT: '3000'
 
@@ -111,3 +121,33 @@ jobs:
         with:
           name: release-gate-report
           path: release-gate-report.json
+
+  # Frontend CI'da HIC KAPSANMIYORDU: ne birim testleri ne derleme
+  # calisiyordu. Kirik bir arayuz release gate'ten temiz gecerdi.
+  #
+  # Ayri is: veritabani gerektirmiyor, backend ile paralel kosuyor ve
+  # bir hata oldugunda hangi tarafta oldugu adindan belli oluyor.
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        working-directory: frontend
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Unit tests
+        working-directory: frontend
+        run: npx vitest run --configLoader runner
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
