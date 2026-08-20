@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40" fill="none">
+  <!--
+    LocalKarar marka isareti — pusula ignesi + C/K monogrami.
+    src/components/ui/BrandMark.jsx ile AYNI cizim; orasi degisirse
+    burasi da elle guncellenmeli (React bileseni build ciktisina
+    girmiyor, favicon statik bir dosya olmak zorunda).
+
+    Renkler bilerek sabit: bir marka isareti tema ile donmemeli.
+  -->
+  <defs>
+    <linearGradient id="bm-govde" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#28616F"/>
+      <stop offset="1" stop-color="#14384A"/>
+    </linearGradient>
+    <linearGradient id="bm-kenar" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.92"/>
+      <stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#94CEED" stop-opacity="0.6"/>
+    </linearGradient>
+  </defs>
+  <rect width="40" height="40" rx="11" fill="url(#bm-govde)"/>
+  <rect x="0.9" y="0.9" width="38.2" height="38.2" rx="10.2" fill="none"
+        stroke="url(#bm-kenar)" stroke-width="1.4"/>
+  <path d="M28.5 12.5a11 11 0 1 0 0 15" stroke="#F4FAFC" stroke-width="2.4"
+        stroke-linecap="round"/>
+  <path d="M20 11.5 24.5 20 20 28.5 15.5 20Z" fill="#E0A455"/>
+  <circle cx="20" cy="20" r="2.1" fill="#F4FAFC"/>
+</svg>
