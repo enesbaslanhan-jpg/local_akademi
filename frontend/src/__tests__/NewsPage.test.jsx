@@ -8,7 +8,7 @@ vi.mock('@/services/api', () => ({ api: { news: { list: vi.fn() } } }))
 const firstPage = {
   items: [{
     id: 'news-1', title: 'KOBİ finansman duyurusu', category: 'FINANS',
-    canonicalUrl: 'https://www.tcmb.gov.tr/duyuru/1', imageId: 'finance-credit', imagePath: '/assets/news/placeholders/finance-credit.webp',
+    canonicalUrl: 'https://www.tcmb.gov.tr/duyuru/1', imageId: 'finance-credit',
     sourceName: 'Türkiye Cumhuriyet Merkez Bankası', sourcePublishedAt: '2026-08-10T10:00:00.000Z',
     summary: 'Resmî finansman gelişmesinin işletmeler için kısa özeti.', whyItMatters: 'Nakit akışı ve kredi planları güncellenebilir.',
     tags: ['kredi'], affectedAudience: ['KOBİ'], importance: 'HIGH',

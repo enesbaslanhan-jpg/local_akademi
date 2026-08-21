@@ -1,25 +1,39 @@
 import type { NewsCategory } from '@prisma/client'
 
+/*
+ * Haber GÖRSEL KİMLİĞİ seçimi — artık bir dosyaya değil, bir renge karşılık
+ * geliyor.
+ *
+ * Bu dosya eskiden `/assets/news/placeholders/*.webp` yollarını üretiyordu
+ * ama o görseller HİÇ ÜRETİLMEMİŞTİ. İstekler SPA yedeğine düşüp
+ * `index.html` döndürüyor, tarayıcı çizemeyince arayüzde renkli boş bloklar
+ * kalıyordu. Yolları taşımayı sürdürmek, var olmayan dosyaları var gibi
+ * göstermekti; kaldırıldı.
+ *
+ * Seçim mantığının kendisi (kategori + etiket puanlaması, art arda aynı
+ * kimliği vermeyen ceza) sağlam ve işe yarıyor: arayüzde haberlerin
+ * birbirinden ayrışan bir zemin rengi olmasını sağlıyor. O yüzden duruyor.
+ *
+ * Gerçek illüstrasyon eklenecekse `path` alanı bilinçli olarak geri
+ * konmalı — ve dosyalar gerçekten üretilmeli.
+ */
 export interface NewsImageMetadata {
   id: string
-  path: string
   categories: NewsCategory[]
   tags: string[]
 }
 
-const PLACEHOLDER_ROOT = '/assets/news/placeholders'
-
 export const NEWS_IMAGE_LIBRARY: readonly NewsImageMetadata[] = [
-  { id: 'finance-credit', path: `${PLACEHOLDER_ROOT}/finance-credit.webp`, categories: ['FINANS'], tags: ['kredi', 'faiz', 'banka', 'finansman'] },
-  { id: 'finance-cashflow', path: `${PLACEHOLDER_ROOT}/finance-cashflow.webp`, categories: ['FINANS', 'IS_DUNYASI'], tags: ['nakit', 'ödeme', 'likidite', 'tahsilat'] },
-  { id: 'finance-market', path: `${PLACEHOLDER_ROOT}/finance-market.webp`, categories: ['FINANS', 'GENEL_EKONOMI'], tags: ['piyasa', 'sermaye', 'kur', 'enflasyon'] },
-  { id: 'tax-digital', path: `${PLACEHOLDER_ROOT}/tax-digital.webp`, categories: ['VERGI', 'DIJITALLESME'], tags: ['e-belge', 'e-fatura', 'dijital vergi'] },
-  { id: 'tax-calendar', path: `${PLACEHOLDER_ROOT}/tax-calendar.webp`, categories: ['VERGI'], tags: ['vergi', 'beyanname', 'son tarih', 'ödeme'] },
-  { id: 'regulation', path: `${PLACEHOLDER_ROOT}/regulation.webp`, categories: ['MEVZUAT'], tags: ['mevzuat', 'yönetmelik', 'tebliğ', 'karar'] },
-  { id: 'business-sme', path: `${PLACEHOLDER_ROOT}/business-sme.webp`, categories: ['IS_DUNYASI'], tags: ['kobi', 'esnaf', 'işletme', 'ticaret'] },
-  { id: 'digital', path: `${PLACEHOLDER_ROOT}/digital.webp`, categories: ['DIJITALLESME'], tags: ['dijital', 'veri', 'kvkk', 'teknoloji'] },
-  { id: 'support', path: `${PLACEHOLDER_ROOT}/support.webp`, categories: ['DESTEK'], tags: ['destek', 'hibe', 'teşvik', 'kosgeb'] },
-  { id: 'economy', path: `${PLACEHOLDER_ROOT}/economy.webp`, categories: ['GENEL_EKONOMI'], tags: ['ekonomi', 'istatistik', 'üretim', 'istihdam'] },
+  { id: 'finance-credit', categories: ['FINANS'], tags: ['kredi', 'faiz', 'banka', 'finansman'] },
+  { id: 'finance-cashflow', categories: ['FINANS', 'IS_DUNYASI'], tags: ['nakit', 'ödeme', 'likidite', 'tahsilat'] },
+  { id: 'finance-market', categories: ['FINANS', 'GENEL_EKONOMI'], tags: ['piyasa', 'sermaye', 'kur', 'enflasyon'] },
+  { id: 'tax-digital', categories: ['VERGI', 'DIJITALLESME'], tags: ['e-belge', 'e-fatura', 'dijital vergi'] },
+  { id: 'tax-calendar', categories: ['VERGI'], tags: ['vergi', 'beyanname', 'son tarih', 'ödeme'] },
+  { id: 'regulation', categories: ['MEVZUAT'], tags: ['mevzuat', 'yönetmelik', 'tebliğ', 'karar'] },
+  { id: 'business-sme', categories: ['IS_DUNYASI'], tags: ['kobi', 'esnaf', 'işletme', 'ticaret'] },
+  { id: 'digital', categories: ['DIJITALLESME'], tags: ['dijital', 'veri', 'kvkk', 'teknoloji'] },
+  { id: 'support', categories: ['DESTEK'], tags: ['destek', 'hibe', 'teşvik', 'kosgeb'] },
+  { id: 'economy', categories: ['GENEL_EKONOMI'], tags: ['ekonomi', 'istatistik', 'üretim', 'istihdam'] },
 ] as const
 
 export function selectNewsImage(
@@ -41,8 +55,4 @@ export function selectNewsImage(
         (recentPenalty.get(image.id) ?? 0) * 4,
     }))
     .sort((a, b) => b.score - a.score || a.index - b.index)[0].image
-}
-
-export function getNewsImagePath(imageId: string): string | null {
-  return NEWS_IMAGE_LIBRARY.find(image => image.id === imageId)?.path ?? null
 }

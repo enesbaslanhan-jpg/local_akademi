@@ -6,6 +6,7 @@ import BrandMark from '@/components/ui/BrandMark'
 import { api } from '@/services/api'
 import { passwordChecks, passwordMeetsMinimum } from '@/constants/password'
 import AuthThemeToggle from './AuthThemeToggle'
+import PasswordInput from '@/components/ui/PasswordInput'
 import styles from './AuthPage.module.css'
 
 /*
@@ -167,8 +168,8 @@ function OnayEkrani() {
           <span>Yeni şifre</span>
           <span className={styles.inputShell}>
             <LockKeyhole size={17} aria-hidden="true" />
-            <input
-              type="password" autoComplete="new-password" required
+            <PasswordInput
+              id="reset-password" name="new-password" autoComplete="new-password" required
               value={sifre} onChange={e => setSifre(e.target.value)} placeholder="••••••••"
             />
           </span>
@@ -187,8 +188,8 @@ function OnayEkrani() {
           <span>Yeni şifre tekrar</span>
           <span className={styles.inputShell}>
             <LockKeyhole size={17} aria-hidden="true" />
-            <input
-              type="password" autoComplete="new-password" required
+            <PasswordInput
+              id="reset-password-repeat" name="new-password-repeat" autoComplete="new-password" required
               value={tekrar} onChange={e => setTekrar(e.target.value)} placeholder="••••••••"
             />
           </span>

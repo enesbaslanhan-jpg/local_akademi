@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { BookOpen, Check, ClipboardList, LockKeyhole, Mail, Minus, Sheet, UserRound } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import BrandMark from '@/components/ui/BrandMark'
+import PasswordInput from '@/components/ui/PasswordInput'
 import { passwordChecks, passwordMeetsMinimum } from '@/constants/password'
 import { guvenliNext } from '@/utils/safeNext'
 import AuthThemeToggle from './AuthThemeToggle'
@@ -161,6 +162,8 @@ export default function AuthPage({ mode: initialMode }) {
               <Mail size={16} aria-hidden="true" />
               <input
                 type="email"
+                id="auth-email"
+                name="email"
                 autoComplete="email"
                 value={form.email}
                 onChange={event => setForm({ ...form, email: event.target.value })}
@@ -177,6 +180,8 @@ export default function AuthPage({ mode: initialMode }) {
                 <UserRound size={16} aria-hidden="true" />
                 <input
                   type="text"
+                  id="auth-name"
+                  name="name"
                   autoComplete="name"
                   value={form.name}
                   onChange={event => setForm({ ...form, name: event.target.value })}
@@ -191,8 +196,9 @@ export default function AuthPage({ mode: initialMode }) {
             <span>Şifre</span>
             <span className={styles.inputShell}>
               <LockKeyhole size={16} aria-hidden="true" />
-              <input
-                type="password"
+              <PasswordInput
+                id="auth-password"
+                name="password"
                 autoComplete={isLogin ? 'current-password' : 'new-password'}
                 value={form.password}
                 onChange={event => setForm({ ...form, password: event.target.value })}

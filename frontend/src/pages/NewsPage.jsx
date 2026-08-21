@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
-import { AlertCircle, ArrowRight, Clock3, ExternalLink, Newspaper } from 'lucide-react'
+import {
+  AlertCircle, ArrowRight, Clock3, ExternalLink, Newspaper,
+  Banknote, Scale, ReceiptText, Building2, MonitorSmartphone, HandCoins, LineChart
+} from 'lucide-react'
 import { api } from '@/services/api'
 import styles from './NewsPage.module.css'
 
@@ -13,6 +16,38 @@ const CATEGORIES = [
   ['DESTEK', 'Destekler'],
   ['GENEL_EKONOMI', 'Genel ekonomi'],
 ]
+
+/*
+ * Haber görseli YOK — bilerek.
+ *
+ * Arka uçta 10 görselli, kategori ve etiket puanlamasıyla çalışan bir seçim
+ * sistemi duruyordu (`src/config/news-images.ts`) ama **görsel dosyaları hiç
+ * üretilmemişti**. `/assets/news/placeholders/*.webp` istekleri SPA yedeğine
+ * düşüp `index.html` döndürüyordu; tarayıcı bunu çizemeyince `onError` ile
+ * gizleniyor, geriye renkli boş bir blok kalıyordu.
+ *
+ * Sahte stok görseli koymak yerine kategoriye ait bir ikon çiziliyor:
+ * hiçbir ağ isteği yok, kırılacak bir şey yok, ve boşluk kaza değil karar
+ * gibi duruyor. Renk çeşitliliği `imageId`'den gelmeye devam ediyor —
+ * arka uçtaki seçim mantığı hâlâ işe yarıyor, yalnız artık bir dosyaya
+ * değil bir renge karşılık geliyor.
+ *
+ * Gerçek illüstrasyon istenirse ayrı bir görsel tasarım işi.
+ */
+const KATEGORI_IKON = {
+  FINANS: Banknote,
+  MEVZUAT: Scale,
+  VERGI: ReceiptText,
+  IS_DUNYASI: Building2,
+  DIJITALLESME: MonitorSmartphone,
+  DESTEK: HandCoins,
+  GENEL_EKONOMI: LineChart,
+}
+
+function KategoriIkonu({ category, size }) {
+  const Icon = KATEGORI_IKON[category] || Newspaper
+  return <Icon size={size} aria-hidden="true" />
+}
 
 const IMPORTANCE = {
   LOW: 'Bilgi',
@@ -91,7 +126,6 @@ export default function NewsPage() {
         <div className={styles.newsLayout}>
           <section className={styles.newsMain} aria-label="Haber listesi">
             <a className={`${styles.featured} ${styles[featured.imageId] || ''}`} href={featured.canonicalUrl} target="_blank" rel="noreferrer">
-              {featured.imagePath && <img src={featured.imagePath} alt="" onError={event => { event.currentTarget.style.display = 'none' }} />}
               <div className={styles.featuredShade} />
               <div className={styles.featuredCopy}>
                 <span>{IMPORTANCE[featured.importance] || featured.importance}</span>
@@ -102,7 +136,7 @@ export default function NewsPage() {
             <div className={styles.newsList}>
               {secondaryItems.map(item => (
                 <a key={item.id} href={item.canonicalUrl} target="_blank" rel="noreferrer">
-                  <div className={`${styles.thumb} ${styles[item.imageId] || ''}`}>{item.imagePath ? <img src={item.imagePath} alt="" onError={event => { event.currentTarget.style.display = 'none' }} /> : <Newspaper size={22} />}</div>
+                  <div className={`${styles.thumb} ${styles[item.imageId] || ''}`}><KategoriIkonu category={item.category} size={22} /></div>
                   <div><strong>{item.title}</strong><small>{CATEGORIES.find(([value]) => value === item.category)?.[1] || item.category} · {formatDate(item.sourcePublishedAt)}</small><p>{item.whyItMatters || item.summary}</p></div>
                   <ExternalLink size={14} />
                 </a>
@@ -135,13 +169,10 @@ export default function NewsPage() {
 }
 
 function NewsCard({ item }) {
-  const [imageMissing, setImageMissing] = useState(false)
   return (
     <article className={styles.card} data-image-id={item.imageId || undefined}>
       <div className={`${styles.visual} ${styles[item.imageId] || ''}`}>
-        {item.imagePath && !imageMissing
-          ? <img src={item.imagePath} alt="" onError={() => setImageMissing(true)} />
-          : <Newspaper size={30} aria-hidden="true" />}
+        <KategoriIkonu category={item.category} size={30} />
         <span>{CATEGORIES.find(([value]) => value === item.category)?.[1] || item.category}</span>
       </div>
       <div className={styles.body}>

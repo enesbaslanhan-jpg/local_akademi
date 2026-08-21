@@ -25,7 +25,7 @@ import { featureFlags } from '@/config/featureFlags'
  *   Model Laboratuvarı → Hesaplamalar içindeki detaylı mod (/app/finance/models redirect olur)
  *   Pratik Kartlar / Flashcard / Quiz → feature flag'li legacy route'lar
  */
-const dashboardLink = { id: 'dashboard', label: 'Ana Sayfa', icon: Home, path: '/app/dashboard' }
+const dashboardLink = { id: 'dashboard', label: 'Ana Sayfa', icon: Home, path: '/app/dashboard', exact: true }
 const coursesLink = { id: 'courses', label: 'Kurslar', icon: BookOpen, path: '/app/courses' }
 const decisionLink = { id: 'decision-checks', label: 'Karar Araçları', icon: Scale, path: '/app/decision-checks', recommended: true }
 const toolsLink = { id: 'tools', label: 'Hesaplamalar', icon: Calculator, path: '/app/calculations' }
@@ -33,13 +33,32 @@ const mentorLink = { id: 'mentor', label: 'AI Mentor', icon: Bot, path: '/app/me
 
 const decisionGroup = featureFlags.decisionChecks ? [decisionLink] : []
 
-/* MobileTabBar bu diziyi kullanır. Alt sekme çubuğu en fazla 5 madde taşır. */
-export const primaryLinks = [
+/* Haberler ve Topluluk aynı ağacın altında yaşıyor: Haberler kökte
+   (`/app/community`), forum onun altında. Bu yüzden Haberler `exact` —
+   yoksa forumdayken ikisi birden etkin görünür. */
+const newsLink = { id: 'community', label: 'Haberler', icon: Newspaper, path: '/app/community', exact: true }
+const forumLink = { id: 'community-forum', label: 'Topluluk', icon: MessagesSquare, path: '/app/community/topluluk' }
+
+/*
+ * MOBİL alt sekme çubuğu — masaüstü rayından BİLEREK ayrı.
+ *
+ * Eskiden tek dizi vardı ve MobileTabBar onu kullanıyordu. Ürün sahibinin
+ * kararıyla (21.08.2026) mobil sıra ayrıştı: dar ekranda Kurslar ve AI
+ * Mentor birincil olmaktan çıktı, yerlerine Topluluk ve Haberler geldi.
+ * AI Mentor zaten ekranın sağ altında kendi yüzen düğmesiyle duruyor;
+ * çubukta ikinci kez yer kaplaması gereksizdi.
+ *
+ * Bu bir kopya değil, bilinçli bir ayrım: masaüstünde geniş kenar çubuğu
+ * hepsini birden gösterebiliyor, mobilde beş yuva var. Tanımlar hâlâ tek
+ * yerde (yukarıdaki sabitler), yalnızca SIRA yüzeye göre değişiyor.
+ * Birleştirmeye kalkan olursa mobil sıra bozulur.
+ */
+export const mobileTabLinks = [
   dashboardLink,
-  coursesLink,
+  forumLink,
   ...decisionGroup,
   toolsLink,
-  mentorLink
+  newsLink
 ]
 
 /* Masaüstü rayı — hesaplama derinliği ayrı destinasyon değil, hesap içi moddur. */
@@ -54,10 +73,7 @@ const desktopPrimaryLinks = [
 /* Sıra onaylanan ekranlardan: Haberler · Topluluk · Kaydedilenler · Ayarlar.
    Kaydedilenler ile Ayarlar bileşen içinde ekleniyor (biri işletme durumuna
    bakmıyor artık, diğeri grubun sonunda duruyor). */
-const secondaryLinks = [
-  { id: 'community', label: 'Haberler', icon: Newspaper, path: '/app/community' },
-  { id: 'community-forum', label: 'Topluluk', icon: MessagesSquare, path: '/app/community/topluluk' }
-]
+const secondaryLinks = [newsLink, forumLink]
 
 const settingsLink = { id: 'settings', label: 'Ayarlar', icon: Settings, path: '/app/settings' }
 

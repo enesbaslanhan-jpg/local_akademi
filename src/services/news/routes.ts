@@ -1,7 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { NewsCategory, type PrismaClient } from '@prisma/client'
 import { z } from 'zod'
-import { getNewsImagePath } from '../../config/news-images.js'
 import { prisma as sharedPrisma } from '../../lib/prisma.js'
 
 const querySchema = z.object({
@@ -61,7 +60,6 @@ export async function newsRoutes(fastify: FastifyInstance, options: { prisma?: P
         category: article.category,
         canonicalUrl: article.canonicalUrl,
         imageId: article.imageId,
-        imagePath: article.imageId ? getNewsImagePath(article.imageId) : null,
         sourceName: article.source.name,
         sourcePublishedAt: article.sourcePublishedAt.toISOString(),
         summary: article.summary,

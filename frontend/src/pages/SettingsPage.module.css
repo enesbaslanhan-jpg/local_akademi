@@ -36,6 +36,11 @@
 .field input, .field select { width: 100%; min-height: 43px; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: 10px; outline: 0; background: var(--input-bg); color: var(--text); font: inherit; font-weight: 500; transition: border-color .18s ease, box-shadow .18s ease, background .18s ease; }
 .field input:focus, .field select:focus { border-color: var(--primary); background: var(--surface-card); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent); }
 .field small { color: var(--text-light); font-weight: 500; }
+/* Göster/gizle düğmesi alanın sağ ucuna biniyor (PasswordInput `overlay`
+   kipi). Çerçeveyi burada input'un KENDİSİ çizdiği için dolguyu da o
+   vermek zorunda; yoksa uzun şifre düğmenin altına girer. `.field input`
+   ile eşit özgüllükte bir kural yeterli olmaz, o yüzden iki sınıf. */
+.field .pwWrap input { padding-right: 40px; }
 .twoFields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
 .readonlyRow { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 46px; border-bottom: 1px solid var(--border); }
 .readonlyRow > span { color: var(--text-light); font-size: .76rem; }
