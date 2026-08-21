@@ -199,3 +199,22 @@
 @media (prefers-reduced-motion: reduce) {
   .lightbox { backdrop-filter: none; }
 }
+
+/*
+ * YAN RAY — dar ekranda GİZLENİR.
+ *
+ * "Gündemde" ve "Katkı sağlayanlar" tek sütuna düşünce akışın altına
+ * yığılıyordu: kullanıcı bütün gönderileri geçtikten sonra, kimsenin
+ * aramadığı bir yerde beliriyorlardı. Ürün sahibinin tarifi net —
+ * X'te de bu sütun mobilde yoktur, içeriği başka bir sekmede yaşar.
+ *
+ * Bunlar tamamlayıcı bilgi; hiçbiri buradan başka yerde bulunmayan bir
+ * işlev taşımıyor, dolayısıyla gizlemek yetenek kaybettirmiyor. Ayrı bir
+ * "Gündem" ekranı istenirse sonra eklenir.
+ */
+@media (max-width: 700px) {
+  .communityRail,
+  .newsRail {
+    display: none;
+  }
+}

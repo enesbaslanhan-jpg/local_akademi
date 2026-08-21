@@ -79,3 +79,27 @@
 .srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .featureTags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
 .featureTags span { padding: 4px 7px; border-radius: 999px; background: var(--surface-muted); color: var(--text-light); font-size: .65rem; font-weight: 700; }
+
+/*
+ * ÖNE ÇIKAN KART — mobil.
+ *
+ * Başlık `clamp(1.65rem, 3vw, 2.35rem)` ile ölçekleniyordu ama 375px'te
+ * `3vw` yalnız 11px ettiği için clamp hep TABANI (1.65rem = 26.4px)
+ * seçiyordu. Uzun bir yönetmelik adı bu boyutta 5 satıra yayılıp 260px'lik
+ * kartın 205 pikselini yiyordu — "büyük ve sığmıyor gibi" görünmesinin
+ * sebebi buydu. Taşma yoktu, orantı bozuktu.
+ *
+ * Mobilde taban düşürülüyor ve başlık 3 satırla sınırlanıyor: uzun ad
+ * kartı ele geçirmiyor, tam metin zaten detayda görünecek.
+ */
+@media (max-width: 620px) {
+  .featuredCopy h2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 1.3rem;
+    line-height: 1.16;
+  }
+}

@@ -47,3 +47,28 @@ textarea::placeholder { color: var(--text-light) !important; opacity: 1; font-st
 :root[data-theme='dark'] select:hover:not(:disabled) {
   border-color: var(--theme-outline) !important;
 }
+
+/*
+ * iOS'un OTOMATİK YAKINLAŞTIRMASI
+ *
+ * Safari, odaklanılan bir form alanının yazı boyutu 16px'in ALTINDAysa
+ * sayfayı kendiliğinden yakınlaştırır ve geri çıkmaz — kullanıcı için
+ * "yazmaya basınca ekran büyüdü, bir daha düzelmedi" demektir. Bu bir
+ * ayar değil, engellenemeyen bir davranış; tek çaresi alanı 16px yapmak.
+ * (`user-scalable=no` ile bastırılabilirdi ama o, gerçekten yakınlaştırmak
+ * isteyen görme güçlüğü olan kullanıcıyı da engeller — yapılmaz.)
+ *
+ * Ölçülen değerler (21.08.2026, 375px): mentor mesaj kutusu 14.4px,
+ * ayarlar alanları 12.16px, menü araması 12px. Hepsi eşiğin altındaydı.
+ *
+ * Masaüstünde küçük punto korunuyor; kural yalnız dar ekranda geçerli.
+ * `!important` bu dosyanın genelindeki desenle tutarlı — modül stilleri
+ * aksi halde bu kuralı geçiyor.
+ */
+@media (max-width: 899px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}

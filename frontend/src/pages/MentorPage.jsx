@@ -543,12 +543,25 @@ const sessionLabel = useMemo(() => {
                 </div>
               )}
 
-              {/* Mobilde hafıza ve işlem önerileri mesajların altına iner. */}
-              <section className={styles.actionsInline} aria-label="Mentor yan paneli">
-                {rightPanel}
-              </section>
-
+              {/*
+                ÇIPA ÖNCE GELİR — sıra önemli.
+                `scrollToBottom` bu çıpaya kaydırıyor. Çıpa aşağıdaki panelin
+                ALTINDAYKEN "en alta git" komutu paneli de geçiyor ve
+                kullanıcının az önce yazdığı mesaj ekranın yukarısında
+                kalıyordu. Sohbette "en alt" demek son mesaj demektir.
+              */}
               <div ref={messagesEndRef} className={styles.messagesEndAnchor} />
+
+              {/*
+                Mobilde YALNIZ işlem önerileri akışa iner — bunlar son yanıta
+                ait, yerleri orası. HAFIZA kartı inmez: sohbetin altına
+                yığılmış duruyordu ve her mesajdan sonra araya giriyordu.
+                Mobilde hafızaya üst çubuktaki menü → "Hafıza" ile
+                ulaşılıyor, işlev kaybı yok.
+              */}
+              <section className={styles.actionsInline} aria-label="Mentor işlem önerileri">
+                {actionsBlock}
+              </section>
             </div>
           )}
         </div>
