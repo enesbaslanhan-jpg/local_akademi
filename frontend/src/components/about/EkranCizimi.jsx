@@ -60,7 +60,7 @@ export default function EkranCizimi({ tur }) {
             <header className={styles.pencereBasligi}>
               <div>
                 <strong>{etiket}</strong>
-                <span>Detayları görmek için yana ve aşağı kaydırabilirsin.</span>
+                <span>Kapatmak için Escape tuşuna basabilir veya dışına tıklayabilirsin.</span>
               </div>
               <button type="button" className={styles.kapat} onClick={() => setAcik(false)} aria-label="Görseli kapat">
                 Kapat <span aria-hidden="true">×</span>

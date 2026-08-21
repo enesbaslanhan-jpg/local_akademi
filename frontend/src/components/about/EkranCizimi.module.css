@@ -119,17 +119,39 @@
   cursor: pointer;
 }
 
+/*
+ * Büyütülen görsel PENCEREYE SIĞAR.
+ *
+ * Önceden `width: 1600px; max-width: none` yazıyordu: görsel her zaman
+ * 1600 piksel genişlikte çiziliyor ve pencereden taşıyordu. 1600'den dar
+ * her ekranda — yani neredeyse her dizüstünde ve bütün telefonlarda —
+ * görseli görmek için yana kaydırmak gerekiyordu. "Büyüt" tuşuna basınca
+ * görüntünün ekrandan taşması, büyütmenin amacını bozuyor.
+ *
+ * `object-fit: contain` en+boy oranını koruyarak sığdırıyor. Kaynak
+ * görseller 3200 piksel genişliğinde olduğu için sığdırılmış hâl bile
+ * masaüstünde ekranda görünenden kat kat ayrıntılı kalıyor.
+ */
 .kaydirmaAlani {
-  overflow: auto;
+  position: relative;
+  overflow: hidden;
   background: #0d1418;
-  overscroll-behavior: contain;
 }
 
+/*
+ * MUTLAK KONUMLANDIRMA bilinçli: yüzde yükseklik ızgara alanında
+ * güvenilir çözülmüyor (`height: 100%` denendi, tarayıcı en/boy
+ * oranından gelen yüksekliği kullandı ve görsel pencereden taştı).
+ * Dört kenarı da sabitlenmiş bir kutu kesin ölçüye sahiptir;
+ * `object-fit: contain` da oranı koruyarak içine yerleştirir.
+ */
 .buyukGoruntu {
+  position: absolute;
+  inset: 12px;
   display: block;
-  width: 1600px;
-  max-width: none;
-  height: auto;
+  width: calc(100% - 24px);
+  height: calc(100% - 24px);
+  object-fit: contain;
 }
 
 @media (max-width: 640px) {
