@@ -172,11 +172,26 @@
   align-items: flex-start;
   gap: 22px;
   padding: clamp(22px, 2.6vw, 32px);
-  border: 1px solid var(--auth-card-border);
   border-radius: 16px;
-  background: var(--auth-card);
-  box-shadow: var(--auth-card-shadow);
   backdrop-filter: blur(18px);
+
+  /*
+   * KOYU CAM — her iki temada da. `--auth-card` KULLANILMAZ.
+   *
+   * Bu kart, temadan bağımsız olarak koyu olan üst bandın
+   * (`--auth-gradient-band`) üstünde duruyor ve içindeki yazı renkleri
+   * (`.kahraman h1`, `.kahramanMetin`) bilerek sabit ve açık.
+   * `--auth-card` ise SAYFA yüzeyindeki kartlar için: açık temada
+   * beyaza yakın (rgba(251,252,253,.8)).
+   *
+   * İkisi birleşince açık temada beyaz kartın üstüne açık yazı geldi ve
+   * metin okunmaz oldu — ölçüldü: paragraf 1.53:1, ikincil düğme 1.24:1
+   * (eşik 4.5). Koyu temada `--auth-card` zaten koyu olduğu için sorun
+   * yalnız açık temada görünüyordu.
+   */
+  border: 1px solid rgba(244, 250, 252, .16);
+  background: rgba(9, 24, 31, .42);
+  box-shadow: 0 24px 52px -22px rgba(0, 0, 0, .45);
 }
 
 .kahramanMetin {
