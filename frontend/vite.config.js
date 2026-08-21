@@ -55,6 +55,10 @@ export default defineConfig({
       '/auth': {
         ...backendProxy
       },
+      /* İletişim formu. Üretimde Caddy her şeyi arka uca iletiyor ve
+         `/support` API önekleri arasında; burada da olmazsa yalnız
+         geliştirmede 404 döner ve form çalışmaz. */
+      '/support': backendProxy,
       '/courses': backendProxy,
       '/community': backendProxy,
       '/lessons': backendProxy,

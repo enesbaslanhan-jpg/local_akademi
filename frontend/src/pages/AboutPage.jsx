@@ -142,6 +142,7 @@ export default function AboutPage() {
 
         <footer className={styles.alt}>
           <div className={styles.altBaglantilar}>
+            <Link to="/yardim">Yardım ve iletişim</Link>
             <Link to="/privacy">Gizlilik ve KVKK</Link>
             <Link to="/terms">Kullanım koşulları</Link>
             <Link to="/cookies">Çerezler</Link>

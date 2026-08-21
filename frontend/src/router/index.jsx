@@ -49,6 +49,7 @@ const DecisionToolsPage = lazy(() => import('@/pages/DecisionToolsPage'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
 const Unauthorized = lazy(() => import('@/pages/Unauthorized'))
 const LegalPage = lazy(() => import('@/pages/LegalPage'))
+const SupportPage = lazy(() => import('@/pages/SupportPage'))
 
 const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'))
 const AdminKnowledge = lazy(() => import('@/pages/admin/AdminKnowledge'))
@@ -77,6 +78,7 @@ export default function AppRoutes() {
         <Route path="/privacy" element={<SuspenseWrapper><LegalPage type="privacy" /></SuspenseWrapper>} />
         <Route path="/terms" element={<SuspenseWrapper><LegalPage type="terms" /></SuspenseWrapper>} />
         <Route path="/cookies" element={<SuspenseWrapper><LegalPage type="cookies" /></SuspenseWrapper>} />
+        <Route path="/yardim" element={<SuspenseWrapper><SupportPage /></SuspenseWrapper>} />
         <Route path="/hakkinda" element={<SuspenseWrapper><AboutPage /></SuspenseWrapper>} />
         {/* Davet baglantisinin dustugu yer. Giris GEREKMIYOR: davetli
             cogunlukla oturum acmamis geliyor, sayfa onu ?next= ile giris

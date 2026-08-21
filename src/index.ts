@@ -22,6 +22,7 @@ import { workspaceExportRoutes } from './services/workspace-exports'
 import { startBusinessReminderWorker } from './services/business-reminder-worker'
 import { formulaRoutes } from './services/formulas'
 import { adminRoutes } from './services/admin'
+import { supportRoutes } from './services/support'
 import { practicalCardRoutes } from './services/practical-cards'
 import { reportRoutes } from './services/reports'
 import { knowledgeV2Routes } from './services/knowledge-v2'
@@ -271,6 +272,7 @@ async function build() {
   })
 
   server.register(authRoutes, { prefix: '/auth' })
+  server.register(supportRoutes, { prefix: '/support' })
   server.register(courseRoutes, { prefix: '/courses' })
   server.register(lessonRoutes, { prefix: '/lessons' })
   server.register(enrollmentRoutes, { prefix: '/enrollments' })
@@ -328,7 +330,8 @@ async function build() {
   const API_PREFIXES = ['/api', '/auth', '/admin', '/courses', '/lessons', '/enrollments',
     '/knowledge', '/learning', '/community', '/business', '/workspaces', '/mentor',
     '/conversations', '/formulas', '/reports', '/quiz', '/flashcards', '/news',
-    '/decision-checks', '/health', '/memory', '/feed', '/assessment', '/onboarding']
+    '/decision-checks', '/health', '/memory', '/feed', '/assessment', '/onboarding',
+    '/support']
 
   function isApiPath(url: string): boolean {
     const path = url.split('?')[0]

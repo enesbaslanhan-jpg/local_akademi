@@ -20,6 +20,15 @@ export interface MailMesaji {
   text: string
   /** İsteğe bağlı HTML gövde. */
   html?: string
+  /*
+   * Yanıtın gideceği adres.
+   *
+   * Uygulamanın postaları kendi gönderen adresinden çıkıyor; o adres
+   * yalnız gönderim içindir ve okunmuyor. İletişim formu gibi bir
+   * yanıtın anlamlı olduğu yerlerde bu alan kullanıcının adresine
+   * ayarlanır, aksi hâlde "Yanıtla" tuşu kimseye ulaşmaz.
+   */
+  replyTo?: string
 }
 
 export class MailGonderimHatasi extends Error {
@@ -98,7 +107,9 @@ async function resendGonder(mesaj: MailMesaji): Promise<void> {
       to: [mesaj.to],
       subject: mesaj.subject,
       text: mesaj.text,
-      ...(mesaj.html ? { html: mesaj.html } : {})
+      ...(mesaj.html ? { html: mesaj.html } : {}),
+      /* Resend bu alanı `reply_to` adıyla bekliyor. */
+      ...(mesaj.replyTo ? { reply_to: mesaj.replyTo } : {})
     })
   })
 

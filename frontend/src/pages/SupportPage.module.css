@@ -1,0 +1,113 @@
+.page { min-height: 100vh; padding: 24px; background: var(--surface-canvas); color: var(--text); }
+
+.header { width: min(100%, 820px); margin: 0 auto 18px; display: flex; align-items: center; gap: 10px; }
+.header button { display: grid; place-items: center; width: 38px; height: 38px; margin-right: 4px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-card); color: var(--text); }
+.header button:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+.header strong { font-family: var(--font-heading); }
+
+.govde { width: min(100%, 820px); margin: 0 auto; display: grid; gap: 18px; }
+
+.giris, .sss, .formBolum, .kvkkKutu {
+  box-sizing: border-box;
+  padding: clamp(22px, 4vw, 38px);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-card);
+}
+
+.ikon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 13px; background: var(--primary-light); color: var(--primary); }
+.kicker { margin: 18px 0 5px; color: var(--primary); font-size: .7rem; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+.giris h1 { margin: 0; font-size: clamp(1.7rem, 3.6vw, 2.4rem); line-height: 1.1; }
+.aciklama { margin: 12px 0 0; color: var(--text-light); font-size: .95rem; line-height: 1.65; }
+
+.sss h2, .formBolum h2 { margin: 0 0 14px; font-size: 1.05rem; }
+
+/* `details` kullanılıyor: açılır kapanır davranış tarayıcının kendi
+   işidir, klavye ve ekran okuyucu desteği hazır gelir. */
+.sssKalem { border-top: 1px solid var(--border); }
+.sssKalem summary {
+  padding: 14px 0; color: var(--text); font-size: .9rem; font-weight: 700;
+  cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;
+}
+.sssKalem summary::-webkit-details-marker { display: none; }
+.sssKalem summary::before {
+  content: '+'; flex: 0 0 auto; display: grid; place-items: center;
+  width: 22px; height: 22px; border-radius: 6px;
+  background: var(--surface-panel); color: var(--primary); font-weight: 800;
+}
+.sssKalem[open] summary::before { content: '−'; }
+.sssKalem summary:hover { color: var(--primary); }
+.sssKalem p { margin: 0 0 16px 32px; color: var(--text-light); font-size: .87rem; line-height: 1.7; }
+
+.kvkkKutu { display: flex; align-items: flex-start; gap: 14px; background: var(--surface-panel); }
+.kvkkKutu > svg { flex: 0 0 auto; margin-top: 2px; color: var(--primary); }
+.kvkkKutu strong { display: block; margin-bottom: 5px; font-size: .9rem; }
+.kvkkKutu p { margin: 0; color: var(--text-light); font-size: .85rem; line-height: 1.65; }
+.kvkkKutu a { color: var(--primary); }
+
+.form { display: grid; gap: 14px; }
+.ikili { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.alan { display: grid; gap: 6px; color: var(--text-light); font-size: .78rem; font-weight: 700; }
+.alan input, .alan textarea {
+  width: 100%; box-sizing: border-box; min-height: 44px; padding: 11px 13px;
+  border: 1px solid var(--border-strong); border-radius: 10px;
+  background: var(--input-bg); color: var(--text); font: inherit; font-weight: 500;
+}
+.alan textarea { min-height: 150px; resize: vertical; line-height: 1.6; }
+.alan input:focus, .alan textarea:focus {
+  border-color: var(--primary); outline: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+.sayac { justify-self: end; color: var(--text-light); font-size: .7rem; font-weight: 500; }
+
+/*
+ * BAL KÜPÜ. `display: none` DEĞİL — bazı botlar gizli alanları atlar.
+ * Ekran dışına alınıyor: görsel olarak yok, DOM'da sıradan bir alan.
+ * `aria-hidden` ve `tabIndex={-1}` ile ekran okuyucu ve klavye
+ * kullanıcısına da ulaşmıyor.
+ */
+.balKupu {
+  position: absolute;
+  left: -9999px;
+  width: 1px; height: 1px;
+  overflow: hidden;
+}
+
+.basarili, .hata {
+  display: flex; align-items: flex-start; gap: 8px; margin: 0;
+  padding: 12px 14px; border-radius: 10px; font-size: .85rem; line-height: 1.55;
+}
+.basarili { background: color-mix(in srgb, var(--success) 12%, transparent); color: var(--success); }
+.hata { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
+.basarili > svg, .hata > svg { flex: 0 0 auto; margin-top: 2px; }
+
+.formAlt { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+.aydinlatma { flex: 1 1 320px; margin: 0; color: var(--text-light); font-size: .74rem; line-height: 1.6; }
+.aydinlatma a { color: var(--primary); }
+
+.gonderBtn {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 44px; padding: 11px 20px;
+  border: 0; border-radius: 10px;
+  background: var(--primary); color: var(--on-primary, #fff);
+  font: inherit; font-weight: 750; cursor: pointer;
+  transition: opacity var(--dur-fast, .15s) var(--ease, ease);
+}
+.gonderBtn:hover:not(:disabled) { opacity: .9; }
+.gonderBtn:disabled { opacity: .55; cursor: default; }
+
+.altBaglantilar { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; padding: 6px 0 10px; }
+.altBaglantilar a { color: var(--text-light); font-size: .8rem; text-decoration: none; }
+.altBaglantilar a:hover { color: var(--primary); text-decoration: underline; }
+
+@media (max-width: 620px) {
+  .page { padding: 14px; }
+  .ikili { grid-template-columns: minmax(0, 1fr); }
+  .formAlt { flex-direction: column; align-items: stretch; }
+  .gonderBtn { justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header button, .gonderBtn { transition: none; }
+}

@@ -39,6 +39,9 @@ services:
       - RESEND_API_KEY=${RESEND_API_KEY:?RESEND_API_KEY tanimlanmali}
       - MAIL_FROM=${MAIL_FROM:?MAIL_FROM tanimlanmali}
       - APP_PUBLIC_URL=${APP_PUBLIC_URL:?APP_PUBLIC_URL tanimlanmali}
+      # Iletisim formundan gelen mesajlarin dusecegi kutu. Tanimsizsa form
+      # 503 doner ve kullaniciya "iletilemedi" der -- sessizce yutmaz.
+      - SUPPORT_MAIL_TO=${SUPPORT_MAIL_TO:-}
     volumes:
       - server-data:/app/prisma
       - server-uploads:/app/uploads

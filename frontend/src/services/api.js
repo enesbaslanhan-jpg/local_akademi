@@ -289,6 +289,18 @@ export const api = {
     async getLegalDocuments() {
       return api.request('/auth/legal-documents', {}, false);
     },
+    /*
+     * İletişim formu. `includeAuth` KAPALI değil: giriş yapmışsa hesap
+     * bilgisi mesaja eklensin diye token gönderiliyor, ama uç nokta
+     * girişi zorunlu tutmuyor — hesabına erişemeyen kullanıcı da
+     * yazabilmeli, zaten en sık destek sebebi budur.
+     */
+    async destekTalebi(govde) {
+      return api.request('/support/contact', {
+        method: 'POST',
+        body: JSON.stringify(govde)
+      });
+    },
     async getConsents() {
       return api.request('/auth/consents');
     },

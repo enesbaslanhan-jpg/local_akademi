@@ -15,6 +15,33 @@ import { uygulamaAdresi, type MailMesaji } from './mailer.js'
 
 const IMZA = 'LocalKarar'
 
+/*
+ * HTML kaçışı — kullanıcı denetimindeki HER değer HTML gövdeye girmeden
+ * önce buradan geçmeli.
+ *
+ * Neden gerekli: kayıt şeması adı yalnızca uzunlukla sınırlıyor
+ * (`min(2).max(100)`), karakter kısıtı yok. Yani ad alanına HTML
+ * yazılabiliyor. Davet e-postası, davet EDENİN adını BAŞKA BİRİNE giden
+ * postanın gövdesine gömüyordu; iletişim formunda ise serbest metin
+ * doğrudan işletmeciye gidiyor. İkisi de kaçışsız birer enjeksiyon yolu.
+ */
+export function htmlKacir(deger: string): string {
+  return String(deger)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
+/*
+ * Konu satırı bir e-posta BAŞLIĞIDIR; satır sonu içeren bir değer başlık
+ * enjeksiyonuna yol açabilir. Satır sonları boşluğa çevriliyor.
+ */
+export function konuGuvenli(deger: string): string {
+  return String(deger).replace(/[\r\n]+/g, ' ').trim()
+}
+
 function cerceve(baslik: string, govde: string, dipnot: string): string {
   return [
     baslik,
@@ -70,7 +97,7 @@ export function sifreSifirlamaMaili(to: string, ad: string, rawToken: string): M
       'Bu isteği siz yapmadıysanız bu e-postayı yok sayabilirsiniz; şifreniz değişmez. Hesabınıza başkasının eriştiğinden şüpheleniyorsanız şifrenizi değiştirin — bu işlem tüm cihazlardaki oturumları kapatır.'
     ),
     html: htmlCerceve('Şifre sıfırlama', [
-      `Merhaba <strong>${ad}</strong>,`,
+      `Merhaba <strong>${htmlKacir(ad)}</strong>,`,
       'LocalKarar hesabınız için şifre sıfırlama talebi aldık.',
       `<a href="${link}" style="color:#0d556f;font-weight:600">Yeni şifremi belirle</a>`,
       'Bu bağlantı <strong>1 saat</strong> boyunca ve yalnızca <strong>bir kez</strong> geçerlidir.',
@@ -102,7 +129,7 @@ export function dogrulamaKoduMaili(to: string, ad: string, kod: string): MailMes
     html: htmlCerceve(
       'E-posta doğrulama',
       [
-        `Merhaba <strong>${ad}</strong>,`,
+        `Merhaba <strong>${htmlKacir(ad)}</strong>,`,
         'LocalKarar hesabınızın e-posta adresini doğrulamak için kodunuz:'
       ],
       kod
@@ -128,7 +155,7 @@ export function sifreDegistiMaili(to: string, ad: string): MailMesaji {
       'Bu işlemi siz yapmadıysanız hesabınıza erişim kaybetmiş olabilirsiniz. Hemen şifre sıfırlama talebinde bulunun.'
     ),
     html: htmlCerceve('Şifreniz değiştirildi', [
-      `Merhaba <strong>${ad}</strong>,`,
+      `Merhaba <strong>${htmlKacir(ad)}</strong>,`,
       'LocalKarar hesabınızın şifresi az önce değiştirildi. Diğer cihazlardaki oturumlarınız güvenlik gereği kapatıldı.',
       '<span style="color:#6b7780;font-size:13px">Bu işlemi siz yapmadıysanız hemen şifre sıfırlama talebinde bulunun.</span>'
     ])
@@ -166,17 +193,67 @@ export function isletmeDavetiMaili(
 
   return {
     to,
-    subject: `LocalKarar — ${isletmeAdi} işletmesine davet edildiniz`,
+    subject: `LocalKarar — ${konuGuvenli(isletmeAdi)} işletmesine davet edildiniz`,
     text: cerceve(
       'İşletme daveti',
       govde,
       'Bu daveti beklemiyorsanız bağlantıyı açmayın; hiçbir işlem yapılmaz ve davet 7 gün sonra kendiliğinden geçersiz olur.'
     ),
     html: htmlCerceve('İşletme daveti', [
-      `<strong>${davetEden}</strong>, sizi LocalKarar'da <strong>${isletmeAdi}</strong> işletmesine davet etti.`,
+      `<strong>${htmlKacir(davetEden)}</strong>, sizi LocalKarar'da <strong>${htmlKacir(isletmeAdi)}</strong> işletmesine davet etti.`,
       `<a href="${link}" style="color:#0d556f;font-weight:600">Daveti kabul et</a>`,
       'Bağlantı <strong>7 gün</strong> geçerlidir ve yalnızca bu e-posta adresiyle açılmış bir hesapla kullanılabilir.',
       '<span style="color:#6b7780;font-size:13px">Bu daveti beklemiyorsanız bağlantıyı açmayın; hiçbir işlem yapılmaz.</span>'
+    ])
+  }
+}
+
+/**
+ * İletişim formundan gelen destek talebi. Kullanıcıya değil, uygulamayı
+ * işletene gider.
+ *
+ * `replyTo` bilerek ayarlanıyor: mesaj uygulamanın kendi gönderen
+ * adresinden çıkıyor, dolayısıyla "Yanıtla" tuşu varsayılan olarak
+ * gönderen adrese döner ve kimseye ulaşmaz. Kullanıcının adresi
+ * `replyTo`'ya konunca yanıt doğrudan ona gider.
+ *
+ * Serbest metin HTML gövdeye giriyor — `htmlKacir` zorunlu. Kaçışsız
+ * hâlde, forma HTML yazan biri işletmeciye gidecek postanın görünümünü
+ * denetleyebilirdi.
+ */
+export function destekTalebiMaili(
+  alici: string,
+  gonderenAd: string,
+  gonderenEposta: string,
+  konu: string,
+  mesaj: string,
+  hesapBilgisi: string
+): MailMesaji {
+  const ozet = `${gonderenAd} <${gonderenEposta}>`
+
+  return {
+    to: alici,
+    replyTo: gonderenEposta,
+    subject: konuGuvenli(`LocalKarar destek — ${konu}`),
+    text: cerceve(
+      'Yeni destek talebi',
+      [
+        `Gönderen : ${ozet}`,
+        `Hesap    : ${hesapBilgisi}`,
+        `Konu     : ${konu}`,
+        '',
+        '--- Mesaj ---',
+        mesaj
+      ].join('\n'),
+      'Bu iletiyi yanıtlarsanız doğrudan gönderene ulaşır.'
+    ),
+    html: htmlCerceve('Yeni destek talebi', [
+      `<strong>Gönderen:</strong> ${htmlKacir(ozet)}`,
+      `<strong>Hesap:</strong> ${htmlKacir(hesapBilgisi)}`,
+      `<strong>Konu:</strong> ${htmlKacir(konu)}`,
+      `<div style="margin-top:12px;padding:14px 16px;background:#f1f4f5;border-radius:10px;
+         white-space:pre-wrap;font-size:14px;line-height:1.6">${htmlKacir(mesaj)}</div>`,
+      '<span style="color:#6b7780;font-size:13px">Bu iletiyi yanıtlarsanız doğrudan gönderene ulaşır.</span>'
     ])
   }
 }
