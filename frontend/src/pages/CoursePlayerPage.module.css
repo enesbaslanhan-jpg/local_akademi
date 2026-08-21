@@ -837,3 +837,53 @@
   color: var(--theme-on-primary, #fff) !important;
   font-weight: 600;
 }
+
+/*
+ * DERS İÇİNDEKİLER PANELİ — mobil çekmece.
+ *
+ * SORUN: panel kapalıyken ders metninin üstünde 64 piksellik bir şerit
+ * bırakıyordu. Sebebi, kapatmanın SABİT BİR GENİŞLİĞE bağlı olmasıydı:
+ *
+ *     .sidebar { position: fixed; left: -280px; }   ← 768px bloğu
+ *
+ * 280px varsayımı bu dosyanın 755. satırında bozuluyor. Orada, hiçbir
+ * medya sorgusu içinde OLMAYAN bir kural `width: auto; min-width: 0`
+ * diyor ve daha sonra geldiği için kazanıyor. Panel içeriğine göre
+ * 344px'e çıkıyor, `-280px` ise 64 pikselini ekranda bırakıyor.
+ *
+ * ÇÖZÜM: genişlikten bağımsız kapatma. `translateX(-100%)` panel ne
+ * kadar genişlerse genişlesin tamamen dışarı çıkar; ileride içerik
+ * değişse de bir daha kırılmaz. Dönüşüm ayrıca `left` gibi yeniden
+ * yerleşim tetiklemiyor, animasyon daha akıcı.
+ *
+ * Bu blok dosyanın SONUNDA duruyor — bilerek. Yukarıdaki 768 ve 900
+ * blokları birbirini eziyor (900, kaynakta 768'den sonra geldiği için
+ * dar ekranda da uygulanıyor ve `max-height: 440px` dayatıyordu).
+ * Sonda olmak, çekmece durumunun tek ve kesin tanımı olmasını sağlıyor.
+ *
+ * z-index: alt sekme çubuğunun (120) ÜSTÜNDE ama uygulamanın kendi
+ * çekmecesinin (210) ALTINDA olmalı.
+ */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    width: min(320px, 86vw);
+    max-width: 86vw;
+    height: calc(100vh - var(--header-height));
+    max-height: none;
+    z-index: calc(var(--z-drawer) - 10);
+    transform: translateX(-100%);
+    transition: transform var(--dur-base) var(--ease-standard);
+    box-shadow: var(--shadow-deep);
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .sidebar { transition: none; }
+}
