@@ -7,12 +7,27 @@ import {
   rmSync,
   statSync,
 } from 'fs'
-import { join, resolve } from 'path'
+import { basename, join, resolve, sep } from 'path'
 import { execSync } from 'child_process'
 import { pgIstemciUrl } from './lib/pg-url.js'
 
-const root = resolve(import.meta.dirname, '..')
-const backupDirectory = join(root, 'BACKUPS')
+/*
+ * Yedeklerin yazılacağı klasör.
+ *
+ * `BACKUPS_DIR` verilmişse o kullanılır. Verilmezse çalışma dizinine göre
+ * belirlenir — geliştirmede proje kökünden çalıştırıldığı için davranış
+ * eskisiyle aynı.
+ *
+ * Önceden yol betiğin KENDİ konumundan türetiliyordu
+ * (`import.meta.dirname/..`). Bu, betik yalnız kaynaktan çalıştırıldığı
+ * sürece doğruydu; derlenip `dist/ops/` altına konunca yedekler
+ * `dist/BACKUPS`e düşerdi — yani her yeniden derlemede silinen bir yere.
+ * Üretimde bu, "yedek alıyoruz" sanılırken hiçbir şey saklanmaması
+ * demekti.
+ */
+const backupDirectory = process.env.BACKUPS_DIR?.trim()
+  ? resolve(process.env.BACKUPS_DIR.trim())
+  : join(process.cwd(), 'BACKUPS')
 
 /*
  * Docker'daki Postgres icin kacis yolu.
@@ -40,7 +55,22 @@ function isPostgresUrl(url: string): boolean {
 
 async function main(): Promise<void> {
   mkdirSync(backupDirectory, { recursive: true })
-  const dbUrl = process.env.DATABASE_URL || ''
+  /*
+   * SAHİP ROLÜ tercih edilir.
+   *
+   * Uygulamanın çalışma zamanı bağlantısı (`DATABASE_URL`) bilerek en az
+   * yetkili: yalnız SELECT/INSERT/UPDATE/DELETE. O rolle alınan bir
+   * `pg_dump` sessizce EKSİK kalabilir — okuyamadığı nesneleri atlar ve
+   * yine de "başarılı" biter. Eksik olduğu ancak geri yüklerken anlaşılır,
+   * yani en kötü anda.
+   *
+   * `MIGRATE_DATABASE_URL` göçler için zaten sahip rolüyle tanımlı;
+   * yedekleme de onu kullanıyor. Yoksa eski davranışa düşülür.
+   */
+  const dbUrl = process.env.BACKUP_DATABASE_URL
+    || process.env.MIGRATE_DATABASE_URL
+    || process.env.DATABASE_URL
+    || ''
 
   if (isPostgresUrl(dbUrl)) {
     console.log('Backing up PostgreSQL database via pg_dump...')
@@ -87,13 +117,16 @@ async function main(): Promise<void> {
       .sort((left, right) => right.modifiedAt - left.modifiedAt)
     const removed = candidates.slice(retentionCount())
     for (const item of removed) {
-      if (item.path.startsWith(`${backupDirectory}\\`)) {
+      if (item.path.startsWith(`${backupDirectory}${sep}`)) {
         rmSync(item.path, { force: true })
       }
     }
     console.log(JSON.stringify({
       ok: true,
-      backup: `BACKUPS/${backupPath.split('\\').at(-1)}`,
+      /* `split('\\')` yalnız Windows yolunu bölüyordu; Linux'ta ayırıcı
+         eşleşmediği için TAM yol basılıyordu (`BACKUPS//app/BACKUPS/...`).
+         `basename` iki platformda da doğru çalışıyor. */
+      backup: `BACKUPS/${basename(backupPath)}`,
       bytes: size,
       retained: candidates.length - removed.length,
       removed: removed.map(item => item.name),
@@ -102,7 +135,7 @@ async function main(): Promise<void> {
   }
 
   const backupPath = join(backupDirectory, `auto_dev_${timestamp()}.db`)
-  if (!backupPath.startsWith(`${backupDirectory}\\`) || existsSync(backupPath)) {
+  if (!backupPath.startsWith(`${backupDirectory}${sep}`) || existsSync(backupPath)) {
     throw new Error('UNSAFE_BACKUP_PATH')
   }
   // SQLite backup via VACUUM INTO
@@ -141,13 +174,13 @@ async function main(): Promise<void> {
     .sort((left, right) => right.modifiedAt - left.modifiedAt)
   const removed = candidates.slice(retentionCount())
   for (const item of removed) {
-    if (item.path.startsWith(`${backupDirectory}\\`)) {
+    if (item.path.startsWith(`${backupDirectory}${sep}`)) {
       rmSync(item.path, { force: true })
     }
   }
   console.log(JSON.stringify({
     ok: true,
-    backup: `BACKUPS/${backupPath.split('\\').at(-1)}`,
+    backup: `BACKUPS/${basename(backupPath)}`,
     bytes: statSync(backupPath).size,
     integrity,
     retained: candidates.length - removed.length,

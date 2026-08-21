@@ -289,30 +289,73 @@ tarafındadır, uygulamada değil.
 
 ## 10. Yedekleme zamanlaması
 
+**Önce elle bir kez çalıştır ve gerçekten yedek alındığını gör:**
+
+```bash
+lk exec -T server npm run ops:backup
+```
+
+Beklenen: `"ok": true` ve **sıfırdan büyük** bir `bytes` değeri.
+
+**Sonra yedeğin geri yüklenebildiğini kanıtla:**
+
+```bash
+lk exec -T server npm run ops:backup:verify
+```
+
+Bu komut yedeği geçici bir veritabanına **gerçekten geri yüklüyor** ve
+satırları sayıyor. `"verified": "gerçek geri yükleme"` görmelisin.
+Denenmemiş yedek yedek değildir.
+
+**Sonra zamanla** — her gece 03:30:
+
 ```bash
 crontab -e
 ```
 
-Şu satırı ekle (her gece 03:30):
+Eklenecek satır:
 
 ```
-30 3 * * * cd /home/ubuntu/localkarar && /usr/bin/docker compose exec -T server npm run backup:database >> /home/ubuntu/backup.log 2>&1
+30 3 * * * cd /home/ubuntu/localkarar && /usr/bin/docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml --project-directory /home/ubuntu/localkarar exec -T server npm run ops:backup >> /home/ubuntu/backup.log 2>&1
 ```
 
-**Doğrula — elle bir kez çalıştır:**
+> `lk` kısayolu cron içinde ÇALIŞMAZ: kısayol `~/.bashrc`'de tanımlı,
+> cron ise onu okumayan bir kabuk kullanıyor. Bu yüzden satırın tamamı
+> açık yazılmış.
+
+Ertesi gün kontrol:
 
 ```bash
-docker compose exec -T server npm run backup:database
-docker compose exec -T server npm run backup:restore:verify
+tail -5 ~/backup.log
 ```
 
-İkincisi **gerçekten geri yükleme** yapıyor: yedeği geçici bir
-veritabanına yükleyip satırları sayıyor. `ok: true` ve
-`"verified": "gerçek geri yükleme"` görmelisin.
+### Bu bölüm neden yeniden yazıldı
 
-> Bu betikler yakın zamanda onarıldı — önceden ürettiği bütün `.sql`
-> yedekleri 0 bayttı ve doğrulama yine de "ok" diyordu. Ayrıntı:
-> `FAZ_3_ISLETIM_RAPORU.md`.
+Önceki hâli `npm run backup:database` diyordu ve **sunucuda hiç
+çalışamazdı**. Sebebi üç katlıydı, üçü de ölçülerek bulundu (22.08.2026):
+
+| Eksik | Sonuç |
+|---|---|
+| İmajda `scripts/` ve `tsx` yok | Komut hiç başlamıyordu |
+| İmajda `pg_dump` yok | Başlasa bile döküm alınamazdı |
+| Yedekler için kalıcı birim yok | Alınsa bile kapsayıcı yenilenince silinirdi |
+
+Aynı tuzak daha önce iki kez daha çıkmıştı (en az yetkili veritabanı
+rolü ve yönetici oluşturma betikleri). Bu yüzden bu sefer yamamak yerine
+kökten çözüldü: işletim betikleri artık derlenip imaja konuyor ve düz
+`node` ile çalışıyorlar, `postgresql16-client` imaja eklendi,
+yedekler `server-backups` biriminde duruyor.
+
+Yol üstünde iki hata daha çıktı:
+
+- **Saklama temizliği Linux'ta hiç çalışmıyordu.** Eski yedekleri silen
+  kontrol `startsWith(klasör + '\')` yazıyordu — ters eğik çizgi
+  Windows'a özgü. Linux'ta hiçbir dosya eşleşmiyor, yani hiçbir eski
+  yedek silinmiyordu. Günde 57 MB ile disk zamanla dolardı.
+- **Yedek, uygulamanın en az yetkili rolüyle alınıyordu.** O rol yalnız
+  okuma/yazma yetkisine sahip; onunla alınan bir `pg_dump` sessizce
+  eksik kalabilir ve bu ancak geri yüklerken anlaşılır. Artık göçlerde
+  kullanılan sahip rolü tercih ediliyor.
 
 ---
 

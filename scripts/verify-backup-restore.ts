@@ -37,8 +37,12 @@ import { pgIstemciUrl, veritabaniAdi } from './lib/pg-url.js'
  * `PSQL_NOT_FOUND` ile ÇÖKER, "doğrulandı" demez.
  */
 
-const root = resolve(import.meta.dirname, '..')
-const backupDirectory = join(root, 'BACKUPS')
+/* Yedeklerin ARANDIĞI klasör; `backup-database.ts` ile AYNI kuralı
+   izlemek zorunda, yoksa doğrulama başka bir yere bakar ve
+   "yedek bulunamadı" der. */
+const backupDirectory = process.env.BACKUPS_DIR?.trim()
+  ? resolve(process.env.BACKUPS_DIR.trim())
+  : join(process.cwd(), 'BACKUPS')
 
 /* Docker'daki Postgres için kaçış yolu: bu projenin kendi
    docker-compose'unda veritabanı kapsayıcıda çalışıyor ve istemci
@@ -167,7 +171,9 @@ async function postgresDogrula(dbUrl: string): Promise<void> {
 }
 
 async function sqliteDogrula(): Promise<void> {
-  const source = join(root, 'prisma', 'dev.db')
+  /* SQLite yolu yalnız eski geliştirme kurulumları için duruyor;
+     üretim PostgreSQL. Proje kökünden çalıştırıldığı varsayılıyor. */
+  const source = join(process.cwd(), 'prisma', 'dev.db')
   if (!existsSync(source)) throw new Error('BACKUP_SOURCE_NOT_FOUND')
   const temporaryDirectory = mkdtempSync(join(tmpdir(), 'localakademi-restore-'))
   const restored = join(temporaryDirectory, 'restored.db')
@@ -197,7 +203,13 @@ async function sqliteDogrula(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  const dbUrl = process.env.DATABASE_URL || ''
+  /* Doğrulama geçici bir veritabanı OLUŞTURUP düşürüyor; bu DDL
+     gerektiriyor, yani uygulamanın kısıtlı rolüyle yapılamaz.
+     `backup-database.ts` ile aynı sırayı izliyor. */
+  const dbUrl = process.env.BACKUP_DATABASE_URL
+    || process.env.MIGRATE_DATABASE_URL
+    || process.env.DATABASE_URL
+    || ''
   if (isPostgresUrl(dbUrl)) return postgresDogrula(dbUrl)
   return sqliteDogrula()
 }

@@ -95,7 +95,11 @@
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
     "db:status": "docker compose ps",
-    "db:logs": "docker compose logs -f postgres"
+    "db:logs": "docker compose logs -f postgres",
+    "build:ops": "tsc -p tsconfig.ops.json && node -e \"require('fs').writeFileSync('dist/ops/package.json', JSON.stringify({type:'module'}))\"",
+    "ops:backup": "node dist/ops/backup-database.js",
+    "ops:backup:verify": "node dist/ops/verify-backup-restore.js",
+    "ops:logs:rotate": "node dist/ops/rotate-operational-logs.js"
   },
   "dependencies": {
     "@fastify/cors": "^10.1.0",

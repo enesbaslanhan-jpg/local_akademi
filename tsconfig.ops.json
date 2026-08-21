@@ -1,0 +1,40 @@
+/*
+ * İŞLETİM BETİKLERİ için ayrı derleme.
+ *
+ * Neden gerekli: üretim imajında `scripts/` klasörü de `tsx` de yok.
+ * `npm run backup:database` komutu `tsx scripts/...` çalıştırdığı için
+ * sunucuda ÇALIŞAMIYORDU. Aynı tuzak daha önce iki kez daha çıktı
+ * (en az yetkili DB rolü ve yönetici oluşturma betikleri), her seferinde
+ * elle SQL'e dönmek zorunda kaldık.
+ *
+ * Çözüm: bu betikleri derleyip imaja koymak. O zaman düz `node` ile
+ * çalışıyorlar, tsx gerekmiyor.
+ *
+ * Ana `tsconfig.json` kullanılamıyor: `rootDir` `./src` ve `module`
+ * `NodeNext`. Paket CommonJS olduğu için NodeNext bu dosyaları CJS'e
+ * çevirmeye çalışır ve `import.meta` derlenmez. Bu yüzden burada modül
+ * biçimi açıkça ESM'e sabitleniyor; çıktı klasörüne de `type: module`
+ * işaretçisi yazılıyor (bkz. package.json `build:ops`).
+ *
+ * KAPSAM DAR: yalnız sunucuda gerçekten çalıştırılan işletim betikleri.
+ * Diğer betikler geliştirme ortamına ait ve imaja girmelerinin anlamı yok.
+ */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
+    "rootDir": "scripts",
+    "outDir": "dist/ops",
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "noEmit": false
+  },
+  "include": [
+    "scripts/backup-database.ts",
+    "scripts/verify-backup-restore.ts",
+    "scripts/rotate-operational-logs.ts",
+    "scripts/lib/**/*.ts"
+  ]
+}
