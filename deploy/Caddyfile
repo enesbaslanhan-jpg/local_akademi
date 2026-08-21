@@ -15,13 +15,28 @@
 #   arasini Cloudflare'in kendi sertifikasi, Cloudflare ile sunucu
 #   arasini bu sertifika sifreliyor. Cloudflare'da SSL/TLS modu
 #   "Full (strict)" olmali.
-
 {
 	# Yonetim ucu kapali: gerek yok, acik birakmak fazladan yuzey.
 	admin off
 }
 
-localkarar.com, www.localkarar.com {
+# WWW -> KOKE KALICI YONLENDIRME
+#
+# Ikisi de ayni icerigi suniyordu ve HICBIR yonlendirme yoktu. Tarayici
+# icin bunlar IKI AYRI SITE: oturum bilgisi (localStorage) adres basina
+# saklanir. Kullanici localkarar.com'da giris yapip sonra
+# www.localkarar.com'a girdiginde -- ya da tersi -- taninmiyordu.
+# "Surekli sifre soruyor" sikayetinin sebebi buydu; yenileme tokeni
+# mekanizmasi bastan beri saglamdi, yalnizca yanlis adreste araniyordu.
+#
+# Kok adres secildi cunku APP_PUBLIC_URL zaten https://localkarar.com --
+# e-postalardaki baglantilar oraya isaret ediyor.
+www.localkarar.com {
+	tls /etc/caddy/certs/origin.pem /etc/caddy/certs/origin.key
+	redir https://localkarar.com{uri} permanent
+}
+
+localkarar.com {
 	tls /etc/caddy/certs/origin.pem /etc/caddy/certs/origin.key
 
 	encode zstd gzip
