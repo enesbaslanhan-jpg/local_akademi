@@ -10,12 +10,12 @@ import styles from './EkranCizimi.module.css'
  * alt metin kullanılır. Bölümün anlamını başlık, açıklama ve maddeler taşır.
  */
 const EKRANLAR = {
-  'karar-araclari': { kaynak: '/about-screens/karar-araclari.png?v=3', etiket: 'Karar Araçları' },
-  'isletme-takibi': { kaynak: '/about-screens/isletme-takibi.png?v=3', etiket: 'İşletme Takibi' },
-  'ai-mentor': { kaynak: '/about-screens/ai-mentor.png?v=3', etiket: 'AI Mentor' },
-  hesaplamalar: { kaynak: '/about-screens/hesaplamalar.png?v=3', etiket: 'Hesaplamalar' },
-  kurslar: { kaynak: '/about-screens/kurslar.png?v=3', etiket: 'Kurslar' },
-  topluluk: { kaynak: '/about-screens/topluluk.png?v=3', etiket: 'Topluluk' }
+  'karar-araclari': { kaynak: '/about-screens/karar-araclari.png?v=4', etiket: 'Karar Araçları' },
+  'isletme-takibi': { kaynak: '/about-screens/isletme-takibi.png?v=4', etiket: 'İşletme Takibi' },
+  'ai-mentor': { kaynak: '/about-screens/ai-mentor.png?v=4', etiket: 'AI Mentor' },
+  hesaplamalar: { kaynak: '/about-screens/hesaplamalar.png?v=4', etiket: 'Hesaplamalar' },
+  kurslar: { kaynak: '/about-screens/kurslar.png?v=4', etiket: 'Kurslar' },
+  topluluk: { kaynak: '/about-screens/topluluk.png?v=4', etiket: 'Topluluk' }
 }
 
 export default function EkranCizimi({ tur }) {
