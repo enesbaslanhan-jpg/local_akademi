@@ -1,0 +1,21 @@
+/*
+ * Çizim, kabının genişliğini alır ve oranını korur. Sabit piksel
+ * verilmiyor: aynı bileşen dar ekranda tam genişlikte, geniş ekranda
+ * zikzak düzenin bir sütununda kullanılıyor.
+ */
+.cizim {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  /* Çizgiler tarayıcı ölçeklemesinde kaybolmasın. */
+  shape-rendering: geometricPrecision;
+}
+
+.cizim line,
+.cizim rect,
+.cizim path,
+.cizim circle {
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}

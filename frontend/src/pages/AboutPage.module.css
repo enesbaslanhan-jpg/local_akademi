@@ -349,3 +349,60 @@
   .kahraman { max-width: none; }
   .sinirlar { padding: 20px; }
 }
+
+/* ---------- Modül tanıtımı: ekran + anlatım ---------- */
+
+.modulListesi { display: grid; gap: clamp(28px, 5vw, 52px); }
+
+.modul {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(20px, 4vw, 44px);
+}
+
+/* Zikzak: tek sıradakilerde ekran sağa geçer. Yalnız GENİŞ ekranda —
+   dar ekranda sıra bozulursa ekran ile metni eşleştirmek zorlaşır. */
+.modulTers .modulEkran { order: 2; }
+
+.modulEkran { min-width: 0; }
+.modulMetin { min-width: 0; display: grid; gap: 10px; justify-items: start; }
+
+.modulMetin h3 { margin: 0; font-size: clamp(1.1rem, 2.2vw, 1.35rem); }
+
+/* Tek cümlelik özet — modülün ne işe yaradığı buradan okunur. */
+.neYaparsin {
+  margin: 0;
+  color: var(--text);
+  font-size: .95rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.modulMetin p { margin: 0; color: var(--text-light); font-size: .88rem; line-height: 1.7; }
+
+.maddeler { margin: 4px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.maddeler li {
+  position: relative;
+  padding-left: 20px;
+  color: var(--text-light);
+  font-size: .84rem;
+  line-height: 1.6;
+}
+.maddeler li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: .55em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+  opacity: .75;
+}
+
+@media (max-width: 860px) {
+  .modul { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  /* Dar ekranda ekran HER ZAMAN önce gelir; zikzak sırası kalkar. */
+  .modulTers .modulEkran { order: 0; }
+}
