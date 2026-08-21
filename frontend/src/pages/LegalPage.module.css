@@ -13,3 +13,48 @@
 .document section h2 { margin: 0 0 7px; font-size: 1rem; }
 .document section p { margin: 0; color: var(--text-light); font-size: .88rem; line-height: 1.7; }
 @media (max-width: 600px) { .page { padding: 14px; } .document { padding: 22px 18px; } }
+
+/* ---------- Uzun metin öğeleri ---------- */
+
+/* Kırk küsur bölümlük bir metinde içindekiler zorunlu; aksi hâlde
+   kullanıcı aradığı maddeyi kaydırarak arıyor. */
+.icindekiler { margin: 4px 0 8px; padding: 18px 20px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-panel); }
+.icindekiler h2 { margin: 0 0 10px; font-size: .78rem; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; color: var(--text-light); }
+.icindekiler ol { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.icindekiler li { color: var(--text-light); font-size: .82rem; }
+.icindekiler a { color: var(--text); text-decoration: none; }
+.icindekiler a:hover { color: var(--primary); text-decoration: underline; }
+
+/* Çapraya atlarken başlık üst kenara yapışmasın. */
+.document section { scroll-margin-top: 18px; }
+.document section p + p { margin-top: 10px; }
+
+.tanimlar { display: grid; gap: 10px; margin: 12px 0 0; }
+.tanimlar > div { display: grid; grid-template-columns: minmax(120px, 190px) minmax(0, 1fr); gap: 14px; }
+.tanimlar dt { color: var(--text); font-size: .82rem; font-weight: 750; }
+.tanimlar dd { margin: 0; color: var(--text-light); font-size: .86rem; line-height: 1.65; }
+
+.liste { margin: 12px 0 0; padding-left: 20px; display: grid; gap: 7px; }
+.liste li { color: var(--text-light); font-size: .86rem; line-height: 1.6; }
+
+/* Tablo KENDİ İÇİNDE kayar. Sayfanın yatay kaymasına izin verilmiyor —
+   mobilde bütün düzeni bozar. */
+.tabloSarmal { margin: 14px 0 0; overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+.tablo { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.tablo th, .tablo td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border); }
+.tablo th { background: var(--surface-panel); color: var(--text); font-weight: 750; white-space: nowrap; }
+.tablo td { color: var(--text-light); line-height: 1.55; }
+.tablo tr:last-child td { border-bottom: 0; }
+
+@media (max-width: 600px) {
+  .tanimlar > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .tablo { font-size: .78rem; }
+  .tablo th, .tablo td { padding: 8px 10px; }
+}
+
+/* Yasal metinler yazdırılmak istenir; sayfa kabuğu kâğıda basılmasın. */
+@media print {
+  .page { padding: 0; background: white; }
+  .header, .icindekiler { display: none; }
+  .document { width: 100%; border: 0; border-radius: 0; box-shadow: none; padding: 0; }
+}

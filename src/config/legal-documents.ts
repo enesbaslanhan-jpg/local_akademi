@@ -29,13 +29,13 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
   {
     type: 'terms',
     title: 'Kullanım Koşulları',
-    version: '2026-08-09',
+    version: '2026-08-21',
     requiredAtSignup: true
   },
   {
     type: 'privacy',
     title: 'Gizlilik ve KVKK Aydınlatma Metni',
-    version: '2026-08-09',
+    version: '2026-08-21',
     requiredAtSignup: true
   },
   {
@@ -43,7 +43,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
        kayıtta onay şartı değil. */
     type: 'cookies',
     title: 'Çerez ve Yerel Depolama Politikası',
-    version: '2026-08-09',
+    version: '2026-08-21',
     requiredAtSignup: false
   }
 ]
