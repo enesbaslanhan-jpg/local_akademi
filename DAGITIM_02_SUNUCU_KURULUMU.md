@@ -97,18 +97,27 @@ grep -E '^[A-Z_]+=$' .env
 
 ---
 
-## 4. Uygulama portunu dışarı kapat
+## 4. Uygulama portu — yapacağın bir şey YOK
 
-`docker-compose.yml` içinde `server` servisinin port satırını bul ve
-şu hâle getir:
+`docker-compose.yml` uygulamayı zaten `127.0.0.1:3000:3000` ile
+bağlıyor: yalnız makine içinden erişilebiliyor, dışarı açılan tek şey
+Caddy'nin 80/443'ü.
 
-```yaml
-    ports:
-      - "127.0.0.1:3000:3000"
-```
-
-Böylece uygulamaya yalnız makine içinden erişilir; dışarı açılan tek
-şey Caddy'nin 80/443'ü olur.
+> **Bu adımda önceden bir düzenleme isteniyordu ve yanlıştı.**
+> Rehber, `docker-compose.yml` içindeki port satırını sunucuda ELLE
+> değiştirmeni söylüyordu. Sonuç: izlenen bir dosyada yerel değişiklik
+> kaldı ve o dosyaya dokunan ilk güncellemede `git pull`
+> *"local changes would be overwritten"* diyerek durdu (22.08.2026).
+>
+> Düzeltmenin neden prod override'a port eklemek olmadığı da önemli:
+> Compose'da `ports` listesi override dosyasında **eklenir**, üst
+> dosyadan kaldırılamaz. Yani oraya `127.0.0.1`li satırı yazmak
+> `"3000:3000"`i silmez; ikisi birden geçerli olur ve port yine dışarı
+> açık kalırdı. Doğru çözüm tabanı baştan güvenli yapmaktı.
+>
+> Eski kurulumdan gelen bir sunucuda bu yerel değişiklik hâlâ duruyor
+> olabilir. `git status` temiz değilse:
+> `git checkout -- docker-compose.yml`
 
 ---
 

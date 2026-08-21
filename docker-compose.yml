@@ -6,7 +6,19 @@ services:
     container_name: localakademi-server
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      # YALNIZ makine ici. Disariya acilan tek sey Caddy'nin 80/443'u.
+      #
+      # Onceden "3000:3000" yaziyordu ve dagitim rehberi bu satiri
+      # SUNUCUDA ELLE degistirmeni soyluyordu. Bu, izlenen bir dosyada
+      # yerel degisiklik birakiyordu; sonuc olarak bu dosyaya dokunan
+      # ILK guncellemede `git pull` "local changes would be overwritten"
+      # ile durdu.
+      #
+      # Compose'da `ports` listesi override dosyasinda EKLENIR, yani
+      # ust dosyadan kaldirilamaz -- bu yuzden cozum prod override'a
+      # tasimak degil, tabani bastan guvenli yapmak. Gelistirmede de
+      # dogru davranis: uygulamaya yalniz makine icinden erisiliyor.
+      - "127.0.0.1:3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000

@@ -3,15 +3,22 @@
 # Kullanim:
 #   docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d
 #
-# NOT: docker-compose.yml icindeki `server` servisinin port satirini
-# sunucuda SU HALE getir:
+# PORT ELLE DUZENLENMEZ. docker-compose.yml zaten 127.0.0.1:3000:3000
+# ile bagliyor; uygulama disariya acik degil.
 #
-#     ports:
-#       - "127.0.0.1:3000:3000"
+# Onceden burada "su satiri sunucuda elle degistir" yaziyordu. Bu,
+# izlenen bir dosyada yerel degisiklik birakiyordu ve o dosyaya dokunan
+# ILK guncellemede `git pull` "local changes would be overwritten" ile
+# durdu (22.08.2026).
 #
-# Boylece uygulama yalniz makine icinden erisilebilir olur; disariya
-# acilan tek sey Caddy'nin 80/443'u kalir. (Guvenlik duvari de ayrica
-# 3000'i kapatiyor -- iki katman, biri unutulursa digeri tutar.)
+# Cozum neden prod override'a port eklemek DEGIL: Compose'da `ports`
+# listesi override dosyasinda EKLENIR, ust dosyadan kaldirilamaz. Yani
+# buraya 127.0.0.1'li satiri yazmak, "3000:3000"i silmezdi -- ikisi
+# birden gecerli olur ve port yine disariya acik kalirdi. Dogru cozum
+# tabani bastan guvenli yapmakti.
+#
+# Disariya acilan tek sey Caddy'nin 80/443'u. Guvenlik duvari da ayrica
+# 3000'i kapatiyor -- iki katman, biri unutulursa digeri tutar.
 
 services:
   # Ozellik bayraklari.
