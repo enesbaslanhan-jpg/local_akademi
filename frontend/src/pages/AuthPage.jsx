@@ -4,6 +4,7 @@ import { BookOpen, Check, ClipboardList, LockKeyhole, Mail, Minus, Sheet, UserRo
 import { useAuth } from '@/context/AuthContext'
 import BrandMark from '@/components/ui/BrandMark'
 import PasswordInput from '@/components/ui/PasswordInput'
+import StorageNotice from '@/components/ui/StorageNotice'
 import { passwordChecks, passwordMeetsMinimum } from '@/constants/password'
 import { guvenliNext } from '@/utils/safeNext'
 import AuthThemeToggle from './AuthThemeToggle'
@@ -261,15 +262,17 @@ export default function AuthPage({ mode: initialMode }) {
             </button>
           </p>
         </form>
-      </div>
 
-      {/* "Hakkında": yer imiyle dogrudan /login e gelen ziyaretcinin
-          urunun ne oldugunu gorebilecegi tek yol. */}
-      <div className={styles.legal} aria-label="Yasal belgeler">
-        <Link to="/hakkinda">Hakkında</Link>
-        <Link to="/privacy">Gizlilik</Link>
-        <Link to="/terms">Kullanım koşulları</Link>
-        <Link to="/cookies">Çerezler</Link>
+        {/* Kartla aynı kolonda kalır; ekranın sağ-alt köşesine taşmaz. */}
+        <footer className={styles.footer} aria-label="Yasal belgeler ve alt bilgiler">
+          <div className={styles.legal}>
+            <Link to="/hakkinda">Hakkında</Link>
+            <Link to="/privacy">Gizlilik</Link>
+            <Link to="/terms">Kullanım koşulları</Link>
+            <Link to="/cookies">Çerezler</Link>
+          </div>
+          <StorageNotice inline />
+        </footer>
       </div>
     </div>
   )

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { Cookie, X } from 'lucide-react'
 import styles from './StorageNotice.module.css'
 
@@ -22,13 +22,29 @@ import styles from './StorageNotice.module.css'
  */
 const NOTICE_KEY = 'localkarar-storage-notice-seen'
 
-export default function StorageNotice() {
+// Veri ve gizlilik sayfasında (settings#yasal) ve genel /app/settings'te gösterilmesin
+function shouldHideNotice(pathname, hash, inline) {
+  if (pathname.startsWith('/app/settings')) return true
+  // Hash tabanlı navigasyon için (settings#yasal)
+  if (hash === '#yasal') return true
+  // Giriş ve kayıt ekranlarında aynı bileşenin akış içindeki sürümü var.
+  if (!inline && (pathname === '/login' || pathname === '/register')) return true
+  return false
+}
+
+export default function StorageNotice({ inline = false }) {
+  const location = useLocation()
   const [gorundu, setGorundu] = useState(() => {
     if (typeof window === 'undefined') return true
     return window.localStorage.getItem(NOTICE_KEY) === 'true'
   })
+  const [hiddenByRoute, setHiddenByRoute] = useState(false)
 
-  if (gorundu) return null
+  useEffect(() => {
+    setHiddenByRoute(shouldHideNotice(location.pathname, location.hash, inline))
+  }, [inline, location.pathname, location.hash])
+
+  if (gorundu || hiddenByRoute) return null
 
   function kapat() {
     window.localStorage.setItem(NOTICE_KEY, 'true')
@@ -36,7 +52,7 @@ export default function StorageNotice() {
   }
 
   return (
-    <aside className={styles.notice} role="note" aria-label="Tarayıcı depolaması bilgilendirmesi">
+    <aside className={inline ? styles.inlineNotice : styles.notice} role="note" aria-label="Tarayıcı depolaması bilgilendirmesi">
       <Cookie size={18} className={styles.icon} aria-hidden="true" />
       <p className={styles.text}>
         Bu uygulama <strong>çerez kullanmıyor</strong> ve hiçbir üçüncü taraf

@@ -177,14 +177,11 @@ export default {
       ]
     },
 
-    {
+{
       id: 'yurt-disi',
       baslik: '7. Yurt dışına aktarım',
       paragraflar: [
-        'LocalKarar’ın teknik altyapısı yurt dışındaki hizmet sağlayıcılar üzerinde ' +
-        'çalışmaktadır. Bu nedenle verileriniz aşağıda gösterilen ölçüde yurt dışına ' +
-        'aktarılmaktadır. Aktarımların tamamı Avrupa Birliği ülkelerinde bulunan ' +
-        'sağlayıcılara yapılmaktadır.'
+        'LocalKarar\'ın teknik altyapısında yurt dışında bulunan veya küresel altyapı kullanan hizmet sağlayıcılar yer almaktadır. Bu nedenle kişisel verileriniz, kullanılan özelliğe göre aşağıda belirtilen hizmet sağlayıcılara ve amaçlarla yurt dışına aktarılabilir.'
       ],
       tablo: {
         basliklar: ['Alıcı', 'Ülke', 'Aktarılan veri', 'Amaç'],
@@ -198,7 +195,7 @@ export default {
           [
             'Mistral AI',
             'Fransa',
-            'AI Mentor’a yazdığınız mesajlar ve mentora iletilen işletme bağlamı',
+            'AI Mentor\'a yazdığınız mesajlar ve mentora iletilen işletme bağlamı',
             'Yapay zekâ yanıtlarının üretilmesi'
           ],
           [
@@ -216,14 +213,13 @@ export default {
         ]
       },
       son: [
-        'AI Mentor’a yazdıklarınız, Mistral AI tarafından kötüye kullanım denetimi ' +
+        'AI Mentor\'a yazdıklarınız, Mistral AI tarafından kötüye kullanım denetimi ' +
         'amacıyla 30 gün süreyle saklanır. Bu süre, kullanılan hizmet planında ' +
         'kapatılabilir değildir.',
         'Mistral AI hesabımızda, verilerin yapay zekâ modellerinin eğitiminde ' +
         'kullanılmasına ilişkin seçenek kapatılmıştır. Yazışmalarınız model eğitiminde ' +
         'kullanılmaz.',
-        'Aktarımlar KVKK’nın yurt dışına aktarıma ilişkin hükümlerine uygun biçimde ve ' +
-        'yalnızca hizmetin sunulması için gerekli ölçüde yapılır.'
+        'Yurt dışına kişisel veri aktarımı gerektiren hizmetlerde, 6698 sayılı Kanun\'un 9. maddesinde öngörülen aktarım şartları ve uygun güvence yöntemleri dikkate alınır. Uygulanması gereken hukuki aktarım mekanizmaları, ilgili hizmet sağlayıcının rolü ve aktarımın niteliğine göre ayrıca değerlendirilir.'
       ]
     },
 
@@ -267,25 +263,26 @@ export default {
       ]
     },
 
-    {
+{
       id: 'basvuru',
       baslik: '10. Başvuru usulü',
       paragraflar: [
-        'Haklarınıza ilişkin taleplerinizi kvkk@localkarar.com adresine iletebilirsiniz. ' +
-        'Başvurunuzun değerlendirilebilmesi için şu bilgileri içermesi gerekir:'
+        'KVKK\'nın 11. maddesi kapsamındaki taleplerinizi yazılı olarak veya mevzuatta izin verilen elektronik yöntemlerle iletebilirsiniz. Elektronik posta ile başvuru yapmanız hâlinde, LocalKarar\'a daha önce bildirdiğiniz ve sistemimizde kayıtlı bulunan e-posta adresini kullanmanız gerekir. Bu yöntemle yapılacak başvurular kvkk@localkarar.com adresine gönderilebilir.'
       ],
       liste: [
-        'Ad, soyad ve başvuru yazılı ise imza',
-        'Hesabınızda kayıtlı e-posta adresi',
-        'Bildirime esas adresiniz',
-        'Talebinizin konusu ve açıklaması'
+        'Ad ve soyad; başvuru yazılı ise imza',
+        'Türkiye Cumhuriyeti vatandaşları için T.C. kimlik numarası; yabancılar için uyruğu, pasaport numarası veya varsa kimlik numarası',
+        'Tebligata esas yerleşim yeri veya iş yeri adresi',
+        'Varsa bildirime esas e-posta adresi, telefon ve faks numarası',
+        'Talebinizin konusu',
+        'Talebinizle ilgili bilgi ve belgeler, varsa başvuruya eklenmelidir'
       ],
       son: [
         'Başvurularınız, talebin niteliğine göre en geç otuz gün içinde sonuçlandırılır ' +
         've size yazılı olarak veya elektronik ortamda bildirilir. İşlemin ayrıca bir ' +
-        'maliyet gerektirmesi hâlinde Kurul’ca belirlenen tarifedeki ücret alınabilir.',
+        'maliyet gerektirmesi hâlinde Kurul\'ca belirlenen tarifedeki ücret alınabilir.',
         'Başvurunuz reddedilir, verilen cevabı yetersiz bulursanız veya süresinde cevap ' +
-        'verilmezse Kişisel Verileri Koruma Kurulu’na şikâyette bulunma hakkınız saklıdır.'
+        'verilmezse Kişisel Verileri Koruma Kurulu\'na şikâyette bulunma hakkınız saklıdır.'
       ]
     },
 

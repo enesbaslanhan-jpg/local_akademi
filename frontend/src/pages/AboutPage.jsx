@@ -134,14 +134,16 @@ export default function AboutPage() {
 
           <section className={styles.kahraman}>
             <h1>İşletmen için doğru kararlar</h1>
-            <p className={styles.kahramanMetin}>
-              LocalKarar, küçük ve orta ölçekli işletmeler için bir karar
-              destek uygulaması. Tahmine değil, kendi rakamlarına dayanan
-              kararlar vermene yardım eder.
-            </p>
-            <div className={styles.kahramanEylemler}>
-              <Link to="/register" className={styles.birincilDugme}>Ücretsiz hesap oluştur</Link>
-              <Link to="/login" className={styles.ikincilDugme}>Zaten hesabım var</Link>
+            <div className={styles.kahramanDetay}>
+              <p className={styles.kahramanMetin}>
+                LocalKarar, küçük ve orta ölçekli işletmeler için bir karar
+                destek uygulaması. Tahmine değil, kendi rakamlarına dayanan
+                kararlar vermene yardım eder.
+              </p>
+              <div className={styles.kahramanEylemler}>
+                <Link to="/register" className={styles.birincilDugme}>Ücretsiz hesap oluştur</Link>
+                <Link to="/login" className={styles.ikincilDugme}>Zaten hesabım var</Link>
+              </div>
             </div>
           </section>
         </div>

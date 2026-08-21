@@ -71,6 +71,21 @@
 .deleteButton:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--shadow-3); }
 .deleteButton:active:not(:disabled) { transform: scale(.98); box-shadow: var(--shadow-1); }
 .deleteButton:disabled { opacity: .55; cursor: not-allowed; }
+
+/* --- Onay bilgileri ------------------------------------------------------ */
+
+.consentInfo { display: grid; gap: 10px; }
+.consentLoading, .consentError { padding: 12px; border-radius: 8px; font-size: .8rem; }
+.consentLoading { color: var(--text-light); background: var(--surface-panel); }
+.consentError { color: var(--danger); background: var(--danger-bg); border: 1px solid var(--danger); }
+.consentRow { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.consentRow:last-of-type { border-bottom: none; }
+.consentRow > span { color: var(--text-light); font-size: .8rem; }
+.consentRow > strong { min-width: 0; overflow-wrap: anywhere; color: var(--text); font-size: .8rem; font-weight: 700; text-align: right; }
+.consentStatus { margin-top: 4px; padding: 10px 12px; border-radius: 8px; font-size: .78rem; line-height: 1.45; }
+.consentOk { color: var(--success); background: var(--success-bg); }
+.consentWarn { color: var(--warning, #856404); background: var(--warning-bg, #fff3cd); border: 1px solid var(--warning-border, #ffc107); }
+
 @media (max-width: 850px) { .profileHeader { margin-left: 0; } .settingsShell { grid-template-columns: 1fr; } .settingsNav { position: static; display: flex; overflow-x: auto; } .settingsNav button { flex: 0 0 auto; width: auto; } }
 @media (max-width: 620px) { .profileHeader { padding: 16px; } .avatar { width: 54px; height: 54px; border-radius: 17px; } .twoFields, .themeGrid { grid-template-columns: 1fr; } .cardBody { padding: 16px; } .sectionFoot, .emptyBlock, .switchRow { align-items: stretch; flex-direction: column; } .sectionFoot > div, .sectionFoot button { width: 100%; } }
 @media (prefers-reduced-motion: reduce) { .settingsNav a, .themeChoice, .switchRow input, .switchRow input::after { transition: none; } }

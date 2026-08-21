@@ -31,7 +31,8 @@
    * Açık uç da tam beyaza gitmiyor; kart kendi beyazıyla ayrışabilsin.
    */
   background: var(--auth-gradient);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Vaat bölümü olmayan ekranlar (şifre sıfırlama, e-posta doğrulama):
@@ -186,7 +187,10 @@
 .cardWrap {
   position: relative;
   display: flex;
+  flex-direction: column;
+  align-items: flex-end;
   justify-content: flex-end;
+  gap: 14px;
   flex-grow: 1;
 }
 
@@ -522,6 +526,36 @@
 
 .legal a:hover { color: var(--auth-text); text-decoration: underline; }
 
+/* --- Footer (alt bilgi çubuğu) ----------------------------------------- */
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  width: clamp(380px, 29vw, 540px);
+}
+
+.footer .legal {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  justify-content: center;
+}
+
+.footer .legal a {
+  color: var(--auth-legal);
+  font-size: 0.69rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.footer .legal a:hover {
+  color: var(--auth-text);
+  text-decoration: underline;
+}
+
 /* --- Dar ekran --------------------------------------------------------- */
 
 /*
@@ -537,7 +571,7 @@
     flex-direction: column;
     justify-content: center;
     gap: var(--space-6, 28px);
-    padding: var(--space-7, 36px) var(--space-4, 20px) 64px;
+    padding: var(--space-7, 36px) var(--space-4, 20px) var(--space-5, 24px);
     background: var(--auth-gradient-narrow);
   }
 
@@ -554,6 +588,7 @@
   .origin { display: none; }
 
   .cardWrap {
+    align-items: center;
     justify-content: center;
     flex-grow: 0;
     width: 100%;
@@ -564,19 +599,23 @@
     max-width: 420px;
   }
 
-  .legal {
-    position: static;
-    justify-content: center;
-    margin-top: 4px;
+  .footer {
+    width: 100%;
+    max-width: 420px;
+    padding-bottom: 8px;
   }
 
-  .legal a { color: var(--auth-legal); }
+  .footer .legal {
+    justify-content: center;
+  }
+
 }
 
 @media (max-width: 460px) {
   .card { padding: 26px 20px 22px; }
   .pwHints { grid-template-columns: 1fr; }
   .legal { gap: 12px; }
+  .footer .legal { gap: 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

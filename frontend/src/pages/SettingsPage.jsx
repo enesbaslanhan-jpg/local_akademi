@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
   Bell,
   BriefcaseBusiness,
@@ -68,9 +68,44 @@ export default function SettingsPage() {
   const [avatarMsg, setAvatarMsg] = useState(null)
   const [avatarBuyuk, setAvatarBuyuk] = useState(false)
 
+  const [consents, setConsents] = useState([])
+  const [missingConsents, setMissingConsents] = useState([])
+  const [legalDocuments, setLegalDocuments] = useState([])
+  const [consentsLoading, setConsentsLoading] = useState(true)
+  const [consentsError, setConsentsError] = useState(null)
+
+  const location = useLocation()
+  const isPrivacySection = activeSection === 'privacy' || location.pathname === '/app/settings#yasal'
+
   useEffect(() => {
     api.onboarding.getProfile().then(setProfile).catch(() => setProfile(null))
     api.system.health().then(setSystemInfo).catch(() => setSystemInfo({ status: 'unavailable', version: '—', database: { label: 'Bağlantı bilgisi alınamadı', connected: false } }))
+  }, [])
+
+  useEffect(() => {
+    let mounted = true
+    setConsentsLoading(true)
+    Promise.all([api.auth.getConsents(), api.auth.getLegalDocuments()])
+      .then(([consentData, legalData]) => {
+        if (mounted) {
+          setConsents(consentData.accepted || [])
+          setMissingConsents(consentData.missing || [])
+          setLegalDocuments(legalData.documents || [])
+          setConsentsError(null)
+        }
+      })
+      .catch(err => {
+        if (mounted) {
+          setConsentsError(err.message)
+          setConsents([])
+          setMissingConsents([])
+          setLegalDocuments([])
+        }
+      })
+      .finally(() => {
+        if (mounted) setConsentsLoading(false)
+      })
+    return () => { mounted = false }
   }, [])
 
   useEffect(() => {
@@ -325,6 +360,52 @@ export default function SettingsPage() {
 
           <SettingsSection id="yasal" icon={<Scale />} title="Gizlilik ve yasal bilgiler" description="Verilerinizin nasıl işlendiğini ve LocalKarar kullanım koşullarını inceleyin.">
             <div className={styles.legalLinks}><button type="button" onClick={() => navigate('/hakkinda')}>LocalKarar hakkında</button><button type="button" onClick={() => navigate('/privacy')}>Gizlilik ve KVKK aydınlatma metni</button><button type="button" onClick={() => navigate('/terms')}>Kullanım koşulları</button><button type="button" onClick={() => navigate('/cookies')}>Çerez ve yerel depolama politikası</button></div>
+          </SettingsSection>
+
+          <SettingsSection id="onay-bilgileri" icon={<Scale />} title="Onay bilgileri" description="Yasal metinlerin güncel sürümleri ve sizin kabul ettiğiniz sürümler.">
+            <div className={styles.consentInfo}>
+              {consentsLoading ? (
+                <div className={styles.consentLoading}>Yükleniyor…</div>
+              ) : consentsError ? (
+                <div className={styles.consentError}>Bilgiler yüklenemedi: {consentsError}</div>
+              ) : (
+                <>
+                  <div className={styles.consentRow}>
+                    <span>Güncel sürüm</span>
+                    <strong>{legalDocuments.find(d => d.type === 'privacy')?.version || '—'}</strong>
+                  </div>
+                  <div className={styles.consentRow}>
+                    <span>Kabul edilen sürüm</span>
+                    <strong>
+                      {(() => {
+                        const c = consents.find(k => k.documentType === 'privacy')
+                        return c?.version || 'Henüz kabul edilmemiş'
+                      })()}
+                    </strong>
+                  </div>
+                  {(() => {
+                    const c = consents.find(k => k.documentType === 'privacy')
+                    return c?.acceptedAt ? (
+                      <div className={styles.consentRow}>
+                        <span>Son onay</span>
+                        <strong>{new Date(c.acceptedAt).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' })}</strong>
+                      </div>
+                    ) : null
+                  })()}
+                  <div className={styles.consentStatus}>
+                    {(() => {
+                      if (missingConsents.length === 0) {
+                        return <span className={styles.consentOk}>Güncel metinleri kabul ettiniz.</span>
+                      }
+                      if (missingConsents.some(m => m.type === 'privacy')) {
+                        return <span className={styles.consentWarn}>Yeni yasal metinleri inceleyip onaylamanız gerekiyor.</span>
+                      }
+                      return <span className={styles.consentWarn}>Bazı yasal metinler güncellendi, onayınız bekleniyor.</span>
+                    })()}
+                  </div>
+                </>
+              )}
+            </div>
           </SettingsSection>
 
           <section id="hesap-sil" className={`${styles.card} ${styles.dangerCard}`}><header className={styles.cardHeader}><span><Trash2 /></span><div><h2>Hesabı sil</h2><p>Bu işlem hesabınızı devre dışı bırakır, kişisel kimlik bilgilerinizi anonimleştirir ve oturumunuzu kapatır.</p></div></header><div className={styles.cardBody}><form onSubmit={deleteAccount}><div className={styles.dangerNotice}>Tek sahibi olduğunuz bir işletme varsa önce başka bir üyeyi sahip yapmanız gerekir. Bu işlem geri alınamaz.</div><Field label="Mevcut şifre"><PasswordInput overlay wrapClassName={styles.pwWrap} autoComplete="current-password" value={deleteForm.password} onChange={event => setDeleteForm(current => ({ ...current, password: event.target.value }))} required /></Field><Field label="Onay"><input value={deleteForm.confirmation} onChange={event => setDeleteForm(current => ({ ...current, confirmation: event.target.value }))} placeholder="HESABIMI SİL" required /></Field><Footer message={<Message msg={deleteMsg} />}><button type="submit" className={styles.deleteButton} disabled={deleteSaving}>{deleteSaving ? 'Hesap siliniyor…' : 'Hesabımı kalıcı olarak sil'}</button></Footer></form></div></section>

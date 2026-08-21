@@ -1,21 +1,158 @@
-/*
- * Çizim, kabının genişliğini alır ve oranını korur. Sabit piksel
- * verilmiyor: aynı bileşen dar ekranda tam genişlikte, geniş ekranda
- * zikzak düzenin bir sütununda kullanılıyor.
- */
-.cizim {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 12px;
-  /* Çizgiler tarayıcı ölçeklemesinde kaybolmasın. */
-  shape-rendering: geometricPrecision;
+.cerceve {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--auth-card-border);
+  border-radius: 14px;
+  background: var(--surface-panel);
+  box-shadow: var(--auth-card-shadow);
 }
 
-.cizim line,
-.cizim rect,
-.cizim path,
-.cizim circle {
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
+.onizleme {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: zoom-in;
+}
+
+.onizleme:focus-visible {
+  outline: 3px solid var(--accent-primary);
+  outline-offset: -3px;
+}
+
+.cerceve::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .04);
+}
+
+.goruntu {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.buyutRozeti {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, .24);
+  border-radius: 999px;
+  background: rgba(7, 18, 24, .86);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .28);
+  color: #f4fbff;
+  font-size: .78rem;
+  font-weight: 700;
+  line-height: 1;
+  backdrop-filter: blur(8px);
+}
+
+.arkaPlan {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(2, 8, 12, .86);
+  backdrop-filter: blur(8px);
+}
+
+.pencere {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(96vw, 1660px);
+  height: min(94vh, 1080px);
+  overflow: hidden;
+  border: 1px solid var(--auth-card-border);
+  border-radius: 18px;
+  background: var(--surface-panel);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .55);
+}
+
+.pencereBasligi {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--auth-card-border);
+}
+
+.pencereBasligi div {
+  display: grid;
+  gap: 2px;
+}
+
+.pencereBasligi strong {
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.pencereBasligi span {
+  color: var(--text-muted);
+  font-size: .78rem;
+}
+
+.kapat {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border: 1px solid var(--auth-card-border);
+  border-radius: 10px;
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.kaydirmaAlani {
+  overflow: auto;
+  background: #0d1418;
+  overscroll-behavior: contain;
+}
+
+.buyukGoruntu {
+  display: block;
+  width: 1600px;
+  max-width: none;
+  height: auto;
+}
+
+@media (max-width: 640px) {
+  .arkaPlan {
+    padding: 8px;
+  }
+
+  .pencere {
+    width: calc(100vw - 16px);
+    height: calc(100dvh - 16px);
+    border-radius: 12px;
+  }
+
+  .pencereBasligi {
+    padding: 10px 12px;
+  }
+
+  .pencereBasligi span {
+    max-width: 220px;
+  }
+
+  .buyutRozeti {
+    right: 8px;
+    bottom: 8px;
+  }
 }

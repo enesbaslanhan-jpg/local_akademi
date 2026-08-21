@@ -22,6 +22,29 @@
   line-height: 1.5;
 }
 
+/* Login/register footer'ında içeriğin üstüne çıkmaz; sayfa akışında kalır. */
+.inlineNotice {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) 26px;
+  align-items: start;
+  gap: 10px;
+  width: min(100%, 440px);
+  padding: 10px 12px;
+  border: 1px solid var(--auth-field-border);
+  border-radius: 8px;
+  background: var(--auth-field);
+  color: var(--auth-text-soft);
+  font-size: 0.69rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.inlineNotice .text strong { color: var(--auth-text); }
+.inlineNotice .link { color: var(--auth-accent); }
+.inlineNotice .dismiss { color: var(--auth-text-soft); }
+.inlineNotice .dismiss:hover { background: var(--auth-focus-ring); color: var(--auth-text); }
+.inlineNotice .dismiss:focus-visible { outline-color: var(--auth-accent); }
+
 .icon { flex-shrink: 0; margin-top: 1px; color: var(--text-muted); }
 .text { flex: 1; margin: 0; min-width: 0; }
 .text strong { color: var(--text); }
@@ -51,5 +74,9 @@
     right: 12px;
     bottom: 76px;
     max-width: none;
+  }
+
+  .inlineNotice {
+    font-size: 0.67rem;
   }
 }
