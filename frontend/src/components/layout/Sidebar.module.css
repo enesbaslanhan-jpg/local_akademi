@@ -332,9 +332,25 @@
 }
 
 @media (max-width: 1023px) {
+  /*
+   * Dar ekranda kenar çubuğu bir ÇEKMECE — masaüstündeki gibi sabit bir ray
+   * değil, geçici bir katman. Bu yüzden `--z-sidebar` (100) yanlış: alt
+   * sekme çubuğu `--z-bottom-tab` (120) ile onun ÜSTÜNDE kalıyordu ve
+   * menünün alt ~57 pikseli çubuğun arkasında kayboluyordu (ölçüldü,
+   * 21.08.2026).
+   *
+   * Ölçekte tam bu iş için ayrılmış bir değer zaten var: `--z-drawer` (210).
+   * Perde de onun bir altına alınıyor; böylece çekmece açıkken alt çubuk
+   * hem görsel olarak sönümleniyor hem de arkasından tıklanamıyor.
+   */
   .sidebar {
     transform: translateX(-100%);
     box-shadow: var(--shadow-deep);
+    z-index: var(--z-drawer);
+  }
+
+  .overlay {
+    z-index: calc(var(--z-drawer) - 1);
   }
 
   .open {

@@ -41,7 +41,7 @@ export default function MobileTabBar() {
             aria-current={active ? 'page' : undefined}
           >
             <Icon size={20} aria-hidden="true" />
-            <span className={styles.label}>{link.label}</span>
+            <span className={styles.label}>{link.kisaEtiket || link.label}</span>
           </button>
         )
       })}

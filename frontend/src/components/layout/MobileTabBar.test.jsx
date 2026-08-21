@@ -42,8 +42,21 @@ describe('MobileTabBar', () => {
   it('mobil sırayı taşır: Kurslar ve AI Mentor çubukta DEĞİL', () => {
     ciz('/app/dashboard')
     expect(etiketler()).toEqual([
-      'Ana Sayfa', 'Topluluk', 'Karar Araçları', 'Hesaplamalar', 'Haberler'
+      'Ana Sayfa', 'Topluluk', 'Kararlar', 'Hesaplama', 'Haberler'
     ])
+  })
+
+  /*
+   * Kısa etiketler süs değil: dar ekranda etiket kabı ~71px ve tam adlar
+   * ("Karar Araçları" 69px, "Hesaplamalar" 71px) oraya sığmıyor, üç noktayla
+   * kesiliyordu — 9.6px'te bile. Biri tam ada dönerse çubuk yine kesik
+   * etiket gösterir; bu test onu yakalar.
+   */
+  it('uzun menü adları için kısa etiket kullanır', () => {
+    ciz('/app/dashboard')
+    const metinler = etiketler()
+    expect(metinler).not.toContain('Karar Araçları')
+    expect(metinler).not.toContain('Hesaplamalar')
   })
 
   it('forumdayken Haberler etkin görünmez', () => {

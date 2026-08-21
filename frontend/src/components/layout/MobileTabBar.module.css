@@ -12,7 +12,11 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: var(--z-header);
+    /* Ölçekte bu çubuk için AYRILMIŞ değer `--z-bottom-tab` (120); burada
+       yanlışlıkla `--z-header` (110) kullanılıyordu. Görünürde bir fark
+       yaratmıyordu çünkü ikisi de üst çubukla çakışmıyor, ama katman
+       sırasını okuyan biri yanlış yere bakardı. */
+    z-index: var(--z-bottom-tab);
     background: var(--white);
     border-top: 1px solid var(--border);
     box-shadow: 0 -6px 22px rgba(18, 23, 23, 0.07);
@@ -29,7 +33,12 @@
     gap: 3px;
     /* Dokunma hedefi en az 44x44 */
     min-height: 56px;
-    padding: var(--space-2) var(--space-1);
+    /* Yatay dolgu 12px'ti ve etiket kabını 75px'ten 51px'e düşürüyordu —
+       uzun etiketler bu yüzden 9.6px'te bile kesiliyordu. Sekmeler zaten
+       `flex: 1` ile eşit paylaşıldığı için aralarındaki boşluğu dolgu
+       sağlamıyor; daraltmak görünümü değiştirmiyor, yalnız yazıya yer
+       açıyor. Dokunma hedefi etkilenmez, sekme genişliği aynı kalıyor. */
+    padding: var(--space-2) 2px;
     background: transparent;
     border: 0;
     color: var(--text-light);
@@ -55,7 +64,11 @@
   }
 
   .label {
-    font-size: 0.6rem;
+    /* 0.6rem = 9.6px idi. Mobilde BİRİNCİL gezinmenin etiketi bu; ölçüldü
+       ve arayüzdeki en küçük yazıydı. Kontrast sorunu yok (10.2:1), sorun
+       tamamen boyuttu. 0.69rem ≈ 11px: beş sekme hâlâ yan yana sığıyor,
+       taşan etiket zaten `text-overflow: ellipsis` ile kısalıyor. */
+    font-size: 0.69rem;
     font-weight: var(--font-weight-medium);
     line-height: 1.1;
     max-width: 100%;

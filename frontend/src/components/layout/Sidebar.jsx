@@ -27,8 +27,8 @@ import { featureFlags } from '@/config/featureFlags'
  */
 const dashboardLink = { id: 'dashboard', label: 'Ana Sayfa', icon: Home, path: '/app/dashboard', exact: true }
 const coursesLink = { id: 'courses', label: 'Kurslar', icon: BookOpen, path: '/app/courses' }
-const decisionLink = { id: 'decision-checks', label: 'Karar Araçları', icon: Scale, path: '/app/decision-checks', recommended: true }
-const toolsLink = { id: 'tools', label: 'Hesaplamalar', icon: Calculator, path: '/app/calculations' }
+const decisionLink = { id: 'decision-checks', label: 'Karar Araçları', kisaEtiket: 'Kararlar', icon: Scale, path: '/app/decision-checks', recommended: true }
+const toolsLink = { id: 'tools', label: 'Hesaplamalar', kisaEtiket: 'Hesaplama', icon: Calculator, path: '/app/calculations' }
 const mentorLink = { id: 'mentor', label: 'AI Mentor', icon: Bot, path: '/app/mentor' }
 
 const decisionGroup = featureFlags.decisionChecks ? [decisionLink] : []
@@ -41,6 +41,10 @@ const forumLink = { id: 'community-forum', label: 'Topluluk', icon: MessagesSqua
 
 /*
  * MOBİL alt sekme çubuğu — masaüstü rayından BİLEREK ayrı.
+ *
+ * `kisaEtiket`: dar ekranda etiket kabı ~71px. "Karar Araçları" ve
+ * "Hesaplamalar" oraya sığmıyor ve üç noktayla kesiliyordu (9.6px'te
+ * bile — ölçüldü). Masaüstü tam adı kullanmaya devam ediyor.
  *
  * Eskiden tek dizi vardı ve MobileTabBar onu kullanıyordu. Ürün sahibinin
  * kararıyla (21.08.2026) mobil sıra ayrıştı: dar ekranda Kurslar ve AI
