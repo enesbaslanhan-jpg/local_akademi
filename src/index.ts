@@ -47,7 +47,8 @@ import { ensureFinancialModelCatalog } from './services/financial-models/catalog
 import { deleteExpiredReviewerTelemetry } from './services/ai-reviewer'
 import { disconnectPrisma, prisma } from './lib/prisma'
 import { RELEASE_INFO } from './config/release'
-import { existsSync } from 'fs'
+import { createHash } from 'crypto'
+import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
 
 const isProduction = process.env.NODE_ENV === 'production'
@@ -187,23 +188,94 @@ async function build() {
   console.log('[CORS] raw:', corsOriginRaw, '| parsed:', JSON.stringify(corsOrigin))
   await server.register(cors, { origin: corsOrigin, credentials: true })
 
-  /* İçerik Güvenliği Politikası.
-     Token `localStorage`'da tutulduğu için XSS'in bedeli yüksek; CSP en
-     ucuz ikinci savunma katmanı.
+  /* Statik dosya kökü. CSP, servis edilen `index.html`i OKUYARAK
+     özet çıkardığı için bu tanım politikadan ÖNCE gelmek zorunda. */
+  const publicPath = join(__dirname, 'public')
+  const hasPublicDir = existsSync(publicPath)
 
-     - `script-src 'self'`: harici script yok. `index.html`'deki tema
-       bootstrap'i satır içi olduğu için `'unsafe-inline'` gerekiyor;
-       nonce'a geçmek ayrı bir iş (SPA build'i etkiler).
-     - `style-src` satır içi stile izin verir: CSS Modules ve React'in
-       `style` prop'u satır içi üretiyor.
-     - `font-src 'self'`: fontlar artık kendi sunucumuzdan (Google Fonts
-       kaldırıldı), harici font kaynağı yok.
-     - `connect-src 'self'`: tarayıcıdan dışarı istek yok; AI çağrıları
-       sunucu tarafında yapılıyor.
-     - `frame-ancestors 'none'`: X-Frame-Options'ın modern karşılığı. */
+  /*
+   * İçerik Güvenliği Politikası.
+   *
+   * Token `localStorage`'da tutuluyor, yani XSS ile OKUNABİLİR. Erişim
+   * jetonunun süresini kısaltmak burada asıl çözüm değil — hırsız
+   * yenileme jetonunu da alır. En büyük tek kazanç `script-src`ten
+   * `'unsafe-inline'`ı kaldırmaktır ve bu sürüm onu yapıyor.
+   *
+   * NASIL: `index.html` içindeki tema betiği satır içi kalmak ZORUNDA —
+   * boyamadan önce çalışmazsa kullanıcı her açılışta yanlış temanın
+   * parlamasını görür. Dış dosyaya taşımak o parlamayı geri getirirdi.
+   * Bunun yerine betiğin SHA-256 özeti politikaya yazılıyor.
+   *
+   * 🔴 ÖZET ELLE YAZILMIYOR, SERVİS EDİLEN DOSYADAN OKUNUYOR.
+   * Elle yazılsaydı betik bir gün değiştiğinde özet eskir, tarayıcı
+   * betiği engeller ve tema bozulur — üstelik bunu kimse fark etmez,
+   * çünkü hata yalnız tarayıcı konsolunda görünür. Dosyadan okumak
+   * kaymayı imkânsız kılıyor.
+   *
+   * `style-src 'unsafe-inline'` KALIYOR ve bu bilinçli: React'in
+   * `style` prop'u ve CSS Modules satır içi stil üretiyor. Onu
+   * kaldırmak arayüzün büyük kısmını bozar ve XSS açısından kazancı
+   * script'e göre çok küçüktür.
+   */
+  function satirIciBetikOzetleri(): string[] {
+    const htmlYolu = join(publicPath, 'index.html')
+    if (!existsSync(htmlYolu)) return []
+    try {
+      const html = readFileSync(htmlYolu, 'utf8')
+      const ozetler: string[] = []
+      /* Düzenli ifade yerine düz ayrıştırma: satır içi betik aramak
+         için gereken kaçış karakterleri okunmayı zorlaştırıyordu. */
+      let imlec = 0
+      for (;;) {
+        const acilis = html.indexOf('<script', imlec)
+        if (acilis < 0) break
+        const acilisSonu = html.indexOf('>', acilis)
+        if (acilisSonu < 0) break
+        const etiket = html.slice(acilis, acilisSonu)
+        const kapanis = html.indexOf('</script>', acilisSonu)
+        if (kapanis < 0) break
+        const govde = html.slice(acilisSonu + 1, kapanis)
+        imlec = kapanis + 9
+        /* Dış dosyayı çeken etiketin gövdesi yok; özet gerekmiyor. */
+        if (etiket.includes(' src=')) continue
+        if (!govde.trim()) continue
+        /* Tarayıcı özeti etiketler ARASINDAKİ metnin tamamı üzerinden
+           hesaplıyor; kırpmak özeti tutmaz hâle getirir. */
+        ozetler.push(`'sha256-${createHash('sha256').update(govde, 'utf8').digest('base64')}'`)
+      }
+      return ozetler
+    } catch {
+      /* Okunamadıysa özet yok: aşağıdaki koşul devreye girip
+         `'unsafe-inline'`a düşüyor. Sessizce katı politika yazıp siteyi
+         beyaz ekrana düşürmek, biraz gevşek politikadan kötüdür. */
+      return []
+    }
+  }
+
+  const betikOzetleri = satirIciBetikOzetleri()
+  /*
+   * Satır içi betik VARSA ama özeti çıkarılamadıysa `'unsafe-inline'`a
+   * dönülüyor. Bu bir gerileme değil, güvenlik uğruna siteyi kırmama
+   * kararı: HTML servis edilmiyorsa (yalnız API dağıtımı, testler)
+   * zaten satır içi betik yok ve politika en katı hâlinde kalıyor.
+   */
+  const htmlServisEdiliyor = hasPublicDir && existsSync(join(publicPath, 'index.html'))
+  const scriptSrc = betikOzetleri.length > 0
+    ? `script-src 'self' ${betikOzetleri.join(' ')}`
+    : htmlServisEdiliyor
+      ? "script-src 'self' 'unsafe-inline'"
+      : "script-src 'self'"
+
+  if (htmlServisEdiliyor && betikOzetleri.length === 0) {
+    server.log.warn(
+      { errorCode: 'CSP_INLINE_HASH_MISSING' },
+      'index.html satir ici betik ozeti cikarilamadi; script-src unsafe-inline ile calisiyor',
+    )
+  }
+
   const CONTENT_SECURITY_POLICY = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    scriptSrc,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self' data:",
@@ -258,8 +330,6 @@ async function build() {
    */
   mailYapilandirmasiniDogrula()
 
-  const publicPath = join(__dirname, 'public')
-  const hasPublicDir = existsSync(publicPath)
   if (hasPublicDir) {
     await server.register(fastifyStatic, {
       root: publicPath,

@@ -265,7 +265,20 @@ export async function authRoutes(fastify: FastifyInstance) {
     const owner = await prisma.user.findFirst({ where: { avatarStoredName: storedName, deletedAt: null }, select: { avatarMimeType: true } })
     if (!owner?.avatarMimeType) return reply.status(404).send({ error: 'Profil fotoğrafı bulunamadı.' })
     reply.header('Content-Type', owner.avatarMimeType)
-    reply.header('Cache-Control', 'public, max-age=86400, immutable')
+    /*
+     * `public, max-age=86400, immutable` DEĞİL.
+     *
+     * Topluluk medyasında aynı sorun ölçülmüştü: önümüzde Cloudflare
+     * var ve `public` kenar sunucusunun dosyayı kendi diskine alması
+     * demek. Kullanıcı uygunsuz bir profil fotoğrafını kaldırdığında
+     * ya da hesabı askıya alındığında, dosya kenar önbelleğinden 24
+     * saat daha servis edilirdi.
+     *
+     * `private`: yalnız tarayıcı saklar. 10 dakika, her sayfada
+     * yeniden indirilmemesi için — avatar her ekranda görünüyor ve
+     * `no-cache` burada gereksiz trafik yaratırdı.
+     */
+    reply.header('Cache-Control', 'private, max-age=600')
     reply.header('X-Content-Type-Options', 'nosniff')
     return reply.send(createReadStream(safeAvatarPath(storedName)))
   })

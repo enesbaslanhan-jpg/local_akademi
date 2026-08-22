@@ -77,6 +77,13 @@ jobs:
       - name: Secret scan
         run: npm run secret:scan
 
+      # 22.08.2026 denetiminde src/ altinda ham SQL kullanimi SIFIRDI.
+      # Bu adim onu boyle tutuyor: tek bir $queryRawUnsafe cagrisi
+      # guvenceyi sessizce bitirir ve kod incelemesinde gozden kacar --
+      # cunku calisir, testler gecer, hicbir sey uyarmaz.
+      - name: Raw SQL scan
+        run: npm run sql:scan
+
       # Gizli anahtar taramasi vardi, BAGIMLILIK taramasi yoktu. 22.08.2026
       # olcumunde uretim bagimliliklarinda iki YUKSEK acik birikmisti
       # (brace-expansion DoS, fast-uri host confusion) ve hicbir sey uyarmadi.

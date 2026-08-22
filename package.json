@@ -99,7 +99,8 @@
     "build:ops": "tsc -p tsconfig.ops.json && node -e \"require('fs').writeFileSync('dist/ops/package.json', JSON.stringify({type:'module'}))\"",
     "ops:backup": "node dist/ops/backup-database.js",
     "ops:backup:verify": "node dist/ops/verify-backup-restore.js",
-    "ops:logs:rotate": "node dist/ops/rotate-operational-logs.js"
+    "ops:logs:rotate": "node dist/ops/rotate-operational-logs.js",
+    "sql:scan": "node scripts/raw-sql-scan.js"
   },
   "dependencies": {
     "@fastify/cors": "^10.1.0",
