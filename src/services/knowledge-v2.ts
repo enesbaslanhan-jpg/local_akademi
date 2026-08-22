@@ -830,7 +830,27 @@ export async function knowledgeV2Routes(fastify: FastifyInstance) {
   }, async (request) => {
     const term = String((request.query as any).q || '').trim().slice(0, 100)
     if (!term) {
-      return { courses: [], knowledge: [], decisionChecks: [], news: [] }
+      return { courses: [], knowledge: [], decisionChecks: [], news: [], people: [], posts: [] }
+    }
+    const arayanId = (request.user as { id: number }).id
+
+    /*
+     * KISI ARAMASINDA ENGEL UYGULANIYOR.
+     *
+     * Engellediklerim ve BENI engelleyenler sonuclarda cikmamali.
+     * Ciksaydi engelleme yine yarim kalirdi: profil ziyaretini
+     * engelleyip aramada gostermek, kisiyi bir tik uzakta birakirdi.
+     *
+     * Iki yon de tek sorguda toplaniyor; iki ayri sorgu acmak bu is
+     * icin gereksiz.
+     */
+    const engeller = await prisma.communityBlock.findMany({
+      where: { OR: [{ blockerId: arayanId }, { blockedId: arayanId }] },
+      select: { blockerId: true, blockedId: true },
+    })
+    const engelliKimlikler = new Set<number>()
+    for (const e of engeller) {
+      engelliKimlikler.add(e.blockerId === arayanId ? e.blockedId : e.blockerId)
     }
     const contains = { contains: term, mode: 'insensitive' as const }
 
@@ -909,7 +929,59 @@ export async function knowledgeV2Routes(fastify: FastifyInstance) {
       }),
     ])
 
-    return { courses, knowledge, decisionChecks, news }
+    /*
+     * KISI ve PAYLASIM aramasi.
+     *
+     * Ayri bir `Promise.all` icinde cunku ikisi de yukaridaki engel
+     * listesine bagli ve o liste await edilmis olmali.
+     */
+    const [people, posts] = await Promise.all([
+      prisma.user.findMany({
+        where: {
+          deletedAt: null,
+          id: { notIn: [...engelliKimlikler] },
+          OR: [{ name: contains }, { bio: contains }],
+        },
+        select: { id: true, name: true, bio: true, avatarStoredName: true },
+        orderBy: { name: 'asc' },
+        take: 5,
+      }),
+      prisma.communityPost.findMany({
+        where: {
+          status: 'published',
+          /* Yanitlar arama sonucunda ayri kart olarak cikmasin --
+             baglamindan kopuk gorunurler. */
+          parentId: null,
+          authorId: { notIn: [...engelliKimlikler] },
+          OR: [{ summary: contains }, { title: contains }],
+        },
+        select: {
+          id: true, summary: true, publishedAt: true,
+          author: { select: { id: true, name: true } },
+        },
+        orderBy: { publishedAt: 'desc' },
+        take: 5,
+      }),
+    ])
+
+    return {
+      courses,
+      knowledge,
+      decisionChecks,
+      news,
+      people: people.map(k => ({
+        id: k.id,
+        name: k.name,
+        bio: k.bio,
+        avatarUrl: k.avatarStoredName ? `/auth/avatar/${k.avatarStoredName}` : null,
+      })),
+      posts: posts.map(g => ({
+        id: g.id,
+        ozet: (g.summary || '').slice(0, 120),
+        publishedAt: g.publishedAt,
+        author: g.author,
+      })),
+    }
   })
 }
 

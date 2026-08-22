@@ -23,6 +23,8 @@ import {
 } from './refresh-tokens.js'
 
 const AVATAR_MAX_BYTES = 5 * 1024 * 1024
+/* Kapak genis bir gorsel; 5 MB'a sigdirmak kullaniciyi ugrastirirdi. */
+const COVER_MAX_BYTES = 8 * 1024 * 1024
 const AVATAR_NAME_RE = /^[0-9a-f-]{36}\.(png|jpg)$/i
 
 /* Parola politikası tek yerden. Kayıt ve değiştirme AYNI kuralı kullanmalı;
@@ -126,7 +128,10 @@ function issueToken(
 
 export async function authRoutes(fastify: FastifyInstance) {
   const avatarDirectory = join(process.cwd(), 'uploads', 'avatars')
-  await fastify.register(fastifyMultipart, { limits: { fileSize: AVATAR_MAX_BYTES, files: 1 } })
+  /* Sinir EN BUYUK yuklemeye gore; avatar kendi siniriyla ayrica
+     kontrol ediliyor. Avatar sinirinda birakilsaydi kapak yuklemesi
+     multipart katmaninda reddedilirdi. */
+  await fastify.register(fastifyMultipart, { limits: { fileSize: COVER_MAX_BYTES, files: 1 } })
   await mkdir(avatarDirectory, { recursive: true })
 
   function avatarUrl(storedName: string | null) {
@@ -254,8 +259,71 @@ export async function authRoutes(fastify: FastifyInstance) {
       name: found.name,
       role: found.role,
       avatarUrl: avatarUrl(found.avatarStoredName),
+      coverUrl: avatarUrl(found.coverStoredName),
+      bio: found.bio,
+      location: found.location,
+      websiteUrl: found.websiteUrl,
+      createdAt: found.createdAt,
       onboardingCompleted: pref?.onboardingCompleted ?? false,
       emailVerified: !!found.emailVerifiedAt
+    }
+  })
+
+  /*
+   * PROFIL DUZENLEME.
+   *
+   * `role` ve `email` BILEREK DISARIDA: rol degistirme yetki
+   * yukseltmesi olurdu, e-posta degisikligi ise dogrulama akisi
+   * gerektirir (mevcut `EmailVerificationCode` hatti). Ikisi de bu
+   * ucun isi degil.
+   */
+  const profilSemasi = z.object({
+    name: z.string().trim().min(2).max(80).optional(),
+    bio: z.string().trim().max(280).optional(),
+    location: z.string().trim().max(60).optional(),
+    /*
+     * Adres SEMASI dogrulaniyor ve yalniz http/https kabul ediliyor.
+     * Serbest metin birakilsaydi `javascript:` adresi profile
+     * konabilir ve tiklayan kullanicida calisirdi.
+     */
+    websiteUrl: z.string().trim().url().max(200)
+      .refine(deger => {
+        /* Duzenli ifade yerine duz kontrol: kacis karakterleri
+           okunmayi zorlastiriyordu ve bir kez sessizce kayboldu. */
+        const kucuk = deger.toLowerCase()
+        return kucuk.startsWith('http://') || kucuk.startsWith('https://')
+      }, 'Yalnız http veya https adresi')
+      .optional()
+      .or(z.literal('')),
+  })
+
+  fastify.patch('/profile', {
+    preHandler: [fastify.authenticate],
+    config: { rateLimit: { max: 30, timeWindow: '1 hour' } },
+  }, async (request, reply) => {
+    const parsed = profilSemasi.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(422).send({ error: 'Geçersiz profil bilgisi.', details: parsed.error.errors })
+    }
+    const veri = parsed.data
+
+    /* Bos metin "temizle" demek; `undefined` "dokunma" demek. Ikisini
+       ayirmazsak kullanici bio'sunu silemez. */
+    const guncelleme: Record<string, unknown> = {}
+    if (veri.name !== undefined) guncelleme.name = veri.name
+    if (veri.bio !== undefined) guncelleme.bio = veri.bio || null
+    if (veri.location !== undefined) guncelleme.location = veri.location || null
+    if (veri.websiteUrl !== undefined) guncelleme.websiteUrl = veri.websiteUrl || null
+
+    const guncel = await prisma.user.update({ where: { id: request.user.id }, data: guncelleme })
+    return {
+      id: guncel.id,
+      name: guncel.name,
+      bio: guncel.bio,
+      location: guncel.location,
+      websiteUrl: guncel.websiteUrl,
+      avatarUrl: avatarUrl(guncel.avatarStoredName),
+      coverUrl: avatarUrl(guncel.coverStoredName),
     }
   })
 
@@ -283,30 +351,65 @@ export async function authRoutes(fastify: FastifyInstance) {
     return reply.send(createReadStream(safeAvatarPath(storedName)))
   })
 
-  fastify.post('/avatar', {
-    preHandler: [fastify.authenticate],
-    config: { rateLimit: { max: 10, timeWindow: '1 hour' } }
-  }, async (request, reply) => {
+  /*
+   * PROFIL GORSELI DOGRULAMA -- avatar ve kapak ORTAK kullaniyor.
+   *
+   * Kapak icin bu 25 satiri kopyalamak, sihirli bayt dogrulamasinin
+   * ikinci bir kopyasini yaratirdi: biri duzeltilip digeri unutulunca
+   * sessizce guvenlik farki olusur.
+   *
+   * Basarili olursa dogrulanmis tampon ve uzantiyi dondurur; aksi
+   * halde yanit ZATEN gonderilmis olur ve `null` doner.
+   */
+  async function profilGorseliniDogrula(request: any, reply: any, enFazla: number, adSinir: string) {
     let upload
     try {
       upload = await request.file()
     } catch (error: any) {
-      return reply.status(error?.statusCode === 413 ? 413 : 400).send({ error: error?.statusCode === 413 ? 'Profil fotoğrafı en fazla 5 MB olabilir.' : 'Dosya okunamadı.' })
+      reply.status(error?.statusCode === 413 ? 413 : 400).send({
+        error: error?.statusCode === 413 ? `${adSinir} en fazla ${Math.round(enFazla / (1024 * 1024))} MB olabilir.` : 'Dosya okunamadı.',
+      })
+      return null
     }
-    if (!upload) return reply.status(400).send({ error: 'Fotoğraf seçilmedi.' })
-    if (!['image/png', 'image/jpeg'].includes(upload.mimetype)) return reply.status(415).send({ error: 'Yalnız PNG veya JPEG fotoğraf yükleyin.' })
+    if (!upload) { reply.status(400).send({ error: 'Fotoğraf seçilmedi.' }); return null }
+    if (!['image/png', 'image/jpeg'].includes(upload.mimetype)) {
+      reply.status(415).send({ error: 'Yalnız PNG veya JPEG fotoğraf yükleyin.' })
+      return null
+    }
 
     const buffer = await upload.toBuffer().catch(() => Buffer.alloc(0))
-    if (!buffer.length || buffer.length > AVATAR_MAX_BYTES) return reply.status(buffer.length > AVATAR_MAX_BYTES ? 413 : 422).send({ error: 'Fotoğraf boş veya çok büyük.' })
+    if (!buffer.length || buffer.length > enFazla) {
+      reply.status(buffer.length > enFazla ? 413 : 422).send({ error: 'Fotoğraf boş veya çok büyük.' })
+      return null
+    }
+
+    /* Uzanti degil ICERIK belirleyici: istemcinin beyan ettigi tur
+       dogrulanmadan kabul edilseydi, .png diye gonderilen baska bir
+       dosya diske yazilirdi. */
     const detected = detectFileType(buffer)
     const expected = upload.mimetype === 'image/png' ? 'png' : 'jpeg'
-    if (!detected.valid || detected.detectedType !== expected) return reply.status(415).send({ error: 'Fotoğraf içeriği dosya türüyle uyuşmuyor.' })
+    if (!detected.valid || detected.detectedType !== expected) {
+      reply.status(415).send({ error: 'Fotoğraf içeriği dosya türüyle uyuşmuyor.' })
+      return null
+    }
     try {
       validateImageFile(buffer, expected)
     } catch (error) {
-      if (error instanceof FileValidationError) return reply.status(error.statusCode).send({ error: error.message })
+      if (error instanceof FileValidationError) { reply.status(error.statusCode).send({ error: error.message }); return null }
       throw error
     }
+
+    return { buffer, expected, mimetype: upload.mimetype }
+  }
+
+  fastify.post('/avatar', {
+    preHandler: [fastify.authenticate],
+    config: { rateLimit: { max: 10, timeWindow: '1 hour' } }
+  }, async (request, reply) => {
+    const dogrulanan = await profilGorseliniDogrula(request, reply, AVATAR_MAX_BYTES, 'Profil fotoğrafı')
+    if (!dogrulanan) return
+    const { buffer, expected } = dogrulanan
+    const upload = { mimetype: dogrulanan.mimetype }
 
     const found = await prisma.user.findUnique({ where: { id: request.user.id }, select: { avatarStoredName: true } })
     if (!found) return reply.status(404).send({ error: 'User not found' })
@@ -321,6 +424,49 @@ export async function authRoutes(fastify: FastifyInstance) {
     }
     if (found.avatarStoredName) await unlink(safeAvatarPath(found.avatarStoredName)).catch(() => {})
     return reply.status(201).send({ avatarUrl: avatarUrl(storedName) })
+  })
+
+  /*
+   * KAPAK GORSELI. Avatar ile AYNI hatti kullaniyor: ayni dogrulama,
+   * ayni dizin, ayni guvenli yol cozumu. Ikinci bir yukleme yolu
+   * yazilmadi.
+   *
+   * Sinir avatardan buyuk (8 MB): kapak genis bir gorsel ve 5 MB'a
+   * sigdirmak kullaniciyi gereksiz yere ugrastirir.
+   */
+  fastify.post('/cover', {
+    preHandler: [fastify.authenticate],
+    config: { rateLimit: { max: 10, timeWindow: '1 hour' } },
+  }, async (request, reply) => {
+    const dogrulanan = await profilGorseliniDogrula(request, reply, COVER_MAX_BYTES, 'Kapak fotoğrafı')
+    if (!dogrulanan) return
+
+    const found = await prisma.user.findUnique({ where: { id: request.user.id }, select: { coverStoredName: true } })
+    if (!found) return reply.status(404).send({ error: 'User not found' })
+
+    const storedName = `${randomUUID()}.${dogrulanan.expected === 'png' ? 'png' : 'jpg'}`
+    const target = safeAvatarPath(storedName)
+    await writeFile(target, dogrulanan.buffer, { flag: 'wx' })
+    try {
+      await prisma.user.update({
+        where: { id: request.user.id },
+        data: { coverStoredName: storedName, coverMimeType: dogrulanan.mimetype },
+      })
+    } catch (error) {
+      /* Kayit basarisizsa diskte oksuz dosya birakma. */
+      await unlink(target).catch(() => {})
+      throw error
+    }
+    if (found.coverStoredName) await unlink(safeAvatarPath(found.coverStoredName)).catch(() => {})
+    return reply.status(201).send({ coverUrl: avatarUrl(storedName) })
+  })
+
+  fastify.delete('/cover', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const found = await prisma.user.findUnique({ where: { id: request.user.id }, select: { coverStoredName: true } })
+    if (!found) return reply.status(404).send({ error: 'User not found' })
+    await prisma.user.update({ where: { id: request.user.id }, data: { coverStoredName: null, coverMimeType: null } })
+    if (found.coverStoredName) await unlink(safeAvatarPath(found.coverStoredName)).catch(() => {})
+    return { coverUrl: null }
   })
 
   fastify.delete('/avatar', { preHandler: [fastify.authenticate] }, async (request, reply) => {

@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import type { PrismaClient } from '@prisma/client'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { z } from 'zod'
+import { bildirimYaz, gonderiSahibineBildir } from './community-bildirim.js'
 import fastifyMultipart from '@fastify/multipart'
 import { createReadStream } from 'fs'
 import { mkdir, stat, unlink, writeFile } from 'fs/promises'
@@ -655,6 +656,18 @@ export async function communityRoutes(
         ...(media ? { media: { connect: { id: media.id } } } : {}),
       },
     })
+    /*
+     * Yanit ve alinti bildirimleri. `await` ediliyor ama hatalari
+     * yutuluyor (bkz. community-bildirim.ts): bildirim yan etkidir,
+     * paylasimin kendisini dusurmemeli.
+     */
+    if (parsed.data.parentId) {
+      await gonderiSahibineBildir(parsed.data.parentId, request.user.id, 'reply')
+    }
+    if (parsed.data.quotedPostId) {
+      await gonderiSahibineBildir(parsed.data.quotedPostId, request.user.id, 'quote')
+    }
+
     return reply.status(201).send({
       post: {
         id: post.id,
@@ -681,6 +694,66 @@ export async function communityRoutes(
    * "kim neyi ne zaman kaldırdı" izini götürürdü. Kullanıcı açısından
    * fark yok — gönderi listelerden düşüyor.
    */
+  /*
+   * BASKASININ profilindeki paylasimlar ve medya.
+   *
+   * BURADA cunku gonderi serilestirme yardimcilari (`gonderiCikti`,
+   * `etkilesimIcerigi`, `alintiIcerigi`) bu dosyada. Sosyal servise
+   * koymak ikinci bir serilestirme kopyasi yazmak olurdu -- biri
+   * duzeltilip digeri unutulunca iki profil farkli davranirdi.
+   *
+   * 🔴 ENGEL BURADA DA UYGULANIYOR. Profil ziyaret edilebilir hale
+   * gelince yeni bir yuzey acildi; engellenen kisi bu uctan
+   * paylasimlari cekebilseydi engelleme yine yarim kalirdi.
+   */
+  fastify.get('/people/:userId/posts', {
+    preHandler: [fastify.authenticate],
+  }, async (request, reply) => {
+    const hedefId = Number((request.params as { userId: string }).userId)
+    if (!Number.isInteger(hedefId)) return reply.status(422).send({ error: 'Geçersiz kullanıcı.' })
+
+    const yalnizMedya = String((request.query as { tur?: string }).tur || '') === 'media'
+    const kullaniciId = request.user.id
+
+    if (hedefId !== kullaniciId) {
+      const engel = await prisma.communityBlock.findFirst({
+        where: {
+          OR: [
+            { blockerId: kullaniciId, blockedId: hedefId },
+            { blockerId: hedefId, blockedId: kullaniciId },
+          ],
+        },
+        select: { id: true },
+      })
+      /* 404, 403 degil: 403 engelleyenin varligini ele verirdi. */
+      if (engel) return reply.status(404).send({ error: 'Profil bulunamadı.' })
+    }
+
+    /* Askiya alinmis hesabin paylasimlari da gorunmemeli. */
+    const kisi = await prisma.user.findFirst({ where: { id: hedefId, deletedAt: null }, select: { id: true } })
+    if (!kisi) return reply.status(404).send({ error: 'Profil bulunamadı.' })
+
+    const posts = await prisma.communityPost.findMany({
+      where: {
+        authorId: hedefId,
+        status: 'published',
+        /* Yanitlar profilde ayri gosterilmiyor; ana akistaki kuralla
+           tutarli olsun diye `parentId: null`. */
+        parentId: null,
+        ...(yalnizMedya ? { media: { isNot: null } } : {}),
+      },
+      orderBy: { publishedAt: 'desc' },
+      take: 50,
+      include: {
+        author: { select: { id: true, name: true } },
+        media: { select: mediaSelect },
+        quotedPost: alintiIcerigi,
+        ...etkilesimIcerigi(kullaniciId),
+      },
+    })
+    return { posts: posts.map(gonderiCikti) }
+  })
+
   /*
    * BENIM SAYFAM: paylasimlarim / begendiklerim / kaydettiklerim
    *
@@ -867,6 +940,10 @@ export async function communityRoutes(
         create: { userId, postId },
         update: {},
       })
+      /* Yalniz begenide bildirim var: "kaydetti" bildirimi gondermek
+         kaydetmenin KISIYE OZEL olmasiyla celisirdi -- gonderi sahibi
+         kimin kaydettigini ogrenirdi. */
+      if (ad === 'like') await gonderiSahibineBildir(postId, userId, 'like')
       return { aktif: true, sayi: await tablo.count({ where: { postId } }) }
     })
 

@@ -23,6 +23,15 @@ model User {
   deletedAt               DateTime?
   avatarStoredName        String?
   avatarMimeType          String?
+  /// Profil ozellestirme (22.08.2026). Profiller uyeler arasinda
+  /// ziyaret edilebilir hale geldigi icin bu alanlar DIGER UYELERE
+  /// GORUNUR -- aydinlatma metninde karsiligi olmali.
+  bio                     String?
+  location                String?
+  websiteUrl              String?
+  /// Kapak gorseli. Avatar ile ayni desen: dosya diskte, adi burada.
+  coverStoredName         String?
+  coverMimeType           String?
   activityEvents          ActivityEvent[]
   businessAssessments     BusinessAssessment[]
   businessProfile         BusinessProfile?
@@ -35,6 +44,8 @@ model User {
   communityMedia          CommunityMedia[]
   communityReports        CommunityReport[]
   communityLikes          CommunityLike[]
+  communityNotifications  CommunityNotification[] @relation("CommunityNotificationUser")
+  communityNotificationActs CommunityNotification[] @relation("CommunityNotificationActor")
   communityBookmarks      CommunityBookmark[]
   communityFollowing      CommunityFollow[]        @relation("CommunityFollowing")
   communityFollowers      CommunityFollow[]        @relation("CommunityFollowers")
@@ -174,6 +185,7 @@ model CommunityPost {
   quotes     CommunityPost[]     @relation("CommunityPostQuotes")
   likes      CommunityLike[]
   bookmarks  CommunityBookmark[]
+  notifications CommunityNotification[]
 
   @@index([status, publishedAt])
   @@index([postType, status])
@@ -252,12 +264,18 @@ model CommunityThread {
   createdBy   User                    @relation("CommunityThreadCreator", fields: [createdById], references: [id], onDelete: Cascade)
   members     CommunityThreadMember[]
   messages    CommunityMessage[]
+  notifications CommunityNotification[]
 }
 
+/// Grup daveti kabul ister (urun karari, 22.08.2026): kimse haberi
+/// olmadan bir gruba atilamaz. `status` bunun icin.
 model CommunityThreadMember {
   threadId String
   userId   Int
   role     String          @default("member")
+  /// `invited` | `joined`. Davet kabul edilene kadar kisi mesajlari
+  /// GORMEZ ve yazamaz -- uyelik satirinin varligi tek basina yetmez.
+  status   String          @default("joined")
   joinedAt DateTime        @default(now())
   thread   CommunityThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
   user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -278,6 +296,39 @@ model CommunityMessage {
   @@index([threadId, createdAt])
 }
 
+/// Reklam. Sayaclar TOPLAM tutulur; KIMIN gordugu KAYDEDILMEZ
+/// (urun karari, 22.08.2026). Kisi bazinda olcum gercek izlemedir ve
+/// StorageNotice'taki "hicbir ucuncu taraf izleme araci calistirmiyor"
+/// taahhudunu ve cerez politikasini degistirmeyi gerektirirdi.
+/// TOPLULUK BILDIRIMI.
+///
+/// `BusinessNotification` KULLANILAMADI: o calisma alanina bagli
+/// (`workspaceId` zorunlu) ve topluluk olaylarinin calisma alani yok.
+///
+/// Bu olmadan sosyal katman GORUNMEZ: kimse takip edildigini, mesaj
+/// geldigini ya da gonderisine yanit yazildigini ogrenmiyor.
+model CommunityNotification {
+  id        String   @id @default(uuid())
+  /// Bildirimi ALAN kisi.
+  userId    Int
+  /// Olayi YAPAN kisi. Silinirse bildirim de gitmeli.
+  actorId   Int?
+  /// `follow` | `message` | `reply` | `like` | `quote` | `thread_invite`
+  type      String
+  /// Ilgili gonderi ya da sohbet; turune gore doldurulur.
+  postId    String?
+  threadId  String?
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user      User            @relation("CommunityNotificationUser", fields: [userId], references: [id], onDelete: Cascade)
+  actor     User?           @relation("CommunityNotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+  post      CommunityPost?  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  thread    CommunityThread? @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+}
+
 model CommunityAd {
   id          String   @id @default(uuid())
   title       String
@@ -285,6 +336,11 @@ model CommunityAd {
   ctaLabel    String?
   ctaUrl      String?
   active      Boolean  @default(true)
+  /// Medya: topluluk medya hattindan geliyor (imzali adres, sihirli
+  /// bayt dogrulamasi). Ikinci bir yukleme yolu yazilmadi.
+  mediaId     String?
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
   createdById Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
