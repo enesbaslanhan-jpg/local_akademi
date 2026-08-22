@@ -59,7 +59,21 @@ services:
       # kapsayici yeniden olusturulunca KAYBOLUR.
       - BACKUPS_DIR=/app/BACKUPS
     volumes:
-      - server-data:/app/prisma
+      # 🔴 `server-data:/app/prisma` BURADAN KALDIRILDI (22.08.2026).
+      #
+      # Adlandirilmis birim imajdan YALNIZ ilk olusturuldugu anda
+      # doldurulur; sonrasinda imajdaki dosyalar bir daha gorunmez.
+      # /app/prisma'ya baglandigi icin ilk dagitimdaki goc listesi orada
+      # DONMUSTU ve yeni goc dosyalari uretime hic ulasmiyordu.
+      #
+      # Belirtisi cok sinsiydi: `prisma migrate deploy` "23 migrations
+      # found ... No pending migrations to apply" diyordu. Yalan
+      # soylemiyordu -- elindeki ESKI listeye gore dogru konusuyordu.
+      # Uc yeni tablo grubu uretimde hic olusmadi, sayfalar 500 verdi.
+      #
+      # Birim SQLite doneminden kalma bir artikti: veritabani artik
+      # PostgreSQL'de (postgres-data birimi) ve calisma aninda
+      # /app/prisma altina hicbir sey yazilmiyor. Geri EKLENMEMELI.
       - server-uploads:/app/uploads
       - server-backups:/app/BACKUPS
     depends_on:
@@ -107,7 +121,7 @@ services:
       - with-redis
 
 volumes:
-  server-data:
+  # server-data KALDIRILDI -- yukaridaki aciklamaya bakiniz.
   server-uploads:
   server-backups:
   postgres-data:

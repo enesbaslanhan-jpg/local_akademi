@@ -412,6 +412,55 @@ Gelen postada kontrol et:
 
 ---
 
+## 🔴 Her güncellemede: göçler gerçekten ulaştı mı
+
+Bu adım **atlanamaz**. 22.08.2026'da üç göç üretime hiç ulaşmadı ve
+üç sayfa 500 verdi; belirtisi son derece sinsiydi.
+
+`prisma migrate deploy` açılışta şunu yazıyordu:
+
+```
+23 migrations found in prisma/migrations
+No pending migrations to apply.
+```
+
+Bu **yalan değildi**. Kapsayıcının elindeki listeye göre doğruydu —
+ama o liste eskiydi. Sebep: `docker-compose.yml` içinde
+`server-data:/app/prisma` diye adlandırılmış bir birim vardı.
+Adlandırılmış birimler imajdan yalnız **ilk oluşturuldukları anda**
+doldurulur; sonrasında imajdaki dosyalar bir daha görünmez. Yani ilk
+dağıtımdaki göç listesi orada donmuştu.
+
+Birim kaldırıldı (SQLite döneminden kalma bir artıktı; veritabanı
+PostgreSQL'de). Ama aynı sınıftan başka bir hata yine olabilir, o
+yüzden her güncellemeden sonra iki satır:
+
+```bash
+lk exec server ls prisma/migrations | wc -l
+```
+
+```bash
+ls ~/localkarar/prisma/migrations | wc -l
+```
+
+**İki sayı eşit olmalı.** Eşit değilse kapsayıcı eski dosyalarla
+çalışıyor demektir; `lk up -d --force-recreate server` ile tazele,
+düzelmezse `lk build server --no-cache`.
+
+### Neden log'a güvenmek yetmiyor
+
+"No pending migrations" satırı **iki farklı durumda da** yazılır:
+gerçekten uygulanacak bir şey yokken, ve kapsayıcı yeni göçlerden
+haberdar değilken. İkisini ayırt etmenin tek yolu dosya saymaktır.
+
+Yeni tablo ekleyen bir sürüm dağıttıysan ayrıca doğrula:
+
+```bash
+lk exec postgres psql -U localakademi -d localakademi -c "\dt" | tail -20
+```
+
+---
+
 ## Sorun çıkarsa
 
 | Belirti | Muhtemel sebep |

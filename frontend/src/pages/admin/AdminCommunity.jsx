@@ -49,6 +49,26 @@ export default function AdminCommunity() {
     finally { setBusy('') }
   }
 
+  /*
+   * YAYINDAN KALDIRMA.
+   *
+   * Bu ekran "backend'de böyle bir uç yok" diyordu ve eylem
+   * göstermiyordu. Not ESKİYDİ: `DELETE /community/:postId` 22.08.2026'da
+   * eklendi (yazar kendi gönderisini, yönetici her gönderiyi
+   * kaldırabilir) ve testleri var. Ekran var olan yeteneği
+   * kullanmıyordu.
+   *
+   * Kaldırma GERÇEK SİLME değil, durum değişikliği: şikâyet kayıtları
+   * gönderiye bağlı ve "kim neyi ne zaman kaldırdı" izi duruyor.
+   */
+  async function kaldir(post) {
+    if (!window.confirm(`"${post.title || 'Bu paylaşım'}" yayından kaldırılsın mı?`)) return
+    setBusy(post.id); setError('')
+    try { await api.community.remove(post.id); load() }
+    catch (err) { setError(err.message || 'Paylaşım kaldırılamadı.') }
+    finally { setBusy('') }
+  }
+
   async function resolveReport(report, action) {
     setBusy(report.id); setError('')
     try { await api.community.resolveReport(report.id, action, reasons[report.id]?.trim() || undefined); load() }
@@ -81,7 +101,7 @@ export default function AdminCommunity() {
 
       {tab !== 'reports' && <>
         <section className={styles.panel}><header><h2>{tab === 'news' ? 'Haber yayın kuyruğu' : 'Topluluk moderasyon kuyruğu'}</h2><span>{pending.length} bekleyen</span></header>{loading ? <p className={styles.muted}>Yükleniyor…</p> : pending.length === 0 ? <EmptyState message="Bekleyen içerik yok." /> : <div className={styles.rows}>{pending.map(post => <article key={post.id}><div className={styles.rowHead}><span>{post.postType === 'official' ? 'Manuel resmî kaynak' : 'Kullanıcı gönderisi'}</span><time>{new Date(post.createdAt).toLocaleString('tr-TR')}</time></div><h3>{post.title}</h3><p>{post.summary}</p><small>Yazar: {post.author?.name || post.author?.email || 'Bilinmiyor'} · Durum: {post.status}</small>{post.sourceUrl && <a href={post.sourceUrl} target="_blank" rel="noreferrer">{post.sourceTitle || 'Kaynağı aç'}</a>}<textarea placeholder="Ret nedeni / moderasyon notu" value={reasons[post.id] || ''} onChange={e => setReasons(v => ({ ...v, [post.id]: e.target.value }))} /><div className={styles.actions}><button onClick={() => moderate(post, 'reject')} disabled={busy === post.id}>Reddet</button><Button onClick={() => moderate(post, 'publish')} disabled={busy === post.id}>Yayınla</Button></div></article>)}</div>}</section>
-        <section className={styles.panel}><header><h2>Yayındaki {tab === 'news' ? 'haberler' : 'gönderiler'}</h2><span>{published.length} kayıt</span></header><p className={styles.capabilityNote}>Backend bu kayıtlar için listeleme sağlıyor; düzenleme, yayından kaldırma, arşivleme veya silme endpointi olmadığı için bu ekranda sahte aksiyon gösterilmez.</p>{published.length === 0 ? <EmptyState message="Yayında içerik yok." /> : <div className={styles.published}>{published.map(post => <article key={post.id}><div><strong>{post.title}</strong><small>{post.author?.name || (post.postType === 'official' ? 'Resmî kaynak' : 'Kullanıcı')} · {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('tr-TR') : 'Tarih yok'}</small></div><span>Yayında</span></article>)}</div>}</section>
+        <section className={styles.panel}><header><h2>Yayındaki {tab === 'news' ? 'haberler' : 'gönderiler'}</h2><span>{published.length} kayıt</span></header><p className={styles.capabilityNote}>Kaldırma gerçek silme değildir: gönderi listelerden düşer, şikâyet ve denetim izi korunur. Düzenleme ve arşivleme uçları henüz yok, o yüzden burada gösterilmiyor.</p>{published.length === 0 ? <EmptyState message="Yayında içerik yok." /> : <div className={styles.published}>{published.map(post => <article key={post.id}><div><strong>{post.title}</strong><small>{post.author?.name || (post.postType === 'official' ? 'Resmî kaynak' : 'Kullanıcı')} · {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('tr-TR') : 'Tarih yok'}</small></div><Button variant="ghost" disabled={busy === post.id} onClick={() => kaldir(post)}>{busy === post.id ? 'Kaldırılıyor…' : 'Yayından kaldır'}</Button></article>)}</div>}</section>
         {tab === 'news' && <section className={styles.panel}><header><h2>Otomatik resmî haber akışı</h2><span>{data.automatedNews.length} kayıt</span></header><p className={styles.capabilityNote}>Bu kayıtlar NewsArticle ingestion hattından gelir ve manuel CommunityPost taslaklarından ayrı tutulur. Backend yalnız yayın listesini sağlıyor; ingestion durumu veya arşivleme için admin endpointi yoktur.</p>{data.automatedNews.length === 0 ? <EmptyState message="Otomatik akışta yayın bulunamadı." /> : <div className={styles.published}>{data.automatedNews.map(article => <article key={article.id}><div><strong>{article.title}</strong><small>{article.sourceName} · {new Date(article.sourcePublishedAt).toLocaleDateString('tr-TR')}</small></div><span>Otomatik</span></article>)}</div>}</section>}
       </>}
 
