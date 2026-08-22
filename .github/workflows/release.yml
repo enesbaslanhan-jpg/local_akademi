@@ -77,6 +77,16 @@ jobs:
       - name: Secret scan
         run: npm run secret:scan
 
+      # Gizli anahtar taramasi vardi, BAGIMLILIK taramasi yoktu. 22.08.2026
+      # olcumunde uretim bagimliliklarinda iki YUKSEK acik birikmisti
+      # (brace-expansion DoS, fast-uri host confusion) ve hicbir sey uyarmadi.
+      #
+      # --omit=dev: gelistirme araclarinin acigi uretimde calismiyor; yayin
+      # kapisini onlarla kirmak gurultu yapar ve adim gorulmez hale gelir.
+      # --audit-level=high: orta seviyeler raporlanir ama kapiyi kapatmaz.
+      - name: Dependency audit
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Migration validation
         run: npm run validate:migrations
 
@@ -147,6 +157,10 @@ jobs:
       - name: Unit tests
         working-directory: frontend
         run: npx vitest run --configLoader runner
+
+      - name: Dependency audit
+        working-directory: frontend
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Build
         working-directory: frontend

@@ -1,0 +1,51 @@
+# Bagimlilik guncellemeleri.
+#
+# NEDEN VAR: CI'daki `npm audit` adimi acigi ancak biz bir sey ittigimizde
+# fark eder. Depoya haftalarca dokunulmadiginda yeni yayimlanan bir acik
+# kimseye haber vermeden bekler. Dependabot bunu tersine cevirir: acik
+# yayimlandiginda PR acar.
+#
+# NEDEN ucuncu taraf bir servis (Snyk vb.) DEGIL: Dependabot GitHub'in
+# kendisi. Yeni hesap, yeni API anahtari ve KVKK aydinlatma metnindeki
+# yurt disina aktarim tablosuna yeni bir satir gerektirmiyor.
+version: 2
+
+updates:
+  # Arka uc (depo koku)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    # Yama ve kucuk surumler tek PR'da toplanir: 30 ayri PR kimse
+    # tarafindan incelenmez, incelenmeyen PR guvenlik saglamaz.
+    groups:
+      kucuk-guncellemeler:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Prisma istemcisi ve motoru BIRLIKTE yukseltilmeli; ayri ayri
+      # gelen PR'lar surum uyusmazligi uretiyor. Elle yapilacak.
+      - dependency-name: prisma
+      - dependency-name: "@prisma/client"
+
+  # On yuz
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      kucuk-guncellemeler:
+        update-types:
+          - minor
+          - patch
+
+  # CI adimlarinin kendisi (actions/checkout@v4 gibi)
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
