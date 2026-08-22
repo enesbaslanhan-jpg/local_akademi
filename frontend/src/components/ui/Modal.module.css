@@ -112,3 +112,36 @@
     animation: none;
   }
 }
+
+/*
+ * ÇERÇEVESİZ KİP — içerik kendi yüzeyini taşıyorsa.
+ *
+ * Karar fişi için yazıldı: fiş kendi krem kâğıdını, kenarlığını ve
+ * gölgesini çiziyor. Modalınki üstüne binince iki kenarlık, iki gölge
+ * ve kâğıdın çevresinde tema renkli bir bant kalıyordu.
+ *
+ * Kapatma düğmesi duruyor — kaldırılsaydı fareyle kapatmanın tek yolu
+ * örtüye tıklamak olurdu ve bunun görünür bir işareti yok.
+ */
+.cercevesiz {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  /* Kabuk kalkınca dikey pay da serbest kaldı: fiş yüksekliği kadar
+     yer kaplasın diye sınır yukarı çekildi. */
+  max-height: 94vh;
+
+  /* GENİŞLİK DENENDİ VE GERİ ALINDI: kapatma düğmesi kağıdın 58 piksel
+     sağında duruyor diye kabuğa `width: fit-content` verilmişti; kağıt
+     420'den 331 piksele düştü -- ölçüldü. Sebep: içerik `width: 100%`
+     ile genişliyor, kabuk ise içeriğe göre büzülüyor; ikisi birbirini
+     kovalayınca tarayıcı max-content'e düşüyor.
+
+     Kabuk şeffaf olduğu için fazladan genişlik zaten görünmüyor;
+     düğmenin içeriğin dışında durması büyütücülerde olağan. İçeriği
+     daraltmak, olmayan bir sorunu düzeltmek için gerçek bir kayıptı. */
+}
+
+.govdeCercevesiz {
+  padding: 0;
+}

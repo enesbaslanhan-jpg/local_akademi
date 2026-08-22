@@ -711,12 +711,19 @@ export async function communityRoutes(
     preHandler: [fastify.authenticate],
   }, async request => {
     const userId = request.user.id
-    const [paylasim, begeni, kayit] = await Promise.all([
-      prisma.communityPost.count({ where: { authorId: userId, status: 'published' } }),
+    const [paylasim, begeni, kayit, takipci, takipEdilen] = await Promise.all([
+      /* Yanitlar sayilmiyor: profil "paylasim" sayaci ana gonderileri
+         gosteriyor ve liste de `parentId: null` ile geliyor. Ikisi
+         ayrisirsa kullanici "8 paylasim" yazip 3 kart goruyordu. */
+      prisma.communityPost.count({ where: { authorId: userId, status: 'published', parentId: null } }),
       prisma.communityLike.count({ where: { userId } }),
       prisma.communityBookmark.count({ where: { userId } }),
+      /* Takipci ve takip sayilari KENDI profilimde de gerekli: baskasinin
+         profilinde gosterilip kendiminkinde gosterilmemesi tutarsizdi. */
+      prisma.communityFollow.count({ where: { followingId: userId } }),
+      prisma.communityFollow.count({ where: { followerId: userId } }),
     ])
-    return { paylasim, begeni, kayit }
+    return { paylasim, begeni, kayit, takipci, takipEdilen }
   })
 
   fastify.get('/me/:liste', {
@@ -1204,6 +1211,108 @@ export async function communityRoutes(
       })
     })
     return { report: result }
+  })
+
+  /*
+   * RESMI GONDERIYI DUZENLE.
+   *
+   * 🔴 YALNIZ `official` GONDERILER. Yoneticinin bir UYENIN gonderisini
+   * duzenlemesi, o kisinin agzina laf koymak olurdu: metin degisir ama
+   * yazar adi ayni kalir. Uygunsuz uye gonderisi icin dogru arac
+   * KALDIRMA (`DELETE /:postId`), duzenleme degil.
+   *
+   * Resmi gonderileri zaten yoneticiler yaziyor; bir haber ozetindeki
+   * yanlisi duzeltebilmek gerekiyor.
+   */
+  const duzenlemeSemasi = z.object({
+    title: z.string().trim().min(5).max(180).optional(),
+    summary: z.string().trim().min(20).max(1200).optional(),
+    content: z.string().trim().max(10000).optional(),
+    sourceUrl: z.string().url().max(1000).optional(),
+    sourceTitle: z.string().trim().max(180).optional(),
+  })
+
+  fastify.patch('/:postId', {
+    preHandler: [fastify.authenticate],
+    config: { rateLimit: { max: 60, timeWindow: '1 hour' } },
+  }, async (request, reply) => {
+    if (request.user.role !== 'admin') {
+      return reply.status(403).send({ error: 'Admin access required' })
+    }
+    const { postId } = request.params as { postId: string }
+    const parsed = duzenlemeSemasi.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(422).send({ error: 'Geçersiz düzenleme.', details: parsed.error.errors })
+    }
+
+    const post = await prisma.communityPost.findUnique({
+      where: { id: postId },
+      select: { id: true, postType: true, status: true },
+    })
+    if (!post || post.status === 'removed') {
+      return reply.status(404).send({ error: 'Paylaşım bulunamadı.' })
+    }
+    if (post.postType !== 'official') {
+      return reply.status(403).send({
+        error: 'Kullanıcı paylaşımları düzenlenemez; uygunsuz içerik için kaldırma kullanın.',
+        code: 'USER_POST_NOT_EDITABLE',
+      })
+    }
+
+    const guncel = await prisma.communityPost.update({
+      where: { id: postId },
+      data: parsed.data,
+      select: { id: true, title: true, summary: true, status: true },
+    })
+    return { post: guncel }
+  })
+
+  /*
+   * ARSIVLE.
+   *
+   * Kaldirmadan FARKLI: kaldirma bir yaptirim ("kurallara aykiri"),
+   * arsivleme ise "artik guncel degil". Bir haber ozetini kaldirmak,
+   * denetim kaydinda ihlal gibi gorunurdu.
+   *
+   * Yeni sutun gerekmedi: `status` zaten var ve besleme sorgusu
+   * `status: 'published'` suzuyor, yani arsivlenen kendiliginden
+   * listelerden dusuyor.
+   */
+  fastify.post('/:postId/archive', {
+    preHandler: [fastify.authenticate],
+    config: { rateLimit: { max: 60, timeWindow: '1 hour' } },
+  }, async (request, reply) => {
+    if (request.user.role !== 'admin') {
+      return reply.status(403).send({ error: 'Admin access required' })
+    }
+    const { postId } = request.params as { postId: string }
+    const geriAl = Boolean((request.body as { geriAl?: boolean } | undefined)?.geriAl)
+
+    const post = await prisma.communityPost.findUnique({
+      where: { id: postId },
+      select: { id: true, status: true, postType: true },
+    })
+    if (!post || post.status === 'removed') {
+      return reply.status(404).send({ error: 'Paylaşım bulunamadı.' })
+    }
+    if (post.postType !== 'official') {
+      return reply.status(403).send({
+        error: 'Kullanıcı paylaşımları arşivlenmez; kaldırma kullanın.',
+        code: 'USER_POST_NOT_ARCHIVABLE',
+      })
+    }
+
+    const guncel = await prisma.communityPost.update({
+      where: { id: postId },
+      data: {
+        status: geriAl ? 'published' : 'archived',
+        moderatedById: request.user.id,
+        moderatedAt: new Date(),
+        moderationReason: geriAl ? 'Arşivden çıkarıldı' : 'Arşivlendi',
+      },
+      select: { id: true, status: true },
+    })
+    return { post: guncel }
   })
 
   fastify.post('/:postId/moderate', {

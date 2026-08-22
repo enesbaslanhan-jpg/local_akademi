@@ -407,3 +407,56 @@
     text-align: center;
   }
 }
+
+/*
+ * ---------- SIK KİP ----------
+ *
+ * Yalnız ana sayfadaki kipte açılan fiş için. Ölçüm: rahat aralıklarla
+ * fiş 563 piksel, kipin başlığıyla birlikte 609 piksel yer kaplıyordu;
+ * 768 pikselik bir dizüstünde ekrana sığmıyor, kaydırma çıkıyordu.
+ *
+ * Küçültülen şey ARALIK, yazı değil: punto ve kalemlerin kendisi aynı
+ * kalıyor -- fiş okunabilirliğinden vazgeçilerek sığdırılmıyor.
+ */
+.receipt.sikFis {
+  padding: var(--space-5) var(--space-5);
+}
+
+.sikFis .head {
+  padding-bottom: var(--space-3);
+}
+
+.sikFis .headIcon {
+  width: 34px;
+  height: 34px;
+}
+
+.sikFis .decisionTitle,
+.sikFis .lines,
+.sikFis .receiptSection {
+  margin-top: var(--space-3);
+}
+
+/* Kalem satırları: dört satırda en çok kazanılan yer burası. */
+.sikFis .line {
+  padding: var(--space-1) 0;
+}
+
+.sikFis .total {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+}
+
+.sikFis .verdict,
+.sikFis .actions {
+  margin-top: var(--space-3);
+}
+
+.sikFis .actions {
+  padding-top: var(--space-3);
+}
+
+/* Manset kutusunun kendi ic dolgusu da daraliyor. */
+.sikFis .verdict {
+  padding: var(--space-2) var(--space-3);
+}

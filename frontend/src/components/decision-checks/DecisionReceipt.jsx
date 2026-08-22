@@ -103,7 +103,18 @@ function buildTotal(snapshot) {
 
 const VERDICT_ICON = { Good: Check, Warn: AlertTriangle, Bad: X }
 
-export default function DecisionReceipt({ snapshot, title, completedAt }) {
+/*
+ * `sik` -- daraltılmış dikey aralıklar.
+ *
+ * Ana sayfadaki fiş bir kipin içinde açılıyor ve orada tek ekrana
+ * sığması gerekiyor -- ölçüldü: rahat aralıklarla 563 piksel, 768
+ * pikselik bir dizüstünde taşıyordu.
+ *
+ * Karar araçlarının kendi sonuç sayfalarında fiş BİLEREK rahat kalıyor:
+ * orada sayfa zaten kaydırılıyor ve fiş asıl çıktı. Üçünü aynı yapmak,
+ * bir yerdeki kısıtı gerekçesiz olarak diğerlerine taşımak olurdu.
+ */
+export default function DecisionReceipt({ snapshot, title, completedAt, sik = false }) {
   const navigate = useNavigate()
   if (!snapshot) return null
 
@@ -128,7 +139,7 @@ export default function DecisionReceipt({ snapshot, title, completedAt }) {
   // `dr-print-root` global bir işaretçidir: CSS Module sınıf adları
   // hash'lendiği için styles/print.css fişi bu sabit adla bulur.
   return (
-    <div className={`dr-print-root ${styles.receipt}`}>
+    <div className={`dr-print-root ${styles.receipt} ${sik ? styles.sikFis : ''}`}>
       <span className={styles.sweepBar} aria-hidden="true" />
 
       <div className={styles.head}>

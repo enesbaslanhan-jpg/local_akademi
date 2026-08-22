@@ -356,11 +356,14 @@ export default function Dashboard() {
           open={receiptOpen}
           onClose={() => setReceiptOpen(false)}
           size="md"
+          /* Fis kendi kagit yuzeyini tasiyor; modalin zemini fazlaydi. */
+          cerceve={false}
         >
           <DecisionReceipt
             snapshot={lastDecision.snapshot}
             title={lastDecision.session.decisionCheckTitle}
             completedAt={lastDecision.session.completedAt}
+            sik
           />
         </Modal>
       )}

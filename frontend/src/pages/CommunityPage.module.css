@@ -1287,6 +1287,18 @@
   position: absolute;
   right: 12px;
   bottom: 12px;
+  /*
+   * 🔴 Z-INDEX SART.
+   *
+   * Kapak, negatif kenar bosluguyla basligin altina giriyor. Baslik da
+   * konumlandirilmis ve DOM'da SONRA geldigi icin uste boyaniyor --
+   * dugme GORUNUYOR ama tiklanamiyordu. `elementFromPoint` ile
+   * olculdu: dugmenin tam ortasindaki oge `profilBasligi` idi.
+   *
+   * `.kapak` yigin baglami yaratmiyor (z-index: auto), bu yuzden
+   * buradaki deger dogrudan basligin auto (0) degeriyle yarisiyor.
+   */
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -1514,3 +1526,33 @@
   font-size: 1rem;
 }
 .sikayetNot { margin: 0; color: var(--text-light); font-size: .72rem; }
+
+
+/* Profil fotografi degistirme. Kapakla ayni dil: uzerine gelince
+   beliren camsi bir dugme. */
+.avatarSarmal { position: relative; }
+.avatarDegistir {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(10, 13, 15, .55);
+  color: #fff;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+.avatarSarmal:hover .avatarDegistir,
+.avatarDegistir:focus-within { opacity: 1; }
+/* Dokunmatikte "uzerine gelme" yok; kucuk bir kose rozeti kaliyor. */
+@media (hover: none) {
+  .avatarDegistir {
+    inset: auto 0 0 auto;
+    width: 30px;
+    height: 30px;
+    opacity: 1;
+    border: 2px solid var(--surface-panel);
+  }
+}
+@media (prefers-reduced-motion: reduce) { .avatarDegistir { transition: none; } }

@@ -2,7 +2,16 @@ import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import styles from './Modal.module.css'
 
-export default function Modal({ open, onClose, title, children, size = 'md' }) {
+/*
+ * `cerceve={false}` -- modal kendi zeminini, kenarligini ve golgesini
+ * birakir; yalniz ortu, kapatma dugmesi ve kacis tusu kalir.
+ *
+ * NEDEN VAR: karar fisi kendi kagit yuzeyini tasiyor (krem zemin, kendi
+ * kenarligi ve golgesi). Tema renkli bir kutu icine konunca iki ayri
+ * yuzey ust uste biniyor, kagidin iki yaninda 70'er piksel tema zemini
+ * kaliyordu -- olculdu. Icerigin kendi yuzeyi varsa modalinki fazladir.
+ */
+export default function Modal({ open, onClose, title, children, size = 'md', cerceve = true }) {
   const overlayRef = useRef(null)
   const contentRef = useRef(null)
 
@@ -36,7 +45,7 @@ export default function Modal({ open, onClose, title, children, size = 'md' }) {
 
   return (
     <div className={styles.overlay} ref={overlayRef} onClick={handleOverlayClick} role="dialog" aria-modal="true" aria-label={title}>
-      <div className={`${styles.modal} ${styles[size]}`} ref={contentRef} tabIndex={-1}>
+      <div className={`${styles.modal} ${styles[size]} ${cerceve ? '' : styles.cercevesiz}`} ref={contentRef} tabIndex={-1}>
         {/* Başlık verilmediğinde modal salt çerçeve olur: üstte yalnızca
             kapatma düğmesi kalır, ayırıcı çizgi çizilmez. */}
         <div className={`${styles.header} ${!title ? styles.headerBare : ''}`}>
@@ -45,7 +54,7 @@ export default function Modal({ open, onClose, title, children, size = 'md' }) {
             <X size={20} />
           </button>
         </div>
-        <div className={styles.body}>{children}</div>
+        <div className={`${styles.body} ${cerceve ? '' : styles.govdeCercevesiz}`}>{children}</div>
       </div>
     </div>
   )

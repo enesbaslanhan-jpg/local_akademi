@@ -36,6 +36,13 @@
   --surface-panel: #EDEEF0;
   --surface-raised: #F8F9FC;
 
+  /* Kip ve çekmece örtüsü. TANIMSIZDI: `Modal.module.css` ve
+     `Sidebar.module.css` bu değişkeni kullanıyor ama hiçbir yerde
+     tanımlı değildi -- örtü yalnız bulanıklık uyguluyor, hiç
+     koyulaşmıyordu (tarayıcıda ölçüldü: rgba(0,0,0,0)).
+     Bulanıklık tek başına arkadaki içeriği susturmaya yetmiyor. */
+  --surface-overlay: rgba(25, 28, 30, .38);
+
   /* METİN */
   --text: #191C1E;
   --text-secondary: #40484D;
@@ -109,6 +116,10 @@
   --surface-sunken: #0C1013;
   --surface-panel: #1D2429;
   --surface-raised: #293137;
+
+  /* Koyu temada zemin zaten koyu; örtü daha derin olmalı ki
+     öndeki yüzey ayrışsın. */
+  --surface-overlay: rgba(6, 9, 11, .58);
 
   /* METİN */
   --text: #F1F4F5;

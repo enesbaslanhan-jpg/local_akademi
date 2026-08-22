@@ -72,3 +72,20 @@
   font: inherit;
   font-size: .74rem;
 }
+
+/* Yayındaki gönderi satırındaki işlemler. Düzenle/Arşivle sade
+   düğmeler; Kaldır birincil düğme kalıyor çünkü en sık kullanılan ve
+   en belirgin olması gereken o. */
+.satirEylemleri { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.satirEylemleri > button {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-light);
+  cursor: pointer;
+  font: inherit;
+  font-size: .74rem;
+}
+.satirEylemleri > button:hover:not(:disabled) { color: var(--text); border-color: var(--primary); }
+.satirEylemleri > button:disabled { opacity: .5; cursor: not-allowed; }

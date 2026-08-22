@@ -189,7 +189,7 @@ export default function ProfilePage() {
   /* Kişi listeleri sekme olmasa da geçerli görünüm; yoksa sayaçtan
      açılan liste sessizce "posts"a düşerdi. */
   const gecerliMi = sekmeler.some(s => s.anahtar === istenen)
-    || (!benimMi && Boolean(KISI_LISTELERI[istenen]))
+    || Boolean(KISI_LISTELERI[istenen])
   const aktif = gecerliMi ? istenen : 'posts'
 
   const [profil, setProfil] = useState(null)
@@ -210,14 +210,18 @@ export default function ProfilePage() {
     setPosts([])
     try {
       if (benimMi) {
+        const kisiListesiMi = aktif === 'followers' || aktif === 'following'
         const [ozet, liste] = await Promise.all([
           api.community.benimOzetim(),
-          aktif === 'media'
-            ? api.community.profilGonderileri(user.id, 'media')
-            : api.community.benimListem(aktif),
+          kisiListesiMi
+            ? api.community.profilKisileri(user.id, aktif)
+            : aktif === 'media'
+              ? api.community.profilGonderileri(user.id, 'media')
+              : api.community.benimListem(aktif),
         ])
         setSayilar(ozet)
-        setPosts(liste.posts || [])
+        if (kisiListesiMi) setKisiler(liste.people || [])
+        else setPosts(liste.posts || [])
         setProfil({
           id: user.id, name: user.name, bio: user.bio, location: user.location,
           websiteUrl: user.websiteUrl, avatarUrl: user.avatarUrl, coverUrl: user.coverUrl,
@@ -261,6 +265,30 @@ export default function ProfilePage() {
     } catch (takipHatasi) {
       setTakipEdiyorum(!yeni)
       setHata(takipHatasi.message || 'İşlem tamamlanamadı.')
+    }
+  }
+
+  /*
+   * PROFIL FOTOGRAFI.
+   *
+   * Ayarlar sayfasinda zaten vardi ama kullanici profilini duzenlerken
+   * oraya gitmek zorunda kaliyordu -- "profil resmi calismiyor"
+   * sikayetinin sebebi buydu: profilde hic yoktu.
+   *
+   * Ayni ucu (`POST /auth/avatar`) kullaniyor; ikinci bir yol
+   * yazilmadi.
+   */
+  async function avatarSec(olay) {
+    const dosya = olay.target.files?.[0]
+    olay.target.value = ''
+    if (!dosya) return
+    try {
+      const sonuc = await api.auth.uploadAvatar(dosya)
+      updateUser({ avatarUrl: sonuc.avatarUrl })
+      setProfil(mevcut => ({ ...mevcut, avatarUrl: sonuc.avatarUrl }))
+      setBildirim('Profil fotoğrafı güncellendi.')
+    } catch (avatarHatasi) {
+      setHata(avatarHatasi.message || 'Fotoğraf yüklenemedi.')
     }
   }
 
@@ -341,10 +369,17 @@ export default function ProfilePage() {
       </div>
 
       <header className={styles.profilBasligi}>
-        <span className={`${styles.authorAvatar} ${styles.profilAvatari}`}>
+        <span className={`${styles.authorAvatar} ${styles.profilAvatari} ${benimMi ? styles.avatarSarmal : ''}`}>
           {profil?.avatarUrl
             ? <img src={profil.avatarUrl} alt="" />
             : initials(profil?.name)}
+          {benimMi && (
+            <label className={styles.avatarDegistir} title="Profil fotoğrafını değiştir">
+              <Camera size={18} aria-hidden="true" />
+              <span className="sr-only">Profil fotoğrafını değiştir</span>
+              <input className="sr-only" type="file" accept="image/png,image/jpeg" onChange={avatarSec} />
+            </label>
+          )}
         </span>
 
         <div className={styles.profilBilgi}>
@@ -368,26 +403,25 @@ export default function ProfilePage() {
               >
                 <b>{sayilar.paylasim ?? 0}</b> paylaşım
               </button>
-              {!benimMi && (
-                <>
-                  <button
-                    type="button"
-                    className={aktif === 'followers' ? styles.sayacAktif : undefined}
-                    aria-current={aktif === 'followers' ? 'true' : undefined}
-                    onClick={() => setArama({ liste: 'followers' })}
-                  >
-                    <b>{sayilar.takipci ?? 0}</b> takipçi
-                  </button>
-                  <button
-                    type="button"
-                    className={aktif === 'following' ? styles.sayacAktif : undefined}
-                    aria-current={aktif === 'following' ? 'true' : undefined}
-                    onClick={() => setArama({ liste: 'following' })}
-                  >
-                    <b>{sayilar.takipEdilen ?? 0}</b> takip
-                  </button>
-                </>
-              )}
+              {/* Takipçi ve takip sayıları KENDİ profilimde de var:
+                  başkasınınkinde gösterilip kendiminkinde
+                  gösterilmemesi tutarsızdı. */}
+              <button
+                type="button"
+                className={aktif === 'followers' ? styles.sayacAktif : undefined}
+                aria-current={aktif === 'followers' ? 'true' : undefined}
+                onClick={() => setArama({ liste: 'followers' })}
+              >
+                <b>{sayilar.takipci ?? 0}</b> takipçi
+              </button>
+              <button
+                type="button"
+                className={aktif === 'following' ? styles.sayacAktif : undefined}
+                aria-current={aktif === 'following' ? 'true' : undefined}
+                onClick={() => setArama({ liste: 'following' })}
+              >
+                <b>{sayilar.takipEdilen ?? 0}</b> takip
+              </button>
             </div>
           )}
         </div>

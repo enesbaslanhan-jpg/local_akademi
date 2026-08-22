@@ -322,3 +322,95 @@ describe('community moderation flow', () => {
     expect(resolved.json().report.status).toBe('resolved')
   })
 })
+
+describe('yönetici düzenleme ve arşivleme', () => {
+  /*
+   * Yönetim ekranı "düzenleme ve arşivleme uçları yok" diyordu.
+   * Eklendi — ama ikisi de YALNIZ resmî gönderilerde.
+   *
+   * 🔴 Yöneticinin bir ÜYENİN gönderisini düzenlemesi, o kişinin
+   * ağzına laf koymak olurdu: metin değişir ama yazar adı aynı kalır.
+   * Uygunsuz üye gönderisi için doğru araç KALDIRMA.
+   *
+   * Arşivleme kaldırmadan farklı: kaldırma bir yaptırım ("kurallara
+   * aykırı"), arşivleme "artık güncel değil". Bir haber özetini
+   * kaldırmak denetim kaydında ihlal gibi görünürdü.
+   */
+  let resmiId: string
+  let uyeId: string
+
+  beforeAll(async () => {
+    const resmi = await prisma.communityPost.create({
+      data: {
+        postType: 'official', status: 'published', publishedAt: new Date(),
+        title: `${marker} resmî duyuru`, summary: 'Resmî kaynaktan gelen ilk özet metni buraya yazıldı.',
+        authorId: adminId,
+      },
+    })
+    resmiId = resmi.id
+    const uye = await prisma.communityPost.create({
+      data: {
+        postType: 'user', status: 'published', publishedAt: new Date(),
+        summary: `${marker} üyenin kendi sözleri`, authorId: learnerId,
+      },
+    })
+    uyeId = uye.id
+  })
+
+  const cagir = (metot: 'PATCH' | 'POST', url: string, token: string, payload?: unknown) =>
+    app.inject({ method: metot, url, headers: { authorization: `Bearer ${token}` }, ...(payload ? { payload } : {}) })
+
+  it('resmî gönderi düzenlenebilir', async () => {
+    const yanit = await cagir('PATCH', `/community/${resmiId}`, adminToken, {
+      summary: 'Düzeltilmiş özet metni buraya yazıldı ve daha uzun.',
+    })
+
+    expect(yanit.statusCode).toBe(200)
+    const kayit = await prisma.communityPost.findUnique({ where: { id: resmiId } })
+    expect(kayit?.summary).toContain('Düzeltilmiş')
+  })
+
+  it('🔴 ÜYE gönderisi düzenlenemez', async () => {
+    const yanit = await cagir('PATCH', `/community/${uyeId}`, adminToken, { summary: 'Yönetici bunu yazdı sanılacak.' })
+
+    expect(yanit.statusCode).toBe(403)
+    expect(yanit.json().code).toBe('USER_POST_NOT_EDITABLE')
+
+    /* Reddedilmiş olmak yetmez — metnin gerçekten değişmediği görülmeli. */
+    const kayit = await prisma.communityPost.findUnique({ where: { id: uyeId } })
+    expect(kayit?.summary).toContain('üyenin kendi sözleri')
+  })
+
+  it('resmî gönderi arşivlenir ve akıştan düşer', async () => {
+    const yanit = await cagir('POST', `/community/${resmiId}/archive`, adminToken)
+    expect(yanit.json().post.status).toBe('archived')
+
+    const akis = await app.inject({
+      method: 'GET', url: '/community?type=official',
+      headers: { authorization: `Bearer ${adminToken}` },
+    })
+    expect(akis.json().posts.some((p: any) => p.id === resmiId)).toBe(false)
+  })
+
+  it('arşivden geri alınabilir', async () => {
+    const yanit = await cagir('POST', `/community/${resmiId}/archive`, adminToken, { geriAl: true })
+    expect(yanit.json().post.status).toBe('published')
+  })
+
+  it('üye gönderisi arşivlenemez', async () => {
+    const yanit = await cagir('POST', `/community/${uyeId}/archive`, adminToken)
+    expect(yanit.statusCode).toBe(403)
+    expect(yanit.json().code).toBe('USER_POST_NOT_ARCHIVABLE')
+  })
+
+  it('yönetici olmayan düzenleyemez ve arşivleyemez', async () => {
+    expect((await cagir('PATCH', `/community/${resmiId}`, learnerToken, { summary: 'x'.repeat(25) })).statusCode).toBe(403)
+    expect((await cagir('POST', `/community/${resmiId}/archive`, learnerToken)).statusCode).toBe(403)
+  })
+
+  it('kaldırılmış gönderi düzenlenemez', async () => {
+    await prisma.communityPost.update({ where: { id: resmiId }, data: { status: 'removed' } })
+    expect((await cagir('PATCH', `/community/${resmiId}`, adminToken, { summary: 'y'.repeat(25) })).statusCode).toBe(404)
+    await prisma.communityPost.update({ where: { id: resmiId }, data: { status: 'published' } })
+  })
+})
