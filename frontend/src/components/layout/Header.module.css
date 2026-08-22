@@ -303,3 +303,27 @@
     transform: none;
   }
 }
+
+/* Okunmamış bildirim rozeti. Sayı yalnız renkle değil METİNLE de
+   veriliyor — renk körü kullanıcı için kırmızı bir nokta yetmez. */
+.bildirimRozeti {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: .6rem;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Rozet mutlak konumlu; çapası bu düğme. `position` verilmezse rozet
+   sayfanın köşesine kaçar. */
+.iconBtn { position: relative; }

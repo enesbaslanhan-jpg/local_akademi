@@ -414,6 +414,18 @@ export const api = {
     async getRelated(id) { return api.request(`/knowledge/related/${id}`); }
   },
 
+  profil: {
+    async guncelle(veri) {
+      return api.request('/auth/profile', { method: 'PATCH', body: JSON.stringify(veri) });
+    },
+    async kapakYukle(file) {
+      const form = new FormData();
+      form.append('file', file);
+      return api.request('/auth/cover', { method: 'POST', body: form });
+    },
+    async kapakKaldir() { return api.request('/auth/cover', { method: 'DELETE' }); },
+  },
+
   search: {
     async query(q) {
       return api.request(`/api/v2/search?q=${encodeURIComponent(q)}`);
@@ -564,6 +576,19 @@ export const api = {
     async benimOzetim() {
       return api.request('/community/me/summary');
     },
+    /* Profil: kendi profilim `/auth/me`den geliyor, baskasininki
+       burada. Ayri uclar cunku baskasinin profilinde begeni ve
+       kaydetme YOK -- urun karari. */
+    async profil(userId) { return api.request(`/community/social/people/${userId}/profile`); },
+    async profilGonderileri(userId, tur) {
+      return api.request(`/community/people/${userId}/posts${tur ? `?tur=${tur}` : ''}`);
+    },
+    async profilKisileri(userId, liste) {
+      return api.request(`/community/social/people/${userId}/${liste}`);
+    },
+    async bildirimler() { return api.request('/community/social/notifications'); },
+    async bildirimleriOkundu() { return api.request('/community/social/notifications/read', { method: 'POST' }); },
+
     async people(q = '') { return api.request(`/community/social/people${q ? `?q=${encodeURIComponent(q)}` : ''}`); },
     async follow(personId, active) { return api.request(`/community/social/people/${personId}/follow`, { method: active ? 'POST' : 'DELETE' }); },
     async block(personId, active) { return api.request(`/community/social/people/${personId}/block`, { method: active ? 'POST' : 'DELETE' }); },

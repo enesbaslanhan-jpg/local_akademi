@@ -1,98 +1,205 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Bell, Bookmark, Heart, MessageSquare, Settings } from 'lucide-react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import {
+  Bookmark, Camera, Heart, Image as ImageIcon, Link2, MapPin,
+  MessageSquare, Pencil, UserPlus, Users, X,
+} from 'lucide-react'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
+import Button from '@/components/ui/Button'
 import { CommunityCard, initials } from './CommunityPage'
 import styles from './CommunityPage.module.css'
 
 /*
- * PROFİL SAYFASI — "paylaşımlarım, beğenilerim, kaydettiklerim".
+ * PROFİL SAYFASI — hem kendi profilim hem başkasınınki.
  *
- * Arka uç bu sayfadan ÖNCE yazıldı ve testleri var:
- *   GET /community/me/summary
- *   GET /community/me/posts | likes | bookmarks
+ * `/app/profil`        → kendi profilim (düzenlenebilir)
+ * `/app/profil/:userId` → başka üyenin profili
  *
- * Üç uç da kullanıcı kimliğini JETONDAN okuyor, adresten değil.
- * BAŞKASININ profili bilerek yok: kimin ne beğendiğinin başkasına
- * görünmesi ayrı bir gizlilik kararı ve ayrı bir metin değişikliği
- * gerektirir. "Kaydettiklerim" ise tanımı gereği kişiye özel.
+ * 🔴 İKİ PROFİL AYNI SEKMELERİ GÖSTERMİYOR.
+ *
+ * Beğendiklerim ve Kaydettiklerim YALNIZ kendi profilimde. Ürün
+ * kararı: "kaydettiklerim" tanımı gereği kişisel, beğeni de iş
+ * dünyasında rakip gözetimi anlamına gelebiliyor. Sunucu da bunu
+ * ayrıca uyguluyor — arayüz tek savunma hattı değil.
+ *
+ * Engel ve askıya alma sunucuda denetleniyor; burada yalnız 404'ü
+ * kullanıcıya anlaşılır biçimde gösteriyoruz.
  */
 
-const SEKMELER = [
-  { anahtar: 'posts', etiket: 'Paylaşımlarım', ikon: MessageSquare, sayiAlani: 'paylasim',
-    bos: 'Henüz bir şey paylaşmadın.' },
-  { anahtar: 'likes', etiket: 'Beğendiklerim', ikon: Heart, sayiAlani: 'begeni',
-    bos: 'Henüz bir paylaşımı beğenmedin.' },
-  { anahtar: 'bookmarks', etiket: 'Kaydettiklerim', ikon: Bookmark, sayiAlani: 'kayit',
-    bos: 'Henüz bir paylaşım kaydetmedin.' },
+const KENDI_SEKMELERI = [
+  { anahtar: 'posts', etiket: 'Paylaşımlarım', ikon: MessageSquare, sayiAlani: 'paylasim', bos: 'Henüz bir şey paylaşmadın.' },
+  { anahtar: 'media', etiket: 'Medya', ikon: ImageIcon, bos: 'Henüz görsel veya video paylaşmadın.' },
+  { anahtar: 'likes', etiket: 'Beğendiklerim', ikon: Heart, sayiAlani: 'begeni', bos: 'Henüz bir paylaşımı beğenmedin.' },
+  { anahtar: 'bookmarks', etiket: 'Kaydettiklerim', ikon: Bookmark, sayiAlani: 'kayit', bos: 'Henüz bir paylaşım kaydetmedin.' },
 ]
 
+const BASKASININ_SEKMELERI = [
+  { anahtar: 'posts', etiket: 'Paylaşımlar', ikon: MessageSquare, bos: 'Henüz bir şey paylaşmamış.' },
+  { anahtar: 'media', etiket: 'Medya', ikon: ImageIcon, bos: 'Henüz görsel veya video paylaşmamış.' },
+  { anahtar: 'followers', etiket: 'Takipçiler', ikon: Users, bos: 'Henüz takipçisi yok.' },
+  { anahtar: 'following', etiket: 'Takip edilenler', ikon: UserPlus, bos: 'Henüz kimseyi takip etmiyor.' },
+]
+
+/* Düzenleme paneli ayrı bileşen: sayfa zaten liste, sekme ve profil
+   durumunu taşıyor; form durumunu da aynı yere koymak okunmaz yapardı. */
+function ProfilDuzenle({ user, onKapat, onKaydedildi }) {
+  const [ad, setAd] = useState(user?.name || '')
+  const [bio, setBio] = useState(user?.bio || '')
+  const [konum, setKonum] = useState(user?.location || '')
+  const [adres, setAdres] = useState(user?.websiteUrl || '')
+  const [kaydediliyor, setKaydediliyor] = useState(false)
+  const [hata, setHata] = useState('')
+
+  async function kaydet(olay) {
+    olay.preventDefault()
+    setKaydediliyor(true)
+    setHata('')
+    try {
+      const sonuc = await api.profil.guncelle({ name: ad, bio, location: konum, websiteUrl: adres })
+      onKaydedildi(sonuc)
+    } catch (kaydetmeHatasi) {
+      setHata(kaydetmeHatasi.message || 'Profil kaydedilemedi.')
+    } finally {
+      setKaydediliyor(false)
+    }
+  }
+
+  return (
+    <form className={styles.profilDuzenle} onSubmit={kaydet}>
+      {hata && <p className={styles.error}>{hata}</p>}
+      <label>Ad<input value={ad} onChange={e => setAd(e.target.value)} minLength={2} maxLength={80} required /></label>
+      <label>
+        Hakkında
+        <textarea value={bio} onChange={e => setBio(e.target.value)} maxLength={280} rows={3} placeholder="İşletmenden kısaca bahset" />
+        <small>{bio.length}/280</small>
+      </label>
+      <label>Konum<input value={konum} onChange={e => setKonum(e.target.value)} maxLength={60} placeholder="Ankara / Yenimahalle" /></label>
+      {/* `type="url"` tarayıcıya da doğrulatıyor; sunucu ayrıca yalnız
+          http/https kabul ediyor — serbest metin bırakılsaydı
+          `javascript:` adresi profile konabilirdi. */}
+      <label>Web adresi<input type="url" value={adres} onChange={e => setAdres(e.target.value)} maxLength={200} placeholder="https://" /></label>
+      <div className={styles.profilDuzenleAlt}>
+        <Button variant="ghost" onClick={onKapat}>Vazgeç</Button>
+        <Button type="submit" disabled={kaydediliyor}>{kaydediliyor ? 'Kaydediliyor…' : 'Kaydet'}</Button>
+      </div>
+    </form>
+  )
+}
+
 export default function ProfilePage() {
-  const { user, isAdmin } = useAuth()
+  const { userId } = useParams()
   const navigate = useNavigate()
+  const { user, isAdmin, updateUser } = useAuth()
   const [arama, setArama] = useSearchParams()
 
-  /* Sekme ADRESTE tutuluyor: topluluktaki profil kartı doğrudan
-     "?liste=likes" ile geliyor ve bağlantı paylaşılabilir kalıyor. */
-  const istenen = arama.get('liste')
-  const aktif = SEKMELER.some(s => s.anahtar === istenen) ? istenen : 'posts'
+  /* Kendi profilim mi: adres parametresi yoksa ya da kendi kimliğimse. */
+  const benimMi = !userId || Number(userId) === user?.id
+  const sekmeler = benimMi ? KENDI_SEKMELERI : BASKASININ_SEKMELERI
 
-  const [ozet, setOzet] = useState(null)
+  const istenen = arama.get('liste')
+  const aktif = sekmeler.some(s => s.anahtar === istenen) ? istenen : 'posts'
+
+  const [profil, setProfil] = useState(null)
+  const [sayilar, setSayilar] = useState(null)
+  const [takipEdiyorum, setTakipEdiyorum] = useState(false)
   const [posts, setPosts] = useState([])
+  const [kisiler, setKisiler] = useState([])
   const [yukleniyor, setYukleniyor] = useState(true)
   const [hata, setHata] = useState('')
   const [bildirim, setBildirim] = useState('')
+  const [duzenleAcik, setDuzenleAcik] = useState(false)
 
   const yukle = useCallback(async () => {
     setYukleniyor(true)
     setHata('')
+    setKisiler([])
+    setPosts([])
     try {
-      const [liste, sayilar] = await Promise.all([
-        api.community.benimListem(aktif),
-        api.community.benimOzetim(),
-      ])
-      setPosts(liste.posts || [])
-      setOzet(sayilar)
+      if (benimMi) {
+        const [ozet, liste] = await Promise.all([
+          api.community.benimOzetim(),
+          aktif === 'media'
+            ? api.community.profilGonderileri(user.id, 'media')
+            : api.community.benimListem(aktif),
+        ])
+        setSayilar(ozet)
+        setPosts(liste.posts || [])
+        setProfil({
+          id: user.id, name: user.name, bio: user.bio, location: user.location,
+          websiteUrl: user.websiteUrl, avatarUrl: user.avatarUrl, coverUrl: user.coverUrl,
+        })
+      } else {
+        const bilgi = await api.community.profil(userId)
+        setProfil(bilgi.profil)
+        setSayilar(bilgi.sayilar)
+        setTakipEdiyorum(bilgi.takipEdiyorum)
+
+        if (aktif === 'followers' || aktif === 'following') {
+          const sonuc = await api.community.profilKisileri(userId, aktif)
+          setKisiler(sonuc.people || [])
+        } else {
+          const sonuc = await api.community.profilGonderileri(userId, aktif === 'media' ? 'media' : undefined)
+          setPosts(sonuc.posts || [])
+        }
+      }
     } catch (yuklemeHatasi) {
-      setHata(yuklemeHatasi.message || 'Liste yüklenemedi.')
+      /*
+       * Sunucu engelli ve askıya alınmış hesapta 404 dönüyor (403
+       * değil — 403 engelleyenin varlığını ele verirdi). Kullanıcıya
+       * ikisini ayırmadan tek bir mesaj gösteriyoruz.
+       */
+      setHata(yuklemeHatasi.message?.includes('bulunamad')
+        ? 'Bu profil görüntülenemiyor.'
+        : (yuklemeHatasi.message || 'Profil yüklenemedi.'))
     } finally {
       setYukleniyor(false)
     }
-  }, [aktif])
+  }, [benimMi, aktif, userId, user])
 
   useEffect(() => { yukle() }, [yukle])
+
+  async function takibiDegistir() {
+    const yeni = !takipEdiyorum
+    setTakipEdiyorum(yeni)
+    try {
+      await api.community.follow(profil.id, yeni)
+      setSayilar(mevcut => mevcut && { ...mevcut, takipci: (mevcut.takipci || 0) + (yeni ? 1 : -1) })
+    } catch (takipHatasi) {
+      setTakipEdiyorum(!yeni)
+      setHata(takipHatasi.message || 'İşlem tamamlanamadı.')
+    }
+  }
+
+  async function kapakSec(olay) {
+    const dosya = olay.target.files?.[0]
+    olay.target.value = ''
+    if (!dosya) return
+    try {
+      const sonuc = await api.profil.kapakYukle(dosya)
+      updateUser({ coverUrl: sonuc.coverUrl })
+      setProfil(mevcut => ({ ...mevcut, coverUrl: sonuc.coverUrl }))
+      setBildirim('Kapak fotoğrafı güncellendi.')
+    } catch (kapakHatasi) {
+      setHata(kapakHatasi.message || 'Kapak yüklenemedi.')
+    }
+  }
 
   function kaldirilabilir(post) {
     return isAdmin || (post.author?.id != null && post.author.id === user?.id)
   }
 
-  /*
-   * Etkileşimden sonra liste yeniden yükleniyor.
-   *
-   * Burada iyimser güncelleme YANLIŞ olurdu: "Beğendiklerim"
-   * sekmesinde bir gönderinin beğenisini kaldırmak, onu listeden
-   * DÜŞÜRMELİ. Yerinde işaret değiştirmek, kullanıcıyı beğenmediği
-   * bir gönderinin beğeni listesinde durduğuna inandırırdı.
-   */
   async function etkilesimDegistir(post, tur, aktifMi) {
     try {
       await api.community.etkilesim(post.id, tur, aktifMi)
       await yukle()
-    } catch (etkilesimHatasi) {
-      setHata(etkilesimHatasi.message || 'İşlem tamamlanamadı.')
-    }
+    } catch (e) { setHata(e.message || 'İşlem tamamlanamadı.') }
   }
 
   async function kaldir(postId) {
     if (!window.confirm('Bu paylaşım kaldırılsın mı?')) return
-    try {
-      await api.community.remove(postId)
-      setBildirim('Paylaşım kaldırıldı.')
-      await yukle()
-    } catch (kaldirmaHatasi) {
-      setHata(kaldirmaHatasi.message || 'Paylaşım kaldırılamadı.')
-    }
+    try { await api.community.remove(postId); setBildirim('Paylaşım kaldırıldı.'); await yukle() }
+    catch (e) { setHata(e.message || 'Paylaşım kaldırılamadı.') }
   }
 
   async function raporla(postId) {
@@ -101,12 +208,8 @@ export default function ProfilePage() {
     if (!neden || !izinli.includes(neden)) return
     const ayrinti = neden === 'other' ? window.prompt('Kısa açıklama')?.trim() : undefined
     if (neden === 'other' && !ayrinti) return
-    try {
-      await api.community.report(postId, neden, ayrinti)
-      setBildirim('Rapor moderasyon ekibine iletildi.')
-    } catch (raporHatasi) {
-      setHata(raporHatasi.message || 'Rapor gönderilemedi.')
-    }
+    try { await api.community.report(postId, neden, ayrinti); setBildirim('Rapor moderasyon ekibine iletildi.') }
+    catch (e) { setHata(e.message || 'Rapor gönderilemedi.') }
   }
 
   async function paylas(post) {
@@ -115,48 +218,111 @@ export default function ProfilePage() {
       try { await navigator.share({ title: 'LocalKarar', text: post.summary || '', url: adres }) } catch { /* vazgeçildi */ }
       return
     }
-    try {
-      await navigator.clipboard.writeText(adres)
-      setBildirim('Bağlantı kopyalandı.')
-    } catch {
-      setHata('Bağlantı kopyalanamadı.')
-    }
+    try { await navigator.clipboard.writeText(adres); setBildirim('Bağlantı kopyalandı.') }
+    catch { setHata('Bağlantı kopyalanamadı.') }
   }
 
-  const aktifSekme = SEKMELER.find(s => s.anahtar === aktif)
+  const aktifSekme = sekmeler.find(s => s.anahtar === aktif)
+
+  if (hata && !profil) {
+    return (
+      <main className={`${styles.page} ${styles.communityPage}`}>
+        <div className={styles.error}>{hata}</div>
+      </main>
+    )
+  }
 
   return (
     <main className={`${styles.page} ${styles.communityPage}`}>
-      <header className={styles.pageHeading}>
-        <div>
-          <span className={styles.kicker}>PROFİLİM</span>
-          <h1>{user?.name || 'LocalKarar kullanıcısı'}</h1>
-          <p>Paylaştıkların, beğendiklerin ve kendine kaydettiklerin.</p>
+      {/* KAPAK. Kendi profilimde üzerine gelince değiştirme düğmesi
+          çıkıyor; başkasınınkinde yalnız görsel. */}
+      <div className={styles.kapak} style={profil?.coverUrl ? { backgroundImage: `url(${profil.coverUrl})` } : undefined}>
+        {benimMi && (
+          <label className={styles.kapakDegistir}>
+            <Camera size={16} aria-hidden="true" />
+            <span>Kapak</span>
+            <input className="sr-only" type="file" accept="image/png,image/jpeg" onChange={kapakSec} />
+          </label>
+        )}
+      </div>
+
+      <header className={styles.profilBasligi}>
+        <span className={`${styles.authorAvatar} ${styles.profilAvatari}`}>
+          {profil?.avatarUrl
+            ? <img src={profil.avatarUrl} alt="" />
+            : initials(profil?.name)}
+        </span>
+
+        <div className={styles.profilBilgi}>
+          <h1>{profil?.name || 'LocalKarar kullanıcısı'}</h1>
+          {profil?.bio && <p className={styles.profilBio}>{profil.bio}</p>}
+          <div className={styles.profilUstveri}>
+            {profil?.location && <span><MapPin size={14} aria-hidden="true" /> {profil.location}</span>}
+            {profil?.websiteUrl && (
+              <a href={profil.websiteUrl} target="_blank" rel="noreferrer noopener nofollow">
+                <Link2 size={14} aria-hidden="true" /> {profil.websiteUrl.replace(/^https?:\/\//i, '')}
+              </a>
+            )}
+          </div>
+          {sayilar && (
+            <div className={styles.profilSayilariSatir}>
+              <button type="button" onClick={() => setArama({ liste: benimMi ? 'posts' : 'posts' })}>
+                <b>{sayilar.paylasim ?? 0}</b> paylaşım
+              </button>
+              {!benimMi && (
+                <>
+                  <button type="button" onClick={() => setArama({ liste: 'followers' })}>
+                    <b>{sayilar.takipci ?? 0}</b> takipçi
+                  </button>
+                  <button type="button" onClick={() => setArama({ liste: 'following' })}>
+                    <b>{sayilar.takipEdilen ?? 0}</b> takip
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
-        <div className={styles.profileActions}>
-          <button type="button" onClick={() => navigate('/app/settings?bolum=notifications')}><Bell size={17} /> Bildirimler</button>
-          <button type="button" onClick={() => navigate('/app/settings?bolum=profile')}><Settings size={17} /> Ayarlar</button>
-          <span className={styles.authorAvatar}>{initials(user?.name)}</span>
+
+        <div className={styles.profilEylem}>
+          {benimMi
+            ? <Button variant="secondary" onClick={() => setDuzenleAcik(a => !a)}>
+              {duzenleAcik ? <X size={16} /> : <Pencil size={16} />}
+              {duzenleAcik ? 'Kapat' : 'Profili düzenle'}
+            </Button>
+            : <Button variant={takipEdiyorum ? 'secondary' : 'primary'} onClick={takibiDegistir}>
+              <UserPlus size={16} />{takipEdiyorum ? 'Takibi bırak' : 'Takip et'}
+            </Button>}
         </div>
       </header>
 
       {bildirim && <div className={styles.notice}>{bildirim}</div>}
       {hata && <div className={styles.error}>{hata}</div>}
 
+      {benimMi && duzenleAcik && (
+        <ProfilDuzenle
+          user={user}
+          onKapat={() => setDuzenleAcik(false)}
+          onKaydedildi={sonuc => {
+            updateUser(sonuc)
+            setProfil(mevcut => ({ ...mevcut, ...sonuc }))
+            setDuzenleAcik(false)
+            setBildirim('Profil güncellendi.')
+          }}
+        />
+      )}
+
       <nav className={styles.profilSekmeleri} aria-label="Profil listeleri">
-        {SEKMELER.map(sekme => (
+        {sekmeler.map(sekme => (
           <button
             key={sekme.anahtar}
             type="button"
             className={sekme.anahtar === aktif ? styles.profilSekmeAktif : undefined}
-            /* `aria-current`: hangi sekmede olunduğu ekran okuyucuya da
-               söylenmeli; yalnız renkle belirtmek yeterli değil. */
             aria-current={sekme.anahtar === aktif ? 'page' : undefined}
             onClick={() => setArama({ liste: sekme.anahtar })}
           >
             <sekme.ikon size={16} aria-hidden="true" />
             <span>{sekme.etiket}</span>
-            {ozet && <b>{ozet[sekme.sayiAlani]}</b>}
+            {sayilar && sekme.sayiAlani && <b>{sayilar[sekme.sayiAlani]}</b>}
           </button>
         ))}
       </nav>
@@ -164,10 +330,27 @@ export default function ProfilePage() {
       <section className={styles.feed} aria-live="polite">
         {yukleniyor && <div className={styles.skeleton} aria-label="İçerik yükleniyor"><span /><span /><span /></div>}
 
-        {!yukleniyor && posts.length === 0 && (
+        {!yukleniyor && posts.length === 0 && kisiler.length === 0 && (
           <div className={styles.empty}>
             <aktifSekme.ikon size={34} aria-hidden="true" />
             <p>{aktifSekme.bos}</p>
+          </div>
+        )}
+
+        {/* Kişi listeleri (takipçi / takip edilen) */}
+        {kisiler.length > 0 && (
+          <div className={styles.kisiListesi}>
+            {kisiler.map(kisi => (
+              <button key={kisi.id} type="button" onClick={() => navigate(`/app/profil/${kisi.id}`)}>
+                <span className={styles.authorAvatar}>
+                  {kisi.avatarUrl ? <img src={kisi.avatarUrl} alt="" /> : initials(kisi.name)}
+                </span>
+                <span>
+                  <strong>{kisi.name}</strong>
+                  {kisi.bio && <small>{kisi.bio}</small>}
+                </span>
+              </button>
+            ))}
           </div>
         )}
 

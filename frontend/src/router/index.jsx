@@ -33,6 +33,7 @@ const PilotLearningPathPage = lazy(() => import('@/pages/PilotLearningPathPage')
 const CommunityPage = lazy(() => import('@/pages/CommunityPage'))
 const CommunityPostPage = lazy(() => import('@/pages/CommunityPostPage'))
 const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
+const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'))
 const CommunitySocialPage = lazy(() => import('@/pages/CommunitySocialPage'))
 const NewsPage = lazy(() => import('@/pages/NewsPage'))
 const WorkspaceList = lazy(() => import('@/pages/Workspaces/index'))
@@ -117,6 +118,12 @@ export default function AppRoutes() {
             <Route path="community/sohbetler" element={<SuspenseWrapper><CommunitySocialPage mode="threads" /></SuspenseWrapper>} />
             {/* Profil: yalnız kendi verisi. Başkasının profili bilerek yok. */}
             <Route path="profil" element={<SuspenseWrapper><ProfilePage /></SuspenseWrapper>} />
+            {/* Başka üyenin profili. Aynı bileşen: kendi profilimle
+                farkı hangi sekmelerin gösterildiği ve düzenleme
+                panelinin olup olmadığı. Engel ve askı SUNUCUDA
+                denetleniyor — arayüz tek savunma hattı değil. */}
+            <Route path="profil/:userId" element={<SuspenseWrapper><ProfilePage /></SuspenseWrapper>} />
+            <Route path="bildirimler" element={<SuspenseWrapper><NotificationsPage /></SuspenseWrapper>} />
             <Route path="tools" element={<SuspenseWrapper><ToolsPage /></SuspenseWrapper>} />
             <Route path="calculations" element={<SuspenseWrapper><ToolsPage initialView="calculator" /></SuspenseWrapper>} />
             <Route path="decision-checks" element={<SuspenseWrapper><DecisionCheckList /></SuspenseWrapper>} />
