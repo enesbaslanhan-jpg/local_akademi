@@ -14,6 +14,14 @@ const testState = vi.hoisted(() => ({
     remove: vi.fn(),
     report: vi.fn(),
     submit: vi.fn(),
+    /* Reklamlar sag rayda cizildigi icin sayfa bunlari da cagiriyor.
+       Uretim kodunda `api.community.ads ? ... :` diye bir koruma
+       vardi; o koruma yalniz EKSIK SAHTEYI tolere etmek icindi ve
+       uretim kodunun bir yontemin varligina gore dallanmasi yanlis --
+       sahte tamamlandi, koruma kaldirildi. */
+    ads: vi.fn(),
+    reklamOlayi: vi.fn(),
+    removeAd: vi.fn(),
   },
 }))
 
@@ -45,6 +53,7 @@ beforeEach(() => {
   testState.community.reports.mockResolvedValue({ reports: [] })
   testState.community.benimOzetim.mockResolvedValue({ paylasim: 8, begeni: 21, kayit: 5 })
   testState.community.post.mockResolvedValue({ post: gonderi, parent: null })
+  testState.community.ads.mockResolvedValue({ ads: [] })
 })
 
 afterEach(() => {

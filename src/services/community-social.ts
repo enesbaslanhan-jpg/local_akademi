@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../lib/prisma.js'
 import { bildirimYaz } from './community-bildirim.js'
+import { medyaCikti } from './community-medya-adres.js'
 
 const threadSchema = z.object({
   name: z.string().trim().min(2).max(80).optional(),
@@ -9,8 +10,13 @@ const threadSchema = z.object({
 })
 const messageSchema = z.object({ body: z.string().trim().min(1).max(2000) })
 const adSchema = z.object({
-  title: z.string().trim().min(2).max(100), body: z.string().trim().min(2).max(500),
-  ctaLabel: z.string().trim().max(40).optional(), ctaUrl: z.string().url().max(1000).optional(),
+  title: z.string().trim().min(2).max(100),
+  body: z.string().trim().min(2).max(500),
+  ctaLabel: z.string().trim().max(40).optional(),
+  ctaUrl: z.string().url().max(1000).optional(),
+  /* Medya topluluk medya hattindan geliyor (imzali adres, sihirli bayt
+     dogrulamasi). Ikinci bir yukleme yolu yazilmadi. */
+  mediaId: z.string().uuid().optional(),
 })
 
 /*
@@ -423,15 +429,89 @@ export async function communitySocialRoutes(fastify: FastifyInstance) {
     return { okundu: sonuc.count }
   })
 
-  fastify.get('/ads', { preHandler: [fastify.authenticate] }, async () => ({ ads: await prisma.communityAd.findMany({ where: { active: true }, orderBy: { createdAt: 'desc' }, take: 3 }) }))
-  fastify.post('/ads', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    if (request.user.role !== 'admin') return reply.status(403).send({ error: 'Yalnız yöneticiler reklam oluşturabilir.' })
-    const parsed = adSchema.safeParse(request.body); if (!parsed.success) return reply.status(422).send({ error: 'Geçersiz reklam bilgisi.' })
-    return reply.status(201).send({ ad: await prisma.communityAd.create({ data: { ...parsed.data, createdById: request.user.id } }) })
+  /*
+   * REKLAM MEDYASI ve SAYACLARI.
+   *
+   * 🔴 KIMIN GORDUGU KAYDEDILMIYOR (urun karari, 22.08.2026).
+   * Sayaclar TOPLAM. Kisi bazinda olcum gercek izlemedir ve
+   * StorageNotice'taki "hicbir ucuncu taraf izleme araci
+   * calistirmiyor" taahhudunu ve cerez politikasini degistirmeyi
+   * gerektirirdi. Bu yuzden burada bir "AdImpression" tablosu YOKTUR
+   * ve olmamalidir -- toplam sayac reklam vereni ikna etmeye yeter.
+   */
+  async function reklamCikti(ad: any) {
+    if (!ad?.mediaId) return { ...ad, media: null }
+    const media = await prisma.communityMedia.findUnique({
+      where: { id: ad.mediaId },
+      select: { id: true, kind: true, mimeType: true, originalName: true, sizeBytes: true },
+    })
+    return { ...ad, media: medyaCikti(media) }
+  }
+
+  fastify.get('/ads', { preHandler: [fastify.authenticate] }, async () => {
+    const ads = await prisma.communityAd.findMany({
+      where: { active: true }, orderBy: { createdAt: 'desc' }, take: 3,
+    })
+    return { ads: await Promise.all(ads.map(reklamCikti)) }
   })
-  fastify.delete('/ads/:adId', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+
+  /* Yonetim listesi: pasif olanlar da gorunsun, sayaclarla birlikte. */
+  fastify.get('/ads/all', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    if (request.user.role !== 'admin') return reply.status(403).send({ error: 'Yalnız yöneticiler görebilir.' })
+    const ads = await prisma.communityAd.findMany({ orderBy: { createdAt: 'desc' }, take: 50 })
+    return { ads: await Promise.all(ads.map(reklamCikti)) }
+  })
+
+  fastify.post('/ads', { preHandler: [fastify.authenticate], config: YAZMA_SINIRI }, async (request, reply) => {
+    if (request.user.role !== 'admin') return reply.status(403).send({ error: 'Yalnız yöneticiler reklam oluşturabilir.' })
+    const parsed = adSchema.safeParse(request.body)
+    if (!parsed.success) return reply.status(422).send({ error: 'Geçersiz reklam bilgisi.', details: parsed.error.errors })
+
+    /* Medya gercekten var mi: olmayan bir kimlik kaydedilirse reklam
+       kirik gorselle yayina girer ve bunu ancak bakan biri fark eder. */
+    if (parsed.data.mediaId) {
+      const varMi = await prisma.communityMedia.findUnique({ where: { id: parsed.data.mediaId }, select: { id: true } })
+      if (!varMi) return reply.status(422).send({ error: 'Yüklenen dosya bulunamadı.' })
+    }
+
+    const ad = await prisma.communityAd.create({ data: { ...parsed.data, createdById: request.user.id } })
+    return reply.status(201).send({ ad: await reklamCikti(ad) })
+  })
+
+  fastify.delete('/ads/:adId', { preHandler: [fastify.authenticate], config: YAZMA_SINIRI }, async (request, reply) => {
     if (request.user.role !== 'admin') return reply.status(403).send({ error: 'Yalnız yöneticiler reklam kaldırabilir.' })
+    /* Silme degil pasiflestirme: sayaclar ve gecmis duruyor. */
     await prisma.communityAd.update({ where: { id: (request.params as { adId: string }).adId }, data: { active: false } })
     return { active: false }
+  })
+
+  /*
+   * SAYAC ARTIRMA.
+   *
+   * Giris gerektiriyor ama KIMIN artirdigi kaydedilmiyor -- yalniz
+   * sayi buyuyor. Giris sartinin sebebi bot trafigini bir nebze
+   * zorlastirmak; kimlik saklanmiyor.
+   *
+   * Hiz siniri var: sinirsiz olsaydi tek bir istemci sayaci
+   * istedigi kadar sisirebilir ve rakam anlamsizlasirdi.
+   */
+  fastify.post('/ads/:adId/:olay', {
+    preHandler: [fastify.authenticate],
+    config: { rateLimit: { max: 200, timeWindow: '1 hour' } },
+  }, async (request, reply) => {
+    const { adId, olay } = request.params as { adId: string; olay: string }
+    if (olay !== 'impression' && olay !== 'click') {
+      return reply.status(404).send({ error: 'Bilinmeyen olay.' })
+    }
+    try {
+      await prisma.communityAd.update({
+        where: { id: adId },
+        data: olay === 'impression' ? { impressions: { increment: 1 } } : { clicks: { increment: 1 } },
+      })
+    } catch {
+      /* Reklam silinmis olabilir; sayac artmamasi kullaniciyi
+         ilgilendirmiyor ve ekrani bozmamali. */
+    }
+    return { ok: true }
   })
 }

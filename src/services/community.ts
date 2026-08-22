@@ -3,11 +3,12 @@ import type { PrismaClient } from '@prisma/client'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { z } from 'zod'
 import { bildirimYaz, gonderiSahibineBildir } from './community-bildirim.js'
+import { imzayiDogrula, medyaCikti } from './community-medya-adres.js'
 import fastifyMultipart from '@fastify/multipart'
 import { createReadStream } from 'fs'
 import { mkdir, stat, unlink, writeFile } from 'fs/promises'
 import { isAbsolute, join, relative, resolve } from 'path'
-import { createHmac, randomUUID, timingSafeEqual } from 'crypto'
+import { randomUUID } from 'crypto'
 import {
   ALLOWED_MIME_MAP,
   MAX_FILE_SIZE,
@@ -160,71 +161,12 @@ export async function communityRoutes(
   } as const
 
   /*
-   * IMZALI MEDYA BAGLANTISI
-   *
-   * Topluluk giris arkasinda ama medya rotasi kimlik dogrulayamiyor:
-   * <img src> ve <video src> Authorization basligi tasiyamaz. Sonuc,
-   * gonderi METNI duvarin arkasinda, fotograf ve video disinda kaliyordu.
-   *
-   * Cerez ile cozulebilirdi ama COZULMEDI: uygulama hic cerez
-   * kullanmiyor ve StorageNotice bunu kullaniciya YAZILI olarak taahhut
-   * ediyor. Tek bir medya cerezi o cumleyi yalanlar ve cerez politikasi
-   * metnini degistirmeyi gerektirirdi.
-   *
-   * Bunun yerine kisa omurlu imza: adres HMAC ile muhurleniyor ve
-   * suresi dolunca oluyor. DURUST SINIR -- bu, sizan bir baglantiyi
-   * imkansiz kilmaz, omrunu SINIRLAR. "Sonsuza kadar acik" yerine
-   * "en fazla 12 saat".
-   *
-   * Sure neden 12 saat: sekmesini acik birakan kullanicinin gorselleri
-   * elinde patlamamali. Daha kisasi kullaniciyi bozuk gorsele, daha
-   * uzunu sizan baglantiyi uzun omurlu yapardi.
+   * Imzali medya adresi ORTAK MODULDE:
+   * `community-medya-adres.ts`. Reklamlar da ayni adresi kullaniyor;
+   * ikinci bir kopya, imza mantiginin iki yerde yasamasi demekti --
+   * biri duzeltilip digeri unutulunca dogrulama ile uretim ayrisir ve
+   * TUM gorseller sessizce kirilir.
    */
-  const MEDYA_BAGLANTI_OMRU_SN = 12 * 60 * 60
-
-  /* JWT_SECRET dogrudan kullanilmiyor: ayni gizli anahtari iki farkli
-     amaca kosmak, birinde bulunan zayifligi digerine tasir. Ondan
-     turetilmis ayri bir anahtar kullaniliyor. */
-  function medyaAnahtari() {
-    const temel = process.env.JWT_SECRET || ''
-    return createHmac('sha256', temel).update('community-media-url-v1').digest()
-  }
-
-  function medyaImzasi(mediaId: string, bitis: number) {
-    return createHmac('sha256', medyaAnahtari())
-      .update(`${mediaId}.${bitis}`)
-      .digest('hex')
-  }
-
-  function imzaliMedyaUrl(mediaId: string) {
-    const bitis = Math.floor(Date.now() / 1000) + MEDYA_BAGLANTI_OMRU_SN
-    return `/community/media/${mediaId}?e=${bitis}&s=${medyaImzasi(mediaId, bitis)}`
-  }
-
-  type ImzaSonucu = 'gecerli' | 'suresi-doldu' | 'gecersiz'
-
-  function imzayiDogrula(mediaId: string, e?: string, imza?: string): ImzaSonucu {
-    if (!e || !imza) return 'gecersiz'
-    const bitis = Number.parseInt(e, 10)
-    if (!Number.isFinite(bitis)) return 'gecersiz'
-
-    const beklenen = Buffer.from(medyaImzasi(mediaId, bitis), 'utf8')
-    const gelen = Buffer.from(imza, 'utf8')
-    /* Uzunluk esit degilse timingSafeEqual FIRLATIR; once o kontrol. */
-    if (beklenen.length !== gelen.length) return 'gecersiz'
-    if (!timingSafeEqual(beklenen, gelen)) return 'gecersiz'
-
-    /* Imza gecerli ama vakti gecmis: baglanti bir zamanlar mesruydu.
-       Bunu "bulunamadi" ile karistirmamak arayuze akisi tazeleme
-       firsati veriyor. */
-    return bitis * 1000 > Date.now() ? 'gecerli' : 'suresi-doldu'
-  }
-
-  /* Medyayi istemciye verirken imzali adresi de ekler. Tek yerden
-     gecmesi onemli: bir listede unutulursa orada gorseller kirilir. */
-  function medyaCikti<T extends { id: string } | null | undefined>(media: T) {
-    return media ? { ...media, url: imzaliMedyaUrl(media.id) } : media
-  }
 
   /*
    * ETKILESIM BILGISI

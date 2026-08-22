@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Bookmark,
   AtSign,
@@ -975,19 +975,79 @@ function NewsCard({ post, onReport }) {
   return <article className={styles.newsCard}><div className={styles.newsThumb}>{post.media?.kind === 'image' ? <PostMedia media={post.media} /> : <FileText size={34} />}</div><div className={styles.newsBody}><span>{post.category ? `${CATEGORY_LABELS[post.category] || post.category} · ` : ''}{post.sourceTitle || 'Resmî kaynak'}</span><h2>{post.title}</h2><p>{post.summary}</p>{post.content && <p className={styles.newsContent}>{post.content}</p>}<div><time>{timeAgo(post.publishedAt)}</time>{post.sourceUrl && <a href={post.sourceUrl} target="_blank" rel="noreferrer noopener">Kaynağa git <ExternalLink size={14} /></a>}<button type="button" onClick={() => onReport(post.id)} aria-label="Haberi raporla"><Flag size={14} /></button></div></div></article>
 }
 
+/*
+ * REKLAM GOSTERIMI.
+ *
+ * 🔴 OLUSTURMA BURADA DEGIL. Onceden `window.prompt` ile bu bilesenden
+ * yapiliyordu; urun sahibi "islevsiz ve yanlis yerde" dedi. Artik
+ * yonetim panelinde (AdminCommunity > Reklamlar). Bu bilesen yalniz
+ * GOSTERIYOR.
+ *
+ * 🔴 GOSTERIM SAYACI EKRANDA GORUNUNCE ARTIYOR, sayfa yuklenince
+ * degil. Sayfa yuklenmesinde saymak, hic goze carpmamis bir reklami
+ * "goruldu" saymak olurdu -- yani sayi yalan soylerdi.
+ *
+ * KIMIN gordugu KAYDEDILMIYOR: sunucuda yalniz toplam sayac var.
+ */
+function ReklamKarti({ ad, isAdmin, onKaldir }) {
+  const kutuRef = useRef(null)
+  const sayildiRef = useRef(false)
+
+  useEffect(() => {
+    const kutu = kutuRef.current
+    if (!kutu) return undefined
+
+    const gozlemci = new IntersectionObserver(([kayit]) => {
+      /* Bir gorunumde BIR KEZ sayiliyor: kullanici asagi yukari
+         kaydirdikca sayac sismemeli. */
+      if (!kayit.isIntersecting || kayit.intersectionRatio < 0.5 || sayildiRef.current) return
+      sayildiRef.current = true
+      api.community.reklamOlayi(ad.id, 'impression')
+      gozlemci.disconnect()
+    }, { threshold: [0, 0.5] })
+
+    gozlemci.observe(kutu)
+    return () => gozlemci.disconnect()
+  }, [ad.id])
+
+  return (
+    <section className={`${styles.railCard} ${styles.adCard}`} ref={kutuRef}>
+      <small>Tanıtım</small>
+      <h2>{ad.title}</h2>
+      {ad.media && <PostMedia media={ad.media} kucuk />}
+      <p>{ad.body}</p>
+      {ad.ctaUrl && (
+        <a
+          href={ad.ctaUrl}
+          target="_blank"
+          /* `nofollow`: tanitim baglantisi arama motoruna oneri
+             sayilmamali. */
+          rel="noreferrer noopener nofollow"
+          onClick={() => api.community.reklamOlayi(ad.id, 'click')}
+        >
+          {ad.ctaLabel || 'İncele'}
+        </a>
+      )}
+      {isAdmin && <button type="button" onClick={() => onKaldir(ad.id)}>Kaldır</button>}
+    </section>
+  )
+}
+
 function CommunityAds({ isAdmin }) {
   const [ads, setAds] = useState([])
-  const load = () => api.community.ads
-    ? api.community.ads().then(r => setAds(r.ads || [])).catch(() => {})
-    : Promise.resolve()
-  useEffect(() => { load() }, [])
-  async function create() {
-    const title = window.prompt('Reklam başlığı')?.trim(); if (!title) return
-    const body = window.prompt('Reklam metni')?.trim(); if (!body) return
-    const ctaUrl = window.prompt('Bağlantı (isteğe bağlı)')?.trim()
-    await api.community.createAd({ title, body, ...(ctaUrl ? { ctaUrl, ctaLabel: 'İncele' } : {}) }); await load()
+
+  const load = useCallback(() => api.community.ads()
+    .then(r => setAds(r.ads || []))
+    .catch(() => { /* Reklam kritik degil; ekrani bozmadan gec. */ }), [])
+
+  useEffect(() => { load() }, [load])
+
+  async function kaldir(adId) {
+    await api.community.removeAd(adId)
+    await load()
   }
-  return <>{ads.map(ad => <section className={`${styles.railCard} ${styles.adCard}`} key={ad.id}><small>Tanıtım</small><h2>{ad.title}</h2><p>{ad.body}</p>{ad.ctaUrl && <a href={ad.ctaUrl} target="_blank" rel="noreferrer noopener">{ad.ctaLabel || 'İncele'}</a>}{isAdmin && <button type="button" onClick={async () => { await api.community.removeAd(ad.id); await load() }}>Kaldır</button>}</section>)}{isAdmin && <button type="button" className={styles.addAdButton} onClick={create}><Plus size={15}/> Reklam ekle</button>}</>
+
+  return <>{ads.map(ad => <ReklamKarti key={ad.id} ad={ad} isAdmin={isAdmin} onKaldir={kaldir} />)}</>
 }
 
 function CommunityRail({ posts, contributors, arama, setArama, onAc, isAdmin }) {

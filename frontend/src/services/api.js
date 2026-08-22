@@ -601,6 +601,12 @@ export const api = {
     async sendMessage(threadId, body) { return api.request(`/community/social/threads/${threadId}/messages`, { method: 'POST', body: JSON.stringify({ body }) }); },
     async ads() { return api.request('/community/social/ads'); },
     async createAd(data) { return api.request('/community/social/ads', { method: 'POST', body: JSON.stringify(data) }); },
+    async tumReklamlar() { return api.request('/community/social/ads/all'); },
+    /* Sayac artirma: KIMIN artirdigi kaydedilmiyor, yalniz sayi buyur.
+       Hata yutuluyor -- olcum yan etkidir, ekrani bozmamali. */
+    async reklamOlayi(adId, olay) {
+      return api.request(`/community/social/ads/${adId}/${olay}`, { method: 'POST' }).catch(() => {});
+    },
     async removeAd(adId) { return api.request(`/community/social/ads/${adId}`, { method: 'DELETE' }); },
     async uploadMedia(file) {
       const form = new FormData();

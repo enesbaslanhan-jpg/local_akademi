@@ -274,3 +274,90 @@ describe('grup daveti kabul ister', () => {
     await prisma.communityThread.deleteMany({ where: { id: ikiliId } }).catch(() => {})
   })
 })
+
+describe('reklam sayaçları', () => {
+  /*
+   * 🔴 KİMİN GÖRDÜĞÜ KAYDEDİLMİYOR (ürün kararı, 22.08.2026).
+   *
+   * Sayaçlar toplam. Kişi bazında ölçüm gerçek izlemedir ve
+   * `StorageNotice`taki "hiçbir üçüncü taraf izleme aracı
+   * çalıştırmıyor" taahhüdünü ve çerez politikasını değiştirmeyi
+   * gerektirirdi.
+   *
+   * Bu testin asıl işi o kararı KİLİTLEMEK: ileride biri
+   * "hedefleme yapalım" diye kişi bazlı bir tablo eklerse, aşağıdaki
+   * son test bunu yakalar.
+   */
+  let reklamId: string
+
+  beforeAll(async () => {
+    const yanit = await app.inject({
+      method: 'POST', url: '/community/social/ads',
+      headers: auth(adminToken),
+      payload: { title: 'Sayaç testi', body: 'Ölçüm denemesi', ctaUrl: 'https://ornek.test' },
+    })
+    expect(yanit.statusCode).toBe(201)
+    reklamId = yanit.json().ad.id
+  })
+
+  it('gösterim ve tıklama sayaçları artar', async () => {
+    await app.inject({ method: 'POST', url: `/community/social/ads/${reklamId}/impression`, headers: auth(aliToken) })
+    await app.inject({ method: 'POST', url: `/community/social/ads/${reklamId}/impression`, headers: auth(ayseToken) })
+    await app.inject({ method: 'POST', url: `/community/social/ads/${reklamId}/click`, headers: auth(aliToken) })
+
+    const kayit = await prisma.communityAd.findUnique({ where: { id: reklamId } })
+    expect(kayit?.impressions).toBe(2)
+    expect(kayit?.clicks).toBe(1)
+  })
+
+  it('🔴 KİMİN gördüğü hiçbir yerde kayıtlı DEĞİL', async () => {
+    /*
+     * Reklam satırında yalnız sayı var: kullanıcıya bağlanan hiçbir
+     * alan yok. İleride kişi bazlı ölçüm eklenirse bu test düşer ve
+     * kararın yeniden konuşulması gerektiğini hatırlatır.
+     */
+    const kayit: any = await prisma.communityAd.findUnique({ where: { id: reklamId } })
+    const alanlar = Object.keys(kayit)
+    const kisiyeBaglayan = alanlar.filter(a => /user|viewer|seen|izleyen|goren/i.test(a))
+    expect(kisiyeBaglayan).toEqual([])
+  })
+
+  it('bilinmeyen olay 404 döner', async () => {
+    const yanit = await app.inject({
+      method: 'POST', url: `/community/social/ads/${reklamId}/hedefleme`, headers: auth(aliToken),
+    })
+    expect(yanit.statusCode).toBe(404)
+  })
+
+  it('yönetici olmayan reklam oluşturamaz', async () => {
+    const yanit = await app.inject({
+      method: 'POST', url: '/community/social/ads',
+      headers: auth(aliToken), payload: { title: 'Sızma', body: 'deneme' },
+    })
+    expect(yanit.statusCode).toBe(403)
+  })
+
+  it('olmayan medya kimliği reddedilir', async () => {
+    /* Kaydedilseydi reklam kırık görselle yayına girerdi ve bunu
+       ancak bakan biri fark ederdi. */
+    const yanit = await app.inject({
+      method: 'POST', url: '/community/social/ads',
+      headers: auth(adminToken),
+      payload: { title: 'Medyalı', body: 'deneme', mediaId: '33333333-3333-4333-8333-333333333333' },
+    })
+    expect(yanit.statusCode).toBe(422)
+  })
+
+  it('kaldırma gerçek silme değil — sayaçlar duruyor', async () => {
+    await app.inject({ method: 'DELETE', url: `/community/social/ads/${reklamId}`, headers: auth(adminToken) })
+
+    const kayit = await prisma.communityAd.findUnique({ where: { id: reklamId } })
+    expect(kayit).not.toBeNull()
+    expect(kayit?.active).toBe(false)
+    expect(kayit?.impressions).toBe(2)
+
+    /* Pasif reklam akışta GÖRÜNMEMELİ. */
+    const akis = await app.inject({ method: 'GET', url: '/community/social/ads', headers: auth(aliToken) })
+    expect(akis.json().ads.some((a: any) => a.id === reklamId)).toBe(false)
+  })
+})

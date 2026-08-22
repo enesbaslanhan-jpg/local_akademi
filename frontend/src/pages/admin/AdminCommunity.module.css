@@ -42,3 +42,33 @@
 .published article > span { color:var(--success); font-size:var(--font-size-xs); }
 @media (max-width:800px) { .createPanel { grid-template-columns:1fr; } .rows { grid-template-columns:1fr; } }
 @media (max-width:560px) { .header, .createPanel footer { align-items:stretch; flex-direction:column; } .formGrid { grid-template-columns:1fr; } .formGrid label:last-child { grid-column:auto; } .actions { flex-direction:column-reverse; } .actions button { width:100%; } }
+
+/* Reklam formundaki medya seçimi. Gizli girdi + etiket: dosya
+   girdisinin kendi görünümü tarayıcıya göre değişiyor ve temaya
+   uymuyor. */
+.medyaSec {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 14px;
+  border: 1px dashed var(--border-strong, var(--border));
+  border-radius: 10px;
+  background: var(--surface-card);
+  color: var(--text-light);
+  cursor: pointer;
+  font-size: .8rem;
+}
+.medyaSec:hover { border-color: var(--primary); color: var(--text); }
+.medyaKaldir {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--danger);
+  cursor: pointer;
+  font: inherit;
+  font-size: .74rem;
+}

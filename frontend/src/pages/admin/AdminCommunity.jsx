@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, Check, FilePenLine, Flag, Newspaper, RefreshCw, Users } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { AlertTriangle, Check, FilePenLine, Flag, Image as ImageIcon, Megaphone, Newspaper, RefreshCw, Users, X } from 'lucide-react'
 import { api } from '@/services/api'
 import { Button, EmptyState } from '@/components/ui'
 import styles from './AdminCommunity.module.css'
@@ -8,7 +8,146 @@ const TABS = [
   ['news', 'Haberler', Newspaper],
   ['community', 'Topluluk', Users],
   ['reports', 'Şikâyetler', Flag],
+  /* Reklam olusturma buraya TASINDI: onceden topluluk sag rayinda
+     `window.prompt` ile yapiliyordu ve yanlis yerdeydi. */
+  ['ads', 'Reklamlar', Megaphone],
 ]
+
+/*
+ * REKLAM PANELI.
+ *
+ * Onceden topluluk sag rayinda `window.prompt` ucusuyla yapiliyordu:
+ * baslik sor, metin sor, baglanti sor. Medya eklenemiyordu ve urun
+ * sahibi "islevsiz ve yanlis yerde" dedi. Artik burada, duzgun bir
+ * formla.
+ *
+ * 🔴 SAYACLAR TOPLAM, KISI BAGLANMIYOR (urun karari). Kisi bazinda
+ * olcum gercek izlemedir ve StorageNotice'taki "hicbir ucuncu taraf
+ * izleme araci calistirmiyor" taahhudunu bozardi. Panelde "1.240
+ * gosterim, 37 tiklama" yaziyor; KIMIN gordugu hicbir yerde yok.
+ */
+function ReklamPaneli() {
+  const [ads, setAds] = useState([])
+  const [form, setForm] = useState({ title: '', body: '', ctaLabel: '', ctaUrl: '' })
+  const [media, setMedia] = useState(null)
+  const [busy, setBusy] = useState('')
+  const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
+
+  const load = useCallback(() => api.community.tumReklamlar()
+    .then(r => setAds(r.ads || []))
+    .catch(e => setError(e.message || 'Reklamlar alınamadı.')), [])
+
+  useEffect(() => { load() }, [load])
+
+  async function medyaSec(event) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setBusy('media'); setError('')
+    try {
+      /* Topluluk medya hatti: sihirli bayt dogrulamasi ve imzali adres
+         zaten orada. Ikinci bir yukleme yolu yazilmadi. */
+      const sonuc = await api.community.uploadMedia(file)
+      setMedia(sonuc.media)
+    } catch (e) {
+      setError(e.message || 'Dosya yüklenemedi.')
+    } finally { setBusy('') }
+  }
+
+  async function olustur(event) {
+    event.preventDefault()
+    setBusy('create'); setError(''); setMessage('')
+    try {
+      await api.community.createAd({
+        title: form.title,
+        body: form.body,
+        ...(form.ctaUrl ? { ctaUrl: form.ctaUrl, ctaLabel: form.ctaLabel || 'İncele' } : {}),
+        ...(media ? { mediaId: media.id } : {}),
+      })
+      setForm({ title: '', body: '', ctaLabel: '', ctaUrl: '' })
+      setMedia(null)
+      setMessage('Reklam yayına alındı.')
+      await load()
+    } catch (e) {
+      setError(e.message || 'Reklam oluşturulamadı.')
+    } finally { setBusy('') }
+  }
+
+  async function kaldir(ad) {
+    setBusy(ad.id); setError('')
+    try { await api.community.removeAd(ad.id); await load() }
+    catch (e) { setError(e.message || 'Reklam kaldırılamadı.') }
+    finally { setBusy('') }
+  }
+
+  return (
+    <>
+      {error && <div className={styles.error}><AlertTriangle size={15} />{error}</div>}
+
+      <section className={styles.createPanel}>
+        <div>
+          <Megaphone size={18} />
+          <h2>Yeni tanıtım</h2>
+          <p>Topluluk akışının yanında gösterilir. Görsel veya video ekleyebilirsin.</p>
+        </div>
+        <form onSubmit={olustur}>
+          <label>Başlık<input value={form.title} onChange={e => setForm(v => ({ ...v, title: e.target.value }))} minLength={2} maxLength={100} required /></label>
+          <label>Metin<textarea value={form.body} onChange={e => setForm(v => ({ ...v, body: e.target.value }))} minLength={2} maxLength={500} required /></label>
+          <div className={styles.formGrid}>
+            <label>Buton yazısı<input value={form.ctaLabel} onChange={e => setForm(v => ({ ...v, ctaLabel: e.target.value }))} maxLength={40} placeholder="İncele" /></label>
+            <label>Bağlantı<input type="url" value={form.ctaUrl} onChange={e => setForm(v => ({ ...v, ctaUrl: e.target.value }))} placeholder="https://" /></label>
+          </div>
+
+          <label className={styles.medyaSec}>
+            <ImageIcon size={16} />
+            <span>{media ? media.originalName : 'Görsel veya video ekle'}</span>
+            <input className="sr-only" type="file" accept="image/png,image/jpeg,video/mp4,video/webm" onChange={medyaSec} disabled={busy === 'media'} />
+          </label>
+          {media && (
+            <button type="button" className={styles.medyaKaldir} onClick={() => setMedia(null)}>
+              <X size={14} /> Medyayı kaldır
+            </button>
+          )}
+
+          <footer>
+            {message && <span><Check size={14} />{message}</span>}
+            <Button type="submit" disabled={busy === 'create' || busy === 'media'}>
+              {busy === 'create' ? 'Yayınlanıyor…' : 'Yayınla'}
+            </Button>
+          </footer>
+        </form>
+      </section>
+
+      <section className={styles.panel}>
+        <header><h2>Tanıtımlar</h2><span>{ads.length} kayıt</span></header>
+        <p className={styles.capabilityNote}>
+          Sayaçlar toplamdır: hangi kullanıcının gördüğü ya da tıkladığı KAYDEDİLMEZ.
+          Gösterim, reklam ekranda gerçekten göründüğünde sayılır — sayfa yüklenince değil.
+        </p>
+        {ads.length === 0 ? <EmptyState message="Henüz tanıtım yok." /> : (
+          <div className={styles.published}>
+            {ads.map(ad => (
+              <article key={ad.id}>
+                <div>
+                  <strong>{ad.title}</strong>
+                  <small>
+                    {ad.impressions} gösterim · {ad.clicks} tıklama
+                    {ad.media ? ' · medyalı' : ''}
+                    {ad.active ? '' : ' · pasif'}
+                  </small>
+                </div>
+                {ad.active
+                  ? <Button variant="ghost" disabled={busy === ad.id} onClick={() => kaldir(ad)}>{busy === ad.id ? 'Kaldırılıyor…' : 'Yayından kaldır'}</Button>
+                  : <span>Pasif</span>}
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+    </>
+  )
+}
 
 export default function AdminCommunity() {
   const [tab, setTab] = useState('news')
@@ -104,6 +243,8 @@ export default function AdminCommunity() {
         <section className={styles.panel}><header><h2>Yayındaki {tab === 'news' ? 'haberler' : 'gönderiler'}</h2><span>{published.length} kayıt</span></header><p className={styles.capabilityNote}>Kaldırma gerçek silme değildir: gönderi listelerden düşer, şikâyet ve denetim izi korunur. Düzenleme ve arşivleme uçları henüz yok, o yüzden burada gösterilmiyor.</p>{published.length === 0 ? <EmptyState message="Yayında içerik yok." /> : <div className={styles.published}>{published.map(post => <article key={post.id}><div><strong>{post.title}</strong><small>{post.author?.name || (post.postType === 'official' ? 'Resmî kaynak' : 'Kullanıcı')} · {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('tr-TR') : 'Tarih yok'}</small></div><Button variant="ghost" disabled={busy === post.id} onClick={() => kaldir(post)}>{busy === post.id ? 'Kaldırılıyor…' : 'Yayından kaldır'}</Button></article>)}</div>}</section>
         {tab === 'news' && <section className={styles.panel}><header><h2>Otomatik resmî haber akışı</h2><span>{data.automatedNews.length} kayıt</span></header><p className={styles.capabilityNote}>Bu kayıtlar NewsArticle ingestion hattından gelir ve manuel CommunityPost taslaklarından ayrı tutulur. Backend yalnız yayın listesini sağlıyor; ingestion durumu veya arşivleme için admin endpointi yoktur.</p>{data.automatedNews.length === 0 ? <EmptyState message="Otomatik akışta yayın bulunamadı." /> : <div className={styles.published}>{data.automatedNews.map(article => <article key={article.id}><div><strong>{article.title}</strong><small>{article.sourceName} · {new Date(article.sourcePublishedAt).toLocaleDateString('tr-TR')}</small></div><span>Otomatik</span></article>)}</div>}</section>}
       </>}
+
+      {tab === 'ads' && <ReklamPaneli />}
 
       {tab === 'reports' && <section className={styles.panel}><header><h2>Açık şikâyetler</h2><span>{data.reports.length} kayıt</span></header>{data.reports.length === 0 ? <EmptyState message="Açık şikâyet yok." /> : <div className={styles.rows}>{data.reports.map(report => <article key={report.id}><div className={styles.rowHead}><span>{report.reason}</span><time>{new Date(report.createdAt).toLocaleString('tr-TR')}</time></div><h3>{report.post?.title || 'Gönderi'}</h3><p>{report.details || report.post?.summary}</p><small>Bildiren: {report.reporter?.name || 'Kullanıcı'} · Gönderi durumu: {report.post?.status}</small><textarea placeholder="Çözüm notu" value={reasons[report.id] || ''} onChange={e => setReasons(v => ({ ...v, [report.id]: e.target.value }))} /><div className={styles.actions}><button onClick={() => resolveReport(report, 'dismiss')} disabled={busy === report.id}>Şikâyeti kapat</button><Button variant="danger" onClick={() => resolveReport(report, 'hide_post')} disabled={busy === report.id}>Gönderiyi gizle</Button></div></article>)}</div>}</section>}
     </main>
