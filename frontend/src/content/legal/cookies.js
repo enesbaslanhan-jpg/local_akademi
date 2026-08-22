@@ -1,11 +1,12 @@
 /*
  * ÇEREZ VE YEREL DEPOLAMA POLİTİKASI
  *
- * Bu metin ŞABLONDAN değil ÖLÇÜMDEN yazıldı (21.08.2026):
+ * Bu metin ŞABLONDAN değil kod taramasından yazıldı (23.08.2026):
  *
- *   - Canlıda `Set-Cookie` başlığı arandı: ne uygulamada var ne
- *     Cloudflare'da. "Çerez kullanmıyoruz" iddiası doğrulanmıştır.
- *   - Aşağıdaki kalem listesi koddaki her localStorage çağrısı
+ *   - LocalKarar sunucusu oturum/analitik/reklam çerezi ayarlamıyor.
+ *   - Cloudflare güvenlik veya challenge özelliği devreye girerse teknik
+ *     çerez koyabilir; bu nedenle altyapı için mutlak iddia kurulmaz.
+ *   - Aşağıdaki kalem listesi koddaki localStorage ve sessionStorage çağrıları
  *     taranarak çıkarıldı. Tahmin yok.
  *
  * YENİ BİR KALEM EKLENİRSE burası da güncellenmeli. Özellikle:
@@ -18,21 +19,21 @@
 
 export default {
   giris:
-    'LocalKarar çerez kullanmaz. Uygulamanın çalışması için gereken birkaç bilgi, ' +
-    'tarayıcınızın yerel depolama alanında cihazınızda tutulur. Bu metin, o bilgilerin ' +
-    'neler olduğunu ve neden gerekli olduğunu açıklar.',
+    'LocalKarar kendi oturum, analitik veya reklam çerezini yerleştirmez. Oturum ve ' +
+    'tercihler için gereken bilgiler tarayıcınızın yerel veya oturum depolama alanında ' +
+    'cihazınızda tutulur. Cloudflare güvenlik koşullarında teknik çerez oluşturabilir. ' +
+    'Bu metin, bu kullanımları birbirinden ayırarak açıklar.',
 
   bolumler: [
     {
       id: 'cerez-yok',
-      baslik: '1. Çerez kullanılmıyor',
+      baslik: '1. LocalKarar\'ın kendi çerezleri',
       paragraflar: [
-        'Uygulama tarayıcınıza çerez yerleştirmez. Sunucu yanıtlarında çerez ayarlayan ' +
-        'bir başlık bulunmaz.',
-        'Bunun yerine, yalnızca uygulamanın çalışması için zorunlu olan birkaç bilgi ' +
-        'tarayıcınızın yerel depolama (localStorage) alanında saklanır. Yerel depolamadaki ' +
-        'veriler çerezlerden farklı olarak sunucuya kendiliğinden gönderilmez; yalnızca ' +
-        'uygulama gerektiğinde okur.'
+        'LocalKarar uygulama sunucusu oturum açmak, analitik yapmak, reklam göstermek ' +
+        'veya kullanıcıyı izlemek amacıyla çerez yerleştirmez.',
+        'Bunun yerine bilgiler tarayıcınızın yerel depolama (localStorage) veya oturum ' +
+        'depolama (sessionStorage) alanında saklanır. Bu alanlardaki veriler çerezlerden ' +
+        'farklı olarak sunucuya kendiliğinden gönderilmez; uygulama gerektiğinde okur.'
       ]
     },
 
@@ -40,8 +41,7 @@ export default {
       id: 'saklananlar',
       baslik: '2. Cihazınızda saklanan bilgiler',
       paragraflar: [
-        'Saklanan kalemlerin tamamı aşağıdadır. Bu listede yer almayan bir bilgi ' +
-        'cihazınızda tutulmaz.'
+        'Bu sürümün uygulama kodunda tarayıcıya yazılan kalemlerin tamamı aşağıdadır.'
       ],
       tablo: {
         basliklar: ['Kalem', 'Ne işe yarar', 'Ne zaman silinir'],
@@ -67,9 +67,14 @@ export default {
             'Tarayıcı verilerini silene kadar'
           ],
           [
-            'Bildirim durumu',
-            'Bu bildirimi kapattığınızı hatırlar, tekrar göstermez',
+            'Depolama bildirimi durumu',
+            'Tarayıcı depolaması bilgilendirmesini kapattığınızı hatırlar',
             'Tarayıcı verilerini silene kadar'
+          ],
+          [
+            'E-posta doğrulama hatırlatıcısı',
+            'Kapatılan doğrulama uyarısını aynı sekme oturumu boyunca yeniden göstermez',
+            'Sekme veya tarayıcı oturumu kapandığında'
           ],
           [
             'Alıştırma işaretleri',
@@ -89,12 +94,16 @@ export default {
       id: 'neden-zorunlu',
       baslik: '3. Neden bu bilgiler gerekli',
       paragraflar: [
-        'Yukarıdaki kalemlerin hepsi işlevseldir; hiçbiri sizi tanımak, davranışınızı ' +
-        'ölçmek veya reklam göstermek için tutulmaz.',
+        'Yukarıdaki kalemler oturumun sürdürülmesi, güvenlik hatırlatmaları, tercihlerin ' +
+        've sizin verdiğiniz alıştırma/mentor geri bildirimlerinin cihazda korunması için ' +
+        'kullanılır; analitik veya reklam amacıyla kullanılmaz.',
         'Oturum anahtarları olmadan her sayfa geçişinde yeniden giriş yapmanız ' +
         'gerekirdi. Tercih kalemleri olmadan seçtiğiniz tema ve menü düzeni her ' +
         'açılışta sıfırlanırdı.',
-        'Bu bilgiler işlevsel zorunluluk taşıdığı için ayrıca onay istenmemektedir.'
+        'Oturum anahtarları hizmetin çalışması için gereklidir. Diğer kalemler yaptığınız ' +
+        'tercih veya işaretleme üzerine cihazınıza yazılır ve tarayıcı ayarlarından silinebilir. ' +
+        'Analitik, reklam veya üçüncü taraf takip depolaması bulunmadığından ayrı bir takip ' +
+        'çerezi onayı istenmemektedir.'
       ]
     },
 
@@ -120,8 +129,11 @@ export default {
         'Uygulama, saldırı koruması ve hız için Cloudflare altyapısı üzerinden sunulur. ' +
         'Bu hizmet, güvenlik amacıyla bağlantı bilgilerinizi (IP adresi, istek zamanı) ' +
         'işler.',
-        'Cloudflare, ölçümlerimize göre tarayıcınıza çerez yerleştirmemektedir. Bu ' +
-        'durum sağlayıcı yapılandırması nedeniyle değişirse politika güncellenir.'
+        'Normal uygulama akışında Cloudflare çerezi gözlemlenmemiş olsa da Cloudflare; ' +
+        'bot koruması, WAF challenge, yük dengeleme veya benzeri güvenlik özellikleri ' +
+        'devreye girdiğinde yalnız bu teknik işlevler için geçici güvenlik çerezleri ' +
+        '(örneğin cf_clearance veya __cf_bm) oluşturabilir. Bunlar LocalKarar\'ın ' +
+        'analitik ya da reklam çerezleri değildir.'
       ]
     },
 
@@ -130,7 +142,8 @@ export default {
       baslik: '6. Bu bilgileri nasıl silersiniz',
       liste: [
         'Uygulamadan çıkış yapmak oturum anahtarlarını cihazınızdan kaldırır.',
-        'Tarayıcınızın ayarlarından site verilerini silmek tüm kalemleri kaldırır.',
+        'Tarayıcınızın ayarlarından LocalKarar site verilerini silmek yerel ve oturum ' +
+        'depolamasındaki kalemleri ve varsa teknik güvenlik çerezlerini kaldırır.',
         'Tarayıcının gizli/özel penceresinde kullanırsanız pencereyi kapattığınızda veriler silinir.'
       ],
       son: [

@@ -233,13 +233,46 @@ const CALCULATION_ALIASES = [
   { test: /nakit\s+eritme|burn\s+rate|runway/i, id: 'cash-runway' },
   { test: /stokta\s+kalma/i, id: 'inventory-turnover-dio' },
   { test: /kdv\s+ay[ıi]klama|matrah/i, id: 'vat-addition' },
-  { test: /mikro\s+ihracat|\bddp\b/i, id: 'export-unit-cost' }
+  { test: /mikro\s+ihracat|\bddp\b/i, id: 'export-unit-cost' },
+
+// Eksik eş anlamlılar — canonical ders formül kartlarından
+  { test: /sipari[şs]\s+k[âa]rl[ıi][ğg]|sipari[şs]\s+katk[ıi]|net\s+katk[ıi]\s+hesap/i, id: 'order-profitability' },
+  { test: /yat[ıi]r[ıi]m\s+getir[ıi][şs]i|roi\b|amortisman\s+s[üu]resi/i, id: 'roi' },
+  { test: /vade\s+fark[ıi]|vadeli\s+toplam|pe[şs]in\s+fiyat/i, id: 'term-difference' },
+  { test: /asit.?test|asit\s+test|h[ıi]zl[ıi]\s+likidite|acid.?test/i, id: 'quick-ratio' },
+  { test: /katk[ıi]\s+pay[ıi]|birim\s+katk[ıi]/i, id: 'contribution-margin' },
+  { test: /m[üu][şş]teri\s+edinme|musteri\s+edinme(?!\s*[\/\\])/i, id: 'customer-acquisition-cost' },
+  { test: /m[üu][şş]teri\s+ya[şs]am\s+boyu|musteri\s+yasam\s+boyu(?!\s*[\/\\])/i, id: 'customer-lifetime-value' },
+  { test: /nakit\s+pozisyonu|nakit\s+or[âa]n/i, id: 'cash-position' },
+  { test: /k[âa]r\s+ve\s+k[âa]r\s+marj[ıi]|kar\s+marj[ıi]/i, id: 'profit-margin' },
+  { test: /kredi\s+taksit|kredi\s+maliyet/i, id: 'loan-cost' },
+  { test: /ger[çc]ek\s+birim\s+maliyet|birim\s+maliyet\b/i, id: 'unit-cost' },
+  { test: /nakit\s+d[öo]n[üu][şş]m\s+d[öo]ng[üu]s[üu]/i, id: 'cash-conversion-cycle' },
+  { test: /net\s+bug[üu]nk[üu]\s+de[ğg]er|npv\b/i, id: 'npv' },
 ]
 
 /* Genel "geri ödeme / payback" etiketleri MÜŞTERİ-EDİNME aracıyla
    (CAC_PAYBACK) eşleşmemeli: CAC geri ödeme süresi müşteri metriğidir,
    yazılım/yatırım payback'i değildir. */
 const PAYBACK_EXCLUDES_CAC = /geri\s+[oö]deme|payback|amorti/i
+
+/* Formül kartı başlıklarını Karar Araçları (Decision Checks) ile eşleştirir.
+   Bu, hesaplama kataloğunda karşılığı olmayan ama bir Karar Aracıyla
+   ilişkilendirilebilen formül kartları içindir.
+   Kaynak: AUDIT_REPORT.md - 5 DECISION_TOOL eşleşmeleri. */
+const DECISION_TOOL_ALIASES = [
+  { test: /etkin\s+vergi\s+y[üu]k[üu]|vergi\s+y[üu]k[üu]/i, id: 'DC-TAX-013' },
+  { test: /istihdam\s+ger[çc]ek\s+çarpan[ıi]|i[şş]\s+mal[ıi]yet\s+çarpan[ıi]/i, id: 'DC-HIRE-006' },
+  { test: /kira\s*[/\\]\s*ciro\s*or?an[ıi]|kira\s+ciro\s+oran[ıi]/i, id: 'DC-BRANCH-009' },
+  { test: /dscr\s*rasyos?u|bor[çc]\s+servis\s+g[üu]c[üu]|taksit\s+kar[şs][ıi]la[şs]ma/i, id: 'DC-LOAN-007' },
+]
+
+export function resolveDecisionTool(rawLabel) {
+  const label = cleanCalculationLabel(rawLabel)
+  if (!label) return null
+  const alias = DECISION_TOOL_ALIASES.find(a => a.test.test(label))
+  return alias ? alias.id : null
+}
 
 export function cleanCalculationLabel(raw) {
   return String(raw || '')
@@ -547,7 +580,8 @@ export function parseFormulaCard(title, body) {
     description,
     formulas: mathBlocks.slice(0, mainCount),
     example: { intro: exampleIntro, formulas: exampleFormulas },
-    interpretation: interpretations.join(' ')
+    interpretation: interpretations.join(' '),
+    decisionToolCode: resolveDecisionTool(title)
   }
 }
 

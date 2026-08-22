@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { api } from '../services/api'
+import { api, RATE_LIMIT_EVENT, RATE_LIMIT_MESSAGE } from '../services/api'
 
 beforeEach(() => {
   vi.restoreAllMocks()
@@ -10,9 +10,10 @@ function mockFetch(response) {
   global.fetch = vi.fn().mockResolvedValue(response)
 }
 
-function makeResponse({ ok, status, contentType, body, json = null }) {
+function makeResponse({ ok, status, contentType, body, json = null, retryAfter = null }) {
   const headers = new Headers()
   if (contentType) headers.set('content-type', contentType)
+  if (retryAfter) headers.set('retry-after', retryAfter)
   return {
     ok,
     status,
@@ -59,6 +60,42 @@ describe('api.request content-type handling', () => {
   it('throws generic error for non-json error response', async () => {
     mockFetch(makeResponse({ ok: false, status: 503, contentType: 'text/html', body: '<html>error</html>' }))
     await expect(api.financialModels.list()).rejects.toThrow('İşlem başarısız')
+  })
+
+  it('429 yanıtını kontrollü mesaja çevirir ve Retry-After süresini taşır', async () => {
+    const eventHandler = vi.fn()
+    window.addEventListener(RATE_LIMIT_EVENT, eventHandler)
+    mockFetch(makeResponse({
+      ok: false,
+      status: 429,
+      contentType: 'application/json',
+      body: { error: 'Rate limit exceeded, retry in 7 minutes' },
+      retryAfter: '420'
+    }))
+
+    try {
+      await api.request('/courses')
+      expect.fail('429 hata vermeliydi')
+    } catch (error) {
+      expect(error.message).toBe(RATE_LIMIT_MESSAGE)
+      expect(error.status).toBe(429)
+      expect(error.retryAfterSeconds).toBe(420)
+    }
+    expect(eventHandler).toHaveBeenCalledTimes(1)
+    expect(eventHandler.mock.calls[0][0].detail.retryAfterSeconds).toBe(420)
+    window.removeEventListener(RATE_LIMIT_EVENT, eventHandler)
+  })
+
+  it('eşzamanlı aynı GET çağrılarını tek ağ isteğinde birleştirir', async () => {
+    let resolveFetch
+    global.fetch = vi.fn(() => new Promise(resolve => { resolveFetch = resolve }))
+
+    const first = api.request('/dashboard/summary')
+    const second = api.request('/dashboard/summary')
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+
+    resolveFetch(makeResponse({ ok: true, status: 200, contentType: 'application/json', body: { ok: true } }))
+    await expect(Promise.all([first, second])).resolves.toEqual([{ ok: true }, { ok: true }])
   })
 })
 

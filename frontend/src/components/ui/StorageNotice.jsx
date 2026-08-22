@@ -6,8 +6,9 @@ import styles from './StorageNotice.module.css'
 /*
  * BİLGİLENDİRME bildirimi — onay bandı DEĞİL.
  *
- * Ölçüldü (20.08.2026): uygulama hiç çerez kullanmıyor, hiçbir üçüncü
- * taraf izleme/analitik yok. Tarayıcıda saklanan her şey ya oturum için
+ * Ölçüldü (23.08.2026): LocalKarar kendi oturum/analitik/reklam çerezini
+ * koymuyor ve üçüncü taraf izleme/analitik yok. Cloudflare güvenlik
+ * koşullarında teknik çerez koyabilir. Tarayıcıda saklanan her şey ya oturum için
  * zorunlu ya kullanıcının kendi tercihi:
  *
  *   token                             oturum anahtarı (zorunlu)
@@ -55,9 +56,9 @@ export default function StorageNotice({ inline = false }) {
     <aside className={inline ? styles.inlineNotice : styles.notice} role="note" aria-label="Tarayıcı depolaması bilgilendirmesi">
       <Cookie size={18} className={styles.icon} aria-hidden="true" />
       <p className={styles.text}>
-        Bu uygulama <strong>çerez kullanmıyor</strong> ve hiçbir üçüncü taraf
-        izleme aracı çalıştırmıyor. Tarayıcında yalnızca oturumun ve tercihlerin
-        (tema, kenar çubuğu) saklanıyor.{' '}
+        LocalKarar <strong>kendi analitik veya reklam çerezini kullanmıyor</strong> ve
+        üçüncü taraf izleme aracı çalıştırmıyor. Tarayıcında oturumun ve tercihlerin
+        saklanıyor; Cloudflare gerektiğinde teknik güvenlik çerezi oluşturabilir.{' '}
         <Link to="/cookies" className={styles.link}>Ayrıntılar</Link>
       </p>
       <button type="button" className={styles.dismiss} onClick={kapat} aria-label="Bildirimi kapat">

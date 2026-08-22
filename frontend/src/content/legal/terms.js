@@ -36,10 +36,10 @@ export default {
       id: 'hizmet',
       baslik: '2. Hizmetin kapsamı',
       paragraflar: [
-        'LocalKarar; küçük işletmelere yönelik eğitim içerikleri, finansal hesaplama ' +
-        'araçları, adım adım karar araçları, işletme kayıt takibi, yapay zekâ destekli ' +
-        'bir soru–cevap asistanı, resmî kaynaklardan derlenen haberler ve bir topluluk ' +
-        'alanı sunar.',
+        'LocalKarar; küçük işletmelere yönelik kurslar, Hesaplamalar, adım adım Karar ' +
+        'Araçları, işletme profili ve kayıt takibi, AI Mentor, resmî kaynaklardan ' +
+        'derlenen haberler ve topluluk alanı sunar. Finansal model çalışmaları ayrı ' +
+        'bir hizmet değil, Hesaplamalar içindeki ayrıntılı hesaplama akışlarıdır.',
         'Hizmet, olduğu hâliyle sunulur. Özellikler ürün gereksinimleri, güvenlik veya ' +
         'mevzuat nedeniyle değişebilir.'
       ]
@@ -61,8 +61,8 @@ export default {
       id: 'danismanlik-degildir',
       baslik: '4. Hizmet danışmanlık değildir',
       paragraflar: [
-        'Uygulamadaki eğitim içerikleri, hesaplama sonuçları, karar aracı çıktıları ve ' +
-        'yapay zekâ yanıtları genel bilgilendirme amaçlıdır.',
+        'Uygulamadaki eğitim içerikleri, hesaplama sonuçları, Karar Aracı çıktıları ve ' +
+        'AI Mentor yanıtları genel bilgilendirme ve karar desteği amaçlıdır.',
         'Bunlar mali müşavirlik, muhasebe, vergi, hukuk veya yatırım danışmanlığı ' +
         'niteliğinde değildir ve yetkili bir meslek mensubundan alınacak danışmanlığın ' +
         'yerine geçmez.',
@@ -78,6 +78,10 @@ export default {
         'AI Mentor, bir dil modeli tarafından üretilen yanıtlar sunar. Dil modelleri ' +
         'kendinden emin görünen ancak hatalı, eksik veya güncelliğini yitirmiş bilgi ' +
         'üretebilir.',
+        'Hesaplamalar bölümündeki sayısal sonuçlar, kullanıcı girdilerini tanımlı ' +
+        'formül ve kurallarla işleyen deterministik uygulama motoru tarafından üretilir. ' +
+        'AI Mentor bu kayıtlı sonuçları yorumlayabilir ve açıklayabilir; deterministik ' +
+        'sonucun yerine yeni bir kesin hesap üretmez.',
         'Uygulama, yanıtı mümkün olduğunda kendi içerik kütüphanesine dayandırır ve ' +
         'kaynağı gösterir. Buna rağmen doğruluk garanti edilmez.',
         'Bir yanıta dayanarak işlem yapmadan önce, özellikle rakam, oran, süre ve ' +
@@ -223,9 +227,9 @@ export default {
       baslik: '15. Yürürlük ve değişiklikler',
       paragraflar: [
         'Bu koşullar, hesabınızı oluşturduğunuz anda yürürlüğe girer.',
-        'Koşullar güncellendiğinde yeni bir sürüm numarasıyla yayımlanır ve kullanmaya ' +
-        'devam edebilmeniz için güncel metni onaylamanız istenir. Sayfanın başındaki ' +
-        'sürüm bilgisi, o an yürürlükte olan metni gösterir.'
+        'Koşullar güncellendiğinde yeni bir sürüm numarasıyla yayımlanır; Ayarlar’daki ' +
+        'onay bilgilerinde güncel metin gösterilir ve yeniden onayınız istenir. Sayfanın ' +
+        'başındaki sürüm bilgisi, o an yürürlükte olan metni gösterir.'
       ]
     }
   ]

@@ -29,16 +29,18 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
   {
     type: 'terms',
     title: 'Kullanım Koşulları',
-    /* 2026-08-22: topluluk on moderasyondan cikti ve etkilesim katmani
-       (yanit, begeni, alinti, kaydetme) eklendi. 9. bolum yeniden
-       yazildi -- eski onay bu metni KAPSAMIYOR, yeniden onay istenecek. */
-    version: '2026-08-22',
+    /* 2026-08-23: topluluk etkileşimleri, hizmet kapsamı ve deterministik
+       hesap/AI ayrımı teknik davranışla eşleştirildi. Eski onay bu metni
+       KAPSAMIYOR, yeniden onay istenecek. */
+    version: '2026-08-23',
     requiredAtSignup: true
   },
   {
     type: 'privacy',
     title: 'Gizlilik ve KVKK Aydınlatma Metni',
-    version: '2026-08-21',
+    /* 2026-08-23: veri kategorileri, Mentor bağlamı ve aktarım alıcıları
+       gerçek veri akışlarıyla eşleştirildi; yeniden onay istenecek. */
+    version: '2026-08-23',
     requiredAtSignup: true
   },
   {
@@ -46,7 +48,9 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
        kayıtta onay şartı değil. */
     type: 'cookies',
     title: 'Çerez ve Yerel Depolama Politikası',
-    version: '2026-08-21',
+    /* 2026-08-23: sessionStorage ve Cloudflare'ın koşullu teknik
+       güvenlik çerezleri eklendi. Bilgilendirme metnidir. */
+    version: '2026-08-23',
     requiredAtSignup: false
   }
 ]

@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useCallback, useMemo } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { CheckCircle, AlertCircle, X } from 'lucide-react'
+import { RATE_LIMIT_EVENT, RATE_LIMIT_MESSAGE } from '@/services/api'
 import styles from './ToastContext.module.css'
 
 const ToastContext = createContext(null)
@@ -8,6 +9,7 @@ let toastId = 0
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([])
+  const rateLimitShownUntil = useRef(0)
 
   const addToast = useCallback((message, type = 'success', duration = 4000) => {
     const id = ++toastId
@@ -22,6 +24,21 @@ export function ToastProvider({ children }) {
   const removeToast = useCallback((id) => {
     setToasts(prev => prev.filter(t => t.id !== id))
   }, [])
+
+  useEffect(() => {
+    const handleRateLimit = (event) => {
+      const seconds = Number(event.detail?.retryAfterSeconds)
+      const now = Date.now()
+      if (now < rateLimitShownUntil.current) return
+      rateLimitShownUntil.current = now + Math.max(3000, Number.isFinite(seconds) ? seconds * 1000 : 5000)
+      const suffix = Number.isFinite(seconds) && seconds > 0
+        ? ` Yaklaşık ${seconds} saniye kaldı.`
+        : ''
+      addToast(`${event.detail?.message || RATE_LIMIT_MESSAGE}${suffix}`, 'warning', 7000)
+    }
+    window.addEventListener(RATE_LIMIT_EVENT, handleRateLimit)
+    return () => window.removeEventListener(RATE_LIMIT_EVENT, handleRateLimit)
+  }, [addToast])
 
   const toast = useMemo(() => ({
     success: (msg) => addToast(msg, 'success'),

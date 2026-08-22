@@ -1,4 +1,23 @@
 const API_URL = import.meta.env.VITE_API_URL || '';
+export const RATE_LIMIT_EVENT = 'localkarar:rate-limit';
+export const RATE_LIMIT_MESSAGE = 'Çok kısa sürede fazla istek gönderildi. Birkaç saniye sonra tekrar deneyin.';
+
+export function retryAfterSaniyesi(headers) {
+  const raw = headers?.get?.('retry-after');
+  if (!raw) return null;
+  const seconds = Number(raw);
+  if (Number.isFinite(seconds) && seconds >= 0) return Math.ceil(seconds);
+  const dateMs = Date.parse(raw);
+  if (!Number.isFinite(dateMs)) return null;
+  return Math.max(0, Math.ceil((dateMs - Date.now()) / 1000));
+}
+
+function hizSiniriniBildir(retryAfterSeconds) {
+  if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return;
+  window.dispatchEvent(new CustomEvent(RATE_LIMIT_EVENT, {
+    detail: { message: RATE_LIMIT_MESSAGE, retryAfterSeconds }
+  }));
+}
 
 const getHeaders = (includeAuth = true) => {
   const headers = { 'Content-Type': 'application/json' };
@@ -36,6 +55,7 @@ const YENILEME_DISI = [
 ];
 
 let yenilemeUcusu = null;
+const devamEdenGetIstekleri = new Map();
 
 export function oturumTokenleriniYaz(token, refreshToken) {
   if (token) localStorage.setItem('token', token);
@@ -76,12 +96,13 @@ function yenilemeyiPaylas() {
   return yenilemeUcusu;
 }
 
-class ApiError extends Error {
-  constructor(message, status, data) {
+export class ApiError extends Error {
+  constructor(message, status, data, retryAfterSeconds = null) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.data = data;
+    this.retryAfterSeconds = retryAfterSeconds;
   }
 };
 
@@ -137,6 +158,12 @@ async function streamSSE({ url, method, body, signal, onStart, onProvider, onDel
 
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
+    if (response.status === 429) {
+      const retryAfterSeconds = retryAfterSaniyesi(response.headers);
+      hizSiniriniBildir(retryAfterSeconds);
+      if (onError) onError({ code: 'RATE_LIMITED', message: RATE_LIMIT_MESSAGE, retryAfterSeconds });
+      return;
+    }
     if (onError) onError({ code: 'API_ERROR', message: data?.error?.message || data?.error || 'Hata oluştu' });
     return;
   }
@@ -200,7 +227,24 @@ function buildQuery(params) {
 };
 
 export const api = {
-  async request(path, options = {}, includeAuth = true, tekrarMi = false) {
+  async request(path, options = {}, includeAuth = true, tekrarMi = false, tekUcusMu = false) {
+    const method = String(options.method || 'GET').toUpperCase();
+    /* React StrictMode geliştirmede effect'leri iki kez çalıştırabilir; hızlı
+       rota geçişleri de aynı üst-seviye veriyi eşzamanlı isteyebilir. Yalnız
+       devam eden, gövdesiz GET'ler birleştirilir; sonuç önbelleğe alınmaz. */
+    if (method === 'GET' && !options.signal && !tekUcusMu) {
+      const tokenKey = includeAuth ? (localStorage.getItem('token') || '') : 'public';
+      const key = `${tokenKey}\n${path}`;
+      const existing = devamEdenGetIstekleri.get(key);
+      if (existing) return existing;
+      const request = api.request(path, options, includeAuth, tekrarMi, true);
+      devamEdenGetIstekleri.set(key, request);
+      void request.then(
+        () => devamEdenGetIstekleri.delete(key),
+        () => devamEdenGetIstekleri.delete(key)
+      );
+      return request;
+    }
     const headers = { ...getHeaders(includeAuth), ...options.headers };
     if (typeof FormData !== 'undefined' && options.body instanceof FormData) {
       delete headers['Content-Type'];
@@ -236,13 +280,17 @@ export const api = {
 
     if (!response.ok) {
       const data = isJson ? await response.json().catch(() => ({})) : {};
-      const message = data.error || data.message || 'İşlem başarısız';
-      const error = new ApiError(message, response.status, data);
+      const retryAfterSeconds = response.status === 429 ? retryAfterSaniyesi(response.headers) : null;
+      const message = response.status === 429
+        ? RATE_LIMIT_MESSAGE
+        : data.error || data.message || 'İşlem başarısız';
+      const error = new ApiError(message, response.status, data, retryAfterSeconds);
+      if (response.status === 429) hizSiniriniBildir(retryAfterSeconds);
       if (response.status === 401 && includeAuth && !tekrarMi && !YENILEME_DISI.some(y => path.startsWith(y))) {
         /* FormData govdesi tek kullanimlik bir akis; tekrarlanamaz. */
         const govdeTekrarlanabilir = !(typeof FormData !== 'undefined' && options.body instanceof FormData);
         if (govdeTekrarlanabilir && await yenilemeyiPaylas()) {
-          return api.request(path, options, includeAuth, true);
+          return api.request(path, options, includeAuth, true, true);
         }
         oturumTokenleriniSil();
       }
@@ -652,6 +700,14 @@ export const api = {
       return api.request(`/community/reports/${reportId}/resolve`, {
         method: 'POST', body: JSON.stringify({ action, note })
       });
+    },
+    /* Duzenleme ve arsivleme YALNIZ resmi gonderilerde; sunucu da
+       bunu uyguluyor (403 + USER_POST_NOT_EDITABLE). */
+    async duzenle(postId, veri) {
+      return api.request(`/community/${postId}`, { method: 'PATCH', body: JSON.stringify(veri) });
+    },
+    async arsivle(postId, geriAl = false) {
+      return api.request(`/community/${postId}/archive`, { method: 'POST', body: JSON.stringify({ geriAl }) });
     },
     async moderate(postId, action, reason) {
       return api.request(`/community/${postId}/moderate`, {

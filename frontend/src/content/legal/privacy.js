@@ -1,16 +1,22 @@
 /*
  * GİZLİLİK VE KVKK AYDINLATMA METNİ
  *
- * Buradaki HER teknik iddia ölçülerek yazıldı (21.08.2026):
+ * Buradaki teknik iddialar kod ve release yapılandırması üzerinden
+ * doğrulandı (23.08.2026):
  *   - Sunucunun ülkesi: IP konumu + ters DNS (vps.ovh.net) → Fransa
  *   - Mistral saklama süresi ve eğitim ayarı: sağlayıcı panelinden
- *   - Çerez kullanılmadığı: canlıda Set-Cookie başlığı aranarak
+ *   - Tarayıcı depolaması ve uygulama çerezleri: frontend kaynak kodundan
  *   - İşlenen veri alanları: prisma/schema.prisma
  *
  * Bir alıcı, ülke ya da süre değişirse ÖNCE burası güncellenir, sonra
  * src/config/legal-documents.ts içindeki `version` artırılır. Sürüm
  * artınca mevcut kullanıcılardan yeniden onay isteniyor — mekanizma
  * `missingConsents` içinde, yeni kod gerekmiyor.
+ *
+ * AI sağlayıcısı/modeli ya da verinin ulaştığı nihai API değişirse bu
+ * alıcı tablosu yeniden doğrulanmalı ve AYRI bir legal version update
+ * yapılmalıdır. Kod içindeki uyumluluk katmanı adı, tek başına ayrı bir
+ * veri alıcısı olduğunu kanıtlamaz.
  *
  * Sayfadaki tarih buradan DEĞİL, API'den geliyor. İki yerde tarih
  * tutulursa kaçınılmaz olarak ayrışır.
@@ -59,8 +65,7 @@ export default {
       id: 'islenen-veriler',
       baslik: '3. İşlenen kişisel veriler',
       paragraflar: [
-        'Uygulamayı nasıl kullandığınıza göre aşağıdaki veriler işlenebilir. Burada ' +
-        'listelenmeyen bir veri kategorisi işlenmemektedir.'
+        'Uygulamayı nasıl kullandığınıza göre aşağıdaki veri kategorileri işlenebilir.'
       ],
       tanimlar: [
         ['Kimlik', 'Ad ve soyad.'],
@@ -73,22 +78,35 @@ export default {
         ],
         [
           'İşletme profili',
-          'Sektör, şehir, işletme aşaması, çalışan sayısı, hedefler ve sizin girdiğiniz ' +
-          'finansal büyüklükler (aylık satış, aylık gider, nakit mevcudu, borç durumu).'
+          'İşletme adı ve unvanı, sektör, şehir, işletme aşaması, çalışan sayısı, satış ' +
+          'kanalları, hedefler, zorluklar ve sizin girdiğiniz finansal büyüklükler ' +
+          '(aylık satış, aylık gider, nakit mevcudu, borç durumu).'
         ],
         [
           'İşletme kayıtları',
-          'Gelir ve gider kayıtları, cari hesaplar, hatırlatmalar, yüklediğiniz belgeler ' +
-          've bu belgelerden çıkarılan metin.'
+          'Gelir, gider ve diğer takip kayıtları; cari hesaplar, hatırlatmalar, işletme ' +
+          'üyelikleri ve davetleri, yüklediğiniz dosyalar ile bu dosyalardan çıkarılan metin.'
         ],
         [
-          'Kullanıcı içeriği',
-          'AI Mentor ile yazışmalarınız, mentorun sizinle ilgili tuttuğu notlar, ' +
-          'topluluk gönderileriniz ve yorumlarınız.'
+          'Hesaplama ve karar verileri',
+          'Hesaplamalara girdiğiniz değerler ve sonuçlar; finansal model çalışmaları, ' +
+          'varsayımlar ve hesap izleri; Karar Araçları oturumları, yanıtları ve sonuçları; ' +
+          'kaydettiğiniz pratik kartlar ve karar günlüğü kayıtları.'
         ],
         [
           'Öğrenme verileri',
-          'Kurs kayıtlarınız, ders ilerlemeniz, quiz ve alıştırma sonuçlarınız.'
+          'Kurs kayıtlarınız; ders, bilgi nesnesi, video ve çalışma ilerlemeniz; görev ' +
+          'kayıtlarınız ve ders içi alıştırma işaretleriniz.'
+        ],
+        [
+          'AI Mentor verileri',
+          'Mentor konuşmalarınız, konuşma özetleri, geçmiş konuşmalardan çıkarılan ve ' +
+          'yönetebildiğiniz mentor notları ile yanıt üretiminde kullanılan bağlam kayıtları.'
+        ],
+        [
+          'Topluluk ve destek içeriği',
+          'Topluluk gönderileri, yanıtlar, beğeniler, kaydetmeler, takip ve şikâyet ' +
+          'kayıtları ile destek formuna yazdığınız iletişim ve talep içeriği.'
         ],
         ['Görsel', 'Yüklemeyi seçerseniz profil fotoğrafınız.'],
         [
@@ -134,12 +152,13 @@ export default {
           ],
           [
             'Uygulama özelliklerini sunmak: kurslar, hesaplamalar, karar araçları, işletme takibi',
-            'İşletme profili, işletme kayıtları, öğrenme verileri',
+            'İşletme profili, işletme kayıtları, öğrenme, hesaplama ve karar verileri',
             'Sözleşmenin ifası (m.5/2-c)'
           ],
           [
             'AI Mentor soru–cevap hizmetini sunmak',
-            'Kullanıcı içeriği, işletme profili',
+            'AI Mentor verileri; soruyla ilgili olduğu ölçüde işletme profili ve kayıtları, ' +
+            'kurs kayıtları ve ilerleme, hesaplama sonuçları ve yüklenen dosyalardan kısa bölümler',
             'Sözleşmenin ifası (m.5/2-c)'
           ],
           [
@@ -149,7 +168,7 @@ export default {
           ],
           [
             'Destek taleplerinizi karşılamak',
-            'Kimlik, iletişim, talebin içeriği',
+            'Kimlik, iletişim, destek talebinin içeriği',
             'Meşru menfaat (m.5/2-f)'
           ],
           [
@@ -173,7 +192,9 @@ export default {
         'Veriler, uygulamayı kullanmanız sırasında doğrudan sizin girdiğiniz bilgiler ve ' +
         'teknik olarak otomatik üretilen kayıtlar (oturum anahtarları, sunucu erişim ' +
         'günlükleri) yoluyla elektronik ortamda toplanır.',
-        'Üçüncü kaynaklardan kişisel veri toplanmamaktadır.'
+        'İşletme çalışma alanının diğer üyeleri, davet akışları ve yüklenen belgeler ' +
+        'üçüncü kişilere ait verilerin uygulamaya girmesine neden olabilir. Bu durumun ' +
+        'sorumlulukları 4. bölümde açıklanmıştır.'
       ]
     },
 
@@ -195,14 +216,17 @@ export default {
           [
             'Mistral AI',
             'Fransa',
-            'AI Mentor\'a yazdığınız mesajlar ve mentora iletilen işletme bağlamı',
+            'AI Mentor mesajları ve yanıt üretimi için gerekli olduğu ölçüde işletme ' +
+            'profili/kayıtları, ilgili belge bölümleri, kurs ve ilerleme bilgileri ile ' +
+            'hesaplama/model sonuçları',
             'Yapay zekâ yanıtlarının üretilmesi'
           ],
           [
             'Resend',
-            'İrlanda',
-            'Ad ve e-posta adresi',
-            'Doğrulama, şifre sıfırlama ve bildirim e-postaları'
+            'ABD ve kullanılan küresel alt işleyenler',
+            'Ad, e-posta adresi ve gönderilen e-postanın içeriği; destek formu ' +
+            'kullanıldığında destek talebi',
+            'Doğrulama, şifre sıfırlama, bildirim, davet ve destek e-postaları'
           ],
           [
             'Cloudflare',
@@ -231,6 +255,8 @@ export default {
         satirlar: [
           ['Hesap ve profil verileri', 'Hesabınız açık kaldığı sürece'],
           ['İşletme kayıtları ve belgeler', 'Siz silene kadar; hesap silinince birlikte silinir'],
+          ['Öğrenme, hesaplama ve karar kayıtları', 'Hesabınız açık kaldığı sürece veya ilgili kaydı silene kadar'],
+          ['AI Mentor konuşmaları, özetleri ve notları', 'Siz silene veya hesabınız silinene kadar'],
           ['Oturum yenileme anahtarları', 'Azami 30 gün; çıkış yapıldığında geçersiz kılınır'],
           ['Doğrulama ve şifre sıfırlama anahtarları', 'Kısa süreli; kullanıldığında veya süresi dolduğunda geçersiz'],
           ['Sunucu erişim günlükleri', 'Sınırlı süre; dosya boyutuna göre döngüsel olarak silinir'],
@@ -307,9 +333,9 @@ export default {
       paragraflar: [
         'Bu metin, uygulamada yapılan değişikliklere ve mevzuata uyum gereklerine göre ' +
         'güncellenebilir. Her güncelleme yeni bir sürüm numarasıyla yayımlanır.',
-        'Onayınızın gerekli olduğu bir değişiklik yapıldığında, uygulamayı kullanmaya ' +
-        'devam edebilmeniz için güncel metni onaylamanız istenir. Sayfanın başındaki ' +
-        'sürüm bilgisi, o an yürürlükte olan metni gösterir.'
+        'Onayınızın gerekli olduğu bir değişiklik yapıldığında, Ayarlar’daki onay ' +
+        'bilgilerinde güncel metin gösterilir ve yeniden onayınız istenir. Sayfanın ' +
+        'başındaki sürüm bilgisi, o an yürürlükte olan metni gösterir.'
       ]
     }
   ]

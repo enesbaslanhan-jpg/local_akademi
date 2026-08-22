@@ -1,4 +1,4 @@
-import Fastify, { type FastifyInstance } from 'fastify'
+import Fastify, { type FastifyInstance, type FastifyRequest } from 'fastify'
 import cors from '@fastify/cors'
 import rateLimit from '@fastify/rate-limit'
 import fastifyStatic from '@fastify/static'
@@ -134,6 +134,65 @@ export function hizSiniriAnahtari(request: { ip: string; headers: Record<string,
   }
   return request.ip
 }
+
+/**
+ * Oturumlu trafikte NAT/IP kovasını paylaşmak yerine doğrulanmış JWT sahibi
+ * kullanılır. Geçersiz veya eksik token hiçbir ayrıcalık sağlamaz; hassas
+ * anonim uçlar IP kovasında kalır.
+ */
+export function genelHizSiniriAnahtari(server: FastifyInstance) {
+  return (request: FastifyRequest): string => {
+    const authorization = request.headers.authorization
+    if (typeof authorization === 'string' && authorization.startsWith('Bearer ')) {
+      const token = authorization.slice(7).trim()
+      if (token) {
+        try {
+          const payload = server.jwt.verify<{ id?: string | number }>(token)
+          if ((typeof payload.id === 'string' && payload.id) ||
+              (typeof payload.id === 'number' && Number.isInteger(payload.id) && payload.id > 0)) {
+            return `user:${payload.id}`
+          }
+        } catch {
+          /* Geçersiz token IP tabanlı genel sınırı aşmak için kullanılamaz. */
+        }
+      }
+    }
+    return `ip:${hizSiniriAnahtari(request)}`
+  }
+}
+
+/*
+ * SPA belge gezinmesi global API kotasindan MUAF. Sebep: 429 yaniti
+ * index.html yerine dondugunde tarayicida ham hata ekrani aciliyordu.
+ *
+ * KAPSAM BILEREK DAR: yalnizca `Accept: text/html` bakmak yetmiyordu.
+ * Olculdu -- `/auth/legal-documents` gibi GERCEK bir API rotasi tek bir
+ * baslikla kotadan tamamen cikiyordu (x-ratelimit-limit basligi bile
+ * yoktu). `Accept` istemcinin yazdigi bir degerdir; tek basina muafiyet
+ * olcutu yapilirsa global sinir her GET ucunda bir satirla asilir.
+ *
+ * Ek sart: yol kayitli bir API onekiyle BASLAMAMALI. Geriye yalnizca
+ * SPA'nin kendi gezinme yollari kaliyor -- muaf tutulmak istenen zaten
+ * oydu. Yeni bir rota oneki eklenirse bu liste de guncellenmeli.
+ */
+const API_ONEKLERI = [
+  '/admin', '/api', '/auth', '/business', '/community', '/courses',
+  '/dashboard', '/documents', '/enrollments', '/flashcards', '/knowledge',
+  '/learning-path', '/lessons', '/mentor', '/practical-cards', '/quizzes',
+  '/reports', '/support', '/tasks', '/videos', '/workspaces'
+] as const
+
+export function spaBelgeIstegiMi(request: FastifyRequest): boolean {
+  if (request.method !== 'GET') return false
+  const accept = request.headers.accept
+  if (typeof accept !== 'string' || !accept.includes('text/html')) return false
+  const yol = (request.url || '/').split('?')[0]
+  return !API_ONEKLERI.some(onek => yol === onek || yol.startsWith(`${onek}/`))
+}
+
+export const GENEL_HIZ_SINIRI = 3000
+export const GENEL_HIZ_PENCERESI = '15 minutes'
+export const HIZ_SINIRI_MESAJI = 'Çok kısa sürede fazla istek gönderildi. Birkaç saniye sonra tekrar deneyin.'
 
 const UNSAFE_JWT_SECRETS = [
   'secret', 'password', 'changeme', 'jwt_secret',
@@ -306,22 +365,38 @@ async function build() {
    *
    * TESTTE YÜKSEK TUTULUYOR — sebebi şu: `app.inject` ile yapılan her istek
    * aynı soket adresinden gelmiş sayılıyor, dolayısıyla 95 test dosyasının
-   * tamamı TEK bir kovayı paylaşıyor. Gerçek kullanımda 300 istek/15 dakika
-   * tek bir kullanıcının sınırıyken, testte bütün takımın toplamı oluyor ve
+   * tamamı TEK bir kovayı paylaşıyor. Gerçek kullanımda 3000 istek/15 dakika
+   * doğrulanmış kullanıcı (aksi halde IP) sınırıyken, testte takımın toplamı oluyor ve
    * eşiği aşınca alakasız testler 429 alıp kırılıyordu.
    *
    * Bu bir zayıflatma değil: rota bazlı sınırlar (giriş 10/dk, şifre
    * sıfırlama 3/saat vb.) testte de aynen geçerli ve testler ONLARI
    * doğruluyor. Global sınırı doğrulayan bir test yok.
    */
+  /* JWT önce kaydedilir: genel anahtar geçerli oturumları doğrulayıp aynı
+     NAT arkasındaki kullanıcıları birbirinden ayırabilsin. */
+  registerJwtPlugin(server)
+
   await server.register(rateLimit, {
     global: true,
-    max: process.env.NODE_ENV === 'test' ? 100_000 : 300,
-    timeWindow: '15 minutes',
-    keyGenerator: hizSiniriAnahtari
+    max: process.env.NODE_ENV === 'test' ? 100_000 : GENEL_HIZ_SINIRI,
+    timeWindow: GENEL_HIZ_PENCERESI,
+    keyGenerator: genelHizSiniriAnahtari(server),
+    /* Bir SPA belge gezinmesi API kotası değildir. Bunu sınırlamak, 429
+       yanıtını index.html yerine verip tarayıcıda ham hata ekranı açıyordu. */
+    allowList: spaBelgeIstegiMi,
+    errorResponseBuilder: (_request, context) => {
+      const error = new Error(HIZ_SINIRI_MESAJI) as Error & {
+        statusCode: number
+        code: string
+        retryAfterSeconds: number
+      }
+      error.statusCode = context.statusCode
+      error.code = 'HTTP_RATE_LIMITED'
+      error.retryAfterSeconds = Math.max(1, Math.ceil(context.ttl / 1000))
+      return error
+    }
   })
-
-  registerJwtPlugin(server)
 
   /*
    * E-posta yapılandırması açılışta doğrulanır. Üretimde eksikse süreç hiç
@@ -459,9 +534,18 @@ async function build() {
   })
 
   server.setErrorHandler((error: Error, request, reply) => {
-    request.log.error(error)
     const err = error as any
     const statusCode = err.statusCode || 500
+    if (statusCode === 429 && err.code === 'HTTP_RATE_LIMITED') {
+      request.log.warn({ code: err.code, retryAfterSeconds: err.retryAfterSeconds }, 'HTTP rate limit exceeded')
+      const retryAfter = Number(reply.getHeader('retry-after')) || err.retryAfterSeconds
+      return reply.status(429).send({
+        error: HIZ_SINIRI_MESAJI,
+        code: 'RATE_LIMITED',
+        retryAfterSeconds: retryAfter
+      })
+    }
+    request.log.error(error)
     const message = isProduction && statusCode === 500
       ? 'Internal server error'
       : error.message ?? 'Internal server error'

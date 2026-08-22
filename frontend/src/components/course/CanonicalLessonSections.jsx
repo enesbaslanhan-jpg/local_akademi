@@ -14,7 +14,8 @@ import {
   cleanCalculationLabel,
   parseDecisionIntegration,
   parsePracticeCards,
-  DECISION_TOOL_TITLES
+  DECISION_TOOL_TITLES,
+  resolveDecisionTool
 } from '@/utils/canonicalContent'
 import styles from './CanonicalLessonSections.module.css'
 
@@ -236,6 +237,8 @@ export default function CanonicalLessonSections({
             const open = calculation?.status === 'FOUND' && calculation.definition
               ? { definition: calculation.definition }
               : null
+            const decisionToolCode = card.decisionToolCode
+            const decisionToolTitle = decisionToolCode ? DECISION_TOOL_TITLES[decisionToolCode] : null
             return (
               <div key={`${card.title}-${i}`} className={styles.formulaBox}>
                 <span className={styles.boxLabel}><Lightbulb size={12} aria-hidden="true" /> FORMÜL KARTI</span>
@@ -263,14 +266,24 @@ export default function CanonicalLessonSections({
                 {card.interpretation && (
                   <p className={styles.formulaInterpretation}>{card.interpretation}</p>
                 )}
-                {open && (
+                {(open || decisionToolCode) && (
                   <div className={styles.formulaCta}>
-                    <Button
-                      variant="secondary" size="sm"
-                      onClick={() => navigate(`/app/tools?view=calculator&tool=${open.definition.id}`)}
-                    >
-                      Hesaplamayı Aç →
-                    </Button>
+                    {open && (
+                      <Button
+                        variant="secondary" size="sm"
+                        onClick={() => navigate(`/app/tools?view=calculator&tool=${open.definition.id}`)}
+                      >
+                        Hesaplamayı Aç →
+                      </Button>
+                    )}
+                    {decisionToolCode && (
+                      <Button
+                        variant="primary" size="sm"
+                        onClick={() => navigate(`/app/decision-checks/${decisionToolCode}`)}
+                      >
+                        Karar Aracını Aç → {decisionToolTitle || decisionToolCode}
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>

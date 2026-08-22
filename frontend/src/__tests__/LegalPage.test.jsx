@@ -82,11 +82,21 @@ describe('LegalPage', () => {
     }
     /* Ülke adları da geçmeli — "yurt dışı" demek yeterli değil. */
     expect(screen.getAllByText(/Fransa/).length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/İrlanda/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/ABD/).length).toBeGreaterThan(0)
   })
 
-  it('çerez politikası, çerez KULLANILMADIĞINI söyler', () => {
+  it('çerez politikası, uygulama çerezi ile koşullu altyapı çerezini ayırır', () => {
     ciz('cookies')
-    expect(screen.getAllByText(/çerez kullanmaz|Çerez kullanılmıyor/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/kendi oturum, analitik veya reklam çerezini/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Cloudflare.*teknik.*çerez/i).length).toBeGreaterThan(0)
+  })
+
+  it('aydınlatma metni güncel ürün verilerini ve Mentor bağlamını açıklar', () => {
+    ciz('privacy')
+    expect(screen.queryByText(/quiz/i)).not.toBeInTheDocument()
+    for (const metin of ['Karar Araçları', 'hesaplama', 'kurs kayıtları', 'yüklenen dosyalardan']) {
+      expect(screen.getAllByText(new RegExp(metin, 'i')).length).toBeGreaterThan(0)
+    }
+    expect(screen.queryByText(/OmniRoute|OpenRouter|Groq/i)).not.toBeInTheDocument()
   })
 })

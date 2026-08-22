@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest'
 import Fastify from 'fastify'
 import rateLimit from '@fastify/rate-limit'
-import { hizSiniriAnahtari } from '../src/index.js'
+import { genelHizSiniriAnahtari, hizSiniriAnahtari, spaBelgeIstegiMi } from '../src/index.js'
 
 /*
  * HIZ SINIRI KİMİ SINIRLIYOR?
@@ -76,6 +76,33 @@ describe('hizSiniriAnahtari', () => {
   })
 })
 
+describe('genelHizSiniriAnahtari', () => {
+  const server = {
+    jwt: {
+      verify(token: string) {
+        if (token === 'token-a') return { id: 101 }
+        if (token === 'token-b') return { id: 202 }
+        throw new Error('invalid token')
+      }
+    }
+  } as never
+
+  it('aynı NAT arkasındaki doğrulanmış kullanıcıları ayrı kovaya koyar', () => {
+    const key = genelHizSiniriAnahtari(server)
+    const base = { ip: '203.0.113.10' }
+    expect(key({ ...base, headers: { authorization: 'Bearer token-a' } } as never)).toBe('user:101')
+    expect(key({ ...base, headers: { authorization: 'Bearer token-b' } } as never)).toBe('user:202')
+  })
+
+  it('geçersiz token ile yeni kova açılamaz, IP kovasına döner', () => {
+    const key = genelHizSiniriAnahtari(server)
+    expect(key({
+      ip: '203.0.113.10',
+      headers: { authorization: 'Bearer forged' }
+    } as never)).toBe('ip:203.0.113.10')
+  })
+})
+
 describe('sınır gerçekten uygulanıyor mu', () => {
   /*
    * Fonksiyonu tek başına test etmek yetmez: eklentiye BAĞLANDIĞI da
@@ -135,5 +162,44 @@ describe('sınır gerçekten uygulanıyor mu', () => {
     expect((await cagir('88.20.1.5')).statusCode).toBe(200)
 
     await app.close()
+  })
+})
+
+/*
+ * SPA muafiyetinin KAPSAMI.
+ *
+ * Bu blok bilerek dar bir seyi koruyor: muafiyet olcutu yalnizca
+ * `Accept: text/html` olsaydi, istemcinin yazdigi tek bir baslikla her
+ * GET ucu global kotadan cikardi. Olculmustu: `/auth/legal-documents`
+ * o haliyle x-ratelimit-limit basligi bile almiyordu.
+ */
+describe('spaBelgeIstegiMi', () => {
+  const istek = (url: string, accept?: string, method = 'GET') =>
+    ({ method, url, headers: accept ? { accept } : {} }) as never
+
+  it('SPA gezinme yollarini muaf tutar', () => {
+    expect(spaBelgeIstegiMi(istek('/', 'text/html'))).toBe(true)
+    expect(spaBelgeIstegiMi(istek('/app/dashboard', 'text/html,application/xhtml+xml'))).toBe(true)
+    expect(spaBelgeIstegiMi(istek('/hakkinda', 'text/html'))).toBe(true)
+  })
+
+  it('API rotasini sahte Accept basligiyla muaf tutmaz', () => {
+    expect(spaBelgeIstegiMi(istek('/auth/legal-documents', 'text/html'))).toBe(false)
+    expect(spaBelgeIstegiMi(istek('/community/feed', 'text/html'))).toBe(false)
+    expect(spaBelgeIstegiMi(istek('/api/v1/feed', 'text/html'))).toBe(false)
+  })
+
+  it('sorgu dizesi API yolunu gizleyemez', () => {
+    expect(spaBelgeIstegiMi(istek('/auth/legal-documents?x=1', 'text/html'))).toBe(false)
+  })
+
+  it('onek benzeri ama farkli bir yolu API sanmaz', () => {
+    expect(spaBelgeIstegiMi(istek('/adminler', 'text/html'))).toBe(true)
+  })
+
+  it('GET olmayan ve text/html istemeyen istekleri muaf tutmaz', () => {
+    expect(spaBelgeIstegiMi(istek('/', 'text/html', 'POST'))).toBe(false)
+    expect(spaBelgeIstegiMi(istek('/', 'application/json'))).toBe(false)
+    expect(spaBelgeIstegiMi(istek('/'))).toBe(false)
   })
 })

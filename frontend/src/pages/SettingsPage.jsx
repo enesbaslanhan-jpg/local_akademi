@@ -76,6 +76,8 @@ export default function SettingsPage() {
   const [legalDocuments, setLegalDocuments] = useState([])
   const [consentsLoading, setConsentsLoading] = useState(true)
   const [consentsError, setConsentsError] = useState(null)
+  const [consentsSaving, setConsentsSaving] = useState(false)
+  const [consentsMsg, setConsentsMsg] = useState(null)
 
   const location = useLocation()
   const isPrivacySection = activeSection === 'privacy' || location.pathname === '/app/settings#yasal'
@@ -84,6 +86,27 @@ export default function SettingsPage() {
     api.onboarding.getProfile().then(setProfile).catch(() => setProfile(null))
     api.system.health().then(setSystemInfo).catch(() => setSystemInfo({ status: 'unavailable', version: '—', database: { label: 'Bağlantı bilgisi alınamadı', connected: false } }))
   }, [])
+
+  async function acceptCurrentConsents() {
+    setConsentsSaving(true)
+    setConsentsMsg(null)
+    try {
+      await api.auth.acceptConsents()
+      const [consentData, legalData] = await Promise.all([
+        api.auth.getConsents(),
+        api.auth.getLegalDocuments(),
+      ])
+      setConsents(consentData.accepted || [])
+      setMissingConsents(consentData.missing || [])
+      setLegalDocuments(legalData.documents || [])
+      setConsentsError(null)
+      setConsentsMsg({ type: 'ok', text: 'Güncel Kullanım Koşulları ve Aydınlatma Metni onaylandı.' })
+    } catch (error) {
+      setConsentsMsg({ type: 'err', text: error.message || 'Yasal metinler onaylanamadı.' })
+    } finally {
+      setConsentsSaving(false)
+    }
+  }
 
   useEffect(() => {
     let mounted = true
@@ -373,28 +396,28 @@ export default function SettingsPage() {
                 <div className={styles.consentError}>Bilgiler yüklenemedi: {consentsError}</div>
               ) : (
                 <>
-                  <div className={styles.consentRow}>
-                    <span>Güncel sürüm</span>
-                    <strong>{legalDocuments.find(d => d.type === 'privacy')?.version || '—'}</strong>
-                  </div>
-                  <div className={styles.consentRow}>
-                    <span>Kabul edilen sürüm</span>
-                    <strong>
-                      {(() => {
-                        const c = consents.find(k => k.documentType === 'privacy')
-                        return c?.version || 'Henüz kabul edilmemiş'
-                      })()}
-                    </strong>
-                  </div>
-                  {(() => {
-                    const c = consents.find(k => k.documentType === 'privacy')
-                    return c?.acceptedAt ? (
-                      <div className={styles.consentRow}>
-                        <span>Son onay</span>
-                        <strong>{new Date(c.acceptedAt).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' })}</strong>
+                  {legalDocuments.filter(d => d.requiredAtSignup).map(doc => {
+                    const accepted = consents.find(k => k.documentType === doc.type)
+                    return (
+                      <div className={styles.consentDocument} key={doc.type}>
+                        <strong className={styles.consentDocumentTitle}>{doc.title}</strong>
+                        <div className={styles.consentRow}>
+                          <span>Güncel sürüm</span>
+                          <strong>{doc.version || '—'}</strong>
+                        </div>
+                        <div className={styles.consentRow}>
+                          <span>Kabul edilen sürüm</span>
+                          <strong>{accepted?.version || 'Henüz kabul edilmemiş'}</strong>
+                        </div>
+                        {accepted?.acceptedAt && (
+                          <div className={styles.consentRow}>
+                            <span>Son onay</span>
+                            <strong>{new Date(accepted.acceptedAt).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' })}</strong>
+                          </div>
+                        )}
                       </div>
-                    ) : null
-                  })()}
+                    )
+                  })}
                   <div className={styles.consentStatus}>
                     {(() => {
                       if (missingConsents.length === 0) {
@@ -406,6 +429,14 @@ export default function SettingsPage() {
                       return <span className={styles.consentWarn}>Bazı yasal metinler güncellendi, onayınız bekleniyor.</span>
                     })()}
                   </div>
+                  {missingConsents.length > 0 && (
+                    <div className={styles.consentActions}>
+                      <Button type="button" onClick={acceptCurrentConsents} disabled={consentsSaving}>
+                        {consentsSaving ? 'Onaylanıyor…' : 'Güncel metinleri onayla'}
+                      </Button>
+                    </div>
+                  )}
+                  <Message msg={consentsMsg} />
                 </>
               )}
             </div>
