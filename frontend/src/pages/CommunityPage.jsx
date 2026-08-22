@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Bookmark,
+  Maximize2,
   Plus,
   Clock,
   ExternalLink,
@@ -193,6 +194,15 @@ export function PostMedia({ media, featured = false, kucuk = false, yanPanel = n
           aria-label="Görseli büyüt"
         >
           <img className={featured ? styles.featuredImage : styles.postImage} src={url} alt="" loading={featured ? 'eager' : 'lazy'} />
+          {/*
+            * Videodaki cam kapsülün görseldeki karşılığı: büyütmenin
+            * mümkün olduğunu söyleyen tek işaret. Olmadan görsel
+            * tıklanabilir görünmüyordu — kullanıcı denemeyi akıl
+            * etmedikçe büyütme özelliği hiç keşfedilmezdi.
+            */}
+          <span className={styles.buyutRozeti} aria-hidden="true">
+            <Maximize2 size={15} />
+          </span>
         </button>
         {buyutucu}
       </>

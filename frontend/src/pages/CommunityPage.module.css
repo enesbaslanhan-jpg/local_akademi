@@ -630,3 +630,83 @@
   background: var(--surface-card);
   font-size: .68rem;
 }
+
+/* ==========================================================
+ * MEDYA VE METİN CİLASI (22.08.2026)
+ * "Şu an basit native gibi duruyor" — ürün sahibi.
+ * ========================================================== */
+
+/* Görsel de video ile aynı köşe yarıçapını ve zemini kullanıyor;
+   ikisi yan yana gelince farklı iki dil gibi görünmesin. */
+.imageButton {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+  cursor: pointer;
+  line-height: 0;
+}
+.imageButton:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+
+.postImage {
+  display: block;
+  width: 100%;
+  max-height: 520px;
+  margin-top: 0;
+  border-radius: 0;
+  object-fit: contain;
+}
+/* Sarmalayıcı düğme boşluğu taşıdığı için görselin kendi üst boşluğu
+   kaldırıldı; ikisi birden 32px'lik bir boşluk yapıyordu. */
+.communityCard .imageButton,
+.postBody .imageButton { margin-top: 16px; }
+
+/* Videodaki cam kapsülle aynı dil. */
+.buyutRozeti {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 50%;
+  background: rgba(20, 20, 20, .42);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #fff;
+  opacity: 0;
+  transition: opacity .2s ease;
+  pointer-events: none;
+  line-height: 1;
+}
+.imageButton:hover .buyutRozeti,
+.imageButton:focus-visible .buyutRozeti { opacity: 1; }
+/* Dokunmatikte "üzerine gelme" yok; rozet hep görünür. */
+@media (hover: none) {
+  .buyutRozeti { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .buyutRozeti { transition: none; }
+}
+
+/*
+ * METİN. Öncekinden biraz büyük ve daha ferah satır aralığı:
+ * .82rem/1.6 bir gönderi metni için sıkışıktı ve akış "form
+ * çıktısı" gibi duruyordu.
+ */
+.postText {
+  font-size: .92rem;
+  line-height: 1.62;
+  letter-spacing: .002em;
+  color: var(--text);
+}
+.anaGonderi .postText { font-size: 1.02rem; line-height: 1.6; }
+
+/* Dosya eki de aynı yuvarlaklığı alıyor. */
+.fileAttachment { border-radius: 14px; }

@@ -3,50 +3,62 @@ import { Maximize2, Pause, Play, Volume2, VolumeX } from 'lucide-react'
 import styles from './AkisVideosu.module.css'
 
 /*
- * AKIŞ VİDEOSU — topluluk akışındaki video oynatıcı.
+ * AKIŞ VİDEOSU — "Sessiz Akış" + "Yüzen Cam Kapsül"
+ * (ürün sahibinin tasarım kararı, 22.08.2026)
  *
- * Neden yeni bir bileşen: `components/ui/VideoPlayer.jsx` KURS videoları
- * için (`koId`, ilerleme kaydı, tarayıcının kendi `controls`u). Farklı
- * bir iş; oraya akış davranışı eklemek iki işi tek dosyada boğardı.
+ * Temel his Instagram/LinkedIn: video akışta SESSİZ oynar ve üzerinde
+ * hiçbir şey durmaz. Tek kalıcı öğe sağ altta küçük bir hoparlör
+ * rozeti — sesin VAR olduğunu söyleyen işaret.
  *
- * Neden tarayıcının kendi kontrolleri kullanılmıyor: ürün sahibinin
- * tespiti — "eskiden kalma bir yapıda, o ilerleme çubuğu, büyüt imleci
- * öyle olmaz". Yerleşik çubuk her tarayıcıda farklı görünüyor ve
- * temaya uymuyor.
+ * Kontroller ancak istendiğinde beliriyor: alt ortada, arkası bulanık
+ * cam bir kapsül. İçinde yalnız oynat, KALAN süre ve ses var — artı
+ * büyütme. Zaman çubuğu BİLEREK YOK: akışta kirlilik yaratıyor.
  *
- * 🔴 BUNUN BEDELİ VAR: `controls` kaldırıldığı an tarayıcının verdiği
- * KLAVYE DESTEĞİ de gider. Aşağıdaki `tusaBasildi` onun yerine geçiyor
- * (boşluk, ok tuşları, M). Bu olmadan oynatıcı klavye kullanıcısı için
- * tamamen kullanılamaz olurdu.
+ * 🔴 Zaman çubuğunun bedeli: fareyle sarma yok. Karşılığı klavyede
+ * duruyor (ok tuşları ±5sn) ve büyütülmüş görünümde tarayıcının kendi
+ * çubuğu geliyor. Yani sarma kaybolmuyor, akıştan çıkıyor.
+ *
+ * DOKUNMA DAVRANIŞI: videoya dokunmak SESİ AÇAR, büyütmez.
+ * Ürün sahibinin iki isteği çatışıyordu — önce "tıklayınca X gibi
+ * büyüsün" demişti, sonra Instagram modelini istedi. Kararı: ilgilenen
+ * kullanıcının ilk refleksi ses açmaktır; büyütme kapsüldeki ayrı
+ * ikonda.
  */
 
 /*
  * AYNI ANDA TEK VİDEO — ve doğru olanı.
  *
- * Modül düzeyinde tutuluyor çünkü kısıt bileşenler ARASINDA geçerli:
- * akışta on kart varsa yalnız biri oynayabilir. İki video birden
- * oynarsa iki ses üst üste biner ve mobil veriyi iki katına çıkarır.
+ * Modül düzeyinde çünkü kısıt bileşenler ARASINDA geçerli: akışta on
+ * kart varsa yalnız biri oynayabilir. İki video birden oynarsa iki ses
+ * üst üste biner ve mobil veriyi iki katına çıkarır.
  *
- * 🔴 NEDEN MERKEZİ BİR SEÇİCİ VAR (basit "eşiği geçen oynar" DEĞİL):
- *
- * İlk yazımda her video kendi `IntersectionObserver`ına bakıp eşiği
- * geçince oynuyordu. Ölçüldü ve yanlış çıktı: 1400x900 ekranda iki
- * video birden %60 eşiğini geçebiliyor ve callback'i SON tetiklenen
- * diğerini durduruyordu. Gerçek ölçüm — birinci video %100 görünür
- * hâlde DURUYOR, ikincisi %73 görünürken OYNUYORDU.
- *
- * Doğru davranış "eşiği geçen" değil, "EN ÇOK GÖRÜNEN" olmalı:
- * kullanıcı neye bakıyorsa o oynamalı.
+ * 🔴 NEDEN MERKEZİ SEÇİCİ (basit "eşiği geçen oynar" DEĞİL):
+ * İlk yazımda her video kendi gözlemcisine bakıyordu. Ölçüldü ve
+ * yanlış çıktı — 1400x900 ekranda iki video birden %60 eşiğini
+ * geçebiliyor ve callback'i SON tetiklenen diğerini durduruyordu.
+ * Gerçek ölçüm: birinci video %100 görünür hâlde DURUYOR, ikincisi
+ * %73 görünürken OYNUYORDU. Doğrusu "en çok görünen".
  */
 const gorunurluk = new Map()
 let aktifVideo = null
 let secimBekliyor = false
 
 function digerleriniDurdur(video) {
-  if (aktifVideo && aktifVideo !== video) {
-    aktifVideo.pause()
-  }
+  if (aktifVideo && aktifVideo !== video) aktifVideo.pause()
   aktifVideo = video
+}
+
+/*
+ * Otomatik oynatma KİMDE kapalı olmalı.
+ *
+ * İkisi de kullanıcının açıkça ifade ettiği tercihler; görmezden
+ * gelmek erişilebilirlik ve mobil veri açısından kaba olurdu.
+ */
+function otomatikOynatmaSerbestMi() {
+  if (typeof window === 'undefined') return false
+  const hareketAzalt = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+  const veriTasarrufu = navigator.connection?.saveData === true
+  return !hareketAzalt && !veriTasarrufu
 }
 
 function kazananiSec() {
@@ -84,21 +96,6 @@ function secimIste() {
   requestAnimationFrame(kazananiSec)
 }
 
-/*
- * Otomatik oynatma KİMDE kapalı olmalı.
- *
- * İkisi de kullanıcının açıkça ifade ettiği tercihler; görmezden
- * gelmek erişilebilirlik ve mobil veri açısından kaba olurdu.
- *   - `prefers-reduced-motion`: hareket duyarlılığı olan kullanıcı
- *   - `saveData`: veri tasarrufu açık olan kullanıcı
- */
-function otomatikOynatmaSerbestMi() {
-  if (typeof window === 'undefined') return false
-  const hareketAzalt = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
-  const veriTasarrufu = navigator.connection?.saveData === true
-  return !hareketAzalt && !veriTasarrufu
-}
-
 function sureyiYaz(saniye) {
   if (!Number.isFinite(saniye) || saniye < 0) return '0:00'
   const dk = Math.floor(saniye / 60)
@@ -111,12 +108,10 @@ export default function AkisVideosu({ src, onAc, kucuk = false }) {
   const sarmalRef = useRef(null)
   const [oynuyor, setOynuyor] = useState(false)
   const [sessiz, setSessiz] = useState(true)
-  const [ilerleme, setIlerleme] = useState(0)
   const [sure, setSure] = useState(0)
   const [anlik, setAnlik] = useState(0)
   const [kontrolGorunur, setKontrolGorunur] = useState(false)
 
-  /* Ekrana girince oynat, çıkınca durdur. */
   useEffect(() => {
     const video = videoRef.current
     const sarmal = sarmalRef.current
@@ -149,11 +144,16 @@ export default function AkisVideosu({ src, onAc, kucuk = false }) {
     }
   }, [])
 
-  const sesiAc = useCallback(() => {
+  const sesiDegistir = useCallback(() => {
     const video = videoRef.current
     if (!video) return
     video.muted = !video.muted
     setSessiz(video.muted)
+    /* Sesi açan kullanıcı videoyu izlemek istiyor; duruyorsa başlat. */
+    if (!video.muted && video.paused) {
+      digerleriniDurdur(video)
+      video.play().catch(() => {})
+    }
   }, [])
 
   const sar = useCallback(saniye => {
@@ -163,20 +163,14 @@ export default function AkisVideosu({ src, onAc, kucuk = false }) {
   }, [])
 
   /*
-   * Klavye. Yerleşik `controls` kaldırıldığı için bunlar elle yazıldı;
-   * kısayollar video oynatıcılarında yerleşik olan tuşlar.
+   * Klavye. Yerleşik `controls` olmadığı için elle yazıldı; bunlar
+   * video oynatıcılarında yerleşik kısayollar.
+   *
+   * ENTER BİLEREK YOK: bu tuşlar videonun üstündeki düğmede çalışıyor
+   * ve o düğmenin işi "sesi aç/kapat". Enter tarayıcının kendi düğme
+   * davranışına bırakıldı, yani etiketiyle aynı şeyi yapıyor.
    */
   function tusaBasildi(olay) {
-    /*
-     * ENTER BİLEREK YOK.
-     *
-     * Bu tuşlar videonun üstündeki düğmenin üzerinde çalışıyor ve o
-     * düğmenin etiketi "Videoyu büyüt". Enter'ı burada yakalayıp
-     * oynat/durdur yapmak, klavye kullanıcısına etiketiyle çelişen bir
-     * davranış verirdi: okuduğu şey "büyüt", olan şey "durdu".
-     * Enter tarayıcının kendi düğme davranışına bırakıldı (büyütür);
-     * boşluk oynat/durdur yapar.
-     */
     if (olay.key === ' ') {
       olay.preventDefault()
       oynatDurdur()
@@ -185,17 +179,13 @@ export default function AkisVideosu({ src, onAc, kucuk = false }) {
     } else if (olay.key === 'ArrowLeft') {
       olay.preventDefault(); sar(-5)
     } else if (olay.key === 'm' || olay.key === 'M') {
-      sesiAc()
+      sesiDegistir()
     }
   }
 
-  function cubugaTiklandi(olay) {
-    const video = videoRef.current
-    if (!video || !Number.isFinite(video.duration)) return
-    const kutu = olay.currentTarget.getBoundingClientRect()
-    const oran = (olay.clientX - kutu.left) / kutu.width
-    video.currentTime = Math.min(Math.max(0, oran), 1) * video.duration
-  }
+  /* KALAN süre gösteriliyor, geçen değil: akışta merak edilen "daha ne
+     kadar sürer", "ne kadar oldu" değil. */
+  const kalan = Math.max(0, (sure || 0) - anlik)
 
   return (
     <div
@@ -218,65 +208,67 @@ export default function AkisVideosu({ src, onAc, kucuk = false }) {
         onPlay={() => setOynuyor(true)}
         onPause={() => setOynuyor(false)}
         onLoadedMetadata={event => setSure(event.currentTarget.duration)}
-        onTimeUpdate={event => {
-          const v = event.currentTarget
-          setAnlik(v.currentTime)
-          setIlerleme(v.duration ? (v.currentTime / v.duration) * 100 : 0)
-        }}
+        onTimeUpdate={event => setAnlik(event.currentTarget.currentTime)}
       />
 
       {/*
-        * Videonun üstündeki saydam katman. Tıklamak gönderiyi/büyütmeyi
-        * açar; kontrollere tıklamak açmaz çünkü kontroller BU
-        * katmanın kardeşi, çocuğu değil — olay hiç buraya gelmiyor.
+        * Videonun tamamını kaplayan görünmez düğme: DOKUNMAK SESİ AÇAR.
+        * `stopPropagation` şart — bu düğme kartın "gönderiyi aç"
+        * katmanının içinde; durdurulmazsa dokunmak aynı anda gönderi
+        * sayfasına da giderdi.
         */}
       <button
         type="button"
-        className={styles.acmaKatmani}
-        /*
-         * `stopPropagation` ŞART: bu düğme, kartın "gönderiyi aç"
-         * katmanının İÇİNDE. Durdurulmazsa videoya tıklamak hem
-         * büyütücüyü açıyor hem de gönderi sayfasına gidiyordu —
-         * gezinme kazanıyor ve büyütücü hiç görünmüyordu.
-         */
-        onClick={olay => { olay.stopPropagation(); onAc ? onAc() : oynatDurdur() }}
+        className={styles.sesKatmani}
+        onClick={olay => { olay.stopPropagation(); sesiDegistir() }}
         onKeyDown={tusaBasildi}
-        aria-label={onAc ? 'Videoyu büyüt' : 'Oynat veya durdur'}
+        aria-label={sessiz ? 'Sesi aç' : 'Sesi kapat'}
       />
 
-      <div className={styles.kontroller}>
-        <button type="button" onClick={oynatDurdur} aria-label={oynuyor ? 'Durdur' : 'Oynat'}>
-          {oynuyor ? <Pause size={16} /> : <Play size={16} />}
+      {/*
+        * SESSİZ AKIŞ ROZETİ — tek kalıcı öğe.
+        *
+        * Sesin VAR olduğunu söylüyor. Olmasaydı kullanıcı sessiz oynayan
+        * videoyu sessiz bir video sanar ve sesi hiç açmazdı.
+        * `aria-hidden`: aynı işi yapan gerçek düğme yukarıda; ekran
+        * okuyucuya iki kez duyurmanın anlamı yok.
+        */}
+      {sessiz && (
+        <span className={styles.sesRozeti} aria-hidden="true">
+          <VolumeX size={15} />
+        </span>
+      )}
+
+      {/*
+        * YÜZEN CAM KAPSÜL. Videodan bağımsız, havada duruyor.
+        * Yalnız oynat, kalan süre, ses ve büyütme — zaman çubuğu yok.
+        */}
+      <div className={styles.kapsul}>
+        <button
+          type="button"
+          onClick={olay => { olay.stopPropagation(); oynatDurdur() }}
+          aria-label={oynuyor ? 'Durdur' : 'Oynat'}
+        >
+          {oynuyor ? <Pause size={14} /> : <Play size={14} />}
         </button>
 
-        <span className={styles.sure}>{sureyiYaz(anlik)} / {sureyiYaz(sure)}</span>
+        <span className={styles.kalanSure}>{sureyiYaz(kalan)}</span>
 
-        {/*
-          * İlerleme çubuğu: normalde ince, üzerine gelince kalınlaşıyor.
-          * `role="slider"` ve ok tuşları, fare olmadan da sarmayı
-          * mümkün kılıyor.
-          */}
-        <div
-          className={styles.cubuk}
-          onClick={cubugaTiklandi}
-          onKeyDown={tusaBasildi}
-          role="slider"
-          tabIndex={0}
-          aria-label="Video konumu"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={Math.round(ilerleme)}
+        <button
+          type="button"
+          onClick={olay => { olay.stopPropagation(); sesiDegistir() }}
+          aria-label={sessiz ? 'Sesi aç' : 'Sesi kapat'}
         >
-          <span className={styles.cubukDolu} style={{ width: `${ilerleme}%` }} />
-        </div>
-
-        <button type="button" onClick={sesiAc} aria-label={sessiz ? 'Sesi aç' : 'Sesi kapat'}>
-          {sessiz ? <VolumeX size={16} /> : <Volume2 size={16} />}
+          {sessiz ? <VolumeX size={14} /> : <Volume2 size={14} />}
         </button>
 
         {onAc && (
-          <button type="button" onClick={onAc} aria-label="Videoyu büyüt">
-            <Maximize2 size={16} />
+          <button
+            type="button"
+            onClick={olay => { olay.stopPropagation(); onAc() }}
+            aria-label="Videoyu büyüt"
+          >
+            <Maximize2 size={14} />
           </button>
         )}
       </div>

@@ -1,11 +1,14 @@
 /*
- * Akış videosu. Kontroller varsayılan GİZLİ; üzerine gelince,
- * dokununca ya da klavye odağı içeri girince beliriyor.
+ * SESSİZ AKIŞ + YÜZEN CAM KAPSÜL
+ *
+ * Video akışta sessiz oynar ve üzerinde hiçbir şey durmaz. Tek kalıcı
+ * öğe sağ alttaki hoparlör rozeti. Kontroller alt ortada, arkası
+ * bulanık cam bir kapsülde ve ancak istendiğinde beliriyor.
  */
 .sarmal {
   position: relative;
   margin-top: 16px;
-  border-radius: 13px;
+  border-radius: 16px;
   overflow: hidden;
   background: #000;
   line-height: 0;
@@ -14,16 +17,18 @@
 .video {
   display: block;
   width: 100%;
-  max-height: 480px;
+  max-height: 520px;
   object-fit: contain;
   background: #000;
 }
 
 .kucuk .video { max-height: 260px; }
 
-/* Videonun üstünü kaplayan görünmez düğme: tıklayınca büyütür.
-   Kontrollerin ALTINDA kalıyor (z-index), yoksa onları yutardı. */
-.acmaKatmani {
+/*
+ * Videonun tamamını kaplayan görünmez düğme: dokunmak sesi açıyor.
+ * Kapsülün ALTINDA duruyor (z-index), yoksa onun düğmelerini yutardı.
+ */
+.sesKatmani {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -32,99 +37,119 @@
   background: transparent;
   cursor: pointer;
 }
-.acmaKatmani:focus-visible {
+.sesKatmani:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: -4px;
 }
 
-.kontroller {
+/*
+ * Sessiz akış rozeti — tek kalıcı öğe. Küçük, sağ altta, camsı.
+ * `pointer-events: none`: altındaki ses katmanı zaten aynı işi
+ * yapıyor; ayrı bir tıklama hedefi olması gereksiz.
+ */
+.sesRozeti {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  right: 12px;
+  bottom: 12px;
   z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  /* Alttan yukarı koyulaşan perde: kontroller açık renkli bir karenin
-     üstüne denk gelirse okunmaz olurdu. */
-  background: linear-gradient(0deg, rgba(0, 0, 0, .72), rgba(0, 0, 0, 0));
-  opacity: 0;
-  transform: translateY(6px);
-  transition: opacity .18s ease, transform .18s ease;
-  line-height: 1;
-}
-
-.kontrolAcik .kontroller,
-.sarmal:focus-within .kontroller {
-  opacity: 1;
-  transform: none;
-}
-
-/* Dokunmatikte "üzerine gelme" diye bir şey yok; kontroller hep
-   görünür kalıyor, yoksa mobilde hiç erişilemezlerdi. */
-@media (hover: none) {
-  .kontroller { opacity: 1; transform: none; }
-}
-
-/* Hareket azaltma tercihinde geçiş animasyonu yok. */
-@media (prefers-reduced-motion: reduce) {
-  .kontroller { transition: none; }
-}
-
-.kontroller button {
   display: grid;
   place-items: center;
   width: 30px;
   height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .18);
+  background: rgba(20, 20, 20, .42);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #fff;
+  pointer-events: none;
+  transition: opacity .2s ease;
+}
+/* Kapsül açıkken rozet çekiliyor: aynı bilgi iki yerde durmasın. */
+.kontrolAcik .sesRozeti,
+.sarmal:focus-within .sesRozeti { opacity: 0; }
+
+/*
+ * YÜZEN CAM KAPSÜL — alt ortada, havada asılı.
+ * Zaman çubuğu yok; yalnız oynat, kalan süre, ses, büyüt.
+ */
+.kapsul {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 999px;
+  background: rgba(18, 18, 20, .38);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .34);
+  line-height: 1;
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition: opacity .2s ease, transform .2s ease;
+  /* Gizliyken tıklanamaz olmalı; yoksa görünmeyen düğmeler videonun
+     üstünde tuzak gibi durur. */
+  pointer-events: none;
+}
+
+.kontrolAcik .kapsul,
+.sarmal:focus-within .kapsul {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+/*
+ * Dokunmatikte "üzerine gelme" diye bir şey yok; kapsül hep görünür.
+ * Aksi hâlde mobilde kontrollere hiç erişilemezdi.
+ */
+@media (hover: none) {
+  .kapsul { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .sesRozeti { opacity: 0; }
+}
+
+/* Hareket azaltma tercihinde geçiş animasyonu yok. */
+@media (prefers-reduced-motion: reduce) {
+  .kapsul, .sesRozeti { transition: none; }
+}
+
+.kapsul button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
   flex: none;
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, .14);
+  background: transparent;
   color: #fff;
   cursor: pointer;
 }
-.kontroller button:hover { background: rgba(255, 255, 255, .26); }
+.kapsul button:hover { background: rgba(255, 255, 255, .18); }
+.kapsul button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
-.sure {
-  flex: none;
+.kalanSure {
+  padding: 0 6px;
   color: #fff;
-  font-size: .68rem;
+  font-size: .7rem;
+  font-weight: 600;
+  /* Rakamlar eşit genişlikte: süre saydıkça kapsül genişleyip
+     daralmasın, göz yorucu oluyor. */
   font-variant-numeric: tabular-nums;
-  opacity: .9;
 }
 
-/* İnce çubuk; üzerine gelince kalınlaşıyor. Tıklama alanı `padding`
-   ile büyütülüyor — 3px'lik bir çubuğu fareyle tutturmak zordur. */
-.cubuk {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-  height: 3px;
-  border-radius: 99px;
-  background: rgba(255, 255, 255, .3);
-  cursor: pointer;
-  transition: height .15s ease;
-}
-.cubuk::before {
-  content: '';
-  position: absolute;
-  inset: -9px 0;
-}
-.sarmal:hover .cubuk,
-.cubuk:focus-visible { height: 6px; }
-.cubuk:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
-
-.cubukDolu {
-  display: block;
-  height: 100%;
-  border-radius: 99px;
-  background: var(--primary, #4aa8c0);
-}
-
-@media (max-width: 520px) {
-  .sure { display: none; }
-  .kontroller { gap: 6px; padding: 8px 10px; }
+/*
+ * `backdrop-filter` desteklemeyen tarayıcıda cam etkisi yok; kapsül
+ * saydam kalırsa açık renkli videoda okunmaz olur. Daha koyu düz
+ * zemine düşülüyor.
+ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .kapsul { background: rgba(12, 12, 14, .78); }
+  .sesRozeti { background: rgba(12, 12, 14, .78); }
 }
