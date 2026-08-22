@@ -257,3 +257,284 @@
 .composerSayac { display: flex; align-items: center; gap: 12px; }
 .composerSayac small { color: var(--text-light); font-size: .7rem; }
 .kaldirDugmesi { color: var(--danger, #c0392b) !important; }
+
+/* ==========================================================
+ * ETKİLEŞİM KATMANI (22.08.2026)
+ * Referans düzen: solda profil kartı, ortada akış, sağda gündem.
+ * ========================================================== */
+
+/*
+ * ÜÇ SÜTUN yalnız GENİŞ ekranda. 1250px altında sol kart düşer —
+ * üç sütunu daha dar bir ekrana sıkıştırmak, ortadaki akışı okunmaz
+ * genişliğe indiriyordu. Sol karttaki bilgi kaybolmuyor: aynı sayılar
+ * profil sayfasında da var.
+ */
+@media (min-width: 1250px) {
+  .communityPage .communityGrid {
+    grid-template-columns: 260px minmax(0, 1fr) 290px;
+    gap: 20px;
+  }
+}
+.solSutun { display: none; }
+@media (min-width: 1250px) {
+  .solSutun {
+    display: grid;
+    gap: 16px;
+    position: sticky;
+    top: calc(var(--header-height) + 18px);
+    align-self: start;
+  }
+}
+
+.profilKarti {
+  padding: 20px 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface-panel);
+  text-align: center;
+}
+.profilKarti .authorAvatar {
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+}
+.profilKarti h2 { margin: 0; font-size: 1rem; }
+.profilKarti > p { margin: 3px 0 0; color: var(--text-light); font-size: .74rem; }
+.profilSayilari {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.profilSayilari a {
+  display: grid;
+  gap: 2px;
+  padding: 6px 2px;
+  border-radius: 9px;
+  color: inherit;
+  text-decoration: none;
+}
+.profilSayilari a:hover { background: var(--surface-card); }
+.profilSayilari b { font-size: 1rem; }
+.profilSayilari span { color: var(--text-light); font-size: .66rem; }
+
+/* --- Kart başlığı ve "..." menüsü --- */
+.postHead { position: relative; }
+.menuSarmal { margin-left: auto; position: relative; }
+.menuDugmesi {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-light);
+  cursor: pointer;
+}
+.menuDugmesi:hover { background: var(--surface-card); color: var(--text); }
+.menuListesi {
+  position: absolute;
+  top: 34px;
+  right: 0;
+  z-index: var(--z-dropdown, 200);
+  display: grid;
+  min-width: 168px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-panel);
+  box-shadow: var(--shadow-3);
+}
+.menuListesi button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: .78rem;
+  text-align: left;
+}
+.menuListesi button:hover { background: var(--surface-card); }
+.menuYikici { color: var(--danger) !important; }
+
+/* --- Tıklanabilir gövde --- */
+.postAcilir { cursor: pointer; }
+.postAcilir:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+/* --- Alıntı bloğu --- */
+.alinti {
+  margin-top: 12px;
+  padding: 12px 13px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--surface-card) 60%, transparent);
+}
+.alintiBasligi { display: flex; align-items: center; gap: 7px; }
+.alintiBasligi strong { font-size: .76rem; }
+.alintiBasligi small { color: var(--text-light); font-size: .66rem; }
+.alinti > p {
+  margin: 6px 0 0;
+  color: var(--text-soft);
+  font-size: .78rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.alintiYok { color: var(--text-light); font-size: .76rem; font-style: italic; }
+.kucukAvatar {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-size: .58rem;
+  font-weight: 800;
+}
+.alintiSecili { position: relative; }
+.alintiSecili > button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface-panel);
+  color: var(--text-light);
+  cursor: pointer;
+}
+
+/* --- İşlem satırı --- */
+.islemSatiri {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 10px 0 0 -8px;
+}
+.islemSatiri button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 99px;
+  background: transparent;
+  color: var(--text-light);
+  cursor: pointer;
+  font: inherit;
+  font-size: .72rem;
+}
+.islemSatiri button:hover { background: var(--surface-card); color: var(--text); }
+.islemSatiri b { font-weight: 700; font-size: .7rem; }
+/* Beğenildi/kaydedildi işareti RENKLE değil, renk + dolu ikonla
+   veriliyor: yalnız renkle ayırmak renk körü kullanıcı için görünmez. */
+.islemAktif { color: var(--primary) !important; }
+.islemSag { display: flex; gap: 2px; margin-left: auto; }
+/* Dar ekranda etiketler düşer, ikonlar kalır — dört düğme + sayılar
+   375px'e sığmıyor. */
+@media (max-width: 520px) {
+  .islemSatiri button > span { display: none; }
+  .islemSatiri button { padding: 8px 10px; }
+}
+
+/* --- Tek gönderi sayfası --- */
+.gonderiBasligi { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.gonderiBasligi h1 { margin: 0; font-size: 1.3rem; }
+.gonderiBasligi > button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-panel);
+  color: var(--text);
+  cursor: pointer;
+}
+.gonderiSutunu { display: grid; gap: 0; max-width: 640px; }
+.baglamEtiketi { margin: 0 0 4px; color: var(--text-light); font-size: .72rem; }
+.anaGonderi { border-top: 1px solid var(--border); }
+.anaGonderi .postText { font-size: .95rem; }
+
+.yanitKutusu {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.yanitKutusu textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-input, var(--surface-card));
+  color: var(--text);
+  font: inherit;
+  /* 16px altı, iOS Safari'de odaklanınca sayfayı yakınlaştırıyor. */
+  font-size: 1rem;
+  resize: vertical;
+}
+.yanitlar { padding-top: 14px; }
+.yanitlar h2 { margin: 0 0 4px; font-size: .88rem; color: var(--text-light); }
+/* Girinti + sol çizgi: hangi yanıtın hangisine ait olduğu ancak
+   görsel bir bağla okunuyor. */
+.yanitDali {
+  margin-left: 20px;
+  padding-left: 14px;
+  border-left: 2px solid var(--border);
+}
+@media (max-width: 520px) {
+  .yanitDali { margin-left: 8px; padding-left: 10px; }
+}
+
+/*
+ * IZGARA SÜTUNLARI DARALABİLMELİ.
+ *
+ * Izgara öğesinin varsayılan `min-width` değeri `auto`dur: içerik
+ * sığmıyorsa öğe SÜTUNU genişletir. Sağ ray 290px'lik sütununda
+ * duruyor görünürken içindeki uzun metin onu 479px'e çıkarıyor ve
+ * sayfa 167px yatay kayıyordu.
+ *
+ * `text-overflow: ellipsis` tek başına yetmiyor — üç nokta ancak
+ * öğe gerçekten daralabildiğinde çıkıyor, o da bu satırla mümkün.
+ */
+.communityRail,
+.newsRail,
+.railCard,
+.topicRow,
+.contributorRow,
+.solSutun,
+.profilKarti {
+  min-width: 0;
+}
+.topicRow > span,
+.contributorRow > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

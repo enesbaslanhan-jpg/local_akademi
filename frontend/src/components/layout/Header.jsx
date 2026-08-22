@@ -26,8 +26,11 @@ const TITLES = [
   ['/app/finance/models', 'Hesaplamalar'],
   ['/app/flashcards', 'Flashcard'],
   ['/app/quiz', 'Quiz'],
-  /* Daha spesifik olan önce gelmeli: resolveTitle ilk eşleşeni döndürür. */
+  /* Daha spesifik olan önce gelmeli: resolveTitle ilk eşleşeni döndürür.
+     Tek gönderi sayfası da topluluğun altında; bu satır olmadan üst
+     çubukta "Haberler" yazıyordu. */
   ['/app/community/topluluk', 'Topluluk'],
+  ['/app/community/gonderi', 'Topluluk'],
   ['/app/community', 'Haberler'],
   ['/app/settings', 'Ayarlar'],
   ['/app/workspaces', 'İşletme Takibi'],

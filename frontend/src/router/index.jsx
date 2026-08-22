@@ -31,6 +31,7 @@ const QuizDashboardPage = lazy(() => import('@/pages/QuizDashboardPage'))
 const QuizTakePage = lazy(() => import('@/pages/QuizTakePage'))
 const PilotLearningPathPage = lazy(() => import('@/pages/PilotLearningPathPage'))
 const CommunityPage = lazy(() => import('@/pages/CommunityPage'))
+const CommunityPostPage = lazy(() => import('@/pages/CommunityPostPage'))
 const NewsPage = lazy(() => import('@/pages/NewsPage'))
 const WorkspaceList = lazy(() => import('@/pages/Workspaces/index'))
 const WorkspaceLayout = lazy(() => import('@/pages/Workspaces/WorkspaceLayout'))
@@ -106,6 +107,10 @@ export default function AppRoutes() {
                 Aynı bileşen iki modda çalışır, yeni endpoint yok. */}
             <Route path="community" element={<SuspenseWrapper><NewsPage /></SuspenseWrapper>} />
             <Route path="community/topluluk" element={<SuspenseWrapper><CommunityPage mode="community" /></SuspenseWrapper>} />
+            {/* Kalıcı gönderi adresi: "Paylaş" düğmesinin verdiği bağlantı
+                ve yanıtların yazıldığı yer. Korumalı yolun altında —
+                giriş duvarı kararı gereği (22.08.2026). */}
+            <Route path="community/gonderi/:postId" element={<SuspenseWrapper><CommunityPostPage /></SuspenseWrapper>} />
             <Route path="tools" element={<SuspenseWrapper><ToolsPage /></SuspenseWrapper>} />
             <Route path="calculations" element={<SuspenseWrapper><ToolsPage initialView="calculator" /></SuspenseWrapper>} />
             <Route path="decision-checks" element={<SuspenseWrapper><DecisionCheckList /></SuspenseWrapper>} />

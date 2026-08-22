@@ -95,14 +95,33 @@ ol {
 /* Ekran okuyucuya görünür, gözle görünmez.
    Sayfa başlığı kuralı: üst barda sayfa adı zaten yazdığı için sayfa içi
    görünür h1 kaldırıldı; erişilebilir başlık bu sınıfla korunuyor. */
+/*
+ * OLCU ozelliklerinde `!important` BILEREK var (22.08.2026).
+ *
+ * Bu sinif "gorunmez" demek; hicbir duzen kuralinin onu geri gorunur
+ * yapmamasi gerekir. Ama ozgulluk buna izin veriyordu:
+ * `.form input { width: 100% }` (0,1,1) bu bloktan (0,1,0) daha guclu.
+ *
+ * Sonucu olculdu: topluluk sayfasindaki gizli dosya secme alani tam
+ * viewport genisligine cikiyor ve sayfayi 558px TASIRIYORDU.
+ * Kullanicinin "bazi yerlerde saga sola kayma var" sikayetinin
+ * kaynagi buydu.
+ *
+ * Duzeltmeyi tek sayfada yapmak ayni tuzagi bir sonraki forma
+ * birakirdi: her `.xxx input { width: 100% }` kurali bu sinifi yeniden
+ * kirar ve kimse baglantiyi kuramaz.
+ *
+ * Yalniz olcu ozelliklerinde important var; renk ve yazi tipi serbest
+ * -- onlar gorunurlugu etkilemiyor.
+ */
 .sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
   white-space: nowrap;
-  border: 0;
+  border: 0 !important;
 }

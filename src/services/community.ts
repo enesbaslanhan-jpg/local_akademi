@@ -680,6 +680,84 @@ export async function communityRoutes(
    * fark yok — gönderi listelerden düşüyor.
    */
   /*
+   * BENIM SAYFAM: paylasimlarim / begendiklerim / kaydettiklerim
+   *
+   * Uc yol da YALNIZ kendi verisini veriyor -- kullanici kimligi
+   * adresten degil JETONDAN okunuyor. Adresten alinsaydi bir kullanici
+   * digerinin kaydettiklerini gorurdu; "kaydettiklerim" kisiye ozel bir
+   * yer imi ve baskasina gosterilmesi bir gizlilik ihlalidir.
+   *
+   * BASKASININ profili bilerek YOK: kimin ne begendiginin baskasina
+   * gorunmesi ayri bir urun karari ve ayri bir metin degisikligi.
+   */
+  fastify.get('/me/summary', {
+    preHandler: [fastify.authenticate],
+  }, async request => {
+    const userId = request.user.id
+    const [paylasim, begeni, kayit] = await Promise.all([
+      prisma.communityPost.count({ where: { authorId: userId, status: 'published' } }),
+      prisma.communityLike.count({ where: { userId } }),
+      prisma.communityBookmark.count({ where: { userId } }),
+    ])
+    return { paylasim, begeni, kayit }
+  })
+
+  fastify.get('/me/:liste', {
+    preHandler: [fastify.authenticate],
+  }, async (request, reply) => {
+    const { liste } = request.params as { liste: string }
+    const userId = request.user.id
+
+    /* `take` BURAYA konmuyor. Bu nesne asagida hem liste sorgusunda hem
+       de `include: { post: ... }` icinde kullaniliyor; tekil bir iliskiye
+       `take` gecmek Prisma'yi kiriyor. Sinir cagri yerinde veriliyor. */
+    const ortak = {
+      include: {
+        author: { select: { id: true, name: true } },
+        media: { select: mediaSelect },
+        quotedPost: alintiIcerigi,
+        ...etkilesimIcerigi(userId),
+      },
+    } as const
+
+    if (liste === 'posts') {
+      const posts = await prisma.communityPost.findMany({
+        where: { authorId: userId, status: 'published' },
+        orderBy: { publishedAt: 'desc' },
+        take: 50,
+        ...ortak,
+      })
+      return { posts: posts.map(gonderiCikti) }
+    }
+
+    if (liste === 'likes' || liste === 'bookmarks') {
+      /* Iliskiden gidiliyor: sirayi BEGENME/KAYDETME zamani belirlemeli,
+         gonderinin yayim zamani degil. Eski bir gonderiyi bugun
+         kaydettiysem listemin basinda olmali. */
+      /* Iki delege ayri ayri cagriliyor: birlesimleri (union) cagrilabilir
+         degil -- imzalari uyusmuyor ve TypeScript hakli olarak reddediyor. */
+      const sorgu = {
+        where: { userId },
+        orderBy: { createdAt: 'desc' as const },
+        take: 50,
+        include: { post: ortak },
+      }
+      const kayitlar: any[] = liste === 'likes'
+        ? await prisma.communityLike.findMany(sorgu)
+        : await prisma.communityBookmark.findMany(sorgu)
+
+      /* Kaldirilmis gonderiler listeden dusuyor -- kayit duruyor ama
+         gosterilmiyor; kaldirma kararina saygi. */
+      const posts = kayitlar
+        .map(k => k.post).filter(post => post && post.status === 'published')
+        .map(gonderiCikti)
+      return { posts }
+    }
+
+    return reply.status(404).send({ error: 'Bilinmeyen liste.' })
+  })
+
+  /*
    * TEK GONDERI + YANIT AGACI  (kalici adres / alinti / paylas)
    *
    * Rota SIRASI onemli: bu `/:postId` kalibi `/moderation` ve

@@ -547,6 +547,23 @@ export const api = {
     async remove(postId) {
       return api.request(`/community/${postId}`, { method: 'DELETE' });
     },
+    async post(postId) {
+      return api.request(`/community/post/${postId}`);
+    },
+    /* Begeni ve kaydetme ayni sekle sahip; tek yardimci iki ucu da
+       cagiriyor. Sunucu guncel sayiyi donuyor -- istemcide saymak,
+       baska biri ayni anda begenirse yaniltir. */
+    async etkilesim(postId, tur, aktif) {
+      return api.request(`/community/${postId}/${tur}`, {
+        method: aktif ? 'POST' : 'DELETE'
+      });
+    },
+    async benimListem(liste) {
+      return api.request(`/community/me/${liste}`);
+    },
+    async benimOzetim() {
+      return api.request('/community/me/summary');
+    },
     async uploadMedia(file) {
       const form = new FormData();
       form.append('file', file);

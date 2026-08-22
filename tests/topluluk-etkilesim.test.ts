@@ -295,3 +295,85 @@ describe.each([
     expect(yanit.statusCode).toBe(401)
   })
 })
+
+describe('benim sayfam', () => {
+  /*
+   * Uc liste de kullanici kimligini JETONDAN okuyor, adresten degil.
+   * Adresten okunsaydi bir kullanici digerinin kaydettiklerini gorurdu;
+   * "kaydettiklerim" kisiye ozel bir yer imi.
+   */
+  const listele = async (token: string, liste: string) => {
+    const yanit = await app.inject({
+      method: 'GET',
+      url: `/community/me/${liste}`,
+      headers: { authorization: `Bearer ${token}` },
+    })
+    return { kod: yanit.statusCode, posts: yanit.body ? JSON.parse(yanit.body).posts : null }
+  }
+
+  it('paylasimlarim yalniz KENDI gonderilerimi verir', async () => {
+    const benim = await yeniGonderi(ayseToken, `Ayşe'nin gönderisi ${isaret}`)
+    await yeniGonderi(aliToken, `Ali'nin gönderisi ${isaret}`)
+
+    const { posts } = await listele(ayseToken, 'posts')
+    expect(posts.some((p: any) => p.id === benim)).toBe(true)
+    expect(posts.every((p: any) => p.author.id === ayseId)).toBe(true)
+  })
+
+  it('begendiklerim ve kaydettiklerim ayri listelerdir', async () => {
+    const begenilen = await yeniGonderi(aliToken, `Beğenilecek ${isaret}-${Math.random()}`)
+    const kaydedilen = await yeniGonderi(aliToken, `Kaydedilecek ${isaret}-${Math.random()}`)
+
+    await app.inject({ method: 'POST', url: `/community/${begenilen}/like`, headers: { authorization: `Bearer ${ayseToken}` } })
+    await app.inject({ method: 'POST', url: `/community/${kaydedilen}/bookmark`, headers: { authorization: `Bearer ${ayseToken}` } })
+
+    const begeniler = await listele(ayseToken, 'likes')
+    const kayitlar = await listele(ayseToken, 'bookmarks')
+
+    expect(begeniler.posts.some((p: any) => p.id === begenilen)).toBe(true)
+    expect(begeniler.posts.some((p: any) => p.id === kaydedilen)).toBe(false)
+    expect(kayitlar.posts.some((p: any) => p.id === kaydedilen)).toBe(true)
+    expect(kayitlar.posts.some((p: any) => p.id === begenilen)).toBe(false)
+  })
+
+  it('🔴 baskasinin kaydettikleri BENIM listemde cikmaz', async () => {
+    const id = await yeniGonderi(aliToken, `Ayşe kaydetti ${isaret}-${Math.random()}`)
+    await app.inject({ method: 'POST', url: `/community/${id}/bookmark`, headers: { authorization: `Bearer ${ayseToken}` } })
+
+    /* Ali ayni uc noktayi cagiriyor; Ayse'nin kaydi GORUNMEMELI. */
+    const { posts } = await listele(aliToken, 'bookmarks')
+    expect(posts.some((p: any) => p.id === id)).toBe(false)
+  })
+
+  it('kaldirilan gonderi begeni/kayit listesinden duser', async () => {
+    const id = await yeniGonderi(aliToken, `Sonra kaldırılacak ${isaret}-${Math.random()}`)
+    await app.inject({ method: 'POST', url: `/community/${id}/bookmark`, headers: { authorization: `Bearer ${ayseToken}` } })
+    expect((await listele(ayseToken, 'bookmarks')).posts.some((p: any) => p.id === id)).toBe(true)
+
+    await app.inject({ method: 'DELETE', url: `/community/${id}`, headers: { authorization: `Bearer ${aliToken}` } })
+
+    /* Kayit satiri duruyor ama gosterilmiyor -- kaldirma kararina saygi. */
+    expect((await listele(ayseToken, 'bookmarks')).posts.some((p: any) => p.id === id)).toBe(false)
+  })
+
+  it('ozet sayilari veriyor', async () => {
+    const yanit = await app.inject({
+      method: 'GET', url: '/community/me/summary',
+      headers: { authorization: `Bearer ${ayseToken}` },
+    })
+    const govde = JSON.parse(yanit.body)
+    expect(yanit.statusCode).toBe(200)
+    expect(typeof govde.paylasim).toBe('number')
+    expect(typeof govde.begeni).toBe('number')
+    expect(typeof govde.kayit).toBe('number')
+  })
+
+  it('bilinmeyen liste 404 doner', async () => {
+    expect((await listele(ayseToken, 'hepsi')).kod).toBe(404)
+  })
+
+  it('giris yapmamis kullanici erisemez', async () => {
+    const yanit = await app.inject({ method: 'GET', url: '/community/me/bookmarks' })
+    expect(yanit.statusCode).toBe(401)
+  })
+})

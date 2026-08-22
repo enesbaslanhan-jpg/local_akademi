@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
+  Bookmark,
   Clock,
   ExternalLink,
   FileText,
   Flag,
+  Heart,
   Image as ImageIcon,
+  MessageCircle,
+  MoreHorizontal,
   Paperclip,
+  Repeat2,
   Send,
+  Share2,
   Star,
   Trash2,
   TrendingUp,
@@ -14,6 +20,7 @@ import {
   Video,
   X,
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import ImageViewer from '@/components/ui/ImageViewer'
@@ -32,7 +39,7 @@ const CATEGORY_LABELS = {
   GENEL_EKONOMI: 'Genel ekonomi',
 }
 
-function timeAgo(dateStr) {
+export function timeAgo(dateStr) {
   if (!dateStr) return ''
   const diff = Math.max(0, Date.now() - new Date(dateStr).getTime())
   const mins = Math.floor(diff / 60000)
@@ -53,7 +60,7 @@ function ozet(post, uzunluk = 70) {
   return metin.length > uzunluk ? metin.slice(0, uzunluk).trimEnd() + '…' : metin
 }
 
-function initials(name = 'LK') {
+export function initials(name = 'LK') {
   return name.split(' ').filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase()
 }
 
@@ -64,7 +71,7 @@ function initials(name = 'LK') {
  * basligi tasiyamadigi icin erisim kisa omurlu bir HMAC ile
  * muhurleniyor. Adresi istemcide kurmak imzayi dusururdu.
  */
-function mediaUrl(media) {
+export function mediaUrl(media) {
   return media?.url ? `${API_URL}${media.url}` : ''
 }
 
@@ -142,7 +149,7 @@ function MediaPicker({ media, onChange, disabled = false, videoIzinli = false })
   )
 }
 
-function PostMedia({ media, featured = false }) {
+export function PostMedia({ media, featured = false, kucuk = false }) {
   const [buyutuldu, setBuyutuldu] = useState(false)
   if (!media) return null
   const url = mediaUrl(media)
@@ -191,12 +198,18 @@ function PostMedia({ media, featured = false }) {
 
 export default function CommunityPage({ mode = 'news' }) {
   const { isAdmin, user } = useAuth()
+  const navigate = useNavigate()
   const isNews = mode === 'news'
   const type = isNews ? 'official' : 'user'
   const [posts, setPosts] = useState([])
   const [pending, setPending] = useState([])
   const [reports, setReports] = useState([])
   const [metin, setMetin] = useState('')
+  /* Alintilanacak gonderi. Dolu oldugunda kutu "alinti modu"na giriyor;
+     ayri bir alinti kutusu acmak yerine mevcut kutuyu kullanmak,
+     kullanicinin zaten bildigi tek yeri koruyor. */
+  const [alintilanan, setAlintilanan] = useState(null)
+  const [ozet, setOzet] = useState(null)
   const [userMedia, setUserMedia] = useState(null)
   const [officialPost, setOfficialPost] = useState(emptyOfficialPost)
   const [officialMedia, setOfficialMedia] = useState(null)
@@ -213,6 +226,26 @@ export default function CommunityPage({ mode = 'news' }) {
     if (window.location.hash === '#yayin-araclari') {
       setAdminPanelOpen(true)
     }
+  }, [])
+
+  /*
+   * Gönderi sayfasından "Alıntıla" ile dönüldüğünde kutuyu hazırlar.
+   *
+   * Alıntılanan gönderiyi adresten ID ile alıp SUNUCUDAN çekiyoruz;
+   * gezinme durumunda taşımak, bağlantı doğrudan yapıştırıldığında
+   * çalışmazdı.
+   */
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('alinti')
+    if (!id) return
+    let iptal = false
+    api.community.post(id)
+      .then(sonuc => { if (!iptal) setAlintilanan(sonuc.post) })
+      .catch(() => { /* Gönderi silinmişse alıntı kutusu açılmaz. */ })
+      .finally(() => {
+        window.history.replaceState({}, '', window.location.pathname)
+      })
+    return () => { iptal = true }
   }, [])
 
   const contributors = useMemo(() => Object.values(posts.reduce((result, post) => {
@@ -232,6 +265,9 @@ export default function CommunityPage({ mode = 'news' }) {
         isAdmin ? api.community.reports() : Promise.resolve({ reports: [] }),
       ])
       setPosts(feed.posts || [])
+      /* Özet ayrı çağrı: akış sorgusuna eklemek onu ağırlaştırırdı ve
+         özet yüklenemese bile akış görünmeli. */
+      if (!isNews) api.community.benimOzetim().then(setOzet).catch(() => {})
       setPending(moderation.posts || [])
       setReports(reportQueue.reports || [])
     } catch (loadError) {
@@ -248,9 +284,14 @@ export default function CommunityPage({ mode = 'news' }) {
     setSubmitting(true)
     setError('')
     try {
-      const result = await api.community.submit({ metin, ...(userMedia ? { mediaId: userMedia.id } : {}) })
+      const result = await api.community.submit({
+        metin,
+        ...(userMedia ? { mediaId: userMedia.id } : {}),
+        ...(alintilanan ? { quotedPostId: alintilanan.id } : {}),
+      })
       setMetin('')
       setUserMedia(null)
+      setAlintilanan(null)
       setNotice(result.message)
       /* Paylaşım artık ANINDA yayımlanıyor; akışı hemen tazelemezsek
          kullanıcı kendi gönderisini göremez ve gitmedi sanır. */
@@ -351,6 +392,70 @@ export default function CommunityPage({ mode = 'news' }) {
     }
   }
 
+  /*
+   * BEGENI / KAYDETME
+   *
+   * Isaret HEMEN degisiyor (iyimser), sayi ise SUNUCUDAN gelen degerle
+   * yaziliyor. Sayiyi da yerelde artirmak yanlis olurdu: baska biri
+   * ayni anda begenmisse ekrandaki sayi gercekten sapardi.
+   *
+   * Hata durumunda isaret geri aliniyor -- kalici yalanci bir "beğendin"
+   * isareti, kullanicinin bir daha denememesine yol acar.
+   */
+  async function etkilesimDegistir(post, tur, aktif) {
+    const bayrak = tur === 'like' ? 'begendim' : 'kaydettim'
+    const sayac = tur === 'like' ? 'begeniSayisi' : null
+
+    setPosts(mevcut => mevcut.map(p => p.id === post.id ? { ...p, [bayrak]: aktif } : p))
+    try {
+      const sonuc = await api.community.etkilesim(post.id, tur, aktif)
+      setPosts(mevcut => mevcut.map(p => p.id === post.id
+        ? { ...p, [bayrak]: sonuc.aktif, ...(sayac ? { [sayac]: sonuc.sayi } : {}) }
+        : p))
+    } catch (hata) {
+      setPosts(mevcut => mevcut.map(p => p.id === post.id ? { ...p, [bayrak]: !aktif } : p))
+      setError(hata.message || 'İşlem tamamlanamadı.')
+    }
+  }
+
+  function gonderiAdresi(postId) {
+    return `${window.location.origin}/app/community/gonderi/${postId}`
+  }
+
+  /*
+   * PAYLAS
+   *
+   * Ucuncu taraf paylasim dugmesi (Facebook/X SDK'si) KULLANILMIYOR:
+   * izleme yuzeyi acar ve StorageNotice'taki "hicbir ucuncu taraf izleme
+   * araci calistirmiyor" taahhudunu yalanlar. Tarayicinin kendi paylasim
+   * penceresi ya da panoya kopyalama yeterli.
+   */
+  async function paylas(post) {
+    const adres = gonderiAdresi(post.id)
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'LocalKarar', text: post.summary || '', url: adres })
+        return
+      } catch {
+        /* Kullanici vazgecti; panoya kopyalamaya dusmeye gerek yok. */
+        return
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(adres)
+      setNotice('Bağlantı kopyalandı.')
+    } catch {
+      setError('Bağlantı kopyalanamadı.')
+    }
+  }
+
+  function alintila(post) {
+    setAlintilanan(post)
+    document.getElementById('paylas')?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  }
+
+  const gonderiyiAc = postId => navigate(`/app/community/gonderi/${postId}`)
+
   async function reportPost(postId) {
     const allowed = ['spam', 'misinformation', 'harassment', 'unsafe', 'copyright', 'other']
     const reason = window.prompt('Rapor nedeni: spam, misinformation, harassment, unsafe, copyright veya other', 'misinformation')?.trim()
@@ -380,6 +485,7 @@ export default function CommunityPage({ mode = 'news' }) {
 
       {!isNews && (
         <div className={styles.communityGrid}>
+          <SolProfilKarti user={user} ozet={ozet} />
           <div className={styles.mainColumn}>
             {/*
               * TEK KUTU, BAŞLIK YOK — X benzeri serbest paylaşım
@@ -391,15 +497,24 @@ export default function CommunityPage({ mode = 'news' }) {
             <section id="paylas" className={styles.composer}>
               <div className={styles.composerTitle}>
                 <span className={styles.authorAvatar}>{initials(user?.name)}</span>
-                <span><h2>Ne paylaşmak istersin?</h2><p>Yazdığın anda yayımlanır. Kendi paylaşımını istediğin zaman kaldırabilirsin.</p></span>
+                <span>
+                  <h2>{alintilanan ? 'Alıntılıyorsun' : 'Ne paylaşmak istersin?'}</h2>
+                  <p>Yazdığın anda yayımlanır. Kendi paylaşımını istediğin zaman kaldırabilirsin.</p>
+                </span>
               </div>
               <form onSubmit={submitUserPost} className={styles.form}>
-                <textarea aria-label="Paylaşım metni" placeholder="İşletmende neler oluyor?" value={metin} onChange={event => setMetin(event.target.value)} maxLength={500} rows={3} />
+                <textarea aria-label="Paylaşım metni" placeholder={alintilanan ? 'Bir şey eklemek ister misin?' : 'İşletmende neler oluyor?'} value={metin} onChange={event => setMetin(event.target.value)} maxLength={500} rows={3} />
+                {alintilanan && (
+                  <div className={styles.alintiSecili}>
+                    <AlintiBlogu alinti={{ ...alintilanan, kaldirildi: false }} />
+                    <button type="button" onClick={() => setAlintilanan(null)} aria-label="Alıntıyı kaldır"><X size={16} /></button>
+                  </div>
+                )}
                 <div className={styles.composerFooter}>
                   <MediaPicker media={userMedia} onChange={setUserMedia} disabled={submitting} videoIzinli />
                   <span className={styles.composerSayac}>
                     <small aria-live="polite">{metin.length}/500</small>
-                    <button className={styles.primaryButton} type="submit" disabled={submitting || (!metin.trim() && !userMedia)}><Send size={17} />{submitting ? 'Gönderiliyor…' : 'Paylaş'}</button>
+                    <button className={styles.primaryButton} type="submit" disabled={submitting || (!metin.trim() && !userMedia && !alintilanan)}><Send size={17} />{submitting ? 'Gönderiliyor…' : 'Paylaş'}</button>
                   </span>
                 </div>
               </form>
@@ -411,7 +526,20 @@ export default function CommunityPage({ mode = 'news' }) {
               {/* Tek tip akış: "öne çıkan tartışma" bloğu kalktı. Başlıksız
                   paylaşımlarda o blok boş bir başlık gösteriyordu, ayrıca
                   X'te de ilk gönderi büyütülmüyor. */}
-              <div className={styles.discussionList}>{posts.map(post => <CommunityCard key={post.id} post={post} onReport={reportPost} onRemove={kaldir} kaldirilabilir={kaldirilabilir(post)} />)}</div>
+              <div className={styles.discussionList}>{posts.map(post => (
+                <CommunityCard
+                  key={post.id}
+                  post={post}
+                  kaldirilabilir={kaldirilabilir(post)}
+                  onReport={reportPost}
+                  onRemove={kaldir}
+                  onEtkilesim={etkilesimDegistir}
+                  onYanitla={p => gonderiyiAc(p.id)}
+                  onAlintila={alintila}
+                  onPaylas={paylas}
+                  onAc={gonderiyiAc}
+                />
+              ))}</div>
             </section>
           </div>
           <CommunityRail posts={posts} contributors={contributors} />
@@ -440,31 +568,222 @@ export default function CommunityPage({ mode = 'news' }) {
   )
 }
 
-function CommunityCard({ post, onReport, onRemove, kaldirilabilir }) {
-  /*
-   * X benzeri satır düzeni: solda avatar, sağda tek sütun —
-   * ad ve zaman, metin, medya, işlemler.
-   *
-   * Eski düzen başlıklı gönderiye göre kurulmuştu: avatar dört satır
-   * boyunca uzuyor, yazarın ADI gizleniyor (`display: none`) ve metin
-   * tek satıra kırpılıyordu — başlık zaten anlatıyor diye. Başlık
-   * kalkınca o düzen kartı adsız ve yarım metinli bırakıyordu.
-   */
-  return <article className={styles.communityCard}>
-    <span className={styles.authorAvatar}>{initials(post.author?.name)}</span>
-    <div className={styles.postBody}>
-      <div className={styles.postHead}>
-        <strong>{post.author?.name || 'LocalKarar kullanıcısı'}</strong>
-        <small>{timeAgo(post.publishedAt)}</small>
-      </div>
-      {post.summary && <p className={styles.postText}>{post.summary}</p>}
-      <PostMedia media={post.media} />
-      <div className={styles.cardActions}>
-        <button type="button" onClick={() => onReport(post.id)}><Flag size={15} /> Raporla</button>
-        {kaldirilabilir && <button type="button" className={styles.kaldirDugmesi} onClick={() => onRemove(post.id)}><Trash2 size={15} /> Kaldır</button>}
-      </div>
+/*
+ * "..." MENUSU
+ *
+ * Kaldir ve Raporla buradan cikiyor. Ikisi de yikici ya da geri
+ * donusu olan islemler; alt siradaki dort dugmenin yaninda dursalardi
+ * Begen'e basmak isterken Kaldir'a basmak an meselesiydi.
+ *
+ * Disari tiklaninca ve Esc ile kapaniyor -- acik kalan bir menu,
+ * altindaki karti tiklanamaz yapar.
+ */
+export function GonderiMenusu({ kaldirilabilir, onRemove, onReport }) {
+  const [acik, setAcik] = useState(false)
+  const kutuRef = useRef(null)
+
+  useEffect(() => {
+    if (!acik) return
+    function disariTiklandi(olay) {
+      if (!kutuRef.current?.contains(olay.target)) setAcik(false)
+    }
+    function tusaBasildi(olay) {
+      if (olay.key === 'Escape') setAcik(false)
+    }
+    document.addEventListener('mousedown', disariTiklandi)
+    document.addEventListener('keydown', tusaBasildi)
+    return () => {
+      document.removeEventListener('mousedown', disariTiklandi)
+      document.removeEventListener('keydown', tusaBasildi)
+    }
+  }, [acik])
+
+  return (
+    <div className={styles.menuSarmal} ref={kutuRef}>
+      <button
+        type="button"
+        className={styles.menuDugmesi}
+        onClick={() => setAcik(current => !current)}
+        aria-haspopup="menu"
+        aria-expanded={acik}
+        aria-label="Gönderi işlemleri"
+      >
+        <MoreHorizontal size={18} />
+      </button>
+      {acik && (
+        <div className={styles.menuListesi} role="menu">
+          <button type="button" role="menuitem" onClick={() => { setAcik(false); onReport() }}>
+            <Flag size={15} /> Raporla
+          </button>
+          {kaldirilabilir && (
+            <button
+              type="button"
+              role="menuitem"
+              className={styles.menuYikici}
+              onClick={() => { setAcik(false); onRemove() }}
+            >
+              <Trash2 size={15} /> Kaldır
+            </button>
+          )}
+        </div>
+      )}
     </div>
-  </article>
+  )
+}
+
+/*
+ * Alintilanan gonderi kartin ICINDE, cercevelenmis kucuk bir blok.
+ *
+ * Kaynak kaldirilmissa icerik GELMEZ -- sunucu `kaldirildi: true`
+ * disinda hicbir sey gondermiyor. Aksi halde kaldirma yetkisi
+ * alintiyla atlatilirdi.
+ */
+export function AlintiBlogu({ alinti }) {
+  if (!alinti) return null
+  if (alinti.kaldirildi) {
+    return <div className={`${styles.alinti} ${styles.alintiYok}`}>Bu paylaşım kaldırıldı.</div>
+  }
+  return (
+    <div className={styles.alinti}>
+      <div className={styles.alintiBasligi}>
+        <span className={styles.kucukAvatar}>{initials(alinti.author?.name)}</span>
+        <strong>{alinti.author?.name || 'LocalKarar kullanıcısı'}</strong>
+        <small>{timeAgo(alinti.publishedAt)}</small>
+      </div>
+      {alinti.summary && <p>{alinti.summary}</p>}
+      <PostMedia media={alinti.media} kucuk />
+    </div>
+  )
+}
+
+function sayiyiYaz(n) {
+  if (!n) return ''
+  if (n < 1000) return String(n)
+  return `${(n / 1000).toFixed(n < 10000 ? 1 : 0).replace('.0', '')}B`
+}
+
+/*
+ * ISLEM SATIRI — Begen · Yanitla · Alintila · Paylas
+ *
+ * Sayilar SUNUCUDAN geliyor, istemcide artirilmiyor: baska biri ayni
+ * anda begenirse yerel sayac yanlisa kayardi. Iyimser guncelleme
+ * yalniz kendi isaretim (dolu/bos kalp) icin yapiliyor -- o benim
+ * eylemim ve gecikmesi kotu hissettiriyor.
+ */
+export function IslemSatiri({ post, onEtkilesim, onYanitla, onAlintila, onPaylas }) {
+  return (
+    <div className={styles.islemSatiri}>
+      <button
+        type="button"
+        className={post.begendim ? styles.islemAktif : undefined}
+        onClick={() => onEtkilesim(post, 'like', !post.begendim)}
+        aria-pressed={post.begendim}
+      >
+        <Heart size={17} fill={post.begendim ? 'currentColor' : 'none'} />
+        <span>Beğen</span>
+        {post.begeniSayisi > 0 && <b>{sayiyiYaz(post.begeniSayisi)}</b>}
+      </button>
+
+      <button type="button" onClick={() => onYanitla(post)}>
+        <MessageCircle size={17} />
+        <span>Yanıtla</span>
+        {post.yanitSayisi > 0 && <b>{sayiyiYaz(post.yanitSayisi)}</b>}
+      </button>
+
+      <button type="button" onClick={() => onAlintila(post)}>
+        <Repeat2 size={18} />
+        <span>Alıntıla</span>
+        {post.alintiSayisi > 0 && <b>{sayiyiYaz(post.alintiSayisi)}</b>}
+      </button>
+
+      <span className={styles.islemSag}>
+        <button
+          type="button"
+          className={post.kaydettim ? styles.islemAktif : undefined}
+          onClick={() => onEtkilesim(post, 'bookmark', !post.kaydettim)}
+          aria-pressed={post.kaydettim}
+          aria-label={post.kaydettim ? 'Kaydı kaldır' : 'Kaydet'}
+        >
+          <Bookmark size={17} fill={post.kaydettim ? 'currentColor' : 'none'} />
+        </button>
+        <button type="button" onClick={() => onPaylas(post)} aria-label="Paylaş">
+          <Share2 size={17} />
+        </button>
+      </span>
+    </div>
+  )
+}
+
+/*
+ * SOL PROFIL KARTI
+ *
+ * Referans tasarimda burada "Following / Followers" duruyordu. Bizde
+ * TAKIP SISTEMI YOK -- ne takip tablosu ne takipci kavrami. Uydurma bir
+ * sayi koymak yerine gercekten sahip oldugumuz uc sayi gosteriliyor:
+ * paylasim, begeni, kayit. Takip eklenirse kart buyur, yalan soylemez.
+ */
+function SolProfilKarti({ user, ozet }) {
+  return (
+    <aside className={styles.solSutun} aria-label="Profil özeti">
+      <section className={styles.profilKarti}>
+        <span className={styles.authorAvatar}>{initials(user?.name)}</span>
+        <h2>{user?.name || 'LocalKarar kullanıcısı'}</h2>
+        <p>Yerel işletme sahibi</p>
+        <div className={styles.profilSayilari}>
+          <a href="/app/profil?liste=posts"><b>{ozet?.paylasim ?? '—'}</b><span>Paylaşım</span></a>
+          <a href="/app/profil?liste=likes"><b>{ozet?.begeni ?? '—'}</b><span>Beğeni</span></a>
+          <a href="/app/profil?liste=bookmarks"><b>{ozet?.kayit ?? '—'}</b><span>Kayıt</span></a>
+        </div>
+      </section>
+    </aside>
+  )
+}
+
+export function CommunityCard({ post, kaldirilabilir, onReport, onRemove, onEtkilesim, onYanitla, onAlintila, onPaylas, onAc }) {
+  /*
+   * Baslik yok: govde dogrudan metin. Avatar solda, icerik sagda tek
+   * sutun -- eski duzen basliga gore kurulmustu ve yazarin ADINI
+   * gizliyordu.
+   */
+  return (
+    <article className={styles.communityCard}>
+      <span className={styles.authorAvatar}>{initials(post.author?.name)}</span>
+      <div className={styles.postBody}>
+        <div className={styles.postHead}>
+          <strong>{post.author?.name || 'LocalKarar kullanıcısı'}</strong>
+          <small>{timeAgo(post.publishedAt)}</small>
+          <GonderiMenusu
+            kaldirilabilir={kaldirilabilir}
+            onRemove={() => onRemove(post.id)}
+            onReport={() => onReport(post.id)}
+          />
+        </div>
+
+        {/* Metne ve medyaya tiklamak gonderiyi acar; islem dugmeleri
+            kendi tiklamalarini durduruyor (asagida stopPropagation
+            yok cunku dugmeler bu blogun DISINDA). */}
+        <div
+          className={styles.postAcilir}
+          role="link"
+          tabIndex={0}
+          onClick={() => onAc(post.id)}
+          onKeyDown={event => { if (event.key === 'Enter') onAc(post.id) }}
+        >
+          {post.summary && <p className={styles.postText}>{post.summary}</p>}
+          <AlintiBlogu alinti={post.quotedPost} />
+          <PostMedia media={post.media} />
+        </div>
+
+        <IslemSatiri
+          post={post}
+          onEtkilesim={onEtkilesim}
+          onYanitla={onYanitla}
+          onAlintila={onAlintila}
+          onPaylas={onPaylas}
+        />
+      </div>
+    </article>
+  )
 }
 
 function FeaturedNews({ post, onReport }) {
