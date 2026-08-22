@@ -196,10 +196,79 @@ export async function communitySocialRoutes(fastify: FastifyInstance) {
     return { blocked: false }
   })
 
-  fastify.get('/threads', { preHandler: [fastify.authenticate] }, async request => ({ threads: await prisma.communityThread.findMany({
-    where: { members: { some: { userId: request.user.id } } }, orderBy: { updatedAt: 'desc' },
-    include: { members: { include: { user: { select: { id: true, name: true } } } }, messages: { take: 1, orderBy: { createdAt: 'desc' } } },
-  }) }))
+  fastify.get('/threads', { preHandler: [fastify.authenticate] }, async request => {
+    const threads = await prisma.communityThread.findMany({
+      where: { members: { some: { userId: request.user.id } } },
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        members: { include: { user: { select: { id: true, name: true, avatarStoredName: true } } } },
+        messages: { take: 1, orderBy: { createdAt: 'desc' } },
+      },
+    })
+
+    /*
+     * KENDI uyelik durumum ciktiya ekleniyor: arayuz "davet" ile
+     * "katildigim sohbet"i ayirt edebilmeli. Uye listesinden
+     * cikarmak istemciye ekstra is yuklerdi ve her ekranda tekrar
+     * edilirdi.
+     *
+     * Bekleyen davette SON MESAJ GONDERILMIYOR: onizleme, kabul
+     * edilmemis bir grubun icerigini sizdirirdi.
+     */
+    return {
+      threads: threads.map(t => {
+        const benim = t.members.find(m => m.userId === request.user.id)
+        const bekliyor = benim?.status !== 'joined'
+        return {
+          ...t,
+          durumum: benim?.status ?? 'joined',
+          messages: bekliyor ? [] : t.messages,
+          members: t.members.map(m => ({
+            ...m,
+            user: {
+              ...m.user,
+              avatarUrl: m.user.avatarStoredName ? `/auth/avatar/${m.user.avatarStoredName}` : null,
+            },
+          })),
+        }
+      }),
+    }
+  })
+
+  /*
+   * DAVETI KABUL ET / REDDET.
+   *
+   * Reddetmek uyelik satirini SILIYOR: 'declined' gibi bir durum
+   * tutmak, reddedilen grubun listede asili kalmasi demek olurdu.
+   * Ayni kisi tekrar davet edilebilir.
+   */
+  fastify.post('/threads/:threadId/invite/:karar', {
+    preHandler: [fastify.authenticate],
+    config: YAZMA_SINIRI,
+  }, async (request, reply) => {
+    const { threadId, karar } = request.params as { threadId: string; karar: string }
+    if (karar !== 'accept' && karar !== 'decline') {
+      return reply.status(422).send({ error: 'Geçersiz karar.' })
+    }
+    const uyelik = await prisma.communityThreadMember.findUnique({
+      where: { threadId_userId: { threadId, userId: request.user.id } },
+    })
+    if (!uyelik) return reply.status(404).send({ error: 'Davet bulunamadı.' })
+    if (uyelik.status === 'joined') return { durum: 'joined' }
+
+    if (karar === 'decline') {
+      await prisma.communityThreadMember.delete({
+        where: { threadId_userId: { threadId, userId: request.user.id } },
+      })
+      return { durum: 'declined' }
+    }
+
+    await prisma.communityThreadMember.update({
+      where: { threadId_userId: { threadId, userId: request.user.id } },
+      data: { status: 'joined' },
+    })
+    return { durum: 'joined' }
+  })
   fastify.post('/threads', { preHandler: [fastify.authenticate], config: YAZMA_SINIRI }, async (request, reply) => {
     const parsed = threadSchema.safeParse(request.body); if (!parsed.success) return reply.status(422).send({ error: 'Geçersiz sohbet bilgisi.' })
     const ids = [...new Set([request.user.id, ...parsed.data.memberIds.filter(id => id !== request.user.id)])]
@@ -218,13 +287,49 @@ export async function communitySocialRoutes(fastify: FastifyInstance) {
         return reply.status(403).send({ error: 'Engellenen bir kullanıcıyla sohbet başlatılamaz.' })
       }
     }
-    const thread = await prisma.communityThread.create({ data: { name: parsed.data.name, isGroup: ids.length > 2, createdById: request.user.id, members: { create: ids.map(userId => ({ userId, role: userId === request.user.id ? 'owner' : 'member' })) } } })
+    /*
+     * 🔴 GRUP DAVETI KABUL ISTER, BIREBIR SOHBET ISTEMEZ.
+     *
+     * Urun karari: kimse haberi olmadan bir gruba atilamaz. Birebir
+     * sohbet ise dogrudan aciliyor -- her mesaj icin onay istemek,
+     * mesajlasmayi kullanilmaz yapardi.
+     *
+     * Kuran kisi HER ZAMAN 'joined': kendi actigi sohbete davet
+     * gondermek anlamsiz olurdu.
+     */
+    const grupMu = ids.length > 2
+    const thread = await prisma.communityThread.create({
+      data: {
+        name: parsed.data.name,
+        isGroup: grupMu,
+        createdById: request.user.id,
+        members: {
+          create: ids.map(userId => ({
+            userId,
+            role: userId === request.user.id ? 'owner' : 'member',
+            status: userId === request.user.id || !grupMu ? 'joined' : 'invited',
+          })),
+        },
+      },
+    })
+
+    if (grupMu) {
+      for (const userId of ids) {
+        await bildirimYaz(userId, request.user.id, 'thread_invite', { threadId: thread.id })
+      }
+    }
     return reply.status(201).send({ thread })
   })
   fastify.get('/threads/:threadId/messages', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const threadId = (request.params as { threadId: string }).threadId
     const member = await prisma.communityThreadMember.findUnique({ where: { threadId_userId: { threadId, userId: request.user.id } } })
     if (!member) return reply.status(403).send({ error: 'Bu sohbete erişiminiz yok.' })
+    /* 🔴 Uyelik satirinin VARLIGI tek basina yetmiyor: davet kabul
+       edilene kadar mesajlar gorunmemeli. Yoksa "kabul" dugmesi susten
+       ibaret olurdu -- davet edilen zaten her seyi okuyor olurdu. */
+    if (member.status !== 'joined') {
+      return reply.status(403).send({ error: 'Bu grup davetini henüz kabul etmediniz.', code: 'THREAD_INVITE_PENDING' })
+    }
     return { messages: await prisma.communityMessage.findMany({ where: { threadId }, include: { sender: { select: { id: true, name: true } } }, orderBy: { createdAt: 'asc' }, take: 200 }) }
   })
   fastify.post('/threads/:threadId/messages', { preHandler: [fastify.authenticate], config: MESAJ_SINIRI }, async (request, reply) => {
@@ -232,6 +337,9 @@ export async function communitySocialRoutes(fastify: FastifyInstance) {
     const parsed = messageSchema.safeParse(request.body); if (!parsed.success) return reply.status(422).send({ error: 'Mesaj boş olamaz.' })
     const member = await prisma.communityThreadMember.findUnique({ where: { threadId_userId: { threadId, userId: request.user.id } } })
     if (!member) return reply.status(403).send({ error: 'Bu sohbete erişiminiz yok.' })
+    if (member.status !== 'joined') {
+      return reply.status(403).send({ error: 'Bu grup davetini henüz kabul etmediniz.', code: 'THREAD_INVITE_PENDING' })
+    }
 
     /*
      * Engel sohbet AÇILDIKTAN SONRA da konabilir; üyelik kontrolü tek

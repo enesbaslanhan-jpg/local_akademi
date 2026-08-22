@@ -152,3 +152,125 @@ describe('engelleme ÖZEL MESAJDA da geçerli', () => {
     await prisma.communityBlock.deleteMany({ where: { blockerId: ayse.id } })
   })
 })
+
+describe('grup daveti kabul ister', () => {
+  /*
+   * 🔴 ÜRÜN KARARI: kimse haberi olmadan bir gruba atılamaz.
+   *
+   * Buradaki asıl tehlike, "kabul" düğmesini süsten ibaret bırakmak:
+   * üyelik satırı yaratılıp mesajlar hemen okunabilir olsaydı, davet
+   * edilen kişi kabul etmeden her şeyi zaten görüyor olurdu ve
+   * özellik kullanıcıya YANLIŞ bir güven verirdi.
+   *
+   * Birebir sohbet daveti İSTEMEZ: her mesaj için onay istemek
+   * mesajlaşmayı kullanılmaz yapardı.
+   */
+  let uc: any, ucToken: string, grupId: string
+
+  beforeAll(async () => {
+    uc = await prisma.user.create({
+      data: { email: `${mark}-uc@test.local`, password: 'x', name: 'Uc Test', role: 'student' },
+    })
+    ucToken = app.jwt.sign({ id: uc.id, email: uc.email, role: uc.role })
+
+    /* Üç kişilik grup: ids.length > 2 olduğu için grup sayılıyor. */
+    const acilis = await app.inject({
+      method: 'POST', url: '/community/social/threads',
+      headers: auth(aliToken),
+      payload: { name: 'Esnaf Grubu', memberIds: [ayse.id, uc.id] },
+    })
+    expect(acilis.statusCode).toBe(201)
+    grupId = acilis.json().thread.id
+  })
+
+  afterAll(async () => {
+    await prisma.communityMessage.deleteMany({ where: { threadId: grupId } }).catch(() => {})
+    await prisma.communityThread.deleteMany({ where: { id: grupId } }).catch(() => {})
+    await prisma.user.deleteMany({ where: { id: uc.id } }).catch(() => {})
+  })
+
+  it('kuran kişi kabul beklemez', async () => {
+    const liste = await app.inject({ method: 'GET', url: '/community/social/threads', headers: auth(aliToken) })
+    const grup = liste.json().threads.find((t: any) => t.id === grupId)
+    expect(grup.durumum).toBe('joined')
+  })
+
+  it('davet edilen "invited" durumunda başlar', async () => {
+    const liste = await app.inject({ method: 'GET', url: '/community/social/threads', headers: auth(ucToken) })
+    const grup = liste.json().threads.find((t: any) => t.id === grupId)
+    expect(grup.durumum).toBe('invited')
+  })
+
+  it('🔴 kabul etmeden mesajlar OKUNAMAZ', async () => {
+    await app.inject({
+      method: 'POST', url: `/community/social/threads/${grupId}/messages`,
+      headers: auth(aliToken), payload: { body: 'gizli grup mesaji' },
+    })
+
+    const yanit = await app.inject({
+      method: 'GET', url: `/community/social/threads/${grupId}/messages`, headers: auth(ucToken),
+    })
+
+    expect(yanit.statusCode).toBe(403)
+    expect(yanit.json().code).toBe('THREAD_INVITE_PENDING')
+    expect(yanit.body).not.toContain('gizli grup mesaji')
+  })
+
+  it('🔴 kabul etmeden mesaj YAZILAMAZ', async () => {
+    const yanit = await app.inject({
+      method: 'POST', url: `/community/social/threads/${grupId}/messages`,
+      headers: auth(ucToken), payload: { body: 'izinsiz' },
+    })
+    expect(yanit.statusCode).toBe(403)
+
+    const sayi = await prisma.communityMessage.count({ where: { threadId: grupId, senderId: uc.id } })
+    expect(sayi).toBe(0)
+  })
+
+  it('🔴 bekleyen davette SON MESAJ ÖNİZLEMESİ gelmez', async () => {
+    /* Önizleme, kabul edilmemiş bir grubun içeriğini sızdırırdı. */
+    const liste = await app.inject({ method: 'GET', url: '/community/social/threads', headers: auth(ucToken) })
+    const grup = liste.json().threads.find((t: any) => t.id === grupId)
+    expect(grup.messages).toHaveLength(0)
+    expect(liste.body).not.toContain('gizli grup mesaji')
+  })
+
+  it('kabul edince mesajlar açılır', async () => {
+    const karar = await app.inject({
+      method: 'POST', url: `/community/social/threads/${grupId}/invite/accept`, headers: auth(ucToken),
+    })
+    expect(karar.json().durum).toBe('joined')
+
+    const mesajlar = await app.inject({
+      method: 'GET', url: `/community/social/threads/${grupId}/messages`, headers: auth(ucToken),
+    })
+    expect(mesajlar.statusCode).toBe(200)
+    expect(mesajlar.body).toContain('gizli grup mesaji')
+  })
+
+  it('reddedince sohbet listeden tamamen düşer', async () => {
+    /* Reddetme üyelik satırını SİLİYOR: 'declined' durumu tutmak,
+       reddedilen grubun listede asılı kalması demek olurdu. */
+    const karar = await app.inject({
+      method: 'POST', url: `/community/social/threads/${grupId}/invite/decline`, headers: auth(ayseToken),
+    })
+    expect(karar.json().durum).toBe('declined')
+
+    const liste = await app.inject({ method: 'GET', url: '/community/social/threads', headers: auth(ayseToken) })
+    expect(liste.json().threads.some((t: any) => t.id === grupId)).toBe(false)
+  })
+
+  it('BİREBİR sohbet davet istemez — doğrudan açılır', async () => {
+    const acilis = await app.inject({
+      method: 'POST', url: '/community/social/threads',
+      headers: auth(aliToken), payload: { memberIds: [uc.id] },
+    })
+    expect(acilis.statusCode).toBe(201)
+    const ikiliId = acilis.json().thread.id
+
+    const liste = await app.inject({ method: 'GET', url: '/community/social/threads', headers: auth(ucToken) })
+    expect(liste.json().threads.find((t: any) => t.id === ikiliId).durumum).toBe('joined')
+
+    await prisma.communityThread.deleteMany({ where: { id: ikiliId } }).catch(() => {})
+  })
+})

@@ -594,6 +594,9 @@ export const api = {
     async block(personId, active) { return api.request(`/community/social/people/${personId}/block`, { method: active ? 'POST' : 'DELETE' }); },
     async threads() { return api.request('/community/social/threads'); },
     async createThread(data) { return api.request('/community/social/threads', { method: 'POST', body: JSON.stringify(data) }); },
+    async davetKarari(threadId, karar) {
+      return api.request(`/community/social/threads/${threadId}/invite/${karar}`, { method: 'POST' });
+    },
     async messages(threadId) { return api.request(`/community/social/threads/${threadId}/messages`); },
     async sendMessage(threadId, body) { return api.request(`/community/social/threads/${threadId}/messages`, { method: 'POST', body: JSON.stringify({ body }) }); },
     async ads() { return api.request('/community/social/ads'); },
