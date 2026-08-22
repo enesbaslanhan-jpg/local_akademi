@@ -235,7 +235,19 @@ describe('community moderation flow', () => {
     expect(uploaded.statusCode).toBe(201)
     const mediaId = uploaded.json().media.id
 
-    const unpublished = await app.inject({ method: 'GET', url: `/community/media/${mediaId}` })
+    /*
+     * Adres SUNUCUDAN aliniyor, elle kurulmuyor.
+     *
+     * Medya rotasi artik imzali (22.08.2026): <img src> Authorization
+     * basligi tasiyamadigi icin erisim kisa omurlu bir HMAC ile
+     * muhurleniyor. Bu test adresi `/community/media/${id}` diye elle
+     * kuruyordu ve imza gelince 404 almaya basladi -- test kirilmadi,
+     * DAVRANIS degisti.
+     */
+    const imzaliAdres = uploaded.json().media.url as string
+    expect(imzaliAdres).toMatch(/[?&]s=[0-9a-f]{64}/)
+
+    const unpublished = await app.inject({ method: 'GET', url: imzaliAdres })
     expect(unpublished.statusCode).toBe(404)
 
     const created = await app.inject({
@@ -256,7 +268,7 @@ describe('community moderation flow', () => {
       payload: { action: 'publish' },
     })
 
-    const published = await app.inject({ method: 'GET', url: `/community/media/${mediaId}` })
+    const published = await app.inject({ method: 'GET', url: imzaliAdres })
     expect(published.statusCode).toBe(200)
     expect(published.headers['content-type']).toContain('image/png')
   })

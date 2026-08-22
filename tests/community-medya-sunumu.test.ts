@@ -89,6 +89,15 @@ beforeAll(async () => {
     payload: { metin: `Medya sunumu testi ${isaret}`, mediaId },
   })
   postId = JSON.parse(paylasim.body).post.id
+
+  const liste = await app.inject({
+    method: 'GET',
+    url: '/community?type=user',
+    headers: { authorization: `Bearer ${token}` },
+  })
+  const kayit = JSON.parse(liste.body).posts.find((x: any) => x.media?.id === mediaId)
+  if (!kayit?.media?.url) throw new Error('imzali adres akista yok')
+  adres = kayit.media.url
 })
 
 afterAll(async () => {
@@ -99,8 +108,18 @@ afterAll(async () => {
   await prisma.$disconnect()
 })
 
+/*
+ * Imzali adres akistan bir kez aliniyor ve saklaniyor.
+ *
+ * Her istekte yeniden almak olmaz: kaldirma testi gonderiyi akistan
+ * dusuruyor, o noktadan sonra adres bulunamazdi. Ustelik ayni adresi
+ * kullanmak dogru davranisi olcuyor -- imza gecerli kalirken DOSYANIN
+ * erisilemez olmasi gerekiyor.
+ */
+let adres: string
+
 const getir = (basliklar: Record<string, string> = {}) =>
-  app.inject({ method: 'GET', url: `/community/media/${mediaId}`, headers: basliklar })
+  app.inject({ method: 'GET', url: adres, headers: basliklar })
 
 describe('önbellek kaldırma yetkisini geciktirmemeli', () => {
   it('ara sunucular (Cloudflare) medyayı saklamaz', async () => {
@@ -175,5 +194,71 @@ describe('Range ayrıştırması', () => {
     expect(yanit.statusCode).toBe(200)
     expect(yanit.headers['accept-ranges']).toBe('bytes')
     expect(Number(yanit.headers['content-length'])).toBe(boyut)
+  })
+})
+
+describe('imzali baglanti', () => {
+  /*
+   * Medya rotasi kimlik dogrulayamiyor: <img src> Authorization basligi
+   * tasiyamaz. Erisim bu yuzden kisa omurlu bir HMAC ile muhurleniyor.
+   * Imza kontrolu dusetse rota yeniden herkese acik hale gelirdi ve
+   * bunu hicbir sey fark etmezdi -- gorseller calismaya devam ederdi.
+   */
+  const imzasiz = () =>
+    app.inject({ method: 'GET', url: `/community/media/${mediaId}` })
+
+  it('imzasiz istek reddedilir', async () => {
+    expect((await imzasiz()).statusCode).toBe(404)
+  })
+
+  it('kurcalanan imza reddedilir', async () => {
+    /* Son karakteri degistir: uzunluk ayni kalsin ki test, uzunluk
+       kontrolune degil imzanin KENDISINE baksin. */
+    const bozuk = adres.slice(0, -1) + (adres.endsWith('a') ? 'b' : 'a')
+
+    expect((await app.inject({ method: 'GET', url: bozuk })).statusCode).toBe(404)
+  })
+
+  it('bitis zamani oynatilirsa imza tutmaz', async () => {
+    /* Saldirgan sureyi uzatmayi denerse: imza `mediaId.bitis` uzerine
+       kuruldugu icin yeni bitisle eslesmez. */
+    const uzatilmis = adres.replace(/e=\d+/, `e=${Math.floor(Date.now() / 1000) + 999999}`)
+
+    expect((await app.inject({ method: 'GET', url: uzatilmis })).statusCode).toBe(404)
+  })
+
+  it('suresi dolmus GECERLI imza 403 ve acik bir kod doner', async () => {
+    /* Gecmis bir bitisle DOGRU imza uretiliyor -- sunucunun kendi
+       anahtariyla. Boyle bir baglanti bir zamanlar mesruydu; arayuzun
+       "akisi tazele" diyebilmesi icin 404'ten ayrilmali. */
+    const { createHmac } = await import('crypto')
+    const anahtar = createHmac('sha256', process.env.JWT_SECRET || '')
+      .update('community-media-url-v1').digest()
+    const bitis = Math.floor(Date.now() / 1000) - 60
+    const imza = createHmac('sha256', anahtar).update(`${mediaId}.${bitis}`).digest('hex')
+
+    const yanit = await app.inject({
+      method: 'GET',
+      url: `/community/media/${mediaId}?e=${bitis}&s=${imza}`,
+    })
+
+    expect(yanit.statusCode).toBe(403)
+    expect(JSON.parse(yanit.body).code).toBe('MEDIA_LINK_EXPIRED')
+  })
+
+  it('imza JWT_SECRET ile DOGRUDAN uretilmiyor', async () => {
+    /* Ayni gizli anahtari iki amaca kosmak, birinde bulunan zayifligi
+       digerine tasir. Turetilmis anahtar kullanildigi kanitlaniyor. */
+    const { createHmac } = await import('crypto')
+    const bitis = Math.floor(Date.now() / 1000) + 3600
+    const naif = createHmac('sha256', process.env.JWT_SECRET || '')
+      .update(`${mediaId}.${bitis}`).digest('hex')
+
+    const yanit = await app.inject({
+      method: 'GET',
+      url: `/community/media/${mediaId}?e=${bitis}&s=${naif}`,
+    })
+
+    expect(yanit.statusCode).toBe(404)
   })
 })

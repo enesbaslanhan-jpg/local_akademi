@@ -57,8 +57,15 @@ function initials(name = 'LK') {
   return name.split(' ').filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase()
 }
 
+/*
+ * Adres SUNUCUDAN geliyor, burada kurulmuyor.
+ *
+ * Medya rotasi artik imzali: <img src> ve <video src> Authorization
+ * basligi tasiyamadigi icin erisim kisa omurlu bir HMAC ile
+ * muhurleniyor. Adresi istemcide kurmak imzayi dusururdu.
+ */
 function mediaUrl(media) {
-  return media?.id ? `${API_URL}/community/media/${media.id}` : ''
+  return media?.url ? `${API_URL}${media.url}` : ''
 }
 
 function MediaPicker({ media, onChange, disabled = false, videoIzinli = false }) {
