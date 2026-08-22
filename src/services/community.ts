@@ -14,6 +14,7 @@ import {
   inspectZip,
   validateImageFile,
   validatePdfFile,
+  validateVideoFile,
   FileValidationError,
 } from './documentSecurity'
 import {
@@ -25,9 +26,47 @@ import {
   LocalAiQueueFullError,
 } from './local-ai-job-queue'
 
+/*
+ * Topluluk medyası için boyut sınırı — belge yüklemeninkinden AYRI.
+ *
+ * Belgeler 10 MB (`MAX_FILE_SIZE`) ile sınırlı ve orada video kabul
+ * edilmiyor. Video o sınıra sığmadığı için topluluk tarafına 20 MB
+ * verildi (ürün kararı, 22.08.2026).
+ *
+ * Sayı bilinçli olarak ölçülü: sunucuda 28 GB boş alan var ve videolar
+ * `uploads` biriminde birikiyor. 20 MB'lık videolarla bu ~1400 video
+ * demek. Disk dolarsa uygulama durur, o yüzden büyütmeden önce izleme
+ * gerekir.
+ */
+const TOPLULUK_MEDYA_SINIRI = 20 * 1024 * 1024
+
+/*
+ * RESMÎ gönderiler için. Başlık + özet zorunlu; kaynak gösterimi olan,
+ * kurumsal duyuru biçimindeki içerik bunlar.
+ *
+ * `officialPostSchema` bunu genişletiyor — bu yüzden kullanıcı
+ * paylaşımları için AYRI bir şema var (aşağıda). İkisini tek şemada
+ * toplamak, resmî gönderilerin başlık zorunluluğunu da kaldırırdı.
+ */
 export const communityPostSchema = z.object({
   title: z.string().trim().min(5).max(180),
   summary: z.string().trim().min(20).max(1200),
+  mediaId: z.string().uuid().optional(),
+})
+
+/*
+ * KULLANICI paylaşımı — tek metin kutusu.
+ *
+ * Başlık yok: ürün kararı, paylaşım biçimi X'teki gibi kısa ve tek
+ * parça olacak (22.08.2026). Eski gönderiler başlıklarını koruyor;
+ * `CommunityPost.title` bu yüzden silinmedi, yalnız isteğe bağlı oldu.
+ *
+ * Alt sınır 1: yalnız görsel/video paylaşmak isteyen için metin zorunlu
+ * olmamalı — ama ikisi de boş olan bir gönderi anlamsız, o kontrol
+ * uç noktada yapılıyor.
+ */
+export const kullaniciPaylasimSemasi = z.object({
+  metin: z.string().trim().max(500).default(''),
   mediaId: z.string().uuid().optional(),
 })
 
@@ -98,8 +137,13 @@ export async function communityRoutes(
   const prisma = opts?.prisma ?? sharedPrisma
   const mediaDirectory = join(process.cwd(), 'uploads', 'community')
 
+  /*
+   * Topluluk medyasinin kendi siniri var: video 10 MB'a sigmiyor.
+   * Belge yuklemenin siniri (MAX_FILE_SIZE, 10 MB) degismedi -- orada
+   * video zaten kabul edilmiyor.
+   */
   await fastify.register(fastifyMultipart, {
-    limits: { fileSize: MAX_FILE_SIZE, files: 1 },
+    limits: { fileSize: TOPLULUK_MEDYA_SINIRI, files: 1 },
   })
   await mkdir(mediaDirectory, { recursive: true })
 
@@ -139,16 +183,16 @@ export async function communityRoutes(
     } catch (error: any) {
       const tooLarge = error?.statusCode === 413 || error?.message?.includes('file size limit')
       return reply.status(tooLarge ? 413 : 400).send({
-        error: tooLarge ? 'Dosya en fazla 10 MB olabilir.' : 'Dosya okunamadı.',
+        error: tooLarge ? 'Dosya en fazla 20 MB olabilir.' : 'Dosya okunamadı.',
       })
     }
     if (!upload) return reply.status(400).send({ error: 'Dosya seçilmedi.' })
 
     const originalName = upload.filename.slice(0, 255)
     const extension = (originalName.split('.').pop() || '').toLowerCase()
-    const allowedExtensions = new Set(['png', 'jpg', 'jpeg', 'pdf', 'docx'])
+    const allowedExtensions = new Set(['png', 'jpg', 'jpeg', 'pdf', 'docx', 'mp4', 'webm'])
     if (!allowedExtensions.has(extension) || ALLOWED_MIME_MAP[extension] !== upload.mimetype) {
-      return reply.status(415).send({ error: 'PNG, JPEG, PDF veya DOCX dosyası yükleyin.' })
+      return reply.status(415).send({ error: 'PNG, JPEG, MP4, WebM, PDF veya DOCX dosyası yükleyin.' })
     }
 
     let buffer: Buffer
@@ -157,8 +201,8 @@ export async function communityRoutes(
     } catch {
       return reply.status(400).send({ error: 'Dosya okunamadı.' })
     }
-    if (!buffer.length || buffer.length > MAX_FILE_SIZE) {
-      return reply.status(buffer.length > MAX_FILE_SIZE ? 413 : 422).send({ error: 'Dosya boş veya çok büyük.' })
+    if (!buffer.length || buffer.length > TOPLULUK_MEDYA_SINIRI) {
+      return reply.status(buffer.length > TOPLULUK_MEDYA_SINIRI ? 413 : 422).send({ error: 'Dosya boş veya çok büyük.' })
     }
 
     try {
@@ -166,6 +210,8 @@ export async function communityRoutes(
       if (!detected.valid) throw new FileValidationError(detected.error || 'Dosya türü doğrulanamadı', 415)
       if (extension === 'png' && detected.detectedType !== 'png') throw new FileValidationError('Görsel içeriği uzantıyla uyuşmuyor', 415)
       if (['jpg', 'jpeg'].includes(extension) && detected.detectedType !== 'jpeg') throw new FileValidationError('Görsel içeriği uzantıyla uyuşmuyor', 415)
+      if (extension === 'mp4') validateVideoFile(buffer, 'mp4')
+      if (extension === 'webm') validateVideoFile(buffer, 'webm')
       if (extension === 'pdf') validatePdfFile(buffer)
       if (extension === 'png') validateImageFile(buffer, 'png')
       if (['jpg', 'jpeg'].includes(extension)) validateImageFile(buffer, 'jpeg')
@@ -193,7 +239,9 @@ export async function communityRoutes(
           storedName,
           mimeType: upload.mimetype,
           sizeBytes: buffer.length,
-          kind: upload.mimetype.startsWith('image/') ? 'image' : 'file',
+          kind: upload.mimetype.startsWith('image/')
+            ? 'image'
+            : upload.mimetype.startsWith('video/') ? 'video' : 'file',
         },
         select: mediaSelect,
       })
@@ -214,10 +262,84 @@ export async function communityRoutes(
     if (!media) return reply.status(404).send({ error: 'Dosya bulunamadı.' })
     try {
       const path = safeMediaPath(media.storedName)
-      await stat(path)
+      const bilgi = await stat(path)
+
       reply.header('Content-Type', media.mimeType)
       reply.header('Content-Disposition', `inline; filename*=UTF-8''${encodeURIComponent(media.originalName)}`)
-      reply.header('Cache-Control', 'public, max-age=86400, immutable')
+      /*
+       * ONBELLEK: `public, max-age=86400, immutable` DEGIL.
+       *
+       * Yazar ve yonetici artik gonderiyi kaldirabiliyor (22.08.2026).
+       * Onunde Cloudflare var; `public` demek kenar sunucusunun dosyayi
+       * kendi diskine almasi demekti. Uygunsuz bir video kaldirildiginda
+       * gonderi akistan dusuyor ama dosyanin KENDISI kenar onbelleginden
+       * 24 saat daha servis edilmeye devam ederdi — kaldirma yetkisini
+       * fiilen 24 saat geciktiren bir davranis.
+       *
+       * `private`: yalniz tarayici saklar, ara sunucular saklamaz.
+       * `no-cache`: tarayici saklayabilir ama her kullanimda sunucuya
+       * sorar; dosya silinmisse 404 alir. Icerik degismedigi icin
+       * bant genisligi kaybi yok, tazelik kazanci var.
+       */
+      reply.header('Cache-Control', 'private, no-cache')
+
+      /*
+       * KISMİ İNDİRME (Range) — video için şart.
+       *
+       * Tarayıcı bir videoda ileri sarabilmek için dosyanın ortasından
+       * parça isteyebilmeli. Sunucu `Accept-Ranges` söylemezse tarayıcı
+       * bunu yapamaz: ileri sarma çalışmaz ve bazı tarayıcılar oynatmaya
+       * hiç başlamaz, çünkü önce dosyanın tamamını indirmeleri gerekir.
+       *
+       * Görseller için de zararsız; küçük oldukları için tarayıcı zaten
+       * tek parça istiyor.
+       */
+      reply.header('Accept-Ranges', 'bytes')
+      const rangeBasligi = request.headers.range
+
+      if (typeof rangeBasligi === 'string' && rangeBasligi.startsWith('bytes=')) {
+        const [hamBas, hamSon] = rangeBasligi.replace('bytes=', '').split('-')
+
+        /*
+         * `Number.parseInt(hamBas) || 0` YAZILAMAZ.
+         *
+         * Iki ayri sey bozuluyordu. Birincisi `bytes=-500` ("son 500
+         * bayt") — RFC 7233 sonek araligi. `hamBas` bos, parseInt NaN,
+         * `|| 0` onu 0 yapiyordu; istemci SON 500 bayti isterken ILK 501
+         * bayti aliyor, ustelik `Content-Range` bunu dogru sanip
+         * `bytes 0-500` diye etiketliyordu. Ikincisi `bytes=abc-100`
+         * gibi bozuk bir baslik 416 yerine sessizce 0'dan basliyordu —
+         * ve `|| 0` yuzunden asagidaki `Number.isNaN(bas)` kontrolu
+         * hicbir zaman calisamayan olu koddu.
+         */
+        let bas: number
+        let son: number
+        if (hamBas === '') {
+          /* Sonek: `bytes=-N` son N bayt demek. */
+          const uzunluk = Number.parseInt(hamSon, 10)
+          if (Number.isNaN(uzunluk) || uzunluk <= 0) {
+            reply.header('Content-Range', `bytes */${bilgi.size}`)
+            return reply.status(416).send()
+          }
+          bas = Math.max(0, bilgi.size - uzunluk)
+          son = bilgi.size - 1
+        } else {
+          bas = Number.parseInt(hamBas, 10)
+          son = hamSon ? Number.parseInt(hamSon, 10) : bilgi.size - 1
+        }
+
+        /* Geçersiz aralık: RFC 7233 bu durumda 416 ve dosya boyutunu ister. */
+        if (Number.isNaN(bas) || Number.isNaN(son) || bas >= bilgi.size || son >= bilgi.size || bas > son) {
+          reply.header('Content-Range', `bytes */${bilgi.size}`)
+          return reply.status(416).send()
+        }
+
+        reply.header('Content-Range', `bytes ${bas}-${son}/${bilgi.size}`)
+        reply.header('Content-Length', String(son - bas + 1))
+        return reply.status(206).send(createReadStream(path, { start: bas, end: son }))
+      }
+
+      reply.header('Content-Length', String(bilgi.size))
       return reply.send(createReadStream(path))
     } catch {
       return reply.status(404).send({ error: 'Dosya bulunamadı.' })
@@ -285,7 +407,7 @@ export async function communityRoutes(
       rateLimit: { max: 5, timeWindow: '1 hour' },
     },
   }, async (request, reply) => {
-    const parsed = communityPostSchema.safeParse(request.body)
+    const parsed = kullaniciPaylasimSemasi.safeParse(request.body)
     if (!parsed.success) {
       return reply.status(422).send({
         error: 'Validation failed',
@@ -296,26 +418,88 @@ export async function communityRoutes(
     if (parsed.data.mediaId && !media) {
       return reply.status(422).send({ error: 'Yüklenen dosya bulunamadı veya başka bir paylaşıma bağlı.' })
     }
+
+    /* Metin de görsel de yoksa ortada paylaşılacak bir şey yok. */
+    if (!parsed.data.metin && !media) {
+      return reply.status(422).send({ error: 'Bir şeyler yazın veya bir görsel ekleyin.' })
+    }
+
+    /*
+     * DOĞRUDAN YAYIMLANIYOR — ön moderasyon kaldırıldı (ürün kararı,
+     * 22.08.2026). Önceden `status: 'pending'` ile kuyruğa giriyordu ve
+     * onaylanana kadar kimse göremiyordu.
+     *
+     * Denetim şikâyet üzerine yapılıyor: `POST /:postId/reports` zaten
+     * vardı, kaldırma yolu ise yeni eklendi (`DELETE /:postId`).
+     * Bu iki parça olmadan ön moderasyonu kaldırmak sorumsuzluk olurdu.
+     */
     const post = await prisma.communityPost.create({
       data: {
         authorId: request.user.id,
         postType: 'user',
-        title: parsed.data.title,
-        summary: parsed.data.summary,
-        status: 'pending',
+        title: null,
+        summary: parsed.data.metin,
+        status: 'published',
+        publishedAt: new Date(),
         ...(media ? { media: { connect: { id: media.id } } } : {}),
       },
     })
     return reply.status(201).send({
       post: {
         id: post.id,
-        title: post.title,
         summary: post.summary,
         status: post.status,
+        publishedAt: post.publishedAt,
         createdAt: post.createdAt,
       },
-      message: 'Paylaşım moderasyon kuyruğuna alındı.',
+      message: 'Paylaşımın yayımlandı.',
     })
+  })
+
+  /*
+   * Yayımlanmış bir paylaşımı kaldırma.
+   *
+   * YAZAR kendi paylaşımını, YÖNETİCİ her paylaşımı kaldırabilir.
+   * Ön moderasyon kalktığı için bu uç nokta zorunlu: uygunsuz içeriğe
+   * müdahale edilebilecek tek yol burası.
+   *
+   * GERÇEK SİLME DEĞİL, durum değişikliği. Sebebi teknik: `CommunityReport`
+   * kayıtları gönderiye bağlı; satırı silmek hem şikâyet geçmişini hem
+   * "kim neyi ne zaman kaldırdı" izini götürürdü. Kullanıcı açısından
+   * fark yok — gönderi listelerden düşüyor.
+   */
+  fastify.delete('/:postId', {
+    preHandler: [fastify.authenticate],
+    config: { rateLimit: { max: 30, timeWindow: '1 hour' } },
+  }, async (request, reply) => {
+    const { postId } = request.params as { postId: string }
+    const kullanici = request.user as { id: number; role?: string }
+
+    const post = await prisma.communityPost.findUnique({
+      where: { id: postId },
+      select: { id: true, authorId: true, status: true },
+    })
+    if (!post || post.status === 'removed') {
+      return reply.status(404).send({ error: 'Paylaşım bulunamadı.' })
+    }
+
+    const yonetici = kullanici.role === 'admin'
+    const yazar = post.authorId === kullanici.id
+    if (!yonetici && !yazar) {
+      return reply.status(403).send({ error: 'Bu paylaşımı kaldırma yetkiniz yok.' })
+    }
+
+    await prisma.communityPost.update({
+      where: { id: postId },
+      data: {
+        status: 'removed',
+        moderatedById: kullanici.id,
+        moderatedAt: new Date(),
+        moderationReason: yazar && !yonetici ? 'Yazar kaldırdı' : 'Yönetici kaldırdı',
+      },
+    })
+
+    return reply.send({ success: true })
   })
 
   fastify.post('/:postId/reports', {

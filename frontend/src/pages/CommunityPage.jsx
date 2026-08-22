@@ -8,8 +8,10 @@ import {
   Paperclip,
   Send,
   Star,
+  Trash2,
   TrendingUp,
   Users,
+  Video,
   X,
 } from 'lucide-react'
 import { api } from '@/services/api'
@@ -18,7 +20,6 @@ import ImageViewer from '@/components/ui/ImageViewer'
 import styles from './CommunityPage.module.css'
 
 const API_URL = import.meta.env.VITE_API_URL || ''
-const emptyUserPost = { title: '', summary: '' }
 const emptyOfficialPost = { title: '', summary: '', content: '', category: '', sourceTitle: '', sourceUrl: '', sourcePublishedAt: '' }
 
 const CATEGORY_LABELS = {
@@ -44,6 +45,14 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
+/* Kullanıcı paylaşımlarının artık başlığı yok; listelerde metnin
+   ilk parçası başlık yerine geçiyor. */
+function ozet(post, uzunluk = 70) {
+  const metin = (post.summary || '').trim()
+  if (!metin) return 'Görsel paylaşımı'
+  return metin.length > uzunluk ? metin.slice(0, uzunluk).trimEnd() + '…' : metin
+}
+
 function initials(name = 'LK') {
   return name.split(' ').filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase()
 }
@@ -52,7 +61,7 @@ function mediaUrl(media) {
   return media?.id ? `${API_URL}/community/media/${media.id}` : ''
 }
 
-function MediaPicker({ media, onChange, disabled = false }) {
+function MediaPicker({ media, onChange, disabled = false, videoIzinli = false }) {
   const inputRef = useRef(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
@@ -72,7 +81,7 @@ function MediaPicker({ media, onChange, disabled = false }) {
       if (media?.id) await api.community.discardMedia(media.id).catch(() => {})
       if (preview) URL.revokeObjectURL(preview)
       const result = await api.community.uploadMedia(file)
-      setPreview(file.type.startsWith('image/') ? URL.createObjectURL(file) : '')
+      setPreview(/^(image|video)\//.test(file.type) ? URL.createObjectURL(file) : '')
       onChange(result.media)
     } catch (uploadError) {
       setError(uploadError.message || 'Dosya yüklenemedi.')
@@ -95,7 +104,9 @@ function MediaPicker({ media, onChange, disabled = false }) {
         ref={inputRef}
         className="sr-only"
         type="file"
-        accept="image/png,image/jpeg,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        accept={videoIzinli
+          ? "image/png,image/jpeg,video/mp4,video/webm"
+          : "image/png,image/jpeg,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
         onChange={selectFile}
         disabled={disabled || uploading}
       />
@@ -104,13 +115,17 @@ function MediaPicker({ media, onChange, disabled = false }) {
         <span>Görsel</span>
       </button>
       <button type="button" className={styles.toolButton} onClick={() => inputRef.current?.click()} disabled={disabled || uploading}>
-        <Paperclip size={18} aria-hidden="true" />
-        <span>Dosya</span>
+        {videoIzinli ? <Video size={18} aria-hidden="true" /> : <Paperclip size={18} aria-hidden="true" />}
+        <span>{videoIzinli ? 'Video' : 'Dosya'}</span>
       </button>
       {uploading && <span className={styles.uploadStatus}>Yükleniyor…</span>}
       {media && (
         <div className={styles.selectedMedia}>
-          {preview ? <img src={preview} alt="Yüklenecek görsel önizlemesi" /> : <FileText size={18} />}
+          {preview && media?.kind === 'video'
+            ? <video src={preview} muted playsInline />
+            : preview
+              ? <img src={preview} alt="Yüklenecek görsel önizlemesi" />
+              : <FileText size={18} />}
           <span>{media.originalName}</span>
           <button type="button" onClick={removeMedia} aria-label="Ek dosyayı kaldır"><X size={16} /></button>
         </div>
@@ -124,6 +139,22 @@ function PostMedia({ media, featured = false }) {
   const [buyutuldu, setBuyutuldu] = useState(false)
   if (!media) return null
   const url = mediaUrl(media)
+  if (media.kind === 'video') {
+    /*
+     * `preload="metadata"` bilinçli: akışta on video varsa hepsini
+     * indirmek mobil veriyi yakar. Sunucu Range isteklerini (206)
+     * karşılıyor, ileri sarma bu sayede çalışıyor.
+     */
+    return (
+      <video
+        className={featured ? styles.featuredVideo : styles.postVideo}
+        src={url}
+        controls
+        playsInline
+        preload="metadata"
+      />
+    )
+  }
   if (media.kind === 'image') {
     /*
      * Görsel bir DÜĞMENİN içinde: tıklanabilir bir <img> klavyeyle
@@ -152,13 +183,13 @@ function PostMedia({ media, featured = false }) {
 }
 
 export default function CommunityPage({ mode = 'news' }) {
-  const { isAdmin } = useAuth()
+  const { isAdmin, user } = useAuth()
   const isNews = mode === 'news'
   const type = isNews ? 'official' : 'user'
   const [posts, setPosts] = useState([])
   const [pending, setPending] = useState([])
   const [reports, setReports] = useState([])
-  const [userPost, setUserPost] = useState(emptyUserPost)
+  const [metin, setMetin] = useState('')
   const [userMedia, setUserMedia] = useState(null)
   const [officialPost, setOfficialPost] = useState(emptyOfficialPost)
   const [officialMedia, setOfficialMedia] = useState(null)
@@ -169,7 +200,6 @@ export default function CommunityPage({ mode = 'news' }) {
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
-  const [composerOpen, setComposerOpen] = useState(false)
   const [adminPanelOpen, setAdminPanelOpen] = useState(false)
 
   useEffect(() => {
@@ -211,12 +241,13 @@ export default function CommunityPage({ mode = 'news' }) {
     setSubmitting(true)
     setError('')
     try {
-      const result = await api.community.submit({ ...userPost, ...(userMedia ? { mediaId: userMedia.id } : {}) })
-      setUserPost(emptyUserPost)
+      const result = await api.community.submit({ metin, ...(userMedia ? { mediaId: userMedia.id } : {}) })
+      setMetin('')
       setUserMedia(null)
-      setComposerOpen(false)
       setNotice(result.message)
-      if (isAdmin) await load()
+      /* Paylaşım artık ANINDA yayımlanıyor; akışı hemen tazelemezsek
+         kullanıcı kendi gönderisini göremez ve gitmedi sanır. */
+      await load()
     } catch (submitError) {
       setError(submitError.message || 'Paylaşım gönderilemedi.')
     } finally {
@@ -296,6 +327,23 @@ export default function CommunityPage({ mode = 'news' }) {
     catch (moderationError) { setError(moderationError.message || 'Moderasyon işlemi başarısız.') }
   }
 
+  /* Yazar kendi paylaşımını, yönetici her paylaşımı kaldırabilir —
+     yetkiyi sunucu da ayrıca denetliyor, buradaki yalnız görünüm. */
+  function kaldirilabilir(post) {
+    return isAdmin || (post.author?.id != null && post.author.id === user?.id)
+  }
+
+  async function kaldir(postId) {
+    if (!window.confirm('Bu paylaşım kaldırılsın mı?')) return
+    try {
+      await api.community.remove(postId)
+      setNotice('Paylaşım kaldırıldı.')
+      await load()
+    } catch (kaldirmaHatasi) {
+      setError(kaldirmaHatasi.message || 'Paylaşım kaldırılamadı.')
+    }
+  }
+
   async function reportPost(postId) {
     const allowed = ['spam', 'misinformation', 'harassment', 'unsafe', 'copyright', 'other']
     const reason = window.prompt('Rapor nedeni: spam, misinformation, harassment, unsafe, copyright veya other', 'misinformation')?.trim()
@@ -318,7 +366,6 @@ export default function CommunityPage({ mode = 'news' }) {
     <main className={`${styles.page} ${isNews ? styles.newsPage : styles.communityPage}`}>
       <header className={styles.pageHeading} data-tour="topluluk-baslik">
         <div><span className={styles.kicker}>{isNews ? 'LocalKarar Haber Merkezi' : 'YEREL İŞLETMELER'}</span><h1>{isNews ? 'Haberler' : 'Topluluk'}</h1><p>{isNews ? 'İşletmenizi etkileyen resmî gelişmeleri kaynaklı ve kısa özetlerle takip edin.' : 'Yerel işletmelerden gerçek deneyimler.'}</p></div>
-        {!isNews && <button type="button" className={styles.createPostButton} onClick={() => setComposerOpen(current => !current)}>{composerOpen ? 'Kapat' : 'Gönderi oluştur'}</button>}
       </header>
 
       {notice && <div className={styles.notice}>{notice}</div>}
@@ -327,26 +374,37 @@ export default function CommunityPage({ mode = 'news' }) {
       {!isNews && (
         <div className={styles.communityGrid}>
           <div className={styles.mainColumn}>
-            {composerOpen && <section id="paylas" className={styles.composer}>
+            {/*
+              * TEK KUTU, BAŞLIK YOK — X benzeri serbest paylaşım
+              * (ürün kararı, 22.08.2026). Eskiden zorunlu başlık ve
+              * 20 karakter alt sınırı vardı; kısa bir not paylaşmak
+              * imkânsızdı. Kutu artık hep açık: "Gönderi oluştur"
+              * düğmesine basmak fazladan bir adımdı.
+              */}
+            <section id="paylas" className={styles.composer}>
               <div className={styles.composerTitle}>
-                <span className={styles.authorAvatar}>LK</span>
-                <span><h2>Deneyimini paylaş</h2><p>Gönderiler yayımlanmadan önce moderasyondan geçer.</p></span>
+                <span className={styles.authorAvatar}>{initials(user?.name)}</span>
+                <span><h2>Ne paylaşmak istersin?</h2><p>Yazdığın anda yayımlanır. Kendi paylaşımını istediğin zaman kaldırabilirsin.</p></span>
               </div>
               <form onSubmit={submitUserPost} className={styles.form}>
-                <input aria-label="Paylaşım başlığı" placeholder="Başlık ekle" value={userPost.title} onChange={event => setUserPost({ ...userPost, title: event.target.value })} minLength={5} maxLength={180} required />
-                <textarea aria-label="Paylaşım metni" placeholder="İşletmende ne öğrendin?" value={userPost.summary} onChange={event => setUserPost({ ...userPost, summary: event.target.value })} minLength={20} maxLength={1200} rows={3} required />
+                <textarea aria-label="Paylaşım metni" placeholder="İşletmende neler oluyor?" value={metin} onChange={event => setMetin(event.target.value)} maxLength={500} rows={3} />
                 <div className={styles.composerFooter}>
-                  <MediaPicker media={userMedia} onChange={setUserMedia} disabled={submitting} />
-                  <button className={styles.primaryButton} type="submit" disabled={submitting}><Send size={17} />{submitting ? 'Gönderiliyor…' : 'Paylaş'}</button>
+                  <MediaPicker media={userMedia} onChange={setUserMedia} disabled={submitting} videoIzinli />
+                  <span className={styles.composerSayac}>
+                    <small aria-live="polite">{metin.length}/500</small>
+                    <button className={styles.primaryButton} type="submit" disabled={submitting || (!metin.trim() && !userMedia)}><Send size={17} />{submitting ? 'Gönderiliyor…' : 'Paylaş'}</button>
+                  </span>
                 </div>
               </form>
-            </section>}
+            </section>
             {isAdmin && <AdminPanel {...{ showOfficialComposer: isNews, pending, reports, officialPost, setOfficialPost, officialMedia, setOfficialMedia, submitting, publishing, submitOfficialPost, createAndPublishOfficialPost, resetOfficialPost, adminPanelOpen, setAdminPanelOpen, aiSourceText, setAiSourceText, aiLoading, createAiOfficialDraft, moderate, resolveReport }} />}
             <section className={styles.feed} aria-live="polite">
               {loading && <FeedSkeleton />}
               {!loading && posts.length === 0 && <EmptyState text="Henüz yayımlanmış paylaşım yok. İlk deneyimi sen paylaşabilirsin." />}
-              {posts[0] && <article className={styles.featuredDiscussion}><span>Öne çıkan tartışma</span><h2>{posts[0].title}</h2><p>{posts[0].summary}</p><small>{posts[0].author?.name || 'LocalKarar kullanıcısı'} · {timeAgo(posts[0].publishedAt)}</small><PostMedia media={posts[0].media} /></article>}
-              <div className={styles.discussionList}>{posts.slice(1).map(post => <CommunityCard key={post.id} post={post} onReport={reportPost} />)}</div>
+              {/* Tek tip akış: "öne çıkan tartışma" bloğu kalktı. Başlıksız
+                  paylaşımlarda o blok boş bir başlık gösteriyordu, ayrıca
+                  X'te de ilk gönderi büyütülmüyor. */}
+              <div className={styles.discussionList}>{posts.map(post => <CommunityCard key={post.id} post={post} onReport={reportPost} onRemove={kaldir} kaldirilabilir={kaldirilabilir(post)} />)}</div>
             </section>
           </div>
           <CommunityRail posts={posts} contributors={contributors} />
@@ -375,11 +433,30 @@ export default function CommunityPage({ mode = 'news' }) {
   )
 }
 
-function CommunityCard({ post, onReport }) {
+function CommunityCard({ post, onReport, onRemove, kaldirilabilir }) {
+  /*
+   * X benzeri satır düzeni: solda avatar, sağda tek sütun —
+   * ad ve zaman, metin, medya, işlemler.
+   *
+   * Eski düzen başlıklı gönderiye göre kurulmuştu: avatar dört satır
+   * boyunca uzuyor, yazarın ADI gizleniyor (`display: none`) ve metin
+   * tek satıra kırpılıyordu — başlık zaten anlatıyor diye. Başlık
+   * kalkınca o düzen kartı adsız ve yarım metinli bırakıyordu.
+   */
   return <article className={styles.communityCard}>
-    <div className={styles.authorRow}><span className={styles.authorAvatar}>{initials(post.author?.name)}</span><span><strong>{post.author?.name || 'LocalKarar kullanıcısı'}</strong><small>{timeAgo(post.publishedAt)}</small></span></div>
-    <h2>{post.title}</h2><p>{post.summary}</p><PostMedia media={post.media} />
-    <div className={styles.cardActions}><span>Topluluk paylaşımı</span><button type="button" onClick={() => onReport(post.id)}><Flag size={15} /> Raporla</button></div>
+    <span className={styles.authorAvatar}>{initials(post.author?.name)}</span>
+    <div className={styles.postBody}>
+      <div className={styles.postHead}>
+        <strong>{post.author?.name || 'LocalKarar kullanıcısı'}</strong>
+        <small>{timeAgo(post.publishedAt)}</small>
+      </div>
+      {post.summary && <p className={styles.postText}>{post.summary}</p>}
+      <PostMedia media={post.media} />
+      <div className={styles.cardActions}>
+        <button type="button" onClick={() => onReport(post.id)}><Flag size={15} /> Raporla</button>
+        {kaldirilabilir && <button type="button" className={styles.kaldirDugmesi} onClick={() => onRemove(post.id)}><Trash2 size={15} /> Kaldır</button>}
+      </div>
+    </div>
   </article>
 }
 
@@ -396,7 +473,7 @@ function NewsCard({ post, onReport }) {
 }
 
 function CommunityRail({ posts, contributors }) {
-  return <aside className={styles.communityRail} aria-label="Topluluk özeti"><section className={styles.railCard}><h2><TrendingUp size={19} /> Gündemde</h2>{posts.length === 0 ? <p>Henüz gündem başlığı oluşmadı.</p> : posts.slice(0, 4).map((post, index) => <div className={styles.topicRow} key={post.id}><span>{post.title}</span><small>{index + 1}</small></div>)}</section><section className={styles.railCard}><h2><Star size={19} /> Katkı sağlayanlar</h2>{contributors.length === 0 ? <p>İlk katkıyı paylaşarak sen başlatabilirsin.</p> : contributors.map(person => <div className={styles.contributorRow} key={person.name}><span className={styles.authorAvatar}>{initials(person.name)}</span><span><strong>{person.name}</strong><small>{person.count} paylaşım</small></span></div>)}</section></aside>
+  return <aside className={styles.communityRail} aria-label="Topluluk özeti"><section className={styles.railCard}><h2><TrendingUp size={19} /> Gündemde</h2>{posts.length === 0 ? <p>Henüz gündem başlığı oluşmadı.</p> : posts.slice(0, 4).map((post, index) => <div className={styles.topicRow} key={post.id}><span>{ozet(post)}</span><small>{index + 1}</small></div>)}</section><section className={styles.railCard}><h2><Star size={19} /> Katkı sağlayanlar</h2>{contributors.length === 0 ? <p>İlk katkıyı paylaşarak sen başlatabilirsin.</p> : contributors.map(person => <div className={styles.contributorRow} key={person.name}><span className={styles.authorAvatar}>{initials(person.name)}</span><span><strong>{person.name}</strong><small>{person.count} paylaşım</small></span></div>)}</section></aside>
 }
 
 function AdminPanel(props) {
@@ -405,7 +482,7 @@ function AdminPanel(props) {
 }
 
 function ModerationQueue({ pending, reports, moderate, resolveReport }) {
-  return <div className={styles.moderationGrid}><section><h3>Moderasyon kuyruğu ({pending.length})</h3>{pending.map(post => <article key={post.id} className={styles.queueItem}><strong>{post.title}</strong><p>{post.summary}</p>{post.media && <div className={styles.pendingAttachment}><FileText size={16} /> {post.media.originalName}</div>}<div><button onClick={() => moderate(post.id, 'publish')}>Yayımla</button><button onClick={() => moderate(post.id, 'reject')}>Reddet</button></div></article>)}</section><section><h3>Açık raporlar ({reports.length})</h3>{reports.map(report => <article key={report.id} className={styles.queueItem}><strong>{report.post.title}</strong><p>{report.details || report.reason}</p><div><button onClick={() => resolveReport(report.id, 'dismiss')}>Kapat</button><button onClick={() => resolveReport(report.id, 'hide_post')}>Gizle</button></div></article>)}</section></div>
+  return <div className={styles.moderationGrid}><section><h3>Moderasyon kuyruğu ({pending.length})</h3>{pending.map(post => <article key={post.id} className={styles.queueItem}><strong>{post.title}</strong><p>{post.summary}</p>{post.media && <div className={styles.pendingAttachment}><FileText size={16} /> {post.media.originalName}</div>}<div><button onClick={() => moderate(post.id, 'publish')}>Yayımla</button><button onClick={() => moderate(post.id, 'reject')}>Reddet</button></div></article>)}</section><section><h3>Açık raporlar ({reports.length})</h3>{reports.map(report => <article key={report.id} className={styles.queueItem}><strong>{report.post.title || ozet(report.post)}</strong><p>{report.details || report.reason}</p><div><button onClick={() => resolveReport(report.id, 'dismiss')}>Kapat</button><button onClick={() => resolveReport(report.id, 'hide_post')}>Gizle</button></div></article>)}</section></div>
 }
 
 function FeedSkeleton() { return <div className={styles.skeleton} aria-label="İçerik yükleniyor"><span /><span /><span /></div> }

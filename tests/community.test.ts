@@ -104,19 +104,27 @@ describe('community moderation flow', () => {
     expect(response.statusCode).toBe(401)
   })
 
-  it('keeps learner submissions pending and out of the feed', async () => {
+  /*
+   * BU TEST 22.08.2026'DA TERSİNE ÇEVRİLDİ.
+   *
+   * Eskiden kullanıcı paylaşımı `pending` doğuyor, akışta görünmüyordu.
+   * Ürün kararı değişti: paylaşım X'teki gibi anında yayımlanıyor,
+   * denetim sonradan — kaldırma yoluyla — yapılıyor. Yani buradaki
+   * beklentinin tersine dönmesi bir gerileme DEĞİL, kararın kendisi.
+   * Kaldırma yetkisini koruyan testler:
+   * tests/community-serbest-paylasim.test.ts
+   */
+  it('kullanıcı paylaşımı anında yayımlanır ve akışta görünür', async () => {
     const created = await app.inject({
       method: 'POST',
       url: '/community/posts',
       headers: { authorization: `Bearer ${learnerToken}` },
       payload: {
-        title: `${marker} deneyimi`,
-        summary:
-          'Bu test paylaşımı moderasyon tamamlanmadan genel akışta görünmemelidir.',
+        metin: `${marker} deneyimi — moderasyon beklemeden yayımlanmalı.`,
       },
     })
     expect(created.statusCode).toBe(201)
-    expect(created.json().post.status).toBe('pending')
+    expect(created.json().post.status).toBe('published')
 
     const feed = await app.inject({
       method: 'GET',
@@ -125,9 +133,10 @@ describe('community moderation flow', () => {
     })
     expect(
       feed.json().posts.some(
-        (post: { title: string }) => post.title.includes(marker),
+        (post: { summary: string | null }) =>
+          (post.summary || '').includes(marker),
       ),
-    ).toBe(false)
+    ).toBe(true)
   })
 
   it('prevents learners from creating official posts or moderating', async () => {

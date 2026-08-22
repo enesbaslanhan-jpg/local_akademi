@@ -20,7 +20,18 @@ export const ALLOWED_MIME_MAP: Record<string, string> = {
   'pdf': 'application/pdf',
   'png': 'image/png',
   'jpg': 'image/jpeg',
-  'jpeg': 'image/jpeg'
+  'jpeg': 'image/jpeg',
+  /*
+   * Video YALNIZ topluluk paylaşımları için.
+   *
+   * Belge yükleme bu haritayı MIME eşleştirmesinde kullanıyor ama izin
+   * listesi ayrı (`ALLOWED_EXTENSIONS`, yukarıda) — oraya eklenmediği
+   * sürece belge yükleme tarafında video kabul edilmez. Bilerek böyle:
+   * bir dosyayı "belge" olarak işlemek (metin çıkarma, OCR) videoda
+   * anlamsız.
+   */
+  'mp4': 'video/mp4',
+  'webm': 'video/webm'
 }
 
 export const questionSchema = z.object({
@@ -61,6 +72,22 @@ export function detectFileType(buffer: Buffer): FileTypeCheckResult {
     return { valid: true, detectedType: 'json' }
   }
 
+  /*
+   * Video, aşağıdaki "binary dosya" reddinden ÖNCE tanınmalı: ikili
+   * içerik oldukları için o kontrol onları da reddederdi.
+   *
+   * Burada tanınmaları, belge yükleme tarafında kabul edildikleri
+   * anlamına GELMEZ — orada ayrı bir izin listesi var
+   * (`ALLOWED_EXTENSIONS`) ve video o listede yok.
+   */
+  if (isMp4(buffer)) {
+    return { valid: true, detectedType: 'mp4' }
+  }
+
+  if (isWebm(buffer)) {
+    return { valid: true, detectedType: 'webm' }
+  }
+
   const sample = buffer.subarray(0, Math.min(buffer.length, 1024))
   if (sample.includes(0x00)) {
     return { valid: false, detectedType: null, error: 'Binary dosya tespit edildi. Yalnız TXT, MD, CSV, JSON, DOCX desteklenir.' }
@@ -89,6 +116,34 @@ function isPng(buffer: Buffer): boolean {
 
 function isJpeg(buffer: Buffer): boolean {
   return buffer.length >= 4 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[buffer.length - 2] === 0xff && buffer[buffer.length - 1] === 0xd9
+}
+
+/*
+ * MP4: ilk kutu başlığında 4. bayttan itibaren "ftyp" imzası bulunur.
+ * (İlk dört bayt kutu uzunluğudur, sabit değildir.)
+ */
+function isMp4(buffer: Buffer): boolean {
+  return buffer.length >= 12 && buffer.subarray(4, 8).toString('ascii') === 'ftyp'
+}
+
+/* WebM/Matroska: EBML başlığı 1A 45 DF A3. */
+function isWebm(buffer: Buffer): boolean {
+  return buffer.length >= 4
+    && buffer.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]))
+}
+
+/*
+ * Video içerik doğrulaması — uzantıya değil BAYTLARA bakar.
+ *
+ * Uzantı ve MIME istemciden geliyor, ikisi de uydurulabilir. Bir betiği
+ * `.mp4` diye yüklemek mümkün olmamalı; bu yüzden her yüklemede imza
+ * kontrol ediliyor. Aynı yaklaşım PNG/JPEG/PDF için de uygulanıyor.
+ */
+export function validateVideoFile(buffer: Buffer, expected: 'mp4' | 'webm'): void {
+  const eslesti = expected === 'mp4' ? isMp4(buffer) : isWebm(buffer)
+  if (!eslesti) {
+    throw new FileValidationError('Video içeriği uzantıyla uyuşmuyor', 415)
+  }
 }
 
 export function validatePdfFile(buffer: Buffer): void {

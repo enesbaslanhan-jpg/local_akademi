@@ -542,6 +542,11 @@ export const api = {
         method: 'POST', body: JSON.stringify(data)
       });
     },
+    /* Kaldırma gerçek silme değil, sunucuda durum değişikliği.
+       Ön moderasyon kalktığı için müdahale yolu bu. */
+    async remove(postId) {
+      return api.request(`/community/${postId}`, { method: 'DELETE' });
+    },
     async uploadMedia(file) {
       const form = new FormData();
       form.append('file', file);

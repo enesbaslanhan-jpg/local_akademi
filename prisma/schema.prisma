@@ -129,7 +129,7 @@ model CommunityPost {
   authorId          Int?
   moderatedById     Int?
   postType          String
-  title             String
+  title             String?
   summary           String
   content           String?
   category          String?
