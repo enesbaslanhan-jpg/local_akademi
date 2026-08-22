@@ -34,6 +34,8 @@ model User {
   communityPosts          CommunityPost[]          @relation("CommunityPostAuthor")
   communityMedia          CommunityMedia[]
   communityReports        CommunityReport[]
+  communityLikes          CommunityLike[]
+  communityBookmarks      CommunityBookmark[]
   conversations           Conversation[]
   conversationSummaries   ConversationSummary[]
   documentConversations   DocumentConversation[]
@@ -142,14 +144,35 @@ model CommunityPost {
   moderatedAt       DateTime?
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
+  /// Yanit verilen gonderi. X'te bir yanit KENDISI de bir gonderidir;
+  /// ayri bir Comment modeli yazmak medya, sikayet, kaldirma ve yetki
+  /// mantiginin ikinci bir kopyasini gerektirirdi.
+  parentId          String?
+  /// Alintilanan gonderi. Alinti da bir gonderidir, sadece baska bir
+  /// gonderiye isaret eder.
+  quotedPostId      String?
+
   moderatedBy       User?             @relation("CommunityPostModerator", fields: [moderatedById], references: [id])
   author            User?             @relation("CommunityPostAuthor", fields: [authorId], references: [id])
   reports           CommunityReport[]
   media             CommunityMedia?
 
+  parent            CommunityPost?    @relation("CommunityPostReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies           CommunityPost[]   @relation("CommunityPostReplies")
+  /// SetNull: alintilanan satir gercekten silinirse alinti AYAKTA kalir
+  /// ve "kaynak bulunamiyor" gosterir. Cascade olsaydi baskasinin yazisi
+  /// da giderdi.
+  quotedPost        CommunityPost?    @relation("CommunityPostQuotes", fields: [quotedPostId], references: [id], onDelete: SetNull)
+  quotes            CommunityPost[]   @relation("CommunityPostQuotes")
+  likes             CommunityLike[]
+  bookmarks         CommunityBookmark[]
+
   @@index([status, publishedAt])
   @@index([postType, status])
   @@index([authorId, createdAt])
+  /// Yanit agacini tek sorguda cekmek icin.
+  @@index([parentId, createdAt])
+  @@index([quotedPostId])
 }
 
 model CommunityMedia {
@@ -185,6 +208,39 @@ model CommunityReport {
   @@unique([postId, reporterId])
   @@index([status, createdAt])
   @@index([postId, status])
+}
+
+/// Begeni. Desen uydurulmadi: PracticalCardSave ile ayni sekil.
+/// Sayilar burada TUTULMUYOR; Prisma `_count` ile okunuyor. Erken
+/// denormalizasyon tutarsizlik kaynagidir -- akis yavaslarsa sayac
+/// sutunu o zaman eklenir.
+model CommunityLike {
+  id        String        @id @default(uuid())
+  userId    Int
+  postId    String
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  /// Iki kez begenmek tek kayit uretir; sayimin dogrulugu buna bagli.
+  @@unique([userId, postId])
+  @@index([postId])
+}
+
+/// Kaydetme ("kaydettiklerim"). Begeniden AYRI: begeni herkese acik bir
+/// onay, kaydetme kisiye ozel bir yer imi. Ayni tabloda `tur` sutunuyla
+/// birlestirmek, ileride biri herkese acik digeri gizli kaldiginda
+/// yetki mantigini tek satirda cakistirirdi.
+model CommunityBookmark {
+  id        String        @id @default(uuid())
+  userId    Int
+  postId    String
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId, createdAt])
 }
 
 model QuizAttempt {

@@ -68,6 +68,9 @@ export const communityPostSchema = z.object({
 export const kullaniciPaylasimSemasi = z.object({
   metin: z.string().trim().max(500).default(''),
   mediaId: z.string().uuid().optional(),
+  /* Yanit ve alinti da birer gonderi -- ayri uc nokta yok. */
+  parentId: z.string().uuid().optional(),
+  quotedPostId: z.string().uuid().optional(),
 })
 
 export const officialPostSchema = communityPostSchema.extend({
@@ -221,6 +224,87 @@ export async function communityRoutes(
   function medyaCikti<T extends { id: string } | null | undefined>(media: T) {
     return media ? { ...media, url: imzaliMedyaUrl(media.id) } : media
   }
+
+  /*
+   * ETKILESIM BILGISI
+   *
+   * Sayilar tabloda TUTULMUYOR, `_count` ile okunuyor. Erken
+   * denormalizasyon tutarsizlik kaynagidir; akis yavaslarsa sayac
+   * sutunu o zaman eklenir.
+   *
+   * "Ben begendim mi" sorusu ayri bir sorguyla degil, kullaniciya
+   * suzulmus bir iliskiyle cevaplaniyor: N gonderi icin N+1 sorgu
+   * yerine tek sorgu.
+   */
+  function etkilesimIcerigi(kullaniciId: number) {
+    return {
+      _count: { select: { likes: true, replies: true, quotes: true } },
+      likes: { where: { userId: kullaniciId }, select: { id: true } },
+      bookmarks: { where: { userId: kullaniciId }, select: { id: true } },
+    } as const
+  }
+
+  /*
+   * Ham Prisma kaydini istemci govdesine cevirir.
+   *
+   * `likes`/`bookmarks` dizileri istemciye GITMEZ: onlar yalniz
+   * "ben begendim mi" sorusunu cevaplamak icin cekilen ic veri.
+   * Oldugu gibi gonderilseydi kimlik sizdirmasa da gereksiz yuk olurdu.
+   */
+  function gonderiCikti(post: any): any {
+    if (!post) return post
+    const { _count, likes, bookmarks, ...kalan } = post
+    return {
+      ...kalan,
+      media: medyaCikti(post.media),
+      begeniSayisi: _count?.likes ?? 0,
+      yanitSayisi: _count?.replies ?? 0,
+      alintiSayisi: _count?.quotes ?? 0,
+      begendim: Array.isArray(likes) && likes.length > 0,
+      kaydettim: Array.isArray(bookmarks) && bookmarks.length > 0,
+      ...(post.quotedPost !== undefined
+        ? { quotedPost: alintiCikti(post.quotedPost) }
+        : {}),
+    }
+  }
+
+  /*
+   * Alintilanan gonderi KUCULTULEREK gonderiliyor.
+   *
+   * Alintinin alintisinin alintisi zinciri, tek bir akis isteginde
+   * sinirsiz derinlige gidebilirdi. Ayrica kaldirilmis bir gonderinin
+   * icerigi alinti icinde yasamaya devam etmemeli -- kaldirma yetkisi
+   * aksi halde alintiyla atlatilirdi.
+   */
+  function alintiCikti(alinti: any) {
+    if (!alinti) return null
+    if (alinti.status !== 'published') {
+      return { id: alinti.id, kaldirildi: true, author: null, summary: null, media: null }
+    }
+    return {
+      id: alinti.id,
+      kaldirildi: false,
+      summary: alinti.summary,
+      title: alinti.title,
+      publishedAt: alinti.publishedAt,
+      author: alinti.author,
+      media: medyaCikti(alinti.media),
+    }
+  }
+
+  /* Alinti icin cekilecek alanlar. `status` SART: kaldirilmis alintiyi
+     ayirt etmenin tek yolu. */
+  const alintiIcerigi = {
+    select: {
+      id: true,
+      status: true,
+      title: true,
+      summary: true,
+      publishedAt: true,
+      author: { select: { id: true, name: true } },
+      media: { select: mediaSelect },
+    },
+  } as const
 
   function safeMediaPath(storedName: string) {
     const base = resolve(mediaDirectory)
@@ -458,12 +542,25 @@ export async function communityRoutes(
       where: {
         status: 'published',
         ...(type ? { postType: type } : {}),
+        /*
+         * 🔴 BU SATIR AKISI AYAKTA TUTUYOR.
+         *
+         * Yanitlar da CommunityPost (X'te bir yanit kendisi de bir
+         * gonderidir). Bu kosul olmazsa her yanit ana akista ayri bir
+         * kart olarak belirir ve akis, baglamindan kopmus yanit
+         * parcalariyla dolar.
+         *
+         * tests/topluluk-etkilesim.test.ts bunu koruyor.
+         */
+        parentId: null,
       },
       include: {
         author: {
           select: { id: true, name: true },
         },
         media: { select: mediaSelect },
+        quotedPost: alintiIcerigi,
+        ...etkilesimIcerigi(request.user.id),
       },
       orderBy: [
         { publishedAt: 'desc' },
@@ -477,7 +574,7 @@ export async function communityRoutes(
     const hasMore = posts.length > 20
     const visible = posts.slice(0, 20)
     return {
-      posts: visible.map(post => ({ ...post, media: medyaCikti(post.media) })),
+      posts: visible.map(gonderiCikti),
       nextCursor: hasMore
         ? visible.at(-1)?.id || null
         : null,
@@ -502,9 +599,36 @@ export async function communityRoutes(
       return reply.status(422).send({ error: 'Yüklenen dosya bulunamadı veya başka bir paylaşıma bağlı.' })
     }
 
-    /* Metin de görsel de yoksa ortada paylaşılacak bir şey yok. */
-    if (!parsed.data.metin && !media) {
+    /*
+     * Metin de görsel de yoksa ortada paylaşılacak bir şey yok.
+     * ALINTI bunun istisnası: alıntının kendisi bir içeriktir, tek
+     * başına "şuna bakın" demek meşru bir paylaşım.
+     */
+    if (!parsed.data.metin && !media && !parsed.data.quotedPostId) {
       return reply.status(422).send({ error: 'Bir şeyler yazın veya bir görsel ekleyin.' })
+    }
+
+    /*
+     * Yanıt ve alıntı hedefleri DOĞRULANIYOR.
+     *
+     * Doğrulanmasaydı: var olmayan bir kimliğe yanıt yazmak veritabanı
+     * kısıt hatasıyla 500 döndürürdü, ve kaldırılmış bir gönderiye
+     * yanıt/alıntı eklemek kaldırma kararını fiilen geri alırdı.
+     */
+    async function yayimdaMi(id: string | undefined) {
+      if (!id) return true
+      const hedef = await prisma.communityPost.findFirst({
+        where: { id, status: 'published' },
+        select: { id: true },
+      })
+      return Boolean(hedef)
+    }
+
+    if (!(await yayimdaMi(parsed.data.parentId))) {
+      return reply.status(404).send({ error: 'Yanıt verilen paylaşım bulunamadı.' })
+    }
+    if (!(await yayimdaMi(parsed.data.quotedPostId))) {
+      return reply.status(404).send({ error: 'Alıntılanan paylaşım bulunamadı.' })
     }
 
     /*
@@ -524,6 +648,8 @@ export async function communityRoutes(
         summary: parsed.data.metin,
         status: 'published',
         publishedAt: new Date(),
+        parentId: parsed.data.parentId ?? null,
+        quotedPostId: parsed.data.quotedPostId ?? null,
         ...(media ? { media: { connect: { id: media.id } } } : {}),
       },
     })
@@ -534,6 +660,8 @@ export async function communityRoutes(
         status: post.status,
         publishedAt: post.publishedAt,
         createdAt: post.createdAt,
+        parentId: post.parentId,
+        quotedPostId: post.quotedPostId,
       },
       message: 'Paylaşımın yayımlandı.',
     })
@@ -551,6 +679,132 @@ export async function communityRoutes(
    * "kim neyi ne zaman kaldırdı" izini götürürdü. Kullanıcı açısından
    * fark yok — gönderi listelerden düşüyor.
    */
+  /*
+   * TEK GONDERI + YANIT AGACI  (kalici adres / alinti / paylas)
+   *
+   * Rota SIRASI onemli: bu `/:postId` kalibi `/moderation` ve
+   * `/reports` gibi sabit yollardan SONRA tanimlanmali, yoksa onlari
+   * yutar. Fastify sabit yolu parametreli yola tercih ediyor ama buna
+   * guvenip sirayi bozmuyoruz.
+   *
+   * DERINLIK: veritabaninda sinirsiz, burada 3 seviye. Sinirsiz
+   * cekmek tek istekte butun bir konusma agacini yukleyebilirdi.
+   * Daha derini icin kullanici o yanitin kendi adresine gider.
+   */
+  const YANIT_DERINLIGI = 3
+
+  fastify.get('/post/:postId', {
+    preHandler: [fastify.authenticate],
+  }, async (request, reply) => {
+    const { postId } = request.params as { postId: string }
+    const kullaniciId = request.user.id
+
+    /* Yanit agaci ic ice `include` ile cekiliyor. Uc seviye sabit
+       oldugu icin ozyineleme yerine acik yazim: okunmasi kolay ve
+       sorgu sayisi ongorulebilir. */
+    const yanitIcerigi = (derinlik: number): any => ({
+      where: { status: 'published' },
+      orderBy: { createdAt: 'asc' as const },
+      take: 50,
+      include: {
+        author: { select: { id: true, name: true } },
+        media: { select: mediaSelect },
+        ...etkilesimIcerigi(kullaniciId),
+        ...(derinlik > 1 ? { replies: yanitIcerigi(derinlik - 1) } : {}),
+      },
+    })
+
+    const post = await prisma.communityPost.findFirst({
+      where: { id: postId, status: 'published' },
+      include: {
+        author: { select: { id: true, name: true } },
+        media: { select: mediaSelect },
+        quotedPost: alintiIcerigi,
+        parent: {
+          include: {
+            author: { select: { id: true, name: true } },
+            media: { select: mediaSelect },
+            ...etkilesimIcerigi(kullaniciId),
+          },
+        },
+        replies: yanitIcerigi(YANIT_DERINLIGI),
+        ...etkilesimIcerigi(kullaniciId),
+      },
+    })
+
+    if (!post) {
+      return reply.status(404).send({ error: 'Paylaşım bulunamadı.' })
+    }
+
+    /* Agacin her dugumu ayni doldurmadan gecmeli; yoksa ust gonderide
+       begeni sayisi olur, yanitlarda olmaz. */
+    const agac = (dugum: any): any => dugum && ({
+      ...gonderiCikti(dugum),
+      ...(Array.isArray(dugum.replies)
+        ? { replies: dugum.replies.map(agac) }
+        : {}),
+    })
+
+    return {
+      post: agac(post),
+      parent: post.parent ? gonderiCikti(post.parent) : null,
+    }
+  })
+
+  /*
+   * BEGENI ve KAYDETME
+   *
+   * Ikisi de ayni sekle sahip ama AYRI tablolar: begeni herkese acik
+   * bir onay, kaydetme kisiye ozel bir yer imi. Tek tabloda `tur`
+   * sutunuyla birlestirmek, biri herkese acik digeri gizli kaldiginda
+   * yetki mantigini tek satirda cakistirirdi.
+   *
+   * Cift basma tek kayit uretir (`@@unique`), o yuzden `create` yerine
+   * `upsert`: kullanicinin cift tiklamasi 500 dondurmemeli.
+   */
+  async function yayimlanmisGonderi(postId: string) {
+    return prisma.communityPost.findFirst({
+      where: { id: postId, status: 'published' },
+      select: { id: true },
+    })
+  }
+
+  function etkilesimUclari(
+    ad: 'like' | 'bookmark',
+    tablo: { upsert: Function; deleteMany: Function; count: Function },
+  ) {
+    fastify.post(`/:postId/${ad}`, {
+      preHandler: [fastify.authenticate],
+      config: { rateLimit: { max: 300, timeWindow: '1 hour' } },
+    }, async (request, reply) => {
+      const { postId } = request.params as { postId: string }
+      if (!(await yayimlanmisGonderi(postId))) {
+        return reply.status(404).send({ error: 'Paylaşım bulunamadı.' })
+      }
+      const userId = request.user.id
+      await tablo.upsert({
+        where: { userId_postId: { userId, postId } },
+        create: { userId, postId },
+        update: {},
+      })
+      return { aktif: true, sayi: await tablo.count({ where: { postId } }) }
+    })
+
+    fastify.delete(`/:postId/${ad}`, {
+      preHandler: [fastify.authenticate],
+      config: { rateLimit: { max: 300, timeWindow: '1 hour' } },
+    }, async request => {
+      const { postId } = request.params as { postId: string }
+      /* `deleteMany`: kayit yoksa `delete` firlatirdi. Begenilmemis bir
+         gonderinin begenisini kaldirmak hata degil, bos islemdir. */
+      await tablo.deleteMany({ where: { userId: request.user.id, postId } })
+      return { aktif: false, sayi: await tablo.count({ where: { postId } }) }
+    })
+  }
+
+  etkilesimUclari('like', prisma.communityLike as never)
+  etkilesimUclari('bookmark', prisma.communityBookmark as never)
+
   fastify.delete('/:postId', {
     preHandler: [fastify.authenticate],
     config: { rateLimit: { max: 30, timeWindow: '1 hour' } },
