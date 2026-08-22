@@ -361,3 +361,125 @@ describe('reklam sayaçları', () => {
     expect(akis.json().ads.some((a: any) => a.id === reklamId)).toBe(false)
   })
 })
+
+describe('kullanıcıyı şikâyet etme', () => {
+  /*
+   * `CommunityReport` GÖNDERİYE bağlı. Profil ziyareti ve özel
+   * mesajlaşma gelince yetmez oldu: taciz tek bir gönderide
+   * olmayabilir — birden çok mesajda, profil metninde ya da davranış
+   * örüntüsünde olabilir. Kullanıcı o durumda bildirecek bir şey
+   * bulamıyordu.
+   */
+  let hedef: any
+  let hedefToken: string
+
+  beforeAll(async () => {
+    hedef = await prisma.user.create({
+      data: { email: `${mark}-hedef@test.local`, password: 'x', name: 'Hedef Test', role: 'student' },
+    })
+    hedefToken = app.jwt.sign({ id: hedef.id, email: hedef.email, role: hedef.role })
+  })
+
+  afterAll(async () => {
+    await prisma.communityUserReport.deleteMany({ where: { reportedId: hedef.id } }).catch(() => {})
+    await prisma.communityUserReport.deleteMany({ where: { reporterId: hedef.id } }).catch(() => {})
+    await prisma.user.deleteMany({ where: { id: hedef.id } }).catch(() => {})
+  })
+
+  const bildir = (token: string, personId: number, payload: any) => app.inject({
+    method: 'POST', url: `/community/social/people/${personId}/report`,
+    headers: auth(token), payload,
+  })
+
+  it('kişi bildirilebilir', async () => {
+    const yanit = await bildir(aliToken, hedef.id, { reason: 'harassment', details: 'Sürekli rahatsız edici mesaj gönderiyor.' })
+
+    expect(yanit.statusCode).toBe(201)
+    const kayit = await prisma.communityUserReport.findFirst({ where: { reporterId: ali.id, reportedId: hedef.id } })
+    expect(kayit?.status).toBe('open')
+    expect(kayit?.reason).toBe('harassment')
+  })
+
+  it('🔴 aynı kişi iki kez bildirilemez', async () => {
+    /* Tekrar tekrar bildirmek kuyruğu doldurur ve GERÇEK şikâyetleri
+       görünmez yapar. */
+    const yanit = await bildir(aliToken, hedef.id, { reason: 'spam' })
+
+    expect(yanit.statusCode).toBe(409)
+    expect(yanit.json().code).toBe('USER_REPORT_DUPLICATE')
+
+    const sayi = await prisma.communityUserReport.count({ where: { reporterId: ali.id, reportedId: hedef.id } })
+    expect(sayi).toBe(1)
+  })
+
+  it('kendini bildiremez', async () => {
+    expect((await bildir(aliToken, ali.id, { reason: 'spam' })).statusCode).toBe(422)
+  })
+
+  it('"diğer" nedeni açıklama olmadan reddedilir', async () => {
+    const yanit = await bildir(ayseToken, hedef.id, { reason: 'other' })
+    expect(yanit.statusCode).toBe(422)
+  })
+
+  it('var olmayan kullanıcı 404 döner', async () => {
+    expect((await bildir(aliToken, 999999, { reason: 'spam' })).statusCode).toBe(404)
+  })
+
+  describe('yönetim kuyruğu', () => {
+    it('🔴 yönetici olmayan şikâyetleri GÖREMEZ', async () => {
+      const yanit = await app.inject({ method: 'GET', url: '/community/social/user-reports', headers: auth(aliToken) })
+
+      expect(yanit.statusCode).toBe(403)
+      /* Kimin kimi bildirdiği sızmamalı — şikâyet edenin adı da
+         gövdede geçmemeli. */
+      expect(yanit.body).not.toContain('Hedef Test')
+    })
+
+    it('yönetici kuyruğu görür ve toplam şikâyet sayısı gelir', async () => {
+      await bildir(ayseToken, hedef.id, { reason: 'impersonation', details: 'Başkası gibi davranıyor.' })
+
+      const yanit = await app.inject({ method: 'GET', url: '/community/social/user-reports', headers: auth(adminToken) })
+      const kayit = yanit.json().reports.find((r: any) => r.reported.id === hedef.id)
+
+      expect(yanit.statusCode).toBe(200)
+      /* Tek şikâyetle çoklu şikâyeti ayırt etmek yöneticinin ilk
+         sorusu; ikisi de aynı görünseydi öncelik verilemezdi. */
+      expect(kayit.toplamSikayet).toBe(2)
+    })
+
+    it('çözülen şikâyet kuyruktan düşer ama SİLİNMEZ', async () => {
+      const acik = await prisma.communityUserReport.findFirst({ where: { reportedId: hedef.id, status: 'open' } })
+
+      const yanit = await app.inject({
+        method: 'POST', url: `/community/social/user-reports/${acik!.id}/resolve`,
+        headers: auth(adminToken), payload: { resolution: 'dismiss', note: 'Yeterli delil yok.' },
+      })
+      expect(yanit.statusCode).toBe(200)
+
+      const kayit = await prisma.communityUserReport.findUnique({ where: { id: acik!.id } })
+      /* Denetim izi: kim, ne zaman, hangi kararla kapattı. */
+      expect(kayit).not.toBeNull()
+      expect(kayit?.status).toBe('resolved')
+      expect(kayit?.resolvedById).toBe(admin.id)
+      expect(kayit?.resolution).toContain('Yeterli delil yok')
+    })
+
+    it('geçersiz çözüm reddedilir', async () => {
+      const acik = await prisma.communityUserReport.findFirst({ where: { reportedId: hedef.id, status: 'open' } })
+      const yanit = await app.inject({
+        method: 'POST', url: `/community/social/user-reports/${acik!.id}/resolve`,
+        headers: auth(adminToken), payload: { resolution: 'ban_everyone' },
+      })
+      expect(yanit.statusCode).toBe(422)
+    })
+
+    it('yönetici olmayan şikâyet çözemez', async () => {
+      const acik = await prisma.communityUserReport.findFirst({ where: { reportedId: hedef.id, status: 'open' } })
+      const yanit = await app.inject({
+        method: 'POST', url: `/community/social/user-reports/${acik!.id}/resolve`,
+        headers: auth(aliToken), payload: { resolution: 'dismiss' },
+      })
+      expect(yanit.statusCode).toBe(403)
+    })
+  })
+})

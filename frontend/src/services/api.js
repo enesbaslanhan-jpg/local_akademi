@@ -601,6 +601,17 @@ export const api = {
     async sendMessage(threadId, body) { return api.request(`/community/social/threads/${threadId}/messages`, { method: 'POST', body: JSON.stringify({ body }) }); },
     async ads() { return api.request('/community/social/ads'); },
     async createAd(data) { return api.request('/community/social/ads', { method: 'POST', body: JSON.stringify(data) }); },
+    async kisiyiBildir(personId, reason, details) {
+      return api.request(`/community/social/people/${personId}/report`, {
+        method: 'POST', body: JSON.stringify({ reason, ...(details ? { details } : {}) }),
+      });
+    },
+    async kullaniciSikayetleri() { return api.request('/community/social/user-reports'); },
+    async sikayetiCoz(reportId, resolution, note) {
+      return api.request(`/community/social/user-reports/${reportId}/resolve`, {
+        method: 'POST', body: JSON.stringify({ resolution, ...(note ? { note } : {}) }),
+      });
+    },
     async tumReklamlar() { return api.request('/community/social/ads/all'); },
     /* Sayac artirma: KIMIN artirdigi kaydedilmiyor, yalniz sayi buyur.
        Hata yutuluyor -- olcum yan etkidir, ekrani bozmamali. */

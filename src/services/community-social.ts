@@ -9,6 +9,26 @@ const threadSchema = z.object({
   memberIds: z.array(z.number().int().positive()).min(1).max(49),
 })
 const messageSchema = z.object({ body: z.string().trim().min(1).max(2000) })
+
+/*
+ * KULLANICI SIKAYETI.
+ *
+ * Nedenler gonderi sikayetinden FARKLI: "copyright" ve
+ * "misinformation" bir kisi icin anlamsiz, "impersonation"
+ * (baskasi gibi davranma) ise yalniz kisi icin anlamli.
+ */
+const kullaniciSikayetSemasi = z.object({
+  reason: z.enum(['harassment', 'spam', 'impersonation', 'unsafe', 'other']),
+  details: z.string().trim().min(5).max(500).optional(),
+}).superRefine((deger, baglam) => {
+  if (deger.reason === 'other' && !deger.details) {
+    baglam.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['details'],
+      message: 'Diğer nedeni için açıklama zorunludur',
+    })
+  }
+})
 const adSchema = z.object({
   title: z.string().trim().min(2).max(100),
   body: z.string().trim().min(2).max(500),
@@ -447,6 +467,120 @@ export async function communitySocialRoutes(fastify: FastifyInstance) {
     })
     return { ...ad, media: medyaCikti(media) }
   }
+
+  /*
+   * KISIYI SIKAYET ET.
+   *
+   * `CommunityReport` gonderiye bagli; profil ve ozel mesaj gelince
+   * yetmez oldu. Taciz tek bir gonderide olmayabilir -- birden cok
+   * mesajda, profil metninde ya da davranis oruntusunde olabilir.
+   */
+  fastify.post('/people/:personId/report', {
+    preHandler: [fastify.authenticate],
+    config: { rateLimit: { max: 10, timeWindow: '1 hour' } },
+  }, async (request, reply) => {
+    const personId = Number((request.params as { personId: string }).personId)
+    if (!Number.isInteger(personId) || personId === request.user.id) {
+      /* Kendini sikayet etmek anlamsiz ve kuyrugu kirletir. */
+      return reply.status(422).send({ error: 'Geçersiz kullanıcı.' })
+    }
+    const parsed = kullaniciSikayetSemasi.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(422).send({ error: 'Geçersiz şikâyet bilgisi.', details: parsed.error.errors })
+    }
+
+    const hedef = await prisma.user.findFirst({ where: { id: personId, deletedAt: null }, select: { id: true } })
+    if (!hedef) return reply.status(404).send({ error: 'Kullanıcı bulunamadı.' })
+
+    try {
+      const kayit = await prisma.communityUserReport.create({
+        data: {
+          reporterId: request.user.id,
+          reportedId: personId,
+          reason: parsed.data.reason,
+          details: parsed.data.details,
+        },
+      })
+      return reply.status(201).send({ report: { id: kayit.id, status: kayit.status } })
+    } catch {
+      /*
+       * `@@unique` ihlali: ayni kisiyi zaten bildirmis. 409 doniyoruz
+       * ama bunu bir HATA gibi sunmuyoruz -- kullanici zaten yapmasi
+       * gerekeni yapmis.
+       */
+      return reply.status(409).send({
+        error: 'Bu kullanıcıyı zaten bildirdiniz.',
+        code: 'USER_REPORT_DUPLICATE',
+      })
+    }
+  })
+
+  fastify.get('/user-reports', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    if (request.user.role !== 'admin') return reply.status(403).send({ error: 'Yalnız yöneticiler görebilir.' })
+    const reports = await prisma.communityUserReport.findMany({
+      where: { status: 'open' },
+      orderBy: { createdAt: 'asc' },
+      take: 100,
+      include: {
+        reporter: { select: { id: true, name: true } },
+        reported: { select: { id: true, name: true, bio: true, deletedAt: true } },
+      },
+    })
+
+    /* "Bu kisi hakkinda kac sikayet var" -- tek sikayetle coklu
+       sikayeti ayirt etmek yoneticinin ilk sorusu. */
+    const sayimlar = await prisma.communityUserReport.groupBy({
+      by: ['reportedId'],
+      where: { reportedId: { in: reports.map(r => r.reportedId) } },
+      _count: { _all: true },
+    })
+    const sayiHaritasi = new Map(sayimlar.map(s => [s.reportedId, s._count._all]))
+
+    return {
+      reports: reports.map(r => ({
+        id: r.id,
+        reason: r.reason,
+        details: r.details,
+        createdAt: r.createdAt,
+        reporter: r.reporter,
+        reported: { ...r.reported, askida: Boolean(r.reported.deletedAt) },
+        toplamSikayet: sayiHaritasi.get(r.reportedId) ?? 1,
+      })),
+    }
+  })
+
+  fastify.post('/user-reports/:reportId/resolve', {
+    preHandler: [fastify.authenticate],
+    config: YAZMA_SINIRI,
+  }, async (request, reply) => {
+    if (request.user.role !== 'admin') return reply.status(403).send({ error: 'Yalnız yöneticiler çözebilir.' })
+    const { reportId } = request.params as { reportId: string }
+    const govde = (request.body ?? {}) as { resolution?: string; note?: string }
+
+    /*
+     * Cozum burada YAPTIRIM UYGULAMIYOR, yalnizca kaydi kapatiyor.
+     * Askiya alma `admin.ts` icinde: orada denetim kaydi yaziliyor ve
+     * acik oturumlar dusuruluyor. Ayni isi ikinci bir yerde yapmak,
+     * birinde denetim kaydi olan digerinde olmayan iki yol yaratirdi.
+     */
+    if (govde.resolution !== 'dismiss' && govde.resolution !== 'actioned') {
+      return reply.status(422).send({ error: 'Geçersiz çözüm.' })
+    }
+
+    const kayit = await prisma.communityUserReport.findUnique({ where: { id: reportId } })
+    if (!kayit) return reply.status(404).send({ error: 'Şikâyet bulunamadı.' })
+
+    await prisma.communityUserReport.update({
+      where: { id: reportId },
+      data: {
+        status: 'resolved',
+        resolution: `${govde.resolution}${govde.note ? `: ${govde.note.slice(0, 300)}` : ''}`,
+        resolvedById: request.user.id,
+        resolvedAt: new Date(),
+      },
+    })
+    return { status: 'resolved' }
+  })
 
   fastify.get('/ads', { preHandler: [fastify.authenticate] }, async () => {
     const ads = await prisma.communityAd.findMany({

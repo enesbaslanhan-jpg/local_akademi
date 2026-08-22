@@ -149,6 +149,86 @@ function ReklamPaneli() {
   )
 }
 
+/*
+ * KULLANICI SIKAYETLERI.
+ *
+ * Gonderi sikayetlerinden AYRI bir kuyruk: `CommunityReport`
+ * gonderiye bagli, bu kisiye. Taciz tek bir gonderide olmayabilir --
+ * birden cok mesajda ya da davranis oruntusunde olabilir.
+ *
+ * 🔴 COZUM BURADA YAPTIRIM UYGULAMIYOR, yalnizca kaydi kapatiyor.
+ * Askiya alma Kullanicilar ekraninda: orada denetim kaydi yaziliyor
+ * ve acik oturumlar dusuruluyor. Ayni isi iki yerde yapmak, birinde
+ * denetim kaydi olan digerinde olmayan iki yol yaratirdi.
+ */
+function KullaniciSikayetleri() {
+  const [reports, setReports] = useState([])
+  const [notes, setNotes] = useState({})
+  const [busy, setBusy] = useState('')
+  const [error, setError] = useState('')
+
+  const load = useCallback(() => api.community.kullaniciSikayetleri()
+    .then(r => setReports(r.reports || []))
+    .catch(e => setError(e.message || 'Şikâyetler alınamadı.')), [])
+
+  useEffect(() => { load() }, [load])
+
+  async function coz(report, resolution) {
+    setBusy(report.id); setError('')
+    try {
+      await api.community.sikayetiCoz(report.id, resolution, notes[report.id]?.trim() || undefined)
+      await load()
+    } catch (e) {
+      setError(e.message || 'Şikâyet çözülemedi.')
+    } finally { setBusy('') }
+  }
+
+  return (
+    <section className={styles.panel}>
+      <header><h2>Kullanıcı şikâyetleri</h2><span>{reports.length} açık</span></header>
+      {error && <div className={styles.error}><AlertTriangle size={15} />{error}</div>}
+      <p className={styles.capabilityNote}>
+        Çözmek yaptırım uygulamaz, yalnızca kaydı kapatır. Hesabı askıya almak için
+        Yönetim → Kullanıcılar ekranını kullan; askıya alma orada denetim kaydına yazılır
+        ve açık oturumları anında düşürür.
+      </p>
+      {reports.length === 0 ? <EmptyState message="Açık kullanıcı şikâyeti yok." /> : (
+        <div className={styles.rows}>
+          {reports.map(report => (
+            <article key={report.id}>
+              <div className={styles.rowHead}>
+                <span>{report.reason}</span>
+                <time>{new Date(report.createdAt).toLocaleString('tr-TR')}</time>
+              </div>
+              <h3>{report.reported?.name || 'Kullanıcı'}</h3>
+              {report.details && <p>{report.details}</p>}
+              <small>
+                Bildiren: {report.reporter?.name || 'Kullanıcı'}
+                {/* Tek şikâyetle çoklu şikâyeti ayırt etmek yöneticinin
+                    ilk sorusu; ikisi aynı görünseydi öncelik verilemezdi. */}
+                {report.toplamSikayet > 1 && ` · bu kişi hakkında ${report.toplamSikayet} şikâyet`}
+                {report.reported?.askida && ' · hesap askıda'}
+              </small>
+              <a href={`/app/profil/${report.reported?.id}`} target="_blank" rel="noreferrer">Profili aç</a>
+              <textarea
+                placeholder="Çözüm notu"
+                value={notes[report.id] || ''}
+                onChange={e => setNotes(v => ({ ...v, [report.id]: e.target.value }))}
+              />
+              <div className={styles.actions}>
+                <button onClick={() => coz(report, 'dismiss')} disabled={busy === report.id}>Şikâyeti kapat</button>
+                <Button variant="danger" onClick={() => coz(report, 'actioned')} disabled={busy === report.id}>
+                  İşlem yapıldı olarak kapat
+                </Button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
 export default function AdminCommunity() {
   const [tab, setTab] = useState('news')
   const [data, setData] = useState({ moderation: [], reports: [], news: [], community: [], automatedNews: [] })
@@ -245,6 +325,8 @@ export default function AdminCommunity() {
       </>}
 
       {tab === 'ads' && <ReklamPaneli />}
+
+      {tab === 'reports' && <KullaniciSikayetleri />}
 
       {tab === 'reports' && <section className={styles.panel}><header><h2>Açık şikâyetler</h2><span>{data.reports.length} kayıt</span></header>{data.reports.length === 0 ? <EmptyState message="Açık şikâyet yok." /> : <div className={styles.rows}>{data.reports.map(report => <article key={report.id}><div className={styles.rowHead}><span>{report.reason}</span><time>{new Date(report.createdAt).toLocaleString('tr-TR')}</time></div><h3>{report.post?.title || 'Gönderi'}</h3><p>{report.details || report.post?.summary}</p><small>Bildiren: {report.reporter?.name || 'Kullanıcı'} · Gönderi durumu: {report.post?.status}</small><textarea placeholder="Çözüm notu" value={reasons[report.id] || ''} onChange={e => setReasons(v => ({ ...v, [report.id]: e.target.value }))} /><div className={styles.actions}><button onClick={() => resolveReport(report, 'dismiss')} disabled={busy === report.id}>Şikâyeti kapat</button><Button variant="danger" onClick={() => resolveReport(report, 'hide_post')} disabled={busy === report.id}>Gönderiyi gizle</Button></div></article>)}</div>}</section>}
     </main>

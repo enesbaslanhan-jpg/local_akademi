@@ -1485,3 +1485,32 @@
   text-decoration-color: var(--primary);
   text-decoration-thickness: 2px;
 }
+
+/* Şikâyet ikinci derece bir eylem: takip düğmesinin yanında sade bir
+   bağlantı. Düğme gibi görünseydi yanlışlıkla tıklanması kolaylaşırdı. */
+.bildirDugmesi {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--text-light);
+  cursor: pointer;
+  font: inherit;
+  font-size: .74rem;
+}
+.bildirDugmesi:hover { color: var(--danger); }
+.profilEylem { display: flex; align-items: center; gap: 6px; }
+.profilDuzenle select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong, var(--border));
+  border-radius: 10px;
+  background: var(--input-bg, var(--surface-card));
+  color: var(--text);
+  font: inherit;
+  font-size: 1rem;
+}
+.sikayetNot { margin: 0; color: var(--text-light); font-size: .72rem; }

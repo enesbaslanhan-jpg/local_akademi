@@ -43,6 +43,8 @@ model User {
   communityPosts          CommunityPost[]          @relation("CommunityPostAuthor")
   communityMedia          CommunityMedia[]
   communityReports        CommunityReport[]
+  bildirdigiKullanicilar  CommunityUserReport[] @relation("CommunityUserReportReporter")
+  hakkindakiSikayetler    CommunityUserReport[] @relation("CommunityUserReportReported")
   communityLikes          CommunityLike[]
   communityNotifications  CommunityNotification[] @relation("CommunityNotificationUser")
   communityNotificationActs CommunityNotification[] @relation("CommunityNotificationActor")
@@ -380,6 +382,38 @@ model CommunityBookmark {
 
   @@unique([userId, postId])
   @@index([userId, createdAt])
+}
+
+/// KULLANICI SIKAYETI.
+///
+/// `CommunityReport` GONDERIYE bagli. Profil ve ozel mesaj gelince
+/// yetmez oldu: taciz tek bir gonderide olmayabilir -- birden cok
+/// mesajda, profil metninde ya da davranis oruntusunde olabilir.
+///
+/// Ayni modele "ya postId ya userId" diye iki opsiyonel alan koymak
+/// her sorguyu "hangisi dolu" kontroluyle kirletirdi.
+model CommunityUserReport {
+  id           String    @id @default(uuid())
+  /// Sikayet EDEN.
+  reporterId   Int
+  /// Sikayet EDILEN.
+  reportedId   Int
+  reason       String
+  details      String?
+  status       String    @default("open")
+  resolution   String?
+  resolvedById Int?
+  resolvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  reporter User @relation("CommunityUserReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reported User @relation("CommunityUserReportReported", fields: [reportedId], references: [id], onDelete: Cascade)
+
+  /// Ayni kisiyi bir kez sikayet edilebilir: tekrar tekrar bildirmek
+  /// kuyrugu doldurur ve gercek sikayetleri gorunmez yapar.
+  @@unique([reporterId, reportedId])
+  @@index([status, createdAt])
+  @@index([reportedId, status])
 }
 
 model QuizAttempt {

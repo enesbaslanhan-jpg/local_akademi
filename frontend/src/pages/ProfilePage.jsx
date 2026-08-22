@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
-  Bookmark, Camera, Heart, Image as ImageIcon, Link2, MapPin,
+  Bookmark, Camera, Flag, Heart, Image as ImageIcon, Link2, MapPin,
   MessageSquare, Pencil, UserPlus, Users, X,
 } from 'lucide-react'
 import { api } from '@/services/api'
@@ -100,6 +100,81 @@ function ProfilDuzenle({ user, onKapat, onKaydedildi }) {
   )
 }
 
+/*
+ * KİŞİYİ ŞİKÂYET ET.
+ *
+ * Gönderi şikâyeti `window.prompt` ile yapılıyordu ve neden listesini
+ * kullanıcıya EZBERLETMEK zorunda bırakıyordu ("spam, misinformation,
+ * harassment... yazın"). Kişi şikâyetinde o hatayı tekrarlamıyoruz:
+ * seçenekler listeleniyor.
+ */
+const SIKAYET_NEDENLERI = [
+  ['harassment', 'Taciz veya hakaret'],
+  ['spam', 'Spam / istenmeyen mesaj'],
+  ['impersonation', 'Başkası gibi davranıyor'],
+  ['unsafe', 'Güvenli olmayan içerik'],
+  ['other', 'Diğer'],
+]
+
+function SikayetPaneli({ profil, onKapat, onGonderildi, onHata }) {
+  const [neden, setNeden] = useState('harassment')
+  const [ayrinti, setAyrinti] = useState('')
+  const [gonderiliyor, setGonderiliyor] = useState(false)
+
+  /* "Diğer" seçilince açıklama ZORUNLU — sunucu da bunu uyguluyor;
+     buradaki kontrol yalnız kullanıcıyı boşuna göndermemek için. */
+  const ayrintiZorunlu = neden === 'other'
+  const gonderilebilir = !ayrintiZorunlu || ayrinti.trim().length >= 5
+
+  async function gonder(olay) {
+    olay.preventDefault()
+    setGonderiliyor(true)
+    try {
+      await api.community.kisiyiBildir(profil.id, neden, ayrinti.trim() || undefined)
+      onGonderildi()
+    } catch (sikayetHatasi) {
+      onHata(sikayetHatasi.message?.includes('zaten')
+        ? 'Bu kullanıcıyı zaten bildirmiştin.'
+        : (sikayetHatasi.message || 'Şikâyet gönderilemedi.'))
+      onKapat()
+    } finally {
+      setGonderiliyor(false)
+    }
+  }
+
+  return (
+    <form className={styles.profilDuzenle} onSubmit={gonder}>
+      <strong>{profil.name} adlı kişiyi bildir</strong>
+      <label>
+        Neden
+        <select value={neden} onChange={e => setNeden(e.target.value)}>
+          {SIKAYET_NEDENLERI.map(([deger, etiket]) => <option key={deger} value={deger}>{etiket}</option>)}
+        </select>
+      </label>
+      <label>
+        Açıklama {ayrintiZorunlu ? '(zorunlu)' : '(isteğe bağlı)'}
+        <textarea
+          value={ayrinti}
+          onChange={e => setAyrinti(e.target.value)}
+          maxLength={500}
+          rows={3}
+          placeholder="Ne olduğunu kısaca anlat"
+          required={ayrintiZorunlu}
+        />
+      </label>
+      <p className={styles.sikayetNot}>
+        Şikâyetin yönetim ekibine iletilir. Bildirdiğin kişiye kimin bildirdiği gösterilmez.
+      </p>
+      <div className={styles.profilDuzenleAlt}>
+        <Button variant="ghost" onClick={onKapat}>Vazgeç</Button>
+        <Button type="submit" disabled={gonderiliyor || !gonderilebilir}>
+          {gonderiliyor ? 'Gönderiliyor…' : 'Bildir'}
+        </Button>
+      </div>
+    </form>
+  )
+}
+
 export default function ProfilePage() {
   const { userId } = useParams()
   const navigate = useNavigate()
@@ -126,6 +201,7 @@ export default function ProfilePage() {
   const [hata, setHata] = useState('')
   const [bildirim, setBildirim] = useState('')
   const [duzenleAcik, setDuzenleAcik] = useState(false)
+  const [sikayetAcik, setSikayetAcik] = useState(false)
 
   const yukle = useCallback(async () => {
     setYukleniyor(true)
@@ -322,14 +398,36 @@ export default function ProfilePage() {
               {duzenleAcik ? <X size={16} /> : <Pencil size={16} />}
               {duzenleAcik ? 'Kapat' : 'Profili düzenle'}
             </Button>
-            : <Button variant={takipEdiyorum ? 'secondary' : 'primary'} onClick={takibiDegistir}>
-              <UserPlus size={16} />{takipEdiyorum ? 'Takibi bırak' : 'Takip et'}
-            </Button>}
+            : (
+              <>
+                <Button variant={takipEdiyorum ? 'secondary' : 'primary'} onClick={takibiDegistir}>
+                  <UserPlus size={16} />{takipEdiyorum ? 'Takibi bırak' : 'Takip et'}
+                </Button>
+                {/* Şikâyet ikinci derece bir eylem: takip düğmesinin
+                    yanında sade bir bağlantı, yoksa yanlışlıkla
+                    tıklanması kolaylaşırdı. */}
+                <button type="button" className={styles.bildirDugmesi} onClick={() => setSikayetAcik(a => !a)}>
+                  <Flag size={14} aria-hidden="true" /> Bildir
+                </button>
+              </>
+            )}
         </div>
       </header>
 
       {bildirim && <div className={styles.notice}>{bildirim}</div>}
       {hata && <div className={styles.error}>{hata}</div>}
+
+      {!benimMi && sikayetAcik && profil && (
+        <SikayetPaneli
+          profil={profil}
+          onKapat={() => setSikayetAcik(false)}
+          onHata={setHata}
+          onGonderildi={() => {
+            setSikayetAcik(false)
+            setBildirim('Şikâyetin yönetim ekibine iletildi.')
+          }}
+        />
+      )}
 
       {benimMi && duzenleAcik && (
         <ProfilDuzenle
