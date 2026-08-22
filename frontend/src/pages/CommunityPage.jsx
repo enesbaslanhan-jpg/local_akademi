@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Bookmark,
+  Plus,
   Clock,
   ExternalLink,
   FileText,
@@ -24,6 +25,7 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import ImageViewer from '@/components/ui/ImageViewer'
+import AkisVideosu from '@/components/ui/AkisVideosu'
 import styles from './CommunityPage.module.css'
 
 const API_URL = import.meta.env.VITE_API_URL || ''
@@ -149,24 +151,30 @@ function MediaPicker({ media, onChange, disabled = false, videoIzinli = false })
   )
 }
 
-export function PostMedia({ media, featured = false, kucuk = false }) {
+export function PostMedia({ media, featured = false, kucuk = false, yanPanel = null }) {
   const [buyutuldu, setBuyutuldu] = useState(false)
   if (!media) return null
   const url = mediaUrl(media)
+
+  /* Büyütülmüş görünüm görsel ve video için AYNI kutuyu kullanıyor:
+     odak tuzağı, Esc ve odağı geri verme orada zaten doğru yazılmış. */
+  const buyutucu = buyutuldu && (
+    <ImageViewer url={url} tur={media.kind} yan={yanPanel} onClose={() => setBuyutuldu(false)} />
+  )
+
   if (media.kind === 'video') {
     /*
-     * `preload="metadata"` bilinçli: akışta on video varsa hepsini
-     * indirmek mobil veriyi yakar. Sunucu Range isteklerini (206)
-     * karşılıyor, ileri sarma bu sayede çalışıyor.
+     * Tarayıcının kendi `controls`u AKIŞTA kullanılmıyor: ürün sahibi
+     * "eskiden kalma bir yapı" dedi — yerleşik çubuk her tarayıcıda
+     * farklı görünüyor ve temaya uymuyor. Büyütülmüş görünümde ise
+     * yerleşik kontroller KALIYOR; orada kullanıcı videoyu yönetmek
+     * istiyor ve gizlenen kontrol engel olurdu.
      */
     return (
-      <video
-        className={featured ? styles.featuredVideo : styles.postVideo}
-        src={url}
-        controls
-        playsInline
-        preload="metadata"
-      />
+      <>
+        <AkisVideosu src={url} kucuk={kucuk} onAc={() => setBuyutuldu(true)} />
+        {buyutucu}
+      </>
     )
   }
   if (media.kind === 'image') {
@@ -179,12 +187,14 @@ export function PostMedia({ media, featured = false, kucuk = false }) {
         <button
           type="button"
           className={styles.imageButton}
-          onClick={() => setBuyutuldu(true)}
+          /* Kartın "gönderiyi aç" katmanı bu düğmeyi sarıyor; olay
+             durdurulmazsa görsele tıklamak gönderi sayfasına giderdi. */
+          onClick={olay => { olay.stopPropagation(); setBuyutuldu(true) }}
           aria-label="Görseli büyüt"
         >
           <img className={featured ? styles.featuredImage : styles.postImage} src={url} alt="" loading={featured ? 'eager' : 'lazy'} />
         </button>
-        {buyutuldu && <ImageViewer url={url} onClose={() => setBuyutuldu(false)} />}
+        {buyutucu}
       </>
     )
   }
@@ -210,6 +220,18 @@ export default function CommunityPage({ mode = 'news' }) {
      kullanicinin zaten bildigi tek yeri koruyor. */
   const [alintilanan, setAlintilanan] = useState(null)
   const [ozet, setOzet] = useState(null)
+  /*
+   * Kutu artık DÜĞMEYLE açılıyor.
+   *
+   * Önce "hep açık" yapmıştım (X'te öyle diye). Ürün sahibi denedi ve
+   * kutunun akışın üstünde sürekli yer kaplamasının rahatsız ettiğini
+   * söyledi. Karar onun.
+   *
+   * `metin` sayfa düzeyinde tutuluyor: kutu kapanıp açılınca yazılan
+   * yazı KAYBOLMUYOR. Kapatınca "acaba sildim mi" dedirtmek en kötü
+   * sonuç olurdu.
+   */
+  const [kutuAcik, setKutuAcik] = useState(false)
   const [userMedia, setUserMedia] = useState(null)
   const [officialPost, setOfficialPost] = useState(emptyOfficialPost)
   const [officialMedia, setOfficialMedia] = useState(null)
@@ -240,7 +262,7 @@ export default function CommunityPage({ mode = 'news' }) {
     if (!id) return
     let iptal = false
     api.community.post(id)
-      .then(sonuc => { if (!iptal) setAlintilanan(sonuc.post) })
+      .then(sonuc => { if (!iptal) { setAlintilanan(sonuc.post); setKutuAcik(true) } })
       .catch(() => { /* Gönderi silinmişse alıntı kutusu açılmaz. */ })
       .finally(() => {
         window.history.replaceState({}, '', window.location.pathname)
@@ -292,6 +314,7 @@ export default function CommunityPage({ mode = 'news' }) {
       setMetin('')
       setUserMedia(null)
       setAlintilanan(null)
+      setKutuAcik(false)
       setNotice(result.message)
       /* Paylaşım artık ANINDA yayımlanıyor; akışı hemen tazelemezsek
          kullanıcı kendi gönderisini göremez ve gitmedi sanır. */
@@ -451,6 +474,7 @@ export default function CommunityPage({ mode = 'news' }) {
 
   function alintila(post) {
     setAlintilanan(post)
+    setKutuAcik(true)
     document.getElementById('paylas')?.scrollIntoView({ block: 'center', behavior: 'smooth' })
   }
 
@@ -478,6 +502,16 @@ export default function CommunityPage({ mode = 'news' }) {
     <main className={`${styles.page} ${isNews ? styles.newsPage : styles.communityPage}`}>
       <header className={styles.pageHeading} data-tour="topluluk-baslik">
         <div><span className={styles.kicker}>{isNews ? 'LocalKarar Haber Merkezi' : 'YEREL İŞLETMELER'}</span><h1>{isNews ? 'Haberler' : 'Topluluk'}</h1><p>{isNews ? 'İşletmenizi etkileyen resmî gelişmeleri kaynaklı ve kısa özetlerle takip edin.' : 'Yerel işletmelerden gerçek deneyimler.'}</p></div>
+        {!isNews && (
+          <button
+            type="button"
+            className={styles.createPostButton}
+            onClick={() => setKutuAcik(true)}
+          >
+            <Plus size={17} aria-hidden="true" />
+            Gönderi oluştur
+          </button>
+        )}
       </header>
 
       {notice && <div className={styles.notice}>{notice}</div>}
@@ -494,7 +528,15 @@ export default function CommunityPage({ mode = 'news' }) {
               * imkânsızdı. Kutu artık hep açık: "Gönderi oluştur"
               * düğmesine basmak fazladan bir adımdı.
               */}
-            <section id="paylas" className={styles.composer}>
+            {kutuAcik && <section id="paylas" className={`${styles.composer} ${styles.composerAcik}`}>
+              <button
+                type="button"
+                className={styles.kutuKapat}
+                onClick={() => setKutuAcik(false)}
+                aria-label="Gönderi kutusunu kapat"
+              >
+                <X size={18} />
+              </button>
               <div className={styles.composerTitle}>
                 <span className={styles.authorAvatar}>{initials(user?.name)}</span>
                 <span>
@@ -518,7 +560,7 @@ export default function CommunityPage({ mode = 'news' }) {
                   </span>
                 </div>
               </form>
-            </section>
+            </section>}
             {isAdmin && <AdminPanel {...{ showOfficialComposer: isNews, pending, reports, officialPost, setOfficialPost, officialMedia, setOfficialMedia, submitting, publishing, submitOfficialPost, createAndPublishOfficialPost, resetOfficialPost, adminPanelOpen, setAdminPanelOpen, aiSourceText, setAiSourceText, aiLoading, createAiOfficialDraft, moderate, resolveReport }} />}
             <section className={styles.feed} aria-live="polite">
               {loading && <FeedSkeleton />}
@@ -578,6 +620,52 @@ export default function CommunityPage({ mode = 'news' }) {
  * Disari tiklaninca ve Esc ile kapaniyor -- acik kalan bir menu,
  * altindaki karti tiklanamaz yapar.
  */
+/*
+ * Büyütülmüş medyanın yanındaki panel: gönderi metni ve yanıtları.
+ * Ürün sahibinin "üstüne basınca direkt o açılmalı, altında yorumlar
+ * falan" isteği.
+ *
+ * Yanıtlar AÇILDIĞINDA çekiliyor, akış yüklenirken değil: akıştaki her
+ * gönderi için yanıt ağacı indirmek, kimsenin bakmayacağı veriyi
+ * indirmek olurdu.
+ */
+function MedyaYanPaneli({ postId }) {
+  const [veri, setVeri] = useState(null)
+  const [hata, setHata] = useState('')
+
+  useEffect(() => {
+    let iptal = false
+    api.community.post(postId)
+      .then(sonuc => { if (!iptal) setVeri(sonuc.post) })
+      .catch(e => { if (!iptal) setHata(e.message || 'Yanıtlar yüklenemedi.') })
+    return () => { iptal = true }
+  }, [postId])
+
+  if (hata) return <p className={styles.postText}>{hata}</p>
+  if (!veri) return <p className={styles.postText}>Yükleniyor…</p>
+
+  return (
+    <>
+      <div className={styles.postHead}>
+        <strong>{veri.author?.name || 'LocalKarar kullanıcısı'}</strong>
+        <small>{timeAgo(veri.publishedAt)}</small>
+      </div>
+      {veri.summary && <p className={styles.postText}>{veri.summary}</p>}
+      <p className={styles.baglamEtiketi}>{veri.begeniSayisi} beğeni · {veri.yanitSayisi} yanıt</p>
+      {veri.replies?.map(yanit => (
+        <div key={yanit.id} className={styles.yanPanelYanit}>
+          <div className={styles.postHead}>
+            <strong>{yanit.author?.name || 'LocalKarar kullanıcısı'}</strong>
+            <small>{timeAgo(yanit.publishedAt)}</small>
+          </div>
+          {yanit.summary && <p className={styles.postText}>{yanit.summary}</p>}
+        </div>
+      ))}
+      {veri.yanitSayisi === 0 && <p className={styles.baglamEtiketi}>Henüz yanıt yok.</p>}
+    </>
+  )
+}
+
 export function GonderiMenusu({ kaldirilabilir, onRemove, onReport }) {
   const [acik, setAcik] = useState(false)
   const kutuRef = useRef(null)
@@ -651,7 +739,10 @@ export function AlintiBlogu({ alinti }) {
         <small>{timeAgo(alinti.publishedAt)}</small>
       </div>
       {alinti.summary && <p>{alinti.summary}</p>}
-      <PostMedia media={alinti.media} kucuk />
+      {/* Alıntılanan medyayı büyütünce ALINTILANAN gönderinin kendi
+          yanıtları görünüyor; alıntıyı yazanın değil. Kullanıcı o
+          medyaya baktığı için onun bağlamını bekler. */}
+      <PostMedia media={alinti.media} kucuk yanPanel={<MedyaYanPaneli postId={alinti.id} />} />
     </div>
   )
 }
@@ -771,7 +862,7 @@ export function CommunityCard({ post, kaldirilabilir, onReport, onRemove, onEtki
         >
           {post.summary && <p className={styles.postText}>{post.summary}</p>}
           <AlintiBlogu alinti={post.quotedPost} />
-          <PostMedia media={post.media} />
+          <PostMedia media={post.media} yanPanel={<MedyaYanPaneli postId={post.id} />} />
         </div>
 
         <IslemSatiri

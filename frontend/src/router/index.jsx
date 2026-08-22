@@ -32,6 +32,7 @@ const QuizTakePage = lazy(() => import('@/pages/QuizTakePage'))
 const PilotLearningPathPage = lazy(() => import('@/pages/PilotLearningPathPage'))
 const CommunityPage = lazy(() => import('@/pages/CommunityPage'))
 const CommunityPostPage = lazy(() => import('@/pages/CommunityPostPage'))
+const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
 const NewsPage = lazy(() => import('@/pages/NewsPage'))
 const WorkspaceList = lazy(() => import('@/pages/Workspaces/index'))
 const WorkspaceLayout = lazy(() => import('@/pages/Workspaces/WorkspaceLayout'))
@@ -111,6 +112,8 @@ export default function AppRoutes() {
                 ve yanıtların yazıldığı yer. Korumalı yolun altında —
                 giriş duvarı kararı gereği (22.08.2026). */}
             <Route path="community/gonderi/:postId" element={<SuspenseWrapper><CommunityPostPage /></SuspenseWrapper>} />
+            {/* Profil: yalnız kendi verisi. Başkasının profili bilerek yok. */}
+            <Route path="profil" element={<SuspenseWrapper><ProfilePage /></SuspenseWrapper>} />
             <Route path="tools" element={<SuspenseWrapper><ToolsPage /></SuspenseWrapper>} />
             <Route path="calculations" element={<SuspenseWrapper><ToolsPage initialView="calculator" /></SuspenseWrapper>} />
             <Route path="decision-checks" element={<SuspenseWrapper><DecisionCheckList /></SuspenseWrapper>} />

@@ -1,0 +1,130 @@
+/*
+ * Akış videosu. Kontroller varsayılan GİZLİ; üzerine gelince,
+ * dokununca ya da klavye odağı içeri girince beliriyor.
+ */
+.sarmal {
+  position: relative;
+  margin-top: 16px;
+  border-radius: 13px;
+  overflow: hidden;
+  background: #000;
+  line-height: 0;
+}
+
+.video {
+  display: block;
+  width: 100%;
+  max-height: 480px;
+  object-fit: contain;
+  background: #000;
+}
+
+.kucuk .video { max-height: 260px; }
+
+/* Videonun üstünü kaplayan görünmez düğme: tıklayınca büyütür.
+   Kontrollerin ALTINDA kalıyor (z-index), yoksa onları yutardı. */
+.acmaKatmani {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.acmaKatmani:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -4px;
+}
+
+.kontroller {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  /* Alttan yukarı koyulaşan perde: kontroller açık renkli bir karenin
+     üstüne denk gelirse okunmaz olurdu. */
+  background: linear-gradient(0deg, rgba(0, 0, 0, .72), rgba(0, 0, 0, 0));
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .18s ease, transform .18s ease;
+  line-height: 1;
+}
+
+.kontrolAcik .kontroller,
+.sarmal:focus-within .kontroller {
+  opacity: 1;
+  transform: none;
+}
+
+/* Dokunmatikte "üzerine gelme" diye bir şey yok; kontroller hep
+   görünür kalıyor, yoksa mobilde hiç erişilemezlerdi. */
+@media (hover: none) {
+  .kontroller { opacity: 1; transform: none; }
+}
+
+/* Hareket azaltma tercihinde geçiş animasyonu yok. */
+@media (prefers-reduced-motion: reduce) {
+  .kontroller { transition: none; }
+}
+
+.kontroller button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .14);
+  color: #fff;
+  cursor: pointer;
+}
+.kontroller button:hover { background: rgba(255, 255, 255, .26); }
+
+.sure {
+  flex: none;
+  color: #fff;
+  font-size: .68rem;
+  font-variant-numeric: tabular-nums;
+  opacity: .9;
+}
+
+/* İnce çubuk; üzerine gelince kalınlaşıyor. Tıklama alanı `padding`
+   ile büyütülüyor — 3px'lik bir çubuğu fareyle tutturmak zordur. */
+.cubuk {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 3px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, .3);
+  cursor: pointer;
+  transition: height .15s ease;
+}
+.cubuk::before {
+  content: '';
+  position: absolute;
+  inset: -9px 0;
+}
+.sarmal:hover .cubuk,
+.cubuk:focus-visible { height: 6px; }
+.cubuk:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+
+.cubukDolu {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--primary, #4aa8c0);
+}
+
+@media (max-width: 520px) {
+  .sure { display: none; }
+  .kontroller { gap: 6px; padding: 8px 10px; }
+}

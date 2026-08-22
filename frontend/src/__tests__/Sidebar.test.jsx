@@ -1,4 +1,4 @@
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import Sidebar from '@/components/layout/Sidebar'
@@ -65,7 +65,15 @@ describe('Sidebar', () => {
     expect(screen.queryByText('Kullanıcılar')).not.toBeInTheDocument()
   })
 
-  it('shows admin links when user is admin', () => {
+  /*
+   * 22.08.2026: Yönetim bölümü AÇILIR-KAPANIR oldu (ürün kararı).
+   * Altı bağlantı düz liste hâlinde menünün yarısını kaplıyordu.
+   *
+   * Bu yüzden test "bağlantılar hemen görünür" demekten "başlık
+   * görünür, tıklayınca bağlantılar açılır"a döndü. Beklentinin
+   * değişmesi gerileme DEĞİL, kararın kendisi.
+   */
+  it('yönetici için Yönetim başlığı görünür, bağlantılar KAPALI başlar', () => {
     mockUseAuth.mockReturnValue({ isAdmin: true, user: { role: 'admin' } })
 
     render(
@@ -73,6 +81,21 @@ describe('Sidebar', () => {
         <Sidebar open={true} onClose={() => {}} />
       </MemoryRouter>
     )
+
+    expect(screen.getByText('Yönetim')).toBeInTheDocument()
+    expect(screen.queryByText('KO Yönetimi')).not.toBeInTheDocument()
+  })
+
+  it('Yönetim tıklanınca alt bağlantılar açılır', () => {
+    mockUseAuth.mockReturnValue({ isAdmin: true, user: { role: 'admin' } })
+
+    render(
+      <MemoryRouter initialEntries={['/app/dashboard']}>
+        <Sidebar open={true} onClose={() => {}} />
+      </MemoryRouter>
+    )
+
+    fireEvent.click(screen.getByText('Yönetim'))
 
     expect(screen.getByText('KO Yönetimi')).toBeInTheDocument()
     expect(screen.getByText('Kullanıcılar')).toBeInTheDocument()

@@ -32,6 +32,7 @@ const TITLES = [
   ['/app/community/topluluk', 'Topluluk'],
   ['/app/community/gonderi', 'Topluluk'],
   ['/app/community', 'Haberler'],
+  ['/app/profil', 'Profilim'],
   ['/app/settings', 'Ayarlar'],
   ['/app/workspaces', 'İşletme Takibi'],
   ['/admin', 'Yönetim']

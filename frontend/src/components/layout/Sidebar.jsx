@@ -81,6 +81,10 @@ const secondaryLinks = [newsLink, forumLink]
 
 const settingsLink = { id: 'settings', label: 'Ayarlar', icon: Settings, path: '/app/settings' }
 
+/* Açılır menünün başlığı. `path` panele gidiyor: menüyü açmadan
+   doğrudan tıklayan kullanıcı boşluğa düşmemeli. */
+const adminParentLink = { id: 'admin', label: 'Yönetim', icon: Shield, path: '/admin/dashboard' }
+
 const adminLinks = [
   { id: 'admin-dashboard', label: 'Panel', icon: Shield, path: '/admin/dashboard' },
   { id: 'admin-knowledge', label: 'KO Yönetimi', icon: Database, path: '/admin/knowledge' },
@@ -154,6 +158,13 @@ export default function Sidebar({
         { label: 'Finansal Görünüm', path: '/app/calculations?view=all', active: onTools && view === 'all' },
         { label: 'Geçmiş', path: '/app/calculations?view=history', active: onTools && view === 'history' },
       ]
+    }
+    if (link.id === 'admin') {
+      return adminLinks.map(item => ({
+        label: item.label,
+        path: item.path,
+        active: location.pathname.startsWith(item.path),
+      }))
     }
     if (link.id === 'workspace-tracker' && activeWorkspaceId) {
       return [
@@ -301,8 +312,18 @@ export default function Sidebar({
           {isAdmin && (
             <>
               <div className={styles.divider} />
-              <div className={styles.sectionLabel}>Yönetim</div>
-              {adminLinks.map(renderLink)}
+              {/*
+                * Yönetim artık TEK açılır madde (22.08.2026).
+                *
+                * Altı bağlantı düz liste hâlinde duruyordu ve günlük
+                * kullanımda hiç açılmayan bu bölüm menünün yarısını
+                * kaplıyordu.
+                *
+                * Yeni bir açılır-kapanır sistemi YAZILMADI: yukarıdaki
+                * `expandedMenu` + `submenuFor` mekanizması zaten var ve
+                * Karar Araçları ile İşletme Takibi onu kullanıyor.
+                */}
+              {renderLink(adminParentLink)}
             </>
           )}
         </nav>

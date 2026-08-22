@@ -17,7 +17,7 @@ import styles from './ImageViewer.module.css'
  * `actions` verilirse görselin altında eylem çubuğu çıkar (ör. profil
  * fotoğrafı için "Değiştir" / "Kaldır").
  */
-export default function ImageViewer({ url, alt = '', onClose, actions = null, caption = null }) {
+export default function ImageViewer({ url, alt = '', onClose, actions = null, caption = null, tur = 'image', yan = null }) {
   const panelRef = useRef(null)
   const closeRef = useRef(null)
   const oncekiOdakRef = useRef(null)
@@ -61,7 +61,7 @@ export default function ImageViewer({ url, alt = '', onClose, actions = null, ca
       className={styles.backdrop}
       role="dialog"
       aria-modal="true"
-      aria-label="Görsel önizleme"
+      aria-label={tur === 'video' ? 'Video önizleme' : 'Görsel önizleme'}
       /* Yalnız arka plana tıklayınca kapanır; içeriğe tıklayınca kapanmaz. */
       onClick={event => { if (event.target === event.currentTarget) onClose() }}
     >
@@ -69,9 +69,24 @@ export default function ImageViewer({ url, alt = '', onClose, actions = null, ca
         <button ref={closeRef} type="button" className={styles.close} onClick={onClose} aria-label="Kapat">
           <X size={22} />
         </button>
-        <img src={url} alt={alt} className={styles.image} />
+        {/*
+          * Video ve görsel AYNI kutuyu paylaşıyor: odak tuzağı, Esc,
+          * kaydırma kilidi ve odağı geri verme burada zaten doğru
+          * yazılmış. İkinci bir kopya çıkarmak, o dört davranışın
+          * ikinci bir kez doğru yazılmasını gerektirirdi.
+          *
+          * Burada tarayıcının kendi `controls`u KULLANILIYOR (akıştaki
+          * özel oynatıcı değil): tam ekran görünümde kullanıcı videoyu
+          * yönetmek istiyor, gizlenen kontroller burada engel olurdu.
+          */}
+        {tur === 'video'
+          ? <video src={url} className={styles.image} controls autoPlay playsInline controlsList="nodownload" />
+          : <img src={url} alt={alt} className={styles.image} />}
         {caption && <p className={styles.caption}>{caption}</p>}
         {actions && <div className={styles.actions}>{actions}</div>}
+        {/* Gönderi ve yanıtları: ürün sahibinin "altında yorumlar
+            falan" isteği. Geniş ekranda yanda, darda altta. */}
+        {yan && <div className={styles.yanPanel}>{yan}</div>}
       </div>
     </div>
   )
