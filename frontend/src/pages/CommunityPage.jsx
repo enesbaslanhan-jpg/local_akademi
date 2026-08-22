@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Bookmark,
+  AtSign,
   Maximize2,
   Plus,
   Clock,
@@ -13,6 +14,7 @@ import {
   MoreHorizontal,
   Paperclip,
   Repeat2,
+  Search,
   Send,
   Share2,
   Star,
@@ -27,6 +29,7 @@ import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import ImageViewer from '@/components/ui/ImageViewer'
 import AkisVideosu from '@/components/ui/AkisVideosu'
+import Button from '@/components/ui/Button'
 import styles from './CommunityPage.module.css'
 
 const API_URL = import.meta.env.VITE_API_URL || ''
@@ -152,7 +155,7 @@ function MediaPicker({ media, onChange, disabled = false, videoIzinli = false })
   )
 }
 
-export function PostMedia({ media, featured = false, kucuk = false, yanPanel = null }) {
+export function PostMedia({ media, featured = false, kucuk = false, yanPanel = null, overlayText = '', mediaActions = null }) {
   const [buyutuldu, setBuyutuldu] = useState(false)
   if (!media) return null
   const url = mediaUrl(media)
@@ -160,7 +163,7 @@ export function PostMedia({ media, featured = false, kucuk = false, yanPanel = n
   /* Büyütülmüş görünüm görsel ve video için AYNI kutuyu kullanıyor:
      odak tuzağı, Esc ve odağı geri verme orada zaten doğru yazılmış. */
   const buyutucu = buyutuldu && (
-    <ImageViewer url={url} tur={media.kind} yan={yanPanel} onClose={() => setBuyutuldu(false)} />
+    <ImageViewer url={url} tur={media.kind} yan={yanPanel} overlayText={overlayText} mediaActions={mediaActions} onClose={() => setBuyutuldu(false)} />
   )
 
   if (media.kind === 'video') {
@@ -229,7 +232,6 @@ export default function CommunityPage({ mode = 'news' }) {
      ayri bir alinti kutusu acmak yerine mevcut kutuyu kullanmak,
      kullanicinin zaten bildigi tek yeri koruyor. */
   const [alintilanan, setAlintilanan] = useState(null)
-  const [ozet, setOzet] = useState(null)
   /*
    * Kutu artık DÜĞMEYLE açılıyor.
    *
@@ -253,6 +255,7 @@ export default function CommunityPage({ mode = 'news' }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [adminPanelOpen, setAdminPanelOpen] = useState(false)
+  const [aramaMetni, setAramaMetni] = useState('')
 
   useEffect(() => {
     if (window.location.hash === '#yayin-araclari') {
@@ -282,7 +285,7 @@ export default function CommunityPage({ mode = 'news' }) {
 
   const contributors = useMemo(() => Object.values(posts.reduce((result, post) => {
     const name = post.author?.name || 'LocalKarar kullanıcısı'
-    result[name] ||= { name, count: 0 }
+    result[name] ||= { id: post.author?.id, name, count: 0 }
     result[name].count += 1
     return result
   }, {})).sort((a, b) => b.count - a.count).slice(0, 4), [posts])
@@ -299,7 +302,6 @@ export default function CommunityPage({ mode = 'news' }) {
       setPosts(feed.posts || [])
       /* Özet ayrı çağrı: akış sorgusuna eklemek onu ağırlaştırırdı ve
          özet yüklenemese bile akış görünmeli. */
-      if (!isNews) api.community.benimOzetim().then(setOzet).catch(() => {})
       setPending(moderation.posts || [])
       setReports(reportQueue.reports || [])
     } catch (loadError) {
@@ -507,20 +509,26 @@ export default function CommunityPage({ mode = 'news' }) {
 
   const featuredPost = isNews ? posts[0] : null
   const latestPosts = isNews ? posts.slice(1) : posts
+  const gorunenPosts = useMemo(() => {
+    const sorgu = aramaMetni.trim().toLocaleLowerCase('tr-TR')
+    if (!sorgu) return posts
+    return posts.filter(post => `${post.author?.name || ''} ${post.summary || ''}`
+      .toLocaleLowerCase('tr-TR').includes(sorgu))
+  }, [aramaMetni, posts])
 
   return (
     <main className={`${styles.page} ${isNews ? styles.newsPage : styles.communityPage}`}>
       <header className={styles.pageHeading} data-tour="topluluk-baslik">
-        <div><span className={styles.kicker}>{isNews ? 'LocalKarar Haber Merkezi' : 'YEREL İŞLETMELER'}</span><h1>{isNews ? 'Haberler' : 'Topluluk'}</h1><p>{isNews ? 'İşletmenizi etkileyen resmî gelişmeleri kaynaklı ve kısa özetlerle takip edin.' : 'Yerel işletmelerden gerçek deneyimler.'}</p></div>
+        <div>{isNews && <span className={styles.kicker}>LocalKarar Haber Merkezi</span>}<h1>{isNews ? 'Haberler' : 'Topluluk'}</h1>{isNews && <p>İşletmenizi etkileyen resmî gelişmeleri kaynaklı ve kısa özetlerle takip edin.</p>}</div>
         {!isNews && (
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             className={styles.createPostButton}
             onClick={() => setKutuAcik(true)}
           >
             <Plus size={17} aria-hidden="true" />
-            Gönderi oluştur
-          </button>
+            <span>Yeni gönderi</span>
+          </Button>
         )}
       </header>
 
@@ -529,7 +537,6 @@ export default function CommunityPage({ mode = 'news' }) {
 
       {!isNews && (
         <div className={styles.communityGrid}>
-          <SolProfilKarti user={user} ozet={ozet} />
           <div className={styles.mainColumn}>
             {/*
               * TEK KUTU, BAŞLIK YOK — X benzeri serbest paylaşım
@@ -563,10 +570,16 @@ export default function CommunityPage({ mode = 'news' }) {
                   </div>
                 )}
                 <div className={styles.composerFooter}>
-                  <MediaPicker media={userMedia} onChange={setUserMedia} disabled={submitting} videoIzinli />
+                  <div className={styles.composerTools}>
+                    <MediaPicker media={userMedia} onChange={setUserMedia} disabled={submitting} videoIzinli />
+                    <EtiketSecici kisiler={contributors} onSelect={kisi => {
+                      const etiket = `@${kisi.name.trim().replace(/\s+/g, '_')}`
+                      setMetin(mevcut => `${mevcut}${mevcut && !mevcut.endsWith(' ') ? ' ' : ''}${etiket} `)
+                    }} />
+                  </div>
                   <span className={styles.composerSayac}>
                     <small aria-live="polite">{metin.length}/500</small>
-                    <button className={styles.primaryButton} type="submit" disabled={submitting || (!metin.trim() && !userMedia && !alintilanan)}><Send size={17} />{submitting ? 'Gönderiliyor…' : 'Paylaş'}</button>
+                    <Button type="submit" disabled={submitting || (!metin.trim() && !userMedia && !alintilanan)}><Send size={17} />{submitting ? 'Gönderiliyor…' : 'Paylaş'}</Button>
                   </span>
                 </div>
               </form>
@@ -574,11 +587,11 @@ export default function CommunityPage({ mode = 'news' }) {
             {isAdmin && <AdminPanel {...{ showOfficialComposer: isNews, pending, reports, officialPost, setOfficialPost, officialMedia, setOfficialMedia, submitting, publishing, submitOfficialPost, createAndPublishOfficialPost, resetOfficialPost, adminPanelOpen, setAdminPanelOpen, aiSourceText, setAiSourceText, aiLoading, createAiOfficialDraft, moderate, resolveReport }} />}
             <section className={styles.feed} aria-live="polite">
               {loading && <FeedSkeleton />}
-              {!loading && posts.length === 0 && <EmptyState text="Henüz yayımlanmış paylaşım yok. İlk deneyimi sen paylaşabilirsin." />}
+              {!loading && gorunenPosts.length === 0 && <EmptyState text={aramaMetni ? 'Aramanla eşleşen paylaşım bulunamadı.' : 'Henüz yayımlanmış paylaşım yok. İlk deneyimi sen paylaşabilirsin.'} />}
               {/* Tek tip akış: "öne çıkan tartışma" bloğu kalktı. Başlıksız
                   paylaşımlarda o blok boş bir başlık gösteriyordu, ayrıca
                   X'te de ilk gönderi büyütülmüyor. */}
-              <div className={styles.discussionList}>{posts.map(post => (
+              <div className={styles.discussionList}>{gorunenPosts.map(post => (
                 <CommunityCard
                   key={post.id}
                   post={post}
@@ -594,7 +607,7 @@ export default function CommunityPage({ mode = 'news' }) {
               ))}</div>
             </section>
           </div>
-          <CommunityRail posts={posts} contributors={contributors} />
+          <CommunityRail posts={posts} contributors={contributors} arama={aramaMetni} setArama={setAramaMetni} onAc={gonderiyiAc} isAdmin={isAdmin} />
         </div>
       )}
 
@@ -655,24 +668,36 @@ function MedyaYanPaneli({ postId }) {
   if (!veri) return <p className={styles.postText}>Yükleniyor…</p>
 
   return (
-    <>
-      <div className={styles.postHead}>
-        <strong>{veri.author?.name || 'LocalKarar kullanıcısı'}</strong>
-        <small>{timeAgo(veri.publishedAt)}</small>
-      </div>
-      {veri.summary && <p className={styles.postText}>{veri.summary}</p>}
-      <p className={styles.baglamEtiketi}>{veri.begeniSayisi} beğeni · {veri.yanitSayisi} yanıt</p>
-      {veri.replies?.map(yanit => (
-        <div key={yanit.id} className={styles.yanPanelYanit}>
+    <section className={styles.medyaKonu} aria-label="Gönderi konuşması">
+      <div className={styles.medyaKonuBaslik}>Gönderi</div>
+      <div className={styles.medyaGonderi}>
+        <span className={styles.kucukAvatar}>{initials(veri.author?.name)}</span>
+        <div>
           <div className={styles.postHead}>
-            <strong>{yanit.author?.name || 'LocalKarar kullanıcısı'}</strong>
-            <small>{timeAgo(yanit.publishedAt)}</small>
+            <strong>{veri.author?.name || 'LocalKarar kullanıcısı'}</strong>
+            <small>{timeAgo(veri.publishedAt)}</small>
           </div>
-          {yanit.summary && <p className={styles.postText}>{yanit.summary}</p>}
+          {veri.summary && <p className={styles.postText}>{veri.summary}</p>}
+          <p className={styles.baglamEtiketi}>{veri.begeniSayisi} beğeni · {veri.yanitSayisi} yanıt</p>
         </div>
-      ))}
-      {veri.yanitSayisi === 0 && <p className={styles.baglamEtiketi}>Henüz yanıt yok.</p>}
-    </>
+      </div>
+      <div className={styles.medyaYanitlar}>
+        <h3>Yanıtlar</h3>
+        {veri.replies?.map(yanit => (
+          <div key={yanit.id} className={styles.yanPanelYanit}>
+            <span className={styles.kucukAvatar}>{initials(yanit.author?.name)}</span>
+            <div>
+              <div className={styles.postHead}>
+                <strong>{yanit.author?.name || 'LocalKarar kullanıcısı'}</strong>
+                <small>{timeAgo(yanit.publishedAt)}</small>
+              </div>
+              {yanit.summary && <p className={styles.postText}>{yanit.summary}</p>}
+            </div>
+          </div>
+        ))}
+        {veri.yanitSayisi === 0 && <p className={styles.baglamEtiketi}>Henüz yanıt yok.</p>}
+      </div>
+    </section>
   )
 }
 
@@ -736,7 +761,7 @@ export function GonderiMenusu({ kaldirilabilir, onRemove, onReport }) {
  * disinda hicbir sey gondermiyor. Aksi halde kaldirma yetkisi
  * alintiyla atlatilirdi.
  */
-export function AlintiBlogu({ alinti }) {
+export function AlintiBlogu({ alinti, onEtkilesim, onYanitla, onAlintila, onPaylas }) {
   if (!alinti) return null
   if (alinti.kaldirildi) {
     return <div className={`${styles.alinti} ${styles.alintiYok}`}>Bu paylaşım kaldırıldı.</div>
@@ -752,7 +777,22 @@ export function AlintiBlogu({ alinti }) {
       {/* Alıntılanan medyayı büyütünce ALINTILANAN gönderinin kendi
           yanıtları görünüyor; alıntıyı yazanın değil. Kullanıcı o
           medyaya baktığı için onun bağlamını bekler. */}
-      <PostMedia media={alinti.media} kucuk yanPanel={<MedyaYanPaneli postId={alinti.id} />} />
+      <PostMedia
+        media={alinti.media}
+        kucuk
+        yanPanel={<MedyaYanPaneli postId={alinti.id} />}
+        overlayText={alinti.summary}
+        mediaActions={onEtkilesim && onYanitla && onAlintila && onPaylas ? (
+          <IslemSatiri
+            post={alinti}
+            onEtkilesim={onEtkilesim}
+            onYanitla={onYanitla}
+            onAlintila={onAlintila}
+            onPaylas={onPaylas}
+            overlay
+          />
+        ) : null}
+      />
     </div>
   )
 }
@@ -771,9 +811,9 @@ function sayiyiYaz(n) {
  * yalniz kendi isaretim (dolu/bos kalp) icin yapiliyor -- o benim
  * eylemim ve gecikmesi kotu hissettiriyor.
  */
-export function IslemSatiri({ post, onEtkilesim, onYanitla, onAlintila, onPaylas }) {
+export function IslemSatiri({ post, onEtkilesim, onYanitla, onAlintila, onPaylas, overlay = false }) {
   return (
-    <div className={styles.islemSatiri}>
+    <div className={`${styles.islemSatiri} ${overlay ? styles.islemSatiriOverlay : ''}`}>
       <button
         type="button"
         className={post.begendim ? styles.islemAktif : undefined}
@@ -791,26 +831,27 @@ export function IslemSatiri({ post, onEtkilesim, onYanitla, onAlintila, onPaylas
         {post.yanitSayisi > 0 && <b>{sayiyiYaz(post.yanitSayisi)}</b>}
       </button>
 
-      <button type="button" onClick={() => onAlintila(post)}>
+      <button type="button" onClick={event => { event.stopPropagation(); onAlintila(post) }}>
         <Repeat2 size={18} />
         <span>Alıntıla</span>
         {post.alintiSayisi > 0 && <b>{sayiyiYaz(post.alintiSayisi)}</b>}
       </button>
 
-      <span className={styles.islemSag}>
-        <button
-          type="button"
-          className={post.kaydettim ? styles.islemAktif : undefined}
-          onClick={() => onEtkilesim(post, 'bookmark', !post.kaydettim)}
-          aria-pressed={post.kaydettim}
-          aria-label={post.kaydettim ? 'Kaydı kaldır' : 'Kaydet'}
-        >
-          <Bookmark size={17} fill={post.kaydettim ? 'currentColor' : 'none'} />
-        </button>
-        <button type="button" onClick={() => onPaylas(post)} aria-label="Paylaş">
-          <Share2 size={17} />
-        </button>
-      </span>
+      <button
+        type="button"
+        className={post.kaydettim ? styles.islemAktif : undefined}
+        onClick={() => onEtkilesim(post, 'bookmark', !post.kaydettim)}
+        aria-pressed={post.kaydettim}
+        aria-label={post.kaydettim ? 'Kaydı kaldır' : 'Kaydet'}
+      >
+        <Bookmark size={17} fill={post.kaydettim ? 'currentColor' : 'none'} />
+        <span>Kaydet</span>
+      </button>
+
+      <button type="button" onClick={() => onPaylas(post)} aria-label="Paylaş">
+        <Share2 size={17} />
+        <span>Paylaş</span>
+      </button>
     </div>
   )
 }
@@ -823,31 +864,46 @@ export function IslemSatiri({ post, onEtkilesim, onYanitla, onAlintila, onPaylas
  * sayi koymak yerine gercekten sahip oldugumuz uc sayi gosteriliyor:
  * paylasim, begeni, kayit. Takip eklenirse kart buyur, yalan soylemez.
  */
-function SolProfilKarti({ user, ozet }) {
+function EtiketliMetin({ children }) {
+  const parcalar = String(children || '').split(/(@[\p{L}\p{N}_]+)/gu)
   return (
-    <aside className={styles.solSutun} aria-label="Profil özeti">
-      <section className={styles.profilKarti}>
-        <span className={styles.authorAvatar}>{initials(user?.name)}</span>
-        <h2>{user?.name || 'LocalKarar kullanıcısı'}</h2>
-        <p>Yerel işletme sahibi</p>
-        <div className={styles.profilSayilari}>
-          <a href="/app/profil?liste=posts"><b>{ozet?.paylasim ?? '—'}</b><span>Paylaşım</span></a>
-          <a href="/app/profil?liste=likes"><b>{ozet?.begeni ?? '—'}</b><span>Beğeni</span></a>
-          <a href="/app/profil?liste=bookmarks"><b>{ozet?.kayit ?? '—'}</b><span>Kayıt</span></a>
-        </div>
-      </section>
-    </aside>
+    <>{parcalar.map((parca, index) => parca.startsWith('@')
+      ? <span className={styles.mention} key={`${parca}-${index}`}>{parca.replaceAll('_', ' ')}</span>
+      : parca)}</>
   )
 }
 
-export function CommunityCard({ post, kaldirilabilir, onReport, onRemove, onEtkilesim, onYanitla, onAlintila, onPaylas, onAc }) {
+function EtiketSecici({ kisiler, onSelect }) {
+  const [acik, setAcik] = useState(false)
+  if (!kisiler.length) return null
+  return (
+    <div className={styles.mentionPicker}>
+      <button type="button" className={styles.toolButton} onClick={() => setAcik(deger => !deger)} aria-expanded={acik} aria-haspopup="listbox">
+        <AtSign size={18} aria-hidden="true" /><span>Etiketle</span>
+      </button>
+      {acik && <div className={styles.mentionList} role="listbox" aria-label="Etiketlenecek kişi">
+        {kisiler.map(kisi => <button key={kisi.id || kisi.name} type="button" role="option" onClick={() => { onSelect(kisi); setAcik(false) }}>
+          <span className={styles.kucukAvatar}>{initials(kisi.name)}</span>{kisi.name}
+        </button>)}
+      </div>}
+    </div>
+  )
+}
+
+export function CommunityCard({ post, kaldirilabilir, onReport, onRemove, onEtkilesim, onYanitla, onAlintila, onPaylas, onAc, compact = false }) {
   /*
    * Baslik yok: govde dogrudan metin. Avatar solda, icerik sagda tek
    * sutun -- eski duzen basliga gore kurulmustu ve yazarin ADINI
    * gizliyordu.
    */
   return (
-    <article className={styles.communityCard}>
+    <article
+      className={`${styles.communityCard} ${compact ? styles.compactCard : ''}`}
+      onClick={event => {
+        if (event.target.closest('button, a, input, textarea, select, [role="menu"]')) return
+        onAc(post.id)
+      }}
+    >
       <span className={styles.authorAvatar}>{initials(post.author?.name)}</span>
       <div className={styles.postBody}>
         <div className={styles.postHead}>
@@ -867,12 +923,32 @@ export function CommunityCard({ post, kaldirilabilir, onReport, onRemove, onEtki
           className={styles.postAcilir}
           role="link"
           tabIndex={0}
-          onClick={() => onAc(post.id)}
+          onClick={event => { event.stopPropagation(); onAc(post.id) }}
           onKeyDown={event => { if (event.key === 'Enter') onAc(post.id) }}
         >
-          {post.summary && <p className={styles.postText}>{post.summary}</p>}
-          <AlintiBlogu alinti={post.quotedPost} />
-          <PostMedia media={post.media} yanPanel={<MedyaYanPaneli postId={post.id} />} />
+          {post.summary && <p className={styles.postText}><EtiketliMetin>{post.summary}</EtiketliMetin></p>}
+          <AlintiBlogu
+            alinti={post.quotedPost}
+            onEtkilesim={onEtkilesim}
+            onYanitla={onYanitla}
+            onAlintila={onAlintila}
+            onPaylas={onPaylas}
+          />
+          <PostMedia
+            media={post.media}
+            yanPanel={<MedyaYanPaneli postId={post.id} />}
+            overlayText={post.summary}
+            mediaActions={post.media ? (
+              <IslemSatiri
+                post={post}
+                onEtkilesim={onEtkilesim}
+                onYanitla={onYanitla}
+                onAlintila={onAlintila}
+                onPaylas={onPaylas}
+                overlay
+              />
+            ) : null}
+          />
         </div>
 
         <IslemSatiri
@@ -899,8 +975,32 @@ function NewsCard({ post, onReport }) {
   return <article className={styles.newsCard}><div className={styles.newsThumb}>{post.media?.kind === 'image' ? <PostMedia media={post.media} /> : <FileText size={34} />}</div><div className={styles.newsBody}><span>{post.category ? `${CATEGORY_LABELS[post.category] || post.category} · ` : ''}{post.sourceTitle || 'Resmî kaynak'}</span><h2>{post.title}</h2><p>{post.summary}</p>{post.content && <p className={styles.newsContent}>{post.content}</p>}<div><time>{timeAgo(post.publishedAt)}</time>{post.sourceUrl && <a href={post.sourceUrl} target="_blank" rel="noreferrer noopener">Kaynağa git <ExternalLink size={14} /></a>}<button type="button" onClick={() => onReport(post.id)} aria-label="Haberi raporla"><Flag size={14} /></button></div></div></article>
 }
 
-function CommunityRail({ posts, contributors }) {
-  return <aside className={styles.communityRail} aria-label="Topluluk özeti"><section className={styles.railCard}><h2><TrendingUp size={19} /> Gündemde</h2>{posts.length === 0 ? <p>Henüz gündem başlığı oluşmadı.</p> : posts.slice(0, 4).map((post, index) => <div className={styles.topicRow} key={post.id}><span>{ozet(post)}</span><small>{index + 1}</small></div>)}</section><section className={styles.railCard}><h2><Star size={19} /> Katkı sağlayanlar</h2>{contributors.length === 0 ? <p>İlk katkıyı paylaşarak sen başlatabilirsin.</p> : contributors.map(person => <div className={styles.contributorRow} key={person.name}><span className={styles.authorAvatar}>{initials(person.name)}</span><span><strong>{person.name}</strong><small>{person.count} paylaşım</small></span></div>)}</section></aside>
+function CommunityAds({ isAdmin }) {
+  const [ads, setAds] = useState([])
+  const load = () => api.community.ads
+    ? api.community.ads().then(r => setAds(r.ads || [])).catch(() => {})
+    : Promise.resolve()
+  useEffect(() => { load() }, [])
+  async function create() {
+    const title = window.prompt('Reklam başlığı')?.trim(); if (!title) return
+    const body = window.prompt('Reklam metni')?.trim(); if (!body) return
+    const ctaUrl = window.prompt('Bağlantı (isteğe bağlı)')?.trim()
+    await api.community.createAd({ title, body, ...(ctaUrl ? { ctaUrl, ctaLabel: 'İncele' } : {}) }); await load()
+  }
+  return <>{ads.map(ad => <section className={`${styles.railCard} ${styles.adCard}`} key={ad.id}><small>Tanıtım</small><h2>{ad.title}</h2><p>{ad.body}</p>{ad.ctaUrl && <a href={ad.ctaUrl} target="_blank" rel="noreferrer noopener">{ad.ctaLabel || 'İncele'}</a>}{isAdmin && <button type="button" onClick={async () => { await api.community.removeAd(ad.id); await load() }}>Kaldır</button>}</section>)}{isAdmin && <button type="button" className={styles.addAdButton} onClick={create}><Plus size={15}/> Reklam ekle</button>}</>
+}
+
+function CommunityRail({ posts, contributors, arama, setArama, onAc, isAdmin }) {
+  return <aside className={styles.communityRail} aria-label="Topluluk özeti">
+    <label className={styles.communitySearch}>
+      <Search size={17} aria-hidden="true" />
+      <input type="search" value={arama} onChange={event => setArama(event.target.value)} placeholder="Paylaşımlarda ara" aria-label="Paylaşımlarda ara" />
+      {arama && <button type="button" onClick={() => setArama('')} aria-label="Aramayı temizle"><X size={15} /></button>}
+    </label>
+    <section className={styles.railCard}><h2><TrendingUp size={19} /> Gündemde</h2>{posts.length === 0 ? <p>Henüz gündem başlığı oluşmadı.</p> : posts.slice(0, 4).map((post, index) => <button type="button" className={styles.topicRow} key={post.id} onClick={() => onAc(post.id)}><span>{ozet(post)}</span><small>{index + 1}</small></button>)}</section>
+    <section className={styles.railCard}><h2><Star size={19} /> Katkı sağlayanlar</h2>{contributors.length === 0 ? <p>İlk katkıyı paylaşarak sen başlatabilirsin.</p> : contributors.map(person => <div className={styles.contributorRow} key={person.name}><span className={styles.authorAvatar}>{initials(person.name)}</span><span><strong>{person.name}</strong><small>{person.count} paylaşım</small></span></div>)}</section>
+    <CommunityAds isAdmin={isAdmin} />
+  </aside>
 }
 
 function AdminPanel(props) {

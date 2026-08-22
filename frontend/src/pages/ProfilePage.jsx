@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Bookmark, Heart, MessageSquare } from 'lucide-react'
+import { Bell, Bookmark, Heart, MessageSquare, Settings } from 'lucide-react'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import { CommunityCard, initials } from './CommunityPage'
@@ -133,7 +133,11 @@ export default function ProfilePage() {
           <h1>{user?.name || 'LocalKarar kullanıcısı'}</h1>
           <p>Paylaştıkların, beğendiklerin ve kendine kaydettiklerin.</p>
         </div>
-        <span className={styles.authorAvatar}>{initials(user?.name)}</span>
+        <div className={styles.profileActions}>
+          <button type="button" onClick={() => navigate('/app/settings?bolum=notifications')}><Bell size={17} /> Bildirimler</button>
+          <button type="button" onClick={() => navigate('/app/settings?bolum=profile')}><Settings size={17} /> Ayarlar</button>
+          <span className={styles.authorAvatar}>{initials(user?.name)}</span>
+        </div>
       </header>
 
       {bildirim && <div className={styles.notice}>{bildirim}</div>}

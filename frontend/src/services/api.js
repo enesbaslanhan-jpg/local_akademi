@@ -564,6 +564,16 @@ export const api = {
     async benimOzetim() {
       return api.request('/community/me/summary');
     },
+    async people(q = '') { return api.request(`/community/social/people${q ? `?q=${encodeURIComponent(q)}` : ''}`); },
+    async follow(personId, active) { return api.request(`/community/social/people/${personId}/follow`, { method: active ? 'POST' : 'DELETE' }); },
+    async block(personId, active) { return api.request(`/community/social/people/${personId}/block`, { method: active ? 'POST' : 'DELETE' }); },
+    async threads() { return api.request('/community/social/threads'); },
+    async createThread(data) { return api.request('/community/social/threads', { method: 'POST', body: JSON.stringify(data) }); },
+    async messages(threadId) { return api.request(`/community/social/threads/${threadId}/messages`); },
+    async sendMessage(threadId, body) { return api.request(`/community/social/threads/${threadId}/messages`, { method: 'POST', body: JSON.stringify({ body }) }); },
+    async ads() { return api.request('/community/social/ads'); },
+    async createAd(data) { return api.request('/community/social/ads', { method: 'POST', body: JSON.stringify(data) }); },
+    async removeAd(adId) { return api.request(`/community/social/ads/${adId}`, { method: 'DELETE' }); },
     async uploadMedia(file) {
       const form = new FormData();
       form.append('file', file);

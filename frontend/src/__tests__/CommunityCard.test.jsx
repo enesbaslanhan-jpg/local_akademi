@@ -81,13 +81,38 @@ describe('CommunityCard', () => {
     expect(screen.getByText('2')).toBeInTheDocument()
   })
 
-  it('dört işlem düğmesi de var', () => {
-    ciz()
+  it('beş eşit işlem düğmesi de var', () => {
+    const props = ciz()
 
     expect(screen.getByText('Beğen')).toBeInTheDocument()
     expect(screen.getByText('Yanıtla')).toBeInTheDocument()
     expect(screen.getByText('Alıntıla')).toBeInTheDocument()
+    expect(screen.getByText('Kaydet')).toBeInTheDocument()
     expect(screen.getByLabelText('Paylaş')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Alıntıla' }))
+    expect(props.onAlintila).toHaveBeenCalledWith(ornekGonderi)
+    expect(props.onAc).not.toHaveBeenCalled()
+  })
+
+  it('metinsiz medya gönderisini de erişilebilir büyütme kontrolüyle çiziyor', () => {
+    const props = ciz({ post: { ...ornekGonderi, summary: '', media: { id: 12, kind: 'image', url: '/media/ornek.png' } } })
+
+    expect(screen.queryByText(/Kargo firmasını/)).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Görseli büyüt' }))
+    expect(screen.getByRole('dialog', { name: 'Görsel önizleme' })).toBeInTheDocument()
+    expect(props.onAc).not.toHaveBeenCalled()
+  })
+
+  it('kartın boş gövdesi gönderiyi açar, işlem düğmesi açmaz', () => {
+    const props = ciz()
+    const kart = screen.getByText(/Kargo firmasını/).closest('article')
+
+    fireEvent.click(kart)
+    expect(props.onAc).toHaveBeenCalledWith('gonderi-1')
+
+    props.onAc.mockClear()
+    fireEvent.click(screen.getByText('Kaydet'))
+    expect(props.onAc).not.toHaveBeenCalled()
   })
 
   it('beğeni düğmesi doğru yönde çağrı yapıyor', () => {

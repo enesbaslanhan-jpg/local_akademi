@@ -36,6 +36,14 @@ model User {
   communityReports        CommunityReport[]
   communityLikes          CommunityLike[]
   communityBookmarks      CommunityBookmark[]
+  communityFollowing      CommunityFollow[]        @relation("CommunityFollowing")
+  communityFollowers      CommunityFollow[]        @relation("CommunityFollowers")
+  communityBlocksMade     CommunityBlock[]         @relation("CommunityBlocker")
+  communityBlocksReceived CommunityBlock[]         @relation("CommunityBlocked")
+  communityThreadMembers  CommunityThreadMember[]
+  communityMessages       CommunityMessage[]
+  createdCommunityThreads CommunityThread[]        @relation("CommunityThreadCreator")
+  createdCommunityAds     CommunityAd[]
   conversations           Conversation[]
   conversationSummaries   ConversationSummary[]
   documentConversations   DocumentConversation[]
@@ -127,7 +135,7 @@ model UserConsent {
 }
 
 model CommunityPost {
-  id                String            @id @default(uuid())
+  id                String    @id @default(uuid())
   authorId          Int?
   moderatedById     Int?
   postType          String
@@ -138,12 +146,12 @@ model CommunityPost {
   sourceUrl         String?
   sourceTitle       String?
   sourcePublishedAt DateTime?
-  status            String            @default("pending")
+  status            String    @default("pending")
   moderationReason  String?
   publishedAt       DateTime?
   moderatedAt       DateTime?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
   /// Yanit verilen gonderi. X'te bir yanit KENDISI de bir gonderidir;
   /// ayri bir Comment modeli yazmak medya, sikayet, kaldirma ve yetki
   /// mantiginin ikinci bir kopyasini gerektirirdi.
@@ -152,20 +160,20 @@ model CommunityPost {
   /// gonderiye isaret eder.
   quotedPostId      String?
 
-  moderatedBy       User?             @relation("CommunityPostModerator", fields: [moderatedById], references: [id])
-  author            User?             @relation("CommunityPostAuthor", fields: [authorId], references: [id])
-  reports           CommunityReport[]
-  media             CommunityMedia?
+  moderatedBy User?             @relation("CommunityPostModerator", fields: [moderatedById], references: [id])
+  author      User?             @relation("CommunityPostAuthor", fields: [authorId], references: [id])
+  reports     CommunityReport[]
+  media       CommunityMedia?
 
-  parent            CommunityPost?    @relation("CommunityPostReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies           CommunityPost[]   @relation("CommunityPostReplies")
+  parent     CommunityPost?      @relation("CommunityPostReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies    CommunityPost[]     @relation("CommunityPostReplies")
   /// SetNull: alintilanan satir gercekten silinirse alinti AYAKTA kalir
   /// ve "kaynak bulunamiyor" gosterir. Cascade olsaydi baskasinin yazisi
   /// da giderdi.
-  quotedPost        CommunityPost?    @relation("CommunityPostQuotes", fields: [quotedPostId], references: [id], onDelete: SetNull)
-  quotes            CommunityPost[]   @relation("CommunityPostQuotes")
-  likes             CommunityLike[]
-  bookmarks         CommunityBookmark[]
+  quotedPost CommunityPost?      @relation("CommunityPostQuotes", fields: [quotedPostId], references: [id], onDelete: SetNull)
+  quotes     CommunityPost[]     @relation("CommunityPostQuotes")
+  likes      CommunityLike[]
+  bookmarks  CommunityBookmark[]
 
   @@index([status, publishedAt])
   @@index([postType, status])
@@ -208,6 +216,81 @@ model CommunityReport {
   @@unique([postId, reporterId])
   @@index([status, createdAt])
   @@index([postId, status])
+}
+
+model CommunityFollow {
+  id          String   @id @default(uuid())
+  followerId  Int
+  followingId Int
+  createdAt   DateTime @default(now())
+  follower    User     @relation("CommunityFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("CommunityFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followingId, createdAt])
+}
+
+model CommunityBlock {
+  id        String   @id @default(uuid())
+  blockerId Int
+  blockedId Int
+  createdAt DateTime @default(now())
+  blocker   User     @relation("CommunityBlocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User     @relation("CommunityBlocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockedId])
+}
+
+model CommunityThread {
+  id          String                  @id @default(uuid())
+  name        String?
+  isGroup     Boolean                 @default(false)
+  createdById Int
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  createdBy   User                    @relation("CommunityThreadCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  members     CommunityThreadMember[]
+  messages    CommunityMessage[]
+}
+
+model CommunityThreadMember {
+  threadId String
+  userId   Int
+  role     String          @default("member")
+  joinedAt DateTime        @default(now())
+  thread   CommunityThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([threadId, userId])
+  @@index([userId, joinedAt])
+}
+
+model CommunityMessage {
+  id        String          @id @default(uuid())
+  threadId  String
+  senderId  Int
+  body      String
+  createdAt DateTime        @default(now())
+  thread    CommunityThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender    User            @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+}
+
+model CommunityAd {
+  id          String   @id @default(uuid())
+  title       String
+  body        String
+  ctaLabel    String?
+  ctaUrl      String?
+  active      Boolean  @default(true)
+  createdById Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([active, createdAt])
 }
 
 /// Begeni. Desen uydurulmadi: PracticalCardSave ile ayni sekil.

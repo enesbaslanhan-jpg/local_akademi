@@ -1,34 +1,26 @@
-/*
- * SESSİZ AKIŞ + YÜZEN CAM KAPSÜL
- *
- * Video akışta sessiz oynar ve üzerinde hiçbir şey durmaz. Tek kalıcı
- * öğe sağ alttaki hoparlör rozeti. Kontroller alt ortada, arkası
- * bulanık cam bir kapsülde ve ancak istendiğinde beliriyor.
- */
 .sarmal {
   position: relative;
-  margin-top: 16px;
-  border-radius: 16px;
+  margin-top: 12px;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: #000;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  border-radius: 12px;
+  background: #080b0d;
   line-height: 0;
 }
 
 .video {
   display: block;
   width: 100%;
-  max-height: 520px;
-  object-fit: contain;
-  background: #000;
+  height: 100%;
+  max-height: 420px;
+  object-fit: cover;
+  background: #080b0d;
 }
 
 .kucuk .video { max-height: 260px; }
 
-/*
- * Videonun tamamını kaplayan görünmez düğme: dokunmak sesi açıyor.
- * Kapsülün ALTINDA duruyor (z-index), yoksa onun düğmelerini yutardı.
- */
-.sesKatmani {
+.acKatmani {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -37,119 +29,53 @@
   background: transparent;
   cursor: pointer;
 }
-.sesKatmani:focus-visible {
-  outline: 2px solid var(--primary);
+.acKatmani:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--primary));
   outline-offset: -4px;
 }
 
-/*
- * Sessiz akış rozeti — tek kalıcı öğe. Küçük, sağ altta, camsı.
- * `pointer-events: none`: altındaki ses katmanı zaten aynı işi
- * yapıyor; ayrı bir tıklama hedefi olması gereksiz.
- */
-.sesRozeti {
+.oynatRozeti,
+.sesDugmesi {
   position: absolute;
-  right: 12px;
-  bottom: 12px;
   z-index: 2;
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  border: 1px solid rgba(255, 255, 255, .2);
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, .18);
-  background: rgba(20, 20, 20, .42);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(10, 13, 15, .66);
   color: #fff;
-  pointer-events: none;
-  transition: opacity .2s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
-/* Kapsül açıkken rozet çekiliyor: aynı bilgi iki yerde durmasın. */
-.kontrolAcik .sesRozeti,
-.sarmal:focus-within .sesRozeti { opacity: 0; }
 
-/*
- * YÜZEN CAM KAPSÜL — alt ortada, havada asılı.
- * Zaman çubuğu yok; yalnız oynat, kalan süre, ses, büyüt.
- */
-.kapsul {
-  position: absolute;
-  bottom: 14px;
+.oynatRozeti {
+  top: 50%;
   left: 50%;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 8px;
-  border: 1px solid rgba(255, 255, 255, .16);
-  border-radius: 999px;
-  background: rgba(18, 18, 20, .38);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, .34);
-  line-height: 1;
-  opacity: 0;
-  transform: translate(-50%, 8px);
-  transition: opacity .2s ease, transform .2s ease;
-  /* Gizliyken tıklanamaz olmalı; yoksa görünmeyen düğmeler videonun
-     üstünde tuzak gibi durur. */
-  pointer-events: none;
-}
-
-.kontrolAcik .kapsul,
-.sarmal:focus-within .kapsul {
-  opacity: 1;
-  transform: translate(-50%, 0);
-  pointer-events: auto;
-}
-
-/*
- * Dokunmatikte "üzerine gelme" diye bir şey yok; kapsül hep görünür.
- * Aksi hâlde mobilde kontrollere hiç erişilemezdi.
- */
-@media (hover: none) {
-  .kapsul { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
-  .sesRozeti { opacity: 0; }
-}
-
-/* Hareket azaltma tercihinde geçiş animasyonu yok. */
-@media (prefers-reduced-motion: reduce) {
-  .kapsul, .sesRozeti { transition: none; }
-}
-
-.kapsul button {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  flex: none;
-  padding: 0;
+  width: 40px;
+  height: 40px;
   border: 0;
-  border-radius: 50%;
   background: transparent;
-  color: #fff;
+  color: rgba(255, 255, 255, .55);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  filter: drop-shadow(0 2px 7px rgba(0, 0, 0, .72));
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.sesDugmesi {
+  right: 12px;
+  bottom: 12px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
   cursor: pointer;
 }
-.kapsul button:hover { background: rgba(255, 255, 255, .18); }
-.kapsul button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.sesDugmesi:hover { background: rgba(10, 13, 15, .82); }
+.sesDugmesi:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
-.kalanSure {
-  padding: 0 6px;
-  color: #fff;
-  font-size: .7rem;
-  font-weight: 600;
-  /* Rakamlar eşit genişlikte: süre saydıkça kapsül genişleyip
-     daralmasın, göz yorucu oluyor. */
-  font-variant-numeric: tabular-nums;
-}
-
-/*
- * `backdrop-filter` desteklemeyen tarayıcıda cam etkisi yok; kapsül
- * saydam kalırsa açık renkli videoda okunmaz olur. Daha koyu düz
- * zemine düşülüyor.
- */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .kapsul { background: rgba(12, 12, 14, .78); }
-  .sesRozeti { background: rgba(12, 12, 14, .78); }
+@media (prefers-reduced-motion: reduce) {
+  .oynatRozeti, .sesDugmesi { backdrop-filter: none; }
 }

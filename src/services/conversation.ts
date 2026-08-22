@@ -15,7 +15,8 @@ import type { Citation } from './ai-gateway'
 import { getActiveAiRuntimeInfo } from './ai-gateway'
 import { buildMemoryContext } from './memory/context-builder'
 import { applyHistoryBudget, estimateHistoryCharacters } from './mentor-history-budget'
-import { getProviderParameters, getPromptProfile } from './mentor-prompt-profile'
+import { getProviderParameters, getPromptProfile, buildProfiledSystemPrompt, type UserBusinessContext, type ProductCatalogContext } from './mentor-prompt-profile'
+import { getProductCatalog, formatCatalogForPrompt } from './mentor-urun-katalogu'
 import { streamSlotManager } from './stream-manager'
 import { extractAndStoreMemories, buildExtractionPrompt } from './memory/memory-extractor'
 import { updateConversationSummary } from './memory/summary-service'
@@ -189,6 +190,75 @@ async function generateTitle(firstMessage: string): Promise<string> {
   return lastSpace > 0 ? cleaned.slice(0, lastSpace) + '...' : cleaned.slice(0, 40) + '...'
 }
 
+async function fetchUserBusinessContext(userId: number): Promise<UserBusinessContext> {
+  const [businessProfile, enrollments, knowledgeProgress, recentCalculations, recentModelRuns] = await Promise.all([
+    prisma.businessProfile.findUnique({
+      where: { userId },
+      select: {
+        name: true, sector: true, city: true, monthlySales: true, monthlyExpenses: true,
+        cashBalance: true, debtBalance: true, businessStage: true, employeeCount: true, primaryGoal: true,
+      },
+    }),
+    prisma.enrollment.findMany({
+      where: { userId, status: { not: 'not_started' } },
+      take: 5,
+      orderBy: { updatedAt: 'desc' },
+      include: { course: { select: { title: true } } },
+    }),
+    prisma.knowledgeProgress.findMany({
+      where: { userId, status: { not: 'not_started' } },
+      take: 5,
+      orderBy: { lastViewedAt: 'desc' },
+      include: { knowledgeObject: { select: { title: true } } },
+    }),
+    prisma.formulaCalculation.findMany({
+      where: { userId },
+      take: 3,
+      orderBy: { createdAt: 'desc' },
+      select: { formulaName: true, createdAt: true },
+    }),
+    prisma.financialModelRun.findMany({
+      where: { userId },
+      take: 3,
+      orderBy: { createdAt: 'desc' },
+      include: { model: { select: { name: true } } },
+    }),
+  ])
+
+  return {
+    businessProfile: businessProfile ? {
+      name: businessProfile.name || undefined,
+      sector: businessProfile.sector || undefined,
+      city: businessProfile.city || undefined,
+      monthlySales: businessProfile.monthlySales || undefined,
+      monthlyExpenses: businessProfile.monthlyExpenses || undefined,
+      cashBalance: businessProfile.cashBalance || undefined,
+      debtBalance: businessProfile.debtBalance || undefined,
+      businessStage: businessProfile.businessStage || undefined,
+      employeeCount: businessProfile.employeeCount || undefined,
+      primaryGoal: businessProfile.primaryGoal || undefined,
+    } : undefined,
+    enrollments: enrollments.map(e => ({
+      courseTitle: e.course.title,
+      progress: e.progress,
+      status: e.status,
+    })),
+    knowledgeProgress: knowledgeProgress.map(kp => ({
+      koTitle: kp.knowledgeObject.title,
+      status: kp.status,
+      progressPercent: kp.progressPercent,
+    })),
+    recentCalculations: recentCalculations.map(c => ({
+      formulaName: c.formulaName,
+      createdAt: c.createdAt,
+    })),
+    recentModelRuns: recentModelRuns.map(r => ({
+      modelName: r.model.name,
+      createdAt: r.createdAt,
+    })),
+  }
+}
+
 interface BuildContextResult {
   chatMessages: ChatMessage[]
   systemMessage: ChatMessage
@@ -205,6 +275,13 @@ interface BuildContextResult {
 }
 
 type ResolvedContext = Awaited<ReturnType<typeof resolveKnowledgeContext>>
+
+const PRODUCT_CATALOG_INTENTS: Set<MentorIntent> = new Set([
+  'business_knowledge',
+  'financial_analysis',
+  'user_business_data',
+  'platform_help',
+])
 
 async function buildContext(
   conversationId: number,
@@ -232,18 +309,26 @@ async function buildContext(
 
   const chatMessages = applyHistoryBudget(rawHistory, intent, { userMessage: message })
 
-  const [dbUser, ctx] = await Promise.all([
+  const [dbUser, ctx, userBusinessContext, productCatalog] = await Promise.all([
     prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } }),
-    resolvedContext ?? resolveKnowledgeContext(message, undefined, intent)
+    resolvedContext ?? resolveKnowledgeContext(message, undefined, intent),
+    fetchUserBusinessContext(user.id),
+    PRODUCT_CATALOG_INTENTS.has(intent) ? getProductCatalog() : Promise.resolve(null),
   ])
-  const systemContent = buildSystemPrompt(
+
+  const catalogContext: ProductCatalogContext | undefined = productCatalog
+    ? { summary: formatCatalogForPrompt(productCatalog) }
+    : undefined
+
+  const systemContent = buildProfiledSystemPrompt(
     { name: dbUser?.name || user.email, role: dbUser?.role || user.role },
+    intent,
     ctx.knowledgeContext,
     ctx.koTitle,
     ctx.selectedKOTitle,
-    intent,
-    message,
-    systemPromptAdditions
+    { userRequestedLength: message ? 'normal' : 'normal' },
+    catalogContext,
+    userBusinessContext,
   )
   const systemMessage: ChatMessage = { role: 'system', content: systemContent }
   const providerParams = getProviderParameters(intent, { userRequestedLength: message ? 'normal' : 'normal' })
@@ -1226,13 +1311,24 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     telemetry?.set('noRelevantKnowledgeFound', resolvedContext.noRelevantKnowledgeFound)
 
     const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } })
-    const systemContent = buildSystemPrompt(
+    const [userBusinessContext, productCatalog] = await Promise.all([
+      fetchUserBusinessContext(user.id),
+      PRODUCT_CATALOG_INTENTS.has(intent) ? getProductCatalog() : Promise.resolve(null),
+    ])
+
+    const catalogContext: ProductCatalogContext | undefined = productCatalog
+      ? { summary: formatCatalogForPrompt(productCatalog) }
+      : undefined
+
+    const systemContent = buildProfiledSystemPrompt(
       { name: dbUser?.name || user.email, role: dbUser?.role || 'learner' },
+      intent,
       resolvedContext.knowledgeContext,
       resolvedContext.koTitle,
       resolvedContext.selectedKOTitle,
-      intent,
-      lastUserContent
+      { userRequestedLength: lastUserContent ? 'normal' : 'normal' },
+      catalogContext,
+      userBusinessContext,
     )
     const systemMessage: ChatMessage = { role: 'system', content: systemContent }
     const chatMessagesBudgeted = applyHistoryBudget(chatMessages, intent, { userMessage: lastUserContent })
@@ -1510,15 +1606,26 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     telemetry?.set('acceptedKnowledgeObjectCount', resolvedContext.knowledgeObjects.length)
     telemetry?.set('rejectedKnowledgeObjectCount', resolvedContext.rejectedKnowledgeObjectCount)
     telemetry?.set('noRelevantKnowledgeFound', resolvedContext.noRelevantKnowledgeFound)
-    const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } })
-    const systemContent = buildSystemPrompt(
+
+    const [dbUser, userBusinessContext, productCatalog] = await Promise.all([
+      prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } }),
+      fetchUserBusinessContext(user.id),
+      PRODUCT_CATALOG_INTENTS.has(intent) ? getProductCatalog() : Promise.resolve(null),
+    ])
+
+    const catalogContext: ProductCatalogContext | undefined = productCatalog
+      ? { summary: formatCatalogForPrompt(productCatalog) }
+      : undefined
+
+    const systemContent = buildProfiledSystemPrompt(
       { name: dbUser?.name || user.email, role: dbUser?.role || user.role },
+      intent,
       resolvedContext.knowledgeContext,
       resolvedContext.koTitle,
       resolvedContext.selectedKOTitle,
-      intent,
-      cleanNewMessage,
-      systemPromptAdditions
+      { userRequestedLength: cleanNewMessage ? 'normal' : 'normal' },
+      catalogContext,
+      userBusinessContext,
     )
     const systemMessage: ChatMessage = { role: 'system', content: systemContent }
     const chatMessagesBudgeted = applyHistoryBudget(chatMessages, intent, { userMessage: cleanNewMessage })

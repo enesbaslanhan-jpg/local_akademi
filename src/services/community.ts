@@ -538,6 +538,7 @@ export async function communityRoutes(
         ? query.type
         : undefined
     const cursorId = query.cursor?.slice(0, 100)
+    const engellenenler = await prisma.communityBlock.findMany({ where: { blockerId: request.user.id }, select: { blockedId: true } })
     const posts = await prisma.communityPost.findMany({
       where: {
         status: 'published',
@@ -553,6 +554,7 @@ export async function communityRoutes(
          * tests/topluluk-etkilesim.test.ts bunu koruyor.
          */
         parentId: null,
+        authorId: { notIn: engellenenler.map(kayit => kayit.blockedId) },
       },
       include: {
         author: {

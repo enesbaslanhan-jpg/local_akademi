@@ -710,3 +710,556 @@
 
 /* Dosya eki de aynı yuvarlaklığı alıyor. */
 .fileAttachment { border-radius: 14px; }
+
+/* ==========================================================
+ * TOPLULUK — ÜRÜN SEVİYESİ YERLEŞİM
+ *
+ * Haberler görünümü bu bölümden etkilenmez. Topluluk akışı, tek
+ * gönderi ve yanıt ağacı aynı kart/aksiyon standardını paylaşır.
+ * ========================================================== */
+
+.communityPage {
+  width: min(100%, 1320px);
+  padding: 0 0 32px;
+}
+
+.communityPage .pageHeading {
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.communityPage .pageHeading h1 {
+  margin: 2px 0 4px;
+  font-size: clamp(1.75rem, 2.6vw, 2.2rem);
+}
+
+.communityPage .pageHeading p {
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+.communityPage .createPostButton {
+  flex: 0 0 auto;
+  height: 40px;
+  min-height: 40px;
+  padding-inline: 14px;
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface-card));
+  color: var(--text);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .08);
+}
+.communityPage .createPostButton:hover {
+  background: color-mix(in srgb, var(--primary) 16%, var(--surface-card));
+  border-color: color-mix(in srgb, var(--primary) 42%, var(--border));
+}
+
+.communityPage .communityGrid {
+  display: grid;
+  grid-template-columns: minmax(560px, 760px) minmax(260px, 320px);
+  justify-content: center;
+  gap: 24px;
+  align-items: start;
+}
+
+.communitySearch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 13px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-card);
+  color: var(--text-light);
+}
+.communitySearch:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent); }
+.communitySearch input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; font-size: .78rem; }
+.communitySearch button { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--text-light); cursor: pointer; }
+
+.composerTools { display: flex; flex: 1 1 auto; flex-wrap: wrap; align-items: flex-start; gap: 4px; min-width: 0; }
+.mentionPicker { position: relative; }
+.mentionList { position: absolute; z-index: 20; bottom: calc(100% + 6px); left: 0; width: 220px; max-height: 220px; overflow-y: auto; padding: 6px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-raised, var(--surface-card)); box-shadow: 0 14px 36px rgba(0,0,0,.18); }
+.mentionList button { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 40px; padding: 6px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--text); cursor: pointer; font: inherit; font-size: .75rem; text-align: left; }
+.mentionList button:hover, .mentionList button:focus-visible { background: var(--surface-panel); outline: none; }
+.mention { color: var(--primary); font-weight: 750; }
+
+.communityPage .mainColumn {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Profil: kimlik ve gerçek istatistikler, tek kompakt yüzey. */
+.communityPage .solSutun {
+  display: block;
+  position: sticky;
+  top: calc(var(--header-height) + 16px);
+  align-self: start;
+}
+
+.communityPage .profilKarti {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-card);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .06);
+  text-align: left;
+}
+
+.profilKimlik {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.communityPage .profilKarti .authorAvatar {
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  border-radius: 50%;
+  font-size: .85rem;
+}
+
+.profilKimlik > span:last-child { min-width: 0; }
+.communityPage .profilKarti h2 {
+  overflow: hidden;
+  margin: 0;
+  font-size: .9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.communityPage .profilKarti .profilKimlik p {
+  margin: 2px 0 0;
+  color: var(--text-light);
+  font-size: .7rem;
+}
+
+.communityPage .profilMenu {
+  position: relative;
+  margin-top: 12px;
+}
+.communityPage .profilMenu summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-panel);
+  color: var(--text-light);
+  cursor: pointer;
+  font-size: .72rem;
+  font-weight: 750;
+  list-style: none;
+}
+.communityPage .profilMenu summary::-webkit-details-marker { display: none; }
+.communityPage .profilMenu summary span { flex: 1; }
+.communityPage .profilMenu summary svg:last-child { transition: transform .18s ease; }
+.communityPage .profilMenu[open] summary svg:last-child { transform: rotate(180deg); }
+.communityPage .profilMenu summary:hover { color: var(--text); }
+.communityPage .profilMenu summary:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--primary));
+  outline-offset: 2px;
+}
+.communityPage .profilSayilari {
+  gap: 4px;
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-card);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .12);
+}
+
+.communityPage .profilSayilari a {
+  min-height: 40px;
+  place-content: center;
+  padding: 4px 2px;
+  text-align: center;
+}
+.communityPage .profilSayilari a:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--primary));
+  outline-offset: 2px;
+}
+.communityPage .profilSayilari b { font-size: .9rem; }
+.communityPage .profilSayilari span { font-size: .62rem; }
+
+/* Gönderiler tek bir akış yüzeyine aittir; ayrı ayrı yüzen kartlar değildir. */
+.communityPage .feed {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface-card);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .07);
+}
+
+.communityPage .discussionList {
+  display: grid;
+  gap: 0;
+}
+
+.communityPage .communityCard {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  column-gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface-card);
+  box-shadow: none;
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+
+.communityPage .discussionList .communityCard {
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.communityPage .discussionList .communityCard:last-child { border-bottom: 0; }
+
+.communityPage .communityCard:hover {
+  transform: none;
+  border-color: color-mix(in srgb, var(--primary) 32%, var(--border));
+  box-shadow: var(--shadow-1, 0 8px 24px rgba(0,0,0,.06));
+}
+.communityPage .discussionList .communityCard:hover {
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--surface-panel) 44%, transparent);
+  box-shadow: none;
+}
+
+.communityPage .communityCard > .authorAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.communityPage .postHead {
+  min-height: 32px;
+  align-items: center;
+  gap: 8px;
+}
+.communityPage .postHead strong { font-size: .84rem; }
+.communityPage .postHead small { font-size: .7rem; }
+
+.communityPage .menuDugmesi {
+  width: 40px;
+  height: 40px;
+}
+.communityPage .menuDugmesi:hover,
+.communityPage .menuDugmesi:focus-visible {
+  background: var(--surface-raised, var(--surface-panel));
+  color: var(--text);
+}
+.communityPage .menuDugmesi:focus-visible,
+.communityPage .menuListesi button:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--primary));
+  outline-offset: 2px;
+}
+
+.communityPage .postAcilir { border-radius: 10px; }
+.communityPage .postText {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: .94rem;
+  line-height: 1.58;
+  letter-spacing: 0;
+}
+
+/* Medya akışın parçası; karttan taşmaz, aşırı yüksekliğe büyümez. */
+.communityPage .communityCard .imageButton,
+.communityPage .postBody .imageButton {
+  aspect-ratio: 16 / 9;
+  margin-top: 12px;
+  border-radius: 12px;
+  background: var(--surface-sunken, var(--surface-panel));
+}
+.communityPage .postImage {
+  width: 100%;
+  height: 100%;
+  max-height: 380px;
+  object-fit: cover;
+}
+.communityPage .fileAttachment { margin-top: 12px; }
+
+/* Alıntı, ana gönderinin içinde ikincil ve daha sıkı bir bağlamdır. */
+.communityPage .alinti {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--surface-sunken, var(--surface-panel));
+}
+.communityPage .alinti > p {
+  font-size: .78rem;
+  line-height: 1.5;
+}
+.communityPage .alinti .imageButton { border-radius: 10px; }
+
+/* Beş eylem aynı yükseklik, ikon ve görsel ağırlıkta. */
+.communityPage .islemSatiri {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(40px, 1fr));
+  gap: 6px;
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.communityPage .islemSatiri button {
+  justify-content: center;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-panel) 78%, transparent);
+  color: var(--text-light);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .07), inset 0 1px rgba(255, 255, 255, .04);
+  font-size: .7rem;
+  line-height: 1;
+}
+.communityPage .islemSatiri button:hover {
+  background: var(--surface-raised, var(--surface-panel));
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+  box-shadow: 0 5px 14px rgba(0, 0, 0, .11);
+  transform: translateY(-1px);
+}
+.communityPage .islemSatiri button:active { background: var(--surface-sunken, var(--surface-panel)); }
+.communityPage .islemSatiri button:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--primary));
+  outline-offset: 2px;
+}
+.communityPage .islemSatiri svg { flex: 0 0 auto; width: 17px; height: 17px; }
+.communityPage .islemSatiri b { font-size: .68rem; }
+.communityPage .islemAktif { background: var(--primary-light) !important; }
+.islemSatiriOverlay { color: inherit; }
+
+/* Tam ekran medyanın konuşma kolonu: kart yığını değil, tek kronolojik akış. */
+.medyaKonu { min-width: 0; }
+.medyaKonuBaslik {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: .9rem;
+  font-weight: 850;
+}
+.medyaGonderi,
+.yanPanelYanit {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  padding: 16px 18px;
+}
+.medyaGonderi > div,
+.yanPanelYanit > div { min-width: 0; }
+.medyaGonderi .postText,
+.yanPanelYanit .postText { margin-top: 6px; }
+.medyaGonderi .baglamEtiketi { margin: 12px 0 0; }
+.medyaYanitlar { border-top: 1px solid var(--border); }
+.medyaYanitlar h3 {
+  margin: 0;
+  padding: 14px 18px 6px;
+  color: var(--text-light);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.yanPanelYanit { border-bottom: 1px solid var(--border); }
+.yanPanelYanit:last-child { border-bottom: 0; }
+
+/* Sağ ray destekleyicidir; feed ile aynı gölge/ağırlığa çıkmaz. */
+.communityPage .communityRail {
+  position: sticky;
+  top: calc(var(--header-height) + 16px);
+  display: grid;
+  gap: 12px;
+}
+.communityPage .railCard {
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--surface-card);
+  box-shadow: none;
+}
+.communityPage .railCard h2 {
+  gap: 7px;
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: .84rem;
+}
+.communityPage .railCard h2 svg { width: 16px; height: 16px; color: var(--primary); }
+.communityPage .topicRow,
+.communityPage .contributorRow {
+  gap: 8px;
+  min-height: 40px;
+  padding: 7px 0;
+}
+.communityPage button.topicRow { width: 100%; border-right: 0; border-bottom: 0; border-left: 0; background: transparent; color: var(--text); cursor: pointer; text-align: left; }
+.communityPage button.topicRow:hover, .communityPage button.topicRow:focus-visible { color: var(--primary); outline: none; }
+.communityPage .topicRow span { font-size: .7rem; }
+.communityPage .topicRow small { width: 20px; height: 20px; }
+.communityPage .contributorRow .authorAvatar { width: 28px; height: 28px; border-radius: 50%; }
+.communityPage .contributorRow strong { font-size: .72rem; }
+.communityPage .contributorRow small { font-size: .64rem; }
+.adCard > small { color: var(--text-light); font-size: .62rem; text-transform: uppercase; }
+.adCard > h2 { margin: 5px 0 !important; }
+.adCard > p { margin: 0; color: var(--text-light); font-size: .72rem; line-height: 1.45; }
+.adCard > a { display: inline-block; margin-top: 9px; color: var(--primary); font-size: .72rem; font-weight: 750; }
+.adCard > button, .addAdButton { min-height: 36px; margin-top: 8px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--text-light); cursor: pointer; }
+.addAdButton { display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:0; }
+
+/* Yönetim akıştan ayrıdır: kapalıyken küçük secondary kontrol. */
+.communityPage .adminPanel {
+  margin: 0 0 12px;
+  border-radius: 12px;
+  box-shadow: none;
+}
+.communityPage .adminPanel:not([open]) {
+  width: fit-content;
+  margin-left: auto;
+  border-color: transparent;
+  background: transparent;
+}
+.communityPage .adminPanel > summary {
+  min-height: 40px;
+  box-sizing: border-box;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-raised, var(--surface-panel));
+  font-size: .76rem;
+  list-style-position: inside;
+}
+.communityPage .adminPanel summary:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--primary));
+  outline-offset: 2px;
+}
+.communityPage .adminContent { padding: 16px; }
+
+/* Tek gönderi: aynı genişlik ve kart standardı, bağlı yanıt alanı. */
+.singlePostPage { width: min(100%, 800px); }
+.singlePostPage .gonderiBasligi {
+  margin: 0 0 8px;
+  padding: 0 2px;
+}
+.singlePostPage .gonderiBasligi > button {
+  width: 40px;
+  height: 40px;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+}
+.singlePostPage .gonderiBasligi > button:hover,
+.singlePostPage .gonderiBasligi > button:active { background: transparent !important; }
+.singlePostPage .gonderiBasligi > button:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--primary));
+  outline-offset: 2px;
+}
+.singlePostPage .gonderiBasligi h1 { font-size: 1.2rem; }
+.singlePostPage .gonderiSutunu { width: 100%; max-width: none; }
+.singlePostPage .anaGonderi { border: 0; }
+.singlePostPage .anaGonderi .communityCard { border-radius: 16px 16px 0 0; }
+.singlePostPage .anaGonderi .postText { font-size: .98rem; }
+
+.singlePostPage .yanitKutusu {
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: 12px;
+  margin-top: -1px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 0 0 16px 16px;
+  background: var(--surface-card);
+}
+.singlePostPage .yanitKutusu textarea {
+  min-height: 72px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+.singlePostPage .yanitKutusu textarea:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--primary));
+  outline-offset: 1px;
+}
+.singlePostPage .yanitlar { padding-top: 16px; }
+.singlePostPage .yanitlar h2 { margin-bottom: 8px; }
+.singlePostPage .yanitDali { margin-left: 16px; padding-left: 12px; }
+
+.communityPage .compactCard {
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--surface-sunken, var(--surface-panel));
+}
+.communityPage .compactCard > .authorAvatar { width: 36px; height: 36px; }
+.communityPage .compactCard .postText { font-size: .84rem; line-height: 1.5; }
+.communityPage .compactCard .islemSatiri { margin-top: 8px; padding-top: 8px; }
+.singlePostPage .baglamEtiketi { margin: 0 0 8px 2px; }
+
+@media (max-width: 1199px) {
+  .communityPage .communityGrid {
+    grid-template-columns: minmax(0, 760px);
+    gap: 20px;
+  }
+  .communityPage .communityRail { display: none; }
+}
+
+.profileActions { display: flex; align-items: center; gap: 8px; }
+.profileActions > button { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-card); color: var(--text-light); cursor: pointer; font: inherit; font-size: .72rem; font-weight: 750; }
+.profileActions > button:hover, .profileActions > button:focus-visible { border-color: color-mix(in srgb, var(--primary) 36%, var(--border)); color: var(--text); outline: none; }
+
+@media (max-width: 959px) {
+  .communityPage .communityGrid { grid-template-columns: minmax(0, 760px); }
+}
+
+@media (max-width: 700px) {
+  .communityPage { padding: 0 0 80px; }
+  .communityPage .pageHeading {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .communityPage .pageHeading .kicker { display: none; }
+  .communityPage .pageHeading h1 { margin: 0 0 2px; font-size: 1.45rem; }
+  .communityPage .pageHeading p { font-size: .76rem; }
+  .communityPage .createPostButton {
+    align-self: center;
+    height: 40px;
+    min-height: 40px;
+    padding-inline: 12px;
+    font-size: .72rem;
+  }
+  .communityPage .discussionList { gap: 0; }
+  .communityPage .discussionList .communityCard,
+  .communityPage .communityCard {
+    grid-template-columns: 40px minmax(0, 1fr);
+    padding: 14px 12px;
+    border-radius: 14px;
+  }
+  .communityPage .discussionList .communityCard { border-radius: 0; }
+  .communityPage .islemSatiri { gap: 2px; }
+  .communityPage .islemSatiri button { padding: 0 6px; }
+  .communityPage .islemSatiri button > span { display: none; }
+  .communityPage .adminPanel:not([open]) { margin-left: 0; }
+  .singlePostPage .yanitKutusu {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+  .singlePostPage .yanitKutusu > button {
+    grid-column: 2;
+    justify-self: end;
+  }
+}
+
+@media (max-width: 420px) {
+  .communityPage .pageHeading p { display: none; }
+  .communityPage .createPostButton span { display: none; }
+  .communityPage .postText { font-size: .9rem; }
+  .communityPage .islemSatiri b { display: none; }
+  .singlePostPage .yanitDali { margin-left: 6px; padding-left: 8px; }
+}

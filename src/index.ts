@@ -38,6 +38,7 @@ import { memoryRoutes } from './services/memory/memory-routes'
 import { flashcardRoutes } from './services/flashcard-routes'
 import { videoRoutes } from './services/videos'
 import { communityRoutes } from './services/community'
+import { communitySocialRoutes } from './services/community-social'
 import { financialModelRoutes } from './services/financial-models/routes'
 import { feedRoutes } from './routes/feed.js'
 import { learningProgressRoutes } from './routes/learning-progress.js'
@@ -410,6 +411,7 @@ async function build() {
   server.register(flashcardRoutes, { prefix: '/flashcards' })
   server.register(videoRoutes, { prefix: '/videos' })
   server.register(communityRoutes, { prefix: '/community' })
+  server.register(communitySocialRoutes, { prefix: '/community/social' })
   server.register(financialModelRoutes)
   server.register(practicalCardRoutes, { prefix: '/practical-cards' })
   server.register(decisionCheckRoutes, { prefix: '/api/v1/decision-checks' })

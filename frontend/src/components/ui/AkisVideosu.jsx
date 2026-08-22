@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Maximize2, Pause, Play, Volume2, VolumeX } from 'lucide-react'
+import { Play, Volume2, VolumeX } from 'lucide-react'
 import styles from './AkisVideosu.module.css'
 
 /*
@@ -96,21 +96,11 @@ function secimIste() {
   requestAnimationFrame(kazananiSec)
 }
 
-function sureyiYaz(saniye) {
-  if (!Number.isFinite(saniye) || saniye < 0) return '0:00'
-  const dk = Math.floor(saniye / 60)
-  const sn = Math.floor(saniye % 60)
-  return `${dk}:${String(sn).padStart(2, '0')}`
-}
-
 export default function AkisVideosu({ src, onAc, kucuk = false }) {
   const videoRef = useRef(null)
   const sarmalRef = useRef(null)
   const [oynuyor, setOynuyor] = useState(false)
   const [sessiz, setSessiz] = useState(true)
-  const [sure, setSure] = useState(0)
-  const [anlik, setAnlik] = useState(0)
-  const [kontrolGorunur, setKontrolGorunur] = useState(false)
 
   useEffect(() => {
     const video = videoRef.current
@@ -156,44 +146,8 @@ export default function AkisVideosu({ src, onAc, kucuk = false }) {
     }
   }, [])
 
-  const sar = useCallback(saniye => {
-    const video = videoRef.current
-    if (!video || !Number.isFinite(video.duration)) return
-    video.currentTime = Math.min(Math.max(0, video.currentTime + saniye), video.duration)
-  }, [])
-
-  /*
-   * Klavye. Yerleşik `controls` olmadığı için elle yazıldı; bunlar
-   * video oynatıcılarında yerleşik kısayollar.
-   *
-   * ENTER BİLEREK YOK: bu tuşlar videonun üstündeki düğmede çalışıyor
-   * ve o düğmenin işi "sesi aç/kapat". Enter tarayıcının kendi düğme
-   * davranışına bırakıldı, yani etiketiyle aynı şeyi yapıyor.
-   */
-  function tusaBasildi(olay) {
-    if (olay.key === ' ') {
-      olay.preventDefault()
-      oynatDurdur()
-    } else if (olay.key === 'ArrowRight') {
-      olay.preventDefault(); sar(5)
-    } else if (olay.key === 'ArrowLeft') {
-      olay.preventDefault(); sar(-5)
-    } else if (olay.key === 'm' || olay.key === 'M') {
-      sesiDegistir()
-    }
-  }
-
-  /* KALAN süre gösteriliyor, geçen değil: akışta merak edilen "daha ne
-     kadar sürer", "ne kadar oldu" değil. */
-  const kalan = Math.max(0, (sure || 0) - anlik)
-
   return (
-    <div
-      ref={sarmalRef}
-      className={`${styles.sarmal} ${kucuk ? styles.kucuk : ''} ${kontrolGorunur ? styles.kontrolAcik : ''}`}
-      onMouseEnter={() => setKontrolGorunur(true)}
-      onMouseLeave={() => setKontrolGorunur(false)}
-    >
+    <div ref={sarmalRef} className={`${styles.sarmal} ${kucuk ? styles.kucuk : ''}`}>
       <video
         ref={videoRef}
         className={styles.video}
@@ -207,71 +161,27 @@ export default function AkisVideosu({ src, onAc, kucuk = false }) {
         disablePictureInPicture
         onPlay={() => setOynuyor(true)}
         onPause={() => setOynuyor(false)}
-        onLoadedMetadata={event => setSure(event.currentTarget.duration)}
-        onTimeUpdate={event => setAnlik(event.currentTarget.currentTime)}
       />
 
-      {/*
-        * Videonun tamamını kaplayan görünmez düğme: DOKUNMAK SESİ AÇAR.
-        * `stopPropagation` şart — bu düğme kartın "gönderiyi aç"
-        * katmanının içinde; durdurulmazsa dokunmak aynı anda gönderi
-        * sayfasına da giderdi.
-        */}
+      {/* Akışta tek ana hareket vardır: medyayı aç. Oynatıcı düğmeleri
+          videonun üzerine yığılmaz; X'teki gibi ayrıntı görüntüleyicide
+          yönetilir. */}
       <button
         type="button"
-        className={styles.sesKatmani}
-        onClick={olay => { olay.stopPropagation(); sesiDegistir() }}
-        onKeyDown={tusaBasildi}
-        aria-label={sessiz ? 'Sesi aç' : 'Sesi kapat'}
+        className={styles.acKatmani}
+        onClick={olay => { olay.stopPropagation(); onAc ? onAc() : oynatDurdur() }}
+        aria-label={onAc ? 'Videoyu ve konuşmayı aç' : (oynuyor ? 'Videoyu durdur' : 'Videoyu oynat')}
       />
 
-      {/*
-        * SESSİZ AKIŞ ROZETİ — tek kalıcı öğe.
-        *
-        * Sesin VAR olduğunu söylüyor. Olmasaydı kullanıcı sessiz oynayan
-        * videoyu sessiz bir video sanar ve sesi hiç açmazdı.
-        * `aria-hidden`: aynı işi yapan gerçek düğme yukarıda; ekran
-        * okuyucuya iki kez duyurmanın anlamı yok.
-        */}
-      {sessiz && (
-        <span className={styles.sesRozeti} aria-hidden="true">
-          <VolumeX size={15} />
-        </span>
-      )}
-
-      {/*
-        * YÜZEN CAM KAPSÜL. Videodan bağımsız, havada duruyor.
-        * Yalnız oynat, kalan süre, ses ve büyütme — zaman çubuğu yok.
-        */}
-      <div className={styles.kapsul}>
-        <button
-          type="button"
-          onClick={olay => { olay.stopPropagation(); oynatDurdur() }}
-          aria-label={oynuyor ? 'Durdur' : 'Oynat'}
-        >
-          {oynuyor ? <Pause size={14} /> : <Play size={14} />}
-        </button>
-
-        <span className={styles.kalanSure}>{sureyiYaz(kalan)}</span>
-
-        <button
-          type="button"
-          onClick={olay => { olay.stopPropagation(); sesiDegistir() }}
-          aria-label={sessiz ? 'Sesi aç' : 'Sesi kapat'}
-        >
-          {sessiz ? <VolumeX size={14} /> : <Volume2 size={14} />}
-        </button>
-
-        {onAc && (
-          <button
-            type="button"
-            onClick={olay => { olay.stopPropagation(); onAc() }}
-            aria-label="Videoyu büyüt"
-          >
-            <Maximize2 size={14} />
-          </button>
-        )}
-      </div>
+      {!oynuyor && <span className={styles.oynatRozeti} aria-hidden="true"><Play size={20} fill="currentColor" /></span>}
+      <button
+        type="button"
+        className={styles.sesDugmesi}
+        onClick={olay => { olay.stopPropagation(); sesiDegistir() }}
+        aria-label={sessiz ? 'Sesi aç' : 'Sesi kapat'}
+      >
+        {sessiz ? <VolumeX size={16} /> : <Volume2 size={16} />}
+      </button>
     </div>
   )
 }

@@ -1,6 +1,91 @@
-import { useEffect, useRef } from 'react'
-import { X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { ArrowLeft, Pause, Play, Volume2, VolumeX, X } from 'lucide-react'
 import styles from './ImageViewer.module.css'
+
+function sureyiYaz(saniye) {
+  if (!Number.isFinite(saniye) || saniye < 0) return '0:00'
+  const dakika = Math.floor(saniye / 60)
+  return `${dakika}:${String(Math.floor(saniye % 60)).padStart(2, '0')}`
+}
+
+function ViewerVideo({ url, overlayText = '', mediaActions = null }) {
+  const videoRef = useRef(null)
+  const [oynuyor, setOynuyor] = useState(false)
+  const [sessiz, setSessiz] = useState(false)
+  const [sure, setSure] = useState(0)
+  const [anlik, setAnlik] = useState(0)
+
+  function oynatDurdur() {
+    const video = videoRef.current
+    if (!video) return
+    if (video.paused) video.play().catch(() => {})
+    else video.pause()
+  }
+
+  function sesiDegistir() {
+    const video = videoRef.current
+    if (!video) return
+    video.muted = !video.muted
+    setSessiz(video.muted)
+  }
+
+  function konumuDegistir(event) {
+    const video = videoRef.current
+    if (!video) return
+    video.currentTime = Number(event.target.value)
+    setAnlik(video.currentTime)
+  }
+
+  const ilerleme = sure > 0 ? Math.min(100, (anlik / sure) * 100) : 0
+
+  return (
+    <div className={styles.videoStage}>
+      <video
+        ref={videoRef}
+        src={url}
+        className={styles.image}
+        autoPlay
+        playsInline
+        controlsList="nodownload"
+        disablePictureInPicture
+        onClick={oynatDurdur}
+        onPlay={() => setOynuyor(true)}
+        onPause={() => setOynuyor(false)}
+        onLoadedMetadata={event => setSure(event.currentTarget.duration)}
+        onTimeUpdate={event => setAnlik(event.currentTarget.currentTime)}
+      />
+      {!oynuyor && (
+        <button type="button" className={styles.viewerPlay} onClick={oynatDurdur} aria-label="Videoyu oynat">
+          <Play size={24} fill="currentColor" />
+        </button>
+      )}
+      <div className={styles.videoHud}>
+        {overlayText && <p className={styles.videoText}>{overlayText}</p>}
+        {mediaActions && <div className={styles.mediaActions}>{mediaActions}</div>}
+        <div className={styles.videoControls}>
+          <button type="button" onClick={oynatDurdur} aria-label={oynuyor ? 'Videoyu durdur' : 'Videoyu oynat'}>
+            {oynuyor ? <Pause size={18} /> : <Play size={18} fill="currentColor" />}
+          </button>
+          <span>{sureyiYaz(anlik)} / {sureyiYaz(sure)}</span>
+          <button type="button" onClick={sesiDegistir} aria-label={sessiz ? 'Sesi aç' : 'Sesi kapat'}>
+            {sessiz ? <VolumeX size={18} /> : <Volume2 size={18} />}
+          </button>
+        </div>
+      </div>
+      <div className={styles.progressTrack} style={{ '--video-progress': `${ilerleme}%` }}>
+        <input
+          type="range"
+          min="0"
+          max={sure || 0}
+          step="0.1"
+          value={Math.min(anlik, sure || 0)}
+          onChange={konumuDegistir}
+          aria-label="Video konumu"
+        />
+      </div>
+    </div>
+  )
+}
 
 /**
  * Tam ekran görsel görüntüleyici.
@@ -17,7 +102,7 @@ import styles from './ImageViewer.module.css'
  * `actions` verilirse görselin altında eylem çubuğu çıkar (ör. profil
  * fotoğrafı için "Değiştir" / "Kaldır").
  */
-export default function ImageViewer({ url, alt = '', onClose, actions = null, caption = null, tur = 'image', yan = null }) {
+export default function ImageViewer({ url, alt = '', onClose, actions = null, caption = null, tur = 'image', yan = null, overlayText = '', mediaActions = null }) {
   const panelRef = useRef(null)
   const closeRef = useRef(null)
   const oncekiOdakRef = useRef(null)
@@ -63,11 +148,14 @@ export default function ImageViewer({ url, alt = '', onClose, actions = null, ca
       aria-modal="true"
       aria-label={tur === 'video' ? 'Video önizleme' : 'Görsel önizleme'}
       /* Yalnız arka plana tıklayınca kapanır; içeriğe tıklayınca kapanmaz. */
-      onClick={event => { if (event.target === event.currentTarget) onClose() }}
+      onClick={event => {
+        event.stopPropagation()
+        if (event.target === event.currentTarget) onClose()
+      }}
     >
-      <div className={styles.panel} ref={panelRef}>
-        <button ref={closeRef} type="button" className={styles.close} onClick={onClose} aria-label="Kapat">
-          <X size={22} />
+      <div className={`${styles.panel} ${yan ? styles.splitPanel : ''}`} ref={panelRef}>
+        <button ref={closeRef} type="button" className={styles.close} onClick={onClose} aria-label={yan ? 'Geri dön' : 'Kapat'}>
+          {yan ? <ArrowLeft size={22} /> : <X size={22} />}
         </button>
         {/*
           * Video ve görsel AYNI kutuyu paylaşıyor: odak tuzağı, Esc,
@@ -79,14 +167,16 @@ export default function ImageViewer({ url, alt = '', onClose, actions = null, ca
           * özel oynatıcı değil): tam ekran görünümde kullanıcı videoyu
           * yönetmek istiyor, gizlenen kontroller burada engel olurdu.
           */}
-        {tur === 'video'
-          ? <video src={url} className={styles.image} controls autoPlay playsInline controlsList="nodownload" />
-          : <img src={url} alt={alt} className={styles.image} />}
-        {caption && <p className={styles.caption}>{caption}</p>}
-        {actions && <div className={styles.actions}>{actions}</div>}
+        <div className={styles.mediaColumn}>
+          {tur === 'video'
+            ? <ViewerVideo url={url} overlayText={overlayText} mediaActions={mediaActions} />
+            : <img src={url} alt={alt} className={styles.image} />}
+          {caption && <p className={styles.caption}>{caption}</p>}
+          {actions && <div className={styles.actions}>{actions}</div>}
+        </div>
         {/* Gönderi ve yanıtları: ürün sahibinin "altında yorumlar
             falan" isteği. Geniş ekranda yanda, darda altta. */}
-        {yan && <div className={styles.yanPanel}>{yan}</div>}
+        {yan && <aside className={styles.yanPanel}>{yan}</aside>}
       </div>
     </div>
   )

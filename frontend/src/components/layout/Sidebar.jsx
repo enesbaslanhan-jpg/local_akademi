@@ -107,6 +107,8 @@ export default function Sidebar({
   const [navQuery, setNavQuery] = useState('')
   const routeGroup = location.pathname.startsWith('/app/calculations') || location.pathname.startsWith('/app/tools') || location.pathname.startsWith('/app/finance/models')
     ? 'tools'
+    : location.pathname.startsWith('/app/community/topluluk') || (location.pathname === '/app/profil' && new URLSearchParams(location.search).has('liste'))
+      ? 'community-forum'
     : location.pathname.startsWith('/app/workspaces')
       ? 'workspace-tracker'
       : null
@@ -157,6 +159,14 @@ export default function Sidebar({
         { label: 'Katalog', path: '/app/calculations?view=calculator', active: onTools && (view === null || view === 'calculator' || view === 'models') },
         { label: 'Finansal Görünüm', path: '/app/calculations?view=all', active: onTools && view === 'all' },
         { label: 'Geçmiş', path: '/app/calculations?view=history', active: onTools && view === 'history' },
+      ]
+    }
+    if (link.id === 'community-forum') {
+      return [
+        { label: 'Akış', path: '/app/community/topluluk', active: location.pathname.startsWith('/app/community/topluluk') },
+        { label: 'Profil', path: '/app/profil?liste=posts', active: location.pathname === '/app/profil' },
+        { label: 'Takip ve engelleme', path: '/app/community/kisiler', active: location.pathname === '/app/community/kisiler' },
+        { label: 'Sohbetler', path: '/app/community/sohbetler', active: location.pathname === '/app/community/sohbetler' },
       ]
     }
     if (link.id === 'admin') {

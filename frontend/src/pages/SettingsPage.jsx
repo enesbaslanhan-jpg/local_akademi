@@ -63,7 +63,10 @@ export default function SettingsPage() {
   const [profileSaving, setProfileSaving] = useState(false)
   const [profileMsg, setProfileMsg] = useState(null)
   const [systemInfo, setSystemInfo] = useState(null)
-  const [activeSection, setActiveSection] = useState('profile')
+  const [activeSection, setActiveSection] = useState(() => {
+    const bolum = new URLSearchParams(window.location.search).get('bolum')
+    return ['profile', 'notifications', 'security', 'privacy'].includes(bolum) ? bolum : 'profile'
+  })
   const [avatarSaving, setAvatarSaving] = useState(false)
   const [avatarMsg, setAvatarMsg] = useState(null)
   const [avatarBuyuk, setAvatarBuyuk] = useState(false)

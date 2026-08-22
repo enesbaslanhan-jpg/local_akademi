@@ -4,6 +4,7 @@ import { ArrowLeft, Send } from 'lucide-react'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import { CommunityCard, initials } from './CommunityPage'
+import Button from '@/components/ui/Button'
 import styles from './CommunityPage.module.css'
 
 /*
@@ -36,7 +37,7 @@ function YanitAgaci({ dugumler, derinlik, ortak }) {
     >
       {dugumler.map(dugum => (
         <div key={dugum.id}>
-          <CommunityCard post={dugum} {...ortak(dugum)} />
+          <CommunityCard post={dugum} compact {...ortak(dugum)} />
           <YanitAgaci dugumler={dugum.replies} derinlik={derinlik + 1} ortak={ortak} />
         </div>
       ))}
@@ -164,7 +165,7 @@ export default function CommunityPostPage() {
   })
 
   return (
-    <main className={`${styles.page} ${styles.communityPage}`}>
+    <main className={`${styles.page} ${styles.communityPage} ${styles.singlePostPage}`}>
       <header className={styles.gonderiBasligi}>
         <button type="button" onClick={() => navigate(-1)} aria-label="Geri dön">
           <ArrowLeft size={19} />
@@ -184,7 +185,7 @@ export default function CommunityPostPage() {
               {/* Yanıtın bağlamı: neye yanıt verildiği görünmeden
                   yanıt tek başına anlamsız olurdu. */}
               <p className={styles.baglamEtiketi}>Şu paylaşıma yanıt:</p>
-              <CommunityCard post={parent} {...ortakKartOzellikleri(parent)} />
+              <CommunityCard post={parent} compact {...ortakKartOzellikleri(parent)} />
             </>
           )}
 
@@ -202,9 +203,9 @@ export default function CommunityPostPage() {
               maxLength={500}
               rows={2}
             />
-            <button className={styles.primaryButton} type="submit" disabled={gonderiliyor || !yanitMetni.trim()}>
+            <Button type="submit" disabled={gonderiliyor || !yanitMetni.trim()}>
               <Send size={16} />{gonderiliyor ? 'Gönderiliyor…' : 'Yanıtla'}
-            </button>
+            </Button>
           </form>
 
           {post.replies?.length > 0 && (

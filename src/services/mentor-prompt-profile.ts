@@ -149,6 +149,30 @@ export function getHistoryLimit(intent: MentorIntent): number {
   return getPromptProfile(intent).conversationHistoryLimit
 }
 
+export interface UserBusinessContext {
+  businessProfile?: {
+    name?: string
+    sector?: string
+    city?: string
+    monthlySales?: number
+    monthlyExpenses?: number
+    cashBalance?: number
+    debtBalance?: number
+    businessStage?: string
+    employeeCount?: number
+    primaryGoal?: string
+  }
+  enrollments?: Array<{ courseTitle: string; progress: number; status: string }>
+  recentCalculations?: Array<{ formulaName: string; createdAt: Date }>
+  recentModelRuns?: Array<{ modelName: string; createdAt: Date }>
+  knowledgeProgress?: Array<{ koTitle: string; status: string; progressPercent: number }>
+}
+
+export interface ProductCatalogContext {
+  summary: string
+  fullCatalog?: string
+}
+
 export function buildProfiledSystemPrompt(
   user: { name: string; role: string },
   intent: MentorIntent,
@@ -156,6 +180,8 @@ export function buildProfiledSystemPrompt(
   koTitle?: string,
   selectedKOTitle?: string,
   options?: { userRequestedLength?: UserRequestedLength },
+  productCatalog?: ProductCatalogContext,
+  userBusinessContext?: UserBusinessContext,
 ): string {
   const profile = getPromptProfile(intent, options)
   const parts: string[] = [profile.systemInstruction]
@@ -163,6 +189,65 @@ export function buildProfiledSystemPrompt(
   parts.push(`Kullanıcı: ${user.name}\nRol: ${user.role}`)
   parts.push(profile.intentInstruction)
   parts.push(`Tercih edilen uzunluk: ${profile.preferredAnswerLength}`)
+
+  if (productCatalog?.summary) {
+    parts.push(`--- ÜRÜN BİLGİSİ ---\n${productCatalog.summary}`)
+  }
+
+  if (userBusinessContext) {
+    const contextParts: string[] = []
+    if (userBusinessContext.businessProfile) {
+      const bp = userBusinessContext.businessProfile
+      const bpLines = ['İşletme Profili:']
+      if (bp.name) bpLines.push(`- Ad: ${bp.name}`)
+      if (bp.sector) bpLines.push(`- Sektör: ${bp.sector}`)
+      if (bp.city) bpLines.push(`- Şehir: ${bp.city}`)
+      if (bp.monthlySales !== undefined) bpLines.push(`- Aylık Satış: ${bp.monthlySales.toLocaleString('tr-TR')} TL`)
+      if (bp.monthlyExpenses !== undefined) bpLines.push(`- Aylık Gider: ${bp.monthlyExpenses.toLocaleString('tr-TR')} TL`)
+      if (bp.cashBalance !== undefined) bpLines.push(`- Nakit: ${bp.cashBalance.toLocaleString('tr-TR')} TL`)
+      if (bp.debtBalance !== undefined) bpLines.push(`- Borç: ${bp.debtBalance.toLocaleString('tr-TR')} TL`)
+      if (bp.businessStage) bpLines.push(`- Aşama: ${bp.businessStage}`)
+      if (bp.employeeCount !== undefined) bpLines.push(`- Çalışan: ${bp.employeeCount}`)
+      if (bp.primaryGoal) bpLines.push(`- Hedef: ${bp.primaryGoal}`)
+      if (bpLines.length > 1) contextParts.push(bpLines.join('\n'))
+    }
+
+    if (userBusinessContext.enrollments && userBusinessContext.enrollments.length > 0) {
+      const enrLines = ['Kurs İlerlemeleri:']
+      for (const e of userBusinessContext.enrollments.slice(0, 5)) {
+        enrLines.push(`- ${e.courseTitle}: %${e.progress} (${e.status})`)
+      }
+      contextParts.push(enrLines.join('\n'))
+    }
+
+    if (userBusinessContext.knowledgeProgress && userBusinessContext.knowledgeProgress.length > 0) {
+      const kpLines = ['Bilgi Nesnesi İlerlemeleri:']
+      for (const kp of userBusinessContext.knowledgeProgress.slice(0, 5)) {
+        kpLines.push(`- ${kp.koTitle}: %${kp.progressPercent} (${kp.status})`)
+      }
+      contextParts.push(kpLines.join('\n'))
+    }
+
+    if (userBusinessContext.recentCalculations && userBusinessContext.recentCalculations.length > 0) {
+      const calcLines = ['Son Hesaplamalar:']
+      for (const c of userBusinessContext.recentCalculations.slice(0, 3)) {
+        calcLines.push(`- ${c.formulaName} (${c.createdAt.toLocaleDateString('tr-TR')})`)
+      }
+      contextParts.push(calcLines.join('\n'))
+    }
+
+    if (userBusinessContext.recentModelRuns && userBusinessContext.recentModelRuns.length > 0) {
+      const runLines = ['Son Model Çalıştırmaları:']
+      for (const r of userBusinessContext.recentModelRuns.slice(0, 3)) {
+        runLines.push(`- ${r.modelName} (${r.createdAt.toLocaleDateString('tr-TR')})`)
+      }
+      contextParts.push(runLines.join('\n'))
+    }
+
+    if (contextParts.length > 0) {
+      parts.push(`--- KULLANICI BAĞLAMI ---\n${contextParts.join('\n\n')}`)
+    }
+  }
 
   if (selectedKOTitle) {
     parts.push(`Kullanıcı şu içeriği seçerek soruyor: "${selectedKOTitle}".`)
