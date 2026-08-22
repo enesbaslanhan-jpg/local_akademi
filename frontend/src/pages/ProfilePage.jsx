@@ -37,9 +37,22 @@ const KENDI_SEKMELERI = [
 const BASKASININ_SEKMELERI = [
   { anahtar: 'posts', etiket: 'Paylaşımlar', ikon: MessageSquare, bos: 'Henüz bir şey paylaşmamış.' },
   { anahtar: 'media', etiket: 'Medya', ikon: ImageIcon, bos: 'Henüz görsel veya video paylaşmamış.' },
-  { anahtar: 'followers', etiket: 'Takipçiler', ikon: Users, bos: 'Henüz takipçisi yok.' },
-  { anahtar: 'following', etiket: 'Takip edilenler', ikon: UserPlus, bos: 'Henüz kimseyi takip etmiyor.' },
 ]
+
+/*
+ * Takipçi ve takip edilen listeleri SEKME DEĞİL.
+ *
+ * Önce hem üstteki sayaç satırında hem sekme şeridinde duruyorlardı —
+ * aynı şey iki yerde. Ürün sahibi bunu fark etti ve üstteki küçük
+ * sayaçların kalmasını istedi.
+ *
+ * Bu yüzden geçerli liste değerleri sekmelerden AYRI tutuluyor:
+ * "followers" geçerli bir görünüm ama sekmesi yok, sayaçtan açılıyor.
+ */
+const KISI_LISTELERI = {
+  followers: { etiket: 'Takipçiler', ikon: Users, bos: 'Henüz takipçisi yok.' },
+  following: { etiket: 'Takip edilenler', ikon: UserPlus, bos: 'Henüz kimseyi takip etmiyor.' },
+}
 
 /* Düzenleme paneli ayrı bileşen: sayfa zaten liste, sekme ve profil
    durumunu taşıyor; form durumunu da aynı yere koymak okunmaz yapardı. */
@@ -98,7 +111,11 @@ export default function ProfilePage() {
   const sekmeler = benimMi ? KENDI_SEKMELERI : BASKASININ_SEKMELERI
 
   const istenen = arama.get('liste')
-  const aktif = sekmeler.some(s => s.anahtar === istenen) ? istenen : 'posts'
+  /* Kişi listeleri sekme olmasa da geçerli görünüm; yoksa sayaçtan
+     açılan liste sessizce "posts"a düşerdi. */
+  const gecerliMi = sekmeler.some(s => s.anahtar === istenen)
+    || (!benimMi && Boolean(KISI_LISTELERI[istenen]))
+  const aktif = gecerliMi ? istenen : 'posts'
 
   const [profil, setProfil] = useState(null)
   const [sayilar, setSayilar] = useState(null)
@@ -222,7 +239,8 @@ export default function ProfilePage() {
     catch { setHata('Bağlantı kopyalanamadı.') }
   }
 
-  const aktifSekme = sekmeler.find(s => s.anahtar === aktif)
+  /* Etkin görünüm sekme de olabilir, sayaçtan açılan kişi listesi de. */
+  const aktifSekme = sekmeler.find(s => s.anahtar === aktif) || KISI_LISTELERI[aktif] || sekmeler[0]
 
   if (hata && !profil) {
     return (
@@ -266,15 +284,30 @@ export default function ProfilePage() {
           </div>
           {sayilar && (
             <div className={styles.profilSayilariSatir}>
-              <button type="button" onClick={() => setArama({ liste: benimMi ? 'posts' : 'posts' })}>
+              <button
+                type="button"
+                className={aktif === 'posts' ? styles.sayacAktif : undefined}
+                aria-current={aktif === 'posts' ? 'true' : undefined}
+                onClick={() => setArama({ liste: 'posts' })}
+              >
                 <b>{sayilar.paylasim ?? 0}</b> paylaşım
               </button>
               {!benimMi && (
                 <>
-                  <button type="button" onClick={() => setArama({ liste: 'followers' })}>
+                  <button
+                    type="button"
+                    className={aktif === 'followers' ? styles.sayacAktif : undefined}
+                    aria-current={aktif === 'followers' ? 'true' : undefined}
+                    onClick={() => setArama({ liste: 'followers' })}
+                  >
                     <b>{sayilar.takipci ?? 0}</b> takipçi
                   </button>
-                  <button type="button" onClick={() => setArama({ liste: 'following' })}>
+                  <button
+                    type="button"
+                    className={aktif === 'following' ? styles.sayacAktif : undefined}
+                    aria-current={aktif === 'following' ? 'true' : undefined}
+                    onClick={() => setArama({ liste: 'following' })}
+                  >
                     <b>{sayilar.takipEdilen ?? 0}</b> takip
                   </button>
                 </>

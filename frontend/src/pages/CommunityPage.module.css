@@ -1474,3 +1474,14 @@
   .bildirimListesi button { grid-template-columns: 26px minmax(0, 1fr) auto; }
   .bildirimListesi .authorAvatar { display: none; }
 }
+
+/* Sayaç satırında etkin görünüm. Sekme şeridi gibi alt çizgiyle
+   işaretleniyor — kullanıcı hangi listeye baktığını bilmeli. */
+.sayacAktif {
+  color: var(--text) !important;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--primary);
+  text-decoration-thickness: 2px;
+}
