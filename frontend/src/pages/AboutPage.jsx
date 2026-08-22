@@ -96,11 +96,12 @@ const MODULLER = [
     ikon: MessagesSquare,
     tur: 'topluluk',
     baslik: 'Topluluk',
-    metin: 'Benzer işletmeleri yürüten insanların deneyimleri. Soru sorabilir, kendi yaşadığını paylaşabilirsin; gönderiler moderasyondan geçer.',
+    metin: 'Benzer işletmeleri yürüten insanların deneyimleri. Yazdığın anda yayımlanır; yanıtlayabilir, beğenebilir, alıntılayabilirsin.',
     neYaparsin: 'Aynı işi yürüten insanlara sorarsın.',
     maddeler: [
       'Soru sorar, kendi deneyimini paylaşırsın',
-      'Gönderiler moderasyondan geçer',
+      'Yanıt, beğeni ve alıntıyla konuşma sürer',
+      'Kendi paylaşımını istediğin zaman kaldırırsın',
       'Paylaşmak istemediğin işletme bilgilerini buraya yazma'
     ]
   }

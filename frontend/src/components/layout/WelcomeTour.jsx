@@ -51,7 +51,7 @@ const ADIMLAR = [
     yol: '/app/community/topluluk',
     capa: 'topluluk-baslik',
     baslik: 'Topluluk',
-    metin: 'Benzer işletmeleri yürüten insanlar burada. Soru sorabilir, kendi deneyimini paylaşabilirsin. Gönderiler yayımlanmadan önce moderasyondan geçer.'
+    metin: 'Benzer işletmeleri yürüten insanlar burada. Yazdığın anda yayımlanır; yanıtlayabilir, beğenebilir, alıntılayabilirsin. Kendi paylaşımını istediğin zaman kaldırırsın.'
   }
 ]
 

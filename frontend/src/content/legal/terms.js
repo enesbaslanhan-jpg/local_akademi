@@ -136,8 +136,21 @@ export default {
       paragraflar: [
         'Topluluk alanı, benzer ölçekte işletme yürüten kişilerin deneyim paylaştığı bir ' +
         'alandır. Paylaşımlarınızın hukuka uygun, özgün ve saygılı olması beklenir.',
-        'Kurallara aykırı gönderiler yayından kaldırılabilir; tekrar eden ihlallerde ' +
-        'hesabın topluluk erişimi kısıtlanabilir.',
+        'Paylaşımlar ÖN İNCELEMEDEN GEÇMEZ; yazdığınız anda yayımlanır ve diğer ' +
+        'kullanıcılar tarafından görülebilir hâle gelir. Denetim sonradan, şikâyet ' +
+        'üzerine yapılır. Bu nedenle paylaştığınız içeriğin sorumluluğu size aittir.',
+        'Kendi paylaşımınızı istediğiniz zaman kaldırabilirsiniz. Kurallara aykırı ' +
+        'gönderileri yönetim de kaldırabilir; tekrar eden ihlallerde hesabın topluluk ' +
+        'erişimi kısıtlanabilir.',
+        'Bir paylaşımı kaldırdığınızda gönderi listelerden düşer ve içeriği başka ' +
+        'kullanıcılara gösterilmez. Şikâyet ve denetim kayıtlarının bütünlüğü için ' +
+        'kayıt sistemde saklanmaya devam eder.',
+        'Diğer kullanıcıların paylaşımlarına yanıt yazabilir, onları beğenebilir, ' +
+        'alıntılayabilir veya kendinize kaydedebilirsiniz. Yanıt ve alıntılarınız da ' +
+        'birer paylaşımdır ve aynı kurallara tabidir. Bir paylaşıma verdiğiniz yanıt, ' +
+        'o paylaşım sonradan kaldırılsa dahi sizin içeriğiniz olarak yayında kalır.',
+        'Beğenileriniz gönderi üzerinde toplu sayı olarak görünür. Kaydettikleriniz ' +
+        'yalnızca size özeldir ve başka kullanıcılara gösterilmez.',
         'Topluluk gönderileri başka kullanıcılar tarafından görülebilir. Paylaşmak ' +
         'istemediğiniz işletme bilgilerini bu alana yazmayınız.'
       ]

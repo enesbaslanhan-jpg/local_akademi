@@ -29,7 +29,10 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
   {
     type: 'terms',
     title: 'Kullanım Koşulları',
-    version: '2026-08-21',
+    /* 2026-08-22: topluluk on moderasyondan cikti ve etkilesim katmani
+       (yanit, begeni, alinti, kaydetme) eklendi. 9. bolum yeniden
+       yazildi -- eski onay bu metni KAPSAMIYOR, yeniden onay istenecek. */
+    version: '2026-08-22',
     requiredAtSignup: true
   },
   {
