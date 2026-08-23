@@ -8,92 +8,92 @@ datasource db {
 }
 
 model User {
-  id                      Int                      @id @default(autoincrement())
-  email                   String                   @unique
-  password                String
-  name                    String
-  role                    String                   @default("student")
+  id                        Int                      @id @default(autoincrement())
+  email                     String                   @unique
+  password                  String
+  name                      String
+  role                      String                   @default("student")
   /// Oturum iptali: token icindeki surum bununla eslesmezse istek reddedilir.
   /// Sifre degisiminde ve "tum cihazlardan cik" isleminde artirilir.
-  tokenVersion            Int                      @default(0)
+  tokenVersion              Int                      @default(0)
   /// E-posta dogrulandiysa zamani. Null = dogrulanmamis.
-  emailVerifiedAt         DateTime?
-  createdAt               DateTime                 @default(now())
-  updatedAt               DateTime                 @updatedAt
-  deletedAt               DateTime?
-  avatarStoredName        String?
-  avatarMimeType          String?
+  emailVerifiedAt           DateTime?
+  createdAt                 DateTime                 @default(now())
+  updatedAt                 DateTime                 @updatedAt
+  deletedAt                 DateTime?
+  avatarStoredName          String?
+  avatarMimeType            String?
   /// Profil ozellestirme (22.08.2026). Profiller uyeler arasinda
   /// ziyaret edilebilir hale geldigi icin bu alanlar DIGER UYELERE
   /// GORUNUR -- aydinlatma metninde karsiligi olmali.
-  bio                     String?
-  location                String?
-  websiteUrl              String?
+  bio                       String?
+  location                  String?
+  websiteUrl                String?
   /// Kapak gorseli. Avatar ile ayni desen: dosya diskte, adi burada.
-  coverStoredName         String?
-  coverMimeType           String?
-  activityEvents          ActivityEvent[]
-  businessAssessments     BusinessAssessment[]
-  businessProfile         BusinessProfile?
-  createdWorkspaces       BusinessWorkspace[]
-  workspaceMemberships    BusinessMember[]
-  sentInvitations         BusinessInvitation[]     @relation("InvitedBy")
-  createdContacts         BusinessContact[]
-  moderatedCommunityPosts CommunityPost[]          @relation("CommunityPostModerator")
-  communityPosts          CommunityPost[]          @relation("CommunityPostAuthor")
-  communityMedia          CommunityMedia[]
-  communityReports        CommunityReport[]
-  bildirdigiKullanicilar  CommunityUserReport[] @relation("CommunityUserReportReporter")
-  hakkindakiSikayetler    CommunityUserReport[] @relation("CommunityUserReportReported")
-  communityLikes          CommunityLike[]
-  communityNotifications  CommunityNotification[] @relation("CommunityNotificationUser")
-  communityNotificationActs CommunityNotification[] @relation("CommunityNotificationActor")
-  communityBookmarks      CommunityBookmark[]
-  communityFollowing      CommunityFollow[]        @relation("CommunityFollowing")
-  communityFollowers      CommunityFollow[]        @relation("CommunityFollowers")
-  communityBlocksMade     CommunityBlock[]         @relation("CommunityBlocker")
-  communityBlocksReceived CommunityBlock[]         @relation("CommunityBlocked")
-  communityThreadMembers  CommunityThreadMember[]
-  communityMessages       CommunityMessage[]
-  createdCommunityThreads CommunityThread[]        @relation("CommunityThreadCreator")
-  createdCommunityAds     CommunityAd[]
-  conversations           Conversation[]
-  conversationSummaries   ConversationSummary[]
-  documentConversations   DocumentConversation[]
-  enrollments             Enrollment[]
-  flashcardProgress       FlashcardProgress[]
-  flashcardReviews        FlashcardReview[]
-  formulaCalculations     FormulaCalculation[]
-  generatedReports        GeneratedReport[]
-  createdVersions         KnowledgeObjectVersion[]
-  knowledgeProgress       KnowledgeProgress[]
-  learningPaths           LearningPath[]
-  lessonProgress          LessonProgress[]
-  mentorSessions          MentorSession[]
-  publicationEvents       PublicationEvent[]
-  quizAttempts            QuizAttempt[]
-  reviewRecords           ReviewRecord[]
-  taskAssignments         TaskAssignment[]
-  uploadedDocuments       UploadedDocument[]
-  memories                UserMemory[]
-  userPreference          UserPreference?
-  videoProgress           VideoProgress[]
-  assignedBusinessRecords BusinessRecord[]         @relation("AssignedBusinessRecords")
-  createdBusinessRecords  BusinessRecord[]         @relation("CreatedBusinessRecords")
-  updatedBusinessRecords  BusinessRecord[]         @relation("UpdatedBusinessRecords")
-  businessReminders       BusinessReminder[]
-  businessNotifications   BusinessNotification[]
-  financialModelRuns      FinancialModelRun[]
-  decisionJournalEntries  DecisionJournalEntry[]
-  DecisionCheckSession    DecisionCheckSession[]
-  practicalCardSaves      PracticalCardSave[]
-  practicalCardFeedbacks  PracticalCardFeedback[]
-  feedInteractions        FeedInteraction[]
-  LearningProgress        LearningProgress[]
-  passwordResetTokens     PasswordResetToken[]
-  emailVerificationCodes  EmailVerificationCode[]
-  consents                UserConsent[]
-  refreshTokens           RefreshToken[]
+  coverStoredName           String?
+  coverMimeType             String?
+  activityEvents            ActivityEvent[]
+  businessAssessments       BusinessAssessment[]
+  businessProfile           BusinessProfile?
+  createdWorkspaces         BusinessWorkspace[]
+  workspaceMemberships      BusinessMember[]
+  sentInvitations           BusinessInvitation[]     @relation("InvitedBy")
+  createdContacts           BusinessContact[]
+  moderatedCommunityPosts   CommunityPost[]          @relation("CommunityPostModerator")
+  communityPosts            CommunityPost[]          @relation("CommunityPostAuthor")
+  communityMedia            CommunityMedia[]
+  communityReports          CommunityReport[]
+  bildirdigiKullanicilar    CommunityUserReport[]    @relation("CommunityUserReportReporter")
+  hakkindakiSikayetler      CommunityUserReport[]    @relation("CommunityUserReportReported")
+  communityLikes            CommunityLike[]
+  communityNotifications    CommunityNotification[]  @relation("CommunityNotificationUser")
+  communityNotificationActs CommunityNotification[]  @relation("CommunityNotificationActor")
+  communityBookmarks        CommunityBookmark[]
+  communityFollowing        CommunityFollow[]        @relation("CommunityFollowing")
+  communityFollowers        CommunityFollow[]        @relation("CommunityFollowers")
+  communityBlocksMade       CommunityBlock[]         @relation("CommunityBlocker")
+  communityBlocksReceived   CommunityBlock[]         @relation("CommunityBlocked")
+  communityThreadMembers    CommunityThreadMember[]
+  communityMessages         CommunityMessage[]
+  createdCommunityThreads   CommunityThread[]        @relation("CommunityThreadCreator")
+  createdCommunityAds       CommunityAd[]
+  conversations             Conversation[]
+  conversationSummaries     ConversationSummary[]
+  documentConversations     DocumentConversation[]
+  enrollments               Enrollment[]
+  flashcardProgress         FlashcardProgress[]
+  flashcardReviews          FlashcardReview[]
+  formulaCalculations       FormulaCalculation[]
+  generatedReports          GeneratedReport[]
+  createdVersions           KnowledgeObjectVersion[]
+  knowledgeProgress         KnowledgeProgress[]
+  learningPaths             LearningPath[]
+  lessonProgress            LessonProgress[]
+  mentorSessions            MentorSession[]
+  publicationEvents         PublicationEvent[]
+  quizAttempts              QuizAttempt[]
+  reviewRecords             ReviewRecord[]
+  taskAssignments           TaskAssignment[]
+  uploadedDocuments         UploadedDocument[]
+  memories                  UserMemory[]
+  userPreference            UserPreference?
+  videoProgress             VideoProgress[]
+  assignedBusinessRecords   BusinessRecord[]         @relation("AssignedBusinessRecords")
+  createdBusinessRecords    BusinessRecord[]         @relation("CreatedBusinessRecords")
+  updatedBusinessRecords    BusinessRecord[]         @relation("UpdatedBusinessRecords")
+  businessReminders         BusinessReminder[]
+  businessNotifications     BusinessNotification[]
+  financialModelRuns        FinancialModelRun[]
+  decisionJournalEntries    DecisionJournalEntry[]
+  DecisionCheckSession      DecisionCheckSession[]
+  practicalCardSaves        PracticalCardSave[]
+  practicalCardFeedbacks    PracticalCardFeedback[]
+  feedInteractions          FeedInteraction[]
+  LearningProgress          LearningProgress[]
+  passwordResetTokens       PasswordResetToken[]
+  emailVerificationCodes    EmailVerificationCode[]
+  consents                  UserConsent[]
+  refreshTokens             RefreshToken[]
 
   @@index([deletedAt])
 }
@@ -178,15 +178,15 @@ model CommunityPost {
   reports     CommunityReport[]
   media       CommunityMedia?
 
-  parent     CommunityPost?      @relation("CommunityPostReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies    CommunityPost[]     @relation("CommunityPostReplies")
+  parent        CommunityPost?          @relation("CommunityPostReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies       CommunityPost[]         @relation("CommunityPostReplies")
   /// SetNull: alintilanan satir gercekten silinirse alinti AYAKTA kalir
   /// ve "kaynak bulunamiyor" gosterir. Cascade olsaydi baskasinin yazisi
   /// da giderdi.
-  quotedPost CommunityPost?      @relation("CommunityPostQuotes", fields: [quotedPostId], references: [id], onDelete: SetNull)
-  quotes     CommunityPost[]     @relation("CommunityPostQuotes")
-  likes      CommunityLike[]
-  bookmarks  CommunityBookmark[]
+  quotedPost    CommunityPost?          @relation("CommunityPostQuotes", fields: [quotedPostId], references: [id], onDelete: SetNull)
+  quotes        CommunityPost[]         @relation("CommunityPostQuotes")
+  likes         CommunityLike[]
+  bookmarks     CommunityBookmark[]
   notifications CommunityNotification[]
 
   @@index([status, publishedAt])
@@ -257,15 +257,15 @@ model CommunityBlock {
 }
 
 model CommunityThread {
-  id          String                  @id @default(uuid())
-  name        String?
-  isGroup     Boolean                 @default(false)
-  createdById Int
-  createdAt   DateTime                @default(now())
-  updatedAt   DateTime                @updatedAt
-  createdBy   User                    @relation("CommunityThreadCreator", fields: [createdById], references: [id], onDelete: Cascade)
-  members     CommunityThreadMember[]
-  messages    CommunityMessage[]
+  id            String                  @id @default(uuid())
+  name          String?
+  isGroup       Boolean                 @default(false)
+  createdById   Int
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  createdBy     User                    @relation("CommunityThreadCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  members       CommunityThreadMember[]
+  messages      CommunityMessage[]
   notifications CommunityNotification[]
 }
 
@@ -310,7 +310,7 @@ model CommunityMessage {
 /// Bu olmadan sosyal katman GORUNMEZ: kimse takip edildigini, mesaj
 /// geldigini ya da gonderisine yanit yazildigini ogrenmiyor.
 model CommunityNotification {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   /// Bildirimi ALAN kisi.
   userId    Int
   /// Olayi YAPAN kisi. Silinirse bildirim de gitmeli.
@@ -321,12 +321,12 @@ model CommunityNotification {
   postId    String?
   threadId  String?
   readAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
-  user      User            @relation("CommunityNotificationUser", fields: [userId], references: [id], onDelete: Cascade)
-  actor     User?           @relation("CommunityNotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
-  post      CommunityPost?  @relation(fields: [postId], references: [id], onDelete: Cascade)
-  thread    CommunityThread? @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user   User             @relation("CommunityNotificationUser", fields: [userId], references: [id], onDelete: Cascade)
+  actor  User?            @relation("CommunityNotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+  post   CommunityPost?   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  thread CommunityThread? @relation(fields: [threadId], references: [id], onDelete: Cascade)
 
   @@index([userId, readAt, createdAt])
 }
@@ -740,16 +740,26 @@ model UserPreference {
 }
 
 model BusinessWorkspace {
-  id                     String                   @id @default(uuid())
-  name                   String
-  legalName              String?
+  id        String  @id @default(uuid())
+  name      String
+  legalName String?
   // VKN (10 hane) ya da TCKN (11 hane).
   //
   // NEDEN VAR: e-Fatura XML'i okunduğunda faturanın YÖNÜ ancak bununla
   // belirlenebiliyor -- faturadaki alıcı bu numaraysa gelen fatura
   // (borç), satıcı bu numaraysa giden fatura (alacak). Numara yoksa
   // yön TAHMİN EDİLMİYOR, kullanıcıya soruluyor.
-  taxNumber              String?
+  taxNumber String?
+
+  // Gelen e-posta kutusunun YEREL parçası: fatura-<rastgele>@inbox...
+  //
+  // TAHMİN EDİLEMEZ olmalı. İşletme adından ya da slugtan türetilseydi
+  // adresi bilen herkes belge gönderebilirdi; rastgele değer bunu bir
+  // tahmin işi olmaktan çıkarıyor. Tek başına yeterli DEĞİL --
+  // gönderen ayrıca doğrulanmış bir üye olmalı ve DKIM/SPF geçmeli.
+  //
+  // NULL ise o çalışma alanının gelen kutusu KAPALI.
+  inboxKey               String?                  @unique
   slug                   String?
   sector                 String                   @default("")
   city                   String                   @default("")

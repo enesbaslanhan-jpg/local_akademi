@@ -458,3 +458,89 @@ export class FileValidationError extends Error {
     this.statusCode = statusCode
   }
 }
+
+/*
+ * DOSYA KABUL DİZİSİ — tek kaynak.
+ *
+ * 🔴 NEDEN AYRI İŞLEV: bu kontroller `documents.ts` içindeki yükleme
+ * rotasında sıralı `if`ler olarak duruyordu. Faz E ile ikinci bir
+ * TAŞIMA yolu açıldı (e-posta eki). Kontroller orada tekrar yazılsaydı
+ * iki liste kaçınılmaz olarak ayrışırdı: biri yeni bir tür kabul
+ * ederken diğeri etmez, ve e-postayla gelen dosya HTTP'den geçemeyecek
+ * bir kapıdan girerdi.
+ *
+ * Taşıma farklı olabilir (multipart / e-posta eki); KABUL ÖLÇÜTÜ aynı.
+ *
+ * Hata durumunda `FileValidationError` FIRLATIR -- çağıran taraf
+ * `statusCode` alanını kendi bağlamına göre kullanır (HTTP'de yanıt
+ * kodu, e-postada günlük kaydı).
+ */
+export function dosyayiDogrula(
+  buffer: Buffer,
+  filename: string,
+  mimeType: string
+): { ext: string } {
+  const ext = (filename.split('.').pop() || '').toLowerCase()
+
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    throw new FileValidationError(
+      'Desteklenmeyen dosya türü. TXT, MD, CSV, JSON, XML, DOCX, PDF, PNG veya JPEG yükleyin.',
+      415
+    )
+  }
+
+  if (!mimeTuruUygunMu(ext, mimeType)) {
+    throw new FileValidationError(
+      `Dosya uzantısı (${ext}) ile MIME türü (${mimeType}) uyuşmuyor`,
+      415
+    )
+  }
+
+  /* Uzantı ve MIME istemcinin beyanı; asıl güvence BAYTLARDA. */
+  const contentCheck = detectFileType(buffer)
+  if (!contentCheck.valid) {
+    throw new FileValidationError(contentCheck.error || 'Dosya içeriği desteklenmiyor', 415)
+  }
+
+  if ((contentCheck.detectedType === 'docx' && ext !== 'docx') ||
+      (contentCheck.detectedType !== 'docx' && ext === 'docx' && contentCheck.detectedType !== 'text')) {
+    throw new FileValidationError(
+      `Dosya içeriği (.${contentCheck.detectedType}) uzantı (.${ext}) ile uyuşmuyor`, 415
+    )
+  }
+  if (ext === 'docx' && contentCheck.detectedType !== 'docx') {
+    throw new FileValidationError('.docx uzantılı dosya geçerli bir DOCX değil', 415)
+  }
+  if (ext !== 'docx' && contentCheck.detectedType === 'docx') {
+    throw new FileValidationError('DOCX içeriği .docx uzantısıyla yüklenmelidir', 415)
+  }
+  if ((ext === 'pdf') !== (contentCheck.detectedType === 'pdf')) {
+    throw new FileValidationError('PDF uzantısı ile dosya içeriği uyuşmuyor', 415)
+  }
+
+  const imageExtension = ext === 'png' ? 'png' : ['jpg', 'jpeg'].includes(ext) ? 'jpeg' : null
+  if ((imageExtension !== null || ['png', 'jpeg'].includes(contentCheck.detectedType || '')) &&
+      imageExtension !== contentCheck.detectedType) {
+    throw new FileValidationError('Görsel uzantısı ile dosya içeriği uyuşmuyor', 415)
+  }
+
+  if (ext === 'docx') {
+    const zipInfo = inspectZip(buffer)
+    if (!zipInfo.valid) {
+      throw new FileValidationError(zipInfo.error || 'Geçersiz DOCX/ZIP dosyası', 422)
+    }
+    if (!zipInfo.hasContentTypesXml || !zipInfo.hasWordDocumentXml) {
+      throw new FileValidationError(
+        'Geçersiz DOCX yapısı: eksik [Content_Types].xml veya word/document.xml', 422
+      )
+    }
+  }
+
+  if (ext === 'pdf') validatePdfFile(buffer)
+  if (imageExtension) validateImageFile(buffer, imageExtension)
+  if (ext === 'txt' || ext === 'md' || ext === 'csv') validateTextFile(buffer)
+  if (ext === 'xml') validateXmlFile(buffer)
+  if (ext === 'json') validateJsonFile(buffer)
+
+  return { ext }
+}

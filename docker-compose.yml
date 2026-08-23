@@ -54,6 +54,10 @@ services:
       # Iletisim formundan gelen mesajlarin dusecegi kutu. Tanimsizsa form
       # 503 doner ve kullaniciya "iletilemedi" der -- sessizce yutmaz.
       - SUPPORT_MAIL_TO=${SUPPORT_MAIL_TO:-}
+      # Yoksa gelen e-posta kanalı kapalı; `.env`e yazmak YETMEZ,
+      # compose'un kapsayıcıya iletmesi de gerekiyor (bayraklarda bu
+      # adım atlandığı için özellikler üretimde kapalı kalmıştı).
+      - INBOUND_MAIL_SECRET=${INBOUND_MAIL_SECRET:-}
       # Yedeklerin yazilacagi klasor. Asagidaki server-backups birimine
       # bagli; verilmezse betik calisma dizinine yazar ve yedekler
       # kapsayici yeniden olusturulunca KAYBOLUR.

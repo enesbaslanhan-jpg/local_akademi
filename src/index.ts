@@ -39,6 +39,7 @@ import { flashcardRoutes } from './services/flashcard-routes'
 import { videoRoutes } from './services/videos'
 import { communityRoutes } from './services/community'
 import { communitySocialRoutes } from './services/community-social'
+import { gelenEpostaRotalari } from './services/gelen-eposta'
 import { financialModelRoutes } from './services/financial-models/routes'
 import { feedRoutes } from './routes/feed.js'
 import { learningProgressRoutes } from './routes/learning-progress.js'
@@ -487,6 +488,19 @@ async function build() {
   server.register(videoRoutes, { prefix: '/videos' })
   server.register(communityRoutes, { prefix: '/community' })
   server.register(communitySocialRoutes, { prefix: '/community/social' })
+
+  /*
+   * GELEN E-POSTA KANALI.
+   *
+   * `/inbound` öneki BİLEREK ayrı: bu rota JWT taşımıyor, kimlik
+   * doğrulaması Cloudflare Worker ile paylaşılan gizli anahtar
+   * üzerinden yapılıyor. Kimlik doğrulayan rotalarla aynı önek altına
+   * konsaydı, ileride biri "bu önek zaten korumalı" varsayımıyla
+   * yanılabilirdi.
+   *
+   * `INBOUND_MAIL_SECRET` yoksa modül HİÇBİR rota kaydetmiyor.
+   */
+  server.register(gelenEpostaRotalari, { prefix: '/inbound' })
   server.register(financialModelRoutes)
   server.register(practicalCardRoutes, { prefix: '/practical-cards' })
   server.register(decisionCheckRoutes, { prefix: '/api/v1/decision-checks' })

@@ -10,9 +10,8 @@ import { PDFParse } from 'pdf-parse'
 import { createWorker, OEM } from 'tesseract.js'
 import { z } from 'zod'
 import {
-  MAX_FILE_SIZE, MAX_EXTRACTED_TEXT_LENGTH, MAX_PDF_PAGES, ALLOWED_EXTENSIONS, mimeTuruUygunMu,
-  questionSchema, detectFileType, validateTextFile, validateJsonFile, validateXmlFile, inspectZip,
-  validatePdfFile, validateImageFile, FileValidationError
+  MAX_FILE_SIZE, MAX_EXTRACTED_TEXT_LENGTH, MAX_PDF_PAGES, dosyayiDogrula,
+  questionSchema, FileValidationError
 } from './documentSecurity'
 import { ublFaturasiniAyristir, type UblFatura } from './e-fatura.js'
 
@@ -108,110 +107,22 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
       return reply.status(413).send({ error: `Dosya boyutu ${Math.round(MAX_FILE_SIZE / 1024 / 1024)}MB ile sınırlıdır` })
     }
 
-    const ext = (filename.split('.').pop() || '').toLowerCase()
-    if (!ALLOWED_EXTENSIONS.has(ext)) {
-      return reply.status(415).send({ error: 'Desteklenmeyen dosya türü. TXT, MD, CSV, JSON, XML, DOCX, PDF, PNG veya JPEG yükleyin.' })
-    }
-
-    /* XML iki farklı MIME ile gelebiliyor; karar tek yerde
-       (`mimeTuruUygunMu`) veriliyor. */
-    if (!mimeTuruUygunMu(ext, mimeType)) {
-      return reply.status(415).send({ error: `Dosya uzantısı (${ext}) ile MIME türü (${mimeType}) uyuşmuyor` })
-    }
-
-    const contentCheck = detectFileType(buffer)
-    if (!contentCheck.valid) {
-      return reply.status(415).send({ error: contentCheck.error || 'Dosya içeriği desteklenmiyor' })
-    }
-
-    if ((contentCheck.detectedType === 'docx' && ext !== 'docx') ||
-        (contentCheck.detectedType !== 'docx' && ext === 'docx' && contentCheck.detectedType !== 'text')) {
-      return reply.status(415).send({ error: `Dosya içeriği (.${contentCheck.detectedType}) uzantı (.${ext}) ile uyuşmuyor` })
-    }
-
-    if (ext === 'docx' && contentCheck.detectedType !== 'docx') {
-      return reply.status(415).send({ error: '.docx uzantılı dosya geçerli bir DOCX değil' })
-    }
-
-    if (ext !== 'docx' && contentCheck.detectedType === 'docx') {
-      return reply.status(415).send({ error: 'DOCX içeriği .docx uzantısıyla yüklenmelidir' })
-    }
-
-    if ((ext === 'pdf') !== (contentCheck.detectedType === 'pdf')) {
-      return reply.status(415).send({ error: 'PDF uzantısı ile dosya içeriği uyuşmuyor' })
-    }
-
-    const imageExtension = ext === 'png' ? 'png' : ['jpg', 'jpeg'].includes(ext) ? 'jpeg' : null
-    if ((imageExtension !== null || ['png', 'jpeg'].includes(contentCheck.detectedType || '')) &&
-        imageExtension !== contentCheck.detectedType) {
-      return reply.status(415).send({ error: 'Görsel uzantısı ile dosya içeriği uyuşmuyor' })
-    }
-
-    if (ext === 'docx') {
-      const zipInfo = inspectZip(buffer)
-      if (!zipInfo.valid) {
-        return reply.status(422).send({ error: zipInfo.error || 'Geçersiz DOCX/ZIP dosyası' })
+    /*
+     * Kabul ölçütü ORTAK işlevde (`dosyayiDogrula`).
+     *
+     * Burada ~100 satırlık sıralı `if` zinciri vardı. Faz E ile ikinci
+     * bir TAŞIMA yolu açıldı (e-posta eki); kontroller orada tekrar
+     * yazılsaydı iki liste kaçınılmaz olarak ayrışırdı. Taşıma farklı,
+     * kabul ölçütü aynı.
+     */
+    let ext: string
+    try {
+      ext = dosyayiDogrula(buffer, filename, mimeType).ext
+    } catch (e) {
+      if (e instanceof FileValidationError) {
+        return reply.status(e.statusCode).send({ error: e.message })
       }
-      if (!zipInfo.hasContentTypesXml || !zipInfo.hasWordDocumentXml) {
-        return reply.status(422).send({ error: 'Geçersiz DOCX yapısı: eksik [Content_Types].xml veya word/document.xml' })
-      }
-    }
-
-    if (ext === 'pdf') {
-      try {
-        validatePdfFile(buffer)
-      } catch (e) {
-        if (e instanceof FileValidationError) {
-          return reply.status(e.statusCode).send({ error: e.message })
-        }
-        throw e
-      }
-    }
-
-    if (imageExtension) {
-      try {
-        validateImageFile(buffer, imageExtension)
-      } catch (e) {
-        if (e instanceof FileValidationError) {
-          return reply.status(e.statusCode).send({ error: e.message })
-        }
-        throw e
-      }
-    }
-
-    if (ext === 'txt' || ext === 'md' || ext === 'csv') {
-      try {
-        validateTextFile(buffer)
-      } catch (e) {
-        if (e instanceof FileValidationError) {
-          return reply.status(e.statusCode).send({ error: e.message })
-        }
-        throw e
-      }
-    }
-
-    /* XML: DTD reddi ve biçim doğrulaması. Ayrıntılı gerekçe
-       `documentSecurity.ts` içindeki `validateXmlFile` başlığında. */
-    if (ext === 'xml') {
-      try {
-        validateXmlFile(buffer)
-      } catch (e) {
-        if (e instanceof FileValidationError) {
-          return reply.status(e.statusCode).send({ error: e.message })
-        }
-        throw e
-      }
-    }
-
-    if (ext === 'json') {
-      try {
-        validateJsonFile(buffer)
-      } catch (e) {
-        if (e instanceof FileValidationError) {
-          return reply.status(e.statusCode).send({ error: e.message })
-        }
-        throw e
-      }
+      throw e
     }
 
     const userQuotaUsage = await prisma.uploadedDocument.aggregate({
