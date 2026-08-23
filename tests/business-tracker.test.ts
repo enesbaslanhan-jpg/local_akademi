@@ -252,3 +252,113 @@ describe('Business tracker API', () => {
     expect(list.json().records.some((record: any) => record.id === recordId)).toBe(false)
   })
 })
+
+/*
+ * ÜRÜN SAHİBİNİN BİLDİRDİĞİ EKSİKLER (23.08.2026).
+ *
+ * Dördü de e-Fatura yüklendikten SONRA ortaya çıktı; kayıt oluşuyordu
+ * ama kullanıcı ne olduğunu göremiyordu. Buradaki testler o davranışları
+ * koruyor.
+ */
+describe('Geçmiş vade ve yön bekleyenler', () => {
+  /*
+   * 🔴 `overdue` SUNUCUDA hesaplanıyor.
+   *
+   * e-Fatura yüklenince kayıt faturanın KENDİ vadesini alıyor. Eski
+   * tarihli bir fatura yüklendiğinde kayıt geçmişe düşüp kullanıcının
+   * bakmadığı bir yere sessizce gidiyordu -- "takvime hiç eklenmiyor"
+   * diye bildirildi; ölçüldüğünde kayıt aslında takvimdeydi, ama 2009'da.
+   */
+  it('vadesi geçmiş kayıt overdue olarak işaretlenir', async () => {
+    const olustur = await inject('POST', `/workspaces/${workspaceId}/records`, ownerToken, {
+      type: 'payment',
+      title: 'Eski tarihli fatura',
+      direction: 'payable',
+      amount: 500,
+      currency: 'TRY',
+      dueAt: new Date('2009-01-20T00:00:00.000Z').toISOString()
+    })
+    expect(olustur.statusCode).toBe(201)
+    expect(olustur.json().overdue).toBe(true)
+
+    const detay = await inject('GET', `/workspaces/${workspaceId}/records/${olustur.json().id}`, ownerToken)
+    expect(detay.json().overdue).toBe(true)
+  })
+
+  it('geleceğe dönük kayıt overdue değildir', async () => {
+    const olustur = await inject('POST', `/workspaces/${workspaceId}/records`, ownerToken, {
+      type: 'payment',
+      title: 'Gelecek vadeli',
+      direction: 'payable',
+      amount: 100,
+      currency: 'TRY',
+      dueAt: new Date(Date.now() + 7 * 86400000).toISOString()
+    })
+    expect(olustur.json().overdue).toBe(false)
+  })
+
+  it('vadesiz kayıt overdue değildir', async () => {
+    const olustur = await inject('POST', `/workspaces/${workspaceId}/records`, ownerToken, {
+      type: 'task', title: 'Vadesiz görev', direction: 'neutral'
+    })
+    expect(olustur.json().overdue).toBe(false)
+  })
+
+  /*
+   * 🔴 EN ÖNEMLİSİ. `payable`/`receivable` toplamları yalnız yönü BELLİ
+   * kayıtları sayıyor. Yönü belirsiz bir e-Fatura hiçbir toplama
+   * girmiyor ve ekranda HİÇ görünmüyordu. Artık kendi sayacı var.
+   */
+  it('yönü belirsiz tutarlı kayıt awaitingDirection içinde sayılır', async () => {
+    await inject('POST', `/workspaces/${workspaceId}/records`, ownerToken, {
+      type: 'payment',
+      title: 'Yönü belirsiz fatura',
+      direction: 'neutral',
+      amount: 1234.5,
+      currency: 'TRY'
+    })
+
+    const ozet = await inject('GET', `/workspaces/${workspaceId}/tracker/summary`, ownerToken)
+    expect(ozet.statusCode).toBe(200)
+    const g = ozet.json()
+    expect(g.awaitingDirection.count).toBeGreaterThan(0)
+    expect(g.awaitingDirection.amount).toBeGreaterThanOrEqual(1234.5)
+  })
+
+  /* Tutarsız kayıt sayılmıyor: "yön bekliyor ₺0" bilgi taşımaz. */
+  it('tutarsız belirsiz kayıt awaitingDirection tutarını şişirmez', async () => {
+    const once = (await inject('GET', `/workspaces/${workspaceId}/tracker/summary`, ownerToken)).json()
+    await inject('POST', `/workspaces/${workspaceId}/records`, ownerToken, {
+      type: 'task', title: 'Tutarsız belirsiz', direction: 'neutral'
+    })
+    const sonra = (await inject('GET', `/workspaces/${workspaceId}/tracker/summary`, ownerToken)).json()
+    expect(sonra.awaitingDirection.amount).toBe(once.awaitingDirection.amount)
+  })
+
+  /*
+   * Detay yanıtı belgenin TAMAMINI taşımamalı: `extractedText` belge
+   * başına 100.000 karaktere kadar çıkabiliyor ve detay ekranı onu hiç
+   * göstermiyor.
+   */
+  it('detay yanıtı belgenin ham metnini taşımaz', async () => {
+    /* Kendi kaydını kuruyor: paylaşılan `recordId` başka testlerde
+       silinebiliyor ve test o yüzden 404 alıyordu. */
+    const kayit = await inject('POST', `/workspaces/${workspaceId}/records`, ownerToken, {
+      type: 'payment', title: 'Belgeli kayıt', direction: 'payable', amount: 10, currency: 'TRY'
+    })
+    expect(kayit.statusCode).toBe(201)
+    const bagla = await inject('POST', `/workspaces/${workspaceId}/records/${kayit.json().id}/documents/${documentId}`, ownerToken)
+    expect(bagla.statusCode).toBeLessThan(300)
+
+    const detay = await inject('GET', `/workspaces/${workspaceId}/records/${kayit.json().id}`, ownerToken)
+    expect(detay.statusCode).toBe(200)
+    /* Boş dizide döngü çalışmaz; testin gerçekten bir şey denediğinden
+       emin olmak için ek sayısı da doğrulanıyor. */
+    expect(detay.json().documents.length).toBeGreaterThan(0)
+    for (const bag of detay.json().documents || []) {
+      expect(bag.document.extractedText).toBeUndefined()
+      /* `analysis` GEREKLİ: e-Faturanın yapılandırılmış hâli orada. */
+      expect(bag.document).toHaveProperty('analysis')
+    }
+  })
+})

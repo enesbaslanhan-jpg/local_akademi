@@ -7,6 +7,7 @@ import {
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
 import { Select } from '@/components/ui'
+import KayitDetay from './KayitDetay'
 import styles from './Tracker.module.css'
 
 const emptyForm = {
@@ -70,6 +71,9 @@ export default function Tracker() {
   const [search, setSearch] = useState('')
   const [form, setForm] = useState(emptyForm)
   const [showForm, setShowForm] = useState(false)
+  /* Satira tiklaninca acilan detay. Onceden satir sonundaki ok (>)
+     hicbir seye baglanmamisti. */
+  const [detayId, setDetayId] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [exporting, setExporting] = useState('')
@@ -219,15 +223,30 @@ export default function Tracker() {
         {loading ? <div className={styles.tableState}>Kayıtlar yükleniyor…</div> : visibleRecords.length === 0 ? (
           <div className={styles.tableState}><CalendarDays size={30} /><strong>{records.length ? 'Aramayla eşleşen kayıt yok' : 'Henüz işletme kaydı yok'}</strong><span>{records.length ? 'Arama veya filtreyi değiştirin.' : 'İlk kaydı ekleyerek işletme takibini başlatın.'}</span></div>
         ) : <div className={styles.recordTable}>{visibleRecords.map(record => (
-          <article className={`${styles.tableRow} ${overdueIds.has(record.id) ? styles.overdueRow : ''}`} key={record.id}>
+          <article
+            className={`${styles.tableRow} ${overdueIds.has(record.id) ? styles.overdueRow : ''}`}
+            key={record.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => setDetayId(record.id)}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetayId(record.id) } }}
+          >
             <div><strong>{record.title}</strong><small>{record.description || record.contact?.name || (record.amount !== null ? money(record.amount, record.currency) : 'Açıklama eklenmedi')}</small></div>
             <span>{typeLabels[record.type] || record.type}</span>
             <span>{localDate(record.updatedAt || record.dueAt || record.createdAt)}</span>
-            <button className={`${styles.rowStatus} ${styles[record.status] || ''} ${overdueIds.has(record.id) ? styles.late : ''}`} onClick={() => setStatus(record.id, record.status === 'completed' ? 'open' : 'completed')}><Check size={13} />{overdueIds.has(record.id) ? 'Gecikti' : statusLabels[record.status] || record.status}</button>
+            <button className={`${styles.rowStatus} ${styles[record.status] || ''} ${overdueIds.has(record.id) ? styles.late : ''}`} onClick={e => { e.stopPropagation(); setStatus(record.id, record.status === 'completed' ? 'open' : 'completed') }}><Check size={13} />{overdueIds.has(record.id) ? 'Gecikti' : statusLabels[record.status] || record.status}</button>
             <ChevronRight size={15} />
           </article>
         ))}</div>}
       </section>
+
+      {detayId && (
+        <KayitDetay
+          workspaceId={workspaceId}
+          recordId={detayId}
+          onClose={() => setDetayId(null)}
+        />
+      )}
 
       {showForm && (
         <div className={styles.overlay} onMouseDown={() => setShowForm(false)}>

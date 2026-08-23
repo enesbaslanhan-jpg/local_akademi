@@ -255,6 +255,30 @@ export default function Dashboard() {
                 <strong className={`${styles.statusKpiValue} ${net < 0 ? styles.kpiRiskDark : ''}`}>{money.format(net ?? 0)}</strong>
                 <span className={styles.statusKpiHint}>{net < 0 ? 'Planlama gerekli' : 'Olumlu'}</span>
               </div>
+              {/*
+                * YÖN BEKLEYENLER.
+                *
+                * Tahsilat ve Ödeme toplamları yalnız yönü BELLİ kayıtları
+                * sayıyor. e-Fatura okunduğunda yön, faturadaki VKN işletmenin
+                * vergi numarasıyla eşleşmezse belirsiz kalıyor ve o kayıt
+                * hiçbir toplama girmiyordu -- yani tutarı olan bir fatura
+                * ekranda hiç görünmüyordu.
+                *
+                * Borç ya da alacak sayılmıyor (bu bir tahmin olurdu); kendi
+                * şeridinde görünüyor. Yalnız kayıt VARSA çiziliyor -- sıfırlı
+                * bir kutu her gün yer kaplayıp hiçbir şey söylemezdi.
+                */}
+              {(tracker.awaitingDirection?.count ?? 0) > 0 && (
+                <button
+                  type="button"
+                  className={`${styles.statusKpi} ${styles.statusKpiAction}`}
+                  onClick={() => navigate(`/app/workspaces/${activeWorkspaceId}/tracker`)}
+                >
+                  <span className={styles.statusKpiLabel}>Yön bekliyor</span>
+                  <strong className={styles.statusKpiValue}>{money.format(tracker.awaitingDirection.amount ?? 0)}</strong>
+                  <span className={styles.statusKpiHint}>{tracker.awaitingDirection.count} kayıt · borç mu alacak mı belirsiz</span>
+                </button>
+              )}
             </div>
           ) : (
             <Button variant="secondary" size="sm" className={styles.setupButton} onClick={() => navigate('/app/workspaces')}>

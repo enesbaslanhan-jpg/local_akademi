@@ -65,10 +65,26 @@ function parseJson(value: string | null) {
 }
 
 function recordJson(record: any) {
+  /*
+   * `overdue` SUNUCUDA hesaplanıyor, arayüzde değil.
+   *
+   * Neden: aynı karar üç ayrı ekranda (takip listesi, takvim, ana
+   * sayfa) tekrar edilirdi ve biri "vadesi bugün olan geçmiş sayılır
+   * mı" sorusunu farklı yanıtlayınca ekranlar birbirini tutmazdı.
+   *
+   * NEDEN GEREKTİ: e-Fatura yüklenince kayıt faturanın KENDİ vadesini
+   * alıyor. Eski tarihli bir fatura yüklendiğinde kayıt geçmişe düşüp
+   * kullanıcının bakmadığı bir yere sessizce gidiyordu -- ürün sahibi
+   * "takvime hiç eklenmiyor" diye bildirdi; ölçüldüğünde kayıt aslında
+   * takvimdeydi, ama 2009'da. Artık geçmiş vade İŞARETLENİYOR.
+   */
+  const dueAt = record.dueAt ? new Date(record.dueAt) : null
+  const tamamlanmis = ['completed', 'cancelled'].includes(record.status)
   return {
     ...record,
     amount: record.amount === null || record.amount === undefined ? null : Number(record.amount),
-    metadata: parseJson(record.metadata)
+    metadata: parseJson(record.metadata),
+    overdue: Boolean(dueAt && !tamamlanmis && dueAt.getTime() < Date.now())
   }
 }
 
@@ -238,15 +254,36 @@ export async function businessTrackerRoutes(
       .filter(r => r.direction === 'receivable' && r.dueAt && r.dueAt <= nextThirtyDays)
       .reduce((sum, r) => sum + Number(r.amount ?? 0), 0)
 
+    /*
+     * 🔴 YÖN BEKLEYENLER — kendi şeridi.
+     *
+     * `payable` ve `receivable` toplamları yalnız yönü BELLİ kayıtları
+     * sayıyor. e-Fatura okunduğunda yön, faturadaki VKN işletmenin
+     * vergi numarasıyla eşleşmezse `neutral` kalıyor. Sonuç: tutarı
+     * olan bir kayıt hiçbir toplama girmiyor ve ekranda hiç
+     * görünmüyordu -- ürün sahibi bunu kullanınca fark etti.
+     *
+     * Borç ya da alacak sayılmıyorlar; bu bir tahmin olurdu ve yanlış
+     * yön, kullanıcının alacağını borç göstermek demek. Bunun yerine
+     * KENDİ sayaçlarıyla görünür oluyorlar: "N kayıt yön bekliyor".
+     * Kullanıcı unutmaz, rakamlar da yalan söylemez.
+     */
+    const yonBekleyenler = records.filter(r => r.direction === 'neutral' && r.amount !== null)
+
     return {
       counts: {
         open: records.length,
         overdue: records.filter(r => r.dueAt && r.dueAt < now && r.status !== 'completed').length,
         dueToday: records.filter(r => r.dueAt && r.dueAt.toDateString() === now.toDateString()).length,
         shipments: records.filter(r => r.type === 'shipment').length,
-        deferred: records.filter(r => r.status === 'deferred' || r.type === 'deferred').length
+        deferred: records.filter(r => r.status === 'deferred' || r.type === 'deferred').length,
+        awaitingDirection: yonBekleyenler.length
       },
       nextThirtyDays: { payable, receivable, net: receivable - payable },
+      awaitingDirection: {
+        count: yonBekleyenler.length,
+        amount: yonBekleyenler.reduce((sum, r) => sum + Number(r.amount ?? 0), 0)
+      },
       upcoming: records.slice(0, 10).map(recordJson)
     }
   })
@@ -385,7 +422,36 @@ export async function businessTrackerRoutes(
         assignedTo: { select: { id: true, name: true, email: true } },
         history: { orderBy: { createdAt: 'desc' }, take: 50 },
         reminders: { orderBy: { scheduledAt: 'asc' } },
-        documents: { include: { document: true }, orderBy: { createdAt: 'desc' } }
+        /*
+         * Belgenin TAMAMI değil, gereken alanlar.
+         *
+         * `include: { document: true }` `extractedText`i de getiriyordu
+         * -- belge başına 100.000 karaktere kadar. Detay ekranı o metni
+         * hiç göstermiyor; bir kaydın üç eki varsa yanıt sebepsiz yere
+         * yüz binlerce karakter taşırdı.
+         *
+         * `analysis` GEREKLİ: e-Faturanın yapılandırılmış hâli
+         * (`analysis.eFatura`) orada duruyor ve detayda gösteriliyor.
+         */
+        documents: {
+          select: {
+            id: true,
+            createdAt: true,
+            document: {
+              select: {
+                id: true,
+                originalName: true,
+                mimeType: true,
+                sizeBytes: true,
+                category: true,
+                documentDate: true,
+                analysis: true,
+                createdAt: true
+              }
+            }
+          },
+          orderBy: { createdAt: 'desc' }
+        }
       }
     })
     return recordJson(record)

@@ -330,3 +330,16 @@
 @media (prefers-reduced-motion: reduce) {
   .skelLine { animation: none; }
 }
+
+/* "Yön bekliyor" şeridi tıklanabilir: kullanıcıya sorunu gösterip
+   çözebileceği yere götürüyor. Diğer KPI kutularıyla aynı görünüm,
+   ama düğme olduğu için imleç ve odak halkası var. */
+.statusKpiAction {
+  cursor: pointer;
+  text-align: left;
+  border: 1px solid color-mix(in srgb, var(--warning, #d98324) 35%, transparent);
+}
+
+.statusKpiAction:hover {
+  border-color: var(--warning, #d98324);
+}

@@ -34,6 +34,41 @@ export async function syncAutomaticReminder(
   })
 }
 
+/*
+ * BİLDİRİM GÖVDESİ.
+ *
+ * Eskiden yalnız `"<başlık> için tarih: <tarih>"` yazıyordu. Ürün
+ * sahibinin tespiti: "bildirim yerinde gözüküyor ne olduğu yazmıyor".
+ * Haklıydı -- bildirime bakan kişi TUTARI ve bunun borç mu alacak mı
+ * olduğunu göremiyordu, yani asıl karar verdirecek iki bilgiyi.
+ *
+ * Yön belirsizse UYDURULMUYOR: "yön belirsiz" yazıyor. Bir alacağı
+ * "ödenecek" diye bildirmek, hiç bildirmemekten kötüdür.
+ */
+function bildirimGovdesi(
+  record: { title: string; amount: unknown; currency: string; direction: string },
+  dueLabel: string
+): string {
+  const parcalar: string[] = [record.title]
+
+  const tutar = record.amount === null || record.amount === undefined
+    ? null
+    : Number(record.amount)
+  if (tutar !== null && Number.isFinite(tutar)) {
+    parcalar.push(`${tutar.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${record.currency}`)
+  }
+
+  const yonMetni: Record<string, string> = {
+    payable: 'ödenecek',
+    receivable: 'tahsil edilecek',
+    neutral: 'yön belirsiz'
+  }
+  parcalar.push(yonMetni[record.direction] || 'yön belirsiz')
+  parcalar.push(`tarih: ${dueLabel}`)
+
+  return parcalar.join(' · ')
+}
+
 export async function processDueBusinessReminders(
   prisma: PrismaClient = sharedPrisma,
   now = new Date()
@@ -41,7 +76,7 @@ export async function processDueBusinessReminders(
   const due = await prisma.businessReminder.findMany({
     where: { status: 'pending', scheduledAt: { lte: now } },
     include: {
-      record: { select: { id: true, title: true, dueAt: true, status: true, archivedAt: true } },
+      record: { select: { id: true, title: true, dueAt: true, status: true, archivedAt: true, amount: true, currency: true, direction: true } },
       workspace: { select: { status: true, settings: { select: { notificationPrefs: true } } } }
     },
     orderBy: { scheduledAt: 'asc' },
@@ -93,7 +128,7 @@ export async function processDueBusinessReminders(
           dedupeKey: `reminder:${reminder.id}`,
           type: 'record_due',
           title: 'Yaklaşan işletme kaydı',
-          body: `${reminder.record.title} için tarih: ${dueLabel}`
+          body: bildirimGovdesi(reminder.record, dueLabel)
         }
       })
       await tx.businessReminder.update({
