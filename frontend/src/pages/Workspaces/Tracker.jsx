@@ -2,11 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import {
   AlertTriangle, CalendarDays, Check, Package, Plus, WalletCards, X,
-  Receipt, HandCoins, FileSignature, Truck, Search, ChevronRight, Download
+  Receipt, HandCoins, FileSignature, Truck, Search, ChevronRight, Download, Share2, FileDown
 } from 'lucide-react'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
 import { Select } from '@/components/ui'
+import { dosyaPaylas, paylasabilirMi } from '@/utils/dosyaPaylas'
 import KayitDetay from './KayitDetay'
 import styles from './Tracker.module.css'
 
@@ -74,6 +75,38 @@ export default function Tracker() {
   /* Satira tiklaninca acilan detay. Onceden satir sonundaki ok (>)
      hicbir seye baglanmamisti. */
   const [detayId, setDetayId] = useState(null)
+  /* Hangi kaydın PDF'i hazırlanıyor -- düğme iki kez basılmasın. */
+  const [kayitIsleniyor, setKayitIsleniyor] = useState('')
+  /* Bir kez ölçülüyor: ortamın yeteneği kullanım sırasında değişmiyor. */
+  const paylasimVar = useMemo(() => paylasabilirMi(), [])
+
+  /*
+   * TEK KAYDI GÖNDERMEK.
+   *
+   * Toplu dışa aktarım ekrandaki filtreye uyan HER kaydı tek belgeye
+   * koyuyor; tek bir faturayı muhasebeciye göndermek isteyen kullanıcı
+   * o belgeden kendi kaydını ayıklamak zorunda kalıyordu.
+   */
+  async function kaydiAl(record, paylas) {
+    setKayitIsleniyor(record.id)
+    try {
+      const dosya = await api.workspace.exports.fetchRecordPdf(workspaceId, record.id)
+      if (!paylas) {
+        const { dosyaIndir } = await import('@/utils/dosyaPaylas')
+        dosyaIndir(dosya)
+        toast.success('Kayıt PDF olarak indirildi.')
+        return
+      }
+      const sonuc = await dosyaPaylas(dosya, { baslik: record.title })
+      /* İptal sessiz geçiliyor: kullanıcı vazgeçtiyse bu bir hata değil. */
+      if (sonuc === 'paylasildi') toast.success('Kayıt paylaşıldı.')
+      else if (sonuc === 'indirildi') toast.success('Kayıt PDF olarak indirildi.')
+    } catch (error) {
+      toast.error(error.message || 'Kayıt indirilemedi.')
+    } finally {
+      setKayitIsleniyor('')
+    }
+  }
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [exporting, setExporting] = useState('')
@@ -219,7 +252,7 @@ export default function Tracker() {
           <Select aria-label="Durum filtresi" placeholder="Tüm durumlar" options={Object.entries(statusLabels).map(([value, label]) => ({ value, label }))} value={filters.status} onChange={v => setFilters(current => ({ ...current, status: v }))} />
         </div>
 
-        <div className={styles.tableHead}><span>Kayıt</span><span>Tür</span><span>Güncelleme</span><span>Durum</span><span /></div>
+        <div className={styles.tableHead}><span>Kayıt</span><span>Tür</span><span>Güncelleme</span><span>Durum</span><span /><span /></div>
         {loading ? <div className={styles.tableState}>Kayıtlar yükleniyor…</div> : visibleRecords.length === 0 ? (
           <div className={styles.tableState}><CalendarDays size={30} /><strong>{records.length ? 'Aramayla eşleşen kayıt yok' : 'Henüz işletme kaydı yok'}</strong><span>{records.length ? 'Arama veya filtreyi değiştirin.' : 'İlk kaydı ekleyerek işletme takibini başlatın.'}</span></div>
         ) : <div className={styles.recordTable}>{visibleRecords.map(record => (
@@ -235,6 +268,32 @@ export default function Tracker() {
             <span>{typeLabels[record.type] || record.type}</span>
             <span>{localDate(record.updatedAt || record.dueAt || record.createdAt)}</span>
             <button className={`${styles.rowStatus} ${styles[record.status] || ''} ${overdueIds.has(record.id) ? styles.late : ''}`} onClick={e => { e.stopPropagation(); setStatus(record.id, record.status === 'completed' ? 'open' : 'completed') }}><Check size={13} />{overdueIds.has(record.id) ? 'Gecikti' : statusLabels[record.status] || record.status}</button>
+            {/* 🔴 `stopPropagation` şart: satırın kendisi detay panelini
+                açıyor; olmasaydı indirmeye basınca panel de açılırdı. */}
+            <span className={styles.rowActions}>
+              <button
+                type="button"
+                className={styles.rowAction}
+                title="Bu kaydı PDF olarak indir"
+                aria-label={`${record.title} kaydını PDF indir`}
+                disabled={kayitIsleniyor === record.id}
+                onClick={e => { e.stopPropagation(); kaydiAl(record, false) }}
+              ><FileDown size={14} /></button>
+              {/* Paylaş YALNIZ gerçekten paylaşabilen ortamda çizilir.
+                  Masaüstü tarayıcılar dosya paylaşımını desteklemiyor;
+                  düğme orada her basışta özür dileyen bir mesaj
+                  gösteriyordu. İndirme düğmesi zaten yanında. */}
+              {paylasimVar && (
+                <button
+                  type="button"
+                  className={styles.rowAction}
+                  title="Bu kaydı paylaş"
+                  aria-label={`${record.title} kaydını paylaş`}
+                  disabled={kayitIsleniyor === record.id}
+                  onClick={e => { e.stopPropagation(); kaydiAl(record, true) }}
+                ><Share2 size={14} /></button>
+              )}
+            </span>
             <ChevronRight size={15} />
           </article>
         ))}</div>}

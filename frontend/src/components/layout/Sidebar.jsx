@@ -157,7 +157,6 @@ export default function Sidebar({
       const onTools = location.pathname === '/app/calculations' || location.pathname === '/app/tools'
       return [
         { label: 'Katalog', path: '/app/calculations?view=calculator', active: onTools && (view === null || view === 'calculator' || view === 'models') },
-        { label: 'Finansal Görünüm', path: '/app/calculations?view=all', active: onTools && view === 'all' },
         { label: 'Geçmiş', path: '/app/calculations?view=history', active: onTools && view === 'history' },
       ]
     }
@@ -206,7 +205,7 @@ export default function Sidebar({
             /* Zaten bu bölümün içindeysek YALNIZ menüyü aç/kapat.
                Önceden üst maddeye basmak aynı anda bölüm köküne
                gidiyordu; yani alt menüyü görmek isteyen kullanıcı
-               bulunduğu görünümden (ör. Finansal Görünüm) koparılıp
+               bulunduğu görünümden (ör. Geçmiş) koparılıp
                Katalog'a atılıyordu. */
             if (active) return
           }

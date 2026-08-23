@@ -1,40 +1,9 @@
 .page { max-width: 1220px; margin: 0 auto; padding: 4px 0 26px; color: var(--text-primary); min-width: 0; }
 
-/* ---------- Finans Merkezi ana görünümü ---------- */
-.financeOverview { display: grid; gap: 14px; min-width: 0; }
-.financeSignature { position: relative; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(440px, .9fr); align-items: center; gap: 28px; min-height: 146px; padding: 24px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border)); border-radius: var(--radius); background: var(--surface-signature); color: var(--on-signature); box-shadow: var(--shadow-3); }
-.financeSignature::after { content: ''; position: absolute; width: 260px; height: 260px; right: -90px; top: -95px; border-radius: 50%; background: color-mix(in srgb, var(--on-signature) 7%, transparent); pointer-events: none; }
-.financeStatus, .financeMetrics { position: relative; z-index: 1; min-width: 0; }
-.financeStatus > span { display: inline-flex; padding: 5px 10px; border-radius: var(--radius-full); background: color-mix(in srgb, var(--on-signature) 12%, transparent); color: var(--on-signature); font-size: .68rem; font-weight: 800; }
-.financeStatus h2 { margin: 10px 0 0; color: var(--on-signature); font-size: clamp(1.3rem, 2.1vw, 1.85rem); line-height: 1.14; letter-spacing: -.025em; }
-.financeStatus p { margin: 7px 0 0; color: var(--on-signature-dim); font-size: .82rem; line-height: 1.5; }
-.financeMetrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.financeMetrics > div { display: grid; gap: 3px; padding: 5px 18px; border-left: 1px solid color-mix(in srgb, var(--on-signature) 18%, transparent); min-width: 0; }
-.financeMetrics span, .financeMetrics small { color: var(--on-signature-dim); font-size: .7rem; }
-.financeMetrics strong { overflow-wrap: anywhere; color: var(--on-signature); font-size: 1.35rem; line-height: 1.15; font-variant-numeric: tabular-nums; }
-.financeMetrics .financeNegative { color: var(--on-signature-bad); }
-.financeColumns { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, .9fr); gap: 14px; min-height: 480px; min-width: 0; }
-.financeLedger, .financeInsights { min-width: 0; padding: 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-card); box-shadow: var(--shadow-2); }
-.financePanelHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-bottom: 13px; border-bottom: 1px solid var(--border); }
-.financePanelHead h2 { margin: 0; color: var(--text); font-size: 1rem; }
-.financePanelHead p { margin: 3px 0 0; color: var(--text-light); font-size: .74rem; }
-.financePanelHead button, .financeHistoryHead button { display: inline-flex; align-items: center; gap: 5px; padding: 0; border: 0; background: transparent; color: var(--primary); font: inherit; font-size: .75rem; font-weight: 750; cursor: pointer; }
-.financeRows { display: grid; }
-.financeRows > button { display: grid; grid-template-columns: minmax(0, 1fr) minmax(90px, auto) 70px 16px; align-items: center; gap: 12px; width: 100%; padding: 13px 0; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--text); text-align: left; cursor: pointer; }
-.financeRows > button:last-child { border-bottom: 0; }
-.financeRows span, .financeInsights button span { min-width: 0; }
-.financeRows strong, .financeRows small, .financeInsights strong, .financeInsights small { display: block; }
-.financeRows strong, .financeInsights strong { overflow: hidden; color: var(--text); font-size: .83rem; text-overflow: ellipsis; white-space: nowrap; }
-.financeRows small, .financeInsights small { margin-top: 3px; color: var(--text-light); font-size: .7rem; }
-.financeRows b { color: var(--text); font-size: .8rem; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
-.financeRows em { justify-self: end; padding: 4px 8px; border-radius: var(--radius-full); background: var(--bg-tertiary); color: var(--text-light); font-size: .66rem; font-style: normal; font-weight: 750; }
-.financeRows .financeRisk { background: var(--warning-bg); color: var(--warning); }
-.financeInsights { align-content: start; }
-.financeInsights > button { display: grid; grid-template-columns: 18px minmax(0, 1fr) 16px; align-items: center; gap: 10px; width: 100%; padding: 13px 0; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--text); text-align: left; cursor: pointer; }
-.financeInsights > button > svg:first-child { color: var(--warning); }
-.financeHistoryHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-.financeHistoryHead h3 { margin: 0; font-size: .9rem; }
-.financeEmpty { margin: 14px 0 0; color: var(--text-light); font-size: .8rem; }
+/* NOT: "Finans Merkezi ana görünümü" bölümü kaldırıldı (23.08.2026).
+ * Hesaplamalar altındaki "Finansal Görünüm" sekmesi, İşletme
+ * Takibi verisini olduğu gibi tekrarladığı için silindi; bu bloğun
+ * biçemleri de onunla birlikte öksüz kaldı. */
 
 /* ---------- Sayfa başı: ad + tek satır açıklama solda, arama sağda ---------- */
 .pageHead {
@@ -46,19 +15,6 @@
   min-width: 0;
 }
 
-.financeHero {
-  position: relative;
-  padding: 24px 4px 20px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
-.financeHero h1 { margin: 0 0 8px; color: var(--text); font-family: var(--font-heading); font-size: clamp(2rem, 4vw, 3.15rem); line-height: 1.02; letter-spacing: -.045em; }
-.financeHero .intro { color: var(--text-light); font-size: 1rem; }
-.financeHero .search { border-color: var(--border); background: var(--surface-panel); color: var(--text-light); box-shadow: none; }
-.financeHero .search input { color: var(--text); }
-.financeHero .search input::placeholder { color: var(--text-light); }
 
 .pageHeadText { min-width: 0; }
 

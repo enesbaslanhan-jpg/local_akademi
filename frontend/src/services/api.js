@@ -1194,6 +1194,31 @@ export const api = {
           rowCount: Number(res.headers.get('X-Export-Row-Count') ?? 0),
           truncated: res.headers.get('X-Export-Truncated') === 'true'
         }
+      },
+
+      /*
+       * TEK KAYDIN PDF'İ -- dosyanın KENDİSİNİ döndürür.
+       *
+       * `downloadRecords` indirmeyi kendi başlatıyor; bu ise `File`
+       * veriyor, çünkü çağıran taraf ya paylaşım menüsüne verecek ya
+       * da indirecek. Kararı çağıran veriyor.
+       */
+      async fetchRecordPdf(workspaceId, recordId) {
+        const token = localStorage.getItem('token')
+        const res = await fetch(
+          `${API_URL}/workspaces/${workspaceId}/records/${recordId}/export.pdf`,
+          { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+        )
+        if (!res.ok) {
+          let data = null
+          try { data = await res.json() } catch { /* ikili/boş yanıt */ }
+          throw new ApiError(data?.error || 'Kayıt indirilemedi', res.status, data)
+        }
+        const disposition = res.headers.get('Content-Disposition') || ''
+        const match = disposition.match(/filename="?([^";]+)"?/i)
+        const filename = match ? match[1] : `kayit-${recordId}.pdf`
+        const blob = await res.blob()
+        return new File([blob], filename, { type: 'application/pdf' })
       }
     },
     documents: {

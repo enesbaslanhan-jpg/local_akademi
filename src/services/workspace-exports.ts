@@ -236,4 +236,98 @@ export async function workspaceExportRoutes(
       .header('X-Export-Truncated', records.length >= MAX_EXPORT_ROWS ? 'true' : 'false')
       .send(body)
   })
+
+  /*
+   * TEK KAYDIN PDF'İ.
+   *
+   * NEDEN AYRI UÇ: toplu dışa aktarım ekrandaki FİLTREYE uyan bütün
+   * kayıtları tek belgeye koyuyor. Ürün sahibinin ihtiyacı başkaydı --
+   * tek bir kaydı (çoğunlukla bir e-Faturayı) muhasebeciye ya da karşı
+   * tarafa göndermek. Toplu belgeden tek kaydı ayıklamak kullanıcının
+   * işi olmamalı.
+   *
+   * YALNIZ PDF: tek satırlık bir CSV ya da Excel dosyası pratikte işe
+   * yaramıyor; gönderilebilir olan biçim PDF.
+   *
+   * `recordsToPdf` AYNEN kullanılıyor, tek elemanlı diziyle. İkinci bir
+   * PDF üretici yazmak, ileride birinin yalnız birini güncelleyip
+   * ikisini ayrıştırması demekti.
+   */
+  fastify.get('/:workspaceId/records/:recordId/export.pdf', async (request, reply) => {
+    const user = request.user as { id: number; name?: string; email: string }
+    const { workspaceId, recordId } = request.params as { workspaceId: string; recordId: string }
+
+    /* Yetki mevcut yardımcıdan; yeni bir yol icat edilmiyor. */
+    const member = await access(prisma, user.id, workspaceId, reply)
+    if (!member) return
+
+    const workspace = await prisma.businessWorkspace.findUnique({
+      where: { id: workspaceId },
+      select: { name: true, currency: true }
+    })
+    if (!workspace) return reply.status(404).send({ error: 'Workspace not found' })
+
+    /*
+     * 🔴 BOLA: `workspaceId` KOŞULA DAHİL. Yalnız `id` ile arasaydık,
+     * geçerli bir üyeliği olan kullanıcı BAŞKA çalışma alanının kayıt
+     * kimliğini yazarak o kaydın PDF'ini indirebilirdi.
+     */
+    const row = await prisma.businessRecord.findFirst({
+      where: { id: recordId, workspaceId, archivedAt: null },
+      include: {
+        contact: { select: { name: true } },
+        _count: { select: { documents: true } }
+      }
+    })
+    if (!row) return reply.status(404).send({ error: 'Record not found' })
+
+    const records: ExportRecord[] = [{
+      id: row.id,
+      type: row.type,
+      status: row.status,
+      direction: row.direction,
+      title: row.title,
+      contactName: row.contact?.name ?? null,
+      amount: row.amount === null || row.amount === undefined ? null : Number(row.amount),
+      currency: row.currency,
+      dueAt: row.dueAt,
+      completedAt: row.completedAt,
+      documentCount: row._count.documents,
+      createdAt: row.createdAt
+    }]
+
+    const meta: ExportMeta = {
+      workspaceName: workspace.name,
+      generatedAt: new Date(),
+      generatedBy: user.name || user.email,
+      filterSummary: `Tek kayıt: ${row.title}`
+    }
+
+    const body = await recordsToPdf(records, meta, buildSummary(records, workspace.currency))
+    const stamp = meta.generatedAt.toISOString().slice(0, 10)
+    const filename = `${safeFileSlug(row.title)}-${stamp}.pdf`
+
+    /* Denetim kaydı toplu aktarımdaki desenle; başarısızlığı isteği
+       düşürmesin. */
+    try {
+      await prisma.generatedReport.create({
+        data: {
+          userId: user.id,
+          reportType: `workspace_record_export:${workspaceId}`,
+          title: `${workspace.name} — ${row.title}`,
+          format: 'pdf',
+          storedName: filename
+        }
+      })
+    } catch (err) {
+      fastify.log.warn({ err, workspaceId, recordId }, 'tek kayıt export denetim kaydı yazılamadı')
+    }
+
+    return reply
+      .header('Content-Type', MEDIA_TYPES.pdf)
+      .header('Content-Disposition', `attachment; filename="${filename}"`)
+      .header('Content-Length', body.length)
+      .header('Cache-Control', 'no-store')
+      .send(body)
+  })
 }

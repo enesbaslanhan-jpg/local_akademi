@@ -56,7 +56,6 @@ const CATEGORIES = CALCULATION_CATEGORIES
  * Sıra, girişte açılan görünümle (Katalog) başlıyor. */
 const VIEWS = [
   { id: 'calculator', label: 'Katalog', icon: Calculator },
-  { id: 'all', label: 'Finansal Görünüm', icon: null },
   { id: 'history', label: 'Geçmiş', icon: History },
 ]
 
@@ -132,7 +131,10 @@ function shortDueDate(value) {
   return new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' }).format(new Date(value))
 }
 
-export default function ToolsPage({ initialView = 'all' }) {
+/* Varsayılan Katalog: 'all' görünümü kaldırıldı ve
+   `/app/tools` rotası bu varsayılanı kullanıyor -- eski değer
+   bırakılsaydı o rota boş sayfa açardı. */
+export default function ToolsPage({ initialView = 'calculator' }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const { activeWorkspaceId } = useWorkspace()
@@ -142,8 +144,7 @@ export default function ToolsPage({ initialView = 'all' }) {
   const [inputs, setInputs] = useState({})
   const [result, setResult] = useState(null)
   const [history, setHistory] = useState([])
-  const [financeSummary, setFinanceSummary] = useState(null)
-  const [financeRecords, setFinanceRecords] = useState([])
+
   const [loading, setLoading] = useState(true)
   const [calculating, setCalculating] = useState(false)
   const requestedInitialView = searchParams.get('view') === 'history' ? 'history' : initialView
@@ -189,20 +190,17 @@ export default function ToolsPage({ initialView = 'all' }) {
     }).catch(() => setError('Hesaplamalar yüklenemedi.')).finally(() => setLoading(false))
   }, [])
 
-  useEffect(() => {
-    if (!activeWorkspaceId) {
-      setFinanceSummary(null)
-      setFinanceRecords([])
-      return
-    }
-    Promise.all([
-      api.workspace.tracker.summary(activeWorkspaceId).catch(() => null),
-      api.workspace.tracker.list(activeWorkspaceId, {}).catch(() => null)
-    ]).then(([summary, list]) => {
-      setFinanceSummary(summary)
-      setFinanceRecords(Array.isArray(list?.records) ? list.records : [])
-    })
-  }, [activeWorkspaceId])
+  /*
+   * TAKİP VERİSİ ARTIK ÇEKİLMİYOR.
+   *
+   * Burada `tracker.summary` ve `tracker.list` çağrılıyordu; kaldırılan
+   * "Finansal Görünüm" sekmesi içindi. Aynı iki uç Ana Sayfa ve İşletme
+   * Genel Bakış'ta da çağrılıyor -- yani bu sayfa her açılışta üçüncü
+   * kez, hiç göstermediği bir veri için iki istek yapıyordu.
+   *
+   * Hesaplamalar bir HESAP modülü; tahsilat/ödeme defteri İşletme
+   * Takibi'ne ait. Buraya tekrar eklenmemeli.
+   */
 
   /* Görünüm URL'den TÜREİR — tek doğruluk kaynağı burası.
    *
@@ -214,7 +212,20 @@ export default function ToolsPage({ initialView = 'all' }) {
     const requestedView = searchParams.get('view')
     if (requestedView === 'history') { setView('history'); return }
     if (requestedView === 'calculator' || requestedView === 'models') { setView('calculator'); return }
-    if (requestedView === 'all') { setView('all'); return }
+    /*
+     * `?view=all` ESKİ "Finansal Görünüm" sekmesiydi; kaldırıldı.
+     *
+     * Sebep: o sekmenin dört bloğundan üçü (Alacak/Borç/Net şeridi,
+     * tahsilat-ödeme defteri, istisnalar) İşletme Takibi'ndeki veriyi
+     * OLDUĞU GİBİ tekrarlıyordu -- aynı iki uç (`tracker.summary`,
+     * `tracker.list`) üç ayrı ekranda çağrılıyordu. Dördüncü blok
+     * ("Son hesaplamalar") ise yan sekmedeki "Geçmiş" ile aynıydı.
+     * Tekrarları çıkarınca sekmeyi haklı çıkaracak hiçbir şey
+     * kalmıyordu.
+     *
+     * Adres KIRILMIYOR: eski bağlantılar Katalog'a düşüyor.
+     */
+    if (requestedView === 'all') { setView('calculator'); return }
     /* Görünüm parametresi yok. `?tool=` varsa hesap makinesi açık kalmalı —
        Course Player bu biçimde derin bağlantı veriyor. Yoksa rotanın
        varsayılanına dön. */
@@ -429,18 +440,7 @@ export default function ToolsPage({ initialView = 'all' }) {
 
   const showTools = view === 'calculator'
   const showAside = false
-  const openFinanceRecords = financeRecords
-    .filter(record => !['completed', 'cancelled'].includes(record.status))
-    .sort((a, b) => new Date(a.dueAt || '9999-12-31') - new Date(b.dueAt || '9999-12-31'))
-  const overdueRecords = openFinanceRecords.filter(record => record.dueAt && new Date(record.dueAt) < new Date())
-  const financeNet = Number(financeSummary?.nextThirtyDays?.net || 0)
-  const financeHeadline = !financeSummary
-    ? 'Finansal görünümünüzü işletme kayıtlarıyla kurun'
-    : overdueRecords.length > 0
-      ? `Nakit görünümü kontrollü, ${overdueRecords.length} kayıt dikkat istiyor`
-      : financeNet < 0
-        ? 'Önümüzdeki 30 gün için nakit planı gerekiyor'
-        : 'Nakit görünümü kontrollü'
+
   const resultEntries = result
     ? Object.entries(result).filter(([key]) => !['warnings', 'assumptions', 'durum'].includes(key))
     : []
@@ -534,67 +534,6 @@ export default function ToolsPage({ initialView = 'all' }) {
         })}
       </div>
 
-      {view === 'all' && (
-        <div className={styles.financeOverview}>
-          <section className={styles.financeSignature}>
-            <div className={styles.financeStatus}>
-              <span>Finansal görünüm</span>
-              <h2>{financeHeadline}</h2>
-              <p>{financeSummary ? (overdueRecords.length > 0 ? 'Geciken kayıtları ve yaklaşan vadeleri gözden geçirin.' : 'Yaklaşan tahsilat ve ödemeler kayıtlarınıza göre dengede.') : 'İşletme takibine finansal kayıt eklediğinizde özet burada oluşur.'}</p>
-            </div>
-            {financeSummary ? (
-              <div className={styles.financeMetrics}>
-                <div><span>Alacak</span><strong>{money.format(financeSummary.nextThirtyDays?.receivable || 0)}</strong><small>30 gün</small></div>
-                <div><span>Borç</span><strong>{money.format(financeSummary.nextThirtyDays?.payable || 0)}</strong><small>30 gün</small></div>
-                <div><span>Net</span><strong className={financeNet < 0 ? styles.financeNegative : ''}>{money.format(financeNet)}</strong><small>{financeNet < 0 ? 'Plan gerekli' : 'Kontrollü'}</small></div>
-              </div>
-            ) : (
-              <Button variant="secondary" onClick={() => workspaceRoute('tracker')}>İşletme kaydı ekle</Button>
-            )}
-          </section>
-
-          <div className={styles.financeColumns}>
-            <section className={styles.financeLedger}>
-              <div className={styles.financePanelHead}><div><h2>Tahsilat ve ödeme defteri</h2><p>Yaklaşan açık kayıtlar</p></div><button type="button" onClick={() => workspaceRoute('tracker')}>Tümünü gör <ArrowRight size={14} /></button></div>
-              {openFinanceRecords.length === 0 ? <p className={styles.financeEmpty}>Açık finans kaydı bulunmuyor.</p> : (
-                <div className={styles.financeRows}>{openFinanceRecords.slice(0, 7).map(record => (
-                  <button type="button" key={record.id} onClick={() => workspaceRoute('tracker')}>
-                    <span><strong>{record.title}</strong><small>{shortDueDate(record.dueAt)} · {record.type === 'receivable' || record.direction === 'receivable' ? 'Tahsilat' : 'Ödeme'}</small></span>
-                    <b>{record.amount == null ? '—' : money.format(record.amount)}</b>
-                    <em className={record.dueAt && new Date(record.dueAt) < new Date() ? styles.financeRisk : ''}>{record.dueAt && new Date(record.dueAt) < new Date() ? 'Gecikti' : 'Planlı'}</em>
-                    <ArrowRight size={14} />
-                  </button>
-                ))}</div>
-              )}
-            </section>
-
-            <aside className={styles.financeInsights}>
-              <div className={styles.financePanelHead}><div><h2>İstisnalar</h2><p>Önce bakılması gerekenler</p></div></div>
-              {overdueRecords.length === 0 ? <p className={styles.financeEmpty}>Geciken kayıt yok.</p> : overdueRecords.slice(0, 3).map(record => (
-                <button type="button" key={record.id} onClick={() => workspaceRoute('tracker')}><AlertTriangle size={16} /><span><strong>{record.title}</strong><small>{shortDueDate(record.dueAt)} tarihinde gecikti</small></span><ArrowRight size={14} /></button>
-              ))}
-              <div className={styles.financeHistoryHead}><h3>Son hesaplamalar</h3><button type="button" onClick={() => changeView('history')}>Geçmiş</button></div>
-              {history.length === 0 ? <p className={styles.financeEmpty}>Henüz hesaplama yapılmadı.</p> : history.slice(0, 4).map(item => (
-                <button type="button" key={item.id} onClick={() => openHistoryResult(item)}><Calculator size={16} /><span><strong>{item.formulaName}</strong><small>{new Date(item.createdAt).toLocaleDateString('tr-TR')}</small></span><ArrowRight size={14} /></button>
-              ))}
-            </aside>
-          </div>
-        </div>
-      )}
-
-      {view === 'calculator' && (
-        <section className={styles.quickActions} aria-label="Ön muhasebe işlemleri">
-          <button type="button" onClick={() => workspaceRoute('tracker')}>
-            <WalletCards aria-hidden="true" /><span><strong>Gelir, gider ve tahsilat</strong><small>Ödeme, alacak, senet ve işlem kaydı</small></span>
-          </button>
-          <button type="button" onClick={() => workspaceRoute('documents')}>
-            <FileText aria-hidden="true" /><span><strong>Fatura ve belgeler</strong><small>Belge yükle, okut ve kayda dönüştür</small></span>
-          </button>
-          <button type="button" onClick={() => workspaceRoute('calendar')}>
-            <CalendarDays aria-hidden="true" /><span><strong>Ödeme takvimi</strong><small>Vadeleri ve yaklaşan işlemleri gör</small></span>
-          </button>
-        </section>
-      )}
 
       {view === 'history' && (
         <div className={styles.historyList}>
