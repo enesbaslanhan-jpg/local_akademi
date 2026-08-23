@@ -19,6 +19,54 @@ import {
   LocalAiQueueFullError,
 } from './local-ai-job-queue.js'
 
+/*
+ * SORGULARI PARTİ PARTİ ÇALIŞTIR.
+ *
+ * 🔴 NEDEN GEREKLİ -- ölçülerek bulundu (23.08.2026):
+ *
+ * `/admin/stats` 17 sorguyu TEK bir `Promise.all` içinde açıyordu.
+ * Tam test takımında aralıklı olarak 500 dönüyordu; belirtisi şuydu:
+ *
+ *     Invalid `prisma.importJob.count()` invocation
+ *     Can't reach database server at `127.0.0.1:5432`
+ *
+ * Sebep, uzun süre sanıldığı gibi bağlantı havuzunun ya da Postgres
+ * `max_connections`ın tükenmesi DEĞİL. İkisi de ölçüldü ve elendi:
+ * takım koşarken en yüksek bağlantı sayısı 21 (sınır 100), ve havuz
+ * tükenmesi bambaşka bir hata veriyor ("Timed out fetching a new
+ * connection from the connection pool" -- ayrıca denendi).
+ *
+ * Gerçek sebep ANİ BAĞLANTI PATLAMASI: 17 sorgu aynı anda başlayınca
+ * Prisma havuz sınırına kadar yeni TCP bağlantısını aynı anda kurmaya
+ * çalışıyor. Windows'ta localhost'a bu yığın, dinleme kuyruğu dolunca
+ * bağlantı reddiyle sonuçlanabiliyor. `Promise.all` da ilk hatada
+ * tamamını düşürdüğü için tek bir reddedilen bağlantı isteğin
+ * tamamını 500 yapıyor.
+ *
+ * Çözüm sorgu sayısını değil, AYNI ANDA açılan sorgu sayısını
+ * sınırlamak. Gecikme maliyeti küçük: 17 sorgu tek dalga yerine üç
+ * dalgada koşuyor ve bu uç zaten yönetim panelinde, sıcak yolda değil.
+ */
+const PARTI_BOYU = 6
+
+/*
+ * İmza `Promise.all`ınkini taklit ediyor: her işin KENDİ dönüş tipi
+ * korunuyor. Basit bir `Promise<T[]>` imzası, birbirinden farklı 17
+ * sorgunun tipini tek bir birleşime çökertir ve çağıran taraftaki
+ * bütün alanlar `any`ye düşerdi -- düzeltmenin bedeli tip güvenliği
+ * olmamalı.
+ */
+async function partiler<const T extends readonly (() => Promise<unknown>)[]>(
+  isler: T
+): Promise<{ -readonly [K in keyof T]: Awaited<ReturnType<T[K]>> }> {
+  const sonuclar: unknown[] = []
+  for (let i = 0; i < isler.length; i += PARTI_BOYU) {
+    const parti = isler.slice(i, i + PARTI_BOYU)
+    sonuclar.push(...await Promise.all(parti.map(is => is())))
+  }
+  return sonuclar as { -readonly [K in keyof T]: Awaited<ReturnType<T[K]>> }
+}
+
 const reviewerHumanAuditSchema = z.object({
   telemetryId: z.string().uuid(),
   verdict: z.enum([
@@ -373,32 +421,33 @@ export async function adminRoutes(fastify: FastifyInstance) {
       failedImports,
       draftNoSource,
       pendingExpertReview
-    ] = await Promise.all([
-      prisma.user.count(),
-      prisma.knowledgeObject.count(),
+    ] = await partiler([
+      () => prisma.user.count(),
+      () => prisma.knowledgeObject.count(),
       /*
-       * Altı ayrı `count()` yerine TEK `groupBy`.
+       * Altı ayrı `count()` yerine TEK `groupBy`. Aynı bilgi, tek sorgu.
        *
-       * Bu uç nokta tek istekte 20'den fazla eşzamanlı sorgu açıyordu ve
-       * uygulamadaki en ağır fan-out'a sahipti; test takımında düzenli
-       * olarak bağlantı havuzunu tüketip 500 döndüren tek uç nokta buydu
-       * (Postgres `max_connections` 100, her test dosyası kendi
-       * PrismaClient'ını açıyor). Aynı bilgi tek sorguyla alınıyor.
+       * ⚠️ DÜZELTME (23.08.2026): buradaki eski yorum sebebi YANLIŞ
+       * söylüyordu -- "Postgres max_connections tükeniyor" deniyordu.
+       * Ölçüldü: tam takım koşarken `pg_stat_activity` en fazla 21
+       * bağlantı gösterdi, sınır 100. Havuz da tükenmiyor.
+       *
+       * Gerçek sebep `partiler()` yardımcısının başlığında yazılı.
        */
-      prisma.knowledgeObject.groupBy({ by: ['status'], _count: { _all: true } }),
-      prisma.knowledgeObject.count({ where: { isDemo: true } }),
-      prisma.category.count(),
-      prisma.knowledgeObject.count({ where: { reviewDue: { lt: now }, status: 'in_review' } }),
-      prisma.enrollment.count(),
-      prisma.course.count(),
-      prisma.importJob.count({ where: { createdAt: { gte: periodDate } } }),
-      prisma.category.findMany({
+      () => prisma.knowledgeObject.groupBy({ by: ['status'], _count: { _all: true } }),
+      () => prisma.knowledgeObject.count({ where: { isDemo: true } }),
+      () => prisma.category.count(),
+      () => prisma.knowledgeObject.count({ where: { reviewDue: { lt: now }, status: 'in_review' } }),
+      () => prisma.enrollment.count(),
+      () => prisma.course.count(),
+      () => prisma.importJob.count({ where: { createdAt: { gte: periodDate } } }),
+      () => prisma.category.findMany({
         include: {
           knowledgeObjects: { select: { status: true } }
         }
       }),
-      prisma.importJob.findMany({ orderBy: { createdAt: 'desc' }, take: 5 }),
-      prisma.reviewRecord.findMany({
+      () => prisma.importJob.findMany({ orderBy: { createdAt: 'desc' }, take: 5 }),
+      () => prisma.reviewRecord.findMany({
         orderBy: { createdAt: 'desc' },
         take: 5,
         include: {
@@ -406,7 +455,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
           reviewer: { select: { name: true, email: true } }
         }
       }),
-      prisma.publicationEvent.findMany({
+      () => prisma.publicationEvent.findMany({
         orderBy: { timestamp: 'desc' },
         take: 5,
         include: {
@@ -414,15 +463,15 @@ export async function adminRoutes(fastify: FastifyInstance) {
           performer: { select: { name: true, email: true } }
         }
       }),
-      prisma.user.findMany({ orderBy: { createdAt: 'desc' }, take: 5, select: { id: true, name: true, email: true, role: true, createdAt: true } }),
-      prisma.importJob.findMany({ where: { status: 'failed' }, orderBy: { createdAt: 'desc' }, take: 5, include: { errors: { take: 3, orderBy: { createdAt: 'desc' } } } }),
-      prisma.knowledgeObject.findMany({
+      () => prisma.user.findMany({ orderBy: { createdAt: 'desc' }, take: 5, select: { id: true, name: true, email: true, role: true, createdAt: true } }),
+      () => prisma.importJob.findMany({ where: { status: 'failed' }, orderBy: { createdAt: 'desc' }, take: 5, include: { errors: { take: 3, orderBy: { createdAt: 'desc' } } } }),
+      () => prisma.knowledgeObject.findMany({
         where: { status: 'draft', sources: { none: {} } },
         take: 5,
         select: { id: true, title: true, code: true, createdAt: true },
         orderBy: { createdAt: 'desc' }
       }),
-      prisma.knowledgeObject.count({ where: { status: 'in_review', reviewGate: { in: EXPERT_GATES } } })
+      () => prisma.knowledgeObject.count({ where: { status: 'in_review', reviewGate: { in: EXPERT_GATES } } })
     ])
 
     /* `groupBy` yalnız VAR OLAN durumları döndürür; hiç kaydı olmayan bir
