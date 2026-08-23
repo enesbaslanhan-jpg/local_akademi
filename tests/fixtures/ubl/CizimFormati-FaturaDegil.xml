@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!--
+  GERCEK BIR OLAYDAN KISALTILMIS.
+
+  Urun sahibi "iste e-fatura XML'i" diye bir dosya gonderdi; acinca
+  Canva'nin baski ciktisi oldugu goruldu. Faturanin RESMI: 737 tane tek
+  tek konumlandirilmis harf kutusu. Icinde tutar, tarih ya da VKN
+  VERI OLARAK yok.
+
+  Onemli olan su: bu dosya GECERLI bir XML. DTD yok, bicim dogru, yani
+  `validateXmlFile` kapisindan GECER. Ayristirici ayrica "bu gercekten
+  bir UBL faturasi mi" diye sormazsa, kullaniciya tutari bos bir oneri
+  gosterilirdi. Bu dosya tam olarak o davranisi koruyor.
+
+  Orijinali 458 KB; yapiyi koruyacak kadari birakildi.
+-->
+<Aps>
+	<Group>
+		<Page Width="595" Height="842" PaperTray="0">
+			<Canvas>
+				<Path FillMode="Winding">
+					<Brush>
+						<SolidBrush Color="#FFFFFFFF" />
+					</Brush>
+					<PathFigure IsClosed="True">
+						<PolyLine LineColor="#FF000000">
+							<Point X="0" Y="842" />
+							<Point X="595.5" Y="842" />
+						</PolyLine>
+					</PathFigure>
+				</Path>
+				<Glyphs>
+					<Font Name="Arial" />
+					<Size Value="12" />
+					<Origin X="72" Y="120" />
+					<Text>PROFORMA FATURA</Text>
+					<Tag>1</Tag>
+				</Glyphs>
+				<Glyphs>
+					<Font Name="Arial" />
+					<Size Value="10" />
+					<Origin X="72" Y="140" />
+					<Text>Toplam: 1.250,00 TL</Text>
+					<Tag>2</Tag>
+				</Glyphs>
+			</Canvas>
+		</Page>
+	</Group>
+</Aps>
