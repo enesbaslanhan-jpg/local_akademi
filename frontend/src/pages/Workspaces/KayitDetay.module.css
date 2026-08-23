@@ -23,7 +23,7 @@
   flex-direction: column;
   width: 100%;
   max-width: 620px;
-  max-height: 90vh;
+  max-height: 92vh;
   background: var(--surface-raised);
   border: 1px solid var(--line, var(--border));
   border-radius: var(--radius-lg);
@@ -88,20 +88,27 @@
 
 .sessiz { margin: 0; color: var(--text-secondary); font-size: .85rem; }
 
-/* Uyarı kutuları: renk TEK BAŞINA taşıyıcı değil — ikon ve kalın
-   başlık da var, renk körü kullanıcı için renk yetmez. */
+/* Tek satır: başlık + paragraf biçimi iki uyarıda 183 piksel tutuyor ve
+   asıl bilgiyi (tutar, vade, dayanak) ekranın dışına itiyordu.
+
+   Renk TEK BAŞINA taşıyıcı değil — ikon ve kalın başlık da var; renk
+   körü kullanıcı için renk yetmez. */
 .uyari {
   display: flex;
-  gap: 10px;
-  padding: 10px 12px;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
   border-left: 3px solid var(--warning, #d98324);
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--warning, #d98324) 9%, transparent);
-  color: var(--text);
+  color: var(--text-secondary);
+  font-size: .78rem;
+  line-height: 1.45;
 }
 
-.uyari strong { display: block; font-size: .85rem; }
-.uyari p { margin: 3px 0 0; font-size: .8rem; line-height: 1.5; color: var(--text-secondary); }
+.uyari > svg { flex: 0 0 auto; margin-top: 1px; color: var(--warning, #d98324); }
+.uyari strong { color: var(--text); font-weight: 700; }
 
 .alanlar {
   display: grid;
@@ -193,7 +200,7 @@
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  padding: 7px 10px;
+  padding: 5px 9px;
   border-radius: var(--radius-sm);
   background: var(--surface-panel);
   color: var(--text-secondary);

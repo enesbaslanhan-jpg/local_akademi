@@ -90,11 +90,21 @@
 .toolbar { display: flex; gap: 10px; }
 .dialog input, .dialog textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); background: var(--bg-primary); }
 .toolbar > div { min-width: 180px; }
-.registry { min-height: 560px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg-secondary); }
+/* 🔴 `min-width: 0` ŞART -- ebeveyn bir GRID.
+   Grid öğeleri varsayılan `min-width: auto` ile içeriğinden dar olmayı
+   REDDEDİYOR. Bu bölüm 375 piksellik ekranda 415 piksele genişleyip
+   sayfaya 71 piksel yatay kayma bindiriyordu (ölçüldü). İçerideki
+   tablo ve filtre çubuğu zaten kendi kaydırmalarını yönetiyor. */
+.registry { min-width: 0; min-height: 560px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg-secondary); }
 .registryToolbar { display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
 .registryToolbar > label { display: flex; align-items: center; gap: 8px; flex: 1 1 280px; max-width: 350px; min-height: 40px; padding: 0 12px; border: 1px solid var(--brand-ink); border-radius: 9px; background: var(--bg-primary); color: var(--brand-ink); }
 .registryToolbar input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text-primary); font: inherit; }
-.filterChips { display: flex; gap: 6px; flex: 1; overflow-x: auto; }
+/* 🔴 `min-width: 0` ŞART.
+   `overflow-x: auto` tek başına yetmiyor: esnek öğenin varsayılan
+   `min-width: auto` değeri, içeriğinden dar olmayı REDDEDİYOR. Sonuç,
+   filtre rozetleri kendi içinde kaydırılacağına bütün sayfayı
+   genişletiyordu -- 375 pikselde 71 piksel yatay kayma ölçüldü. */
+.filterChips { display: flex; gap: 6px; flex: 1; min-width: 0; overflow-x: auto; }
 .filterChips button { flex: 0 0 auto; min-height: 32px; padding: 6px 11px; border: 0; border-radius: 99px; background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; font: inherit; font-size: .7rem; font-weight: 800; }
 .filterChips .activeChip { background: var(--primary-light); color: var(--brand-ink); }
 .registryToolbar > div:last-child { flex: 0 0 160px; min-width: 0; }

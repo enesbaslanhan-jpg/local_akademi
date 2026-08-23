@@ -102,34 +102,9 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
                 * geçmişe düşüyor ve takvimde bu ayın sayfasında hiç
                 * görünmüyor. Sessiz kalmak yerine burada söyleniyor.
                 */}
-              {kayit.overdue && (
-                <div className={styles.uyari}>
-                  <AlertTriangle size={16} aria-hidden="true" />
-                  <div>
-                    <strong>Vadesi geçmiş</strong>
-                    <p>
-                      Bu kaydın vadesi {tarih(kayit.dueAt)}. Takvimde o tarihin
-                      bulunduğu ayda görünür — bu ayın sayfasında değil.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {kayit.direction === 'neutral' && kayit.amount !== null && (
-                <div className={styles.uyari}>
-                  <HelpCircle size={16} aria-hidden="true" />
-                  <div>
-                    <strong>Yön belirlenemedi</strong>
-                    <p>
-                      Bu tutarın borç mu alacak mı olduğu bilinmiyor, bu yüzden
-                      ana sayfadaki borç ve alacak toplamlarına DAHİL EDİLMİYOR.
-                      İşletme ayarlarında vergi numaranızı girerseniz e-Faturalar
-                      otomatik ayrılır.
-                    </p>
-                  </div>
-                </div>
-              )}
-
+              {/* OLGULAR ÖNCE: kullanıcı kaydı "ne olduğunu görmek"
+                  için açıyor. Uyarılar üstte olduğunda tutar ve vade
+                  ekranın dışında kalıyordu. */}
               <dl className={styles.alanlar}>
                 <div><dt>Tutar</dt><dd className={styles.tutar}>{para(kayit.amount, kayit.currency)}</dd></div>
                 <div><dt>Yön</dt><dd>{yonEtiketleri[kayit.direction] || kayit.direction}</dd></div>
@@ -140,6 +115,32 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
                 {kayit.contact?.name && <div><dt>Cari</dt><dd>{kayit.contact.name}</dd></div>}
                 {kayit.assignedTo?.name && <div><dt>Sorumlu</dt><dd>{kayit.assignedTo.name}</dd></div>}
               </dl>
+
+              {/*
+                * Uyarılar TEK SATIR.
+                *
+                * Önce başlık + paragraf biçimindeydi; ikisi birlikte 183
+                * piksel tutuyordu ve panelin üstünü kaplayıp asıl bilgiyi
+                * (tutar, vade, dayanak) ekranın dışına itiyordu -- ürün
+                * sahibi "kayıt açılınca sığmıyor" dedi.
+                *
+                * Ayrıntılı açıklama zaten aşağıdaki "Açıklama" bölümünde;
+                * burada tekrar edilmiyor.
+                */}
+              {kayit.overdue && (
+                <p className={styles.uyari}>
+                  <AlertTriangle size={15} aria-hidden="true" />
+                  <span><strong>Vadesi geçmiş</strong> — {tarih(kayit.dueAt)}. Takvimde o ayda görünür.</span>
+                </p>
+              )}
+
+              {kayit.direction === 'neutral' && kayit.amount !== null && (
+                <p className={styles.uyari}>
+                  <HelpCircle size={15} aria-hidden="true" />
+                  <span><strong>Yön belirlenemedi</strong> — borç ve alacak toplamlarına dahil edilmiyor.</span>
+                </p>
+              )}
+
 
               {kayit.description && (
                 <section className={styles.bolum}>
@@ -206,7 +207,7 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
                 <section className={styles.bolum}>
                   <h3><Bell size={14} aria-hidden="true" /> Hatırlatmalar</h3>
                   <ul className={styles.liste}>
-                    {kayit.reminders.map(h => (
+                    {kayit.reminders.slice(0, 2).map(h => (
                       <li key={h.id}>
                         {tarih(h.scheduledAt, true)}
                         <span className={styles.durumEtiketi}>{h.status === 'sent' ? 'gönderildi' : h.status === 'pending' ? 'bekliyor' : h.status}</span>
@@ -220,7 +221,7 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
                 <section className={styles.bolum}>
                   <h3><History size={14} aria-hidden="true" /> Geçmiş</h3>
                   <ul className={styles.liste}>
-                    {kayit.history.slice(0, 10).map(g => (
+                    {kayit.history.slice(0, 2).map(g => (
                       <li key={g.id}>
                         {tarih(g.createdAt, true)}
                         <span className={styles.durumEtiketi}>{g.action}</span>

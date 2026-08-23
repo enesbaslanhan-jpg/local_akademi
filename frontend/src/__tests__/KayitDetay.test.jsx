@@ -72,7 +72,8 @@ describe('Kayıt detayı', () => {
     mocks.get.mockResolvedValue(kayit({ overdue: true }))
     ciz()
     expect(await screen.findByText('Vadesi geçmiş')).toBeInTheDocument()
-    expect(screen.getByText(/bu ayın sayfasında değil/)).toBeInTheDocument()
+    /* Kullanıcıya kaydın NEREDE görüneceği söylenmeli. */
+    expect(screen.getByText(/Takvimde o ayda görünür/)).toBeInTheDocument()
   })
 
   it('vadesi geçmemiş kayıtta uyarı çıkmaz', async () => {
@@ -90,7 +91,9 @@ describe('Kayıt detayı', () => {
     mocks.get.mockResolvedValue(kayit({ direction: 'neutral' }))
     ciz()
     expect(await screen.findByText('Yön belirlenemedi')).toBeInTheDocument()
-    expect(screen.getByText(/DAHİL EDİLMİYOR/)).toBeInTheDocument()
+    /* Toplamlara girmediği AÇIKÇA yazmalı; kullanıcı "tutarım neden
+       görünmüyor" dememeli. */
+    expect(screen.getByText(/toplamlarına dahil edilmiyor/)).toBeInTheDocument()
   })
 
   /*
