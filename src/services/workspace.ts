@@ -6,6 +6,7 @@ import crypto from 'crypto'
 import { hashToken } from '../lib/tokens.js'
 import { sendMail } from './mailer.js'
 import { isletmeDavetiMaili } from './mail-templates.js'
+import { gelenKutusuAnahtariUret, gelenKutusuAlanAdi } from './gelen-eposta.js'
 
 const ROLE_ORDER = ['viewer', 'accountant', 'staff', 'manager', 'owner'] as const
 type WorkspaceRole = typeof ROLE_ORDER[number]
@@ -481,6 +482,75 @@ export async function workspaceRoutes(fastify: FastifyInstance, opts?: { prisma?
       createdAt: workspace.createdAt,
       updatedAt: workspace.updatedAt
     }
+  })
+
+  /*
+   * GELEN KUTUSU — açma, adresi görme, kapatma.
+   *
+   * Adres VARSAYILAN OLARAK YOK. Kullanıcı açıkça açmadan hiçbir
+   * çalışma alanı e-posta almıyor: kullanılmayan bir kanal, açık
+   * bırakılmış bir kapıdır.
+   *
+   * Yalnız yönetici açabiliyor -- bu adres işletmeye belge sokan bir
+   * kanal, her üyenin açıp kapatabileceği bir tercih değil.
+   */
+  fastify.get('/:workspaceId/inbox', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId } = request.params as { workspaceId: string }
+    if (!await assertRole(prisma, user.id, workspaceId, MANAGER, reply)) return
+
+    const ws = await prisma.businessWorkspace.findUnique({
+      where: { id: workspaceId },
+      select: { inboxKey: true }
+    })
+    if (!ws) return reply.status(404).send({ error: 'Workspace not found' })
+
+    return {
+      acik: Boolean(ws.inboxKey),
+      adres: ws.inboxKey ? `${ws.inboxKey}@${gelenKutusuAlanAdi()}` : null,
+      /* Kanal sunucuda yapılandırılmamışsa kullanıcıya adres
+         göstermek yanlış olur -- posta gelse bile işlenmez. */
+      kanalHazir: Boolean(process.env.INBOUND_MAIL_SECRET)
+    }
+  })
+
+  fastify.post('/:workspaceId/inbox', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId } = request.params as { workspaceId: string }
+    if (!await assertRole(prisma, user.id, workspaceId, MANAGER, reply)) return
+    if (!await assertActiveWorkspace(prisma, workspaceId, reply)) return
+
+    /*
+     * Her çağrı YENİ adres üretiyor -- yani bu aynı zamanda
+     * "adresi yenile" işlevi. Adres sızdığında (iletilen bir postada,
+     * ekran görüntüsünde) kullanıcının onu değiştirebilmesi gerekiyor;
+     * aksi hâlde tek çare kanalı tamamen kapatmak olurdu.
+     */
+    const inboxKey = gelenKutusuAnahtariUret()
+    await prisma.businessWorkspace.update({
+      where: { id: workspaceId },
+      data: { inboxKey }
+    })
+    await recordWorkspaceActivity(prisma, {
+      workspaceId, actorId: user.id, action: 'inbox.enabled', entityType: 'workspace'
+    })
+
+    return { acik: true, adres: `${inboxKey}@${gelenKutusuAlanAdi()}` }
+  })
+
+  fastify.delete('/:workspaceId/inbox', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId } = request.params as { workspaceId: string }
+    if (!await assertRole(prisma, user.id, workspaceId, MANAGER, reply)) return
+
+    await prisma.businessWorkspace.update({
+      where: { id: workspaceId },
+      data: { inboxKey: null }
+    })
+    await recordWorkspaceActivity(prisma, {
+      workspaceId, actorId: user.id, action: 'inbox.disabled', entityType: 'workspace'
+    })
+    return { acik: false, adres: null }
   })
 
   fastify.put('/:workspaceId', async (request, reply) => {

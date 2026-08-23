@@ -49,6 +49,34 @@ export default function Settings() {
   const [preferences, setPreferences] = useState(emptyPreferences)
   const [loading, setLoading] = useState(true)
   const [savingProfile, setSavingProfile] = useState(false)
+  const [inbox, setInbox] = useState(null)
+  const [inboxIsleniyor, setInboxIsleniyor] = useState(false)
+
+  async function inboxAc() {
+    /* Adres zaten varsa bu bir YENİLEME: kullanıcıya ne olacağını
+       söylemeden eskisini geçersiz kılmak sürpriz olurdu. */
+    if (inbox?.acik && !window.confirm(
+      'Yeni bir adres üretilecek ve şu anki adres ÇALIŞMAYI DURDURACAK. Devam edilsin mi?'
+    )) return
+    setInboxIsleniyor(true)
+    try {
+      setInbox({ ...(await api.workspace.inbox.enable(workspaceId)), kanalHazir: inbox?.kanalHazir })
+      setMsg({ type: 'success', text: 'Gelen kutusu adresi hazır.' })
+    } catch (e) {
+      setMsg({ type: 'error', text: e.message || 'Adres oluşturulamadı.' })
+    } finally { setInboxIsleniyor(false) }
+  }
+
+  async function inboxKapat() {
+    if (!window.confirm('Adres kapatılacak; bu adrese gönderilen postalar artık işlenmeyecek. Devam edilsin mi?')) return
+    setInboxIsleniyor(true)
+    try {
+      setInbox({ ...(await api.workspace.inbox.disable(workspaceId)), kanalHazir: inbox?.kanalHazir })
+      setMsg({ type: 'success', text: 'Gelen kutusu kapatıldı.' })
+    } catch (e) {
+      setMsg({ type: 'error', text: e.message || 'İşlem tamamlanamadı.' })
+    } finally { setInboxIsleniyor(false) }
+  }
   const [savingPreferences, setSavingPreferences] = useState(false)
   const [msg, setMsg] = useState(null)
 
@@ -56,8 +84,10 @@ export default function Settings() {
     setLoading(true)
     Promise.all([
       api.workspace.get(workspaceId),
-      api.workspace.settings.get(workspaceId)
-    ]).then(([workspace, settings]) => {
+      api.workspace.settings.get(workspaceId),
+      api.workspace.inbox.get(workspaceId).catch(() => null)
+    ]).then(([workspace, settings, gelenKutusu]) => {
+      setInbox(gelenKutusu)
       setProfile({
         name: workspace.name || '',
         legalName: workspace.legalName || '',
@@ -214,6 +244,50 @@ export default function Settings() {
           </Button>
         </div>
       </form>
+
+      {/*
+        * GELEN E-POSTA KUTUSU.
+        *
+        * Adres VARSAYILAN OLARAK YOK -- kullanılmayan bir kanal, açık
+        * bırakılmış bir kapıdır. Kullanıcı açıkça açıyor.
+        */}
+      <section className={styles.card}>
+        <div className={styles.heading}>
+          <h2>e-Fatura Gelen Kutusu</h2>
+          <p>Muhasebe programınızdan faturaları doğrudan bu adrese gönderin; onay bekleyen kayıt olarak düşsün.</p>
+        </div>
+
+        {inbox && !inbox.kanalHazir && (
+          <p className={styles.inboxUyari}>
+            Bu özellik sunucuda henüz yapılandırılmadı. Adres oluştursanız da gelen posta işlenmez.
+          </p>
+        )}
+
+        {inbox?.acik ? (
+          <>
+            <p className={styles.inboxAdres}>{inbox.adres}</p>
+            <p className={styles.inboxNot}>
+              🔴 Yalnız <strong>bu çalışma alanının üyeleri</strong>, <strong>doğrulanmış</strong>
+              {' '}e-posta adreslerinden gönderebilir. Başkasından gelen posta sessizce atılır.
+              Adres sızarsa aşağıdan yenileyin.
+            </p>
+            <div className={styles.actions}>
+              <Button type="button" variant="secondary" onClick={inboxAc} disabled={inboxIsleniyor}>
+                Adresi yenile
+              </Button>
+              <Button type="button" variant="ghost" onClick={inboxKapat} disabled={inboxIsleniyor}>
+                Kapat
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className={styles.actions}>
+            <Button type="button" onClick={inboxAc} disabled={inboxIsleniyor}>
+              {inboxIsleniyor ? 'Hazırlanıyor…' : 'Gelen kutusunu aç'}
+            </Button>
+          </div>
+        )}
+      </section>
 
       <form className={styles.card} onSubmit={savePreferences}>
         <div className={styles.heading}>

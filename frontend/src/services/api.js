@@ -1049,6 +1049,13 @@ export const api = {
       return api.request('/workspaces', { method: 'POST', body: JSON.stringify(data) })
     },
     async get(workspaceId) { return api.request(`/workspaces/${workspaceId}`) },
+
+    /* Gelen e-posta kutusu: adresi gör, aç/yenile, kapat. */
+    inbox: {
+      async get(workspaceId) { return api.request(`/workspaces/${workspaceId}/inbox`) },
+      async enable(workspaceId) { return api.request(`/workspaces/${workspaceId}/inbox`, { method: 'POST' }) },
+      async disable(workspaceId) { return api.request(`/workspaces/${workspaceId}/inbox`, { method: 'DELETE' }) }
+    },
     async update(workspaceId, data) {
       return api.request(`/workspaces/${workspaceId}`, { method: 'PUT', body: JSON.stringify(data) })
     },

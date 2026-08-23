@@ -754,5 +754,60 @@ describe('Workspace API', () => {
       const body = res.json()
       expect(body.activeWorkspaceId).toBe(ws2Id)
     })
+  
+  /*
+   * GELEN E-POSTA KUTUSU.
+   *
+   * Adres, işletmeye belge sokan bir KANAL -- her üyenin açıp
+   * kapatabileceği bir tercih değil. Yönetici yetkisi gerekiyor.
+   */
+  describe('Gelen kutusu', () => {
+    it('varsayılan olarak kapalıdır', async () => {
+      const res = await get(`/workspaces/${wsAId}/inbox`, userToken)
+      expect(res.statusCode).toBe(200)
+      expect(res.json().acik).toBe(false)
+      expect(res.json().adres).toBeNull()
+    })
+
+    it('açılınca tahmin edilemez bir adres üretir', async () => {
+      const res = await post(`/workspaces/${wsAId}/inbox`, {}, userToken)
+      expect(res.statusCode).toBe(200)
+      expect(res.json().acik).toBe(true)
+      /* 32 onaltılık karakter: kolayca denenemez. */
+      expect(res.json().adres).toMatch(/^fatura-[0-9a-f]{32}@/)
+    })
+
+    /*
+     * Her çağrı YENİ adres üretiyor -- bu aynı zamanda "adresi yenile".
+     * Adres sızdığında (iletilen bir postada, ekran görüntüsünde)
+     * kullanıcının onu değiştirebilmesi gerekiyor; aksi hâlde tek çare
+     * kanalı tamamen kapatmak olurdu.
+     */
+    it('tekrar çağrılınca adresi yeniler', async () => {
+      const ilk = (await post(`/workspaces/${wsAId}/inbox`, {}, userToken)).json().adres
+      const ikinci = (await post(`/workspaces/${wsAId}/inbox`, {}, userToken)).json().adres
+      expect(ikinci).not.toBe(ilk)
+    })
+
+    it('kapatılınca adres kalmaz', async () => {
+      await post(`/workspaces/${wsAId}/inbox`, {}, userToken)
+      const res = await del(`/workspaces/${wsAId}/inbox`, userToken)
+      expect(res.json().acik).toBe(false)
+      const sonra = await get(`/workspaces/${wsAId}/inbox`, userToken)
+      expect(sonra.json().adres).toBeNull()
+    })
+
+    it('üye olmayan erişemez', async () => {
+      const res = await get(`/workspaces/${wsBId}/inbox`, userToken)
+      expect(res.statusCode).toBe(403)
+    })
+
+    /* Kanal sunucuda yapılandırılmamışsa arayüz bunu kullanıcıya
+       söylemeli; adres gösterip "çalışıyor" izlenimi vermek yanlış. */
+    it('kanalın hazır olup olmadığını bildirir', async () => {
+      const res = await get(`/workspaces/${wsAId}/inbox`, userToken)
+      expect(typeof res.json().kanalHazir).toBe('boolean')
+    })
   })
+})
 })

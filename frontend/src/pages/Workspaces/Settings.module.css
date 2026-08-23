@@ -114,3 +114,29 @@
     padding: 18px;
   }
 }
+
+/* Gelen kutusu adresi: kopyalanacak bir değer, okunaklı olmalı. */
+.inboxAdres {
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .82rem;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.inboxNot { margin: 0 0 12px; color: var(--text-light); font-size: .78rem; line-height: 1.55; }
+
+.inboxUyari {
+  margin: 0 0 12px;
+  padding: 9px 11px;
+  border-left: 3px solid var(--warning, #d98324);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--warning, #d98324) 9%, transparent);
+  color: var(--text-primary);
+  font-size: .78rem;
+}

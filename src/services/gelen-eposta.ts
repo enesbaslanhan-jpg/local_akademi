@@ -245,3 +245,23 @@ export async function gelenEpostaRotalari(
     })
   })
 }
+
+/**
+ * Gelen kutusu adreslerinin alan adı.
+ *
+ * `APP_PUBLIC_URL` üzerinden türetiliyor: adresin, uygulamanın
+ * yayınlandığı alan adıyla AYNI olması şart, çünkü Cloudflare Email
+ * Routing yalnız o alan adının postasını dinliyor.
+ *
+ * ⚠️ ALT ALAN ADI KULLANILMIYOR. `inbox.localkarar.com` gibi bir alt
+ * alan denendi ve çalışmadı: Cloudflare Email Routing alan adının
+ * KENDİSİNDE çalışıyor, alt alanlarında değil.
+ */
+export function gelenKutusuAlanAdi(): string {
+  const ham = process.env.APP_PUBLIC_URL || 'https://localkarar.com'
+  try {
+    return new URL(ham).hostname.replace(/^www\./, '')
+  } catch {
+    return 'localkarar.com'
+  }
+}
