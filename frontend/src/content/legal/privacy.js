@@ -105,8 +105,24 @@ export default {
         ],
         [
           'Topluluk ve destek içeriği',
-          'Topluluk gönderileri, yanıtlar, beğeniler, kaydetmeler, takip ve şikâyet ' +
-          'kayıtları ile destek formuna yazdığınız iletişim ve talep içeriği.'
+          'Topluluk gönderileri, yanıtlar, beğeniler, kaydetmeler, takip ilişkileri, ' +
+          'engellediğiniz veya sizi engelleyen kullanıcı kayıtları, şikâyet kayıtları ' +
+          've destek formuna yazdığınız iletişim ve talep içeriği.'
+        ],
+        [
+          'Üyeler arası özel mesajlar',
+          'Diğer üyelerle yaptığınız birebir ve grup yazışmalarının içeriği, gönderim ' +
+          'zamanı, sohbet üyelikleri ve davetler. Bu mesajlar sunucuda saklanır ve ' +
+          'uçtan uca şifreli DEĞİLDİR: teknik olarak sunucu tarafında okunabilir ' +
+          'durumdadır. Yönetim bu içeriğe yalnızca bir şikâyet incelemesi gerektirdiğinde ' +
+          'erişir.'
+        ],
+        [
+          'Gelen e-posta kanalı',
+          'İşletmenize özel gelen kutusu adresini açtığınızda: o adrese gönderilen ' +
+          'postaların GÖNDEREN ADRESİ, konu başlığı ve EKLERİ. Ekler, elle yüklenmiş ' +
+          'belgelerle aynı şekilde işlenir. Posta gövdesinin metni saklanmaz; yalnızca ' +
+          'ekler ve yukarıdaki alanlar alınır.'
         ],
         ['Görsel', 'Yüklemeyi seçerseniz profil fotoğrafınız.'],
         [
@@ -115,6 +131,19 @@ export default {
           'Bu bilgiler veritabanında hesabınızla ilişkilendirilerek saklanmaz; ' +
           'yalnızca teknik günlük dosyalarında yer alır.'
         ]
+      ],
+      /* Reklam ölçümü BİLEREK kişisel veri kategorisi olarak
+         yazılmadı: kişiye bağlanan hiçbir kayıt tutulmuyor. Onu bir
+         kategori gibi listelemek, olmayan bir işlemeyi varmış gibi
+         göstermek olurdu. */
+      /* `son` alanı: listeden SONRA gelen kapanış paragrafı.
+         `LegalPage` bunu zaten çiziyor -- yeni bir alan icat etmeye
+         gerek yok, uydurulan alan sessizce görünmez kalırdı. */
+      son: [
+        'Topluluk alanında reklam gösterildiğinde yalnızca TOPLAM gösterim ve ' +
+        'tıklama sayacı artırılır. Reklamı kimin gördüğü ya da tıkladığı ' +
+        'KAYDEDİLMEZ; bu sayaçlar hiçbir kullanıcıyla ilişkilendirilemez ve bu ' +
+        'nedenle kişisel veri işleme niteliği taşımaz.'
       ]
     },
 
@@ -126,6 +155,10 @@ export default {
         'veya çalışanlarınıza ait kişisel verileri (ad, e-posta, telefon, adres) ' +
         'uygulamaya girebilir; bu kişilere ait bilgiler içeren fatura ve benzeri ' +
         'belgeleri yükleyebilirsiniz.',
+        'Aynı durum, işletmenize özel gelen kutusu adresini açtığınızda geçerlidir: ' +
+        'o adrese gönderdiğiniz faturalar tedarikçilerinizin ve müşterilerinizin ' +
+        'bilgilerini taşır. Bu kanalı açmak, o verileri uygulamaya aktarma kararını ' +
+        'sizin vermeniz demektir.',
         'Bu veriler bakımından KVKK anlamında veri sorumlusu sizsiniz. LocalKarar bu ' +
         'veriler bakımından yalnızca veri işleyen sıfatıyla, sizin talimatınız ' +
         'doğrultusunda ve size hizmet sunmak amacıyla hareket eder.',
@@ -160,6 +193,21 @@ export default {
             'AI Mentor verileri; soruyla ilgili olduğu ölçüde işletme profili ve kayıtları, ' +
             'kurs kayıtları ve ilerleme, hesaplama sonuçları ve yüklenen dosyalardan kısa bölümler',
             'Sözleşmenin ifası (m.5/2-c)'
+          ],
+          [
+            'Topluluk alanını ve üyeler arası özel mesajlaşmayı sunmak',
+            'Topluluk ve destek içeriği, üyeler arası özel mesajlar',
+            'Sözleşmenin ifası (m.5/2-c)'
+          ],
+          [
+            'Engelleme ve şikâyet mekanizmalarını işletmek',
+            'Engelleme ve şikâyet kayıtları',
+            'Meşru menfaat (m.5/2-f) — kullanıcıların taciz ve istenmeyen iletişimden korunması'
+          ],
+          [
+            'İşletmenize özel gelen kutusuna gönderilen belgeleri işlemek',
+            'Gelen e-posta kanalı verileri; eklerden çıkarılan işletme kayıtları',
+            'Sözleşmenin ifası (m.5/2-c) — bu kanalı siz açtığınızda'
           ],
           [
             'Hesap güvenliğini sağlamak ve kötüye kullanımı önlemek',
@@ -257,6 +305,9 @@ export default {
           ['İşletme kayıtları ve belgeler', 'Siz silene kadar; hesap silinince birlikte silinir'],
           ['Öğrenme, hesaplama ve karar kayıtları', 'Hesabınız açık kaldığı sürece veya ilgili kaydı silene kadar'],
           ['AI Mentor konuşmaları, özetleri ve notları', 'Siz silene veya hesabınız silinene kadar'],
+          ['Üyeler arası özel mesajlar', 'Sohbet ya da hesap silinene kadar'],
+          ['Engelleme ve şikâyet kayıtları', 'Engeli kaldırana kadar; şikâyet kayıtları denetim izi olarak korunur'],
+          ['Gelen kutusuna düşen belgeler', 'Elle yüklenen belgelerle aynı: siz silene kadar'],
           ['Oturum yenileme anahtarları', 'Azami 30 gün; çıkış yapıldığında geçersiz kılınır'],
           ['Doğrulama ve şifre sıfırlama anahtarları', 'Kısa süreli; kullanıldığında veya süresi dolduğunda geçersiz'],
           ['Sunucu erişim günlükleri', 'Sınırlı süre; dosya boyutuna göre döngüsel olarak silinir'],

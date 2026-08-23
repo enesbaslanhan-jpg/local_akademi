@@ -104,7 +104,17 @@ describe('GET /auth/legal-documents', () => {
     expect(r.statusCode).toBe(200)
     expect(r.json().documents).toHaveLength(LEGAL_DOCUMENTS.length)
     for (const d of r.json().documents) {
-      expect(d.version).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      /*
+       * Tarih + İSTEĞE BAĞLI revizyon eki: `2026-08-23` ya da
+       * `2026-08-23.2`.
+       *
+       * Kalıp önce yalnız tarihti; bu, günde birden fazla sürüm
+       * yayımlamayı imkânsız kılıyordu. 23.08.2026'da o sınıra GERÇEKTEN
+       * çarpıldı: metinler sabah güncellendi, aynı gün dört açık daha
+       * kapatıldı ve ikinci bir sürüm gerekti. Tarihi ertesi güne
+       * kaydırmak, metnin ne zaman değiştiğini yanlış söylerdi.
+       */
+      expect(d.version).toMatch(/^\d{4}-\d{2}-\d{2}(\.\d+)?$/)
     }
   })
 })

@@ -156,13 +156,45 @@ export default {
         'Beğenileriniz gönderi üzerinde toplu sayı olarak görünür. Kaydettikleriniz ' +
         'yalnızca size özeldir ve başka kullanıcılara gösterilmez.',
         'Topluluk gönderileri başka kullanıcılar tarafından görülebilir. Paylaşmak ' +
-        'istemediğiniz işletme bilgilerini bu alana yazmayınız.'
+        'istemediğiniz işletme bilgilerini bu alana yazmayınız.',
+        'ÖZEL MESAJLAŞMA: Diğer üyelerle birebir ya da grup hâlinde yazışabilirsiniz. ' +
+        'Bu mesajlar diğer topluluk üyelerine gösterilmez, ancak UÇTAN UCA ŞİFRELİ ' +
+        'DEĞİLDİR: içerik sunucuda saklanır ve teknik olarak okunabilir durumdadır. ' +
+        'Yönetim bu içeriğe yalnızca bir şikâyet incelemesi gerektirdiğinde erişir. ' +
+        'Bu nedenle özel mesajları da gizli bir kanal gibi kullanmayınız.',
+        'ENGELLEME: Bir kullanıcıyı engellediğinizde o kullanıcı size mesaj ' +
+        'gönderemez, profilinizi ve paylaşımlarınızı göremez; siz de onunkileri ' +
+        'görmezsiniz. Engelleme kaydı, engeli kaldırana kadar sistemde tutulur.',
+        'Bir kullanıcıyı şikâyet edebilirsiniz. Şikâyet kayıtları, aynı kişi hakkında ' +
+        'tekrar eden bildirimlerin değerlendirilebilmesi için denetim izi olarak ' +
+        'saklanır.'
+      ]
+    },
+
+    {
+      id: 'gelen-kutusu',
+      baslik: '10. İşletmenize özel gelen e-posta kutusu',
+      paragraflar: [
+        'İşletme ayarlarından, size özel bir e-posta adresi oluşturabilirsiniz. Bu ' +
+        'adrese gönderdiğiniz faturalar ve belgeler, uygulamaya elle yüklenmiş gibi ' +
+        'işlenir ve ONAYINIZI BEKLEYEN kayıt önerisi olarak düşer. Hiçbir kayıt siz ' +
+        'onaylamadan kesinleşmez.',
+        'Bu adres VARSAYILAN OLARAK KAPALIDIR; yalnızca siz açtığınızda çalışır ve ' +
+        'istediğiniz zaman kapatabilir ya da yenileyebilirsiniz.',
+        'Adrese YALNIZCA çalışma alanınızın üyeleri, uygulamada doğrulanmış kendi ' +
+        'e-posta adreslerinden gönderim yapabilir. Başka bir adresten gelen postalar ' +
+        'işlenmez ve gönderene bilgi verilmeden atılır.',
+        'Adresi üçüncü kişilerle paylaşmamanız önerilir. Adresin başkalarının eline ' +
+        'geçmesi hâlinde ayarlardan yenileyerek eski adresi geçersiz kılabilirsiniz.',
+        'Bu adrese gönderdiğiniz belgeler tedarikçilerinize ve müşterilerinize ait ' +
+        'kişisel veriler taşıyabilir. Bu veriler bakımından 7. bölümdeki taahhütleriniz ' +
+        'aynen geçerlidir.'
       ]
     },
 
     {
       id: 'fikri-mulkiyet',
-      baslik: '10. Fikri mülkiyet',
+      baslik: '11. Fikri mülkiyet',
       paragraflar: [
         'Uygulamanın arayüzü, yazılımı, eğitim içerikleri, karar araçları ve hesaplama ' +
         'şablonları üzerindeki haklar saklıdır.',
@@ -175,7 +207,7 @@ export default {
 
     {
       id: 'hizmet-degisiklikleri',
-      baslik: '11. Hizmette değişiklik, askıya alma ve sona erdirme',
+      baslik: '12. Hizmette değişiklik, askıya alma ve sona erdirme',
       paragraflar: [
         'Özellikler eklenebilir, değiştirilebilir veya kaldırılabilir. Kullanımınızı ' +
         'esaslı biçimde etkileyen değişiklikler uygun kanallardan duyurulur.',
@@ -187,7 +219,7 @@ export default {
 
     {
       id: 'sorumluluk',
-      baslik: '12. Sorumluluğun sınırı',
+      baslik: '13. Sorumluluğun sınırı',
       paragraflar: [
         'Hizmet kesintisiz ve hatasız olacağı taahhüt edilmeden sunulur. Bakım, ' +
         'sağlayıcı arızası veya güvenlik gereklilikleri nedeniyle geçici kesintiler ' +
@@ -201,7 +233,7 @@ export default {
 
     {
       id: 'hesap-sonu',
-      baslik: '13. Hesabınızı sona erdirmeniz',
+      baslik: '14. Hesabınızı sona erdirmeniz',
       paragraflar: [
         'Hesabınızı istediğiniz zaman Ayarlar sayfasından silebilirsiniz.',
         'Tek sahibi olduğunuz bir işletme çalışma alanı varsa, önce başka bir üyeyi ' +
@@ -213,7 +245,7 @@ export default {
 
     {
       id: 'uygulanacak-hukuk',
-      baslik: '14. Uygulanacak hukuk ve yetkili yargı yeri',
+      baslik: '15. Uygulanacak hukuk ve yetkili yargı yeri',
       paragraflar: [
         'Bu koşullara Türk hukuku uygulanır.',
         'Uyuşmazlıklarda Ankara mahkemeleri ve icra daireleri yetkilidir. Tüketici ' +
@@ -224,7 +256,7 @@ export default {
 
     {
       id: 'yururluk',
-      baslik: '15. Yürürlük ve değişiklikler',
+      baslik: '16. Yürürlük ve değişiklikler',
       paragraflar: [
         'Bu koşullar, hesabınızı oluşturduğunuz anda yürürlüğe girer.',
         'Koşullar güncellendiğinde yeni bir sürüm numarasıyla yayımlanır; Ayarlar’daki ' +

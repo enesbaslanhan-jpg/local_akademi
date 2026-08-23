@@ -29,18 +29,25 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
   {
     type: 'terms',
     title: 'Kullanım Koşulları',
-    /* 2026-08-23: topluluk etkileşimleri, hizmet kapsamı ve deterministik
-       hesap/AI ayrımı teknik davranışla eşleştirildi. Eski onay bu metni
-       KAPSAMIYOR, yeniden onay istenecek. */
-    version: '2026-08-23',
+    /* 2026-08-23.2: dört açık kapatıldı -- üyeler arası ÖZEL MESAJLAŞMA,
+       ENGELLEME kayıtları, REKLAM sayaçları ve işletmeye özel GELEN
+       E-POSTA KUTUSU. Dördü de canlıda çalışan özelliklerdi ama metinde
+       hiç geçmiyordu.
+
+       ⚠️ AYNI GÜN İKİNCİ ARTIŞ. Sabah `2026-08-23`e çıkılmış ve
+       yayımlanmıştı; açıklar o sırada kapatılmadığı için ikinci bir
+       artış kaçınılmaz oldu. Kullanıcı aynı gün iki kez onay görüyor --
+       bir daha olmaması için metin ile özellik AYNI turda güncellenmeli. */
+    version: '2026-08-23.2',
     requiredAtSignup: true
   },
   {
     type: 'privacy',
     title: 'Gizlilik ve KVKK Aydınlatma Metni',
-    /* 2026-08-23: veri kategorileri, Mentor bağlamı ve aktarım alıcıları
-       gerçek veri akışlarıyla eşleştirildi; yeniden onay istenecek. */
-    version: '2026-08-23',
+    /* 2026-08-23.2: özel mesajlaşma, engelleme kayıtları, gelen e-posta
+       kanalı veri kategorisi olarak eklendi; reklam sayaçlarının kişiye
+       BAĞLANMADIĞI açıkça yazıldı. */
+    version: '2026-08-23.2',
     requiredAtSignup: true
   },
   {
