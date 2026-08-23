@@ -193,9 +193,22 @@ async function assertInvitationInWorkspace(
   return inv
 }
 
+/*
+ * VKN (10 hane) / TCKN (11 hane).
+ *
+ * YALNIZ BİÇİM doğrulanıyor, kontrol hanesi (checksum) HESAPLANMIYOR.
+ * Sebep: yanlış girilmiş bir numaranın buradaki tek sonucu, e-Fatura
+ * yönünün belirlenememesi ve kullanıcıya sorulmasıdır -- güvenli bir
+ * başarısızlık. Buna karşılık fazla katı bir doğrulama, geçerli ama
+ * beklenmedik bir numarayı reddedip kullanıcıyı işletmesini
+ * kaydedemez hale getirirdi.
+ */
+const vergiNumarasi = z.string().trim().regex(/^\d{10}$|^\d{11}$/, 'Vergi numarası 10 (VKN) ya da 11 (TCKN) haneli olmalı')
+
 const createWorkspaceSchema = z.object({
   name: z.string().trim().min(1).max(200),
   legalName: z.string().trim().max(200).optional(),
+  taxNumber: vergiNumarasi.optional(),
   sector: z.string().trim().max(200).optional(),
   city: z.string().trim().max(200).optional(),
   currency: z.string().length(3).optional()
@@ -204,6 +217,7 @@ const createWorkspaceSchema = z.object({
 const updateWorkspaceSchema = z.object({
   name: z.string().trim().min(1).max(200).optional(),
   legalName: z.string().trim().max(200).nullable().optional(),
+  taxNumber: vergiNumarasi.nullable().optional(),
   sector: z.string().trim().max(200).optional(),
   city: z.string().trim().max(200).optional(),
   country: z.string().trim().length(2).optional(),
@@ -361,6 +375,7 @@ export async function workspaceRoutes(fastify: FastifyInstance, opts?: { prisma?
         data: {
           name: validated.name,
           legalName: validated.legalName ?? null,
+          taxNumber: validated.taxNumber ?? null,
           sector: validated.sector ?? '',
           city: validated.city ?? '',
           currency: validated.currency ?? 'TRY',
@@ -436,6 +451,7 @@ export async function workspaceRoutes(fastify: FastifyInstance, opts?: { prisma?
       id: workspace.id,
       name: workspace.name,
       legalName: workspace.legalName,
+      taxNumber: workspace.taxNumber,
       sector: workspace.sector,
       city: workspace.city,
       country: workspace.country,
@@ -497,6 +513,7 @@ export async function workspaceRoutes(fastify: FastifyInstance, opts?: { prisma?
       }
     }
     if (validated.legalName !== undefined) data.legalName = validated.legalName
+    if (validated.taxNumber !== undefined) data.taxNumber = validated.taxNumber
     if (validated.salesChannels !== undefined) data.salesChannels = JSON.stringify(validated.salesChannels)
     if (validated.challenges !== undefined) data.challenges = JSON.stringify(validated.challenges)
 

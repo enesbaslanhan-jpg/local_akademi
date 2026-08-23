@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'fs'
 import { join } from 'path'
-import { ublFaturasiniAyristir, UblAyristirmaHatasi } from '../src/services/e-fatura.js'
+import { ublFaturasiniAyristir, faturaYonu, UblAyristirmaHatasi } from '../src/services/e-fatura.js'
 
 /*
  * UBL-TR AYRIŞTIRICI.
@@ -232,5 +232,56 @@ describe('sayı ve kimlik dönüşümü', () => {
   it('sayı olmayan tutar kabul edilmez', () => {
     expect(() => ublFaturasiniAyristir(fatura('1.234,56'))).toThrow(/PayableAmount/)
     expect(() => ublFaturasiniAyristir(fatura('bin lira'))).toThrow(/PayableAmount/)
+  })
+})
+
+describe('fatura yönü', () => {
+  const temel = () => ublFaturasiniAyristir(oku('TemelFaturaOrnegi.xml'))
+  /* Bu faturada satıcı VKN 1288331521, alıcı TCKN 1234567890. */
+
+  it('alıcı bizsek gelen fatura (borç)', () => {
+    expect(faturaYonu(temel(), '1234567890')).toBe('payable')
+  })
+
+  it('satıcı bizsek giden fatura (alacak)', () => {
+    expect(faturaYonu(temel(), '1288331521')).toBe('receivable')
+  })
+
+  /*
+   * 🔴 EN ÖNEMLİ TEST. Yanlış yön, kullanıcının ALACAĞINI borç olarak
+   * yazmak demek -- işletme takibinde kasada olmayan bir borç görünür.
+   * Eşleşme yoksa tahmin edilmiyor.
+   */
+  it('taraflardan hiçbiri biz değilsek yön TAHMİN EDİLMEZ', () => {
+    expect(faturaYonu(temel(), '9999999999')).toBe('neutral')
+  })
+
+  it('işletmenin vergi numarası girilmemişse yön tahmin edilmez', () => {
+    expect(faturaYonu(temel(), null)).toBe('neutral')
+    expect(faturaYonu(temel(), '')).toBe('neutral')
+    expect(faturaYonu(temel(), '   ')).toBe('neutral')
+  })
+
+  /*
+   * GİB paketinde satıcı ve alıcı aynı olan faturalar var
+   * (`YTB_*`, `SARJ`). Orada yön anlamsız; "payable" demek uydurma
+   * bir borç yaratırdı.
+   */
+  it('kendine kesilen faturada yön belirsiz kalır', () => {
+    const f = ublFaturasiniAyristir(oku('TicariFaturaOrnegi.xml'))
+    const kendi = f.satici.kimlik!
+    const sahte = { ...f, alici: { ...f.alici, kimlik: kendi } }
+    expect(faturaYonu(sahte, kendi)).toBe('neutral')
+  })
+
+  /*
+   * Numaralar METİN olarak karşılaştırılıyor. Sayıya çevrilseydi
+   * "0001234567" ile "1234567" eşit sayılır, başkasının faturası
+   * bizim sanılırdı.
+   */
+  it('baştaki sıfır farkı eşleşme sayılmaz', () => {
+    const f = temel()
+    const sahte = { ...f, alici: { ...f.alici, kimlik: '0001234567' } }
+    expect(faturaYonu(sahte, '1234567')).toBe('neutral')
   })
 })

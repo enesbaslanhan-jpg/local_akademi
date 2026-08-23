@@ -9,6 +9,7 @@ import styles from './Settings.module.css'
 const emptyProfile = {
   name: '',
   legalName: '',
+  taxNumber: '',
   sector: '',
   city: '',
   businessStage: '',
@@ -60,6 +61,7 @@ export default function Settings() {
       setProfile({
         name: workspace.name || '',
         legalName: workspace.legalName || '',
+        taxNumber: workspace.taxNumber || '',
         sector: workspace.sector || '',
         city: workspace.city || '',
         businessStage: workspace.businessStage || '',
@@ -91,6 +93,7 @@ export default function Settings() {
       await api.workspace.update(workspaceId, {
         name: profile.name.trim(),
         legalName: profile.legalName.trim() || null,
+        taxNumber: profile.taxNumber.trim() || null,
         sector: profile.sector.trim(),
         city: profile.city.trim(),
         businessStage: profile.businessStage || null,
@@ -148,6 +151,20 @@ export default function Settings() {
           </label>
           <label className={styles.field}>Resmî unvan
             <input value={profile.legalName} onChange={event => setProfileField('legalName', event.target.value)} />
+          </label>
+          {/* e-Fatura XML'i okunduğunda faturanın YÖNÜ bununla
+              belirleniyor: alıcı bu numaraysa gelen fatura, satıcı bu
+              numaraysa giden fatura. Girilmezse yön tahmin edilmez,
+              kullanıcıya sorulur. */}
+          <label className={styles.field}>Vergi / TC kimlik no
+            <input
+              value={profile.taxNumber}
+              onChange={event => setProfileField('taxNumber', event.target.value.replace(/\D/g, ''))}
+              inputMode="numeric"
+              maxLength={11}
+              placeholder="10 haneli VKN ya da 11 haneli TCKN"
+            />
+            <small>e-Fatura yüklerken gelen/giden ayrımı bu numaradan yapılır.</small>
           </label>
           <label className={styles.field}>Sektör
             <input value={profile.sector} onChange={event => setProfileField('sector', event.target.value)} placeholder="Örn. E-ticaret, tekstil" />

@@ -743,6 +743,13 @@ model BusinessWorkspace {
   id                     String                   @id @default(uuid())
   name                   String
   legalName              String?
+  // VKN (10 hane) ya da TCKN (11 hane).
+  //
+  // NEDEN VAR: e-Fatura XML'i okunduğunda faturanın YÖNÜ ancak bununla
+  // belirlenebiliyor -- faturadaki alıcı bu numaraysa gelen fatura
+  // (borç), satıcı bu numaraysa giden fatura (alacak). Numara yoksa
+  // yön TAHMİN EDİLMİYOR, kullanıcıya soruluyor.
+  taxNumber              String?
   slug                   String?
   sector                 String                   @default("")
   city                   String                   @default("")

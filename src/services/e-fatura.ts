@@ -225,3 +225,43 @@ export function ublFaturasiniAyristir(xml: string): UblFatura {
     alici: tarafiOku(dizi<Record<string, any>>(fatura.AccountingCustomerParty)[0])
   }
 }
+
+/* ---------------- YÖN ---------------- */
+
+/**
+ * Faturanın kullanıcı açısından yönü.
+ *
+ * `payable`  — gelen fatura, kullanıcı ödeyecek (borç)
+ * `receivable` — giden fatura, kullanıcı tahsil edecek (alacak)
+ * `neutral`  — belirlenemedi; kullanıcıya sorulacak
+ */
+export type FaturaYonu = 'payable' | 'receivable' | 'neutral'
+
+/*
+ * 🔴 EŞLEŞME YOKSA TAHMİN YOK.
+ *
+ * Aynı XML hem gelen hem giden fatura olabilir; fark, taraflardan
+ * hangisinin kullanıcının işletmesi olduğudur. Bunu bilmenin tek
+ * güvenilir yolu vergi numarasını karşılaştırmak.
+ *
+ * "Genelde gelen faturadır" gibi bir varsayım, kullanıcının ALACAĞINI
+ * borç olarak yazabilirdi -- işletme takibinde bu, kasada olmayan bir
+ * borç görmek demek. Yanlış yön, belirsiz yönden çok daha pahalı.
+ * Eşleşme bulunamazsa `neutral` dönüyor ve karar kullanıcıya kalıyor.
+ *
+ * Numaralar metin olarak karşılaştırılıyor: sayıya çevirmek baştaki
+ * sıfırları düşürür ve iki farklı VKN'yi eşit gösterebilirdi.
+ */
+export function faturaYonu(fatura: UblFatura, isletmeVergiNo: string | null | undefined): FaturaYonu {
+  const bizim = (isletmeVergiNo || '').trim()
+  if (!bizim) return 'neutral'
+
+  const alici = (fatura.alici.kimlik || '').trim()
+  const satici = (fatura.satici.kimlik || '').trim()
+
+  /* Kendine kesilen fatura (GİB örneklerinde var): yön anlamsız. */
+  if (alici === bizim && satici === bizim) return 'neutral'
+  if (alici === bizim) return 'payable'
+  if (satici === bizim) return 'receivable'
+  return 'neutral'
+}
