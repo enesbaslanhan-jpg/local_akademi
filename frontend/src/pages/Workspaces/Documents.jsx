@@ -156,13 +156,13 @@ export default function Documents() {
           </button>
         </div>
 
-        <input ref={fileInputRef} hidden type="file" accept=".txt,.md,.csv,.json,.docx,.pdf,.png,.jpg,.jpeg" onChange={uploadFile} />
+        <input ref={fileInputRef} hidden type="file" accept=".txt,.md,.csv,.json,.xml,.docx,.pdf,.png,.jpg,.jpeg" onChange={uploadFile} />
         <input ref={photoInputRef} hidden type="file" accept="image/png,image/jpeg" onChange={uploadFile} />
         <input ref={cameraInputRef} hidden type="file" accept="image/*" capture="environment" onChange={uploadFile} />
       </div>
 
       <div className={styles.note}>
-        PDF, DOCX, PNG, JPEG, CSV, JSON, TXT ve MD desteklenir. Fotoğraf ve taranmış belgeler yerel Türkçe OCR ile okunur; dış servise gönderilmez. Algılanan kayıt siz onaylamadan kesinleşmez.
+        PDF, DOCX, PNG, JPEG, CSV, JSON, XML, TXT ve MD desteklenir. Muhasebe programınızdan aldığınız e-Fatura XML dosyasını doğrudan yükleyebilirsiniz. Fotoğraf ve taranmış belgeler yerel Türkçe OCR ile okunur; dış servise gönderilmez. Algılanan kayıt siz onaylamadan kesinleşmez.
       </div>
 
       {documents.length === 0 ? (

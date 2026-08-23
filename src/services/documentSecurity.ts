@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { XMLValidator } from 'fast-xml-parser'
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024
 export const MAX_EXTRACTED_TEXT_LENGTH = 100000
@@ -10,12 +11,23 @@ export const MAX_COMPRESSION_RATIO = 100
 export const MAX_PDF_PAGES = 200
 export const MAX_IMAGE_PIXELS = 25_000_000
 
-export const ALLOWED_EXTENSIONS = new Set(['txt', 'md', 'csv', 'json', 'docx', 'pdf', 'png', 'jpg', 'jpeg'])
+/*
+ * XML ayrıştırma için ayrı ve DAHA DAR bir sınır.
+ *
+ * `MAX_FILE_SIZE` (10 MB) yükleme sınırı; ayrıştırma sınırı değil. XML
+ * ağaca açıldığında bellekte dosyadan kat kat büyür. e-Fatura XML'leri
+ * tipik olarak birkaç yüz KB; 2 MB fazlasıyla yeterli ve kötü niyetli
+ * bir dosyanın belleği şişirmesini erkenden keser.
+ */
+export const MAX_XML_BYTES = 2 * 1024 * 1024
+
+export const ALLOWED_EXTENSIONS = new Set(['txt', 'md', 'csv', 'json', 'xml', 'docx', 'pdf', 'png', 'jpg', 'jpeg'])
 export const ALLOWED_MIME_MAP: Record<string, string> = {
   'txt': 'text/plain',
   'md': 'text/markdown',
   'csv': 'text/csv',
   'json': 'application/json',
+  'xml': 'application/xml',
   'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'pdf': 'application/pdf',
   'png': 'image/png',
@@ -32,6 +44,38 @@ export const ALLOWED_MIME_MAP: Record<string, string> = {
    */
   'mp4': 'video/mp4',
   'webm': 'video/webm'
+}
+
+/*
+ * Bazı uzantılar için TEK bir doğru MIME yok.
+ *
+ * XML bunun tipik örneği: `application/xml` ve `text/xml` ikisi de
+ * geçerli ve hangisinin gönderileceği yazılıma göre değişiyor. Muhasebe
+ * programlarının ürettiği e-Fatura dosyalarında ikisi de görülüyor.
+ * Tek değere zorlamak, tamamen geçerli bir faturayı 415 ile reddederdi.
+ *
+ * Bu bir GEVŞETME değil: liste kapalı, yalnız burada yazılı değerler
+ * kabul ediliyor ve içerik doğrulaması (sihirli bayt / ayrıştırma)
+ * ayrıca çalışıyor. MIME zaten istemcinin beyanı; asıl güvence orada.
+ */
+export const ALLOWED_MIME_ALTERNATIVES: Record<string, readonly string[]> = {
+  'xml': ['text/xml']
+}
+
+/**
+ * Uzantı ile istemcinin bildirdiği MIME türü uyuşuyor mu.
+ *
+ * Tek noktadan sorulması önemli: iki ayrı yerde `!==` ile karşılaştırma
+ * yapılırsa biri güncellenip diğeri unutulur ve aynı dosya bir kapıdan
+ * geçip diğerinden geçmez.
+ */
+export function mimeTuruUygunMu(ext: string, mimeType: string): boolean {
+  const beklenen = ALLOWED_MIME_MAP[ext]
+  /* Haritada karşılığı olmayan uzantı için MIME kontrolü yapılmıyor —
+     mevcut davranış buydu, korunuyor. */
+  if (!beklenen) return true
+  if (mimeType === beklenen) return true
+  return (ALLOWED_MIME_ALTERNATIVES[ext] || []).includes(mimeType)
 }
 
 export const questionSchema = z.object({
@@ -206,6 +250,80 @@ export function validateJsonFile(buffer: Buffer): void {
     JSON.parse(text)
   } catch {
     throw new FileValidationError('Geçersiz JSON dosyası', 422)
+  }
+}
+
+/*
+ * ---------- XML ----------
+ *
+ * 🔴 XML, JSON DEĞİLDİR. İki saldırı sınıfı sunucuyu düşürebilir ya da
+ * dosyalarını okutabilir, ve ikisi de DTD üzerinden çalışır:
+ *
+ *   1. XXE (dış varlık):
+ *      <!DOCTYPE f [<!ENTITY x SYSTEM "file:///etc/passwd">]>
+ *      Ayrıştırıcı dış varlığı çözerse sunucudaki dosya faturanın
+ *      içine gömülür ve kullanıcıya geri gösterilir.
+ *
+ *   2. Milyar kahkaha (varlık şişmesi):
+ *      İç içe tanımlı varlıklarla birkaç KB'lık dosya ayrıştırıldığında
+ *      gigabaytlara açılır ve süreç ölür.
+ *
+ * SAVUNMA: DTD'nin KENDİSİ reddediliyor -- `<!DOCTYPE` gördüğümüz anda
+ * dosya geri çevriliyor.
+ *
+ * Neden ayrıştırıcının varsayılanlarına güvenilmedi: `fast-xml-parser`
+ * dış varlık çözmüyor, ama bu bir kütüphane davranışıdır ve sürüm
+ * yükseltmesiyle değişebilir; üstelik bir gün başka bir ayrıştırıcıya
+ * geçilirse bu dosyadaki koruma onunla da çalışmalı. Kapıda durmak,
+ * içeride birinin dikkatli olmasını ummaktan güvenlidir.
+ *
+ * Neden meşru dosyaları kırmıyor: UBL-TR e-Fatura belgelerinde DTD
+ * BULUNMAZ. Şema doğrulaması XSD ile yapılır, DTD ile değil.
+ */
+
+/* Yorumları çıkarıp `<!DOCTYPE`yi yorum içine gizlemeyi engellemek için
+   önce yorumlar siliniyor; sonra bildirim aranıyor. */
+function xmlYorumlariniSil(metin: string): string {
+  return metin.replace(/<!--[\s\S]*?-->/g, '')
+}
+
+export function validateXmlFile(buffer: Buffer): void {
+  if (buffer.length === 0) {
+    throw new FileValidationError('Dosya boş', 422)
+  }
+  if (buffer.length > MAX_XML_BYTES) {
+    throw new FileValidationError(
+      `XML dosyası ${Math.floor(MAX_XML_BYTES / 1024 / 1024)} MB sınırını aşıyor`,
+      413
+    )
+  }
+  if (buffer.includes(0x00)) {
+    throw new FileValidationError('Binary veri içeren dosya XML olarak kabul edilmez', 415)
+  }
+
+  const ham = buffer.toString('utf-8')
+  const metin = xmlYorumlariniSil(ham)
+
+  if (/<!DOCTYPE/i.test(metin)) {
+    throw new FileValidationError(
+      'DTD içeren XML kabul edilmiyor. e-Fatura belgelerinde DTD bulunmaz.',
+      415
+    )
+  }
+  /* DOCTYPE dışında ENTITY bildirimi teknik olarak geçersizdir, ama
+     kapıyı tek bir desene bağlamamak için ayrıca aranıyor. */
+  if (/<!ENTITY/i.test(metin)) {
+    throw new FileValidationError('Varlık (ENTITY) bildirimi içeren XML kabul edilmiyor', 415)
+  }
+
+  /*
+   * Biçim doğruluğu. `validateJsonFile`'daki desenin aynısı: burada
+   * ayrıştırılamayan dosya, ileride sessizce boş sonuç üretmek yerine
+   * yükleme anında reddedilsin.
+   */
+  const dogrulama = XMLValidator.validate(metin, { allowBooleanAttributes: true })
+  if (dogrulama !== true) {
+    throw new FileValidationError('Geçersiz XML dosyası: biçim hatalı', 422)
   }
 }
 

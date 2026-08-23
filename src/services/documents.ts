@@ -10,8 +10,8 @@ import { PDFParse } from 'pdf-parse'
 import { createWorker, OEM } from 'tesseract.js'
 import { z } from 'zod'
 import {
-  MAX_FILE_SIZE, MAX_EXTRACTED_TEXT_LENGTH, MAX_PDF_PAGES, ALLOWED_EXTENSIONS, ALLOWED_MIME_MAP,
-  questionSchema, detectFileType, validateTextFile, validateJsonFile, inspectZip,
+  MAX_FILE_SIZE, MAX_EXTRACTED_TEXT_LENGTH, MAX_PDF_PAGES, ALLOWED_EXTENSIONS, mimeTuruUygunMu,
+  questionSchema, detectFileType, validateTextFile, validateJsonFile, validateXmlFile, inspectZip,
   validatePdfFile, validateImageFile, FileValidationError
 } from './documentSecurity'
 
@@ -109,11 +109,12 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
 
     const ext = (filename.split('.').pop() || '').toLowerCase()
     if (!ALLOWED_EXTENSIONS.has(ext)) {
-      return reply.status(415).send({ error: 'Desteklenmeyen dosya türü. TXT, MD, CSV, JSON, DOCX, PDF, PNG veya JPEG yükleyin.' })
+      return reply.status(415).send({ error: 'Desteklenmeyen dosya türü. TXT, MD, CSV, JSON, XML, DOCX, PDF, PNG veya JPEG yükleyin.' })
     }
 
-    const expectedMime = ALLOWED_MIME_MAP[ext]
-    if (expectedMime && mimeType !== expectedMime) {
+    /* XML iki farklı MIME ile gelebiliyor; karar tek yerde
+       (`mimeTuruUygunMu`) veriliyor. */
+    if (!mimeTuruUygunMu(ext, mimeType)) {
       return reply.status(415).send({ error: `Dosya uzantısı (${ext}) ile MIME türü (${mimeType}) uyuşmuyor` })
     }
 
@@ -180,6 +181,19 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
     if (ext === 'txt' || ext === 'md' || ext === 'csv') {
       try {
         validateTextFile(buffer)
+      } catch (e) {
+        if (e instanceof FileValidationError) {
+          return reply.status(e.statusCode).send({ error: e.message })
+        }
+        throw e
+      }
+    }
+
+    /* XML: DTD reddi ve biçim doğrulaması. Ayrıntılı gerekçe
+       `documentSecurity.ts` içindeki `validateXmlFile` başlığında. */
+    if (ext === 'xml') {
+      try {
+        validateXmlFile(buffer)
       } catch (e) {
         if (e instanceof FileValidationError) {
           return reply.status(e.statusCode).send({ error: e.message })
