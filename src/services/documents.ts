@@ -14,6 +14,7 @@ import {
   questionSchema, detectFileType, validateTextFile, validateJsonFile, validateXmlFile, inspectZip,
   validatePdfFile, validateImageFile, FileValidationError
 } from './documentSecurity'
+import { ublFaturasiniAyristir, type UblFatura } from './e-fatura.js'
 
 const UPLOAD_DIR = join(process.cwd(), 'uploads')
 const MAX_OCR_PAGES = 5
@@ -295,10 +296,33 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
       return reply.status(500).send({ error: 'Dosya kaydedilemedi' })
     }
 
+    /*
+     * e-FATURA: yapılandırılmış okuma, yükleme anında.
+     *
+     * 🔴 NEDEN BURADA, SONRA DEĞİL: `extractedText`
+     * `MAX_EXTRACTED_TEXT_LENGTH` (100.000 karakter) ile KIRPILIYOR.
+     * XML sınırı ise 2 MB. Yani büyük bir fatura metin alanında yarım
+     * kalır ve sonradan ayrıştırılmak istendiğinde biçim hatası verir.
+     * Burada TAM tampon elimizde; bir kez okunup sonucu saklanıyor.
+     *
+     * Ayrıştırılamayan XML hata sayılmıyor: her XML fatura değil.
+     * O durumda `eFatura` alanı hiç yazılmıyor ve belge sıradan bir
+     * belge gibi davranıyor.
+     */
+    let eFatura: UblFatura | null = null
+    if (ext === 'xml') {
+      try {
+        eFatura = ublFaturasiniAyristir(buffer.toString('utf-8'))
+      } catch {
+        /* Fatura değil ya da okunamadı; sessizce geçiliyor. */
+      }
+    }
+
     const analysis = {
       ...analyzeText(extractedText, filename),
       extraction_method: extractionMethod,
-      ...(extractionMethod === 'ocr_tur' ? { ocr_pages_limit: MAX_OCR_PAGES } : {})
+      ...(extractionMethod === 'ocr_tur' ? { ocr_pages_limit: MAX_OCR_PAGES } : {}),
+      ...(eFatura ? { eFatura } : {})
     }
 
     let doc: { id: string; originalName: string; sizeBytes: number; status: string; analysis: string }

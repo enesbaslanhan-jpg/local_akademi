@@ -3,6 +3,7 @@ import Fastify, { FastifyInstance } from 'fastify'
 import jwt from '@fastify/jwt'
 import { PrismaClient } from '@prisma/client'
 import { writeFile, mkdir, unlink } from 'fs/promises'
+import { readFileSync } from 'fs'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { normalize, resolve } from 'path'
@@ -569,5 +570,68 @@ describe('Fiziksel silme güvenliği', () => {
       headers: { authorization: `Bearer ${userToken}` }
     })
     expect(res.statusCode).toBe(404)
+  })
+})
+
+/*
+ * e-FATURA YÜKLEME — uçtan uca.
+ *
+ * XML'in kapıdan geçtiğini ve YAPILANDIRILMIŞ olarak okunduğunu
+ * doğruluyor. Ayrıştırma yükleme anında, TAM tampondan yapılıyor;
+ * `extractedText` 100.000 karakterde kırpıldığı için sonradan
+ * okumaya kalkmak büyük faturalarda başarısız olurdu.
+ */
+describe('e-Fatura yükleme', () => {
+  const faturaOku = (ad: string) =>
+    readFileSync(join(__dirname, 'fixtures', 'ubl', ad))
+
+  it('gerçek e-Fatura yüklenir ve alanları yapılandırılmış okunur', async () => {
+    const res = await simulateUpload({
+      filename: 'fatura.xml',
+      buffer: faturaOku('TemelFaturaOrnegi.xml'),
+      mime: 'application/xml'
+    }, userToken)
+
+    expect(res.statusCode).toBe(200)
+    const govde = JSON.parse(res.body)
+    const ef = govde.analysis?.eFatura
+    expect(ef).toBeTruthy()
+    expect(ef.id).toBe('GIB20090000000001')
+    expect(ef.odenecekTutar).toBe(17.88)
+    expect(ef.paraBirimi).toBe('TRY')
+    expect(ef.satici.kimlik).toBe('1288331521')
+  })
+
+  /* `text/xml` de geçerli; muhasebe programları ikisini de gönderiyor. */
+  it('text/xml MIME türü de kabul edilir', async () => {
+    const res = await simulateUpload({
+      filename: 'fatura2.xml',
+      buffer: faturaOku('TicariFaturaOrnegi.xml'),
+      mime: 'text/xml'
+    }, userToken)
+    expect(res.statusCode).toBe(200)
+    expect(JSON.parse(res.body).analysis?.eFatura?.odenecekTutar).toBe(29755.47)
+  })
+
+  /* Fatura olmayan XML hata değil; yalnız `eFatura` alanı yazılmıyor. */
+  it('fatura olmayan XML yüklenir ama fatura sayılmaz', async () => {
+    const res = await simulateUpload({
+      filename: 'cizim.xml',
+      buffer: faturaOku('CizimFormati-FaturaDegil.xml'),
+      mime: 'application/xml'
+    }, userToken)
+    expect(res.statusCode).toBe(200)
+    expect(JSON.parse(res.body).analysis?.eFatura).toBeUndefined()
+  })
+
+  /* 🔴 DTD taşıyan XML kapıdan GEÇMEMELİ (XXE / varlık şişmesi). */
+  it('DTD içeren XML reddedilir', async () => {
+    const kotu = Buffer.from(
+      '<?xml version="1.0"?>\n<!DOCTYPE r [<!ENTITY x SYSTEM "file:///etc/passwd">]>\n<r>&x;</r>',
+      'utf-8'
+    )
+    const res = await simulateUpload({ filename: 'kotu.xml', buffer: kotu, mime: 'application/xml' }, userToken)
+    expect(res.statusCode).toBe(415)
+    expect(res.body).toContain('DTD')
   })
 })

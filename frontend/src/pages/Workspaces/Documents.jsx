@@ -190,10 +190,22 @@ export default function Documents() {
                   <div>
                     <strong>Takip kaydı önerisi · %{Math.round(suggestion.confidence * 100)} güven</strong>
                     <p>
-                      {recordTypes[suggestion.payload.type] || suggestion.payload.type}
+                      {/* 🔴 Yön belirsizse TÜR ETİKETİ GÖSTERİLMEZ.
+                          `payload.type` alanında "belirsiz" diye bir değer
+                          yok; yön belirlenemediğinde tür zorunlu olarak
+                          'payment'a düşüyor ve ekranda "Ödeme" yazıyordu.
+                          Yani kullanıcıya, aslında alacağı olabilecek bir
+                          fatura için "bu senin borcun" deniyordu.
+                          Tarayıcıda görülüp düzeltildi. */}
+                      {suggestion.payload.direction === 'neutral'
+                        ? 'Gelen mi giden mi belirlenemedi'
+                        : (recordTypes[suggestion.payload.type] || suggestion.payload.type)}
                       {suggestion.payload.amount != null ? ` · ${Number(suggestion.payload.amount).toLocaleString('tr-TR')} ${suggestion.payload.currency}` : ''}
                       {suggestion.payload.dueAt ? ` · ${new Date(suggestion.payload.dueAt).toLocaleDateString('tr-TR')}` : ''}
                     </p>
+                    {suggestion.payload.direction === 'neutral' && suggestion.payload.description && (
+                      <p className={styles.suggestionHint}>{suggestion.payload.description}</p>
+                    )}
                     <small>Bu öneri siz onaylamadan işletme kaydına dönüşmez.</small>
                   </div>
                   <div className={styles.suggestionActions}>

@@ -625,7 +625,23 @@ export async function businessTrackerRoutes(
       const existing = await tx.documentSuggestion.findFirst({
         where: { workspaceId, documentId, suggestionType: 'business_record', status: 'proposed' }
       })
-      const generated = buildDocumentSuggestion(result)
+      /*
+       * e-Fatura yükleme anında ayrıştırılıp `analysis.eFatura` içine
+       * yazılıyor (bkz. `documents.ts`). Buradan yeniden ayrıştırma
+       * YAPILMIYOR: `extractedText` 100.000 karakterde kırpıldığı için
+       * büyük bir fatura burada zaten yarım okunurdu.
+       */
+      const cozumlenmis = ((): any => {
+        try { return JSON.parse(result.analysis || '{}') } catch { return {} }
+      })()
+      const isletme = await tx.businessWorkspace.findUnique({
+        where: { id: workspaceId },
+        select: { taxNumber: true }
+      })
+      const generated = buildDocumentSuggestion(
+        { ...result, eFatura: cozumlenmis?.eFatura ?? null },
+        isletme?.taxNumber ?? null
+      )
       if (!existing && generated) {
         await tx.documentSuggestion.create({
           data: {

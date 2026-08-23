@@ -121,3 +121,16 @@
 :global(.dark) .uploadIcon { color: var(--theme-on-primary); background: var(--primary); }
 :global(.dark) .note { background: color-mix(in srgb, var(--warning) 8%, var(--surface-panel)); }
 :global(.dark) .empty { background: var(--surface-panel); border-color: var(--border-strong); }
+
+/* Yön belirlenemediğinde kullanıcıya ne yapması gerektiğini söyleyen
+   satır. Uyarı rengiyle ayrılıyor: "eksik bir şey var" bilgisi tür
+   etiketiyle aynı tonda kalırsa gözden kaçar. */
+.suggestionHint {
+  margin: 0;
+  padding: 8px 10px;
+  border-left: 3px solid var(--warning, #d98324);
+  background: color-mix(in srgb, var(--warning, #d98324) 8%, transparent);
+  border-radius: 4px;
+  font-size: .8rem;
+  line-height: 1.45;
+}

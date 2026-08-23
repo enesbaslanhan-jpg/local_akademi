@@ -69,3 +69,66 @@ describe('Workspace documents', () => {
     await waitFor(() => expect(mocks.toast.success).toHaveBeenCalledWith(expect.stringMatching(/algılanan takip bilgilerini/i)))
   })
 })
+
+/*
+ * e-FATURA ÖNERİSİNİN GÖSTERİMİ.
+ *
+ * 🔴 BU BLOK GERÇEK BİR KUSURU KAPATIYOR (23.08.2026).
+ *
+ * Sunucu, yönü belirlenemeyen faturada `direction: 'neutral'`
+ * döndürüyor. Ama `payload.type` alanında "belirsiz" diye bir değer
+ * YOK; tür zorunlu olarak 'payment'a düşüyor. Arayüz de yalnız türe
+ * baktığı için ekranda **"Ödeme"** yazıyordu.
+ *
+ * Yani kullanıcıya, aslında ALACAĞI olabilecek bir fatura için "bu
+ * senin borcun" deniyordu. Sunucu tarafı dürüsttü, görünen etiket
+ * yalan söylüyordu -- ve bu yalnız tarayıcıda bakınca göründü.
+ */
+describe('e-Fatura önerisi gösterimi', () => {
+  const belge = (payload) => ({
+    id: 'doc-1',
+    originalName: 'fatura.xml',
+    sizeBytes: 6556,
+    category: 'other',
+    analysisStatus: 'review_required',
+    recordCount: 0,
+    suggestions: [{ id: 's1', status: 'proposed', confidence: 1, payload }]
+  })
+
+  it('yön belirsizken tür etiketi GÖSTERİLMEZ', async () => {
+    mocks.list.mockResolvedValue({ documents: [belge({
+      type: 'payment',
+      direction: 'neutral',
+      amount: 17.88,
+      currency: 'TRY',
+      dueAt: null,
+      description: 'e-Fatura okundu. Bu faturanın gelen mi giden mi olduğu belirlenemedi — işletme ayarlarında vergi numaranızı girerseniz otomatik ayrılır.'
+    })] })
+    renderPage()
+
+    expect(await screen.findByText(/Gelen mi giden mi belirlenemedi/)).toBeInTheDocument()
+    /* Asıl iddia: yanıltıcı etiket ekranda OLMAMALI. */
+    expect(screen.queryByText(/^Ödeme/)).not.toBeInTheDocument()
+  })
+
+  it('yön belirsizken kullanıcıya ne yapması gerektiği yazılır', async () => {
+    mocks.list.mockResolvedValue({ documents: [belge({
+      type: 'payment', direction: 'neutral', amount: 17.88, currency: 'TRY', dueAt: null,
+      description: 'e-Fatura okundu. Bu faturanın gelen mi giden mi olduğu belirlenemedi — işletme ayarlarında vergi numaranızı girerseniz otomatik ayrılır.'
+    })] })
+    renderPage()
+
+    expect(await screen.findByText(/vergi numaranızı girerseniz/)).toBeInTheDocument()
+  })
+
+  it('yön belliyken doğru tür etiketi gösterilir', async () => {
+    mocks.list.mockResolvedValue({ documents: [belge({
+      type: 'receivable', direction: 'receivable', amount: 17.88, currency: 'TRY',
+      dueAt: '2009-01-20T00:00:00.000Z', description: 'e-Fatura okundu.'
+    })] })
+    renderPage()
+
+    expect(await screen.findByText(/Tahsilat/)).toBeInTheDocument()
+    expect(screen.queryByText(/belirlenemedi/)).not.toBeInTheDocument()
+  })
+})

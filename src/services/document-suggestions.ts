@@ -1,8 +1,67 @@
+import { faturaYonu, type UblFatura } from './e-fatura.js'
+
 type SuggestionDocument = {
   originalName: string
   extractedText: string
   category: string | null
   dueDate: Date | null
+  /** Yükleme anında ayrıştırılmış e-Fatura; `analysis.eFatura` içinden. */
+  eFatura?: UblFatura | null
+}
+
+/*
+ * e-FATURADAN ÖNERİ — tahmin değil, okuma.
+ *
+ * Aşağıdaki sezgisel üretici metinden TAHMİN ediyor: tutarı `₺|TL`
+ * arayarak, türü kelime eşleştirmesiyle buluyor. Kaçınılmaz olarak
+ * kayıplı ve bu yüzden güveni 0.95'i geçmiyor.
+ *
+ * UBL-TR faturasında ise tutar, tarih, para birimi ve taraflar
+ * YAPILANDIRILMIŞ alanlar. Okunuyor, tahmin edilmiyor -- güven 1.
+ *
+ * 🔴 YÖN AYRI BİR MESELE. Tutarı bilmek yönü bilmek değildir: aynı
+ * fatura hem borç hem alacak olabilir. `faturaYonu` işletmenin vergi
+ * numarasıyla karşılaştırıyor; eşleşme yoksa `neutral` dönüyor ve
+ * kullanıcıya soruluyor. Yanlış yön, kullanıcının alacağını borç
+ * olarak yazmak demektir.
+ */
+function faturadanOneri(fatura: UblFatura, isletmeVergiNo: string | null | undefined) {
+  const yon = faturaYonu(fatura, isletmeVergiNo)
+
+  /* Karşı taraf: yön belliyse öteki taraf, değilse satıcı (faturayı
+     kesen taraf, kullanıcının en çok tanıdığı isim). */
+  const karsiTaraf = yon === 'receivable' ? fatura.alici : fatura.satici
+  const ad = karsiTaraf.unvan || 'Bilinmeyen taraf'
+
+  const payload: RecordSuggestionPayload = {
+    type: yon === 'receivable' ? 'receivable' : 'payment',
+    title: `${ad} — Fatura ${fatura.id}`,
+    description: yon === 'neutral'
+      ? 'e-Fatura okundu. Bu faturanın gelen mi giden mi olduğu belirlenemedi — işletme ayarlarında vergi numaranızı girerseniz otomatik ayrılır.'
+      : `e-Fatura okundu. Tutar ve tarih faturadan alındı, tahmin edilmedi.`,
+    direction: yon,
+    amount: fatura.odenecekTutar,
+    currency: fatura.paraBirimi,
+    /* Vade örneklerin %86'sında yok; yoksa düzenleme tarihi de
+       yazılmıyor -- olmayan bir vade uydurmak yanlış hatırlatma
+       kurardı. */
+    dueAt: fatura.vadeTarihi ? new Date(`${fatura.vadeTarihi}T00:00:00.000Z`).toISOString() : null,
+    priority: 'normal'
+  }
+
+  const evidence = [
+    `Fatura no: ${fatura.id}`,
+    `Düzenleme: ${fatura.duzenlemeTarihi}`,
+    fatura.vadeTarihi ? `Vade: ${fatura.vadeTarihi}` : null,
+    `Tutar: ${fatura.odenecekTutar} ${fatura.paraBirimi}`,
+    fatura.satici.unvan ? `Satıcı: ${fatura.satici.unvan}${fatura.satici.kimlik ? ` (${fatura.satici.kimlikTuru} ${fatura.satici.kimlik})` : ''}` : null,
+    fatura.alici.unvan ? `Alıcı: ${fatura.alici.unvan}${fatura.alici.kimlik ? ` (${fatura.alici.kimlikTuru} ${fatura.alici.kimlik})` : ''}` : null,
+    yon === 'neutral' ? 'Yön belirlenemedi: işletme vergi numarası taraflarla eşleşmiyor' : null
+  ].filter(Boolean)
+
+  /* Yapılandırılmış alandan geldiği için tam güven. Sezgisel yol
+     0.95'i geçemiyor; aradaki fark bilinçli. */
+  return { suggestionType: 'business_record' as const, payload, confidence: 1, evidence }
 }
 
 export type RecordSuggestionPayload = {
@@ -70,7 +129,19 @@ function findDueDate(text: string) {
   return date ? { date, evidence: match[0].trim() } : null
 }
 
-export function buildDocumentSuggestion(document: SuggestionDocument) {
+export function buildDocumentSuggestion(
+  document: SuggestionDocument,
+  isletmeVergiNo?: string | null
+) {
+  /*
+   * Yapılandırılmış fatura varsa sezgisel yola HİÇ girilmiyor.
+   *
+   * Girilseydi, XML etiketlerinin arasından `₺` arayan bir tarama
+   * yapılırdı; okunmuş bir tutarın üstüne tahmin edilmiş bir tutar
+   * koymak açık bir gerileme olurdu.
+   */
+  if (document.eFatura) return faturadanOneri(document.eFatura, isletmeVergiNo)
+
   const searchable = `${document.originalName}\n${document.extractedText}`.toLocaleLowerCase('tr-TR')
   const matchedRule = TYPE_RULES.find(rule => rule.terms.some(term => searchable.includes(term)))
   const categoryRule = document.category ? CATEGORY_TYPE[document.category] : undefined
