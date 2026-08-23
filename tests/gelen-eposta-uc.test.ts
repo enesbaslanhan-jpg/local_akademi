@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import Fastify, { type FastifyInstance } from 'fastify'
 import { gelenEpostaRotalari } from '../src/services/gelen-eposta.js'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 
 /*
  * UCUN KENDİSİ — kayıt koşulu ve anahtar kontrolü.
@@ -98,5 +100,119 @@ describe('anahtar varken', () => {
     })
     expect(res.statusCode).toBe(202)
     expect(JSON.parse(res.body).durum).toBe('atildi')
+  })
+})
+
+/*
+ * UÇTAN UCA: e-postayla gelen e-Fatura belgeye dönüşüyor mu.
+ *
+ * Bu blok kanalın ASIL VAADİNİ test ediyor: kullanıcı muhasebe
+ * programından faturayı gönderiyor, uygulamada onay bekleyen bir belge
+ * oluyor. Güvenlik testleri "kimin gönderebileceğini", bu blok
+ * "gönderilince ne olduğunu" koruyor.
+ */
+describe('uçtan uca: ek işleme', () => {
+  let app: FastifyInstance
+  let prisma: any
+  let workspaceId: string
+  let inboxKey: string
+  let uyeEposta: string
+  let userId: number
+
+  const fatura = () => readFileSync(join(__dirname, 'fixtures', 'ubl', 'TemelFaturaOrnegi.xml'))
+
+  beforeAll(async () => {
+    const { PrismaClient } = await import('@prisma/client')
+    prisma = new PrismaClient()
+    const { gelenKutusuAnahtariUret } = await import('../src/services/gelen-eposta.js')
+
+    uyeEposta = `uctan-${Date.now()}@ornek.test`
+    const u = await prisma.user.create({
+      data: { email: uyeEposta, password: 'x', name: 'Uçtan Uca', role: 'learner', emailVerifiedAt: new Date() }
+    })
+    userId = u.id
+    inboxKey = gelenKutusuAnahtariUret()
+    const ws = await prisma.businessWorkspace.create({
+      data: { name: 'Uçtan Uca Alan', createdById: u.id, status: 'active', inboxKey }
+    })
+    workspaceId = ws.id
+    await prisma.businessMember.create({
+      data: { workspaceId, userId: u.id, role: 'owner', status: 'active' }
+    })
+
+    app = await sunucuKur(ANAHTAR)
+  })
+
+  afterAll(async () => {
+    await app.close()
+    await prisma.uploadedDocument.deleteMany({ where: { userId } })
+    await prisma.businessWorkspace.delete({ where: { id: workspaceId } }).catch(() => {})
+    await prisma.user.delete({ where: { id: userId } }).catch(() => {})
+    await prisma.$disconnect()
+  })
+
+  const gonder = (ekler: any[]) => app.inject({
+    method: 'POST', url: '/inbound/email',
+    headers: { 'x-inbound-secret': ANAHTAR },
+    payload: { inboxKey, from: uyeEposta, dkim: 'pass', spf: 'pass', ekler }
+  })
+
+  it('e-Fatura eki belge olarak kaydedilir ve yapılandırılmış okunur', async () => {
+    const res = await gonder([{
+      filename: 'fatura.xml',
+      mimeType: 'application/xml',
+      content: fatura().toString('base64')
+    }])
+
+    expect(res.statusCode).toBe(202)
+    expect(JSON.parse(res.body).belgeSayisi).toBe(1)
+
+    const belge = await prisma.uploadedDocument.findFirst({
+      where: { userId, originalName: 'fatura.xml' },
+      orderBy: { createdAt: 'desc' }
+    })
+    expect(belge).not.toBeNull()
+    /* Belge doğrudan çalışma alanına bağlanmalı -- e-posta yolunda
+       kullanıcının ayrıca eşleştirme yapması beklenmiyor. */
+    expect(belge.workspaceId).toBe(workspaceId)
+
+    const analiz = JSON.parse(belge.analysis)
+    expect(analiz.eFatura?.id).toBe('GIB20090000000001')
+    expect(analiz.eFatura?.odenecekTutar).toBe(17.88)
+  })
+
+  /*
+   * 🔴 EKLER MEVCUT KAPIDAN GEÇİYOR. DTD taşıyan XML (XXE / varlık
+   * şişmesi) e-postayla da giremiyor -- tarayıcıdan geçemeyeceği bir
+   * dosya buradan da geçmemeli.
+   */
+  it('DTD içeren XML eki reddedilir', async () => {
+    const kotu = Buffer.from(
+      '<?xml version="1.0"?>\n<!DOCTYPE r [<!ENTITY x SYSTEM "file:///etc/passwd">]>\n<r>&x;</r>',
+      'utf-8'
+    )
+    const res = await gonder([{ filename: 'kotu.xml', mimeType: 'application/xml', content: kotu.toString('base64') }])
+    expect(res.statusCode).toBe(202)
+    expect(JSON.parse(res.body).belgeSayisi).toBe(0)
+  })
+
+  it('desteklenmeyen tür reddedilir', async () => {
+    const res = await gonder([{
+      filename: 'betik.exe', mimeType: 'application/octet-stream',
+      content: Buffer.from('MZ').toString('base64')
+    }])
+    expect(JSON.parse(res.body).belgeSayisi).toBe(0)
+  })
+
+  /*
+   * Bir ek bozuksa diğerleri KAYBOLMAMALI. Tek postada üç fatura
+   * varsa, birinin bozuk olması diğer ikisini düşürmemeli.
+   */
+  it('bozuk ek diğerlerini düşürmez', async () => {
+    const res = await gonder([
+      { filename: 'kotu.xml', mimeType: 'application/xml', content: Buffer.from('<a><b></a>').toString('base64') },
+      { filename: 'iyi.xml', mimeType: 'application/xml', content: fatura().toString('base64') }
+    ])
+    expect(JSON.parse(res.body).belgeSayisi).toBe(1)
   })
 })

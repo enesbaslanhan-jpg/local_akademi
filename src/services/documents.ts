@@ -49,6 +49,161 @@ function getUserQuotaBytes(): number {
   return 100 * 1024 * 1024
 }
 
+/*
+ * BELGEYİ İŞLE VE KAYDET — tek kaynak.
+ *
+ * 🔴 NEDEN ORTAK: Faz E ile belgenin uygulamaya girdiği İKİNCİ bir
+ * yol açıldı (e-posta eki). Kota kontrolü, disk yazımı, metin
+ * çıkarımı, e-Fatura ayrıştırması ve veritabanı kaydı orada yeniden
+ * yazılsaydı iki yol kaçınılmaz olarak ayrışırdı -- örneğin biri
+ * e-Faturayı yapılandırılmış okurken diğeri okumaz, ve kullanıcı
+ * dosyayı NASIL gönderdiğine göre farklı sonuç alırdı.
+ *
+ * Doğrulama ayrı bir ortak işlevde (`dosyayiDogrula`); bu işlev
+ * dosyanın ZATEN geçtiğini varsayıyor.
+ *
+ * Hata durumunda `FileValidationError` FIRLATIR; çağıran taraf
+ * `statusCode` alanını kendi bağlamına göre kullanır.
+ */
+export async function belgeyiKaydet(opts: {
+  prisma: PrismaClient
+  buffer: Buffer
+  filename: string
+  mimeType: string
+  ext: string
+  userId: number
+  /** Verilirse belge doğrudan çalışma alanına bağlanır (e-posta yolu). */
+  workspaceId?: string | null
+}) {
+  const { prisma, buffer, filename, mimeType, ext, userId, workspaceId } = opts
+
+  const kullanim = await prisma.uploadedDocument.aggregate({
+    where: { userId },
+    _sum: { sizeBytes: true }
+  })
+  const mevcut = kullanim._sum.sizeBytes || 0
+  const kota = getUserQuotaBytes()
+  if (mevcut + buffer.length > kota) {
+    throw new FileValidationError('Depolama kotanız doldu', 413)
+  }
+
+  const docId = randomUUID()
+  const storedFilename = `${docId}.${ext}`
+  const tempPath = join(UPLOAD_DIR, `.tmp.${storedFilename}`)
+
+  try {
+    await writeFile(tempPath, buffer)
+  } catch {
+    await unlink(tempPath).catch(() => {})
+    throw new FileValidationError('Dosya kaydedilemedi', 500)
+  }
+
+  let extractedText = ''
+  let extractionMethod = 'native_text'
+  try {
+    if (ext === 'docx') {
+      extractedText = (await mammoth.extractRawText({ buffer })).value
+    } else if (ext === 'pdf') {
+      const parser = new PDFParse({ data: buffer })
+      try {
+        const result = await parser.getText()
+        if (result.total > MAX_PDF_PAGES) {
+          throw new FileValidationError(`PDF en fazla ${MAX_PDF_PAGES} sayfa olabilir`, 422)
+        }
+        extractedText = result.text
+        if (!extractedText.trim()) {
+          const screenshots = await parser.getScreenshot({
+            first: Math.min(result.total, MAX_OCR_PAGES),
+            desiredWidth: 1800,
+            imageBuffer: true,
+            imageDataUrl: false
+          })
+          extractedText = await recognizeTurkishPages(screenshots.pages)
+          extractionMethod = 'ocr_tur'
+        }
+      } finally {
+        await parser.destroy()
+      }
+    } else if (['png', 'jpg', 'jpeg'].includes(ext)) {
+      extractedText = await recognizeTurkishPages([{ data: buffer }])
+      extractionMethod = 'ocr_tur'
+    } else {
+      extractedText = buffer.toString('utf-8')
+    }
+    extractedText = extractedText.substring(0, MAX_EXTRACTED_TEXT_LENGTH)
+    if (['pdf', 'png', 'jpg', 'jpeg'].includes(ext) && !extractedText.trim()) {
+      throw new FileValidationError('Belge üzerinde OCR tamamlandı ancak okunabilir metin bulunamadı', 422)
+    }
+  } catch (error) {
+    await unlink(tempPath).catch(() => {})
+    if (error instanceof FileValidationError) throw error
+    throw new FileValidationError(
+      'Dosyadan metin çıkarılamadı. Bozuk, şifreli veya yalnızca görüntü içeren bir dosya olabilir.',
+      422
+    )
+  }
+
+  const finalPath = join(UPLOAD_DIR, storedFilename)
+  try {
+    await writeFile(finalPath, buffer)
+    await unlink(tempPath).catch(() => {})
+  } catch {
+    await unlink(tempPath).catch(() => {})
+    throw new FileValidationError('Dosya kaydedilemedi', 500)
+  }
+
+  /*
+   * e-Fatura: yapılandırılmış okuma, TAM tampondan.
+   *
+   * `extractedText` kırpılıyor; büyük bir fatura orada yarım kalır ve
+   * sonradan ayrıştırılamaz. Burada tampon elimizde.
+   */
+  let eFatura: UblFatura | null = null
+  if (ext === 'xml') {
+    try {
+      eFatura = ublFaturasiniAyristir(buffer.toString('utf-8'))
+    } catch {
+      /* Her XML fatura değil; sessizce geçiliyor. */
+    }
+  }
+
+  const analysis = {
+    ...analyzeText(extractedText, filename),
+    extraction_method: extractionMethod,
+    ...(extractionMethod === 'ocr_tur' ? { ocr_pages_limit: MAX_OCR_PAGES } : {}),
+    ...(eFatura ? { eFatura } : {})
+  }
+
+  let doc
+  try {
+    doc = await prisma.uploadedDocument.create({
+      data: {
+        id: docId,
+        userId,
+        originalName: filename,
+        storedName: storedFilename,
+        mimeType,
+        sizeBytes: buffer.length,
+        extractedText,
+        analysis: JSON.stringify(analysis),
+        status: 'analyzed',
+        ...(workspaceId ? { workspaceId } : {})
+      }
+    })
+  } catch {
+    await unlink(finalPath).catch(() => {})
+    throw new FileValidationError('Belge kaydedilemedi', 500)
+  }
+
+  return {
+    id: doc.id,
+    original_name: doc.originalName,
+    size_bytes: doc.sizeBytes,
+    status: doc.status,
+    analysis
+  }
+}
+
 export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?: PrismaClient }) {
   const prisma = opts?.prisma ?? sharedPrisma
 
@@ -125,144 +280,24 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
       throw e
     }
 
-    const userQuotaUsage = await prisma.uploadedDocument.aggregate({
-      where: { userId: user.id },
-      _sum: { sizeBytes: true }
-    })
-    const currentUsage = userQuotaUsage._sum.sizeBytes || 0
-    const quotaBytes = getUserQuotaBytes()
-    if (currentUsage + buffer.length > quotaBytes) {
-      return reply.status(413).send({
-        error: 'Depolama kotanız doldu',
-        quota_bytes: quotaBytes,
-        usage_bytes: currentUsage
-      })
-    }
-
-    const docId = randomUUID()
-    const storedFilename = `${docId}.${ext}`
-    const tempPath = join(UPLOAD_DIR, `.tmp.${storedFilename}`)
-
-    try {
-      await writeFile(tempPath, buffer)
-    } catch (error) {
-      request.log.error({ userId: user.id }, 'Disk yazma hatası')
-      await unlink(tempPath).catch(() => {})
-      return reply.status(500).send({ error: 'Dosya kaydedilemedi' })
-    }
-
-    let extractedText = ''
-    let extractionMethod = 'native_text'
-    try {
-      if (ext === 'docx') {
-        const result = await mammoth.extractRawText({ buffer })
-        extractedText = result.value
-      } else if (ext === 'pdf') {
-        const parser = new PDFParse({ data: buffer })
-        try {
-          const result = await parser.getText()
-          if (result.total > MAX_PDF_PAGES) {
-            throw new FileValidationError(`PDF en fazla ${MAX_PDF_PAGES} sayfa olabilir`, 422)
-          }
-          extractedText = result.text
-          if (!extractedText.trim()) {
-            const screenshots = await parser.getScreenshot({
-              first: Math.min(result.total, MAX_OCR_PAGES),
-              desiredWidth: 1800,
-              imageBuffer: true,
-              imageDataUrl: false
-            })
-            extractedText = await recognizeTurkishPages(screenshots.pages)
-            extractionMethod = 'ocr_tur'
-          }
-        } finally {
-          await parser.destroy()
-        }
-      } else if (['png', 'jpg', 'jpeg'].includes(ext)) {
-        extractedText = await recognizeTurkishPages([{ data: buffer }])
-        extractionMethod = 'ocr_tur'
-      } else {
-        extractedText = buffer.toString('utf-8')
-      }
-      extractedText = extractedText.substring(0, MAX_EXTRACTED_TEXT_LENGTH)
-      if (['pdf', 'png', 'jpg', 'jpeg'].includes(ext) && !extractedText.trim()) {
-        throw new FileValidationError('Belge üzerinde OCR tamamlandı ancak okunabilir metin bulunamadı', 422)
-      }
-    } catch (error) {
-      request.log.error({ userId: user.id }, 'Metin çıkarımı başarısız')
-      await unlink(tempPath).catch(() => {})
-      const message = error instanceof FileValidationError
-        ? error.message
-        : 'Dosyadan metin çıkarılamadı. Bozuk, şifreli veya yalnızca görüntü içeren bir dosya olabilir.'
-      return reply.status(422).send({ error: message })
-    }
-
-    const finalPath = join(UPLOAD_DIR, storedFilename)
-    try {
-      await writeFile(finalPath, buffer)
-      await unlink(tempPath).catch(() => {})
-    } catch (error) {
-      request.log.error({ userId: user.id }, 'Final dosya yazma hatası')
-      await unlink(tempPath).catch(() => {})
-      return reply.status(500).send({ error: 'Dosya kaydedilemedi' })
-    }
-
     /*
-     * e-FATURA: yapılandırılmış okuma, yükleme anında.
+     * Kaydetme ve metin çıkarımı ORTAK işlevde.
      *
-     * 🔴 NEDEN BURADA, SONRA DEĞİL: `extractedText`
-     * `MAX_EXTRACTED_TEXT_LENGTH` (100.000 karakter) ile KIRPILIYOR.
-     * XML sınırı ise 2 MB. Yani büyük bir fatura metin alanında yarım
-     * kalır ve sonradan ayrıştırılmak istendiğinde biçim hatası verir.
-     * Burada TAM tampon elimizde; bir kez okunup sonucu saklanıyor.
-     *
-     * Ayrıştırılamayan XML hata sayılmıyor: her XML fatura değil.
-     * O durumda `eFatura` alanı hiç yazılmıyor ve belge sıradan bir
-     * belge gibi davranıyor.
+     * Faz E ile ikinci bir taşıma yolu açıldı (e-posta eki). Kota,
+     * disk yazımı, metin çıkarımı ve e-Fatura ayrıştırması orada
+     * tekrar yazılsaydı iki yol ayrışırdı -- örneğin biri e-Faturayı
+     * okurken diğeri okumazdı.
      */
-    let eFatura: UblFatura | null = null
-    if (ext === 'xml') {
-      try {
-        eFatura = ublFaturasiniAyristir(buffer.toString('utf-8'))
-      } catch {
-        /* Fatura değil ya da okunamadı; sessizce geçiliyor. */
-      }
-    }
-
-    const analysis = {
-      ...analyzeText(extractedText, filename),
-      extraction_method: extractionMethod,
-      ...(extractionMethod === 'ocr_tur' ? { ocr_pages_limit: MAX_OCR_PAGES } : {}),
-      ...(eFatura ? { eFatura } : {})
-    }
-
-    let doc: { id: string; originalName: string; sizeBytes: number; status: string; analysis: string }
     try {
-      doc = await prisma.uploadedDocument.create({
-        data: {
-          id: docId,
-          userId: user.id,
-          originalName: filename,
-          storedName: storedFilename,
-          mimeType,
-          sizeBytes: buffer.length,
-          extractedText,
-          analysis: JSON.stringify(analysis),
-          status: 'analyzed'
-        }
+      return await belgeyiKaydet({
+        prisma, buffer, filename, mimeType, ext, userId: user.id
       })
-    } catch (error) {
-      request.log.error({ userId: user.id }, 'DB kayıt hatası, dosya temizleniyor')
-      await unlink(finalPath).catch(() => {})
+    } catch (e) {
+      if (e instanceof FileValidationError) {
+        return reply.status(e.statusCode).send({ error: e.message })
+      }
+      request.log.error({ userId: user.id }, 'belge kaydedilemedi')
       return reply.status(500).send({ error: 'Belge kaydedilemedi' })
-    }
-
-    return {
-      id: doc.id,
-      original_name: doc.originalName,
-      size_bytes: doc.sizeBytes,
-      status: doc.status,
-      analysis: analysis
     }
   })
 

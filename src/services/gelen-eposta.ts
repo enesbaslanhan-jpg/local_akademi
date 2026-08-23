@@ -3,6 +3,8 @@ import type { PrismaClient } from '@prisma/client'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { timingSafeEqual, randomBytes } from 'crypto'
 import { z } from 'zod'
+import { dosyayiDogrula, FileValidationError } from './documentSecurity.js'
+import { belgeyiKaydet } from './documents.js'
 
 /*
  * GELEN E-POSTA KANALI.
@@ -195,10 +197,51 @@ export async function gelenEpostaRotalari(
       return reply.status(202).send({ durum: 'atildi' })
     }
 
+    /*
+     * EKLER TEK TEK, BAĞIMSIZ.
+     *
+     * Bir ek reddedilirse (sahte uzantı, DTD taşıyan XML) diğerleri
+     * yine işleniyor. Tek postada üç fatura varsa, birinin bozuk olması
+     * diğer ikisini kaybettirmemeli.
+     *
+     * Ekler mevcut kapıdan geçiyor: `dosyayiDogrula` HTTP yüklemesiyle
+     * AYNI işlev. E-postayla gelen dosya, tarayıcıdan geçemeyeceği bir
+     * kapıdan giremiyor.
+     */
+    let kabulEdilen = 0
+    const reddedilen: string[] = []
+
+    for (const ek of posta.ekler) {
+      try {
+        const buffer = Buffer.from(ek.content, 'base64')
+        const { ext } = dosyayiDogrula(buffer, ek.filename, ek.mimeType)
+        await belgeyiKaydet({
+          prisma,
+          buffer,
+          filename: ek.filename,
+          mimeType: ek.mimeType,
+          ext,
+          userId: karar.userId,
+          workspaceId: karar.workspaceId
+        })
+        kabulEdilen++
+      } catch (hata) {
+        /* Reddedilen ek GÖNDERENE bildirilmiyor -- bilgi sızdırmamak
+           için tüm yanıtlar aynı. Günlüğe yazılıyor. */
+        reddedilen.push(
+          hata instanceof FileValidationError ? `${ek.filename}: ${hata.message}` : ek.filename
+        )
+      }
+    }
+
+    if (reddedilen.length > 0) {
+      request.log.info({ workspaceId: karar.workspaceId, reddedilen }, 'gelen posta ekleri reddedildi')
+    }
+
     return reply.status(202).send({
       durum: 'kabul',
       workspaceId: karar.workspaceId,
-      ekSayisi: posta.ekler.length
+      belgeSayisi: kabulEdilen
     })
   })
 }
