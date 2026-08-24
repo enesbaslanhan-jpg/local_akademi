@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, FileText, HelpCircle, History, Bell, X } from 'lucide-react'
+import { AlertTriangle, FileText, HelpCircle, History, Bell, X, Edit, Trash2, Loader2, Check, X as XIcon } from 'lucide-react'
 import { api } from '@/services/api'
+import { useToast } from '@/context/ToastContext'
 import styles from './KayitDetay.module.css'
 
 /*
@@ -55,10 +56,168 @@ function analiziCoz(ham) {
   try { return JSON.parse(ham) } catch { return {} }
 }
 
+function KayitForm({ kayit, onClose, onSave }) {
+  const [form, setForm] = useState({
+    type: kayit.type,
+    title: kayit.title,
+    description: kayit.description || '',
+    direction: kayit.direction,
+    amount: kayit.amount === null ? '' : String(kayit.amount),
+    currency: kayit.currency,
+    priority: 'normal',
+    dueAt: kayit.dueAt ? new Date(kayit.dueAt).toISOString().slice(0, 16) : '',
+    recurrenceRule: kayit.recurrenceRule || '',
+    status: kayit.status
+  })
+  const [kaydediyor, setKaydediyor] = useState(false)
+  const toast = useToast()
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setKaydediyor(true)
+    try {
+      const payload = {
+        type: form.type,
+        title: form.title,
+        description: form.description || null,
+        direction: form.direction,
+        amount: form.amount === '' ? null : Number(form.amount),
+        currency: form.currency,
+        priority: form.priority,
+        dueAt: form.dueAt ? new Date(form.dueAt).toISOString() : null,
+        recurrenceRule: form.recurrenceRule || null,
+        status: form.status
+      }
+      await onSave(payload)
+      toast.success('Kayıt güncellendi.')
+    } catch (error) {
+      toast.error(error.message || 'Kayıt güncellenemedi.')
+    } finally {
+      setKaydediyor(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className={styles.form}>
+      <div className={styles.grid}>
+        <label>Tür
+          <select
+            value={form.type}
+            onChange={e => setForm(current => ({ ...current, type: e.target.value }))}
+            aria-label="Kayıt türü"
+          >
+            {Object.entries(turEtiketleri).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+        </label>
+        <label>Yön
+          <select
+            value={form.direction}
+            onChange={e => setForm(current => ({ ...current, direction: e.target.value }))}
+            aria-label="Yön"
+          >
+            <option value="payable">Ödenecek</option>
+            <option value="receivable">Tahsil edilecek</option>
+            <option value="neutral">Finansal değil</option>
+          </select>
+        </label>
+      </div>
+      <label>Başlık
+        <input
+          required
+          maxLength={240}
+          value={form.title}
+          onChange={e => setForm(current => ({ ...current, title: e.target.value }))}
+          placeholder="Örn. Tedarikçi senedi"
+        />
+      </label>
+      <label>Açıklama
+        <textarea
+          rows={3}
+          value={form.description}
+          onChange={e => setForm(current => ({ ...current, description: e.target.value }))}
+        />
+      </label>
+      <div className={styles.grid}>
+        <label>Tutar
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={form.amount}
+            onChange={e => setForm(current => ({ ...current, amount: e.target.value }))}
+          />
+        </label>
+        <label>Son tarih
+          <input
+            type="datetime-local"
+            value={form.dueAt}
+            onChange={e => setForm(current => ({ ...current, dueAt: e.target.value }))}
+          />
+        </label>
+      </div>
+      <div className={styles.grid}>
+        <label>Tekrarlama
+          <select
+            value={form.recurrenceRule}
+            onChange={e => setForm(current => ({ ...current, recurrenceRule: e.target.value }))}
+            aria-label="Tekrarlama"
+          >
+            <option value="">Tekrarlanmaz</option>
+            <option value="weekly">Her hafta</option>
+            <option value="monthly">Her ay</option>
+            <option value="quarterly">Her 3 ayda</option>
+            <option value="yearly">Her yıl</option>
+          </select>
+        </label>
+        <label>Durum
+          <select
+            value={form.status}
+            onChange={e => setForm(current => ({ ...current, status: e.target.value }))}
+            aria-label="Durum"
+          >
+            {Object.entries(durumEtiketleri).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className={styles.actions}>
+        <button type="button" className={styles.secondary} onClick={onClose}>Vazgeç</button>
+        <button type="submit" className={styles.primary} disabled={kaydediyor}>
+          {kaydediyor ? <Loader2 size={16} className={styles.spin} /> : 'Kaydet'}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+function SilmeOnay({ onConfirm, onCancel }) {
+  return (
+    <div className={styles.onayKutusu} role="alertdialog" aria-modal="true" aria-labelledby="silmeBaslik">
+      <h3 id="silmeBaslik" className={styles.onayBaslik}>Kaydı sil</h3>
+      <p className={styles.onayMetin}>
+        Bu işlem geri alınamaz. Kayıt ve geçmişi kalıcı olarak silinir.
+      </p>
+      <div className={styles.onayButonlar}>
+        <button type="button" className={styles.secondary} onClick={onCancel}>Vazgeç</button>
+        <button type="button" className={`${styles.primary} ${styles.danger}`} onClick={onConfirm}>
+          <Trash2 size={16} /> Evet, sil
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function KayitDetay({ workspaceId, recordId, onClose }) {
   const [kayit, setKayit] = useState(null)
   const [hata, setHata] = useState('')
   const [yukleniyor, setYukleniyor] = useState(true)
+  const [duzenlemeModu, setDuzenlemeModu] = useState(false)
+  const [silmeOnay, setSilmeOnay] = useState(false)
+  const [siliniyor, setSiliniyor] = useState(false)
+  const toast = useToast()
 
   useEffect(() => {
     let iptal = false
@@ -71,30 +230,89 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
     return () => { iptal = true }
   }, [workspaceId, recordId])
 
+  /* Düzenleme kaydedildikten sonra panelin taze veriye geçmesi için:
+     kaydı yeniden GET'ler, yükleme iskeletini tekrar göstermez. */
+  const kayitYenile = async () => {
+    try {
+      setKayit(await api.workspace.tracker.get(workspaceId, recordId))
+    } catch (e) {
+      setHata(e.message || 'Kayıt yüklenemedi')
+    }
+  }
+
   useEffect(() => {
-    const tus = e => { if (e.key === 'Escape') onClose?.() }
+    const tus = e => { if (e.key === 'Escape') { if (duzenlemeModu) setDuzenlemeModu(false); else if (silmeOnay) setSilmeOnay(false); else onClose?.() } }
     document.addEventListener('keydown', tus)
     return () => document.removeEventListener('keydown', tus)
-  }, [onClose])
+  }, [onClose, duzenlemeModu, silmeOnay])
+
+  const handleGuncelle = async (payload) => {
+    await api.workspace.tracker.update(workspaceId, recordId, payload)
+    await kayitYenile()
+    setDuzenlemeModu(false)
+  }
+
+  const handleSil = async () => {
+    setSiliniyor(true)
+    try {
+      await api.workspace.tracker.archive(workspaceId, recordId)
+      toast.success('Kayıt silindi.')
+      onClose()
+    } catch (error) {
+      toast.error(error.message || 'Kayıt silinemedi.')
+    } finally {
+      setSiliniyor(false)
+    }
+  }
 
   const belgeler = kayit?.documents || []
 
   return (
-    <div className={styles.ortu} onClick={e => { if (e.target === e.currentTarget) onClose?.() }}>
+    <div className={styles.ortu} onClick={e => { if (e.target === e.currentTarget) { if (duzenlemeModu) setDuzenlemeModu(false); else if (silmeOnay) setSilmeOnay(false); else onClose?.() } }}>
       <div className={styles.panel} role="dialog" aria-modal="true" aria-label="Kayıt detayı">
         <header className={styles.baslik}>
           <div>
             <span className={styles.ustEtiket}>İŞLETME KAYDI</span>
             <h2>{kayit?.title || (yukleniyor ? 'Yükleniyor…' : 'Kayıt')}</h2>
           </div>
-          <button type="button" onClick={onClose} aria-label="Kapat"><X size={20} /></button>
+          <div className={styles.baslikActions}>
+            {!duzenlemeModu && !silmeOnay && kayit && (
+              <>
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  onClick={() => setDuzenlemeModu(true)}
+                  aria-label="Kaydı düzenle"
+                >
+                  <Edit size={18} />
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.actionButton} ${styles.danger}`}
+                  onClick={() => setSilmeOnay(true)}
+                  aria-label="Kaydı sil"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </>
+            )}
+            <button type="button" onClick={() => { if (duzenlemeModu) setDuzenlemeModu(false); else if (silmeOnay) setSilmeOnay(false); else onClose?.() }} aria-label="Kapat"><X size={20} /></button>
+          </div>
         </header>
 
         <div className={styles.govde}>
           {hata && <div className={styles.hata}>{hata}</div>}
           {yukleniyor && <p className={styles.sessiz}>Kayıt getiriliyor…</p>}
 
-          {kayit && (
+          {duzenlemeModu && kayit && (
+            <KayitForm kayit={kayit} onClose={() => setDuzenlemeModu(false)} onSave={handleGuncelle} />
+          )}
+
+          {silmeOnay && (
+            <SilmeOnay onConfirm={handleSil} onCancel={() => setSilmeOnay(false)} />
+          )}
+
+          {!duzenlemeModu && !silmeOnay && kayit && (
             <>
               {/*
                 * Geçmiş vade uyarısı. e-Fatura yüklenince kayıt faturanın

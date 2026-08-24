@@ -20,6 +20,13 @@ vi.mock('@/services/api', () => ({
   api: { workspace: { tracker: { get: mocks.get } } }
 }))
 
+/* Düzenle/sil akışı bildirim kutusunu kullanıyor; bu testler onu
+   değil EKRANI koruyor -- sağlayıcı kurulmadan sessiz bir ikaz ile
+   geçiliyor. */
+vi.mock('@/context/ToastContext', () => ({
+  useToast: () => ({ success: vi.fn(), error: vi.fn(), info: vi.fn() })
+}))
+
 const eFaturaAnalizi = JSON.stringify({
   eFatura: {
     id: 'GIB20090000000001',

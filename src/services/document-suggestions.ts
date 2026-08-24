@@ -1,4 +1,5 @@
 import { faturaYonu, type UblFatura } from './e-fatura.js'
+import type { Prisma, PrismaClient } from '@prisma/client'
 
 type SuggestionDocument = {
   originalName: string
@@ -174,4 +175,33 @@ export function buildDocumentSuggestion(
     priority: classification.type === 'promissory_note' ? 'high' : 'normal'
   }
   return { suggestionType: 'business_record', payload, confidence, evidence }
+}
+
+/*
+ * Üretilen öneriyi KAYDET — tek blok.
+ *
+ * Belge güncelleme ucu ile e-posta kanalı aynı `documentSuggestion.create`
+ * çağrısını kopyalıyordu; üçüncü kopya yazılırken ortaklaştırıldı. Durum
+ * daima 'proposed': BusinessRecord ancak insan onayıyla oluşur, öneri
+ * hiçbir yerde kendiliğinden kabul edilmez.
+ */
+export async function oneriKaydet(
+  db: PrismaClient | Prisma.TransactionClient,
+  veri: {
+    workspaceId: string
+    documentId: string
+    generated: NonNullable<ReturnType<typeof buildDocumentSuggestion>>
+  }
+) {
+  return db.documentSuggestion.create({
+    data: {
+      workspaceId: veri.workspaceId,
+      documentId: veri.documentId,
+      suggestionType: veri.generated.suggestionType,
+      payload: JSON.stringify(veri.generated.payload),
+      confidence: veri.generated.confidence,
+      evidence: JSON.stringify(veri.generated.evidence),
+      status: 'proposed'
+    }
+  })
 }

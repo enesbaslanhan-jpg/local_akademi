@@ -145,6 +145,9 @@ describe('uçtan uca: ek işleme', () => {
 
   afterAll(async () => {
     await app.close()
+    /* Öneriler belgeye bağlı: önce onlar silinmezse belge temizliği
+       kısıt hatasıyla düşer ve TÜM bloğun kapanışı bozulur. */
+    await prisma.documentSuggestion.deleteMany({ where: { document: { userId } } }).catch(() => {})
     await prisma.uploadedDocument.deleteMany({ where: { userId } })
     await prisma.businessWorkspace.delete({ where: { id: workspaceId } }).catch(() => {})
     await prisma.user.delete({ where: { id: userId } }).catch(() => {})
@@ -179,6 +182,45 @@ describe('uçtan uca: ek işleme', () => {
     const analiz = JSON.parse(belge.analysis)
     expect(analiz.eFatura?.id).toBe('GIB20090000000001')
     expect(analiz.eFatura?.odenecekTutar).toBe(17.88)
+  })
+
+  /*
+   * 🔴 KANALIN VAAT ETTİĞİ "OTOMATİK" KISIM.
+   *
+   * Öneri üretimi yalnız belge güncelleme ucunda yapılıyordu; e-postayla
+   * gelen fatura "Belgeler"e düşüyor ama kullanıcı elle kategori
+   * atayana kadar kayıt önerisi ÇIKMIYORDU. Artık ek işlenir işlenmez
+   * `proposed` öneri bekliyor -- ve BusinessRecord yine yalnız insan
+   * onayıyla oluşuyor.
+   */
+  it('e-Fatura eki onay bekleyen ÖNERİ üretir', async () => {
+    const res = await gonder([{
+      filename: 'oneri-fatura.xml',
+      mimeType: 'application/xml',
+      content: fatura().toString('base64')
+    }])
+    expect(res.statusCode).toBe(202)
+    expect(JSON.parse(res.body).belgeSayisi).toBe(1)
+
+    const belge = await prisma.uploadedDocument.findFirst({
+      where: { userId, originalName: 'oneri-fatura.xml' },
+      orderBy: { createdAt: 'desc' }
+    })
+    expect(belge).not.toBeNull()
+
+    const oneriler = await prisma.documentSuggestion.findMany({
+      where: { documentId: belge!.id }
+    })
+    expect(oneriler).toHaveLength(1)
+    expect(oneriler[0].status).toBe('proposed')
+    /* Belge durumu da "inceleme bekliyor"a çekilmiş olmalı. */
+    expect((await prisma.uploadedDocument.findUnique({ where: { id: belge!.id } }))?.analysisStatus).toBe('review_required')
+
+    const payload = JSON.parse(oneriler[0].payload)
+    expect(payload.amount).toBe(17.88)
+    /* Çalışma alanının vergi numarası girilmemiş: yön TAHMİN EDİLMİYOR,
+       neutral kalıyor ve karar kullanıcıya kalıyor. */
+    expect(payload.direction).toBe('neutral')
   })
 
   /*

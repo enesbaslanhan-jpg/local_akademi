@@ -53,6 +53,14 @@
 .cta:hover:not(:disabled) { background: var(--theme-primary-hover); transform: translateY(var(--lift-btn)); }
 .cta:active:not(:disabled) { transform: scale(var(--scale-active)); }
 
+.secondaryCta {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+.secondaryCta:hover:not(:disabled) { background: var(--border); }
+.secondaryCta:active:not(:disabled) { transform: scale(var(--scale-active)); }
+
 .primary { background: var(--brand-teal); color: var(--white); }
 .primary:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(var(--lift-btn)); }
 .primary:active:not(:disabled) { transform: scale(var(--scale-active)); }

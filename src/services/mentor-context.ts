@@ -1,13 +1,15 @@
 import { prisma } from '../lib/prisma.js'
+import { trackerOzetiHesapla } from './business-tracker.js'
 
 import { z } from 'zod'
 
-export type ContextType = 'general' | 'page' | 'knowledge_object' | 'practical_card' | 'decision_check' | 'decision_check_result' | 'learning_progress' | 'feed_recommendation' | 'financial_tool'
+export type ContextType = 'general' | 'page' | 'knowledge_object' | 'practical_card' | 'decision_check' | 'decision_check_result' | 'learning_progress' | 'feed_recommendation' | 'financial_tool' | 'workspace_tracker'
 export type ContextSource = 'direct' | 'feed' | 'content_detail' | 'decision_result' | 'progress' | 'dashboard'
 
 const VALID_CONTEXT_TYPES: ContextType[] = [
   'general', 'page', 'knowledge_object', 'practical_card', 'decision_check', 
-  'decision_check_result', 'learning_progress', 'feed_recommendation', 'financial_tool'
+  'decision_check_result', 'learning_progress', 'feed_recommendation', 'financial_tool',
+  'workspace_tracker'
 ]
 
 const VALID_CONTEXT_SOURCES: ContextSource[] = [
@@ -67,6 +69,8 @@ export async function resolveContext(
       return resolveLearningProgressContext(envelope, userId)
     case 'feed_recommendation':
       return resolveFeedContext(envelope, userId)
+    case 'workspace_tracker':
+      return resolveWorkspaceTrackerContext(envelope, userId)
     default:
       return { valid: true } // Treat unknown as valid but empty system additions (fallback to general)
   }
@@ -214,6 +218,55 @@ async function resolveFeedContext(envelope: MentorContextEnvelope, userId: numbe
       'Bunu işletmeme göre değerlendir',
       'Neden önerildiğini açıkla',
       'Uygulamak için ne yapmalıyım?'
+    ]
+  }
+}
+
+async function resolveWorkspaceTrackerContext(envelope: MentorContextEnvelope, userId: number): Promise<ResolvedMentorContext> {
+  const workspaceId = envelope.entityId
+  if (!workspaceId) return { valid: false, error: 'Workspace ID is missing' }
+
+  // Verify user has access to this workspace
+  const member = await prisma.businessMember.findFirst({
+    where: { workspaceId, userId, status: 'active' }
+  })
+  if (!member) return { valid: false, error: 'Access denied to workspace' }
+
+  /*
+   * Özet TEK hesaptan geliyor: `/tracker/summary` ucu da
+   * `trackerOzetiHesapla`yı kullanıyor. Buradaki eski satır satır kopya,
+   * uç değişince sessizce ayrışacaktı -- mentor "3 geciken var" derken
+   * ekranda başka sayı görünebilirdi.
+   *
+   * 🔴 İsteme yalnız counts/toplamlar yazılıyor. `ozet.upcoming` içindeki
+   * müşteri adları ve kayıt başlıkları BİLİNÇLİ olarak kullanılmıyor:
+   * dışarıya (Mistral AI) giden işletme verisi asgaride kalır ve cevabın
+   * işe yaraması için tanımlayıcılar gerekmez.
+   */
+  const ozet = await trackerOzetiHesapla(prisma, workspaceId)
+  const tl = (n: number) => n.toLocaleString('tr-TR')
+
+  const systemPromptAdditions =
+    `[İŞLETME TAKİP ÖZETİ]\nKullanıcının çalışma alanına ait işletme takip özeti:\n` +
+    `- Açık kayıt: ${ozet.counts.open}\n` +
+    `- Vadesi geçmiş: ${ozet.counts.overdue}\n` +
+    `- Bugün vadesi: ${ozet.counts.dueToday}\n` +
+    `- Kargo/Sevkiyat: ${ozet.counts.shipments}\n` +
+    `- Ertelenen: ${ozet.counts.deferred}\n` +
+    `- Yönü belirsiz: ${ozet.counts.awaitingDirection} (${tl(ozet.awaitingDirection.amount)} TL)\n` +
+    `- 30 günlük ödenecek: ${tl(ozet.nextThirtyDays.payable)} TL\n` +
+    `- 30 günlük tahsil edilecek: ${tl(ozet.nextThirtyDays.receivable)} TL\n` +
+    `- Net: ${tl(ozet.nextThirtyDays.net)} TL\n` +
+    `\nNot: Bu özet yalnızca sayılar ve toplamlar içerir; müşteri adı, fatura numarası veya kayıt başlığı taşımaz.`
+
+  return {
+    valid: true,
+    contextDisplay: 'İşletme Takip Özeti',
+    systemPromptAdditions,
+    starterPrompts: [
+      'Geciken ödemelerim neler?',
+      'Bu ay ne kadar tahsil etmem gerekiyor?',
+      'Hangi kayıtlar yön bekliyor?'
     ]
   }
 }

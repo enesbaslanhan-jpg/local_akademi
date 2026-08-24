@@ -635,3 +635,80 @@ describe('e-Fatura yükleme', () => {
     expect(res.body).toContain('DTD')
   })
 })
+
+/*
+ * XLSX kabul ölçütü.
+ *
+ * İçe aktarım .xlsx'i artık KABUL EDİYOR; uzantıyı izin listesine
+ * koymak kapıyı herkese açmak olurdu. Uzantı istemcinin beyanı,
+ * asıl güvence baytlarda: ZIP imzası + xl/workbook.xml yapısı.
+ * Sahte uzantılı dosya bu testle kanıtlanıyor -- içeriği ZIP olmayan
+ * bir `.xlsx` kapıdan geçemez (415).
+ */
+describe('XLSX kabul ölçütü', () => {
+  it('sahte .xlsx (ZIP olmayan içerik) 415 alır', async () => {
+    const res = await simulateUpload({
+      filename: 'sahte.xlsx',
+      buffer: Buffer.from('bu bir elektronik tablo degil, salt metin'),
+      mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    }, userToken)
+    expect(res.statusCode).toBe(415)
+  })
+
+  it('ZIP olsa bile workbook yapısı eksik .xlsx reddedilir', async () => {
+    /* Geçerli ZIP ama içinde xl/workbook.xml yok: tablo değil. */
+    const bosZip = makeZipFromEntries([
+      { name: '[Content_Types].xml', data: '<?xml version="1.0"?><Types/>' }
+    ])
+    const res = await simulateUpload({
+      filename: 'bos.xlsx',
+      buffer: bosZip,
+      mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    }, userToken)
+    expect([415, 422]).toContain(res.statusCode)
+  })
+})
+
+/*
+ * 🔴 GEÇERLİ XLSX GERÇEKTEN YÜKLENEBİLMELİ.
+ *
+ * Yukarıdaki iki test yalnız REDDİ kanıtlıyordu; hiçbiri geçerli bir
+ * elektronik tabloyu yüklemiyordu. O boşlukta iki ayrı arıza saklandı
+ * ve ikisi de ancak tarayıcıda gerçek bir dosya yüklenince görüldü:
+ *
+ *   1. `belgeyiKaydet` içinde xlsx'in dalı yoktu; ikili ZIP
+ *      `toString('utf-8')` ile metne çevriliyor, içindeki `0x00`
+ *      baytı PostgreSQL'de geçersiz olduğu için (hata 22021) kayıt
+ *      düşüyordu. HER xlsx yüklemesi 500 veriyordu.
+ *   2. `await import('exceljs')` CJS sarmalayıcısı döndürüyor;
+ *      `Workbook` doğrudan ad alanında YOK. `tsc` bunu görmüyor,
+ *      çünkü paketin tipleri CJS'i düz ad alanı gibi tarifliyor --
+ *      derleme temiz, çalışma zamanı düşük.
+ *
+ * Yani "xlsx destekleniyor" iddiası, bu test yazılana kadar hiçbir
+ * yerde kanıtlanmamıştı.
+ */
+describe('geçerli XLSX yüklenebilir', () => {
+  it('gerçek bir elektronik tablo kabul edilir ve hücreleri metne dönüşür', async () => {
+    const ExcelJS = (await import('exceljs') as any).default
+    const wb = new ExcelJS.Workbook()
+    const sayfa = wb.addWorksheet('Kayitlar')
+    sayfa.addRow(['tur', 'baslik', 'tutar'])
+    sayfa.addRow(['payment', 'Elektrik faturasi', 2450.75])
+    const buffer = Buffer.from(await wb.xlsx.writeBuffer())
+
+    /* Dosyanın gerçekten ikili olduğu ve NUL taşıdığı doğrulanıyor --
+       test kendi senaryosunu kurduğundan emin olmalı. */
+    expect(buffer.includes(0x00)).toBe(true)
+
+    const res = await simulateUpload({
+      filename: 'gercek.xlsx',
+      buffer,
+      mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    }, userToken)
+
+    expect(res.statusCode).toBe(200)
+    /* Hücreler okundu mu: ikili baytlar değil, tablonun içeriği. */
+    expect(res.json().analysis.summary).toContain('Elektrik faturasi')
+  })
+})

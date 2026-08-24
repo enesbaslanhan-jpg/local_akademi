@@ -16,6 +16,47 @@ import {
 import { ublFaturasiniAyristir, type UblFatura } from './e-fatura.js'
 
 const UPLOAD_DIR = join(process.cwd(), 'uploads')
+
+/*
+ * Yüklenen dosyanın diskteki GÜVENLİ tam yolu.
+ *
+ * 🔴 NEDEN TEK İŞLEV: içe aktarım, büyük tabloları `extractedText`
+ * kırpılmasına takılmadan okumak için ikinci bir disk-okuma yolu açtı.
+ * İki yol ayrı koruma kullansaydı biri günün sonunda `../` kaçışını
+ * yutabilirdi. Silme rotasının eski yerel `resolveSafePath`i ile AYNI
+ * mantık artık burada; her iki çağıran da bu kapıdan geçiyor.
+ * (`storedName` sunucu üretiyor, o yüzden bugün sömürülebilir değil --
+ * ama savunma beyana değil yapıya bağlı olmalı.)
+ */
+export function yuklemeYoluCoz(storedName: string): string {
+  const resolved = resolve(join(UPLOAD_DIR, storedName))
+  const normalized = normalize(resolved)
+  const uploadDirNormalized = normalize(UPLOAD_DIR)
+  if (!normalized.startsWith(uploadDirNormalized)) {
+    throw new FileValidationError('Geçersiz dosya yolu', 400)
+  }
+  return normalized
+}
+
+/*
+ * 🔴 EXCELJS CJS BİR MODÜL — `default` üzerinden alınmalı.
+ *
+ * `await import('exceljs')` bir ES modülü değil, CJS sarmalayıcısı
+ * döndürüyor: ad alanında yalnız `default` ve `module.exports` var,
+ * `Workbook` DOĞRUDAN yok. `new (await import('exceljs')).Workbook()`
+ * bu yüzden "is not a constructor" ile patlıyordu -- ve `tsc` bunu
+ * yakalamıyor, çünkü paketin tip tanımları CJS'i düz bir ad alanı gibi
+ * tarifliyor. Yani DERLEME TEMİZ ama çalışma zamanı düşüyor; hata
+ * ancak gerçek bir dosya yüklenince görünüyor.
+ *
+ * Tek bir yerde çözülüyor: iki çağıran da (belge yükleme ve toplu içe
+ * aktarım) buradan geçiyor, ikisi ayrı ayrı yanlış yapamasın diye.
+ */
+export async function exceljsYukle() {
+  const ns = (await import('exceljs')) as any
+  return (ns.default ?? ns) as typeof import('exceljs')
+}
+
 const MAX_OCR_PAGES = 5
 const turData = require('@tesseract.js-data/tur') as { code: string; gzip: boolean; langPath: string }
 
@@ -127,9 +168,43 @@ export async function belgeyiKaydet(opts: {
     } else if (['png', 'jpg', 'jpeg'].includes(ext)) {
       extractedText = await recognizeTurkishPages([{ data: buffer }])
       extractionMethod = 'ocr_tur'
+    } else if (ext === 'xlsx') {
+      /*
+       * 🔴 XLSX'in KENDİ dalı olmak ZORUNDA.
+       *
+       * Bu dal yokken dosya aşağıdaki `else`e düşüyor ve ikili bir ZIP
+       * `toString('utf-8')` ile metne çevriliyordu. İçindeki `0x00`
+       * baytları PostgreSQL metin sütununda geçersiz (hata 22021) ve
+       * `uploadedDocument.create` düşüyordu: HER xlsx yüklemesi 500
+       * veriyordu. Tarayıcıda ölçülerek bulundu -- testler yalnız
+       * xlsx'in REDDEDİLMESİNİ sınadığı için görünmemişti.
+       *
+       * Hücreler `parseXlsx` ile aynı kütüphaneden okunuyor; ikinci bir
+       * okuma yolu açılmıyor.
+       */
+      const ExcelJS = await exceljsYukle()
+      const workbook = new ExcelJS.Workbook()
+      await workbook.xlsx.load(buffer as any)
+      const satirlar: string[] = []
+      workbook.worksheets.forEach(sayfa => {
+        sayfa.eachRow(row => {
+          const hucreler: string[] = []
+          row.eachCell(cell => hucreler.push(String(cell.text ?? '').trim()))
+          if (hucreler.some(Boolean)) satirlar.push(hucreler.join('\t'))
+        })
+      })
+      extractedText = satirlar.join('\n')
+      extractionMethod = 'xlsx_hucre'
     } else {
       extractedText = buffer.toString('utf-8')
     }
+    /*
+     * NUL baytı her yoldan temizleniyor. PostgreSQL `text` sütununda
+     * `0x00` geçersiz; yukarıdaki xlsx arızası tam olarak bundan
+     * çıkmıştı. Tek bir bozuk bayt taşıyan bir CSV ya da OCR çıktısı da
+     * aynı 500'ü verirdi -- kapı burada, tek yerde kapatılıyor.
+     */
+    extractedText = extractedText.replace(/\u0000/g, '')
     extractedText = extractedText.substring(0, MAX_EXTRACTED_TEXT_LENGTH)
     if (['pdf', 'png', 'jpg', 'jpeg'].includes(ext) && !extractedText.trim()) {
       throw new FileValidationError('Belge üzerinde OCR tamamlandı ancak okunabilir metin bulunamadı', 422)
@@ -216,16 +291,6 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
     const ext = (name.split('.').pop() || '').toLowerCase()
     const safeBase = name.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 255)
     return `${safeBase}.${ext}` === safeBase ? safeBase : `${safeBase}.${ext}`
-  }
-
-  function resolveSafePath(storedName: string): string {
-    const resolved = resolve(join(UPLOAD_DIR, storedName))
-    const normalized = normalize(resolved)
-    const uploadDirNormalized = normalize(UPLOAD_DIR)
-    if (!normalized.startsWith(uploadDirNormalized)) {
-      throw new FileValidationError('Geçersiz dosya yolu', 400)
-    }
-    return normalized
   }
 
   fastify.post('/upload', {
@@ -377,7 +442,7 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
 
     let filePath: string
     try {
-      filePath = resolveSafePath(doc.storedName)
+      filePath = yuklemeYoluCoz(doc.storedName)
     } catch (e) {
       request.log.error({ storedName: doc.storedName }, 'Unsafe storedName rejected')
       return reply.status(500).send({ error: 'Belge silinemedi' })

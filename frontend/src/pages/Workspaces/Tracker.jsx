@@ -2,13 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import {
   AlertTriangle, CalendarDays, Check, Package, Plus, WalletCards, X,
-  Receipt, HandCoins, FileSignature, Truck, Search, ChevronRight, Download, Share2, FileDown
+  Receipt, HandCoins, FileSignature, Truck, Search, ChevronRight, Download, Share2, FileDown,
+  FileSpreadsheet
 } from 'lucide-react'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
 import { Select } from '@/components/ui'
 import { dosyaPaylas, paylasabilirMi } from '@/utils/dosyaPaylas'
 import KayitDetay from './KayitDetay'
+import ImportDialog from './ImportDialog'
 import styles from './Tracker.module.css'
 
 const emptyForm = {
@@ -75,6 +77,7 @@ export default function Tracker() {
   /* Satira tiklaninca acilan detay. Onceden satir sonundaki ok (>)
      hicbir seye baglanmamisti. */
   const [detayId, setDetayId] = useState(null)
+  const [showImport, setShowImport] = useState(false)
   /* Hangi kaydın PDF'i hazırlanıyor -- düğme iki kez basılmasın. */
   const [kayitIsleniyor, setKayitIsleniyor] = useState('')
   /* Bir kez ölçülüyor: ortamın yeteneği kullanım sırasında değişmiyor. */
@@ -236,6 +239,9 @@ export default function Tracker() {
               </button>
             ))}
           </div>
+          <button className={styles.secondaryCta} onClick={() => setShowImport(true)}>
+            <FileSpreadsheet size={18} /> İçe aktar
+          </button>
           <button className={styles.cta} onClick={() => openForm()}>
             <Plus size={18} /> Kayıt ekle
           </button>
@@ -347,6 +353,13 @@ export default function Tracker() {
             </form>
           </div>
         </div>
+      )}
+      {showImport && (
+        <ImportDialog
+          workspaceId={workspaceId}
+          onClose={() => setShowImport(false)}
+          onSuccess={load}
+        />
       )}
     </section>
   )

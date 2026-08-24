@@ -101,7 +101,10 @@ export default {
         [
           'AI Mentor verileri',
           'Mentor konuşmalarınız, konuşma özetleri, geçmiş konuşmalardan çıkarılan ve ' +
-          'yönetebildiğiniz mentor notları ile yanıt üretiminde kullanılan bağlam kayıtları.'
+          'yönetebildiğiniz mentor notları ile yanıt üretiminde kullanılan bağlam kayıtları. ' +
+          'İşletme takibi özeti (açık kayıt sayıları, vadesi geçmişler, 30 günlük borç/alacak ' +
+          'toplamları, yönü belirsiz kayıtlar) de soruyla ilgili olduğunda aktarılır; ' +
+          'müşteri adı, fatura numarası, kayıt başlığı gibi tanımlayıcı detaylar aktarılmaz.'
         ],
         [
           'Topluluk ve destek içeriği',
@@ -190,8 +193,7 @@ export default {
           ],
           [
             'AI Mentor soru–cevap hizmetini sunmak',
-            'AI Mentor verileri; soruyla ilgili olduğu ölçüde işletme profili ve kayıtları, ' +
-            'kurs kayıtları ve ilerleme, hesaplama sonuçları ve yüklenen dosyalardan kısa bölümler',
+            'AI Mentor verileri; soruyla ilgili olduğu ölçüde işletme profili, işletme takip özeti (sayılar ve toplamlar; müşteri adı, fatura no, başlık hariç), kurs kayıtları ve ilerleme, hesaplama sonuçları ve yüklenen dosyalardan kısa bölümler',
             'Sözleşmenin ifası (m.5/2-c)'
           ],
           [

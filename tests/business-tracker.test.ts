@@ -2,6 +2,9 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import Fastify, { type FastifyInstance } from 'fastify'
 import jwt from '@fastify/jwt'
 import { PrismaClient } from '@prisma/client'
+import { mkdir, unlink, writeFile } from 'fs/promises'
+import { join } from 'path'
+import { randomUUID } from 'crypto'
 
 const prisma = new PrismaClient()
 let app: FastifyInstance
@@ -23,6 +26,39 @@ function inject(method: string, url: string, token?: string, payload?: any) {
     headers: token ? { authorization: `Bearer ${token}` } : {},
     ...(payload === undefined ? {} : { payload })
   })
+}
+
+/* İçe aktarım testlerinin disk/belge artıkları -- afterAll temizliyor. */
+const icAktarmaDosyalari: string[] = []
+const icAktarmaBelgeleri: string[] = []
+
+const IC_AKTARMA_ESLEME = { type: 'tur', title: 'baslik', direction: 'yon', amount: 'tutar', dueAt: 'vade', contactId: 'cari' }
+
+/*
+ * İçe aktarım ucu dosyayı DISKTEN okuduğu için test de gerçek bir CSV
+ * yazıyor ve `uploadedDocument` kaydını ona bağlıyor.
+ * `extractedText` bilerek boş/kısa bırakılabiliyor: uç `extractedText`
+ * okuyorsa test bunu YUTMAYACAK (bkz. uzun CSV testi).
+ */
+async function csvDosyasiHazirla(ad: string, icerik: string): Promise<string> {
+  const storedName = `${randomUUID()}.csv`
+  await mkdir(join(process.cwd(), 'uploads'), { recursive: true })
+  await writeFile(join(process.cwd(), 'uploads', storedName), icerik, 'utf8')
+  icAktarmaDosyalari.push(storedName)
+  const doc = await prisma.uploadedDocument.create({
+    data: {
+      userId: ownerId,
+      originalName: ad,
+      storedName,
+      mimeType: 'text/csv',
+      sizeBytes: Buffer.byteLength(icerik),
+      extractedText: '',
+      status: 'analyzed',
+      workspaceId
+    }
+  })
+  icAktarmaBelgeleri.push(doc.id)
+  return doc.id
 }
 
 beforeAll(async () => {
@@ -65,6 +101,11 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
+  /* İçe aktarım testlerinin diske yazdığı geçici CSV'ler. */
+  for (const storedName of icAktarmaDosyalari) {
+    await unlink(join(process.cwd(), 'uploads', storedName)).catch(() => {})
+  }
+  await prisma.uploadedDocument.deleteMany({ where: { id: { in: icAktarmaBelgeleri } } }).catch(() => {})
   await prisma.documentConversation.deleteMany({ where: { documentId } }).catch(() => {})
   await prisma.businessRecordDocument.deleteMany({ where: { workspaceId } }).catch(() => {})
   await prisma.businessReminder.deleteMany({ where: { workspaceId } }).catch(() => {})
@@ -359,6 +400,201 @@ describe('Geçmiş vade ve yön bekleyenler', () => {
       expect(bag.document.extractedText).toBeUndefined()
       /* `analysis` GEREKLİ: e-Faturanın yapılandırılmış hâli orada. */
       expect(bag.document).toHaveProperty('analysis')
+    }
+  })
+})
+
+/*
+ * TOPLU İÇE AKTARIM.
+ *
+ * Bu üç test önceki turun üç açıkını koruyor: satır sınırı yoktu,
+ * cari yetki kontrolü atlanıyordu (BOLA), büyük CSV `extractedText`
+ * kırpılmasına takılıp sessizce satır yutuyordu. Diş kontrolleri
+ * sırasıyla: sınır sabiti / referans doğrulaması çağrısı / diskten
+ * okuma geri alınınca İLGİLİ TEST düşer (raporda tek tek listeli).
+ */
+describe('Toplu içe aktarım', () => {
+  it('sınırın üstündeki dosya 422 alır ve hiç kayıt yazmaz', async () => {
+    const satirlar = ['tur,baslik,yon,tutar']
+    for (let i = 0; i < 5001; i++) satirlar.push(`payment,Sınır satırı ${i},payable,10`)
+    const fileId = await csvDosyasiHazirla('sinir-ustu.csv', satirlar.join('\n'))
+
+    const once = await prisma.businessRecord.count({ where: { workspaceId } })
+
+    /* Önizleme de onay da reddedilir -- sınır, yazma aşamasından ÖNCE. */
+    const onizleme = await inject('POST', `/workspaces/${workspaceId}/records/import`, ownerToken, {
+      fileId, columnMapping: IC_AKTARMA_ESLEME, previewOnly: true
+    })
+    expect(onizleme.statusCode).toBe(422)
+    expect(onizleme.json().error).toContain('5000')
+
+    const onay = await inject('POST', `/workspaces/${workspaceId}/records/import`, ownerToken, {
+      fileId, columnMapping: IC_AKTARMA_ESLEME, previewOnly: false
+    })
+    expect(onay.statusCode).toBe(422)
+
+    expect(await prisma.businessRecord.count({ where: { workspaceId } })).toBe(once)
+  }, 30000)
+
+  it('başka çalışma alanının carisiyle gelen satır reddedilir, kalanlar içeri girer', async () => {
+    const yabanciCari = await prisma.businessContact.create({
+      data: { workspaceId: otherWorkspaceId, name: 'Yabancı Cari', createdById: otherId }
+    })
+    const fileId = await csvDosyasiHazirla('carili.csv', [
+      'tur,baslik,yon,tutar,cari',
+      `payment,Yabancılı satır,payable,50,${yabanciCari.id}`,
+      'payment,Temiz satır,payable,75,'
+    ].join('\n'))
+
+    const once = await prisma.businessRecord.count({ where: { workspaceId } })
+    const res = await inject('POST', `/workspaces/${workspaceId}/records/import`, ownerToken, {
+      fileId, columnMapping: IC_AKTARMA_ESLEME, previewOnly: false
+    })
+    expect(res.statusCode).toBe(200)
+
+    /* Kötü satır atlandı ama isteği düşürmedi; iyi satır içeri girdi. */
+    expect(res.json().imported).toBe(1)
+    expect(res.json().failed).toBe(0)
+    const hata = (res.json().errors || []).find((e: any) => e.row === 1)
+    expect(hata?.field).toBe('contactId')
+
+    /* Veritabanında yabancı cariye bağlanan kayıt YOK -- BOLA kapandı. */
+    expect(await prisma.businessRecord.count({ where: { workspaceId, contactId: yabanciCari.id } })).toBe(0)
+    expect(await prisma.businessRecord.count({ where: { workspaceId } })).toBe(once + 1)
+  }, 30000)
+
+  it('100.000 karakterden uzun CSVnin tüm satırları okunur', async () => {
+    const TOPLAM = 1500
+    const satirlar = ['tur,baslik,yon,tutar']
+    for (let i = 0; i < TOPLAM; i++) {
+      satirlar.push(`payment,Uzun dosya satiri ${i} basligi kisa kesilmesin diye bilerek uzatilmis alan,payable,12`)
+    }
+    const icerik = satirlar.join('\n')
+    /* Testin gerçekten kırpılma senaryosunu kurduğundan emin olunuyor:
+       yükleme hattının 100.000 karakter sınırının ÜSTÜNDE. */
+    expect(icerik.length).toBeGreaterThan(100_000)
+
+    const fileId = await csvDosyasiHazirla('uzun.csv', icerik)
+    /* extractedText'e yalnız ilk 10 satır konuyor: uç diskten okumazsa
+       imported tam olarak 10 çıkar ve test düşer. */
+    await prisma.uploadedDocument.update({
+      where: { id: fileId },
+      data: { extractedText: satirlar.slice(0, 11).join('\n') }
+    })
+
+    const once = await prisma.businessRecord.count({ where: { workspaceId } })
+    const res = await inject('POST', `/workspaces/${workspaceId}/records/import`, ownerToken, {
+      fileId, columnMapping: IC_AKTARMA_ESLEME, previewOnly: false
+    })
+    expect(res.statusCode).toBe(200)
+    expect(res.json().imported).toBe(TOPLAM)
+    expect(await prisma.businessRecord.count({ where: { workspaceId } })).toBe(once + TOPLAM)
+  }, 60000)
+})
+
+/*
+ * Düzenlemenin iki koruması: vade değişince hatırlatmanın taşınması
+ * (taşınmazsa kullanıcı uyarıyı ESKİ günde alır) ve kaydın başka
+ * çalışma alanından düzenlenememesi/silememesi (IDOR).
+ */
+describe('Düzenleme: hatırlatma taşıması ve çalışma alanı sınırı', () => {
+  it('vade düzenlenince otomatik hatırlatma yeni tarihe taşınır', async () => {
+    const eskiVade = new Date(Date.now() + 3 * 86400000)
+    const olustur = await inject('POST', `/workspaces/${workspaceId}/records`, ownerToken, {
+      type: 'payment', title: 'Hatırlatma taşıma testi', direction: 'payable',
+      amount: 10, currency: 'TRY', dueAt: eskiVade.toISOString()
+    })
+    expect(olustur.statusCode).toBe(201)
+    const kayitId = olustur.json().id
+
+    const yeniVade = new Date(Date.now() + 10 * 86400000)
+    const duzenle = await inject('PATCH', `/workspaces/${workspaceId}/records/${kayitId}`, ownerToken, {
+      dueAt: yeniVade.toISOString()
+    })
+    expect(duzenle.statusCode).toBe(200)
+
+    /* Yalnız bekleyen OTOMATİK hatırlatmaya bakılıyor; elle kurulanlar
+       karışmasın. Bekleyen tam BİR tane var ve anahtarı YENİ vadede. */
+    const bekleyenler = await prisma.businessReminder.findMany({
+      where: { recordId: kayitId, status: 'pending', dedupeKey: { startsWith: `auto:${kayitId}:` } }
+    })
+    expect(bekleyenler).toHaveLength(1)
+    expect(bekleyenler[0].dedupeKey).toContain(new Date(yeniVade.toISOString()).toISOString())
+    expect(bekleyenler[0].dedupeKey).not.toContain(eskiVade.toISOString())
+  }, 30000)
+
+  it('başka çalışma alanının kaydı düzenlenemez ve silinemez', async () => {
+    const olustur = await inject('POST', `/workspaces/${workspaceId}/records`, ownerToken, {
+      type: 'task', title: 'Korumalı kayıt'
+    })
+    expect(olustur.statusCode).toBe(201)
+    const kayitId = olustur.json().id
+
+    /* otherToken kullanıcısı otherWorkspace'in SAHİBİ: erişim ucu geçer,
+       kayıt kapsamı (scopedRecord) engellemeli -- 404. */
+    expect((await inject('PATCH', `/workspaces/${otherWorkspaceId}/records/${kayitId}`, otherToken, {
+      title: 'ele geçirildi'
+    })).statusCode).toBe(404)
+    expect((await inject('DELETE', `/workspaces/${otherWorkspaceId}/records/${kayitId}`, otherToken)).statusCode).toBe(404)
+
+    /* Gerçekten değişmediğini ve silinmediğini veritabanı söylüyor. */
+    const detay = await inject('GET', `/workspaces/${workspaceId}/records/${kayitId}`, ownerToken)
+    expect(detay.statusCode).toBe(200)
+    expect(detay.json().title).toBe('Korumalı kayıt')
+  }, 30000)
+})
+
+/*
+ * Mentor bağlamı — özet GİDER, kimlik GİTMEZ (ürün kararı).
+ * Dışarıya (Mistral AI) aktarılan veri asgaride kalmalı; başlık veya
+ * müşteri adı isteme sızarsa bu test onu yakalar.
+ *
+ * Kendi çalışma alanını kuruyor: paylaşılan alanda diğer testlerin
+ * kayıtları toplamlara karışır ve sayı iddiası sıra bağımlısı olur.
+ */
+describe('Mentor işletme özeti', () => {
+  it('isteme kayıt başlığı sızmaz, sayılar ise gerçekten gider', async () => {
+    const damga = Date.now()
+    const yalnizKullanici = await prisma.user.create({
+      data: { email: `mentor-ozet-${damga}@test.local`, password: 'hash', name: 'Özet Sahibi' }
+    })
+    const yalnizAlan = await prisma.businessWorkspace.create({
+      data: { name: 'Özet Yalnız Alan', createdById: yalnizKullanici.id }
+    })
+    await prisma.businessMember.create({
+      data: { workspaceId: yalnizAlan.id, userId: yalnizKullanici.id, role: 'owner' }
+    })
+    await prisma.businessRecord.create({
+      data: {
+        workspaceId: yalnizAlan.id, type: 'payment', status: 'open',
+        title: 'GIZLI Musteri Kira Sozlesmesi XYZ',
+        direction: 'payable', amount: 777.55, currency: 'TRY',
+        dueAt: new Date(Date.now() - 86400000), createdById: yalnizKullanici.id
+      }
+    })
+
+    try {
+      const { resolveContext } = await import('../src/services/mentor-context.js')
+      const sonuc = await resolveContext(
+        { contextType: 'workspace_tracker', entityId: yalnizAlan.id },
+        yalnizKullanici.id
+      )
+      expect(sonuc.valid).toBe(true)
+
+      const metin = sonuc.systemPromptAdditions || ''
+      /* Kimlik sızması YOK. */
+      expect(metin).not.toContain('GIZLI')
+      expect(metin).not.toContain('Sozlesmesi')
+      /* Sayılar boş şablonla değil, GERÇEK hesapla gidiyor:
+         alanın TEK kaydı 777,55 TL -- toplam da tam olarak o. */
+      expect(metin).toContain('777,55')
+      expect(metin).toContain('- Açık kayıt: 1')
+      expect(metin).toContain('- Vadesi geçmiş: 1')
+    } finally {
+      await prisma.businessRecord.deleteMany({ where: { workspaceId: yalnizAlan.id } }).catch(() => {})
+      await prisma.businessMember.deleteMany({ where: { workspaceId: yalnizAlan.id } }).catch(() => {})
+      await prisma.businessWorkspace.delete({ where: { id: yalnizAlan.id } }).catch(() => {})
+      await prisma.user.delete({ where: { id: yalnizKullanici.id } }).catch(() => {})
     }
   })
 })

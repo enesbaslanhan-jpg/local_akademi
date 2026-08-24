@@ -5,6 +5,7 @@ import { timingSafeEqual, randomBytes } from 'crypto'
 import { z } from 'zod'
 import { dosyayiDogrula, FileValidationError } from './documentSecurity.js'
 import { belgeyiKaydet } from './documents.js'
+import { buildDocumentSuggestion, oneriKaydet } from './document-suggestions.js'
 
 /*
  * GELEN E-POSTA KANALI.
@@ -215,7 +216,7 @@ export async function gelenEpostaRotalari(
       try {
         const buffer = Buffer.from(ek.content, 'base64')
         const { ext } = dosyayiDogrula(buffer, ek.filename, ek.mimeType)
-        await belgeyiKaydet({
+        const savedDoc = await belgeyiKaydet({
           prisma,
           buffer,
           filename: ek.filename,
@@ -224,6 +225,54 @@ export async function gelenEpostaRotalari(
           userId: karar.userId,
           workspaceId: karar.workspaceId
         })
+
+        // e-Fatura XML ise öneri üret (belge zaten kaydedildi, analysis içinde eFatura var)
+        if (ext === 'xml') {
+          try {
+            // Belgeyi yeniden oku analysis alanını al
+            const docWithAnalysis = await prisma.uploadedDocument.findUnique({
+              where: { id: savedDoc.id },
+              select: { analysis: true }
+            })
+
+            if (docWithAnalysis?.analysis) {
+              const analysis = JSON.parse(docWithAnalysis.analysis)
+              const eFatura = analysis.eFatura
+
+              if (eFatura) {
+                const workspace = await prisma.businessWorkspace.findUnique({
+                  where: { id: karar.workspaceId },
+                  select: { taxNumber: true }
+                })
+                const suggestion = buildDocumentSuggestion(
+                  {
+                    originalName: ek.filename,
+                    extractedText: buffer.toString('utf-8'),
+                    category: null,
+                    dueDate: null,
+                    eFatura
+                  },
+                  workspace?.taxNumber ?? null
+                )
+                if (suggestion) {
+                  await oneriKaydet(prisma, {
+                    workspaceId: karar.workspaceId,
+                    documentId: savedDoc.id,
+                    generated: suggestion
+                  })
+                  await prisma.uploadedDocument.update({
+                    where: { id: savedDoc.id },
+                    data: { analysisStatus: 'review_required' }
+                  })
+                }
+              }
+            }
+          } catch (suggestionError) {
+            // Log but don't fail the email processing
+            request.log.warn({ error: suggestionError }, 'e-Fatura önerisi üretilemedi')
+          }
+        }
+
         kabulEdilen++
       } catch (hata) {
         /* Reddedilen ek GÖNDERENE bildirilmiyor -- bilgi sızdırmamak

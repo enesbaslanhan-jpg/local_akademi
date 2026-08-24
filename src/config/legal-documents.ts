@@ -44,10 +44,8 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
   {
     type: 'privacy',
     title: 'Gizlilik ve KVKK Aydınlatma Metni',
-    /* 2026-08-23.2: özel mesajlaşma, engelleme kayıtları, gelen e-posta
-       kanalı veri kategorisi olarak eklendi; reklam sayaçlarının kişiye
-       BAĞLANMADIĞI açıkça yazıldı. */
-    version: '2026-08-23.2',
+    /* 2026-08-23.3: AI Mentor işletme takip özetini (sayılar ve toplamlar; müşteri adı, fatura no, başlık hariç) alıyor. */
+    version: '2026-08-23.3',
     requiredAtSignup: true
   },
   {

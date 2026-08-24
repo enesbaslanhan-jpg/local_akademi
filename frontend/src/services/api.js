@@ -1155,6 +1155,11 @@ export const api = {
         return api.request(`/workspaces/${workspaceId}/records/${recordId}/documents/${documentId}`, {
           method: 'POST'
         })
+      },
+      async import(workspaceId, data) {
+        return api.request(`/workspaces/${workspaceId}/records/import`, {
+          method: 'POST', body: JSON.stringify(data)
+        })
       }
     },
     exports: {

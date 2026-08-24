@@ -214,3 +214,140 @@
   .panel { max-height: calc(100vh - var(--space-4)); }
   .govde { padding: var(--space-4); }
 }
+
+.baslikActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.actionButton {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted, var(--text-secondary));
+  border: none;
+  cursor: pointer;
+}
+
+.actionButton:hover { background: var(--surface-sunken); color: var(--text); }
+.actionButton.danger:hover { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
+
+.form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-3);
+}
+
+.form label {
+  display: grid;
+  gap: 6px;
+}
+
+.form select,
+.form input,
+.form textarea {
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: .85rem;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form select:focus,
+.form input:focus,
+.form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+
+.primary {
+  background: var(--primary);
+  color: white;
+}
+
+.primary:hover:not(:disabled) { filter: brightness(1.05); }
+.primary:disabled { opacity: .6; cursor: not-allowed; }
+
+.secondary {
+  background: var(--surface-sunken);
+  color: var(--text);
+}
+
+.secondary:hover { background: var(--surface); }
+
+.primary.danger {
+  background: var(--danger);
+  color: white;
+}
+
+.primary.danger:hover:not(:disabled) { filter: brightness(1.05); }
+
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.onayKutusu {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-deep);
+}
+
+.onayBaslik {
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.onayMetin {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: .85rem;
+  line-height: 1.5;
+}
+
+.onayButonlar {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}

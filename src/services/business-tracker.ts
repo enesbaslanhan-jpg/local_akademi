@@ -1,9 +1,11 @@
 import type { FastifyInstance } from 'fastify'
 import type { Prisma, PrismaClient } from '@prisma/client'
 import { z } from 'zod'
+import { readFile } from 'fs/promises'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { processDueBusinessReminders, syncAutomaticReminder } from './business-reminder-worker.js'
-import { buildDocumentSuggestion } from './document-suggestions.js'
+import { buildDocumentSuggestion, oneriKaydet } from './document-suggestions.js'
+import { yuklemeYoluCoz, exceljsYukle } from './documents.js'
 
 const RECORD_TYPES = [
   'payment', 'receivable', 'promissory_note', 'purchase',
@@ -54,8 +56,201 @@ const documentMetadataInput = z.object({
   contactId: z.string().uuid().nullable().optional()
 })
 
+const importRequestSchema = z.object({
+  fileId: z.string().uuid(),
+  columnMapping: z.record(z.string()),
+  previewOnly: z.boolean().default(true)
+})
+
+/*
+ * Dışa aktarım 5000 satırla sınırlandırılmıştı (workspace-exports.ts);
+ * içe aktarım AYNI sayıyı alıyor. Simetri bir estetik tercihi değil:
+ * kullanıcının dışa aktardığı dosyayı GERİ yükleyebilmesi şart, ve
+ * sınırsız satır, dışa aktarımda bellek tüketen arızanın aynısını
+ * yazma tarafında tekrarlatırdı.
+ */
+const MAX_IMPORT_ROWS = 5000
+
+/*
+ * Yazma döngüsü satır başına transaction AÇMIYOR: /admin/stats
+ * arızasında (17 eşzamanlı sorgu → aralıklı 500) ölçülen sınıfın aynısı.
+ * `partiler()` deseninin buradaki hâli: her dalga TEK işlem, içindeki
+ * kayıtlar birlikte yazılıyor. Dalga boyutu küçük tutuldu ki tek bozuk
+ * satır geri alsa bile kaybı sınırlı kalsın.
+ */
+const IMPORT_YAZMA_DALGASI = 100
+
+/*
+ * 🔴 İŞLEM ZAMAN AŞIMI AÇIKÇA VERİLİYOR — varsayılana güvenilmiyor.
+ *
+ * Prisma'nın etkileşimli işlem varsayılanı 5 saniye. Bir dalga
+ * 100 satır × (kayıt + geçmiş + hatırlatma) = ~300 ardışık sorgu
+ * çalıştırıyor; sorgu başına 15 ms bile 4,5 saniye eder ve yüklü bir
+ * sunucuda varsayılan aşılır. Aşıldığında dalga geri alınıp 100 satır
+ * birden "başarısız" raporlanır -- veri bozulmaz ama kullanıcı büyük
+ * bir içe aktarımın ortasında anlaşılmaz bir hatayla kalır.
+ *
+ * Depoda başka hiçbir `$transaction` çağrısı süre vermiyor; onlar
+ * birkaç sorguluk işlemler olduğu için varsayılan yetiyor. Sınırın
+ * gerçekten dar geldiği tek yer toplu yazma.
+ *
+ * `maxWait` da artırıldı: dalgalar peş peşe geldiği için havuzdan
+ * bağlantı beklemesi varsayılan 2 saniyeyi bulabilir.
+ */
+const IMPORT_ISLEM_SURESI = { timeout: 60_000, maxWait: 15_000 }
+
+function dalgalaraBol<T>(liste: T[], boyut: number): T[][] {
+  const dalgalar: T[][] = []
+  for (let i = 0; i < liste.length; i += boyut) dalgalar.push(liste.slice(i, i + boyut))
+  return dalgalar
+}
+
+/*
+ * 🔴 CSV DISKTEN OKUNUR, `extractedText`ten DEĞİL.
+ *
+ * `extractedText` yüklemede 100.000 karakterde kırpılıyor. Büyük bir
+ * tablonun SONU orada yok; kırpılan metni ayrıştırmak, kullanıcıya
+ * hiçbir uyarı vermeden satır yutmak demekti -- sessiz veri kaybı,
+ * gürültülü hatadan çok daha pahalı. XLSX yolu zaten diskten okuyor;
+ * iki biçim de aynı kapıdan geçiyor (`yuklemeYoluCoz`).
+ */
+async function csvMetniniOku(storedName: string): Promise<string> {
+  const buffer = await readFile(yuklemeYoluCoz(storedName))
+  /*
+   * Türkçe Excel'in CSV çıktısı sık sık Windows-1254'tür. `fatal`
+   * çözücü geçersiz UTF-8 bayt dizisinde fırlatır; bozuk karakterleri
+   * `�` ile doldurup sessizce ilerlemek yerine dosyanın tamamını
+   * reddediyoruz -- kullanıcı "CSV UTF-8 olarak kaydet" diyerek
+   * düzeltebilir, yarım bozuk isimleri sonradan ayıklamaz.
+   */
+  return new TextDecoder('utf-8', { fatal: true }).decode(buffer)
+}
+
 function normalizeRole(role: string) {
   return role === 'admin' ? 'manager' : role
+}
+
+/*
+ * CSV ayrıştırıcı — basit, bağımlılıksız.
+ * Tırnak içine alınmış virgüller ve satır sonlarını destekler.
+ */
+function parseCsv(text: string): Record<string, string>[] {
+  const lines: string[] = []
+  let current = ''
+  let inQuotes = false
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i]
+    const next = text[i + 1]
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        current += '"'
+        i++
+      } else {
+        inQuotes = !inQuotes
+      }
+    } else if (char === '\n' && !inQuotes) {
+      lines.push(current)
+      current = ''
+    } else if (char === '\r' && !inQuotes) {
+      // Skip \r in \r\n
+    } else {
+      current += char
+    }
+  }
+  if (current) lines.push(current)
+
+  if (lines.length < 2) return []
+
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''))
+  const rows: Record<string, string>[] = []
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim()
+    if (!line) continue
+
+    const values: string[] = []
+    let val = ''
+    let inQ = false
+
+    for (let j = 0; j < line.length; j++) {
+      const char = line[j]
+      const next = line[j + 1]
+
+      if (char === '"') {
+        if (inQ && next === '"') {
+          val += '"'
+          j++
+        } else {
+          inQ = !inQ
+        }
+      } else if (char === ',' && !inQ) {
+        values.push(val.trim())
+        val = ''
+      } else {
+        val += char
+      }
+    }
+    values.push(val.trim())
+
+    if (values.length !== headers.length) continue
+
+    const row: Record<string, string> = {}
+    for (let k = 0; k < headers.length; k++) {
+      row[headers[k]] = values[k].replace(/^"|"$/g, '')
+    }
+    rows.push(row)
+  }
+
+  return rows
+}
+
+/*
+ * XLSX ayrıştırıcı — exceljs kullanıyor (zaten bağımlılıkta).
+ * İlk çalışma sayfasını okur, başlık satırını varsayar.
+ */
+async function parseXlsx(buffer: Buffer): Promise<Record<string, string>[]> {
+  const ExcelJS = await exceljsYukle()
+  const workbook = new ExcelJS.Workbook()
+  // exceljs expects a Node.js Buffer - cast to avoid TS version conflicts
+  await workbook.xlsx.load(buffer as any)
+  const worksheet = workbook.worksheets[0]
+  if (!worksheet || worksheet.rowCount < 2) return []
+
+  const headers: string[] = []
+  worksheet.getRow(1).eachCell((cell, colNumber) => {
+    headers[colNumber - 1] = String(cell.value ?? '').trim()
+  })
+
+  const rows: Record<string, string>[] = []
+  for (let rowNum = 2; rowNum <= worksheet.rowCount; rowNum++) {
+    const row = worksheet.getRow(rowNum)
+    const rowData: Record<string, string> = {}
+    let hasData = false
+
+    row.eachCell((cell, colNumber) => {
+      const header = headers[colNumber - 1] || `col${colNumber}`
+      const value = cell.value
+      if (value !== null && value !== undefined && value !== '') {
+        hasData = true
+        if (typeof value === 'object' && value !== null && 'result' in value) {
+          // Formula result
+          rowData[header] = String(value.result)
+        } else if (value instanceof Date) {
+          rowData[header] = value.toISOString().split('T')[0]
+        } else {
+          rowData[header] = String(value).trim()
+        }
+      } else {
+        rowData[header] = ''
+      }
+    })
+
+    if (hasData) rows.push(rowData)
+  }
+
+  return rows
 }
 
 function parseJson(value: string | null) {
@@ -85,6 +280,69 @@ function recordJson(record: any) {
     amount: record.amount === null || record.amount === undefined ? null : Number(record.amount),
     metadata: parseJson(record.metadata),
     overdue: Boolean(dueAt && !tamamlanmis && dueAt.getTime() < Date.now())
+  }
+}
+
+/*
+ * Tracker özeti — TEK hesap.
+ *
+ * `/tracker/summary` ucu ile mentor bağlamı aynı işlevi kullanıyor.
+ * Önceki turda mentor tarafı bu hesabın satır satır kopyasını taşıyordu;
+ * iki kopya bugün aynı sonucu verir ama biri değişince sessizce
+ * ayrışırdı -- mentor "3 geciken var" derken ekranda 5 görünebilirdi.
+ *
+ * 🔴 Mentor bu sonucun yalnız counts/toplamlar alanlarını kullanıyor;
+ * `upcoming` içindeki müşteri adları ve başlıklar dışarı (Mistral)
+ * gitmiyor. Bu ayrım tüketici tarafta bilinçli; işlevin kendisi ekran
+ * için tam veriyi döndürmek zorunda.
+ */
+export async function trackerOzetiHesapla(prisma: PrismaClient, workspaceId: string) {
+  const now = new Date()
+  const nextThirtyDays = new Date(now.getTime() + 30 * 86400000)
+  const records = await prisma.businessRecord.findMany({
+    where: { workspaceId, archivedAt: null, status: { in: ['open', 'in_progress', 'deferred'] } },
+    orderBy: [{ dueAt: 'asc' }, { priority: 'desc' }],
+    include: { contact: { select: { id: true, name: true } } }
+  })
+
+  const payable = records
+    .filter(r => r.direction === 'payable' && r.dueAt && r.dueAt <= nextThirtyDays)
+    .reduce((sum, r) => sum + Number(r.amount ?? 0), 0)
+  const receivable = records
+    .filter(r => r.direction === 'receivable' && r.dueAt && r.dueAt <= nextThirtyDays)
+    .reduce((sum, r) => sum + Number(r.amount ?? 0), 0)
+
+  /*
+   * 🔴 YÖN BEKLEYENLER — kendi şeridi.
+   *
+   * `payable` ve `receivable` toplamları yalnız yönü BELLİ kayıtları
+   * sayıyor. e-Fatura okunduğunda yön, faturadaki VKN işletmenin
+   * vergi numarasıyla eşleşmezse `neutral` kalıyor. Sonuç: tutarı
+   * olan bir kayıt hiçbir toplama girmiyor ve ekranda hiç
+   * görünmüyordu -- ürün sahibi bunu kullanınca fark etti.
+   *
+   * Borç ya da alacak sayılmıyorlar; bu bir tahmin olurdu ve yanlış
+   * yön, kullanıcının alacağını borç göstermek demek. Bunun yerine
+   * KENDİ sayaçlarıyla görünür oluyorlar: "N kayıt yön bekliyor".
+   * Kullanıcı unutmaz, rakamlar da yalan söylemez.
+   */
+  const yonBekleyenler = records.filter(r => r.direction === 'neutral' && r.amount !== null)
+
+  return {
+    counts: {
+      open: records.length,
+      overdue: records.filter(r => r.dueAt && r.dueAt < now && r.status !== 'completed').length,
+      dueToday: records.filter(r => r.dueAt && r.dueAt.toDateString() === now.toDateString()).length,
+      shipments: records.filter(r => r.type === 'shipment').length,
+      deferred: records.filter(r => r.status === 'deferred' || r.type === 'deferred').length,
+      awaitingDirection: yonBekleyenler.length
+    },
+    nextThirtyDays: { payable, receivable, net: receivable - payable },
+    awaitingDirection: {
+      count: yonBekleyenler.length,
+      amount: yonBekleyenler.reduce((sum, r) => sum + Number(r.amount ?? 0), 0)
+    },
+    upcoming: records.slice(0, 10).map(recordJson)
   }
 }
 
@@ -131,18 +389,25 @@ async function scopedRecord(
   return record
 }
 
-async function validateReferences(
+/*
+ * Yetki doğrulamasının reply'sız ÇEKİRDEĞİ.
+ *
+ * Toplu içe aktarım bunu satır bazında çağırıyor: tek kötü satır
+ * bütün isteği düşürmemeli, hatası kendi satırına yazılmalı. Tek
+ * kayıt uçları ise aşağıdaki sarmalayıcıyı kullanmaya devam ediyor --
+ * davranışları (422 + aynı mesaj) değişmedi. Kural tek kaynakta:
+ * cari/görevli kuralı burada, ikiye ayrışamaz.
+ */
+async function referanslariDogrula(
   prisma: PrismaClient,
   workspaceId: string,
   contactId: string | null | undefined,
-  assignedToId: number | null | undefined,
-  reply: any
-) {
+  assignedToId: number | null | undefined
+): Promise<{ ok: true } | { ok: false; field: 'contactId' | 'assignedToId'; message: string }> {
   if (contactId) {
     const contact = await prisma.businessContact.findUnique({ where: { id: contactId } })
     if (!contact || contact.workspaceId !== workspaceId || contact.status !== 'active') {
-      reply.status(422).send({ error: 'Contact does not belong to this workspace' })
-      return false
+      return { ok: false, field: 'contactId', message: 'Contact does not belong to this workspace' }
     }
   }
   if (assignedToId) {
@@ -150,9 +415,23 @@ async function validateReferences(
       where: { workspaceId_userId: { workspaceId, userId: assignedToId } }
     })
     if (!member || member.status !== 'active') {
-      reply.status(422).send({ error: 'Assignee is not an active workspace member' })
-      return false
+      return { ok: false, field: 'assignedToId', message: 'Assignee is not an active workspace member' }
     }
+  }
+  return { ok: true }
+}
+
+async function validateReferences(
+  prisma: PrismaClient,
+  workspaceId: string,
+  contactId: string | null | undefined,
+  assignedToId: number | null | undefined,
+  reply: any
+) {
+  const sonuc = await referanslariDogrula(prisma, workspaceId, contactId, assignedToId)
+  if (!sonuc.ok) {
+    reply.status(422).send({ error: sonuc.message })
+    return false
   }
   return true
 }
@@ -238,54 +517,9 @@ export async function businessTrackerRoutes(
     const user = request.user as { id: number }
     const { workspaceId } = request.params as { workspaceId: string }
     if (!await access(prisma, user.id, workspaceId, reply)) return
-
-    const now = new Date()
-    const nextThirtyDays = new Date(now.getTime() + 30 * 86400000)
-    const records = await prisma.businessRecord.findMany({
-      where: { workspaceId, archivedAt: null, status: { in: ['open', 'in_progress', 'deferred'] } },
-      orderBy: [{ dueAt: 'asc' }, { priority: 'desc' }],
-      include: { contact: { select: { id: true, name: true } } }
-    })
-
-    const payable = records
-      .filter(r => r.direction === 'payable' && r.dueAt && r.dueAt <= nextThirtyDays)
-      .reduce((sum, r) => sum + Number(r.amount ?? 0), 0)
-    const receivable = records
-      .filter(r => r.direction === 'receivable' && r.dueAt && r.dueAt <= nextThirtyDays)
-      .reduce((sum, r) => sum + Number(r.amount ?? 0), 0)
-
-    /*
-     * 🔴 YÖN BEKLEYENLER — kendi şeridi.
-     *
-     * `payable` ve `receivable` toplamları yalnız yönü BELLİ kayıtları
-     * sayıyor. e-Fatura okunduğunda yön, faturadaki VKN işletmenin
-     * vergi numarasıyla eşleşmezse `neutral` kalıyor. Sonuç: tutarı
-     * olan bir kayıt hiçbir toplama girmiyor ve ekranda hiç
-     * görünmüyordu -- ürün sahibi bunu kullanınca fark etti.
-     *
-     * Borç ya da alacak sayılmıyorlar; bu bir tahmin olurdu ve yanlış
-     * yön, kullanıcının alacağını borç göstermek demek. Bunun yerine
-     * KENDİ sayaçlarıyla görünür oluyorlar: "N kayıt yön bekliyor".
-     * Kullanıcı unutmaz, rakamlar da yalan söylemez.
-     */
-    const yonBekleyenler = records.filter(r => r.direction === 'neutral' && r.amount !== null)
-
-    return {
-      counts: {
-        open: records.length,
-        overdue: records.filter(r => r.dueAt && r.dueAt < now && r.status !== 'completed').length,
-        dueToday: records.filter(r => r.dueAt && r.dueAt.toDateString() === now.toDateString()).length,
-        shipments: records.filter(r => r.type === 'shipment').length,
-        deferred: records.filter(r => r.status === 'deferred' || r.type === 'deferred').length,
-        awaitingDirection: yonBekleyenler.length
-      },
-      nextThirtyDays: { payable, receivable, net: receivable - payable },
-      awaitingDirection: {
-        count: yonBekleyenler.length,
-        amount: yonBekleyenler.reduce((sum, r) => sum + Number(r.amount ?? 0), 0)
-      },
-      upcoming: records.slice(0, 10).map(recordJson)
-    }
+    /* Hesap tek kaynakta: `trackerOzetiHesapla` (mentor bağlamı da onu
+       kullanıyor; iki kopya ayrışırsa ekran ile mentor çelişirdi). */
+    return trackerOzetiHesapla(prisma, workspaceId)
   })
 
   fastify.get('/:workspaceId/tracker/calendar', async (request, reply) => {
@@ -709,17 +943,7 @@ export async function businessTrackerRoutes(
         isletme?.taxNumber ?? null
       )
       if (!existing && generated) {
-        await tx.documentSuggestion.create({
-          data: {
-            workspaceId,
-            documentId,
-            suggestionType: generated.suggestionType,
-            payload: JSON.stringify(generated.payload),
-            confidence: generated.confidence,
-            evidence: JSON.stringify(generated.evidence),
-            status: 'proposed'
-          }
-        })
+        await oneriKaydet(tx, { workspaceId, documentId, generated })
       }
       await tx.uploadedDocument.update({
         where: { id: documentId },
@@ -843,5 +1067,252 @@ export async function businessTrackerRoutes(
     }
     await prisma.uploadedDocument.update({ where: { id: documentId }, data: { archivedAt: new Date() } })
     return { archived: true }
+  })
+
+  /*
+   * TOPLU İÇE AKTARIM — Excel/CSV.
+   *
+   * Akış: dosya yükle → sütunları eşleştir → ÖNİZLEME → onayla.
+   * 🔴 ÖNİZLEME ATLANMAYACAK. 200 satırı doğrudan yazmak, yanlış
+   * eşleştirilmiş bir sütunu 200 hatalı kayda çevirir. Kullanıcı ne
+   * oluşacağını GÖRMEDEN kaydedilmeyecek. Bu, uygulamanın her yerindeki
+   * ilkeyle aynı: mevcut belge akışında da öneri `proposed` durumunda
+   * bekliyor ve `BusinessRecord` ancak insan onayıyla oluşuyor.
+   */
+  fastify.post('/:workspaceId/records/import', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId } = request.params as { workspaceId: string }
+    if (!await access(prisma, user.id, workspaceId, reply, true)) return
+
+    const parsed = importRequestSchema.safeParse(request.body)
+    if (!parsed.success) return reply.status(422).send({ error: 'Validation failed', details: parsed.error.errors })
+
+    const { fileId, columnMapping, previewOnly } = parsed.data
+
+    // Get the uploaded file
+    const document = await prisma.uploadedDocument.findUnique({
+      where: { id: fileId },
+      select: { id: true, workspaceId: true, userId: true, originalName: true, mimeType: true, storedName: true, archivedAt: true }
+    })
+
+    if (!document || document.archivedAt || (document.workspaceId && document.workspaceId !== workspaceId) || (!document.workspaceId && document.userId !== user.id)) {
+      return reply.status(404).send({ error: 'File not found' })
+    }
+
+    // Derive extension from originalName
+    const ext = (document.originalName.split('.').pop() || '').toLowerCase()
+
+    // Parse the file content based on extension
+    let rows: Record<string, string>[] = []
+    if (ext === 'csv') {
+      try {
+        rows = parseCsv(await csvMetniniOku(document.storedName))
+      } catch (hata) {
+        if (hata instanceof TypeError) {
+          /* TextDecoder(fatal) geçersiz UTF-8'de TypeError fırlatır:
+             tipik sebep Windows-1254 CSV. Kullanıcı düzeltebilsin diye
+             çözüm yolu söyleniyor. */
+          return reply.status(422).send({
+            error: 'Dosya UTF-8 kodlamasında okunamadı. Dosyayı Excel\'de "CSV UTF-8" biçiminde kaydedip tekrar deneyin.'
+          })
+        }
+        throw hata
+      }
+    } else if (ext === 'xlsx') {
+      rows = await parseXlsx(await readFile(yuklemeYoluCoz(document.storedName)))
+    } else {
+      return reply.status(415).send({ error: 'Only CSV and XLSX files are supported for import' })
+    }
+
+    if (rows.length === 0) {
+      return reply.status(422).send({ error: 'No data rows found in file' })
+    }
+    if (rows.length > MAX_IMPORT_ROWS) {
+      /*
+       * Sessiz kırpma YOK: 5000 satır alıp 200'ünü düşürmek, kullanıcının
+       * verisinin yarısının kaybolduğunu fark etmemesi demek. Açık 422,
+       * kaç satır geldiğini ve sınırı söyleyerek dosyayı bölmeyi önerir.
+       */
+      return reply.status(422).send({
+        error: `Dosyada ${rows.length} satır var; tek seferde en fazla ${MAX_IMPORT_ROWS} satır içe aktarılabilir. Dosyayı bölerek yükleyin.`
+      })
+    }
+
+    // Apply column mapping to transform rows to record input format
+    const mappedRows = rows.map((row, index) => {
+      const mapped: Record<string, any> = { rowIndex: index + 1 }
+      for (const [targetField, sourceColumn] of Object.entries(columnMapping)) {
+        mapped[targetField] = row[sourceColumn] ?? null
+      }
+      return mapped
+    })
+
+    // Validate each row using recordInput schema
+    const validRows: any[] = []
+    const errors: { row: number; field: string; message: string }[] = []
+
+    /*
+     * Yetki kontrolü istek başına önbellekleniyor: aynı cari UUID 300
+     * satırda tekrar ediyorsa 300 sorgu yerine 1 atılır. Sonuç satır
+     * bazında AYNI -- önbellek kararı değiştirmez, sadece maliyeti
+     * düşürür.
+     */
+    const referansOnbellek = new Map<string, Promise<{ ok: true } | { ok: false; field: 'contactId' | 'assignedToId'; message: string }>>()
+    const referansSorgula = (alan: 'contactId' | 'assignedToId', deger: string | number) => {
+      const anahtar = `${alan}:${deger}`
+      if (!referansOnbellek.has(anahtar)) {
+        referansOnbellek.set(anahtar, alan === 'contactId'
+          ? referanslariDogrula(prisma, workspaceId, String(deger), undefined)
+          : referanslariDogrula(prisma, workspaceId, undefined, Number(deger)))
+      }
+      return referansOnbellek.get(anahtar)!
+    }
+
+    for (const mapped of mappedRows) {
+      const rowIndex = mapped.rowIndex
+      const { rowIndex: _, ...recordData } = mapped
+
+      /*
+       * Boş hücre = girilmedi. Eşlenen sütunda '' kalan bir değer,
+       * uuid/tarih şemalarında satırı "geçersiz" diye düşürürdü --
+       * kullanıcı tek boş hücre yüzünden satır kaybederdi.
+       */
+      for (const anahtar of Object.keys(recordData)) {
+        if (recordData[anahtar] === '') recordData[anahtar] = null
+      }
+
+      // Convert types
+      if (recordData.amount !== null && recordData.amount !== undefined && recordData.amount !== '') {
+        const num = Number(recordData.amount)
+        if (!Number.isFinite(num)) {
+          errors.push({ row: rowIndex, field: 'amount', message: 'Geçersiz sayı formatı' })
+        } else {
+          recordData.amount = num
+        }
+      } else {
+        recordData.amount = null
+      }
+
+      if (recordData.dueAt) {
+        const date = new Date(recordData.dueAt)
+        if (isNaN(date.getTime())) {
+          errors.push({ row: rowIndex, field: 'dueAt', message: `Tarih okunamadı (${recordData.dueAt})` })
+        } else {
+          recordData.dueAt = date.toISOString()
+        }
+      } else {
+        recordData.dueAt = null
+      }
+
+      // Set defaults
+      recordData.currency = recordData.currency || 'TRY'
+      recordData.priority = recordData.priority || 'normal'
+      recordData.direction = recordData.direction || 'neutral'
+
+      /*
+       * 🔴 YETKI KONTROLÜ SATIR BAZINDA. Elektronik tabloya başka bir
+       * işletmenin cari UUID'si yazılırsa kayıt o cariye bağlanırdı --
+       * BOLA. Tek kayıt ucu bunu `validateReferences` ile zaten
+       * önlüyordu; toplu yol aynı çekirdeği kullanmak ZORUNDA. Hata
+       * isteği düşürmez, kendi satırına yazılır ve o satır atlanır;
+       * kalan satırlar içeri girmeye devam eder.
+       */
+      let referansHatali = false
+      if (recordData.contactId) {
+        const sonuc = await referansSorgula('contactId', recordData.contactId)
+        if (!sonuc.ok) {
+          errors.push({ row: rowIndex, field: sonuc.field, message: sonuc.message })
+          referansHatali = true
+        }
+      }
+      if (!referansHatali && recordData.assignedToId) {
+        const sonuc = await referansSorgula('assignedToId', recordData.assignedToId)
+        if (!sonuc.ok) {
+          errors.push({ row: rowIndex, field: sonuc.field, message: sonuc.message })
+          referansHatali = true
+        }
+      }
+      if (referansHatali) continue
+
+      const parsedRow = recordInput.safeParse(recordData)
+      if (!parsedRow.success) {
+        for (const issue of parsedRow.error.errors) {
+          errors.push({ row: rowIndex, field: issue.path.join('.'), message: issue.message })
+        }
+      } else {
+        validRows.push({ ...parsedRow.data, rowIndex })
+      }
+    }
+
+    if (previewOnly) {
+      return {
+        preview: true,
+        totalRows: rows.length,
+        validRows: validRows.length,
+        errors: errors.slice(0, 50),
+        sample: validRows.slice(0, 5).map(r => {
+          const { rowIndex, ...data } = r
+          return { row: rowIndex, ...data }
+        })
+      }
+    }
+
+    // Actually import the valid rows
+    const createdRecords = []
+    const failedRows: { row: number; reason: string }[] = []
+
+    for (const dalga of dalgalaraBol(validRows, IMPORT_YAZMA_DALGASI)) {
+      try {
+        const yazilanlar = await prisma.$transaction(async tx => {
+          const olusturulanlar = []
+          for (const row of dalga) {
+            const { rowIndex, ...recordData } = row
+            const record = await tx.businessRecord.create({
+              data: {
+                workspaceId,
+                type: recordData.type,
+                title: recordData.title,
+                description: recordData.description ?? null,
+                direction: recordData.direction,
+                amount: recordData.amount ?? null,
+                currency: recordData.currency.toUpperCase(),
+                priority: recordData.priority,
+                dueAt: recordData.dueAt ? new Date(recordData.dueAt) : null,
+                originalDueAt: recordData.dueAt ? new Date(recordData.dueAt) : null,
+                contactId: recordData.contactId ?? null,
+                assignedToId: recordData.assignedToId ?? null,
+                recurrenceRule: recordData.recurrenceRule ?? null,
+                createdById: user.id,
+                metadata: JSON.stringify({ ...(recordData.metadata ?? {}), importRow: rowIndex })
+              }
+            })
+            await tx.businessRecordHistory.create({
+              data: { workspaceId, recordId: record.id, actorId: user.id, action: 'created.import', newData: JSON.stringify(recordJson(record)) }
+            })
+            /* 🔴 Hatırlatma KURULMALI: bu çağrı atlanırsa takvim boş kalır
+               ve kullanıcı vade gününde uyarı almaz. */
+            await syncAutomaticReminder(tx, record)
+            olusturulanlar.push(record)
+          }
+          return olusturulanlar
+        }, IMPORT_ISLEM_SURESI)
+        for (const kayit of yazilanlar) createdRecords.push(recordJson(kayit))
+      } catch (error) {
+        /* Dalga önceden şemadan geçti; buraya düşmesi beklenmedik bir
+           veritabanı durumudur. Dalga bütün olarak geri alınmıştır --
+           yarım yazılı kayıt bırakmak yerine dalganın satırları nedeniyle
+           birlikte raporlanıyor. */
+        const sebep = error instanceof Error ? error.message : 'Bilinmeyen hata'
+        for (const row of dalga) failedRows.push({ row: row.rowIndex, reason: sebep })
+      }
+    }
+
+    return {
+      imported: createdRecords.length,
+      failed: failedRows.length,
+      errors: errors.slice(0, 50),
+      records: createdRecords,
+      failures: failedRows
+    }
   })
 }

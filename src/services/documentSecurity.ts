@@ -21,7 +21,7 @@ export const MAX_IMAGE_PIXELS = 25_000_000
  */
 export const MAX_XML_BYTES = 2 * 1024 * 1024
 
-export const ALLOWED_EXTENSIONS = new Set(['txt', 'md', 'csv', 'json', 'xml', 'docx', 'pdf', 'png', 'jpg', 'jpeg'])
+export const ALLOWED_EXTENSIONS = new Set(['txt', 'md', 'csv', 'json', 'xml', 'docx', 'xlsx', 'pdf', 'png', 'jpg', 'jpeg'])
 export const ALLOWED_MIME_MAP: Record<string, string> = {
   'txt': 'text/plain',
   'md': 'text/markdown',
@@ -29,6 +29,7 @@ export const ALLOWED_MIME_MAP: Record<string, string> = {
   'json': 'application/json',
   'xml': 'application/xml',
   'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   'pdf': 'application/pdf',
   'png': 'image/png',
   'jpg': 'image/jpeg',
@@ -96,10 +97,6 @@ export function detectFileType(buffer: Buffer): FileTypeCheckResult {
   const magic = buffer.subarray(0, 8)
   const firstBytes = buffer.subarray(0, 4)
 
-  if (isZip(buffer)) {
-    return { valid: true, detectedType: 'docx' }
-  }
-
   if (isPdf(buffer)) {
     return { valid: true, detectedType: 'pdf' }
   }
@@ -114,6 +111,11 @@ export function detectFileType(buffer: Buffer): FileTypeCheckResult {
 
   if (isJson(buffer)) {
     return { valid: true, detectedType: 'json' }
+  }
+
+  if (isZip(buffer)) {
+    const zipType = detectZipOfficeType(buffer)
+    return { valid: true, detectedType: zipType }
   }
 
   /*
@@ -134,7 +136,7 @@ export function detectFileType(buffer: Buffer): FileTypeCheckResult {
 
   const sample = buffer.subarray(0, Math.min(buffer.length, 1024))
   if (sample.includes(0x00)) {
-    return { valid: false, detectedType: null, error: 'Binary dosya tespit edildi. Yalnız TXT, MD, CSV, JSON, DOCX desteklenir.' }
+    return { valid: false, detectedType: null, error: 'Binary dosya tespit edildi. Yalnız TXT, MD, CSV, JSON, DOCX, XLSX desteklenir.' }
   }
 
   const slice = buffer.toString('utf-8', 0, Math.min(buffer.length, 512))
@@ -143,6 +145,24 @@ export function detectFileType(buffer: Buffer): FileTypeCheckResult {
   }
 
   return { valid: false, detectedType: null, error: 'Dosya türü tanınamadı' }
+}
+
+/**
+ * ZIP tabanlı Office dosyalarını (DOCX, XLSX) ayırt eder.
+ * İçeriğe bakarak [Content_Types].xml içindeki türü kontrol eder.
+ */
+function detectZipOfficeType(buffer: Buffer): 'docx' | 'xlsx' {
+  // Hızlı kontrol: DOCX için word/document.xml, XLSX için xl/workbook.xml
+  // Basit bir tarama: dosya içinde 'word/' veya 'xl/' klasörlerini arar
+  const content = buffer.toString('utf-8', 0, Math.min(buffer.length, 50000))
+  if (content.includes('word/document.xml') || content.includes('word/')) {
+    return 'docx'
+  }
+  if (content.includes('xl/workbook.xml') || content.includes('xl/')) {
+    return 'xlsx'
+  }
+  // Varsayılan: docx (eski davranış)
+  return 'docx'
 }
 
 function isZip(buffer: Buffer): boolean {
@@ -332,6 +352,7 @@ export interface ZipInspectionResult {
   entryCount: number
   hasContentTypesXml: boolean
   hasWordDocumentXml: boolean
+  hasWorkbookXml: boolean
   hasEncryptedEntries: boolean
   hasTraversalEntries: boolean
   totalUncompressedSize: number
@@ -341,12 +362,12 @@ export interface ZipInspectionResult {
 
 export function inspectZip(buffer: Buffer): ZipInspectionResult {
   if (!isZip(buffer)) {
-    return { valid: false, entryCount: 0, hasContentTypesXml: false, hasWordDocumentXml: false, hasEncryptedEntries: false, hasTraversalEntries: false, totalUncompressedSize: 0, maxSingleEntrySize: 0, error: 'Geçersiz ZIP imzası' }
+    return { valid: false, entryCount: 0, hasContentTypesXml: false, hasWordDocumentXml: false, hasWorkbookXml: false, hasEncryptedEntries: false, hasTraversalEntries: false, totalUncompressedSize: 0, maxSingleEntrySize: 0, error: 'Geçersiz ZIP imzası' }
   }
 
   const eocd = findEOCD(buffer)
   if (!eocd) {
-    return { valid: false, entryCount: 0, hasContentTypesXml: false, hasWordDocumentXml: false, hasEncryptedEntries: false, hasTraversalEntries: false, totalUncompressedSize: 0, maxSingleEntrySize: 0, error: 'ZIP EOCD bulunamadı' }
+    return { valid: false, entryCount: 0, hasContentTypesXml: false, hasWordDocumentXml: false, hasWorkbookXml: false, hasEncryptedEntries: false, hasTraversalEntries: false, totalUncompressedSize: 0, maxSingleEntrySize: 0, error: 'ZIP EOCD bulunamadı' }
   }
 
   const totalEntries = eocd.readUInt16LE(8)
@@ -354,15 +375,16 @@ export function inspectZip(buffer: Buffer): ZipInspectionResult {
   const cdSize = eocd.readUInt32LE(12)
 
   if (totalEntries > MAX_ZIP_ENTRIES) {
-    return { valid: false, entryCount: totalEntries, hasContentTypesXml: false, hasWordDocumentXml: false, hasEncryptedEntries: false, hasTraversalEntries: false, totalUncompressedSize: 0, maxSingleEntrySize: 0, error: `Çok fazla ZIP entry: ${totalEntries} (maks: ${MAX_ZIP_ENTRIES})` }
+    return { valid: false, entryCount: totalEntries, hasContentTypesXml: false, hasWordDocumentXml: false, hasWorkbookXml: false, hasEncryptedEntries: false, hasTraversalEntries: false, totalUncompressedSize: 0, maxSingleEntrySize: 0, error: `Çok fazla ZIP entry: ${totalEntries} (maks: ${MAX_ZIP_ENTRIES})` }
   }
 
   if (cdOffset + cdSize > buffer.length) {
-    return { valid: false, entryCount: totalEntries, hasContentTypesXml: false, hasWordDocumentXml: false, hasEncryptedEntries: false, hasTraversalEntries: false, totalUncompressedSize: 0, maxSingleEntrySize: 0, error: 'ZIP yapısı bozuk' }
+    return { valid: false, entryCount: totalEntries, hasContentTypesXml: false, hasWordDocumentXml: false, hasWorkbookXml: false, hasEncryptedEntries: false, hasTraversalEntries: false, totalUncompressedSize: 0, maxSingleEntrySize: 0, error: 'ZIP yapısı bozuk' }
   }
 
   let hasContentTypesXml = false
   let hasWordDocumentXml = false
+  let hasWorkbookXml = false
   let hasEncryptedEntries = false
   let hasTraversalEntries = false
   let totalUncompressedSize = 0
@@ -402,30 +424,31 @@ export function inspectZip(buffer: Buffer): ZipInspectionResult {
     if (compressedSize > 0 && uncompressedSize > 0) {
       const ratio = uncompressedSize / compressedSize
       if (ratio > MAX_COMPRESSION_RATIO) {
-        return { valid: false, entryCount: totalEntries, hasContentTypesXml, hasWordDocumentXml, hasEncryptedEntries, hasTraversalEntries, totalUncompressedSize, maxSingleEntrySize, error: `Aşırı sıkıştırma oranı: ${Math.round(ratio)}x` }
+        return { valid: false, entryCount: totalEntries, hasContentTypesXml, hasWordDocumentXml, hasWorkbookXml, hasEncryptedEntries, hasTraversalEntries, totalUncompressedSize, maxSingleEntrySize, error: `Aşırı sıkıştırma oranı: ${Math.round(ratio)}x` }
       }
     }
 
     if (name === '[Content_Types].xml') hasContentTypesXml = true
     if (name === 'word/document.xml') hasWordDocumentXml = true
+    if (name === 'xl/workbook.xml') hasWorkbookXml = true
 
     pos += 46 + nameLen + extraLen + commentLen
   }
 
   if (totalUncompressedSize > MAX_TOTAL_UNCOMPRESSED) {
-    return { valid: false, entryCount: totalEntries, hasContentTypesXml, hasWordDocumentXml, hasEncryptedEntries, hasTraversalEntries, totalUncompressedSize, maxSingleEntrySize, error: `Toplam açılmış boyut sınırı aşıldı: ${totalUncompressedSize} bayt` }
+    return { valid: false, entryCount: totalEntries, hasContentTypesXml, hasWordDocumentXml, hasWorkbookXml, hasEncryptedEntries, hasTraversalEntries, totalUncompressedSize, maxSingleEntrySize, error: `Toplam açılmış boyut sınırı aşıldı: ${totalUncompressedSize} bayt` }
   }
 
   if (maxSingleEntrySize > MAX_SINGLE_ENTRY_UNCOMPRESSED) {
-    return { valid: false, entryCount: totalEntries, hasContentTypesXml, hasWordDocumentXml, hasEncryptedEntries, hasTraversalEntries, totalUncompressedSize, maxSingleEntrySize, error: `Tek entry boyutu sınırı aşıldı: ${maxSingleEntrySize} bayt` }
+    return { valid: false, entryCount: totalEntries, hasContentTypesXml, hasWordDocumentXml, hasWorkbookXml, hasEncryptedEntries, hasTraversalEntries, totalUncompressedSize, maxSingleEntrySize, error: `Tek entry boyutu sınırı aşıldı: ${maxSingleEntrySize} bayt` }
   }
 
   if (hasEncryptedEntries) {
-    return { valid: false, entryCount: totalEntries, hasContentTypesXml, hasWordDocumentXml, hasEncryptedEntries, hasTraversalEntries, totalUncompressedSize, maxSingleEntrySize, error: 'Şifreli ZIP dosyaları desteklenmez' }
+    return { valid: false, entryCount: totalEntries, hasContentTypesXml, hasWordDocumentXml, hasWorkbookXml, hasEncryptedEntries, hasTraversalEntries, totalUncompressedSize, maxSingleEntrySize, error: 'Şifreli ZIP dosyaları desteklenmez' }
   }
 
   if (hasTraversalEntries) {
-    return { valid: false, entryCount: totalEntries, hasContentTypesXml, hasWordDocumentXml, hasEncryptedEntries, hasTraversalEntries, totalUncompressedSize, maxSingleEntrySize, error: 'ZIP dosyası güvensiz entry içeriyor' }
+    return { valid: false, entryCount: totalEntries, hasContentTypesXml, hasWordDocumentXml, hasWorkbookXml, hasEncryptedEntries, hasTraversalEntries, totalUncompressedSize, maxSingleEntrySize, error: 'ZIP dosyası güvensiz entry içeriyor' }
   }
 
   return {
@@ -433,6 +456,7 @@ export function inspectZip(buffer: Buffer): ZipInspectionResult {
     entryCount: totalEntries,
     hasContentTypesXml,
     hasWordDocumentXml,
+    hasWorkbookXml,
     hasEncryptedEntries,
     hasTraversalEntries,
     totalUncompressedSize,
@@ -484,7 +508,7 @@ export function dosyayiDogrula(
 
   if (!ALLOWED_EXTENSIONS.has(ext)) {
     throw new FileValidationError(
-      'Desteklenmeyen dosya türü. TXT, MD, CSV, JSON, XML, DOCX, PDF, PNG veya JPEG yükleyin.',
+      'Desteklenmeyen dosya türü. TXT, MD, CSV, JSON, XML, DOCX, XLSX, PDF, PNG veya JPEG yükleyin.',
       415
     )
   }
@@ -502,8 +526,11 @@ export function dosyayiDogrula(
     throw new FileValidationError(contentCheck.error || 'Dosya içeriği desteklenmiyor', 415)
   }
 
-  if ((contentCheck.detectedType === 'docx' && ext !== 'docx') ||
-      (contentCheck.detectedType !== 'docx' && ext === 'docx' && contentCheck.detectedType !== 'text')) {
+  const isOfficeExt = ext === 'docx' || ext === 'xlsx'
+  const isOfficeContent = contentCheck.detectedType === 'docx' || contentCheck.detectedType === 'xlsx'
+
+  if ((isOfficeContent && !isOfficeExt) ||
+      (isOfficeExt && !isOfficeContent && contentCheck.detectedType !== 'text')) {
     throw new FileValidationError(
       `Dosya içeriği (.${contentCheck.detectedType}) uzantı (.${ext}) ile uyuşmuyor`, 415
     )
@@ -511,8 +538,11 @@ export function dosyayiDogrula(
   if (ext === 'docx' && contentCheck.detectedType !== 'docx') {
     throw new FileValidationError('.docx uzantılı dosya geçerli bir DOCX değil', 415)
   }
-  if (ext !== 'docx' && contentCheck.detectedType === 'docx') {
-    throw new FileValidationError('DOCX içeriği .docx uzantısıyla yüklenmelidir', 415)
+  if (ext === 'xlsx' && contentCheck.detectedType !== 'xlsx') {
+    throw new FileValidationError('.xlsx uzantılı dosya geçerli bir XLSX değil', 415)
+  }
+  if (!isOfficeExt && isOfficeContent) {
+    throw new FileValidationError(`${contentCheck.detectedType!.toUpperCase()} içeriği .${contentCheck.detectedType} uzantısıyla yüklenmelidir`, 415)
   }
   if ((ext === 'pdf') !== (contentCheck.detectedType === 'pdf')) {
     throw new FileValidationError('PDF uzantısı ile dosya içeriği uyuşmuyor', 415)
@@ -532,6 +562,18 @@ export function dosyayiDogrula(
     if (!zipInfo.hasContentTypesXml || !zipInfo.hasWordDocumentXml) {
       throw new FileValidationError(
         'Geçersiz DOCX yapısı: eksik [Content_Types].xml veya word/document.xml', 422
+      )
+    }
+  }
+
+  if (ext === 'xlsx') {
+    const zipInfo = inspectZip(buffer)
+    if (!zipInfo.valid) {
+      throw new FileValidationError(zipInfo.error || 'Geçersiz XLSX/ZIP dosyası', 422)
+    }
+    if (!zipInfo.hasContentTypesXml) {
+      throw new FileValidationError(
+        'Geçersiz XLSX yapısı: eksik [Content_Types].xml', 422
       )
     }
   }
