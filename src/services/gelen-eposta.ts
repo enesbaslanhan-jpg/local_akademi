@@ -67,8 +67,45 @@ export type GelenPosta = z.infer<typeof gelenPostaSemasi>
  * katmanı olarak SAYMIYORUZ (gönderen doğrulaması asıl kapı), ama
  * adresin kolayca denenememesi gereksiz gürültüyü kesiyor.
  */
-export function gelenKutusuAnahtariUret(): string {
-  return `fatura-${randomBytes(16).toString('hex')}`
+export function gelenKutusuAnahtariUret(isletmeAdi?: string | null): string {
+  const ek = randomBytes(2).toString('hex')
+  const slug = epostaSlugu(isletmeAdi)
+  return slug ? `${slug}-${ek}` : `fatura-${randomBytes(8).toString('hex')}`
+}
+
+/*
+ * İşletme adını e-posta YEREL ADINA çevirir.
+ *
+ * 🔴 `import.ts`teki `generateSlug` BURADA KULLANILAMAZ. O işlev Türkçe
+ * harfleri BİLEREK koruyor (`[^a-z0-9çşğıüö]`) çünkü URL'de sorun
+ * değiller. E-posta yerel adı ise ASCII olmalı: `ölçüm-işletmesi@…`
+ * SMTPUTF8 gerektirir ve gönderen tarafındaki birçok sunucu bunu
+ * desteklemez -- adres sessizce çalışmaz hâle gelirdi.
+ *
+ * ⚠️ `toLowerCase()` TEK BAŞINA YETMEZ: Türkçe yerelde `I` harfi `ı`ya
+ * dönüyor. Bu depoda tam bu yüzden `PROFESSİONAL COMMUNİTY` hatası
+ * yaşandı. Bu yüzden küçültme yerele bırakılmıyor, harf eşlemesi
+ * BÜYÜK ve küçük Türkçe harflerin hepsini tek tek karşılıyor.
+ */
+const HARF_ESLEME: Record<string, string> = {
+  ç: 'c', Ç: 'c', ğ: 'g', Ğ: 'g', ı: 'i', I: 'i',
+  İ: 'i', i: 'i', ö: 'o', Ö: 'o', ş: 's', Ş: 's', ü: 'u', Ü: 'u'
+}
+
+export function epostaSlugu(isletmeAdi?: string | null): string {
+  if (!isletmeAdi) return ''
+  const asciye = [...isletmeAdi]
+    .map(harf => HARF_ESLEME[harf] ?? harf)
+    .join('')
+    .toLowerCase()
+  return asciye
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    /* Yerel ad sınırı 64 karakter (RFC 5321); ek ve tire için pay
+       bırakarak kısa tutuluyor. Uzun adres zaten çözmeye çalıştığımız
+       sorunun kendisi. */
+    .slice(0, 40)
+    .replace(/-+$/g, '')
 }
 
 /**
@@ -145,9 +182,40 @@ export async function postayiDegerlendir(
     },
     select: { userId: true }
   })
-  if (!uye) return { red: 'gonderen_uye_degil' }
+  if (uye) return { workspaceId: workspace.id, userId: uye.userId }
 
-  return { workspaceId: workspace.id, userId: uye.userId }
+  /*
+   * İKİNCİ YOL: kullanıcının kendi eklediği GÜVENİLİR GÖNDEREN.
+   *
+   * 🔴 NEDEN GEREKLİ: kullanıcı faturayı kendi posta kutusundan
+   * yönlendirdiğinde `From` başlığı GÖNDERENDE kalır (tedarikçi,
+   * pazaryeri), kullanıcıya dönüşmez. Yukarıdaki üyelik kontrolü bu
+   * yüzden yönlendirilen HER postayı reddediyordu -- yani "otomatik
+   * düşsün" akışı hiç çalışmıyordu.
+   *
+   * ⚠️ BU KAPIYI AÇMIYOR. Yukarıdaki DKIM/SPF şartı bu yolda da
+   * geçerli ve ATLANMIYOR: liste kimin yazabileceğini söyler, DKIM
+   * postanın gerçekten o adresten geldiğini kanıtlar. Yalnız listeye
+   * bakmak, `From` uydurulabildiği için hiçbir şey korumazdı.
+   *
+   * Liste varsayılan BOŞ: kullanıcı adres eklemedikçe davranış
+   * eskisiyle birebir aynı kalıyor.
+   */
+  const guvenilir = await prisma.businessInboxSender.findFirst({
+    where: {
+      workspaceId: workspace.id,
+      email: { equals: posta.from, mode: 'insensitive' }
+    },
+    select: { addedById: true }
+  })
+  if (!guvenilir) return { red: 'gonderen_uye_degil' }
+
+  /*
+   * Belge, adresi listeye EKLEYEN kullanıcıya yazılıyor.
+   * `UploadedDocument.userId` zorunlu ve gönderen bizim kullanıcımız
+   * değil; sorumluluğu üstlenen, o adrese güvenmeyi seçen kişidir.
+   */
+  return { workspaceId: workspace.id, userId: guvenilir.addedById }
 }
 
 export async function gelenEpostaRotalari(

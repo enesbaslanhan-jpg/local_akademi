@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { BarChart3, Camera, Check, Eye, FileImage, FileText, ImagePlus, Trash2, Upload, X } from 'lucide-react'
+import { BarChart3, Camera, Check, Eye, FileImage, FileText, ImagePlus, Mail, Trash2, Upload, X } from 'lucide-react'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
-import { Select } from '@/components/ui'
+import { Select, Button } from '@/components/ui'
 import styles from './Documents.module.css'
 
 const categories = {
@@ -38,6 +38,18 @@ export default function Documents() {
   const [preview, setPreview] = useState(null)
   const [modelMappings, setModelMappings] = useState({})
   const [mappingLoading, setMappingLoading] = useState(null)
+  /*
+   * Gelen kutusu adresi BURADA gösteriliyor.
+   *
+   * Ayarların dibinde duruyordu ve ürün sahibi bulamadı ("yeri kötü").
+   * Belge eklemenin diğer yolları (dosya seç, fotoğraf çek) bu panelde;
+   * e-postayla göndermek de bir belge ekleme yolu, ayrı bir ayar değil.
+   * Ayarlardaki blok yönetim işleri (yenile/kapat/güvenilir gönderen)
+   * için duruyor; adres iki yerde de aynı uçtan okunuyor, ikinci bir
+   * durum kopyası yok.
+   */
+  const [inbox, setInbox] = useState(null)
+  const [epostaAcik, setEpostaAcik] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -49,6 +61,12 @@ export default function Documents() {
   }, [toast, workspaceId])
 
   useEffect(() => { load() }, [load])
+
+  /* Adres yalnız yöneticiye görünür (uç `MANAGER` istiyor); yetkisi
+     olmayan üyede sessizce gizleniyor, hata gösterilmiyor. */
+  useEffect(() => {
+    api.workspace.inbox.get(workspaceId).then(setInbox).catch(() => setInbox(null))
+  }, [workspaceId])
 
   async function processFile(file) {
     if (!file) return
@@ -154,15 +172,58 @@ export default function Documents() {
           <button onClick={() => cameraInputRef.current?.click()} disabled={uploading}>
             <Camera size={18} /> Fotoğraf çek
           </button>
+          {inbox?.kanalHazir && (
+            <button onClick={() => setEpostaAcik(a => !a)} disabled={uploading} aria-expanded={epostaAcik}>
+              <Mail size={18} /> E-posta ile gönder
+            </button>
+          )}
         </div>
 
-        <input ref={fileInputRef} hidden type="file" accept=".txt,.md,.csv,.json,.xml,.docx,.pdf,.png,.jpg,.jpeg" onChange={uploadFile} />
+        {epostaAcik && inbox?.kanalHazir && (
+          <div className={styles.epostaKanali}>
+            {inbox.acik ? (
+              <>
+                <p>Faturaları bu adrese gönderin; onay bekleyen kayıt olarak düşer.</p>
+                <div className={styles.epostaAdres}>
+                  <code>{inbox.adres}</code>
+                  <Button
+                    type="button" variant="secondary"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(inbox.adres)
+                      toast.success('Adres kopyalandı.')
+                    }}
+                  >
+                    Kopyala
+                  </Button>
+                </div>
+                {/* Yönlendirme kuralı, ürün sahibinin "otomatik düşsün"
+                    isteğinin karşılığı. Ama yönlendirilen postada
+                    gönderen TEDARİKÇİ olarak kaldığı için o adresin
+                    güvenilir listeye eklenmesi şart -- kullanıcı bunu
+                    bilmezse kuralı kurar ve hiçbir şey gelmez. */}
+                <p className={styles.epostaIpucu}>
+                  E-posta kutunuzda bir yönlendirme kuralı kurarak faturaların
+                  buraya kendiliğinden düşmesini sağlayabilirsiniz. Bunun için
+                  faturayı gönderen adresi <strong>Ayarlar → güvenilir gönderenler</strong>
+                  {' '}listesine eklemeniz gerekir; aksi hâlde yönlendirilen posta kabul edilmez.
+                </p>
+              </>
+            ) : (
+              <p>
+                Bu çalışma alanı için e-posta adresi henüz oluşturulmadı.
+                <strong> Ayarlar</strong> sayfasından açabilirsiniz.
+              </p>
+            )}
+          </div>
+        )}
+
+        <input ref={fileInputRef} hidden type="file" accept=".txt,.md,.csv,.json,.xml,.docx,.xlsx,.pdf,.png,.jpg,.jpeg" onChange={uploadFile} />
         <input ref={photoInputRef} hidden type="file" accept="image/png,image/jpeg" onChange={uploadFile} />
         <input ref={cameraInputRef} hidden type="file" accept="image/*" capture="environment" onChange={uploadFile} />
       </div>
 
       <div className={styles.note}>
-        PDF, DOCX, PNG, JPEG, CSV, JSON, XML, TXT ve MD desteklenir. Muhasebe programınızdan aldığınız e-Fatura XML dosyasını doğrudan yükleyebilirsiniz. Fotoğraf ve taranmış belgeler yerel Türkçe OCR ile okunur; dış servise gönderilmez. Algılanan kayıt siz onaylamadan kesinleşmez.
+        PDF, DOCX, XLSX, PNG, JPEG, CSV, JSON, XML, TXT ve MD desteklenir. Muhasebe programınızdan aldığınız e-Fatura XML dosyasını doğrudan yükleyebilirsiniz. Fotoğraf ve taranmış belgeler yerel Türkçe OCR ile okunur; dış servise gönderilmez. Algılanan kayıt siz onaylamadan kesinleşmez.
       </div>
 
       {documents.length === 0 ? (

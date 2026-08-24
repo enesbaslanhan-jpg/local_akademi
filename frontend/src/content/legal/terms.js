@@ -181,9 +181,18 @@ export default {
         'onaylamadan kesinleşmez.',
         'Bu adres VARSAYILAN OLARAK KAPALIDIR; yalnızca siz açtığınızda çalışır ve ' +
         'istediğiniz zaman kapatabilir ya da yenileyebilirsiniz.',
-        'Adrese YALNIZCA çalışma alanınızın üyeleri, uygulamada doğrulanmış kendi ' +
-        'e-posta adreslerinden gönderim yapabilir. Başka bir adresten gelen postalar ' +
-        'işlenmez ve gönderene bilgi verilmeden atılır.',
+        'Adrese iki grup gönderim yapabilir: (a) çalışma alanınızın üyeleri, uygulamada ' +
+        'doğrulanmış kendi e-posta adreslerinden; (b) GÜVENİLİR GÖNDEREN olarak ' +
+        'kendi elinizle eklediğiniz adresler. Bu liste varsayılan olarak BOŞTUR; siz ' +
+        'adres eklemedikçe yalnızca (a) geçerlidir. Bu iki grubun dışından gelen ' +
+        'postalar işlenmez ve gönderene bilgi verilmeden atılır.',
+        'Güvenilir gönderen listesi, faturaları kendi e-posta kutunuzdan otomatik ' +
+        'yönlendirmenizi mümkün kılar: yönlendirilen bir postada gönderen adresi ' +
+        'sizinki değil, faturayı düzenleyenin adresi olarak kalır. Listeye eklediğiniz ' +
+        'her adresi, o adresten gelecek belgeleri kabul etmeyi kabul etmiş sayılırsınız; ' +
+        'listeyi istediğiniz zaman görebilir ve adres çıkarabilirsiniz.',
+        'Listede olan bir adresten gelse dahi, postanın gerçekten o adresten geldiği ' +
+        'teknik olarak (DKIM/SPF) doğrulanamazsa posta işlenmez.',
         'Adresi üçüncü kişilerle paylaşmamanız önerilir. Adresin başkalarının eline ' +
         'geçmesi hâlinde ayarlardan yenileyerek eski adresi geçersiz kılabilirsiniz.',
         'Bu adrese gönderdiğiniz belgeler tedarikçilerinize ve müşterilerinize ait ' +

@@ -110,14 +110,24 @@ describe('paylaşılan anahtar', () => {
 })
 
 describe('kutu adresi', () => {
-  /* Tahmin edilebilirlik tek başına güvenlik değil ama gereksiz
-     denemeleri kesiyor. */
-  it('her çağrıda farklı ve yeterince uzun', () => {
+  /*
+   * ⚠️ BU TESTİN ŞARTI BİLEREK GEVŞETİLDİ.
+   *
+   * Eskiden `length >= 38` ve `fatura-<32 onaltılık>` aranıyordu.
+   * O uzunluk, adresin elle yazılamaz olmasının sebebiydi ve ürün
+   * sahibinin ilk şikâyeti buydu ("çok uzun ya"). Adres artık işletme
+   * adından türüyor.
+   *
+   * Kısaltmak güvenlik modelini BOZMUYOR: bu dosyanın başındaki
+   * yorumun ve `gelen-eposta.ts:66`nın söylediği gibi tahmin
+   * edilebilirlik bir katman olarak sayılmıyor -- asıl kapı aşağıdaki
+   * "gönderen doğrulaması" bloğu. Kısa adres yalnız gereksiz
+   * denemeleri kesmeyi bırakıyor, koruma kaybı yok.
+   */
+  it('her çağrıda farklı', () => {
     const a = gelenKutusuAnahtariUret()
     const b = gelenKutusuAnahtariUret()
     expect(a).not.toBe(b)
-    expect(a.length).toBeGreaterThanOrEqual(38)
-    expect(a).toMatch(/^fatura-[0-9a-f]{32}$/)
   })
 })
 
@@ -200,6 +210,126 @@ describe('gönderen doğrulaması', () => {
     })
 
     const sonuc = await postayiDegerlendir(prisma, posta({ from: digerEposta }))
+    expect(sonuc).toEqual({ red: 'gonderen_uye_degil' })
+
+    await prisma.businessWorkspace.delete({ where: { id: digerWs.id } })
+    await prisma.user.delete({ where: { id: diger.id } })
+  })
+})
+
+/*
+ * ADRES BİÇİMİ.
+ *
+ * Adres 32 onaltılık karakterden işletme adına çevrildi: kullanıcı onu
+ * muhasebe programına ELLE yazacak ve tedarikçisine verecek.
+ *
+ * 🔴 Türkçe harf çevirisi burada bir süs değil: e-posta yerel adı
+ * ASCII olmalı. `ölçüm-işletmesi@…` SMTPUTF8 gerektirir ve gönderen
+ * tarafındaki birçok sunucu desteklemez -- adres sessizce çalışmaz
+ * hâle gelirdi.
+ */
+describe('gelen kutusu adresi', () => {
+  it('işletme adından türetiliyor ve YALNIZ ascii taşıyor', () => {
+    const anahtar = gelenKutusuAnahtariUret('Ölçüm İşletmesi')
+    expect(anahtar).toMatch(/^olcum-isletmesi-[0-9a-f]{4}$/)
+  })
+
+  it('Türkçe harflerin TAMAMI çevriliyor', () => {
+    /* Büyük İ ve büyük I ayrı ayrı sınanıyor: `toLowerCase()` Türkçe
+       yerelde `I`yı `ı`ya çeviriyor ve bu depoda tam bu yüzden
+       `PROFESSİONAL COMMUNİTY` hatası yaşanmıştı. */
+    const anahtar = gelenKutusuAnahtariUret('ÇĞIİÖŞÜ çğıiöşü')
+    expect(anahtar).toMatch(/^cgiiosu-cgiiosu-[0-9a-f]{4}$/)
+  })
+
+  it('adsız çalışma alanında rastgele adrese düşüyor', () => {
+    /* Ad yoksa ya da tamamen simgeden oluşuyorsa boş bir yerel ad
+       üretmek adresi bozardı. */
+    expect(gelenKutusuAnahtariUret('!!! ???')).toMatch(/^fatura-[0-9a-f]{16}$/)
+    expect(gelenKutusuAnahtariUret(null)).toMatch(/^fatura-[0-9a-f]{16}$/)
+  })
+
+  it('her çağrıda farklı ek üretiyor', () => {
+    const a = gelenKutusuAnahtariUret('Aynı İşletme')
+    const b = gelenKutusuAnahtariUret('Aynı İşletme')
+    expect(a).not.toBe(b)
+  })
+
+  it('çok uzun ad kısaltılıyor ve tire ile bitmiyor', () => {
+    /* RFC 5321 yerel adı 64 karakterle sınırlıyor; ayrıca uzun adres
+       zaten çözmeye çalıştığımız sorunun kendisi. */
+    const anahtar = gelenKutusuAnahtariUret('A'.repeat(120))
+    expect(anahtar.length).toBeLessThanOrEqual(64)
+    expect(anahtar).not.toMatch(/--/)
+  })
+})
+
+/*
+ * GÜVENİLİR GÖNDEREN LİSTESİ.
+ *
+ * 🔴 NEDEN VAR: kullanıcı faturayı kendi kutusundan YÖNLENDİRDİĞİNDE
+ * `From` başlığı gönderende kalıyor (tedarikçi, pazaryeri) --
+ * kullanıcıya dönüşmüyor. Üyelik kontrolü bu yüzden yönlendirilen her
+ * postayı reddediyordu ve "otomatik düşsün" akışı hiç çalışmıyordu.
+ *
+ * 🔴 BU LİSTE KAPIYI AÇMIYOR, ve aşağıdaki ikinci test bunun kanıtı:
+ * DKIM/SPF şartı bu yolda da aranıyor. Liste kimin yazabileceğini
+ * söyler; DKIM postanın gerçekten o adresten geldiğini kanıtlar.
+ * Yalnız listeye bakmak, `From` uydurulabildiği için hiçbir şey
+ * korumazdı.
+ */
+describe('güvenilir gönderen listesi', () => {
+  const tedarikciEposta = `tedarikci-${Date.now()}@pazaryeri.test`
+
+  it('liste BOŞKEN eski davranış birebir korunuyor', async () => {
+    /* Bu, göçün mevcut kullanıcıları etkilemediğinin kanıtı. */
+    const sonuc = await postayiDegerlendir(prisma, posta({ from: tedarikciEposta }))
+    expect(sonuc).toEqual({ red: 'gonderen_uye_degil' })
+  })
+
+  it('listeye eklenen yabancı gönderen KABUL edilir', async () => {
+    const uye = await prisma.user.findUnique({ where: { email: uyeEposta } })
+    await prisma.businessInboxSender.create({
+      data: { workspaceId, email: tedarikciEposta, addedById: uye!.id }
+    })
+
+    const sonuc = await postayiDegerlendir(prisma, posta({ from: tedarikciEposta }))
+    /* Belge, adrese GÜVENMEYİ SEÇEN kişiye yazılıyor: gönderen bizim
+       kullanıcımız değil, sorumluluğu üstlenen listeyi kuran kişi. */
+    expect(sonuc).toEqual({ workspaceId, userId: uye!.id })
+  })
+
+  it('🔴 listede OLSA BİLE DKIM/SPF geçmezse reddedilir', async () => {
+    const sonuc = await postayiDegerlendir(
+      prisma, posta({ from: tedarikciEposta, dkim: 'fail', spf: 'fail' })
+    )
+    expect(sonuc).toEqual({ red: 'dkim_spf_gecmedi' })
+  })
+
+  it('büyük harfle gelen adres de eşleşir', async () => {
+    const sonuc = await postayiDegerlendir(
+      prisma, posta({ from: tedarikciEposta.toUpperCase() })
+    )
+    expect(sonuc).toHaveProperty('workspaceId', workspaceId)
+  })
+
+  it('BAŞKA çalışma alanının listesi bu kutuyu açmaz', async () => {
+    /* 🔴 BOLA: liste workspace'e BAĞLI aranıyor. Genel bir "bu adres
+       herhangi bir listede var mı" kontrolü olsaydı, bir kullanıcının
+       güvendiği adres HERKESİN kutusuna yazabilirdi. */
+    const digerEposta = `diger-liste-${Date.now()}@ornek.test`
+    const diger = await prisma.user.create({
+      data: { email: digerEposta, password: 'x', name: 'Diğer', role: 'learner', emailVerifiedAt: new Date() }
+    })
+    const digerWs = await prisma.businessWorkspace.create({
+      data: { name: 'Diğer Alan', createdById: diger.id, status: 'active' }
+    })
+    const yabanciTedarikci = `yabanci-tedarikci-${Date.now()}@pazaryeri.test`
+    await prisma.businessInboxSender.create({
+      data: { workspaceId: digerWs.id, email: yabanciTedarikci, addedById: diger.id }
+    })
+
+    const sonuc = await postayiDegerlendir(prisma, posta({ from: yabanciTedarikci }))
     expect(sonuc).toEqual({ red: 'gonderen_uye_degil' })
 
     await prisma.businessWorkspace.delete({ where: { id: digerWs.id } })

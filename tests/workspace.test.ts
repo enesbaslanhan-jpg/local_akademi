@@ -769,12 +769,39 @@ describe('Workspace API', () => {
       expect(res.json().adres).toBeNull()
     })
 
-    it('açılınca tahmin edilemez bir adres üretir', async () => {
+    /*
+     * ⚠️ BEKLENTİ BİLEREK DEĞİŞTİ (24.08.2026).
+     *
+     * Eskiden `fatura-<32 onaltılık>` aranıyordu. O uzunluk adresin
+     * elle yazılamaz olmasının sebebiydi; ürün sahibinin ilk şikâyeti
+     * buydu ("çok uzun ya"). Adres artık İŞLETME ADINDAN türüyor.
+     *
+     * Kısalmak koruma kaybı DEĞİL: tahmin edilebilirlik bu tasarımda
+     * hiçbir zaman güvenlik katmanı sayılmadı (`gelen-eposta.ts:66`),
+     * asıl kapı gönderen doğrulaması ve `gelen-eposta.test.ts`te
+     * ayrıca sınanıyor.
+     */
+    it('açılınca işletme adından türeyen bir adres üretir', async () => {
       const res = await post(`/workspaces/${wsAId}/inbox`, {}, userToken)
       expect(res.statusCode).toBe(200)
       expect(res.json().acik).toBe(true)
-      /* 32 onaltılık karakter: kolayca denenemez. */
-      expect(res.json().adres).toMatch(/^fatura-[0-9a-f]{32}@/)
+
+      const yerelAd = res.json().adres.split('@')[0]
+
+      /* Ada SABİTLENMİYOR: bu dosyadaki başka bir test çalışma alanını
+         yeniden adlandırıyor ve adres o ada göre türüyor. Sabit bir ad
+         beklemek, testi alakasız bir değişiklikte kırardı. */
+      const guncelAd = (await get(`/workspaces/${wsAId}`, userToken)).json().name
+      const beklenenSlug = guncelAd.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+      expect(yerelAd).toBe(`${beklenenSlug}-${yerelAd.slice(-4)}`)
+
+      /* 🔴 ASIL İDDİA: yerel ad ASCII olmalı. E-posta yerel adında
+         Türkçe harf SMTPUTF8 gerektirir ve gönderen tarafındaki birçok
+         sunucu desteklemez -- adres sessizce çalışmaz hâle gelirdi. */
+      expect(yerelAd).toMatch(/^[a-z0-9-]+-[0-9a-f]{4}$/)
+
+      /* Elle yazılabilir uzunlukta olmalı: değişikliğin sebebi buydu. */
+      expect(yerelAd.length).toBeLessThanOrEqual(45)
     })
 
     /*

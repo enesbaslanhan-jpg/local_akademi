@@ -9,6 +9,10 @@ const mocks = vi.hoisted(() => ({
   archive: vi.fn(),
   acceptSuggestion: vi.fn(),
   rejectSuggestion: vi.fn(),
+  /* Varsayılan: kanal sunucuda yapılandırılmamış. Böylece mevcut
+     testler e-posta bloğunu hiç görmüyor ve beklentileri değişmiyor;
+     bloğun kendisi aşağıda ayrıca sınanıyor. */
+  inboxGet: vi.fn(() => Promise.resolve({ acik: false, adres: null, kanalHazir: false })),
   toast: { success: vi.fn(), error: vi.fn() }
 }))
 
@@ -21,7 +25,11 @@ vi.mock('@/services/api', () => ({
         archive: mocks.archive,
         acceptSuggestion: mocks.acceptSuggestion,
         rejectSuggestion: mocks.rejectSuggestion
-      }
+      },
+      /* Belgeler ekranı gelen kutusu adresini de okuyor: e-postayla
+         göndermek bir belge ekleme yolu ve adres artık burada
+         gösteriliyor. Sahte eksik kalırsa bileşen açılışta düşüyor. */
+      inbox: { get: mocks.inboxGet }
     }
   }
 }))
@@ -45,6 +53,9 @@ describe('Workspace documents', () => {
     vi.clearAllMocks()
     mocks.list.mockResolvedValue({ documents: [] })
     mocks.upload.mockResolvedValue({ id: 'document-1' })
+    /* clearAllMocks varsayilan uygulamayi da siliyor; kanal kapali
+       hali her testte yeniden kuruluyor. */
+    mocks.inboxGet.mockResolvedValue({ acik: false, adres: null, kanalHazir: false })
   })
 
   it('shows file, gallery and camera upload choices', async () => {
@@ -130,5 +141,53 @@ describe('e-Fatura önerisi gösterimi', () => {
 
     expect(await screen.findByText(/Tahsilat/)).toBeInTheDocument()
     expect(screen.queryByText(/belirlenemedi/)).not.toBeInTheDocument()
+  })
+})
+
+/*
+ * E-POSTA KANALI BELGELER EKRANINDA.
+ *
+ * Adres Ayarların dibinde duruyordu ve ürün sahibi bulamadı
+ * ("yeri kötü"). Belge eklemenin diğer yolları bu paneldeyken
+ * e-postayla göndermek ayrı bir sayfada olamaz.
+ */
+describe('e-posta ile gönderme seçeneği', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mocks.list.mockResolvedValue({ documents: [] })
+  })
+
+  it('kanal sunucuda yapılandırılmamışsa seçenek HİÇ gösterilmez', async () => {
+    /* Adres göstermek posta gelmeyeceği hâlde çalışıyor izlenimi
+       verirdi -- sessiz başarısızlığın kötü türü. */
+    mocks.inboxGet.mockResolvedValue({ acik: true, adres: 'x@y.test', kanalHazir: false })
+    renderPage()
+
+    await screen.findByText(/Belge veya fotoğraf ekleyin/)
+    expect(screen.queryByRole('button', { name: /E-posta ile gönder/ })).not.toBeInTheDocument()
+  })
+
+  it('kanal hazırken adres açılıp gösteriliyor', async () => {
+    mocks.inboxGet.mockResolvedValue({
+      acik: true, adres: 'olcum-isletmesi-a7k3@inbox.localkarar.com', kanalHazir: true
+    })
+    renderPage()
+
+    const dugme = await screen.findByRole('button', { name: /E-posta ile gönder/ })
+    /* Adres AÇILMADAN görünmemeli: panel zaten kalabalık. */
+    expect(screen.queryByText(/olcum-isletmesi-a7k3/)).not.toBeInTheDocument()
+
+    fireEvent.click(dugme)
+    expect(await screen.findByText(/olcum-isletmesi-a7k3@inbox.localkarar.com/)).toBeInTheDocument()
+  })
+
+  it('kutu açılmamışsa kullanıcı Ayarlara yönlendiriliyor', async () => {
+    /* Boş ekran ne yapacağını söylemeli; "adres yok" tek başına
+       kullanıcıyı çıkmaza sokar. */
+    mocks.inboxGet.mockResolvedValue({ acik: false, adres: null, kanalHazir: true })
+    renderPage()
+
+    fireEvent.click(await screen.findByRole('button', { name: /E-posta ile gönder/ }))
+    expect(await screen.findByText(/henüz oluşturulmadı/)).toBeInTheDocument()
   })
 })

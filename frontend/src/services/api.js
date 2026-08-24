@@ -1054,7 +1054,18 @@ export const api = {
     inbox: {
       async get(workspaceId) { return api.request(`/workspaces/${workspaceId}/inbox`) },
       async enable(workspaceId) { return api.request(`/workspaces/${workspaceId}/inbox`, { method: 'POST' }) },
-      async disable(workspaceId) { return api.request(`/workspaces/${workspaceId}/inbox`, { method: 'DELETE' }) }
+      async disable(workspaceId) { return api.request(`/workspaces/${workspaceId}/inbox`, { method: 'DELETE' }) },
+      /* Güvenilir gönderenler: yönlendirilen postada `From` gönderende
+         kaldığı için bu liste olmadan otomatik akış çalışmıyor. */
+      async senders(workspaceId) { return api.request(`/workspaces/${workspaceId}/inbox/senders`) },
+      async addSender(workspaceId, email, label) {
+        return api.request(`/workspaces/${workspaceId}/inbox/senders`, {
+          method: 'POST', body: JSON.stringify({ email, label })
+        })
+      },
+      async removeSender(workspaceId, senderId) {
+        return api.request(`/workspaces/${workspaceId}/inbox/senders/${senderId}`, { method: 'DELETE' })
+      }
     },
     async update(workspaceId, data) {
       return api.request(`/workspaces/${workspaceId}`, { method: 'PUT', body: JSON.stringify(data) })

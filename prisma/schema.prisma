@@ -94,6 +94,7 @@ model User {
   emailVerificationCodes    EmailVerificationCode[]
   consents                  UserConsent[]
   refreshTokens             RefreshToken[]
+  addedInboxSenders         BusinessInboxSender[]
 
   @@index([deletedAt])
 }
@@ -795,8 +796,38 @@ model BusinessWorkspace {
   suggestions            DocumentSuggestion[]
   financialModelRuns     FinancialModelRun[]
   decisionJournalEntries DecisionJournalEntry[]
+  inboxSenders           BusinessInboxSender[]
 
   @@unique([slug])
+}
+
+// Gelen kutusuna posta gonderebilen GUVENILIR adresler.
+//
+// Neden var: kullanici kendi posta kutusundan fatura yonlendirdiginde
+// `From` basligi GONDERENDE kalir (ornegin tedarikci), kullaniciya
+// donusmez. "Yalniz dogrulanmis uye gonderebilir" kurali bu yuzden
+// yonlendirilen her postayi reddediyordu -- yani otomatik akis hic
+// calismiyordu.
+//
+// Liste VARSAYILAN BOS: kullanici adres eklemedikce eski davranis
+// birebir korunur. Liste kimin yazabilecegini soyler; postanin
+// gercekten o adresten geldigini DKIM dogrular. Ikisi birlikte aranir.
+model BusinessInboxSender {
+  id          String            @id @default(uuid())
+  workspaceId String
+  // Kucuk harfe normalize edilmis olarak saklanir; eslesme de oyle
+  // yapilir. E-posta adresleri buyuk/kucuk harfe duyarsizdir.
+  email       String
+  // Kullanicinin kendi verdigi ad ("Trendyol faturalari") -- listeyi
+  // aylar sonra okuyabilmesi icin.
+  label       String?
+  addedById   Int
+  createdAt   DateTime          @default(now())
+  workspace   BusinessWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  addedBy     User              @relation(fields: [addedById], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, email])
+  @@index([workspaceId])
 }
 
 model BusinessMember {

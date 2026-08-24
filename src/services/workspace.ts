@@ -526,7 +526,40 @@ export async function workspaceRoutes(fastify: FastifyInstance, opts?: { prisma?
      * ekran görüntüsünde) kullanıcının onu değiştirebilmesi gerekiyor;
      * aksi hâlde tek çare kanalı tamamen kapatmak olurdu.
      */
-    const inboxKey = gelenKutusuAnahtariUret()
+    /*
+     * Adres işletme ADINDAN türetiliyor: kullanıcı onu muhasebe
+     * programına elle yazacak ve tedarikçisine verecek. 32 karakterlik
+     * rastgele dizi bu yüzden kullanılmıyordu -- ürün sahibinin
+     * "çok uzun" tespiti.
+     *
+     * Sondaki kısa ek hem aynı adlı iki işletmenin çakışmasını hem de
+     * adresin kolayca denenmesini engelliyor. Tahmin edilebilirlik
+     * güvenlik katmanı SAYILMIYOR (gönderen doğrulaması asıl kapı),
+     * ama gereksiz gürültüyü kesiyor.
+     */
+    const ws = await prisma.businessWorkspace.findUnique({
+      where: { id: workspaceId },
+      select: { name: true }
+    })
+
+    /*
+     * `inboxKey` şemada @unique. Rastgele ek 65.536 ihtimal veriyor;
+     * aynı adlı iki işletmede çakışma İHTİMALİ var, o yüzden başarıya
+     * kadar deneniyor. Sessizce çakışıp 500 dönmek, kullanıcıya
+     * anlamsız bir hata göstermek olurdu.
+     */
+    let inboxKey = ''
+    for (let deneme = 0; deneme < 8; deneme++) {
+      const aday = gelenKutusuAnahtariUret(ws?.name)
+      const dolu = await prisma.businessWorkspace.findUnique({
+        where: { inboxKey: aday }, select: { id: true }
+      })
+      if (!dolu) { inboxKey = aday; break }
+    }
+    if (!inboxKey) {
+      return reply.status(503).send({ error: 'Adres üretilemedi, lütfen tekrar deneyin' })
+    }
+
     await prisma.businessWorkspace.update({
       where: { id: workspaceId },
       data: { inboxKey }
@@ -551,6 +584,89 @@ export async function workspaceRoutes(fastify: FastifyInstance, opts?: { prisma?
       workspaceId, actorId: user.id, action: 'inbox.disabled', entityType: 'workspace'
     })
     return { acik: false, adres: null }
+  })
+
+  /*
+   * GÜVENİLİR GÖNDERENLER.
+   *
+   * Kullanıcı, kendi posta kutusundan fatura YÖNLENDİRDİĞİNDE `From`
+   * başlığı gönderende kalıyor; bu liste o adresleri kabul etmeyi
+   * mümkün kılıyor. DKIM şartı listeye bakılırken de ATLANMIYOR
+   * (`gelen-eposta.ts`).
+   *
+   * Yetki `MANAGER`: kutuyu açan/kapatanla aynı seviye. Bu liste
+   * işletmeye belge sokan bir kapı, sıradan bir tercih değil.
+   */
+  fastify.get('/:workspaceId/inbox/senders', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId } = request.params as { workspaceId: string }
+    if (!await assertRole(prisma, user.id, workspaceId, MANAGER, reply)) return
+
+    /* 🔴 workspaceId ile KAPSANIYOR: yalnız `id` ile sorgulamak başka
+       çalışma alanının listesini okutabilirdi (BOLA). */
+    const gonderenler = await prisma.businessInboxSender.findMany({
+      where: { workspaceId },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, email: true, label: true, createdAt: true }
+    })
+    return { gonderenler }
+  })
+
+  fastify.post('/:workspaceId/inbox/senders', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId } = request.params as { workspaceId: string }
+    if (!await assertRole(prisma, user.id, workspaceId, MANAGER, reply)) return
+    if (!await assertActiveWorkspace(prisma, workspaceId, reply)) return
+
+    const govde = z.object({
+      email: z.string().trim().email().max(254),
+      label: z.string().trim().max(80).optional()
+    }).safeParse(request.body)
+    if (!govde.success) {
+      return reply.status(422).send({ error: 'Geçerli bir e-posta adresi girin' })
+    }
+
+    /* E-posta adresleri büyük/küçük harfe duyarsız; hem saklama hem
+       eşleştirme küçük harfte yapılıyor ki `@Trendyol.com` ile
+       `@trendyol.com` iki ayrı kayıt olmasın. */
+    const email = govde.data.email.toLowerCase()
+
+    const mevcut = await prisma.businessInboxSender.findUnique({
+      where: { workspaceId_email: { workspaceId, email } },
+      select: { id: true }
+    })
+    if (mevcut) return reply.status(409).send({ error: 'Bu adres zaten listede' })
+
+    const kayit = await prisma.businessInboxSender.create({
+      data: { workspaceId, email, label: govde.data.label || null, addedById: user.id },
+      select: { id: true, email: true, label: true, createdAt: true }
+    })
+
+    /* Denetim kaydı: bu liste bir güvenlik kararı, kimin ne zaman
+       hangi adrese güvendiği sonradan sorulabilmeli. */
+    await recordWorkspaceActivity(prisma, {
+      workspaceId, actorId: user.id, action: 'inbox.sender.added',
+      entityType: 'workspace', metadata: { email }
+    })
+    return kayit
+  })
+
+  fastify.delete('/:workspaceId/inbox/senders/:senderId', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId, senderId } = request.params as { workspaceId: string; senderId: string }
+    if (!await assertRole(prisma, user.id, workspaceId, MANAGER, reply)) return
+
+    /* 🔴 SİLME DE KAPSANIYOR: `where: { id }` tek başına, başka
+       çalışma alanının kaydını sildirirdi. */
+    const silinen = await prisma.businessInboxSender.deleteMany({
+      where: { id: senderId, workspaceId }
+    })
+    if (silinen.count === 0) return reply.status(404).send({ error: 'Kayıt bulunamadı' })
+
+    await recordWorkspaceActivity(prisma, {
+      workspaceId, actorId: user.id, action: 'inbox.sender.removed', entityType: 'workspace'
+    })
+    return { silindi: true }
   })
 
   fastify.put('/:workspaceId', async (request, reply) => {

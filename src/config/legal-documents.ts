@@ -38,7 +38,12 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
        yayımlanmıştı; açıklar o sırada kapatılmadığı için ikinci bir
        artış kaçınılmaz oldu. Kullanıcı aynı gün iki kez onay görüyor --
        bir daha olmaması için metin ile özellik AYNI turda güncellenmeli. */
-    version: '2026-08-23.2',
+    /* 2026-08-24: gelen kutusuna GÜVENİLİR GÖNDEREN listesi eklendi.
+       Metin bu artıştan önce "Başka bir adresten gelen postalar
+       işlenmez" diyordu; liste eklendiği an o cümle YANLIŞ olacaktı.
+       Özellik ve metin bu kez AYNI turda güncellendi -- 23.08'de aynı
+       gün iki kez onay istemek zorunda kalmamızın dersi buydu. */
+    version: '2026-08-24',
     requiredAtSignup: true
   },
   {

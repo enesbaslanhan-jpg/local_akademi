@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { api } from '@/services/api'
 import { useWorkspace } from '@/context/WorkspaceContext'
 import Button from '@/components/ui/Button'
-import { Select } from '@/components/ui'
+import { Select, Input } from '@/components/ui'
 import styles from './Settings.module.css'
 
 const emptyProfile = {
@@ -51,6 +51,47 @@ export default function Settings() {
   const [savingProfile, setSavingProfile] = useState(false)
   const [inbox, setInbox] = useState(null)
   const [inboxIsleniyor, setInboxIsleniyor] = useState(false)
+  const [gonderenler, setGonderenler] = useState([])
+  const [yeniGonderen, setYeniGonderen] = useState('')
+  const [yeniGonderenEtiket, setYeniGonderenEtiket] = useState('')
+  const [gonderenIsleniyor, setGonderenIsleniyor] = useState(false)
+
+  async function gonderenleriYukle() {
+    try {
+      setGonderenler((await api.workspace.inbox.senders(workspaceId)).gonderenler)
+    } catch { setGonderenler([]) }
+  }
+
+  async function gonderenEkle() {
+    setGonderenIsleniyor(true)
+    try {
+      await api.workspace.inbox.addSender(workspaceId, yeniGonderen.trim(), yeniGonderenEtiket.trim() || undefined)
+      setYeniGonderen('')
+      setYeniGonderenEtiket('')
+      await gonderenleriYukle()
+      setMsg({ type: 'success', text: 'Güvenilir gönderen eklendi.' })
+    } catch (error) {
+      setMsg({ type: 'error', text: error.message || 'Gönderen eklenemedi.' })
+    } finally {
+      setGonderenIsleniyor(false)
+    }
+  }
+
+  async function gonderenSil(id, email) {
+    /* Bu bir güvenlik ayarı: çıkarınca o adresten gelen postalar
+       reddedilmeye başlar ve kullanıcı sebebini bilmeyebilir. */
+    if (!window.confirm(`${email} adresinden gelen postalar artık KABUL EDİLMEYECEK. Devam edilsin mi?`)) return
+    setGonderenIsleniyor(true)
+    try {
+      await api.workspace.inbox.removeSender(workspaceId, id)
+      await gonderenleriYukle()
+      setMsg({ type: 'success', text: 'Gönderen çıkarıldı.' })
+    } catch (error) {
+      setMsg({ type: 'error', text: error.message || 'Gönderen çıkarılamadı.' })
+    } finally {
+      setGonderenIsleniyor(false)
+    }
+  }
 
   async function inboxAc() {
     /* Adres zaten varsa bu bir YENİLEME: kullanıcıya ne olacağını
@@ -88,6 +129,9 @@ export default function Settings() {
       api.workspace.inbox.get(workspaceId).catch(() => null)
     ]).then(([workspace, settings, gelenKutusu]) => {
       setInbox(gelenKutusu)
+      /* Liste yalnız kutu AÇIKKEN anlamlı; kapalıyken uç zaten boş
+         döner ama gereksiz istek atmıyoruz. */
+      if (gelenKutusu?.acik) gonderenleriYukle()
       setProfile({
         name: workspace.name || '',
         legalName: workspace.legalName || '',
@@ -267,10 +311,69 @@ export default function Settings() {
           <>
             <p className={styles.inboxAdres}>{inbox.adres}</p>
             <p className={styles.inboxNot}>
-              🔴 Yalnız <strong>bu çalışma alanının üyeleri</strong>, <strong>doğrulanmış</strong>
-              {' '}e-posta adreslerinden gönderebilir. Başkasından gelen posta sessizce atılır.
-              Adres sızarsa aşağıdan yenileyin.
+              🔴 Bu adrese yalnız iki grup gönderebilir: <strong>çalışma alanının
+              üyeleri</strong> (doğrulanmış kendi adreslerinden) ve aşağıda
+              eklediğiniz <strong>güvenilir gönderenler</strong>. Bunların
+              dışından gelen posta sessizce atılır. Adres sızarsa yenileyin.
             </p>
+
+            {/*
+              GÜVENİLİR GÖNDERENLER.
+              Kullanıcı faturayı kendi kutusundan yönlendirdiğinde `From`
+              başlığı gönderende kalıyor; bu liste olmadan yönlendirilen
+              posta reddediliyor ve "otomatik düşsün" akışı çalışmıyor.
+            */}
+            <div className={styles.gonderenBlok}>
+              <h3>Güvenilir gönderenler</h3>
+              <p className={styles.inboxNot}>
+                Faturalarınızı kendi e-posta kutunuzdan buraya yönlendiriyorsanız,
+                faturayı <strong>gönderen</strong> adresi buraya ekleyin — yönlendirilen
+                postada gönderen siz değil, faturayı düzenleyen görünür.
+                Liste boşken yalnız üyeler gönderebilir.
+              </p>
+
+              <div className={styles.gonderenForm}>
+                <Input
+                  type="email"
+                  aria-label="Güvenilir gönderen e-posta adresi"
+                  placeholder="fatura@tedarikci.com"
+                  value={yeniGonderen}
+                  onChange={e => setYeniGonderen(e.target.value)}
+                />
+                <Input
+                  aria-label="Açıklama"
+                  placeholder="Açıklama (isteğe bağlı)"
+                  value={yeniGonderenEtiket}
+                  onChange={e => setYeniGonderenEtiket(e.target.value)}
+                />
+                <Button type="button" onClick={gonderenEkle} disabled={gonderenIsleniyor || !yeniGonderen.trim()}>
+                  Ekle
+                </Button>
+              </div>
+
+              {gonderenler.length === 0 ? (
+                <p className={styles.inboxNot}>Henüz güvenilir gönderen eklenmedi.</p>
+              ) : (
+                <ul className={styles.gonderenListe}>
+                  {gonderenler.map(g => (
+                    <li key={g.id}>
+                      <span>
+                        <code>{g.email}</code>
+                        {g.label && <em> — {g.label}</em>}
+                      </span>
+                      <Button
+                        type="button" variant="ghost"
+                        onClick={() => gonderenSil(g.id, g.email)}
+                        disabled={gonderenIsleniyor}
+                      >
+                        Çıkar
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
             <div className={styles.actions}>
               <Button type="button" variant="secondary" onClick={inboxAc} disabled={inboxIsleniyor}>
                 Adresi yenile

@@ -134,3 +134,55 @@
   font-size: .8rem;
   line-height: 1.45;
 }
+
+/* E-POSTA KANALI — belge ekleme yollarından biri.
+   Adres Ayarların dibindeydi ve bulunamıyordu; belge eklenen yer
+   burası olduğu için adres de burada. */
+.epostaKanali {
+  /* Üst panel içeriği ortalıyor (`place-items: center`); adres bloğu
+     ve yönerge metni sola hizalı olmalı -- ortalanmış çok satırlı
+     açıklama okunmuyor ve adres bloğu kaymış görünüyor. */
+  text-align: left;
+  width: 100%;
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  /* Uzun adres dar ekranda satırı taşırmasın: grid/flex öğeleri
+     varsayılan `min-width: auto` ile içeriğinden dar olmayı reddeder. */
+  min-width: 0;
+}
+
+.epostaKanali p {
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.epostaAdres {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.epostaAdres code {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* Adres artık işletme adından türüyor ama yine de dar ekranda
+     taşabilir; kırılma noktası bırakılıyor. */
+  overflow-wrap: anywhere;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  font-size: 0.85rem;
+}
+
+.epostaIpucu {
+  margin-top: var(--space-3);
+  margin-bottom: 0;
+  font-size: 0.85rem;
+}
