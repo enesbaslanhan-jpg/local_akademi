@@ -11,6 +11,7 @@ import {
 import styles from './Sidebar.module.css'
 import BrandMark from '@/components/ui/BrandMark'
 import { featureFlags } from '@/config/featureFlags'
+import { WORKSPACE_NAV_TABS } from '@/pages/Workspaces/navigation'
 
 /*
  * ANA MENÜ — sadeleştirilmiş bilgi mimarisi (Paket 4).
@@ -176,14 +177,11 @@ export default function Sidebar({
       }))
     }
     if (link.id === 'workspace-tracker' && activeWorkspaceId) {
-      return [
-        ['overview', 'Genel Bakış'], ['tracker', 'Kayıtlar'], ['documents', 'Belgeler'],
-        ['notifications', 'Bildirimler'], ['calendar', 'Takvim'], ['team', 'Ekip'],
-        ['contacts', 'Kişiler'], ['activity', 'Aktiviteler'], ['settings', 'Ayarlar'],
-      ].map(([slug, label]) => ({
+      // TEK KAYNAK: Workspaces/navigation.js (sekme sirasi urun karari).
+      return WORKSPACE_NAV_TABS.map(({ path, label }) => ({
         label,
-        path: `/app/workspaces/${activeWorkspaceId}/${slug}`,
-        active: location.pathname === `/app/workspaces/${activeWorkspaceId}/${slug}`,
+        path: `/app/workspaces/${activeWorkspaceId}/${path}`,
+        active: location.pathname === `/app/workspaces/${activeWorkspaceId}/${path}`,
       }))
     }
     return []

@@ -1342,5 +1342,162 @@ export const api = {
     async getResult(sessionId) {
       return api.request(`/api/v1/decision-checks/sessions/${sessionId}/result`);
     }
+  },
+
+  /*
+   * PAZARYERI ENTEGRASYONLARI.
+   *
+   * Credential'lar (API key/secret) hicbir cevapta geri DONMEZ;
+   * baglanti akisi once validate eder, gecersizse kayit YAZILMAZ.
+   * Sync arka planda kosar; durum polling ile izlenir.
+   */
+  integrations: {
+    async catalog() {
+      return api.request('/integrations/marketplaces');
+    },
+    async list(workspaceId) {
+      return api.request(`/integrations?workspaceId=${workspaceId}`);
+    },
+    /* Bağlantı ayarı: pazaryerinin ödeme vadesi (gün). Boş bırakılırsa
+       sipariş kaydı vadesiz oluşur ve takvime girmez. */
+    async updateSettings(connectionId, ayarlar) {
+      return api.request(`/integrations/${connectionId}/settings`, {
+        method: 'PATCH', body: JSON.stringify(ayarlar)
+      });
+    },
+    async trendyolStatus(workspaceId) {
+      return api.request(`/integrations/trendyol/status?workspaceId=${workspaceId}`);
+    },
+    async trendyolConnect(workspaceId, { merchantId, apiKey, apiSecret, displayName } = {}) {
+      return api.request('/integrations/trendyol/connect', {
+        method: 'POST',
+        body: JSON.stringify({ workspaceId, merchantId, apiKey, apiSecret, displayName })
+      });
+    },
+    async trendyolSync(workspaceId) {
+      return api.request('/integrations/trendyol/sync', {
+        method: 'POST',
+        body: JSON.stringify({ workspaceId })
+      });
+    },
+    async trendyolDisconnect(workspaceId) {
+      return api.request(`/integrations/trendyol/disconnect?workspaceId=${workspaceId}`, {
+        method: 'DELETE'
+      });
+    },
+
+    /* HEPSIBURADA — ayni semantik, ayri provider yuzeyi. Credential
+       alanlari resmi modele gore: merchantId + username + password. */
+    async hepsiburadaStatus(workspaceId) {
+      return api.request(`/integrations/hepsiburada/status?workspaceId=${workspaceId}`);
+    },
+    async hepsiburadaConnect(workspaceId, { merchantId, username, password, displayName } = {}) {
+      return api.request('/integrations/hepsiburada/connect', {
+        method: 'POST',
+        body: JSON.stringify({ workspaceId, merchantId, username, password, displayName })
+      });
+    },
+    async hepsiburadaSync(workspaceId) {
+      return api.request('/integrations/hepsiburada/sync', {
+        method: 'POST',
+        body: JSON.stringify({ workspaceId })
+      });
+    },
+    async hepsiburadaDisconnect(workspaceId) {
+      return api.request(`/integrations/hepsiburada/disconnect?workspaceId=${workspaceId}`, {
+        method: 'DELETE'
+      });
+    },
+
+    /* N11 — ayni semantik, ayri provider yuzeyi. Credential alanlari
+       resmi modele gore: storeName + appKey + appSecret (header auth). */
+    async n11Status(workspaceId) {
+      return api.request(`/integrations/n11/status?workspaceId=${workspaceId}`);
+    },
+    async n11Connect(workspaceId, { storeName, appKey, appSecret, displayName } = {}) {
+      return api.request('/integrations/n11/connect', {
+        method: 'POST',
+        body: JSON.stringify({ workspaceId, storeName, appKey, appSecret, displayName })
+      });
+    },
+    async n11Sync(workspaceId) {
+      return api.request('/integrations/n11/sync', {
+        method: 'POST',
+        body: JSON.stringify({ workspaceId })
+      });
+    },
+    async n11Disconnect(workspaceId) {
+      return api.request(`/integrations/n11/disconnect?workspaceId=${workspaceId}`, {
+        method: 'DELETE'
+      });
+    },
+
+    async shopifyStatus(workspaceId) {
+      return api.request(`/integrations/shopify/status?workspaceId=${workspaceId}`);
+    },
+    async shopifyConnect(workspaceId, { shopDomain } = {}) {
+      return api.request('/integrations/shopify/connect', {
+        method: 'POST',
+        body: JSON.stringify({ workspaceId, shopDomain })
+      });
+    },
+    async shopifySync(workspaceId) {
+      return api.request('/integrations/shopify/sync', {
+        method: 'POST',
+        body: JSON.stringify({ workspaceId })
+      });
+    },
+    async shopifyDisconnect(workspaceId) {
+      return api.request(`/integrations/shopify/disconnect?workspaceId=${workspaceId}`, {
+        method: 'DELETE'
+      });
+    }
+  },
+
+  marketplace: {
+    async orders(workspaceId, filters = {}) {
+      const q = buildQuery({ workspaceId, ...filters });
+      return api.request(`/marketplace/orders${q}`);
+    },
+    async order(workspaceId, orderId) {
+      return api.request(`/marketplace/orders/${orderId}?workspaceId=${workspaceId}`);
+    },
+    /*
+     * Urun listesi. Filtre/siralama/performans penceresi sunucuda
+     * uygulanir; performans alanlari yalnizca LocalKarar siparis
+     * aggregate'inden gelir (provider analytics uydurulmaz).
+     */
+    async products(workspaceId, filters = {}) {
+      const q = buildQuery({ workspaceId, ...filters });
+      return api.request(`/marketplace/products${q}`);
+    },
+    async product(workspaceId, productId) {
+      return api.request(`/marketplace/products/${productId}?workspaceId=${workspaceId}`);
+    },
+    async productsOverview(workspaceId) {
+      return api.request(`/marketplace/products/overview?workspaceId=${workspaceId}`);
+    },
+    async summary(workspaceId, days = 30) {
+      const q = buildQuery({ workspaceId, days });
+      return api.request(`/marketplace/summary${q}`);
+    },
+    /*
+     * ORTAK OPERATIONS OZETI: Genel Bakis + Ana Sayfa + mentor ayni
+     * aggregate'i kullanir; ekran basina ikinci hesaplama YOK.
+     * Tum veriler LocalKarar DB'sinden gelir.
+     */
+    async operations(workspaceId) {
+      return api.request(`/marketplace/operations?workspaceId=${workspaceId}`);
+    },
+    async calculationHints(workspaceId) {
+      return api.request(`/marketplace/calculation-hints?workspaceId=${workspaceId}`);
+    },
+    /* LocalKarar yerel urun ayarlari (provider sync'i ezmez). */
+    async updateProductSettings(workspaceId, productId, data = {}) {
+      return api.request(`/marketplace/products/${productId}/settings`, {
+        method: 'PATCH',
+        body: JSON.stringify({ workspaceId, ...data })
+      });
+    }
   }
 };

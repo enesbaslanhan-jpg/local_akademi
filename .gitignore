@@ -16,3 +16,7 @@ reports/phase7/*.tmp.*
 # Cloudflare Origin sertifikasinin anahtari burada duruyor; sizarsa
 # Cloudflare ile sunucu arasindaki trafik taklit edilebilir.
 deploy/certs/
+
+# Calisma artiklari (smoke betikleri, gecici ciktilar).
+# `git add -A` ile commit e girmesinler.
+tmp/

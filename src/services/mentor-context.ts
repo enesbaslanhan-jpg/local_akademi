@@ -246,6 +246,20 @@ async function resolveWorkspaceTrackerContext(envelope: MentorContextEnvelope, u
   const ozet = await trackerOzetiHesapla(prisma, workspaceId)
   const tl = (n: number) => n.toLocaleString('tr-TR')
 
+  /*
+   * Pazaryeri baglanti verisi varsa AGGREGATE ozet eklenir. Yalnizca
+   * sayilar/toplamlar; raw payload ve musteri PII'si asla gecmez.
+   * (buildMarketplaceMentorContext detaylari: integrations/ai-context.ts)
+   */
+  let pazaryeriEki = ''
+  try {
+    const { buildMarketplaceMentorContext } = await import('./integrations/ai-context.js')
+    const marketplace = await buildMarketplaceMentorContext(prisma, workspaceId)
+    if (marketplace.hasData) pazaryeriEki = `\n\n${marketplace.text}`
+  } catch {
+    /* Pazaryeri ozeti olusturulamadiysa mentor akisi bozulmaz. */
+  }
+
   const systemPromptAdditions =
     `[İŞLETME TAKİP ÖZETİ]\nKullanıcının çalışma alanına ait işletme takip özeti:\n` +
     `- Açık kayıt: ${ozet.counts.open}\n` +
@@ -257,7 +271,8 @@ async function resolveWorkspaceTrackerContext(envelope: MentorContextEnvelope, u
     `- 30 günlük ödenecek: ${tl(ozet.nextThirtyDays.payable)} TL\n` +
     `- 30 günlük tahsil edilecek: ${tl(ozet.nextThirtyDays.receivable)} TL\n` +
     `- Net: ${tl(ozet.nextThirtyDays.net)} TL\n` +
-    `\nNot: Bu özet yalnızca sayılar ve toplamlar içerir; müşteri adı, fatura numarası veya kayıt başlığı taşımaz.`
+    `\nNot: Bu özet yalnızca sayılar ve toplamlar içerir; müşteri adı, fatura numarası veya kayıt başlığı taşımaz.` +
+    pazaryeriEki
 
   return {
     valid: true,

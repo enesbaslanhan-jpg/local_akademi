@@ -87,7 +87,10 @@ export default defineConfig({
       '/formula-calculations': backendProxy,
       '/reports': backendProxy,
       '/financial-models': backendProxy,
-      '/financial-cases': backendProxy
+      '/financial-cases': backendProxy,
+      /* Pazaryeri entegrasyonlari (Trendyol vb.) */
+      '/integrations': backendProxy,
+      '/marketplace': backendProxy
     }
   }
 })

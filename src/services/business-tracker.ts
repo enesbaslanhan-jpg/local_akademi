@@ -983,7 +983,22 @@ export async function businessTrackerRoutes(
       where: { id: suggestionId },
       include: { document: true }
     })
-    if (!suggestion || suggestion.workspaceId !== workspaceId || suggestion.document.workspaceId !== workspaceId) {
+    /*
+     * 🔴 BELGE KAPSAMI AYRICA ARANIYOR.
+     *
+     * `suggestion.workspaceId` önerinin kendisini kapsıyor;
+     * `document.workspaceId` bağlı belgeyi. Belge kaynaklı öneride
+     * ikisi de aranmalı — yalnız birine bakmak, başka çalışma alanının
+     * belgesine bağlı bir öneriyi geçirirdi.
+     *
+     * Pazaryeri kaynaklı öneride belge YOK (`documentId` null); orada
+     * ikinci kontrol atlanıyor ama birincisi atlanmıyor. Öneri zaten
+     * `workspaceId` ile yazılıyor ve `sourceKey` benzersizliği de
+     * çalışma alanına bağlı, yani kapsam korunuyor.
+     */
+    const belgeBaskaAlandan = suggestion?.document != null &&
+      suggestion.document.workspaceId !== workspaceId
+    if (!suggestion || suggestion.workspaceId !== workspaceId || belgeBaskaAlandan) {
       return reply.status(404).send({ error: 'Suggestion not found' })
     }
     if (suggestion.status !== 'proposed') {
@@ -1020,13 +1035,27 @@ export async function businessTrackerRoutes(
           metadata: JSON.stringify({ ...(input.metadata ?? {}), sourceSuggestionId: suggestion.id })
         }
       })
-      await tx.businessRecordDocument.create({
-        data: { workspaceId, recordId: created.id, documentId: suggestion.documentId, attachedById: user.id }
-      })
+      /* Belge eki ve belge durumu YALNIZ belge kaynaklı öneride
+         anlamlı; pazaryeri siparişinde iliştirilecek bir dosya yok. */
+      if (suggestion.documentId) {
+        await tx.businessRecordDocument.create({
+          data: { workspaceId, recordId: created.id, documentId: suggestion.documentId, attachedById: user.id }
+        })
+      }
       await tx.businessRecordHistory.create({
-        data: { workspaceId, recordId: created.id, actorId: user.id, action: 'created.from_document_suggestion', newData: JSON.stringify(recordJson(created)) }
+        data: {
+          workspaceId, recordId: created.id, actorId: user.id,
+          /* Geçmişte kaynağın hangisi olduğu görünsün: aylar sonra
+             "bu kayıt nereden geldi" sorusunun cevabı burada. */
+          action: suggestion.sourceKey
+            ? 'created.from_marketplace_order'
+            : 'created.from_document_suggestion',
+          newData: JSON.stringify(recordJson(created))
+        }
       })
-      await tx.uploadedDocument.update({ where: { id: suggestion.documentId }, data: { analysisStatus: 'accepted' } })
+      if (suggestion.documentId) {
+        await tx.uploadedDocument.update({ where: { id: suggestion.documentId }, data: { analysisStatus: 'accepted' } })
+      }
       await syncAutomaticReminder(tx, created)
       return created
     }).catch(error => {
@@ -1050,10 +1079,15 @@ export async function businessTrackerRoutes(
       data: { status: 'rejected', reviewedById: user.id, reviewedAt: new Date() }
     })
     if (result.count !== 1) return reply.status(409).send({ error: 'Suggestion was already reviewed' })
-    await prisma.uploadedDocument.update({
-      where: { id: suggestion.documentId },
-      data: { analysisStatus: 'rejected' }
-    })
+    /* Pazaryeri kaynaklı öneride güncellenecek belge yok. Öneri
+       `rejected` kaldığı için tekrar üretilmiyor -- `@@unique` sayesinde
+       aynı sipariş ikinci kez kuyruğa girmez. */
+    if (suggestion.documentId) {
+      await prisma.uploadedDocument.update({
+        where: { id: suggestion.documentId },
+        data: { analysisStatus: 'rejected' }
+      })
+    }
     return { rejected: true }
   })
 

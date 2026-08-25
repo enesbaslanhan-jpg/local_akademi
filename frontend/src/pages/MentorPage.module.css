@@ -8,7 +8,16 @@
 
 .page {
   display: flex;
-  height: calc(100vh - var(--header-height, 52px));
+  /*
+   * Yükseklik ARTIK viewport'tan hesaplanmıyor.
+   *
+   * `calc(100vh - header)` üstteki `.content` dolgusunu bilmiyordu;
+   * sayfa viewport'u dolduracak kadar boyutlanıp dolgu üstüne binince
+   * belge kaçınılmaz olarak taşıyordu (ölçüldü: 98 piksel).
+   * AppLayout'un tam yükseklik kipi kalan alanı veriyor.
+   */
+  flex: 1;
+  min-height: 0;
   min-width: 0;
 }
 

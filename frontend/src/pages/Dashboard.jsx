@@ -8,7 +8,7 @@ import {
 import DecisionReceipt from '@/components/decision-checks/DecisionReceipt'
 import {
   BookOpen, ChevronRight, ArrowRight, AlertCircle,
-  Scale, Calculator, Bot, Square, CheckSquare
+  Scale, Calculator, Bot, Square, CheckSquare, Store
 } from 'lucide-react'
 import styles from './Dashboard.module.css'
 import { featureFlags } from '@/config/featureFlags'
@@ -22,6 +22,18 @@ function shortDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })
 }
 
+function relativeTime(dateStr) {
+  if (!dateStr) return 'hiç'
+  const diffMs = Date.now() - new Date(dateStr).getTime()
+  const minutes = Math.round(diffMs / 60000)
+  if (minutes < 1) return 'az önce'
+  if (minutes < 60) return `${minutes} dk önce`
+  const hours = Math.round(minutes / 60)
+  if (hours < 24) return `${hours} sa önce`
+  const days = Math.round(hours / 24)
+  return `${days} gün önce`
+}
+
 /* Öncelik skalası — Düşük yeşil, Orta turuncu, Yüksek bordo. Backend farklı
    etiketler kullanabildiği için savunmacı eşleme yapılır. */
 function priorityLevel(raw) {
@@ -33,12 +45,27 @@ function priorityLevel(raw) {
 
 const PRIORITY_LABEL = { low: 'Düşük', medium: 'Orta', high: 'Yüksek' }
 
+/* Action engine severity -> mevcut görev rozeti dili. Eşikler backend'de
+   MARKETPLACE_ACTION_THRESHOLDS'tadır; UI yalnızca seviyeyi çevirir. */
+function severityToPriority(severity) {
+  if (severity === 'CRITICAL') return 'high'
+  if (severity === 'ATTENTION') return 'medium'
+  return 'low'
+}
+
+function operationsLink(workspaceId, action) {
+  if (!workspaceId || !action?.link) return null
+  const query = new URLSearchParams(action.link.query || {}).toString()
+  return `/app/workspaces/${workspaceId}/${action.link.page}${query ? `?${query}` : ''}`
+}
+
 export default function Dashboard() {
   const { activeWorkspaceId } = useWorkspace()
   const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [tracker, setTracker] = useState(null)
   const [trackerRecords, setTrackerRecords] = useState([])
+  const [operations, setOperations] = useState(null)
   const [decisionRows, setDecisionRows] = useState([])
   const [lastDecision, setLastDecision] = useState(null)
   const [receiptOpen, setReceiptOpen] = useState(false)
@@ -63,22 +90,27 @@ export default function Dashboard() {
 
   // İşletme takibi özeti — gerçek finansal KPI kaynağı. Aktif işletme yoksa
   // veya endpoint erişilemezse sessizce boş kalır, KPI şeridi boş durum gösterir.
+  // Marketplace operations özeti de AYNI ortak endpoint'ten gelir; hata
+  // olursa marketplace blokları sessizce gizlenir (dashboard çökmez).
   const fetchTracker = useCallback(async () => {
     if (!activeWorkspaceId) {
       setTracker(null)
       setTrackerRecords([])
+      setOperations(null)
       return
     }
     // Özet KPI şeridini, kayıt listesi ise Görevler bloğunu besler. Kayıt
     // listesi öncelik ve son tarih taşıyan tek kaynak olduğu için ayrıca
     // çekilir; erişilemezse Görevler mevcut upcomingTasks'a düşer.
-    const [summary, list] = await Promise.all([
+    const [summary, list, ops] = await Promise.all([
       api.workspace.tracker.summary(activeWorkspaceId).catch(() => null),
-      api.workspace.tracker.list(activeWorkspaceId, {}).catch(() => null)
+      api.workspace.tracker.list(activeWorkspaceId, {}).catch(() => null),
+      api.marketplace.operations(activeWorkspaceId).catch(() => null)
     ])
     if (!mountedRef.current) return
     setTracker(summary)
     setTrackerRecords(Array.isArray(list?.records) ? list.records : [])
+    setOperations(ops)
   }, [activeWorkspaceId])
 
   // Önerilen karar aracı + son tamamlanan karar sonucu. İkisi de gerçek
@@ -168,17 +200,27 @@ export default function Dashboard() {
   const overdue = tracker?.counts?.overdue ?? 0
   const net = tracker?.nextThirtyDays?.net
 
+  /* ---- Marketplace operations (ortak aggregate servis). Bağlı değilse
+     hero ve görev akışı mevcut davranışını AYNEN sürdürür. ---- */
+  const mktConnected = Boolean(operations?.summary?.connected)
+  const mktActions = Array.isArray(operations?.actions) ? operations.actions : []
+  const mktIssues = mktActions.filter(action => action.severity !== 'INFO')
+  const mktSummary = operations?.summary ?? null
+
   /* ---- Görevler: öncelik ve tarih taşıyan tek kaynak tracker kayıtlarıdır.
-     Kayıt yoksa mevcut upcomingTasks'a düşülür (o kaynakta öncelik alanı
-     olmadığı için rozet gösterilmez). ---- */
-  const taskRows = trackerRecords.length > 0
+     Marketplace action'ları AYNI listede aggregate satır olarak birleşir;
+     manuel yükümlülükler asla bastırılmaz (önce ilk 3 kayıt, sonra en
+     fazla 2 marketplace aksiyonu, toplam 4 satır sınırı kart yüksekliğiyle
+     uyumludur). Kayıt yoksa mevcut upcomingTasks'a düşülür. ---- */
+  const manualRows = trackerRecords.length > 0
     ? trackerRecords.filter(r => !['completed', 'cancelled'].includes(r.status)).slice(0, 3).map(r => ({
         id: r.id,
         title: r.title,
         done: r.status === 'completed',
         priority: priorityLevel(r.priority),
         date: shortDate(r.dueAt),
-        kind: ({ payment: 'Ödeme', receivable: 'Tahsilat', promissory_note: 'Senet', purchase: 'Satın alma', shipment: 'Sevkiyat', task: 'Görev', deferred: 'Ertelenen', other: 'Kayıt' })[r.type] || 'Kayıt'
+        kind: ({ payment: 'Ödeme', receivable: 'Tahsilat', promissory_note: 'Senet', purchase: 'Satın alma', shipment: 'Sevkiyat', task: 'Görev', deferred: 'Ertelenen', other: 'Kayıt' })[r.type] || 'Kayıt',
+        link: null
       }))
     : tasks.slice(0, 3).map(t => ({
         id: t.id,
@@ -186,12 +228,26 @@ export default function Dashboard() {
         done: t.status === 'completed',
         priority: null,
         date: shortDate(t.updatedAt || t.createdAt),
-        kind: 'Öğrenme'
+        kind: 'Öğrenme',
+        link: null
       }))
+  const mktRows = mktConnected
+    ? mktActions.slice(0, 2).map(action => ({
+        id: `mkt-${action.type}`,
+        title: action.title,
+        done: false,
+        priority: severityToPriority(action.severity),
+        date: '',
+        kind: action.category || 'Pazaryeri',
+        link: operationsLink(activeWorkspaceId, action)
+      }))
+    : []
+  const taskRows = [...manualRows, ...mktRows].slice(0, 4)
 
   /* ---- Koyu panelin sol tarafındaki TEK CÜMLELİK durum özeti.
-     Tamamen gerçek tracker verisinden kurulur; işletme yoksa panel hiç
-     gösterilmediği için cümle de üretilmez. ---- */
+      Tamamen gerçek tracker verisinden kurulur; işletme yoksa panel hiç
+      gösterilmediği için cümle de üretilmez. Marketplace riskleri
+      BusinessRecord durumuyla BİRLEŞİR — tek başına hero'yu override etmez. ---- */
   let statusSentence = null
   if (tracker) {
     const parts = []
@@ -203,13 +259,17 @@ export default function Dashboard() {
     parts.push(overdue > 0
       ? `${overdue} kayıt gecikmiş durumda`
       : 'geciken kaydın yok')
-    const sentence = parts.join(', ') + '.'
+    let sentence = parts.join(', ') + '.'
+    if (mktIssues.length > 0) {
+      sentence += ' ' + mktIssues.slice(0, 2).map(action => action.title).join(', ') + '.'
+    }
     statusSentence = sentence.charAt(0).toLocaleUpperCase('tr') + sentence.slice(1)
   }
 
+  const totalIssues = overdue + mktIssues.length
   const statusHeadline = tracker
-    ? overdue > 0
-      ? `İşletmeniz dengeli, ${overdue} konu dikkat istiyor.`
+    ? totalIssues > 0
+      ? `İşletmeniz dengeli, ${totalIssues} konu dikkat istiyor.`
       : net < 0
         ? 'Önümüzdeki 30 gün için nakit planı gerekiyor.'
         : 'İşletmeniz dengeli, takip düzenli ilerliyor.'
@@ -304,7 +364,10 @@ export default function Dashboard() {
                 type="button"
                 key={t.id}
                 className={`${styles.dataRow} ${t.done ? styles.taskDone : ''}`}
-                onClick={() => activeWorkspaceId && navigate(`/app/workspaces/${activeWorkspaceId}/tracker`)}
+                onClick={() => {
+                  if (t.link) navigate(t.link)
+                  else if (activeWorkspaceId) navigate(`/app/workspaces/${activeWorkspaceId}/tracker`)
+                }}
               >
                 <span className={styles.rowLead}>
                   {t.done ? <CheckSquare size={15} aria-hidden="true" /> : <Square size={15} aria-hidden="true" />}
@@ -372,6 +435,44 @@ export default function Dashboard() {
             ))}
           </div>
         </Card>
+
+        {/* PAZARYERI ÖZETİ — ortak operations servisinden; ana odağı
+            ele geçirmeyen kompakt şerit. Bağlı değilse yalnız ince CTA. */}
+        {activeWorkspaceId && (mktConnected ? (
+          <Card className={`${styles.operationPanel} ${styles.marketplacePanel}`}>
+            <div className={styles.panelHead}>
+              <h2>Pazaryeri Özeti</h2>
+              <span className={styles.mktProviders}>
+                {(mktSummary?.providers || []).filter(p => p.status !== 'DISABLED').map(provider => (
+                  <span key={provider.provider} className={styles.mktProviderChip}>
+                    <Store size={11} aria-hidden="true" />
+                    {({ TRENDYOL: 'Trendyol', HEPSIBURADA: 'Hepsiburada', N11: 'N11', SHOPIFY: 'Shopify', WOOCOMMERCE: 'WooCommerce' })[provider.provider] || provider.provider}
+                  </span>
+                ))}
+              </span>
+              <button type="button" className={styles.panelLink} onClick={() => navigate(`/app/workspaces/${activeWorkspaceId}/orders`)}>Siparişler</button>
+              <button type="button" className={styles.panelLink} onClick={() => navigate(`/app/workspaces/${activeWorkspaceId}/products`)}>Ürünler</button>
+            </div>
+            {mktSummary?.sync?.hasError && (
+              <p className={styles.mktSyncWarning}>Pazaryeri verileri güncellenemedi. Son başarılı eşitleme: {relativeTime(mktSummary.sync.lastSyncedAt)}</p>
+            )}
+            <div className={styles.mktStats}>
+              <div><span>Bugün sipariş</span><strong>{mktSummary?.today?.orderCount ?? 0}</strong></div>
+              <div><span>Bugün satış</span><strong>{money.format(mktSummary?.today?.grossSales ?? 0)}</strong></div>
+              <div><span>Bekleyen kargo</span><strong>{mktSummary?.today?.pendingShipmentCount ?? 0}</strong></div>
+              <div><span>Düşük stok</span><strong>{mktSummary?.inventory?.lowStockCount ?? 0}</strong></div>
+              <div><span>İade</span><strong>{(mktSummary?.today?.returnCount ?? 0) + mktActions.filter(a => a.type === 'RETURN_PENDING').reduce((sum, a) => sum + a.count, 0)}</strong></div>
+              <div><span>Son eşitleme</span><small>{relativeTime(mktSummary?.sync?.lastSyncedAt)}</small></div>
+              {mktSummary?.performance?.bestSeller && (
+                <div><span>En çok satan</span><em>{mktSummary.performance.bestSeller.title}</em></div>
+              )}
+            </div>
+          </Card>
+        ) : (
+          <button type="button" className={styles.marketplaceEmptyCta} onClick={() => navigate('/app/settings?bolum=integrations')}>
+            <Store size={13} aria-hidden="true" /> Henüz pazaryeri bağlantısı yok — Ayarlar → Entegrasyonlar
+          </button>
+        ))}
       </div>
 
       {/* Son Karar Sonucu kartı, sonuç sayfasına gitmek yerine aynı fişi açar. */}

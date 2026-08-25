@@ -41,6 +41,11 @@ export default function FinancialModelWorkspace() {
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('Çalışma Alanı')
   const [inputs, setInputs] = useState({})
+  /*
+   * Pazaryeri hesaplama ipucu — gerçek satış fiyatı ve komisyon.
+   * Bağlı mağaza yoksa `available: false` döner ve panel çizilmez.
+   */
+  const [ipucu, setIpucu] = useState(null)
   const [metadata, setMetadata] = useState({})
   const [scenario, setScenario] = useState('base')
   const [runs, setRuns] = useState([])
@@ -51,6 +56,53 @@ export default function FinancialModelWorkspace() {
   const [decision, setDecision] = useState({ decision: '', expectedOutcome: '' })
   const [decisionSaved, setDecisionSaved] = useState(false)
   const [sourceDocumentName, setSourceDocumentName] = useState('')
+
+  /*
+   * HANGİ MODELE HANGİ ALAN.
+   *
+   * Bilerek DAR: yalnız pazaryeri verisinin birebir karşıladığı
+   * alanlar. `avgUnitPrice` bir ÜRÜN birim fiyatıdır; onu sipariş
+   * geliri ya da dönem cirosu diye yazmak, farklı büyüklükleri aynı
+   * sayıyla doldurmak olurdu — sessizce yanlış bir hesap üretirdi.
+   */
+  const ipucuAlanlari = useMemo(() => {
+    if (!model || !ipucu?.available) return null
+    if (model.code !== 'PRODUCT_PROFITABILITY') return null
+    const alanlar = { netPrice: ipucu.avgUnitPrice }
+    /* Kanal kesintisi ancak komisyon ORANI biliniyorsa hesaplanabilir;
+       bilinmiyorsa o alan elle bırakılıyor, sıfır yazılmıyor. */
+    if (ipucu.avgCommissionPercent !== null && ipucu.avgCommissionPercent !== undefined) {
+      alanlar.channelCost = Math.round(ipucu.avgUnitPrice * ipucu.avgCommissionPercent) / 100
+    }
+    return alanlar
+  }, [model, ipucu])
+
+  function ipucundanDoldur() {
+    if (!ipucuAlanlari) return
+    setInputs(current => ({
+      ...current,
+      ...Object.fromEntries(Object.entries(ipucuAlanlari).map(([k, v]) => [k, String(v)]))
+    }))
+    /* Kaynak işaretleniyor: kullanıcı bu rakamı kendisinin mi yoksa
+       pazaryeri verisinin mi koyduğunu sonradan görebilmeli. */
+    setMetadata(current => {
+      const yeni = { ...current }
+      for (const alan of Object.keys(ipucuAlanlari)) {
+        yeni[alan] = {
+          ...(current[alan] || {}),
+          sourceType: 'marketplace',
+          sourceReference: `${ipucu.source || 'Pazaryeri'} — son 90 gün, ${ipucu.sampleSize} satış`,
+          effectiveDate: new Date().toISOString().slice(0, 10)
+        }
+      }
+      return yeni
+    })
+  }
+
+  useEffect(() => {
+    if (!activeWorkspaceId) return
+    api.marketplace.calculationHints(activeWorkspaceId).then(setIpucu).catch(() => setIpucu(null))
+  }, [activeWorkspaceId])
 
   useEffect(() => {
     Promise.all([
@@ -192,6 +244,34 @@ export default function FinancialModelWorkspace() {
               <div><span className={styles.eyebrow}>PARAMETRELER</span><h2>Model girdileri</h2></div>
               <span>{model.inputs.length}</span>
             </div>
+            {/*
+              PAZARYERİ VERİSİNDEN DOLDURMA.
+
+              🔴 Uç (`/marketplace/calculation-hints`) ve istemci yöntemi
+              yazılmıştı ama HİÇBİR bileşen çağırmıyordu — yani gerçek
+              satış fiyatı ve komisyon verisi veritabanında duruyor,
+              kullanıcı ise aynı rakamları elle giriyordu.
+
+              ⚠️ Yalnız verinin GERÇEKTEN karşıladığı alanlar
+              dolduruluyor. `avgUnitPrice` ürün birim fiyatıdır; onu
+              sipariş geliri olarak yazmak farklı bir büyüklüğü aynı
+              sayıyla doldurmak olurdu.
+            */}
+            {ipucu?.available && ipucuAlanlari && (
+              <div className={styles.pazaryeriIpucu}>
+                <p>
+                  Son 90 günde <strong>{ipucu.sampleSize}</strong> pazaryeri satışından:
+                  ortalama fiyat <strong>{ipucu.avgUnitPrice} {ipucu.currency}</strong>
+                  {ipucu.avgCommissionPercent !== null
+                    ? <> · ortalama komisyon <strong>%{ipucu.avgCommissionPercent}</strong></>
+                    : <> · komisyon oranı bu bağlantıda sağlanmadı</>}
+                </p>
+                <button type="button" onClick={ipucundanDoldur}>
+                  Bu değerlerle doldur
+                </button>
+              </div>
+            )}
+
             <div className={styles.quickInputs}>
               {model.inputs.map(input => (
                 <label key={input.key}>

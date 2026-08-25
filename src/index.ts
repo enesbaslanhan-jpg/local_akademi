@@ -40,6 +40,8 @@ import { videoRoutes } from './services/videos'
 import { communityRoutes } from './services/community'
 import { communitySocialRoutes } from './services/community-social'
 import { gelenEpostaRotalari } from './services/gelen-eposta'
+import { integrationRoutes } from './services/integrations/marketplace-routes'
+import { startMarketplaceWorker } from './services/integrations/marketplace-worker'
 import { financialModelRoutes } from './services/financial-models/routes'
 import { feedRoutes } from './routes/feed.js'
 import { learningProgressRoutes } from './routes/learning-progress.js'
@@ -180,7 +182,8 @@ const API_ONEKLERI = [
   '/admin', '/api', '/auth', '/business', '/community', '/courses',
   '/dashboard', '/documents', '/enrollments', '/flashcards', '/knowledge',
   '/learning-path', '/lessons', '/mentor', '/practical-cards', '/quizzes',
-  '/reports', '/support', '/tasks', '/videos', '/workspaces'
+  '/reports', '/support', '/tasks', '/videos', '/workspaces',
+  '/integrations', '/marketplace'
 ] as const
 
 export function spaBelgeIstegiMi(request: FastifyRequest): boolean {
@@ -503,6 +506,14 @@ async function build() {
   server.register(gelenEpostaRotalari, { prefix: '/inbound' })
   server.register(financialModelRoutes)
   server.register(practicalCardRoutes, { prefix: '/practical-cards' })
+  /*
+   * PAZARYERI ENTEGRASYONLARI.
+   *
+   * Rotalar workspace-scoped calisir (workspaceId query/body ile);
+   * provider'a giden tek trafik manual sync ve arka plan
+   * worker'indan gelir. Sayfa acilisi hicbir dis API cagrisi yapmaz.
+   */
+  server.register(integrationRoutes)
   server.register(decisionCheckRoutes, { prefix: '/api/v1/decision-checks' })
   server.register(feedRoutes, { prefix: '/api/v1/feed' })
   server.register(learningProgressRoutes, { prefix: '/api/v1/learning-progress' })
@@ -530,7 +541,7 @@ async function build() {
     '/knowledge', '/learning', '/community', '/business', '/workspaces', '/mentor',
     '/conversations', '/formulas', '/reports', '/quiz', '/flashcards', '/news',
     '/decision-checks', '/health', '/memory', '/feed', '/assessment', '/onboarding',
-    '/support']
+    '/support', '/integrations', '/marketplace']
 
   function isApiPath(url: string): boolean {
     const path = url.split('?')[0]
@@ -616,9 +627,11 @@ export async function start() {
   await ensureFinancialModelCatalog(prisma)
   let stopReminderWorker = () => {}
   let stopNewsWorker = () => {}
+  let stopMarketplaceWorker = () => {}
   server.addHook('onClose', async () => {
     stopReminderWorker()
     stopNewsWorker()
+    stopMarketplaceWorker()
   })
   try {
     await server.listen({ port, host: process.env.HOST || '0.0.0.0' })
@@ -633,6 +646,9 @@ export async function start() {
   stopNewsWorker = startNewsWorker(undefined, {
     runImmediately: process.env.NEWS_RUN_ON_START === 'true',
     onError: error => server.log.error({ error }, 'Hourly Europe/Istanbul news worker failed')
+  })
+  stopMarketplaceWorker = startMarketplaceWorker(undefined, {
+    onError: error => server.log.error({ error }, 'Marketplace sync worker failed')
   })
 
   void deleteExpiredReviewerTelemetry().catch(() => {

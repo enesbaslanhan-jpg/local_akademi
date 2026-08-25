@@ -3,29 +3,20 @@ import { Outlet, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useWorkspace } from '@/context/WorkspaceContext'
 import { ArrowLeft } from 'lucide-react'
 import { Select } from '@/components/ui'
+import { WORKSPACE_NAV_TABS } from './navigation'
 import styles from './WorkspaceLayout.module.css'
 
 /*
- * Sekme sırası Paket 5 / İŞ 7'de verilen sıraya göre dizildi.
- * TEK EKLEME: "Kayıtlar" (tracker). Verilen listede yok ama sidebar'daki
- * "İşletme Takibi" bağlantısı doğrudan bu route'a gidiyor; sekmeden
- * çıkarılsaydı sayfa açıkken hiçbir sekme aktif görünmezdi ve kayıt
- * listesine sekmeyle dönüş kalmazdı. Hiçbir route silinmedi.
+ * Sekme sirasi ve etiketleri TEK KAYNAKTAN gelir:
+ * ./navigation.js — Sidebar alt menusu ve ContextPanel ayni diziyi
+ * kullanir; "Urunler" Siparisler ile Belgeler arasindadir. Mevcut
+ * bolumler kaldirilmaz/yeniden adlandirilmaz/birlestirilmez.
  */
-const tabs = [
-  { id: 'overview', label: 'Genel Bakış', path: 'overview' },
-  { id: 'tracker', label: 'Kayıtlar', path: 'tracker' },
-  { id: 'documents', label: 'Belgeler', path: 'documents' },
-  { id: 'notifications', label: 'Bildirimler', path: 'notifications' },
-  { id: 'calendar', label: 'Takvim', path: 'calendar' },
-  { id: 'team', label: 'Ekip', path: 'team' },
-  { id: 'contacts', label: 'Kişiler', path: 'contacts' },
-  { id: 'activity', label: 'Aktiviteler', path: 'activity' },
-  { id: 'settings', label: 'Ayarlar', path: 'settings' }
-]
+const tabs = WORKSPACE_NAV_TABS
 
 const NEW_WORKSPACE = '__new__'
 const ALL_WORKSPACES = '__all__'
+const NEW_INTEGRATION = '__integration__'
 
 export default function WorkspaceLayout() {
   const { workspaceId } = useParams()
@@ -43,10 +34,26 @@ export default function WorkspaceLayout() {
 
   const currentTab = tabs.find(t => location.pathname.endsWith(t.path))?.id || 'overview'
 
-  /* İşletme seçicisi — tek işletme varsa gösterilmez, yalnızca ad yazar. */
-  const showPicker = (workspaces?.length || 0) > 1
+  /*
+   * İşletme seçicisi TEK işletmede de gösteriliyor.
+   *
+   * Eskiden yalnız birden fazla işletme varsa açılıyordu, çünkü tek
+   * işlevi geçiş yapmaktı. Artık kurulum eylemlerini de taşıyor
+   * ("yeni işletme", "pazaryeri mağazası bağla"); tek işletmesi olan
+   * kullanıcıdan bunları gizlemek, mağaza bağlamayı Ayarlar'ın
+   * dibinde aratmak olurdu.
+   */
+  const showPicker = (workspaces?.length || 0) >= 1
 
   async function handlePick(value) {
+    if (value === NEW_INTEGRATION) {
+      /* Entegrasyon ekranı Ayarlar'ın içinde yaşıyor. Buraya kısayol
+         konmasının sebebi: mağaza bağlamak, işletme kurmakla aynı
+         "kurulum" işi -- kullanıcı onu Ayarlar'ın dibinde aramak
+         zorunda kalmamalı. */
+      navigate('/app/settings?bolum=integrations')
+      return
+    }
     if (value === ALL_WORKSPACES || value === NEW_WORKSPACE) {
       // Yeni işletme oluşturma akışı liste sayfasında yaşıyor.
       navigate('/app/workspaces')
@@ -83,6 +90,7 @@ export default function WorkspaceLayout() {
                   ...workspaces.map(w => ({ value: w.id, label: w.name })),
                   { value: '__separator__', label: '──────────', disabled: true },
                   { value: NEW_WORKSPACE, label: '+ Yeni işletme oluştur' },
+                  { value: NEW_INTEGRATION, label: '+ Pazaryeri mağazası bağla' },
                   { value: ALL_WORKSPACES, label: 'Tüm işletmeler' }
                 ]}
               />

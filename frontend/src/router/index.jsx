@@ -40,6 +40,8 @@ const WorkspaceList = lazy(() => import('@/pages/Workspaces/index'))
 const WorkspaceLayout = lazy(() => import('@/pages/Workspaces/WorkspaceLayout'))
 const WorkspaceOverview = lazy(() => import('@/pages/Workspaces/Overview'))
 const WorkspaceTracker = lazy(() => import('@/pages/Workspaces/Tracker'))
+const WorkspaceOrders = lazy(() => import('@/pages/Workspaces/Orders'))
+const WorkspaceProducts = lazy(() => import('@/pages/Workspaces/Products'))
 const WorkspaceCalendar = lazy(() => import('@/pages/Workspaces/Calendar'))
 const WorkspaceDocuments = lazy(() => import('@/pages/Workspaces/Documents'))
 const WorkspaceNotifications = lazy(() => import('@/pages/Workspaces/Notifications'))
@@ -141,6 +143,8 @@ export default function AppRoutes() {
               <Route index element={<Navigate to="overview" replace />} />
               <Route path="overview" element={<SuspenseWrapper><WorkspaceOverview /></SuspenseWrapper>} />
               <Route path="tracker" element={<SuspenseWrapper><WorkspaceTracker /></SuspenseWrapper>} />
+              <Route path="orders" element={<SuspenseWrapper><WorkspaceOrders /></SuspenseWrapper>} />
+              <Route path="products" element={<SuspenseWrapper><WorkspaceProducts /></SuspenseWrapper>} />
               <Route path="calendar" element={<SuspenseWrapper><WorkspaceCalendar /></SuspenseWrapper>} />
               <Route path="documents" element={<SuspenseWrapper><WorkspaceDocuments /></SuspenseWrapper>} />
               <Route path="notifications" element={<SuspenseWrapper><WorkspaceNotifications /></SuspenseWrapper>} />

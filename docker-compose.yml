@@ -58,6 +58,23 @@ services:
       # compose'un kapsayıcıya iletmesi de gerekiyor (bayraklarda bu
       # adım atlandığı için özellikler üretimde kapalı kalmıştı).
       - INBOUND_MAIL_SECRET=${INBOUND_MAIL_SECRET:-}
+      # --- Pazaryeri entegrasyonlari ---
+      #
+      # 🔴 CREDENTIAL SIFRELEME ANAHTARI. Tanimli degilse anahtar
+      # JWT_SECRET'ten turetiliyor; o durumda JWT_SECRET bir gun
+      # dondurulurse SAKLANMIS TUM MAGAZA KIMLIK BILGILERI kalici
+      # olarak cozulemez hale gelir ve her kullanici butun
+      # magazalarini yeniden baglamak zorunda kalir.
+      #
+      # ⚠️ `.env`e yazmak TEK BASINA YETMEZ -- bu satir olmadan
+      # degisken kapsayiciya ULASMAZ. Ozellik bayraklarinda tam bu
+      # adim atlandigi icin ozellikler uretimde kapali kalmisti.
+      - INTEGRATION_ENCRYPTION_KEY=${INTEGRATION_ENCRYPTION_KEY:-}
+      # Zamanlanmis esitleme. Varsayilan KAPALI: acilmadikca yalniz
+      # manuel sync calisir.
+      - MARKETPLACE_SYNC_ENABLED=${MARKETPLACE_SYNC_ENABLED:-false}
+      - MARKETPLACE_SYNC_INTERVAL_MINUTES=${MARKETPLACE_SYNC_INTERVAL_MINUTES:-120}
+      - MARKETPLACE_LOW_STOCK_THRESHOLD=${MARKETPLACE_LOW_STOCK_THRESHOLD:-10}
       # Yedeklerin yazilacagi klasor. Asagidaki server-backups birimine
       # bagli; verilmezse betik calisma dizinine yazar ve yedekler
       # kapsayici yeniden olusturulunca KAYBOLUR.

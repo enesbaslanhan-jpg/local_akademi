@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useWorkspace } from '@/context/WorkspaceContext'
 import { useAuth } from '@/context/AuthContext'
-import { Plus, Building2, Users, MapPin } from 'lucide-react'
+import { Plus, Building2, Users, MapPin, Store } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import DarkPanel from '@/components/ui/DarkPanel'
 import styles from './WorkspaceList.module.css'
@@ -40,7 +40,22 @@ export default function WorkspaceList() {
           {workspaces.length > 0 ? `${workspaces.length} işletme` : 'Henüz işletme yok'}
         </p>
         {/* Sayfanın TEK turuncu ana CTA'sı */}
-        {workspaces.length > 0 && <Button variant="cta" onClick={() => setShowCreate(true)}><Plus size={18} /> Yeni İşletme</Button>}
+        {workspaces.length > 0 && (
+          <div className={styles.headerActions}>
+            {/*
+              Pazaryeri kısayolu YALNIZ işletme varken.
+
+              🔴 İşletme yokken göstermek ÇIKMAZ SOKAK olurdu:
+              entegrasyonlar çalışma alanına bağlı ve panel o durumda
+              "önce bir işletme oluşturun" diyor. Boş ekranda bunun
+              yerine tek cümlelik bir açıklama var.
+            */}
+            <Button variant="secondary" onClick={() => navigate('/app/settings?bolum=integrations')}>
+              <Store size={17} /> Pazaryeri bağla
+            </Button>
+            <Button variant="cta" onClick={() => setShowCreate(true)}><Plus size={18} /> Yeni İşletme</Button>
+          </div>
+        )}
       </div>
 
       {workspaces.length === 0 ? (
@@ -50,6 +65,14 @@ export default function WorkspaceList() {
           <h2>İşletmenin bugünkü durumunu tek ekranda gör</h2>
           <p>Ödeme, tahsilat, görev ve yaklaşan işlemleri gerçek kayıtlarınla takip etmeye başla.</p>
           <Button variant="cta" onClick={() => setShowCreate(true)}><Plus size={17} /> İlk İşletmeyi Oluştur</Button>
+          {/* Pazaryeri burada DÜĞME değil, açıklama: bağlantı çalışma
+              alanına yazılıyor, işletme olmadan kurulamaz. Düğme koymak
+              kullanıcıyı "önce bir işletme oluşturun" ekranına
+              göndermek olurdu. */}
+          <p className={styles.emptyNot}>
+            Trendyol, Hepsiburada, n11 ve Shopify mağazanızı işletmenizi oluşturduktan
+            sonra bağlayabilirsiniz; siparişleriniz buraya eşitlenir.
+          </p>
         </DarkPanel>
       ) : (
         <div className={styles.grid}>

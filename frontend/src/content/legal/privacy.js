@@ -103,8 +103,11 @@ export default {
           'Mentor konuşmalarınız, konuşma özetleri, geçmiş konuşmalardan çıkarılan ve ' +
           'yönetebildiğiniz mentor notları ile yanıt üretiminde kullanılan bağlam kayıtları. ' +
           'İşletme takibi özeti (açık kayıt sayıları, vadesi geçmişler, 30 günlük borç/alacak ' +
-          'toplamları, yönü belirsiz kayıtlar) de soruyla ilgili olduğunda aktarılır; ' +
-          'müşteri adı, fatura numarası, kayıt başlığı gibi tanımlayıcı detaylar aktarılmaz.'
+          'toplamları, yönü belirsiz kayıtlar) de soruyla ilgili olduğunda aktarılır. ' +
+          'Pazaryeri mağazanız bağlıysa buna sipariş sayıları ile satış, komisyon, kargo ve ' +
+          'iade TOPLAMLARI ve EN ÇOK SATAN ÜRÜNLERİNİZİN ADLARI da eklenir. ' +
+          'Müşteri adı, alıcı adı, fatura numarası, sipariş numarası ve kayıt başlığı gibi ' +
+          'tanımlayıcı detaylar aktarılmaz.'
         ],
         [
           'Topluluk ve destek içeriği',
@@ -126,6 +129,16 @@ export default {
           'postaların GÖNDEREN ADRESİ, konu başlığı ve EKLERİ. Ekler, elle yüklenmiş ' +
           'belgelerle aynı şekilde işlenir. Posta gövdesinin metni saklanmaz; yalnızca ' +
           'ekler ve yukarıdaki alanlar alınır.'
+        ],
+        [
+          'Pazaryeri mağaza verileri',
+          'Bir pazaryeri mağazasını (Trendyol, Hepsiburada, n11, Shopify) bağlarsanız: ' +
+          'mağaza kimliğiniz ve API erişim bilgileriniz (şifrelenerek saklanır), ' +
+          'siparişleriniz (sipariş numarası, tarih, tutar, komisyon ve kargo tutarları, ' +
+          'durum), ürünleriniz ve stok bilgileriniz. Siparişlerde ALICININ ADI ve ' +
+          'pazaryerinin verdiği alıcı numarası da yer alır; alıcının adresi, telefonu ' +
+          've e-postası alınmaz. Bu bağlantı varsayılan olarak KAPALIDIR ve yalnızca ' +
+          'siz kurarsanız çalışır.'
         ],
         ['Görsel', 'Yüklemeyi seçerseniz profil fotoğrafınız.'],
         [
@@ -162,6 +175,10 @@ export default {
         'o adrese gönderdiğiniz faturalar tedarikçilerinizin ve müşterilerinizin ' +
         'bilgilerini taşır. Bu kanalı açmak, o verileri uygulamaya aktarma kararını ' +
         'sizin vermeniz demektir.',
+        'Aynı durum pazaryeri mağazanızı bağladığınızda da geçerlidir: çekilen ' +
+        'siparişler ALICILARINIZIN ADINI taşır. Mağazayı bağlamak, o verileri ' +
+        'uygulamaya aktarma kararını sizin vermeniz demektir; bağlantıyı istediğiniz ' +
+        'zaman kaldırabilirsiniz.',
         'Bu veriler bakımından KVKK anlamında veri sorumlusu sizsiniz. LocalKarar bu ' +
         'veriler bakımından yalnızca veri işleyen sıfatıyla, sizin talimatınız ' +
         'doğrultusunda ve size hizmet sunmak amacıyla hareket eder.',
@@ -193,7 +210,7 @@ export default {
           ],
           [
             'AI Mentor soru–cevap hizmetini sunmak',
-            'AI Mentor verileri; soruyla ilgili olduğu ölçüde işletme profili, işletme takip özeti (sayılar ve toplamlar; müşteri adı, fatura no, başlık hariç), kurs kayıtları ve ilerleme, hesaplama sonuçları ve yüklenen dosyalardan kısa bölümler',
+            'AI Mentor verileri; soruyla ilgili olduğu ölçüde işletme profili, işletme takip özeti ve pazaryeri özeti (sayılar, toplamlar ve ürün adları; müşteri/alıcı adı, fatura no, sipariş no, kayıt başlığı hariç), kurs kayıtları ve ilerleme, hesaplama sonuçları ve yüklenen dosyalardan kısa bölümler',
             'Sözleşmenin ifası (m.5/2-c)'
           ],
           [
@@ -283,6 +300,12 @@ export default {
             'Küresel altyapı',
             'IP adresi ve bağlantı üstverisi',
             'Saldırı koruması ve içerik dağıtımı'
+          ],
+          [
+            'Shopify',
+            'Kanada ve kullanılan küresel altyapı',
+            'Mağaza kimliği ve yetkilendirme bilgileri; çekilen sipariş ve ürün verileri',
+            'Yalnızca siz mağazanızı bağlarsanız: sipariş ve ürün bilgilerinin alınması'
           ]
         ]
       },
@@ -310,6 +333,8 @@ export default {
           ['Üyeler arası özel mesajlar', 'Sohbet ya da hesap silinene kadar'],
           ['Engelleme ve şikâyet kayıtları', 'Engeli kaldırana kadar; şikâyet kayıtları denetim izi olarak korunur'],
           ['Gelen kutusuna düşen belgeler', 'Elle yüklenen belgelerle aynı: siz silene kadar'],
+          ['Pazaryeri sipariş ve ürün verileri', 'Mağaza bağlı kaldığı sürece; bağlantıyı kaldırdığınızda çekilmiş veriler de silinir'],
+          ['Pazaryeri API erişim bilgileri', 'Şifreli olarak; bağlantıyı kaldırdığınızda silinir'],
           ['Oturum yenileme anahtarları', 'Azami 30 gün; çıkış yapıldığında geçersiz kılınır'],
           ['Doğrulama ve şifre sıfırlama anahtarları', 'Kısa süreli; kullanıldığında veya süresi dolduğunda geçersiz'],
           ['Sunucu erişim günlükleri', 'Sınırlı süre; dosya boyutuna göre döngüsel olarak silinir'],

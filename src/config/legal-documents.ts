@@ -43,14 +43,20 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
        işlenmez" diyordu; liste eklendiği an o cümle YANLIŞ olacaktı.
        Özellik ve metin bu kez AYNI turda güncellendi -- 23.08'de aynı
        gün iki kez onay istemek zorunda kalmamızın dersi buydu. */
-    version: '2026-08-24',
+    /* 2026-08-25: pazaryeri magaza baglantisi bolumu eklendi (11.
+       madde) ve sonraki bolum numaralari kaydirildi. */
+    version: '2026-08-25',
     requiredAtSignup: true
   },
   {
     type: 'privacy',
     title: 'Gizlilik ve KVKK Aydınlatma Metni',
     /* 2026-08-23.3: AI Mentor işletme takip özetini (sayılar ve toplamlar; müşteri adı, fatura no, başlık hariç) alıyor. */
-    version: '2026-08-23.3',
+    /* 2026-08-25: pazaryeri magaza verileri yeni bir kategori olarak
+       eklendi (alici adi dahil), Shopify aktarim tablosuna girdi,
+       mentora giden ozete urun adlari eklendi. Ozellik ve metin AYNI
+       turda guncellendi. */
+    version: '2026-08-25',
     requiredAtSignup: true
   },
   {

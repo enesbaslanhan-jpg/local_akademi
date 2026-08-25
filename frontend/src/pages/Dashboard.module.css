@@ -357,3 +357,98 @@
 .statusKpiAction:hover {
   border-color: var(--warning, #d98324);
 }
+
+/* ---- PAZARYERI ÖZETİ — grid'in altına yayılan kompakt tam-genişlik
+   satırı; mevcut kart yerleşimini DEĞİŞTİRMEZ. ---- */
+.marketplacePanel {
+  grid-column: 1 / -1;
+}
+
+.mktProviders { display: inline-flex; gap: var(--space-2); }
+
+.mktProviderChip {
+  display: inline-flex;
+  min-height: 22px;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary-deep);
+  font-size: var(--font-micro);
+  font-weight: var(--font-weight-bold);
+}
+
+.mktSyncWarning {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--warning) 13%, transparent);
+  color: var(--warning);
+  font-size: var(--font-meta);
+}
+
+.mktStats {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+.mktStats > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding-right: var(--space-4);
+}
+
+.mktStats > div + div {
+  padding-left: var(--space-4);
+  border-left: 1px solid var(--line);
+}
+
+.mktStats span { color: var(--text-muted); font-size: var(--font-micro); }
+.mktStats strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: var(--font-body-lg, 1rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mktStats small { color: var(--text-secondary); font-size: var(--font-meta); }
+.mktStats em {
+  overflow: hidden;
+  color: var(--text);
+  font-size: var(--font-meta);
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marketplaceEmptyCta {
+  display: flex;
+  width: 100%;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  border: 1px dashed var(--line-strong, var(--line));
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: var(--font-meta);
+  cursor: pointer;
+}
+
+.marketplaceEmptyCta:hover {
+  border-color: var(--primary);
+  color: var(--primary-deep);
+}
+.marketplaceEmptyCta:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+@media (max-width: 640px) {
+  .mktStats { grid-auto-flow: row; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
+  .mktStats > div + div { padding-left: 0; border-left: 0; }
+}

@@ -47,17 +47,7 @@ export function useContextPanelQuery() {
   return useContextPanel()?.query ?? ''
 }
 
-const WORKSPACE_TABS = [
-  ['overview', 'Genel Bakış'],
-  ['tracker', 'Kayıtlar'],
-  ['documents', 'Belgeler'],
-  ['notifications', 'Bildirimler'],
-  ['calendar', 'Takvim'],
-  ['team', 'Ekip'],
-  ['contacts', 'Kişiler'],
-  ['activity', 'Aktiviteler'],
-  ['settings', 'Ayarlar']
-]
+import { WORKSPACE_NAV_TABS } from '@/pages/Workspaces/navigation'
 
 /*
  * Hangi route'ta panel açılır ve içinde hangi GERÇEK route'lar listelenir.
@@ -85,9 +75,9 @@ export function resolveContextPanel(pathname, { activeWorkspaceId, workspaces } 
     /* İşletme Takibi'nin tüm bölümleri masaüstünde bu bağlam panelinde yaşar.
        İçerikteki kompakt sekmeler yalnızca küçük ekranlarda erişim yedeğidir. */
     const links = activeWorkspaceId
-      ? WORKSPACE_TABS.map(([slug, label]) => ({
+      ? WORKSPACE_NAV_TABS.map(({ path, label }) => ({
         label,
-        path: `/app/workspaces/${activeWorkspaceId}/${slug}`
+        path: `/app/workspaces/${activeWorkspaceId}/${path}`
       }))
       : []
     return {

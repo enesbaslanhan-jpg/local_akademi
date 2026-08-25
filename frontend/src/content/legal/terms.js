@@ -202,8 +202,30 @@ export default {
     },
 
     {
+      id: 'pazaryeri-baglantisi',
+      baslik: '11. Pazaryeri mağaza bağlantısı',
+      paragraflar: [
+        'İşletme ayarlarından pazaryeri mağazanızı (Trendyol, Hepsiburada, n11, ' +
+        'Shopify) bağlayabilirsiniz. Bu bağlantı VARSAYILAN OLARAK KURULU DEĞİLDİR; ' +
+        'yalnızca siz kurarsanız çalışır ve istediğiniz zaman kaldırabilirsiniz.',
+        'Bağlantıyı kurarken verdiğiniz API anahtarı ve erişim bilgileri ŞİFRELENEREK ' +
+        'saklanır, hiçbir ekranda ve hiçbir API cevabında geri gösterilmez.',
+        'Bağlantıyı kurma yetkisinin size ait olduğunu ve ilgili pazaryerinin kendi ' +
+        'kullanım koşullarına aykırı davranmadığınızı beyan edersiniz. Pazaryeri ile ' +
+        'aranızdaki ilişki LocalKarar’ın tarafı olduğu bir sözleşme değildir.',
+        'Çekilen siparişler ALICILARINIZIN ADINI taşır. Bu veriler bakımından 7. ' +
+        'bölümdeki taahhütleriniz aynen geçerlidir.',
+        'Siparişlerden ÜRETİLEN kayıt önerileri ONAYINIZI BEKLER; hiçbir kayıt siz ' +
+        'onaylamadan işletme takibinize eklenmez.',
+        'Pazaryerinden gelen verinin doğruluğu ilgili pazaryerinin sorumluluğundadır. ' +
+        'LocalKarar bu veriyi olduğu gibi gösterir; muhasebe ve beyan yükümlülükleriniz ' +
+        'bakımından resmî kaynak pazaryerinin kendi kayıtlarıdır.'
+      ]
+    },
+
+    {
       id: 'fikri-mulkiyet',
-      baslik: '11. Fikri mülkiyet',
+      baslik: '12. Fikri mülkiyet',
       paragraflar: [
         'Uygulamanın arayüzü, yazılımı, eğitim içerikleri, karar araçları ve hesaplama ' +
         'şablonları üzerindeki haklar saklıdır.',
@@ -216,7 +238,7 @@ export default {
 
     {
       id: 'hizmet-degisiklikleri',
-      baslik: '12. Hizmette değişiklik, askıya alma ve sona erdirme',
+      baslik: '13. Hizmette değişiklik, askıya alma ve sona erdirme',
       paragraflar: [
         'Özellikler eklenebilir, değiştirilebilir veya kaldırılabilir. Kullanımınızı ' +
         'esaslı biçimde etkileyen değişiklikler uygun kanallardan duyurulur.',
@@ -228,7 +250,7 @@ export default {
 
     {
       id: 'sorumluluk',
-      baslik: '13. Sorumluluğun sınırı',
+      baslik: '14. Sorumluluğun sınırı',
       paragraflar: [
         'Hizmet kesintisiz ve hatasız olacağı taahhüt edilmeden sunulur. Bakım, ' +
         'sağlayıcı arızası veya güvenlik gereklilikleri nedeniyle geçici kesintiler ' +
@@ -242,7 +264,7 @@ export default {
 
     {
       id: 'hesap-sonu',
-      baslik: '14. Hesabınızı sona erdirmeniz',
+      baslik: '15. Hesabınızı sona erdirmeniz',
       paragraflar: [
         'Hesabınızı istediğiniz zaman Ayarlar sayfasından silebilirsiniz.',
         'Tek sahibi olduğunuz bir işletme çalışma alanı varsa, önce başka bir üyeyi ' +
@@ -254,7 +276,7 @@ export default {
 
     {
       id: 'uygulanacak-hukuk',
-      baslik: '15. Uygulanacak hukuk ve yetkili yargı yeri',
+      baslik: '16. Uygulanacak hukuk ve yetkili yargı yeri',
       paragraflar: [
         'Bu koşullara Türk hukuku uygulanır.',
         'Uyuşmazlıklarda Ankara mahkemeleri ve icra daireleri yetkilidir. Tüketici ' +
@@ -265,7 +287,7 @@ export default {
 
     {
       id: 'yururluk',
-      baslik: '16. Yürürlük ve değişiklikler',
+      baslik: '17. Yürürlük ve değişiklikler',
       paragraflar: [
         'Bu koşullar, hesabınızı oluşturduğunuz anda yürürlüğe girer.',
         'Koşullar güncellendiğinde yeni bir sürüm numarasıyla yayımlanır; Ayarlar’daki ' +

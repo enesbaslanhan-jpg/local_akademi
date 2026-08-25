@@ -38,7 +38,25 @@ export default function AppLayout() {
           onToggleCollapsed={() => setSidebarCollapsed(prev => !prev)}
         />
 
-        <div className={styles.main}>
+        {/*
+          TAM YÜKSEKLİK KİPİ.
+
+          🔴 NEDEN: AI Mentor bir sohbet ekranı — kaydırması İÇERİDE
+          (mesaj listesinde) olmalı, sayfanın kendisinde değil. Ama
+          `.content` her sayfaya dolgu ekliyor ve `.main` `min-height:
+          100vh` taşıyor; sayfa kendini viewport'a göre boyutlayınca
+          dolgu üstüne binip belgeyi taşırıyordu. Ölçüldü: mentor
+          sayfasında 98 piksel dikey kayma, ve taşan öğe içerik değil
+          KENAR ÇUBUĞUYDU.
+
+          Bu kipte `.main` sabit yükseklik alıyor, `.content` dolgusunu
+          bırakıyor ve taşmayı kesiyor; sayfa kalan alanı tam
+          dolduruyor.
+        */}
+        <div
+          className={styles.main}
+          data-tam-yukseklik={location.pathname.startsWith('/app/mentor') ? 'evet' : undefined}
+        >
           <Header onToggleSidebar={() => setDrawerOpen(prev => !prev)} />
           <main className={styles.content}>
             <VerificationBanner />

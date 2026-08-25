@@ -95,6 +95,7 @@ model User {
   consents                  UserConsent[]
   refreshTokens             RefreshToken[]
   addedInboxSenders         BusinessInboxSender[]
+  createdIntegrations       IntegrationConnection[] @relation("IntegrationConnections")
 
   @@index([deletedAt])
 }
@@ -603,10 +604,34 @@ model BusinessRecordDocument {
   @@index([documentId])
 }
 
+// Onay bekleyen kayit onerisi.
+//
+// Iki KAYNAKTAN gelebilir ve tam olarak biri doludur:
+//   documentId         -> yuklenen/e-postayla gelen belgeden (e-Fatura)
+//   sourceKey          -> pazaryeri siparislerinden (gunluk ozet)
+//
+// Neden ayni model: onay akisi, iyimser kilit, gecmis kaydi ve
+// hatirlatma esitlemesi zaten burada yazili. Siparis icin ikinci bir
+// oneri modeli acmak, o mantigin tamaminin kopyasini gerektirirdi ve
+// iki akis kacinilmaz olarak ayrisirdi.
 model DocumentSuggestion {
   id             String            @id @default(uuid())
   workspaceId    String
-  documentId     String
+  // Pazaryeri kaynakli onerilerde NULL. Belge kaynaklilarda dolu.
+  documentId     String?
+  // Belge kaynaklilarda NULL. Pazaryeri kaynaklilarda kaynagi TEKIL
+  // olarak tanimlar; ornek: "marketplace:TRENDYOL:2026-08-24".
+  //
+  // 🔴 NEDEN SIPARIS BASINA DEGIL, GUNLUK OZET:
+  // Marketci gunde 40 hareket yapiyor. Siparis basina oneri, gunde 40
+  // onay kuyrugu demekti -- kullanicinin uygulamayi ikinci gun
+  // birakmasinin sebebi tam olarak buydu. Nakit takibinde dogru soru
+  // "37. siparis ne kadardi" degil, "bu gun ne kadar tahsilat dustu".
+  //
+  // @@unique([workspaceId, sourceKey]) tekrar korumasi: esitleme ayni
+  // gunu her turda yeniden gorur; koruma olmadan kuyruk kopyalarla
+  // dolardi.
+  sourceKey      String?
   suggestionType String
   payload        String
   confidence     Float
@@ -616,8 +641,9 @@ model DocumentSuggestion {
   reviewedAt     DateTime?
   createdAt      DateTime          @default(now())
   workspace      BusinessWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  document       UploadedDocument  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  document       UploadedDocument? @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
+  @@unique([workspaceId, sourceKey])
   @@index([workspaceId, documentId])
   @@index([status])
 }
@@ -797,6 +823,9 @@ model BusinessWorkspace {
   financialModelRuns     FinancialModelRun[]
   decisionJournalEntries DecisionJournalEntry[]
   inboxSenders           BusinessInboxSender[]
+  integrations           IntegrationConnection[]
+  marketplaceOrders      MarketplaceOrder[]
+  marketplaceProducts    MarketplaceProduct[]
 
   @@unique([slug])
 }
@@ -1962,4 +1991,232 @@ model RefreshToken {
   @@index([userId])
   @@index([familyId])
   @@index([expiresAt])
+}
+
+// ==========================================
+// PAZARYERI ENTEGRASYONLARI (provider-bagimsiz)
+//
+// Entegrasyon USER'a degil WORKSPACE'e aittir. Credential'lar
+// AES-256-GCM ile sifrelenir (src/lib/crypto.ts); plaintext
+// olarak HICBIR alana yazilmaz. metadata alanlari yalnizca
+// provider'a ozgu, ortak semada yeri olmayan ek bilgiler
+// tasir; ana finansal degerler metadata'ya GOMULMEZ.
+// ==========================================
+
+enum IntegrationProvider {
+  TRENDYOL
+  HEPSIBURADA
+  N11
+  SHOPIFY
+  WOOCOMMERCE
+}
+
+enum IntegrationConnectionStatus {
+  PENDING
+  ACTIVE
+  ERROR
+  DISABLED
+}
+
+enum IntegrationSyncType {
+  MANUAL
+  SCHEDULED
+  INITIAL
+}
+
+enum IntegrationSyncRunStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
+/// Pazaryeri siparis durumu - provider'dan normalize edilir.
+/// Kaynak durumlar (orn. Trendyol "Delivered") mapper'da buraya cevrilir.
+enum MarketplaceOrderStatus {
+  CREATED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+  PARTIALLY_RETURNED
+  UNKNOWN
+}
+
+/// Pazaryeri baglantisi. Bir workspace + provider + harici hesap
+/// kombinasyonu icin TEK satir vardir.
+model IntegrationConnection {
+  id                    String                     @id @default(uuid())
+  workspaceId           String
+  createdByUserId       Int
+  provider              IntegrationProvider
+  /// Provider tarafindaki hesap kimligi (orn. Trendyol sellerId).
+  externalAccountId     String
+  displayName           String?
+  // Sifreli credential'lar. Anahtar DB'de ve repoda DEGIL, env'de.
+  encryptedApiKey       String?
+  encryptedApiSecret    String?
+  encryptedAccessToken  String?
+  encryptedRefreshToken String?
+  status                IntegrationConnectionStatus @default(PENDING)
+  lastSyncedAt          DateTime?
+  lastSuccessfulSyncAt  DateTime?
+  lastErrorCode         String?
+  lastErrorAt           DateTime?
+  /// Art arda basarisiz sync sayisi. Esik asilinca zamanlanmis sync
+  /// atlanir (circuit breaker); manuel sync denemesi sayaci dusurur.
+  consecutiveFailureCount Int                      @default(0)
+  syncEnabled           Boolean                    @default(true)
+  /// Baglantiye ozel periyot. Null ise env varsayilani kullanilir.
+  syncIntervalMinutes   Int?
+  // Bu pazaryeri odemeyi kac GUN sonra yapiyor (kullanicinin bilgisi).
+  //
+  // 🔴 NEDEN KULLANICIYA SORULUYOR: odeme tarihi hicbir saglayicinin
+  // API'sinde yok. Gomulu bir varsayilan yanlis oldugunda SESSIZCE
+  // hatali nakit tahmini uretirdi -- vade uydurmamak icin verilen
+  // kararin ayni gerekcesi.
+  //
+  // NULL = vade yazilmaz. Kayit yine olusur ve Kayitlar'da gorunur,
+  // ama takvime ve 30 gunluk tahsilat toplamina girmez.
+  payoutDelayDays       Int?
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
+
+  workspace BusinessWorkspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy User                  @relation("IntegrationConnections", fields: [createdByUserId], references: [id])
+  syncRuns  IntegrationSyncRun[]
+
+  @@unique([workspaceId, provider, externalAccountId])
+  @@index([provider, status])
+  @@index([syncEnabled, lastSyncedAt])
+}
+
+/// Tek bir sync calistirmasinin kaydi. Paralel calismayi engellemek
+/// icin RUNNING satiri ayni zamanda kilit gorevi gorur.
+model IntegrationSyncRun {
+  id                String                   @id @default(uuid())
+  connectionId      String
+  provider          IntegrationProvider
+  syncType          IntegrationSyncType
+  startedAt         DateTime                 @default(now())
+  finishedAt        DateTime?
+  status            IntegrationSyncRunStatus @default(RUNNING)
+  recordsFetched    Int                      @default(0)
+  recordsCreated    Int                      @default(0)
+  recordsUpdated    Int                      @default(0)
+  recordsSkipped    Int                      @default(0)
+  errorCode         String?
+  errorMessageSafe  String?
+  cursor            String?
+  createdAt         DateTime                 @default(now())
+
+  connection IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId, startedAt])
+  @@index([status, startedAt])
+}
+
+/// Pazaryeri siparisi (gercek kaynak kayit). BusinessRecord olarak
+/// DEGIL, kendi tablosunda tutulur; ihtiac duyulursa ayri projection
+/// katmanindan uretilir. Tutar alanlarinda Float KULLANILMAZ.
+model MarketplaceOrder {
+  id                   String                @id @default(uuid())
+  workspaceId          String
+  provider             IntegrationProvider
+  externalId           String
+  externalOrderNumber  String?
+  externalCustomerId   String?
+  /// PII minimize edildi: ad + soyadin bas harfi (orn. "Ayse K.").
+  customerDisplayName  String?
+  currency             String                @default("TRY")
+  grossAmount          Decimal               @db.Decimal(18, 2)
+  discountAmount       Decimal?              @db.Decimal(18, 2)
+  /// Provider gercek komisyon TUTARI vermiyorsa null kalir;
+  /// yuzdeden tahmin uydurulmaz.
+  commissionAmount     Decimal?              @db.Decimal(18, 2)
+  shippingAmount       Decimal?              @db.Decimal(18, 2)
+  refundAmount         Decimal?              @db.Decimal(18, 2)
+  taxAmount            Decimal?              @db.Decimal(18, 2)
+  /// gross - discount - commission - shipping - refund. Verilerden
+  /// herhangi biri yoksa null (sahte 0 ile yaniltma yasak).
+  netContribution      Decimal?              @db.Decimal(18, 2)
+  status               MarketplaceOrderStatus @default(UNKNOWN)
+  orderDate            DateTime
+  providerUpdatedAt    DateTime?
+  syncedAt             DateTime              @default(now())
+  metadata             Json?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  workspace BusinessWorkspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  items     MarketplaceOrderItem[]
+
+  @@unique([workspaceId, provider, externalId])
+  @@index([workspaceId, provider, orderDate])
+  @@index([workspaceId, status])
+  @@index([workspaceId, orderDate])
+}
+
+model MarketplaceOrderItem {
+  id                 String    @id @default(uuid())
+  orderId            String
+  externalId         String?
+  externalProductId  String?
+  sku                String?
+  barcode            String?
+  title              String
+  quantity           Int
+  unitPrice          Decimal   @db.Decimal(18, 2)
+  grossAmount        Decimal   @db.Decimal(18, 2)
+  discountAmount     Decimal?  @db.Decimal(18, 2)
+  commissionAmount   Decimal?  @db.Decimal(18, 2)
+  shippingAllocation Decimal?  @db.Decimal(18, 2)
+  refundAmount       Decimal?  @db.Decimal(18, 2)
+  netContribution    Decimal?  @db.Decimal(18, 2)
+  metadata           Json?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  order MarketplaceOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model MarketplaceProduct {
+  id                String               @id @default(uuid())
+  workspaceId       String
+  provider          IntegrationProvider
+  externalId        String
+  sku               String?
+  barcode           String?
+  title             String
+  brand             String?
+  category          String?
+  salePrice         Decimal?             @db.Decimal(18, 2)
+  listPrice         Decimal?             @db.Decimal(18, 2)
+  stockQuantity     Int?
+  currency          String?
+  isActive          Boolean              @default(true)
+  /// Provider'in gercek urun gorseli (https URL). Provider saglamiyorsa
+  /// null kalir; sahte resim uretilmez. Sync tarafindan yonetilir.
+  imageUrl          String?
+  images            Json?
+  providerUpdatedAt DateTime?
+  syncedAt          DateTime             @default(now())
+  metadata          Json?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  /// --- LocalKarar YEREL AYARLARI ---
+  /// Bunlar isletmenin kendi notlaridir; provider sync'i bu alanlari
+  /// ASLA ezmez (repository upsert update path'inde bulunmaz).
+  internalNote      String?
+  tags              Json?
+  lowStockThresholdOverride Int?
+  isFavorite        Boolean              @default(false)
+
+  workspace BusinessWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, provider, externalId])
+  @@index([workspaceId, isActive])
 }

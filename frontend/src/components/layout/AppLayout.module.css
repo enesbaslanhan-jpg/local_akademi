@@ -63,3 +63,52 @@
     min-width: 0;
   }
 }
+
+/* TAM YÜKSEKLİK KİPİ — sohbet gibi kendi içinde kayan ekranlar için.
+   Ölçüm: mentor sayfasında belge 98 piksel kayıyordu; sebep içerik
+   değil, `.content` dolgusunun viewport'a göre boyutlanmış sayfanın
+   üstüne binmesiydi. */
+.main[data-tam-yukseklik='evet'] {
+  height: 100dvh;
+  /* `min-height: 100vh` tek başına kalırsa sabit yükseklik işe yaramaz. */
+  min-height: 0;
+  overflow: hidden;
+}
+
+.main[data-tam-yukseklik='evet'] .content {
+  /* Dolgu sayfanın kendi kenar boşluğu olarak İÇERİDE yönetilir;
+     burada kalırsa yükseklik hesabını kaçınılmaz olarak taşırır. */
+  padding: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.main[data-tam-yukseklik='evet'] .pageTransition {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/*
+ * 🔴 TAM YÜKSEKLİK KİPİ + MOBİL ALT ÇUBUK.
+ *
+ * Alt çubuk `position: fixed` ve ekranın altını kaplıyor. Normal
+ * sayfalar bunu `.content` alt dolgusuyla açıyor; tam yükseklik kipi
+ * o dolguyu sıfırladığı için boşluk kayboluyordu ve YAZMA ALANI
+ * ÇUBUĞUN ALTINDA KALIYORDU -- ölçüldü: yazma alanı 748-794,
+ * çubuk 755-812, yani üstünü örtüyordu.
+ *
+ * Çözüm dolgu değil, YÜKSEKLİĞİ KISALTMAK: sayfa çubuğun üstünde
+ * bitiyor, iç kaydırma da o sınıra göre hesaplanıyor.
+ *
+ * Sınır 899px: alt çubuk tam olarak orada görünür oluyor
+ * (MobileTabBar.module.css), 1023px değil.
+ */
+@media (max-width: 899px) {
+  .main[data-tam-yukseklik='evet'] {
+    height: calc(100dvh - var(--bottom-tab-height) - var(--safe-area-bottom));
+  }
+}

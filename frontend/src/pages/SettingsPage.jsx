@@ -13,6 +13,7 @@ import {
   Moon,
   Scale,
   ShieldCheck,
+  Store,
   Sun,
   Trash2,
   User,
@@ -24,6 +25,7 @@ import { api } from '@/services/api'
 import { Badge, Button, Select } from '@/components/ui'
 import PasswordInput from '@/components/ui/PasswordInput'
 import ImageViewer from '@/components/ui/ImageViewer'
+import IntegrationsPanel from '@/components/settings/IntegrationsPanel'
 import styles from './SettingsPage.module.css'
 
 const TIMEZONES = ['Europe/Istanbul', 'Europe/London', 'Europe/Berlin', 'America/New_York', 'Asia/Dubai', 'UTC']
@@ -65,7 +67,7 @@ export default function SettingsPage() {
   const [systemInfo, setSystemInfo] = useState(null)
   const [activeSection, setActiveSection] = useState(() => {
     const bolum = new URLSearchParams(window.location.search).get('bolum')
-    return ['profile', 'notifications', 'security', 'privacy'].includes(bolum) ? bolum : 'profile'
+    return ['profile', 'notifications', 'security', 'privacy', 'integrations'].includes(bolum) ? bolum : 'profile'
   })
   const [avatarSaving, setAvatarSaving] = useState(false)
   const [avatarMsg, setAvatarMsg] = useState(null)
@@ -322,6 +324,7 @@ export default function SettingsPage() {
       <div className={styles.settingsShell}>
         <nav className={styles.settingsNav} aria-label="Ayar bölümleri">
           <button className={activeSection === 'profile' ? styles.activeNav : ''} onClick={() => setActiveSection('profile')}><User size={17} /> Profil ve işletme</button>
+          <button className={activeSection === 'integrations' ? styles.activeNav : ''} onClick={() => setActiveSection('integrations')}><Store size={17} /> Entegrasyonlar</button>
           <button className={activeSection === 'notifications' ? styles.activeNav : ''} onClick={() => setActiveSection('notifications')}><Bell size={17} /> Bildirimler</button>
           <button className={activeSection === 'appearance' ? styles.activeNav : ''} onClick={() => setActiveSection('appearance')}><Laptop size={17} /> Erişilebilirlik</button>
           <button className={activeSection === 'security' ? styles.activeNav : ''} onClick={() => setActiveSection('security')}><ShieldCheck size={17} /> Güvenlik</button>
@@ -383,6 +386,21 @@ export default function SettingsPage() {
           </SettingsSection>
 
           {profile && <SettingsSection id="isletme-profili" icon={<BriefcaseBusiness />} title="İşletme profili" description="Mentor ve karar araçlarının kullandığı işletme bağlamını güncel tutun."><form onSubmit={saveProfile}><div className={styles.twoFields}><Field label="Sektör"><input value={profile.sector || ''} onChange={event => setProfile(current => ({ ...current, sector: event.target.value }))} /></Field><Field label="Şehir"><input value={profile.city || ''} onChange={event => setProfile(current => ({ ...current, city: event.target.value }))} /></Field><Field label="İşletme aşaması"><Select placeholder="Seçilmedi" options={STAGES.map(([value, label]) => ({ value, label }))} value={profile.businessStage || ''} onChange={v => setProfile(current => ({ ...current, businessStage: v }))} /></Field><Field label="Çalışan sayısı"><input type="number" min="0" value={profile.employeeCount ?? ''} onChange={event => setProfile(current => ({ ...current, employeeCount: event.target.value }))} /></Field></div><Field label="Öncelikli hedef"><input value={profile.primaryGoal || ''} onChange={event => setProfile(current => ({ ...current, primaryGoal: event.target.value }))} /></Field><Footer message={<Message msg={profileMsg} />}><Button type="submit" disabled={profileSaving}>{profileSaving ? 'Kaydediliyor…' : 'Profili kaydet'}</Button></Footer></form></SettingsSection>}
+
+          {/* Pazaryeri entegrasyonlari: baglanti yalnizca etkin isletmeye
+              yapilir; credential'lar sifrelidir ve geri gosterilmez. */}
+          <section id="entegrasyonlar" className={styles.card}>
+            <header className={styles.cardHeader}>
+              <span><Store /></span>
+              <div>
+                <h2>Entegrasyonlar</h2>
+                <p>Pazaryeri mağazanızı bağlayın; siparişleriniz ve ürünleriniz eşitlensin. Her gün için onayınızı bekleyen bir tahsilat kaydı önerisi üretilir; onaylarsanız işletme takibine düşer. Sayfa açılışında dış sitelere istek gönderilmez.</p>
+              </div>
+            </header>
+            <div className={styles.cardBody}>
+              <IntegrationsPanel />
+            </div>
+          </section>
 
           <SettingsSection id="yasal" icon={<Scale />} title="Gizlilik ve yasal bilgiler" description="Verilerinizin nasıl işlendiğini ve LocalKarar kullanım koşullarını inceleyin.">
             <div className={styles.legalLinks}><button type="button" onClick={() => navigate('/hakkinda')}>LocalKarar hakkında</button><button type="button" onClick={() => navigate('/privacy')}>Gizlilik ve KVKK aydınlatma metni</button><button type="button" onClick={() => navigate('/terms')}>Kullanım koşulları</button><button type="button" onClick={() => navigate('/cookies')}>Çerez ve yerel depolama politikası</button></div>
