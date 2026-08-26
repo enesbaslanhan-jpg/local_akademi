@@ -8,6 +8,7 @@ import StorageNotice from '@/components/ui/StorageNotice'
 import { passwordChecks, passwordMeetsMinimum } from '@/constants/password'
 import { guvenliNext } from '@/utils/safeNext'
 import AuthThemeToggle from './AuthThemeToggle'
+import LegalModal from '@/components/legal/LegalModal'
 import styles from './AuthPage.module.css'
 
 /**
@@ -78,6 +79,8 @@ export default function AuthPage({ mode: initialMode }) {
   const [legalOk, setLegalOk] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  /* Acik yasal metin penceresi: null | 'terms' | 'privacy' */
+  const [yasalMetin, setYasalMetin] = useState(null)
 
   const [searchParams] = useSearchParams()
   const isLogin = mode === 'login'
@@ -114,6 +117,8 @@ export default function AuthPage({ mode: initialMode }) {
      */
     <div className={styles.page}>
       <AuthThemeToggle />
+      {/* Yasal metin sayfadan çıkmadan okunuyor; form arkada duruyor. */}
+      <LegalModal type={yasalMetin} open={Boolean(yasalMetin)} onClose={() => setYasalMetin(null)} />
       <div className={styles.glowCool} aria-hidden="true" />
       <div className={styles.glowLight} aria-hidden="true" />
       <div className={styles.glowWarm} aria-hidden="true" />
@@ -227,9 +232,20 @@ export default function AuthPage({ mode: initialMode }) {
                 onChange={event => setLegalOk(event.target.checked)}
                 required
               />
+              {/*
+                🔴 YENİ SEKME YERİNE PENCERE.
+                Bağlantılar `target="_blank"` ile yeni sekme açıyordu.
+                Aynı sekmede gitmek ise formda yazılanı (e-posta, parola,
+                ad, onay kutusu) SİLERDİ. Pencere ikisini de çözüyor:
+                form arkada duruyor, metin üstünde açılıyor.
+              */}
               <span>
-                <Link to="/terms" target="_blank" rel="noreferrer">Kullanım Koşulları</Link>&rsquo;nı ve{' '}
-                <Link to="/privacy" target="_blank" rel="noreferrer">Aydınlatma Metni</Link>&rsquo;ni
+                <button type="button" className={styles.legalLink} onClick={() => setYasalMetin('terms')}>
+                  Kullanım Koşulları
+                </button>&rsquo;nı ve{' '}
+                <button type="button" className={styles.legalLink} onClick={() => setYasalMetin('privacy')}>
+                  Aydınlatma Metni
+                </button>&rsquo;ni
                 okudum, onaylıyorum.
               </span>
             </label>

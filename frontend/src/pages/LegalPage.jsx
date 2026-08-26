@@ -26,7 +26,7 @@ import styles from './LegalPage.module.css'
  * göstermemekten kötüdür.
  */
 
-const BELGELER = {
+export const BELGELER = {
   privacy: { icon: ShieldCheck, baslik: 'Gizlilik ve KVKK Aydınlatma Metni', icerik: privacy },
   terms: { icon: FileText, baslik: 'Kullanım Koşulları', icerik: terms },
   cookies: { icon: Cookie, baslik: 'Çerez ve Yerel Depolama Politikası', icerik: cookies }
@@ -40,7 +40,7 @@ function surumuTarihEt(surum) {
   return new Intl.DateTimeFormat('tr-TR', { dateStyle: 'long' }).format(tarih)
 }
 
-function Bolum({ bolum }) {
+export function Bolum({ bolum }) {
   return (
     <section id={bolum.id}>
       <h2>{bolum.baslik}</h2>

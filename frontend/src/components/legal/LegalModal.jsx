@@ -1,0 +1,42 @@
+import Modal from '@/components/ui/Modal'
+import { Bolum, BELGELER } from '@/pages/LegalPage'
+import sayfaStilleri from '@/pages/LegalPage.module.css'
+import styles from './LegalModal.module.css'
+
+/*
+ * YASAL METNİ SAYFADAN ÇIKMADAN GÖSTEREN PENCERE.
+ *
+ * 🔴 NEDEN VAR: kayıt formundaki onay bağlantıları `target="_blank"` ile
+ * yeni sekme açıyordu. Bu bilinçliydi — aynı sekmede gidilseydi formda
+ * yazılan e-posta, parola, ad ve onay kutusu KAYBOLURDU. Ama kullanıcı
+ * haklı olarak metni uygulamanın içinde okumak istiyor.
+ *
+ * Pencere ikisini birden veriyor: form arkada olduğu gibi duruyor,
+ * metin üstünde açılıyor.
+ *
+ * ⚠️ Çizim KOPYALANMIYOR: `LegalPage`in `Bolum` bileşeni ve stil
+ * dosyası aynen kullanılıyor. İkinci bir çizim yazılsaydı iki yer
+ * kaçınılmaz olarak ayrışırdı -- tablo, tanım listesi ve liste
+ * biçimleri metinlerin her güncellemesinde ikiye bölünürdü.
+ */
+export default function LegalModal({ type, open, onClose }) {
+  const belge = BELGELER[type]
+  if (!belge) return null
+
+  const { giris, bolumler } = belge.icerik
+
+  return (
+    <Modal open={open} onClose={onClose} title={belge.baslik} size="lg">
+      {/*
+        `sayfaStilleri.document` LegalPage'in tipografisini taşıyor
+        (başlık, paragraf, tablo, tanım listesi). `styles.govde` yalnız
+        pencere içindeki kaydırmayı ayarlıyor. Metin iki yerde AYNI
+        görünüyor.
+      */}
+      <div className={`${styles.govde} ${sayfaStilleri.document}`}>
+        {giris && <p className={sayfaStilleri.intro}>{giris}</p>}
+        {bolumler.map(bolum => <Bolum key={bolum.id ?? bolum.baslik} bolum={bolum} />)}
+      </div>
+    </Modal>
+  )
+}

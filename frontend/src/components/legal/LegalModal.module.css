@@ -1,0 +1,23 @@
+/*
+ * Yalnız pencere içindeki kaydırma ve genişlik.
+ *
+ * Metnin tipografisi LegalPage.module.css'ten geliyor — burada
+ * TEKRARLANMIYOR. İki yerde ayrı biçim yazılsaydı, metinlerin her
+ * güncellemesinde tablo ve liste görünümleri ayrışırdı.
+ */
+.govde {
+  /* Uzun metin pencereyi taşırmasın; kaydırma İÇERİDE olsun. */
+  max-height: 70vh;
+  overflow-y: auto;
+  /* Kaydırma çubuğu metnin üstüne binmesin. */
+  padding-right: var(--space-3);
+  /* Grid/flex öğeleri varsayılan `min-width: auto` ile içeriğinden dar
+     olmayı reddeder; dar ekranda tablo taşmasını bu kesiyor. */
+  min-width: 0;
+}
+
+/* Pencere içinde sayfa başlığı ve marka bloğu yok; ilk bölüm üstten
+   gereksiz boşluk almasın. */
+.govde > :global(section):first-of-type {
+  margin-top: 0;
+}
