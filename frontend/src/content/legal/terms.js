@@ -47,9 +47,24 @@ export default {
       paragraflar: [
         'Bu koşullar, uygulamayı işleten Enes Buğra Aslanhan (gerçek kişi, Ankara / ' +
         'Yenimahalle) ile uygulamayı kullanan siz arasında kurulur.',
-        /* Satış ve destek adresi tek kaynaktan; `destek@` açıldığında
-           burası da kendiliğinden değişir. KVKK başvuruları için ayrılmış
-           adres aydınlatma metninde ayrıca yazılı — ikisi bilerek farklı. */
+        /* Satış ve destek adresi tek kaynaktan (`config/seller.js`).
+           KVKK başvuruları için ayrılmış adres aydınlatma metninde ayrıca
+           yazılı — ikisi bilerek farklı.
+
+           🔴 SÜRÜM BİLEREK ARTIRILMADI (31.08.2026, ürün sahibi kararı).
+           `destek@` açılınca bu satır `kvkk@`dan `destek@`ya döndü, yani
+           yayınlanmış bir metnin görünen içeriği değişti ve deponun
+           kuralı normalde sürüm artırmayı gerektirir.
+
+           İstisna gerekçesi: `kvkk@` hâlâ çalışıyor ve KVKK başvuru
+           adresi olarak aydınlatma metninde ayrıca duruyor; değişiklik
+           kullanıcının ulaşma imkânını daraltmıyor, genişletiyor. Bir
+           iletişim ayrıntısı için herkesi yeniden onaya zorlamak,
+           şeride tıklayıp geçme alışkanlığı yaratır ve gerçek
+           değişikliklerde onayın değerini düşürür.
+
+           ⚠️ Bu istisna YALNIZ bu değişiklik içindir. Hak ve
+           yükümlülüklere dokunan her düzenlemede sürüm artar. */
         `İletişim: ${iletisimEpostasi()}`
       ]
     },

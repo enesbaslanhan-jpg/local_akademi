@@ -90,15 +90,19 @@ export const SATICI = {
   /*
    * Satış, destek, iptal ve iade adresi.
    *
-   * 🔴 `null` OLDUĞU SÜRECE kvkk adresi kullanılıyor (aşağıdaki
-   * `iletisimEpostasi`). Açılmamış bir adresi yayımlamak, tek kutuda
-   * karışmasından daha kötü: kullanıcı yazar, posta hiçbir yere gitmez
-   * ve o kişi cevap beklemeye devam eder.
+   * ✅ 31.08.2026'da Cloudflare Email Routing'de açıldı ve yayına
+   * alındı. Kural sırası da doğru kuruldu: `kvkk@` ve `destek@` özel
+   * kurallar olarak posta kutusuna iletiliyor, catch-all ise gelen
+   * fatura Worker'ına gidiyor. Cloudflare özel kuralları catch-all'dan
+   * ÖNCE değerlendirdiği için bu iki adres Worker'a düşmüyor.
    *
-   * Alias açılıp bir test postası düştüğünde burayı doldur; alt bilgi,
-   * dört ticari belge ve destek sayfası aynı anda güncellenir.
+   * 🔴 Buraya yazılan her adres, insanlara duyurulan bir adrestir ve
+   * Email Routing'de KENDİ ÖZEL KURALI olmalıdır. Kuralı olmayan bir
+   * adres catch-all'a, oradan Worker'a düşer; Worker o anahtara ait
+   * çalışma alanı bulamayınca postayı SESSİZCE atar — gönderene geri
+   * sekme bile gitmez. Yani yazan kişi cevap beklemeye devam eder.
    */
-  destekEposta: null,
+  destekEposta: 'destek@localkarar.com',
 
   /** Adresin açık hâli gelene kadar metinlerde geçen coğrafi kapsam. */
   bolge: 'Yenimahalle, Ankara',
