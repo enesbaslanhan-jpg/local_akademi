@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vites
 import { maskSensitiveData, maskChatMessages } from '../src/services/sensitive-data-masker'
 import { reviewInput, reviewOutput, computeDecision, type ReviewResult, type ReviewDecision } from '../src/services/review-gate'
 import { containsSensitiveData } from '../src/services/memory/sensitive-data-filter'
-import { GatewayConfigError, GatewayProviderError, getReviewGateConfig, getReviewMaxOutputChars, formatOutputContent } from '../src/services/ai-gateway'
+import { GatewayConfigError, GatewayProviderError, getReviewGateConfig, getReviewMaxOutputChars, formatOutputContent, getProviderConfig } from '../src/services/ai-gateway'
 import { secureLog, secureLogError } from '../src/services/secure-logger'
 import { formatKnowledgeContext } from '../src/services/ai-provider'
 
@@ -589,6 +589,139 @@ describe('Log Security', () => {
       expect(logText).not.toContain('password')
     } finally {
       console.info = origInfo
+    }
+  })
+
+  /*
+   * 🔴 SAĞLAYICI DURUM KODU GÜNLÜĞE DÜŞMELİ.
+   *
+   * Gerçek arıza: Mistral `mistral-large-latest` için 403
+   * `tier_not_allowed` döndürüyordu ve mentor tamamen çalışmıyordu.
+   * Günlükte görünen tek şey `errorCode: PROVIDER_ERROR` idi; durum
+   * kodu fırlatılan hatanın içinde VARDI ama kaydediciye
+   * geçirilmediği için kayboluyordu.
+   *
+   * Sonucu: 401 (anahtar geçersiz), 403 (plan kapsamı), 429 (kota) ve
+   * 400 (model adı) birbirinden ayırt edilemiyordu — dördü de aynı
+   * satırı basıyordu ve teşhis ancak sunucuya elle istek atarak
+   * yapılabildi.
+   *
+   * 🦷 Bu iki test o bilgiyi koruyor: alan kaydediciden ya da hata
+   * sınıfından düşerse ikisi de kırmızıya döner.
+   */
+  it('saglayici HTTP durum kodu hata logunda gorunur', () => {
+    const logSpy: string[] = []
+    const origWarn = console.warn
+    console.warn = (...args: any[]) => { logSpy.push(args.join(' ')) }
+    try {
+      secureLogError({
+        requestId: 'r1', provider: 'omniroute', model: 'mistral-large-latest',
+        durationMs: 192, errorCode: 'PROVIDER_ERROR', providerStatus: 403
+      })
+      const logText = logSpy.join(' ')
+      expect(logText, 'durum kodu olmadan 401/403/429 ayirt edilemez').toContain('"providerStatus":403')
+      expect(logText).toContain('PROVIDER_ERROR')
+    } finally {
+      console.warn = origWarn
+    }
+  })
+
+  /*
+   * 🔴 UZAK SAĞLAYICIDA MODEL ADI ZORUNLU.
+   *
+   * `auto/best-free` varsayılanı yalnız gerçek bir OmniRoute
+   * yönlendiricisinde anlamlı. `OMNIROUTE_BASE_URL` doğrudan Mistral'e
+   * bakarken o ad geçersiz bir model kimliği ve istek 4xx döner —
+   * "plan kapsamı dışı" hatasından ayırt edilemeyen bir 4xx.
+   *
+   * Üretimde model adı `.env`den geliyor; oradan düşerse varsayılan
+   * devreye girer ve mentor SESSİZCE kırılırdı. Bu testler o sessiz
+   * yolu kapatıyor.
+   */
+  it('uzak OmniRoute adresinde OMNIROUTE_MODEL yoksa acilista hata', () => {
+    const onceki = {
+      url: process.env.OMNIROUTE_BASE_URL,
+      model: process.env.OMNIROUTE_MODEL,
+      key: process.env.OMNIROUTE_API_KEY,
+      ext: process.env.AI_ALLOW_EXTERNAL_PROVIDERS,
+    }
+    try {
+      setEnv('OMNIROUTE_BASE_URL', 'https://api.mistral.ai/v1')
+      setEnv('OMNIROUTE_API_KEY', 'test-key')
+      setEnv('AI_ALLOW_EXTERNAL_PROVIDERS', 'true')
+      setEnv('OMNIROUTE_MODEL', undefined)
+      expect(() => getProviderConfig({ provider: 'omniroute' }))
+        .toThrow(/OMNIROUTE_MODEL_REQUIRED/)
+    } finally {
+      setEnv('OMNIROUTE_BASE_URL', onceki.url)
+      setEnv('OMNIROUTE_MODEL', onceki.model)
+      setEnv('OMNIROUTE_API_KEY', onceki.key)
+      setEnv('AI_ALLOW_EXTERNAL_PROVIDERS', onceki.ext)
+    }
+  })
+
+  it('uzak adreste model verilmisse gecer', () => {
+    const onceki = {
+      url: process.env.OMNIROUTE_BASE_URL,
+      model: process.env.OMNIROUTE_MODEL,
+      key: process.env.OMNIROUTE_API_KEY,
+      ext: process.env.AI_ALLOW_EXTERNAL_PROVIDERS,
+    }
+    try {
+      setEnv('OMNIROUTE_BASE_URL', 'https://api.mistral.ai/v1')
+      setEnv('OMNIROUTE_API_KEY', 'test-key')
+      setEnv('AI_ALLOW_EXTERNAL_PROVIDERS', 'true')
+      setEnv('OMNIROUTE_MODEL', 'mistral-medium-latest')
+      expect(getProviderConfig({ provider: 'omniroute' }).model).toBe('mistral-medium-latest')
+    } finally {
+      setEnv('OMNIROUTE_BASE_URL', onceki.url)
+      setEnv('OMNIROUTE_MODEL', onceki.model)
+      setEnv('OMNIROUTE_API_KEY', onceki.key)
+      setEnv('AI_ALLOW_EXTERNAL_PROVIDERS', onceki.ext)
+    }
+  })
+
+  /* Yerel yönlendiricide varsayılan HÂLÂ geçerli: kural yalnız uzak
+     adres içindir, mevcut kurulumları kırmamalı. */
+  it('loopback OmniRoute adresinde varsayilan model korunuyor', () => {
+    const onceki = {
+      url: process.env.OMNIROUTE_BASE_URL,
+      model: process.env.OMNIROUTE_MODEL,
+      key: process.env.OMNIROUTE_API_KEY,
+    }
+    try {
+      setEnv('OMNIROUTE_BASE_URL', 'http://localhost:20128/v1')
+      setEnv('OMNIROUTE_API_KEY', 'test-key')
+      setEnv('OMNIROUTE_MODEL', undefined)
+      expect(getProviderConfig({ provider: 'omniroute' }).model).toBe('auto/best-free')
+    } finally {
+      setEnv('OMNIROUTE_BASE_URL', onceki.url)
+      setEnv('OMNIROUTE_MODEL', onceki.model)
+      setEnv('OMNIROUTE_API_KEY', onceki.key)
+    }
+  })
+
+  it('GatewayProviderError durum kodunu tasiyor — cagri yerinde erisilebilir', () => {
+    const hata = new GatewayProviderError(
+      'PROVIDER_ERROR', 'Provider error:omniroute:403', 'omniroute', 403
+    )
+    expect(hata.statusCode).toBe(403)
+  })
+
+  /* Durum kodu eklenirken izin listesi disiplini bozulmamali:
+     sağlayıcının serbest hata METNİ, istenmedikçe günlüğe girmiyor. */
+  it('saglayici hata metni kendiliginden loglanmiyor', () => {
+    const logSpy: string[] = []
+    const origWarn = console.warn
+    console.warn = (...args: any[]) => { logSpy.push(args.join(' ')) }
+    try {
+      secureLogError({
+        requestId: 'r1', provider: 'omniroute', errorCode: 'PROVIDER_ERROR', providerStatus: 403
+      })
+      const logText = logSpy.join(' ')
+      expect(logText).not.toContain('message')
+    } finally {
+      console.warn = origWarn
     }
   })
 

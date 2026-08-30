@@ -192,6 +192,19 @@ function joinChatCompletionsUrl(baseUrl: string): string {
   return `${baseUrl.trim().replace(/\/+$/, '')}/chat/completions`
 }
 
+const OMNIROUTE_LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '::1', '[::1]'])
+
+/* OMNIROUTE_BASE_URL yerel bir yönlendiriciye mi bakıyor.
+   Model adının zorunlu olup olmadığını bu belirliyor. */
+function omniRouteBaseIsLoopback(): boolean {
+  try {
+    const url = new URL(process.env.OMNIROUTE_BASE_URL || 'http://localhost:20128/v1')
+    return OMNIROUTE_LOOPBACK_HOSTS.has(url.hostname)
+  } catch {
+    return false
+  }
+}
+
 /* OmniRoute adresi doğrulanır.
    OmniRoute bir YÖNLENDİRİCİ: loopback'te çalışması, çıkarımın nerede
    yapıldığını garanti etmez — ama en azından adresin sessizce uzak bir
@@ -213,8 +226,7 @@ function resolveOmniRouteUrl(): string {
     throw new GatewayConfigError('OMNIROUTE_INVALID_URL')
   }
 
-  const loopbackHosts = new Set(['127.0.0.1', 'localhost', '::1', '[::1]'])
-  if (!loopbackHosts.has(url.hostname) && !externalProvidersEnabled()) {
+  if (!OMNIROUTE_LOOPBACK_HOSTS.has(url.hostname) && !externalProvidersEnabled()) {
     throw new GatewayConfigError(
       'OMNIROUTE_NON_LOOPBACK_URL: OMNIROUTE_BASE_URL yerel değil. ' +
       'Uzak bir OmniRoute kullanmak veriyi sunucu dışına çıkarır; ' +
@@ -223,6 +235,44 @@ function resolveOmniRouteUrl(): string {
   }
 
   return joinChatCompletionsUrl(url.toString())
+}
+
+/*
+ * OmniRoute model adı zorunlu mu.
+ *
+ * `auto/best-free` YALNIZ gerçek bir OmniRoute yönlendiricisinde
+ * anlamlı: takma adı yönlendirici çözüp uygun modeli seçiyor.
+ * `OMNIROUTE_BASE_URL` doğrudan bir sağlayıcıya (ör. Mistral) bakarken
+ * bu ad GEÇERSİZ bir model kimliği ve istek 4xx ile döner.
+ *
+ * 🔴 Varsayım değil, yaşanmış arıza (31.08.2026): üretimde model adı
+ * `.env`den geliyordu, Mistral `mistral-large-latest` için 403
+ * `tier_not_allowed` dönmeye başladı ve mentor tamamen durdu. Teşhis
+ * uzun sürdü çünkü günlükte yalnız `PROVIDER_ERROR` görünüyordu.
+ *
+ * Değişken bir gün `.env`den düşerse bu varsayılan devreye girer ve
+ * AYNI sonucu sessizce üretir — "geçersiz model adı" ile "plan kapsamı
+ * dışı" ayırt edilemeyen 4xx'ler. Uzak bir adrese bakarken model adı
+ * bu yüzden ZORUNLU.
+ *
+ * Deponun `AI_PROVIDER=nvidia` varsayılanını kaldırırkenki kararının
+ * aynısı: sessizce yanlış davranmaktansa açılışta gürültülü hata.
+ *
+ * ⚠️ Kontrol SEÇİLEN sağlayıcıya bağlı, `configs` sözlüğüne değil: o
+ * sözlük bütün sağlayıcıları eager kuruyor, dolayısıyla model
+ * çözümünün içinde fırlatmak, omniroute kullanmayan bir kurulumu da
+ * kırardı.
+ */
+function assertOmniRouteModelConfigured(provider: AiProviderName): void {
+  if (provider !== 'omniroute') return
+  if (process.env.OMNIROUTE_MODEL?.trim()) return
+  if (omniRouteBaseIsLoopback()) return
+
+  throw new GatewayConfigError(
+    'OMNIROUTE_MODEL_REQUIRED: OMNIROUTE_BASE_URL uzak bir sağlayıcıya bakıyor. ' +
+    "`auto/best-free` yalnız gerçek bir OmniRoute yönlendiricisinde geçerlidir; " +
+    'doğrudan sağlayıcıya bağlanırken OMNIROUTE_MODEL açıkça verilmelidir.'
+  )
 }
 
 /* ÜRÜN KARARI: kullanıcı verisi yurt dışındaki AI sağlayıcılarına
@@ -248,7 +298,7 @@ function assertProviderAllowedByPolicy(provider: AiProviderName): void {
   }
 }
 
-function getProviderConfig(options: { provider?: string; model?: string } = {}): ProviderConfig {
+export function getProviderConfig(options: { provider?: string; model?: string } = {}): ProviderConfig {
   const raw = (
     options.provider && options.provider !== 'auto'
       ? options.provider
@@ -313,6 +363,13 @@ function getProviderConfig(options: { provider?: string; model?: string } = {}):
   if (baseConfig.provider !== 'ollama' && !baseConfig.apiKey) {
     throw new GatewayConfigError(`MENTOR_API_KEY_MISSING:${provider}`)
   }
+
+  /* 🔴 SIRA ÖNEMLİ: bu kontrol `configs` kurulduktan SONRA çalışıyor,
+     çünkü `resolveOmniRouteUrl()` orada çağrılıyor ve uzak adresi
+     bayraksız kullanmayı reddediyor. Model kontrolünü öne almak, o
+     güvenlik hatasını (veri sunucu dışına çıkıyor) yalnızca bir
+     yapılandırma şikâyetiyle MASKELİYORDU — testte böyle yakalandı. */
+  assertOmniRouteModelConfigured(provider)
   return options.model ? { ...baseConfig, model: options.model } : baseConfig
 }
 
@@ -1038,7 +1095,7 @@ export async function generateCompletion(req: GatewayRequest): Promise<GatewayRe
       if (err instanceof GatewayProviderError) {
         if (!err.retryable || attempt >= MAX_RETRIES) {
           const durationMs = Date.now() - startTime
-          secureLogError({ requestId, userId: req.userId, provider: config.provider, model: config.model, durationMs, errorCode: err.code })
+          secureLogError({ requestId, userId: req.userId, provider: config.provider, model: config.model, durationMs, errorCode: err.code, providerStatus: err.statusCode })
           throw err
         }
         const delay = err.code === 'RATE_LIMITED'
@@ -1123,7 +1180,7 @@ export async function* generateStream(req: GatewayRequest): AsyncGenerator<Gatew
     } catch (err: unknown) {
       const durationMs = Date.now() - startTime
       if (err instanceof GatewayProviderError) {
-        secureLogError({ requestId, userId: req.userId, provider: config.provider, model: config.model, durationMs, errorCode: err.code })
+        secureLogError({ requestId, userId: req.userId, provider: config.provider, model: config.model, durationMs, errorCode: err.code, providerStatus: err.statusCode })
         yield err.code === 'ABORTED'
           ? { type: 'error' as const, code: 'STREAM_ABORTED', message: 'Stream aborted' }
           : { type: 'error' as const, code: err.code, message: 'AI servisi şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.' }
@@ -1229,7 +1286,7 @@ export async function* generateStream(req: GatewayRequest): AsyncGenerator<Gatew
   } catch (err: unknown) {
     const durationMs = Date.now() - startTime
     if (err instanceof GatewayProviderError) {
-      secureLogError({ requestId, userId: req.userId, provider: config.provider, model: config.model, durationMs, errorCode: err.code })
+      secureLogError({ requestId, userId: req.userId, provider: config.provider, model: config.model, durationMs, errorCode: err.code, providerStatus: err.statusCode })
       if (err.code === 'ABORTED') {
         yield { type: 'error', code: 'STREAM_ABORTED', message: 'Stream aborted' }
       } else {

@@ -5,6 +5,21 @@ export interface LogEntry {
   model?: string
   durationMs?: number
   errorCode?: string
+  /**
+   * Sağlayıcının döndürdüğü HTTP durum kodu.
+   *
+   * 🔴 Bu alan bir arıza teşhisinden sonra eklendi. Mistral
+   * `mistral-large-latest` için 403 `tier_not_allowed` döndürüyordu ama
+   * günlükte yalnız `PROVIDER_ERROR` görünüyordu; kod, fırlatılan
+   * `GatewayProviderError.statusCode` içinde VARDI ve buraya
+   * geçirilmediği için kayboluyordu. 401 (anahtar), 403 (plan), 429
+   * (kota) ve 400 (model adı) birbirinden ayırt edilemiyordu.
+   *
+   * ⚠️ Sağlayıcının hata METNİ bilerek alınmıyor: bu kaydedici bir
+   * izin listesi ve serbest metin, isteğe ait içeriği günlüğe
+   * sızdırabilir. Sayısal durum kodu teşhis için yeterli ve güvenli.
+   */
+  providerStatus?: number
   tokenCount?: number
   riskLevel?: string
   message?: string
@@ -42,6 +57,7 @@ export function secureLogError(entry: LogEntry): void {
   if (entry.model) safe.model = entry.model
   if (entry.durationMs !== undefined) safe.durationMs = entry.durationMs
   if (entry.errorCode) safe.errorCode = entry.errorCode
+  if (entry.providerStatus !== undefined) safe.providerStatus = entry.providerStatus
   if (entry.message) safe.message = entry.message
   console.warn('[AIGW-ERR]', JSON.stringify(safe))
 }
