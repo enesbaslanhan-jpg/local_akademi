@@ -1,0 +1,37 @@
+/*
+ * Kurucu üye rozeti — iki zemin.
+ *
+ * Ölçüler `Badge.module.css` ile aynı ailede (tam yuvarlak, micro
+ * yazı, bold): rozet dili depoda tek kalsın diye. Ayrı duran tek şey
+ * KOYU zemin karşılığı; `Badge`in tintleri `--surface-panel`e göre
+ * hesaplandığı için `DarkPanel` üstünde kullanılamıyor.
+ */
+
+.rozet {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: max-content;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface-panel));
+  color: var(--primary-deep);
+  font-size: var(--font-micro);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.rozet svg { flex: 0 0 auto; }
+
+/*
+ * Koyu panel üstü.
+ *
+ * Yüzeyden tint türetmek yerine beyazın kendisinin düşük opaklığı
+ * kullanılıyor: koyu panelin arka planı bir gradyan olduğu için
+ * `color-mix` ile sabit bir zemin varsaymak yanlış sonuç verirdi.
+ */
+.rozetKoyu {
+  background: rgba(255, 255, 255, .14);
+  color: var(--on-dark-text);
+}

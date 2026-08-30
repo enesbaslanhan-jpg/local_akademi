@@ -25,44 +25,53 @@ import {
   X,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import ImageViewer from '@/components/ui/ImageViewer'
 import AkisVideosu from '@/components/ui/AkisVideosu'
 import Button from '@/components/ui/Button'
 import styles from './CommunityPage.module.css'
+import { getFormatLocale } from '@/utils/formatters'
 
 const API_URL = import.meta.env.VITE_API_URL || ''
 const emptyOfficialPost = { title: '', summary: '', content: '', category: '', sourceTitle: '', sourceUrl: '', sourcePublishedAt: '' }
 
-const CATEGORY_LABELS = {
-  FINANS: 'Finans',
-  MEVZUAT: 'Mevzuat',
-  VERGI: 'Vergi',
-  IS_DUNYASI: 'İş dünyası',
-  DIJITALLESME: 'Dijitalleşme',
-  DESTEK: 'Destekler',
-  GENEL_EKONOMI: 'Genel ekonomi',
+/* Kategori kodları backend sözleşmesi — değişmez. Görüntülenen etiket
+   `community:news.categories.*`ten gelir. */
+const CATEGORY_KEYS = {
+  FINANS: 'finance',
+  MEVZUAT: 'legal',
+  VERGI: 'tax',
+  IS_DUNYASI: 'business',
+  DIJITALLESME: 'digital',
+  DESTEK: 'support',
+  GENEL_EKONOMI: 'economy',
 }
 
-export function timeAgo(dateStr) {
+function categoryLabel(code, t) {
+  const key = CATEGORY_KEYS[code]
+  return key ? t(`news.categories.${key}`) : code
+}
+
+export function timeAgo(dateStr, t) {
   if (!dateStr) return ''
   const diff = Math.max(0, Date.now() - new Date(dateStr).getTime())
   const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'az önce'
-  if (mins < 60) return `${mins} dk önce`
+  if (mins < 1) return t('feed.time.now')
+  if (mins < 60) return t('feed.time.minutes', { count: mins })
   const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours} saat önce`
+  if (hours < 24) return t('feed.time.hours', { count: hours })
   const days = Math.floor(hours / 24)
-  if (days < 7) return `${days} gün önce`
-  return new Date(dateStr).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+  if (days < 7) return t('feed.time.days', { count: days })
+  return new Date(dateStr).toLocaleDateString(getFormatLocale(), { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 /* Kullanıcı paylaşımlarının artık başlığı yok; listelerde metnin
    ilk parçası başlık yerine geçiyor. */
-function ozet(post, uzunluk = 70) {
+function ozet(post, t, uzunluk = 70) {
   const metin = (post.summary || '').trim()
-  if (!metin) return 'Görsel paylaşımı'
+  if (!metin) return t('feed.visualOnly')
   return metin.length > uzunluk ? metin.slice(0, uzunluk).trimEnd() + '…' : metin
 }
 
@@ -82,6 +91,7 @@ export function mediaUrl(media) {
 }
 
 function MediaPicker({ media, onChange, disabled = false, videoIzinli = false }) {
+  const { t } = useTranslation('community')
   const inputRef = useRef(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
@@ -104,7 +114,7 @@ function MediaPicker({ media, onChange, disabled = false, videoIzinli = false })
       setPreview(/^(image|video)\//.test(file.type) ? URL.createObjectURL(file) : '')
       onChange(result.media)
     } catch (uploadError) {
-      setError(uploadError.message || 'Dosya yüklenemedi.')
+      setError(uploadError.message || t('feed.media.uploadFailed'))
     } finally {
       setUploading(false)
     }
@@ -132,22 +142,22 @@ function MediaPicker({ media, onChange, disabled = false, videoIzinli = false })
       />
       <button type="button" className={styles.toolButton} onClick={() => inputRef.current?.click()} disabled={disabled || uploading}>
         <ImageIcon size={18} aria-hidden="true" />
-        <span>Görsel</span>
+        <span>{t('feed.media.image')}</span>
       </button>
       <button type="button" className={styles.toolButton} onClick={() => inputRef.current?.click()} disabled={disabled || uploading}>
         {videoIzinli ? <Video size={18} aria-hidden="true" /> : <Paperclip size={18} aria-hidden="true" />}
-        <span>{videoIzinli ? 'Video' : 'Dosya'}</span>
+        <span>{videoIzinli ? t('feed.media.video') : t('feed.media.file')}</span>
       </button>
-      {uploading && <span className={styles.uploadStatus}>Yükleniyor…</span>}
+      {uploading && <span className={styles.uploadStatus}>{t('feed.media.uploading')}</span>}
       {media && (
         <div className={styles.selectedMedia}>
           {preview && media?.kind === 'video'
             ? <video src={preview} muted playsInline />
             : preview
-              ? <img src={preview} alt="Yüklenecek görsel önizlemesi" />
+              ? <img src={preview} alt={t('feed.media.previewAlt')} />
               : <FileText size={18} />}
           <span>{media.originalName}</span>
-          <button type="button" onClick={removeMedia} aria-label="Ek dosyayı kaldır"><X size={16} /></button>
+          <button type="button" onClick={removeMedia} aria-label={t('feed.media.removeAttachment')}><X size={16} /></button>
         </div>
       )}
       {error && <span className={styles.mediaError}>{error}</span>}
@@ -156,6 +166,7 @@ function MediaPicker({ media, onChange, disabled = false, videoIzinli = false })
 }
 
 export function PostMedia({ media, featured = false, kucuk = false, yanPanel = null, overlayText = '', mediaActions = null }) {
+  const { t } = useTranslation('community')
   const [buyutuldu, setBuyutuldu] = useState(false)
   if (!media) return null
   const url = mediaUrl(media)
@@ -194,7 +205,7 @@ export function PostMedia({ media, featured = false, kucuk = false, yanPanel = n
           /* Kartın "gönderiyi aç" katmanı bu düğmeyi sarıyor; olay
              durdurulmazsa görsele tıklamak gönderi sayfasına giderdi. */
           onClick={olay => { olay.stopPropagation(); setBuyutuldu(true) }}
-          aria-label="Görseli büyüt"
+          aria-label={t('feed.media.zoomImage')}
         >
           <img className={featured ? styles.featuredImage : styles.postImage} src={url} alt="" loading={featured ? 'eager' : 'lazy'} />
           {/*
@@ -220,6 +231,7 @@ export function PostMedia({ media, featured = false, kucuk = false, yanPanel = n
 }
 
 export default function CommunityPage({ mode = 'news' }) {
+  const { t } = useTranslation('community')
   const { isAdmin, user } = useAuth()
   const navigate = useNavigate()
   const isNews = mode === 'news'
@@ -284,7 +296,7 @@ export default function CommunityPage({ mode = 'news' }) {
   }, [])
 
   const contributors = useMemo(() => Object.values(posts.reduce((result, post) => {
-    const name = post.author?.name || 'LocalKarar kullanıcısı'
+    const name = post.author?.name || t('feed.defaultAuthor')
     result[name] ||= { id: post.author?.id, name, count: 0 }
     result[name].count += 1
     return result
@@ -305,7 +317,7 @@ export default function CommunityPage({ mode = 'news' }) {
       setPending(moderation.posts || [])
       setReports(reportQueue.reports || [])
     } catch (loadError) {
-      setError(loadError.message || 'Akış yüklenemedi.')
+      setError(loadError.message || t('feed.loadFailed'))
     } finally {
       setLoading(false)
     }
@@ -332,7 +344,7 @@ export default function CommunityPage({ mode = 'news' }) {
          kullanıcı kendi gönderisini göremez ve gitmedi sanır. */
       await load()
     } catch (submitError) {
-      setError(submitError.message || 'Paylaşım gönderilemedi.')
+      setError(submitError.message || t('feed.submitFailed'))
     } finally {
       setSubmitting(false)
     }
@@ -344,9 +356,9 @@ export default function CommunityPage({ mode = 'news' }) {
     setError('')
     try {
       await createOfficialDraft(false)
-      setNotice('Resmî güncelleme moderasyon taslağına kaydedildi.')
+      setNotice(t('news.officialSaveNotice'))
     } catch (submitError) {
-      setError(submitError.message || 'Resmî güncelleme kaydedilemedi.')
+      setError(submitError.message || t('news.officialSaveFailed'))
     } finally {
       setSubmitting(false)
     }
@@ -358,9 +370,9 @@ export default function CommunityPage({ mode = 'news' }) {
     setError('')
     try {
       const { post } = await createOfficialDraft(true)
-      setNotice(`"${post.title}" yayımlandı.`)
+      setNotice(t('news.publishedNotice', { title: post.title }))
     } catch (publishError) {
-      setError(publishError.message || 'Resmî güncelleme yayımlanamadı.')
+      setError(publishError.message || t('news.officialPublishFailed'))
     } finally {
       setPublishing(false)
     }
@@ -394,20 +406,20 @@ export default function CommunityPage({ mode = 'news' }) {
     try {
       await api.community.createAiOfficial({ sourceTitle: officialPost.sourceTitle, sourceUrl: officialPost.sourceUrl, sourceText: aiSourceText })
       setAiSourceText('')
-      setNotice('Yerel AI özeti taslak olarak oluşturuldu; yayımlamadan önce inceleyin.')
+      setNotice(t('news.aiDraftNotice'))
       await load()
     } catch (aiError) {
-      setError(aiError.message || 'Yerel AI özeti oluşturulamadı.')
+      setError(aiError.message || t('news.aiDraftFailed'))
     } finally {
       setAiLoading(false)
     }
   }
 
   async function moderate(postId, action) {
-    const reason = action === 'reject' ? window.prompt('Ret nedeni')?.trim() : ''
+    const reason = action === 'reject' ? window.prompt(t('news.rejectReasonPrompt'))?.trim() : ''
     if (action === 'reject' && !reason) return
     try { await api.community.moderate(postId, action, reason); await load() }
-    catch (moderationError) { setError(moderationError.message || 'Moderasyon işlemi başarısız.') }
+    catch (moderationError) { setError(moderationError.message || t('news.moderationFailed')) }
   }
 
   /* Yazar kendi paylaşımını, yönetici her paylaşımı kaldırabilir —
@@ -417,13 +429,13 @@ export default function CommunityPage({ mode = 'news' }) {
   }
 
   async function kaldir(postId) {
-    if (!window.confirm('Bu paylaşım kaldırılsın mı?')) return
+    if (!window.confirm(t('feed.removeConfirm'))) return
     try {
       await api.community.remove(postId)
-      setNotice('Paylaşım kaldırıldı.')
+      setNotice(t('feed.removeNotice'))
       await load()
     } catch (kaldirmaHatasi) {
-      setError(kaldirmaHatasi.message || 'Paylaşım kaldırılamadı.')
+      setError(kaldirmaHatasi.message || t('feed.removeFailed'))
     }
   }
 
@@ -449,7 +461,7 @@ export default function CommunityPage({ mode = 'news' }) {
         : p))
     } catch (hata) {
       setPosts(mevcut => mevcut.map(p => p.id === post.id ? { ...p, [bayrak]: !aktif } : p))
-      setError(hata.message || 'İşlem tamamlanamadı.')
+      setError(hata.message || t('feed.actionFailed'))
     }
   }
 
@@ -478,9 +490,9 @@ export default function CommunityPage({ mode = 'news' }) {
     }
     try {
       await navigator.clipboard.writeText(adres)
-      setNotice('Bağlantı kopyalandı.')
+      setNotice(t('feed.linkCopied'))
     } catch {
-      setError('Bağlantı kopyalanamadı.')
+      setError(t('feed.linkCopyFailed'))
     }
   }
 
@@ -494,32 +506,32 @@ export default function CommunityPage({ mode = 'news' }) {
 
   async function reportPost(postId) {
     const allowed = ['spam', 'misinformation', 'harassment', 'unsafe', 'copyright', 'other']
-    const reason = window.prompt('Rapor nedeni: spam, misinformation, harassment, unsafe, copyright veya other', 'misinformation')?.trim()
+    const reason = window.prompt(t('feed.reportPrompt'), 'misinformation')?.trim()
     if (!reason || !allowed.includes(reason)) return
-    const details = reason === 'other' ? window.prompt('Kısa açıklama')?.trim() : undefined
+    const details = reason === 'other' ? window.prompt(t('feed.reportDetailsPrompt'))?.trim() : undefined
     if (reason === 'other' && !details) return
-    try { await api.community.report(postId, reason, details); setNotice('Rapor moderasyon ekibine iletildi.') }
-    catch (reportError) { setError(reportError.message || 'Rapor gönderilemedi.') }
+    try { await api.community.report(postId, reason, details); setNotice(t('feed.reportSent')) }
+    catch (reportError) { setError(reportError.message || t('feed.reportFailed')) }
   }
 
   async function resolveReport(reportId, action) {
     try { await api.community.resolveReport(reportId, action); await load() }
-    catch (resolveError) { setError(resolveError.message || 'Rapor çözülemedi.') }
+    catch (resolveError) { setError(resolveError.message || t('news.resolveReportFailed')) }
   }
 
   const featuredPost = isNews ? posts[0] : null
   const latestPosts = isNews ? posts.slice(1) : posts
   const gorunenPosts = useMemo(() => {
-    const sorgu = aramaMetni.trim().toLocaleLowerCase('tr-TR')
+    const sorgu = aramaMetni.trim().toLocaleLowerCase(getFormatLocale())
     if (!sorgu) return posts
     return posts.filter(post => `${post.author?.name || ''} ${post.summary || ''}`
-      .toLocaleLowerCase('tr-TR').includes(sorgu))
+      .toLocaleLowerCase(getFormatLocale()).includes(sorgu))
   }, [aramaMetni, posts])
 
   return (
     <main className={`${styles.page} ${isNews ? styles.newsPage : styles.communityPage}`}>
       <header className={styles.pageHeading} data-tour="topluluk-baslik">
-        <div>{isNews && <span className={styles.kicker}>LocalKarar Haber Merkezi</span>}<h1>{isNews ? 'Haberler' : 'Topluluk'}</h1>{isNews && <p>İşletmenizi etkileyen resmî gelişmeleri kaynaklı ve kısa özetlerle takip edin.</p>}</div>
+        <div>{isNews && <span className={styles.kicker}>{t('feed.kicker')}</span>}<h1>{isNews ? t('feed.headingNews') : t('feed.headingCommunity')}</h1>{isNews && <p>{t('feed.subtitleNews')}</p>}</div>
         {!isNews && (
           <Button
             variant="secondary"
@@ -527,7 +539,7 @@ export default function CommunityPage({ mode = 'news' }) {
             onClick={() => setKutuAcik(true)}
           >
             <Plus size={17} aria-hidden="true" />
-            <span>Yeni gönderi</span>
+            <span>{t('feed.newPost')}</span>
           </Button>
         )}
       </header>
@@ -550,23 +562,23 @@ export default function CommunityPage({ mode = 'news' }) {
                 type="button"
                 className={styles.kutuKapat}
                 onClick={() => setKutuAcik(false)}
-                aria-label="Gönderi kutusunu kapat"
+                aria-label={t('feed.composer.close')}
               >
                 <X size={18} />
               </button>
               <div className={styles.composerTitle}>
                 <span className={styles.authorAvatar}>{initials(user?.name)}</span>
                 <span>
-                  <h2>{alintilanan ? 'Alıntılıyorsun' : 'Ne paylaşmak istersin?'}</h2>
-                  <p>Yazdığın anda yayımlanır. Kendi paylaşımını istediğin zaman kaldırabilirsin.</p>
+                  <h2>{alintilanan ? t('feed.composer.quoting') : t('feed.composer.prompt')}</h2>
+                  <p>{t('feed.composer.hint')}</p>
                 </span>
               </div>
               <form onSubmit={submitUserPost} className={styles.form}>
-                <textarea aria-label="Paylaşım metni" placeholder={alintilanan ? 'Bir şey eklemek ister misin?' : 'İşletmende neler oluyor?'} value={metin} onChange={event => setMetin(event.target.value)} maxLength={500} rows={3} />
+                <textarea aria-label={t('feed.composer.textAria')} placeholder={alintilanan ? t('feed.composer.placeholderQuote') : t('feed.composer.placeholder')} value={metin} onChange={event => setMetin(event.target.value)} maxLength={500} rows={3} />
                 {alintilanan && (
                   <div className={styles.alintiSecili}>
                     <AlintiBlogu alinti={{ ...alintilanan, kaldirildi: false }} />
-                    <button type="button" onClick={() => setAlintilanan(null)} aria-label="Alıntıyı kaldır"><X size={16} /></button>
+                    <button type="button" onClick={() => setAlintilanan(null)} aria-label={t('feed.composer.removeQuote')}><X size={16} /></button>
                   </div>
                 )}
                 <div className={styles.composerFooter}>
@@ -579,7 +591,7 @@ export default function CommunityPage({ mode = 'news' }) {
                   </div>
                   <span className={styles.composerSayac}>
                     <small aria-live="polite">{metin.length}/500</small>
-                    <Button type="submit" disabled={submitting || (!metin.trim() && !userMedia && !alintilanan)}><Send size={17} />{submitting ? 'Gönderiliyor…' : 'Paylaş'}</Button>
+                    <Button type="submit" disabled={submitting || (!metin.trim() && !userMedia && !alintilanan)}><Send size={17} />{submitting ? t('feed.composer.submitting') : t('feed.composer.share')}</Button>
                   </span>
                 </div>
               </form>
@@ -587,7 +599,7 @@ export default function CommunityPage({ mode = 'news' }) {
             {isAdmin && <AdminPanel {...{ showOfficialComposer: isNews, pending, reports, officialPost, setOfficialPost, officialMedia, setOfficialMedia, submitting, publishing, submitOfficialPost, createAndPublishOfficialPost, resetOfficialPost, adminPanelOpen, setAdminPanelOpen, aiSourceText, setAiSourceText, aiLoading, createAiOfficialDraft, moderate, resolveReport }} />}
             <section className={styles.feed} aria-live="polite">
               {loading && <FeedSkeleton />}
-              {!loading && gorunenPosts.length === 0 && <EmptyState text={aramaMetni ? 'Aramanla eşleşen paylaşım bulunamadı.' : 'Henüz yayımlanmış paylaşım yok. İlk deneyimi sen paylaşabilirsin.'} />}
+              {!loading && gorunenPosts.length === 0 && <EmptyState text={aramaMetni ? t('feed.empty.search') : t('feed.empty.feed')} />}
               {/* Tek tip akış: "öne çıkan tartışma" bloğu kalktı. Başlıksız
                   paylaşımlarda o blok boş bir başlık gösteriyordu, ayrıca
                   X'te de ilk gönderi büyütülmüyor. */}
@@ -614,16 +626,16 @@ export default function CommunityPage({ mode = 'news' }) {
       {isNews && (
         <>
           {isAdmin && <AdminPanel {...{ showOfficialComposer: isNews, pending, reports, officialPost, setOfficialPost, officialMedia, setOfficialMedia, submitting, publishing, submitOfficialPost, createAndPublishOfficialPost, resetOfficialPost, adminPanelOpen, setAdminPanelOpen, aiSourceText, setAiSourceText, aiLoading, createAiOfficialDraft, moderate, resolveReport }} />}
-          {loading ? <FeedSkeleton /> : posts.length === 0 ? <EmptyState text="Henüz yayımlanmış resmî haber yok." /> : (
+          {loading ? <FeedSkeleton /> : posts.length === 0 ? <EmptyState text={t('news.emptyOfficial')} /> : (
             <div className={styles.newsGrid}>
               <div className={styles.newsMain}>
                 <FeaturedNews post={featuredPost} onReport={reportPost} />
-                <div className={styles.sectionHeading}><h2>Son gelişmeler</h2><span>{posts.length} kaynaklı özet</span></div>
+                <div className={styles.sectionHeading}><h2>{t('news.latest')}</h2><span>{t('news.sourceSummaries', { count: posts.length })}</span></div>
                 <section className={styles.newsList}>{latestPosts.map(post => <NewsCard key={post.id} post={post} onReport={reportPost} />)}</section>
               </div>
               <aside className={styles.newsRail}>
-                <section className={styles.railCard}><h2><TrendingUp size={19} /> Öne çıkanlar</h2>{posts.slice(0, 5).map((post, index) => <a key={post.id} href={post.sourceUrl || '#'} target={post.sourceUrl ? '_blank' : undefined} rel="noreferrer noopener"><b>{String(index + 1).padStart(2, '0')}</b><span>{post.title}<small>{timeAgo(post.publishedAt)}</small></span></a>)}</section>
-                <section className={styles.sourcePromise}><Star size={22} /><h2>Kaynağı belli</h2><p>Her haber özeti doğrudan resmî bağlantısıyla yayımlanır.</p></section>
+                <section className={styles.railCard}><h2><TrendingUp size={19} /> {t('news.featuredRail')}</h2>{posts.slice(0, 5).map((post, index) => <a key={post.id} href={post.sourceUrl || '#'} target={post.sourceUrl ? '_blank' : undefined} rel="noreferrer noopener"><b>{String(index + 1).padStart(2, '0')}</b><span>{post.title}<small>{timeAgo(post.publishedAt, t)}</small></span></a>)}</section>
+                <section className={styles.sourcePromise}><Star size={22} /><h2>{t('news.trustedTitle')}</h2><p>{t('news.trustedBody')}</p></section>
               </aside>
             </div>
           )}
@@ -653,6 +665,7 @@ export default function CommunityPage({ mode = 'news' }) {
  * indirmek olurdu.
  */
 function MedyaYanPaneli({ postId }) {
+  const { t } = useTranslation('community')
   const [veri, setVeri] = useState(null)
   const [hata, setHata] = useState('')
 
@@ -660,48 +673,49 @@ function MedyaYanPaneli({ postId }) {
     let iptal = false
     api.community.post(postId)
       .then(sonuc => { if (!iptal) setVeri(sonuc.post) })
-      .catch(e => { if (!iptal) setHata(e.message || 'Yanıtlar yüklenemedi.') })
+      .catch(e => { if (!iptal) setHata(e.message || t('feed.panel.loadFailed')) })
     return () => { iptal = true }
-  }, [postId])
+  }, [postId, t])
 
   if (hata) return <p className={styles.postText}>{hata}</p>
-  if (!veri) return <p className={styles.postText}>Yükleniyor…</p>
+  if (!veri) return <p className={styles.postText}>{t('feed.panel.loading')}</p>
 
   return (
-    <section className={styles.medyaKonu} aria-label="Gönderi konuşması">
-      <div className={styles.medyaKonuBaslik}>Gönderi</div>
+    <section className={styles.medyaKonu} aria-label={t('feed.panel.speechAria')}>
+      <div className={styles.medyaKonuBaslik}>{t('feed.panel.postLabel')}</div>
       <div className={styles.medyaGonderi}>
         <span className={styles.kucukAvatar}>{initials(veri.author?.name)}</span>
         <div>
           <div className={styles.postHead}>
-            <strong>{veri.author?.name || 'LocalKarar kullanıcısı'}</strong>
-            <small>{timeAgo(veri.publishedAt)}</small>
+            <strong>{veri.author?.name || t('feed.defaultAuthor')}</strong>
+            <small>{timeAgo(veri.publishedAt, t)}</small>
           </div>
           {veri.summary && <p className={styles.postText}>{veri.summary}</p>}
-          <p className={styles.baglamEtiketi}>{veri.begeniSayisi} beğeni · {veri.yanitSayisi} yanıt</p>
+          <p className={styles.baglamEtiketi}>{t('feed.panel.stats', { likes: veri.begeniSayisi, replies: veri.yanitSayisi })}</p>
         </div>
       </div>
       <div className={styles.medyaYanitlar}>
-        <h3>Yanıtlar</h3>
+        <h3>{t('feed.panel.replies')}</h3>
         {veri.replies?.map(yanit => (
           <div key={yanit.id} className={styles.yanPanelYanit}>
             <span className={styles.kucukAvatar}>{initials(yanit.author?.name)}</span>
             <div>
               <div className={styles.postHead}>
-                <strong>{yanit.author?.name || 'LocalKarar kullanıcısı'}</strong>
-                <small>{timeAgo(yanit.publishedAt)}</small>
+                <strong>{yanit.author?.name || t('feed.defaultAuthor')}</strong>
+                <small>{timeAgo(yanit.publishedAt, t)}</small>
               </div>
               {yanit.summary && <p className={styles.postText}>{yanit.summary}</p>}
             </div>
           </div>
         ))}
-        {veri.yanitSayisi === 0 && <p className={styles.baglamEtiketi}>Henüz yanıt yok.</p>}
+        {veri.yanitSayisi === 0 && <p className={styles.baglamEtiketi}>{t('feed.panel.repliesEmpty')}</p>}
       </div>
     </section>
   )
 }
 
 export function GonderiMenusu({ kaldirilabilir, onRemove, onReport }) {
+  const { t } = useTranslation('community')
   const [acik, setAcik] = useState(false)
   const kutuRef = useRef(null)
 
@@ -729,14 +743,14 @@ export function GonderiMenusu({ kaldirilabilir, onRemove, onReport }) {
         onClick={() => setAcik(current => !current)}
         aria-haspopup="menu"
         aria-expanded={acik}
-        aria-label="Gönderi işlemleri"
+        aria-label={t('feed.actions.menu')}
       >
         <MoreHorizontal size={18} />
       </button>
       {acik && (
         <div className={styles.menuListesi} role="menu">
           <button type="button" role="menuitem" onClick={() => { setAcik(false); onReport() }}>
-            <Flag size={15} /> Raporla
+            <Flag size={15} /> {t('feed.actions.report')}
           </button>
           {kaldirilabilir && (
             <button
@@ -745,7 +759,7 @@ export function GonderiMenusu({ kaldirilabilir, onRemove, onReport }) {
               className={styles.menuYikici}
               onClick={() => { setAcik(false); onRemove() }}
             >
-              <Trash2 size={15} /> Kaldır
+              <Trash2 size={15} /> {t('feed.actions.remove')}
             </button>
           )}
         </div>
@@ -762,16 +776,17 @@ export function GonderiMenusu({ kaldirilabilir, onRemove, onReport }) {
  * alintiyla atlatilirdi.
  */
 export function AlintiBlogu({ alinti, onEtkilesim, onYanitla, onAlintila, onPaylas }) {
+  const { t } = useTranslation('community')
   if (!alinti) return null
   if (alinti.kaldirildi) {
-    return <div className={`${styles.alinti} ${styles.alintiYok}`}>Bu paylaşım kaldırıldı.</div>
+    return <div className={`${styles.alinti} ${styles.alintiYok}`}>{t('feed.quote.removed')}</div>
   }
   return (
     <div className={styles.alinti}>
       <div className={styles.alintiBasligi}>
         <span className={styles.kucukAvatar}>{initials(alinti.author?.name)}</span>
-        <strong>{alinti.author?.name || 'LocalKarar kullanıcısı'}</strong>
-        <small>{timeAgo(alinti.publishedAt)}</small>
+        <strong>{alinti.author?.name || t('feed.defaultAuthor')}</strong>
+        <small>{timeAgo(alinti.publishedAt, t)}</small>
       </div>
       {alinti.summary && <p>{alinti.summary}</p>}
       {/* Alıntılanan medyayı büyütünce ALINTILANAN gönderinin kendi
@@ -797,10 +812,10 @@ export function AlintiBlogu({ alinti, onEtkilesim, onYanitla, onAlintila, onPayl
   )
 }
 
-function sayiyiYaz(n) {
+function sayiyiYaz(n, t) {
   if (!n) return ''
   if (n < 1000) return String(n)
-  return `${(n / 1000).toFixed(n < 10000 ? 1 : 0).replace('.0', '')}B`
+  return `${(n / 1000).toFixed(n < 10000 ? 1 : 0).replace('.0', '')}${t('feed.countThousand')}`
 }
 
 /*
@@ -812,6 +827,7 @@ function sayiyiYaz(n) {
  * eylemim ve gecikmesi kotu hissettiriyor.
  */
 export function IslemSatiri({ post, onEtkilesim, onYanitla, onAlintila, onPaylas, overlay = false }) {
+  const { t } = useTranslation('community')
   return (
     <div className={`${styles.islemSatiri} ${overlay ? styles.islemSatiriOverlay : ''}`}>
       <button
@@ -821,20 +837,20 @@ export function IslemSatiri({ post, onEtkilesim, onYanitla, onAlintila, onPaylas
         aria-pressed={post.begendim}
       >
         <Heart size={17} fill={post.begendim ? 'currentColor' : 'none'} />
-        <span>Beğen</span>
-        {post.begeniSayisi > 0 && <b>{sayiyiYaz(post.begeniSayisi)}</b>}
+        <span>{t('feed.actions.like')}</span>
+        {post.begeniSayisi > 0 && <b>{sayiyiYaz(post.begeniSayisi, t)}</b>}
       </button>
 
       <button type="button" onClick={() => onYanitla(post)}>
         <MessageCircle size={17} />
-        <span>Yanıtla</span>
-        {post.yanitSayisi > 0 && <b>{sayiyiYaz(post.yanitSayisi)}</b>}
+        <span>{t('feed.actions.reply')}</span>
+        {post.yanitSayisi > 0 && <b>{sayiyiYaz(post.yanitSayisi, t)}</b>}
       </button>
 
       <button type="button" onClick={event => { event.stopPropagation(); onAlintila(post) }}>
         <Repeat2 size={18} />
-        <span>Alıntıla</span>
-        {post.alintiSayisi > 0 && <b>{sayiyiYaz(post.alintiSayisi)}</b>}
+        <span>{t('feed.actions.quote')}</span>
+        {post.alintiSayisi > 0 && <b>{sayiyiYaz(post.alintiSayisi, t)}</b>}
       </button>
 
       <button
@@ -842,15 +858,15 @@ export function IslemSatiri({ post, onEtkilesim, onYanitla, onAlintila, onPaylas
         className={post.kaydettim ? styles.islemAktif : undefined}
         onClick={() => onEtkilesim(post, 'bookmark', !post.kaydettim)}
         aria-pressed={post.kaydettim}
-        aria-label={post.kaydettim ? 'Kaydı kaldır' : 'Kaydet'}
+        aria-label={post.kaydettim ? t('feed.actions.unsave') : t('feed.actions.save')}
       >
         <Bookmark size={17} fill={post.kaydettim ? 'currentColor' : 'none'} />
-        <span>Kaydet</span>
+        <span>{t('feed.actions.save')}</span>
       </button>
 
-      <button type="button" onClick={() => onPaylas(post)} aria-label="Paylaş">
+      <button type="button" onClick={() => onPaylas(post)} aria-label={t('feed.actions.share')}>
         <Share2 size={17} />
-        <span>Paylaş</span>
+        <span>{t('feed.actions.share')}</span>
       </button>
     </div>
   )
@@ -874,14 +890,15 @@ function EtiketliMetin({ children }) {
 }
 
 function EtiketSecici({ kisiler, onSelect }) {
+  const { t } = useTranslation('community')
   const [acik, setAcik] = useState(false)
   if (!kisiler.length) return null
   return (
     <div className={styles.mentionPicker}>
       <button type="button" className={styles.toolButton} onClick={() => setAcik(deger => !deger)} aria-expanded={acik} aria-haspopup="listbox">
-        <AtSign size={18} aria-hidden="true" /><span>Etiketle</span>
+        <AtSign size={18} aria-hidden="true" /><span>{t('feed.mention.pick')}</span>
       </button>
-      {acik && <div className={styles.mentionList} role="listbox" aria-label="Etiketlenecek kişi">
+      {acik && <div className={styles.mentionList} role="listbox" aria-label={t('feed.mention.listAria')}>
         {kisiler.map(kisi => <button key={kisi.id || kisi.name} type="button" role="option" onClick={() => { onSelect(kisi); setAcik(false) }}>
           <span className={styles.kucukAvatar}>{initials(kisi.name)}</span>{kisi.name}
         </button>)}
@@ -891,6 +908,7 @@ function EtiketSecici({ kisiler, onSelect }) {
 }
 
 export function CommunityCard({ post, kaldirilabilir, onReport, onRemove, onEtkilesim, onYanitla, onAlintila, onPaylas, onAc, compact = false }) {
+  const { t } = useTranslation('community')
   /*
    * Baslik yok: govde dogrudan metin. Avatar solda, icerik sagda tek
    * sutun -- eski duzen basliga gore kurulmustu ve yazarin ADINI
@@ -907,8 +925,8 @@ export function CommunityCard({ post, kaldirilabilir, onReport, onRemove, onEtki
       <span className={styles.authorAvatar}>{initials(post.author?.name)}</span>
       <div className={styles.postBody}>
         <div className={styles.postHead}>
-          <strong>{post.author?.name || 'LocalKarar kullanıcısı'}</strong>
-          <small>{timeAgo(post.publishedAt)}</small>
+          <strong>{post.author?.name || t('feed.defaultAuthor')}</strong>
+          <small>{timeAgo(post.publishedAt, t)}</small>
           <GonderiMenusu
             kaldirilabilir={kaldirilabilir}
             onRemove={() => onRemove(post.id)}
@@ -964,15 +982,17 @@ export function CommunityCard({ post, kaldirilabilir, onReport, onRemove, onEtki
 }
 
 function FeaturedNews({ post, onReport }) {
+  const { t } = useTranslation('community')
   return <article className={styles.featuredNews}>
     <PostMedia media={post.media} featured />
     <div className={styles.featuredOverlay} />
-    <div className={styles.featuredContent}><span className={styles.newsBadge}>{post.category ? `${CATEGORY_LABELS[post.category] || post.category} · ` : ''}Günün gelişmesi</span><h2>{post.title}</h2><p>{post.summary}</p>{post.content && <p className={styles.newsContent}>{post.content}</p>}<div><span><Clock size={15} /> {timeAgo(post.publishedAt)}</span>{post.sourceUrl && <a href={post.sourceUrl} target="_blank" rel="noreferrer noopener">Resmî kaynağı aç <ExternalLink size={15} /></a>}<button type="button" onClick={() => onReport(post.id)}><Flag size={14} /> Raporla</button></div></div>
+    <div className={styles.featuredContent}><span className={styles.newsBadge}>{post.category ? `${categoryLabel(post.category, t)} · ` : ''}{t('news.badgeOfToday')}</span><h2>{post.title}</h2><p>{post.summary}</p>{post.content && <p className={styles.newsContent}>{post.content}</p>}<div><span><Clock size={15} /> {timeAgo(post.publishedAt, t)}</span>{post.sourceUrl && <a href={post.sourceUrl} target="_blank" rel="noreferrer noopener">{t('news.openSource')} <ExternalLink size={15} /></a>}<button type="button" onClick={() => onReport(post.id)}><Flag size={14} /> {t('feed.actions.report')}</button></div></div>
   </article>
 }
 
 function NewsCard({ post, onReport }) {
-  return <article className={styles.newsCard}><div className={styles.newsThumb}>{post.media?.kind === 'image' ? <PostMedia media={post.media} /> : <FileText size={34} />}</div><div className={styles.newsBody}><span>{post.category ? `${CATEGORY_LABELS[post.category] || post.category} · ` : ''}{post.sourceTitle || 'Resmî kaynak'}</span><h2>{post.title}</h2><p>{post.summary}</p>{post.content && <p className={styles.newsContent}>{post.content}</p>}<div><time>{timeAgo(post.publishedAt)}</time>{post.sourceUrl && <a href={post.sourceUrl} target="_blank" rel="noreferrer noopener">Kaynağa git <ExternalLink size={14} /></a>}<button type="button" onClick={() => onReport(post.id)} aria-label="Haberi raporla"><Flag size={14} /></button></div></div></article>
+  const { t } = useTranslation('community')
+  return <article className={styles.newsCard}><div className={styles.newsThumb}>{post.media?.kind === 'image' ? <PostMedia media={post.media} /> : <FileText size={34} />}</div><div className={styles.newsBody}><span>{post.category ? `${categoryLabel(post.category, t)} · ` : ''}{post.sourceTitle || t('news.defaultSource')}</span><h2>{post.title}</h2><p>{post.summary}</p>{post.content && <p className={styles.newsContent}>{post.content}</p>}<div><time>{timeAgo(post.publishedAt, t)}</time>{post.sourceUrl && <a href={post.sourceUrl} target="_blank" rel="noreferrer noopener">{t('news.goToSource')} <ExternalLink size={14} /></a>}<button type="button" onClick={() => onReport(post.id)} aria-label={t('news.reportNewsAria')}><Flag size={14} /></button></div></div></article>
 }
 
 /*
@@ -990,6 +1010,7 @@ function NewsCard({ post, onReport }) {
  * KIMIN gordugu KAYDEDILMIYOR: sunucuda yalniz toplam sayac var.
  */
 function ReklamKarti({ ad, isAdmin, onKaldir }) {
+  const { t } = useTranslation('community')
   const kutuRef = useRef(null)
   const sayildiRef = useRef(false)
 
@@ -1012,7 +1033,7 @@ function ReklamKarti({ ad, isAdmin, onKaldir }) {
 
   return (
     <section className={`${styles.railCard} ${styles.adCard}`} ref={kutuRef}>
-      <small>Tanıtım</small>
+      <small>{t('news.ads.label')}</small>
       <h2>{ad.title}</h2>
       {ad.media && <PostMedia media={ad.media} kucuk />}
       <p>{ad.body}</p>
@@ -1025,10 +1046,10 @@ function ReklamKarti({ ad, isAdmin, onKaldir }) {
           rel="noreferrer noopener nofollow"
           onClick={() => api.community.reklamOlayi(ad.id, 'click')}
         >
-          {ad.ctaLabel || 'İncele'}
+          {ad.ctaLabel || t('news.ads.defaultCta')}
         </a>
       )}
-      {isAdmin && <button type="button" onClick={() => onKaldir(ad.id)}>Kaldır</button>}
+      {isAdmin && <button type="button" onClick={() => onKaldir(ad.id)}>{t('feed.actions.remove')}</button>}
     </section>
   )
 }
@@ -1051,26 +1072,32 @@ function CommunityAds({ isAdmin }) {
 }
 
 function CommunityRail({ posts, contributors, arama, setArama, onAc, isAdmin }) {
-  return <aside className={styles.communityRail} aria-label="Topluluk özeti">
+  const { t } = useTranslation('community')
+  return <aside className={styles.communityRail} aria-label={t('feed.rail.label')}>
     <label className={styles.communitySearch}>
       <Search size={17} aria-hidden="true" />
-      <input type="search" value={arama} onChange={event => setArama(event.target.value)} placeholder="Paylaşımlarda ara" aria-label="Paylaşımlarda ara" />
-      {arama && <button type="button" onClick={() => setArama('')} aria-label="Aramayı temizle"><X size={15} /></button>}
+      <input type="search" value={arama} onChange={event => setArama(event.target.value)} placeholder={t('feed.rail.searchPlaceholder')} aria-label={t('feed.rail.searchPlaceholder')} />
+      {arama && <button type="button" onClick={() => setArama('')} aria-label={t('feed.rail.clearSearch')}><X size={15} /></button>}
     </label>
-    <section className={styles.railCard}><h2><TrendingUp size={19} /> Gündemde</h2>{posts.length === 0 ? <p>Henüz gündem başlığı oluşmadı.</p> : posts.slice(0, 4).map((post, index) => <button type="button" className={styles.topicRow} key={post.id} onClick={() => onAc(post.id)}><span>{ozet(post)}</span><small>{index + 1}</small></button>)}</section>
-    <section className={styles.railCard}><h2><Star size={19} /> Katkı sağlayanlar</h2>{contributors.length === 0 ? <p>İlk katkıyı paylaşarak sen başlatabilirsin.</p> : contributors.map(person => <div className={styles.contributorRow} key={person.name}><span className={styles.authorAvatar}>{initials(person.name)}</span><span><strong>{person.name}</strong><small>{person.count} paylaşım</small></span></div>)}</section>
+    <section className={styles.railCard}><h2><TrendingUp size={19} /> {t('feed.rail.trending')}</h2>{posts.length === 0 ? <p>{t('feed.rail.trendingEmpty')}</p> : posts.slice(0, 4).map((post, index) => <button type="button" className={styles.topicRow} key={post.id} onClick={() => onAc(post.id)}><span>{ozet(post, t)}</span><small>{index + 1}</small></button>)}</section>
+    <section className={styles.railCard}><h2><Star size={19} /> {t('feed.rail.contributors')}</h2>{contributors.length === 0 ? <p>{t('feed.rail.contributorsEmpty')}</p> : contributors.map(person => <div className={styles.contributorRow} key={person.name}><span className={styles.authorAvatar}>{initials(person.name)}</span><span><strong>{person.name}</strong><small>{t('feed.rail.shareCount', { count: person.count })}</small></span></div>)}</section>
     <CommunityAds isAdmin={isAdmin} />
   </aside>
 }
 
 function AdminPanel(props) {
+  const { t } = useTranslation('community')
   const { showOfficialComposer, pending, reports, officialPost, setOfficialPost, officialMedia, setOfficialMedia, submitting, publishing, submitOfficialPost, createAndPublishOfficialPost, resetOfficialPost, adminPanelOpen, setAdminPanelOpen, aiSourceText, setAiSourceText, aiLoading, createAiOfficialDraft, moderate, resolveReport } = props
-  return <details id="yayin-araclari" className={styles.adminPanel} open={adminPanelOpen} onToggle={event => setAdminPanelOpen(event.currentTarget.open)}><summary><span>{showOfficialComposer ? 'Yayın ve moderasyon araçları' : 'Moderasyon araçları'}</span><small>{pending.length} bekleyen · {reports.length} açık rapor</small></summary><div className={styles.adminContent}>{showOfficialComposer && <><h2>Resmî güncelleme oluştur</h2><p>Kendi kısa özetinizi, doğrudan resmî kaynak bağlantısını ve isteğe bağlı görsel veya dosyayı ekleyin.</p><form onSubmit={submitOfficialPost} className={styles.form}><div className={styles.twoFields}><label>Başlık<input value={officialPost.title} onChange={event => setOfficialPost({ ...officialPost, title: event.target.value })} required /></label><label>Kaynak kurum<input value={officialPost.sourceTitle} onChange={event => setOfficialPost({ ...officialPost, sourceTitle: event.target.value })} required /></label></div><div className={styles.twoFields}><label>Kategori<select value={officialPost.category} onChange={event => setOfficialPost({ ...officialPost, category: event.target.value })}><option value="">Seçilmedi</option><option value="FINANS">Finans</option><option value="MEVZUAT">Mevzuat</option><option value="VERGI">Vergi</option><option value="IS_DUNYASI">İş dünyası</option><option value="DIJITALLESME">Dijitalleşme</option><option value="DESTEK">Destekler</option><option value="GENEL_EKONOMI">Genel ekonomi</option></select></label><label>Kaynak tarihi<input type="datetime-local" value={officialPost.sourcePublishedAt} onChange={event => setOfficialPost({ ...officialPost, sourcePublishedAt: event.target.value })} /></label></div><label>Kaynak bağlantısı<input type="url" value={officialPost.sourceUrl} onChange={event => setOfficialPost({ ...officialPost, sourceUrl: event.target.value })} required /></label><label>Özgün kısa özet<textarea value={officialPost.summary} onChange={event => setOfficialPost({ ...officialPost, summary: event.target.value })} minLength={20} maxLength={1200} rows={4} required /></label><label>İçerik<textarea value={officialPost.content} onChange={event => setOfficialPost({ ...officialPost, content: event.target.value })} maxLength={10000} rows={6} placeholder="Gelişmeyi açıklayan uzun metin (isteğe bağlı)" /></label><div className={styles.composerFooter}><MediaPicker media={officialMedia} onChange={setOfficialMedia} disabled={submitting || publishing} /><span className={styles.publishActions}><button type="button" className={styles.primaryButton} onClick={createAndPublishOfficialPost} disabled={publishing || submitting}>{publishing ? 'Yayımlanıyor…' : 'Kaydet ve Yayınla'}</button><button className={styles.primaryButton} type="submit" disabled={submitting || publishing}>{submitting ? 'Kaydediliyor…' : 'Taslak olarak kaydet'}</button><button type="button" onClick={resetOfficialPost} disabled={submitting || publishing}>İptal</button></span></div></form><div className={styles.aiDraft}><h3>Yerel AI ile özet taslağı</h3><textarea value={aiSourceText} onChange={event => setAiSourceText(event.target.value)} minLength={100} maxLength={12000} rows={4} placeholder="Resmî duyuru metni…" /><button type="button" onClick={createAiOfficialDraft} disabled={aiLoading || !officialPost.sourceTitle || !officialPost.sourceUrl || aiSourceText.trim().length < 100}>{aiLoading ? 'Özetleniyor…' : 'AI taslağı oluştur'}</button></div></>}<ModerationQueue pending={pending} reports={reports} moderate={moderate} resolveReport={resolveReport} /></div></details>
+  return <details id="yayin-araclari" className={styles.adminPanel} open={adminPanelOpen} onToggle={event => setAdminPanelOpen(event.currentTarget.open)}><summary><span>{showOfficialComposer ? t('news.admin.toolsNews') : t('news.admin.toolsPlain')}</span><small>{t('news.admin.queueSummary', { pending: pending.length, reports: reports.length })}</small></summary><div className={styles.adminContent}>{showOfficialComposer && <><h2>{t('news.admin.createTitle')}</h2><p>{t('news.admin.createHint')}</p><form onSubmit={submitOfficialPost} className={styles.form}><div className={styles.twoFields}><label>{t('news.admin.titleLabel')}<input value={officialPost.title} onChange={event => setOfficialPost({ ...officialPost, title: event.target.value })} required /></label><label>{t('news.admin.institutionLabel')}<input value={officialPost.sourceTitle} onChange={event => setOfficialPost({ ...officialPost, sourceTitle: event.target.value })} required /></label></div><div className={styles.twoFields}><label>{t('news.admin.categoryLabel')}<select value={officialPost.category} onChange={event => setOfficialPost({ ...officialPost, category: event.target.value })}><option value="">{t('news.admin.unselectedOption')}</option><option value="FINANS">{t('news.categories.finance')}</option><option value="MEVZUAT">{t('news.categories.legal')}</option><option value="VERGI">{t('news.categories.tax')}</option><option value="IS_DUNYASI">{t('news.categories.business')}</option><option value="DIJITALLESME">{t('news.categories.digital')}</option><option value="DESTEK">{t('news.categories.support')}</option><option value="GENEL_EKONOMI">{t('news.categories.economy')}</option></select></label><label>{t('news.admin.dateLabel')}<input type="datetime-local" value={officialPost.sourcePublishedAt} onChange={event => setOfficialPost({ ...officialPost, sourcePublishedAt: event.target.value })} /></label></div><label>{t('news.admin.urlLabel')}<input type="url" value={officialPost.sourceUrl} onChange={event => setOfficialPost({ ...officialPost, sourceUrl: event.target.value })} required /></label><label>{t('news.admin.summaryLabel')}<textarea value={officialPost.summary} onChange={event => setOfficialPost({ ...officialPost, summary: event.target.value })} minLength={20} maxLength={1200} rows={4} required /></label><label>{t('news.admin.contentLabel')}<textarea value={officialPost.content} onChange={event => setOfficialPost({ ...officialPost, content: event.target.value })} maxLength={10000} rows={6} placeholder={t('news.admin.contentPlaceholder')} /></label><div className={styles.composerFooter}><MediaPicker media={officialMedia} onChange={setOfficialMedia} disabled={submitting || publishing} /><span className={styles.publishActions}><button type="button" className={styles.primaryButton} onClick={createAndPublishOfficialPost} disabled={publishing || submitting}>{publishing ? t('news.admin.publishing') : t('news.admin.saveAndPublish')}</button><button className={styles.primaryButton} type="submit" disabled={submitting || publishing}>{submitting ? t('common:buttons.saving') : t('news.admin.saveDraft')}</button><button type="button" onClick={resetOfficialPost} disabled={submitting || publishing}>{t('news.admin.cancel')}</button></span></div></form><div className={styles.aiDraft}><h3>{t('news.admin.aiTitle')}</h3><textarea value={aiSourceText} onChange={event => setAiSourceText(event.target.value)} minLength={100} maxLength={12000} rows={4} placeholder={t('news.admin.aiPlaceholder')} /><button type="button" onClick={createAiOfficialDraft} disabled={aiLoading || !officialPost.sourceTitle || !officialPost.sourceUrl || aiSourceText.trim().length < 100}>{aiLoading ? t('news.admin.summarizing') : t('news.admin.aiCreate')}</button></div></>}<ModerationQueue pending={pending} reports={reports} moderate={moderate} resolveReport={resolveReport} /></div></details>
 }
 
 function ModerationQueue({ pending, reports, moderate, resolveReport }) {
-  return <div className={styles.moderationGrid}><section><h3>Moderasyon kuyruğu ({pending.length})</h3>{pending.map(post => <article key={post.id} className={styles.queueItem}><strong>{post.title}</strong><p>{post.summary}</p>{post.media && <div className={styles.pendingAttachment}><FileText size={16} /> {post.media.originalName}</div>}<div><button onClick={() => moderate(post.id, 'publish')}>Yayımla</button><button onClick={() => moderate(post.id, 'reject')}>Reddet</button></div></article>)}</section><section><h3>Açık raporlar ({reports.length})</h3>{reports.map(report => <article key={report.id} className={styles.queueItem}><strong>{report.post.title || ozet(report.post)}</strong><p>{report.details || report.reason}</p><div><button onClick={() => resolveReport(report.id, 'dismiss')}>Kapat</button><button onClick={() => resolveReport(report.id, 'hide_post')}>Gizle</button></div></article>)}</section></div>
+  const { t } = useTranslation('community')
+  return <div className={styles.moderationGrid}><section><h3>{t('news.admin.queueTitle', { count: pending.length })}</h3>{pending.map(post => <article key={post.id} className={styles.queueItem}><strong>{post.title}</strong><p>{post.summary}</p>{post.media && <div className={styles.pendingAttachment}><FileText size={16} /> {post.media.originalName}</div>}<div><button onClick={() => moderate(post.id, 'publish')}>{t('news.admin.publishAction')}</button><button onClick={() => moderate(post.id, 'reject')}>{t('news.admin.rejectAction')}</button></div></article>)}</section><section><h3>{t('news.admin.reportsTitle', { count: reports.length })}</h3>{reports.map(report => <article key={report.id} className={styles.queueItem}><strong>{report.post.title || ozet(report.post, t)}</strong><p>{report.details || report.reason}</p><div><button onClick={() => resolveReport(report.id, 'dismiss')}>{t('news.admin.dismissAction')}</button><button onClick={() => resolveReport(report.id, 'hide_post')}>{t('news.admin.hideAction')}</button></div></article>)}</section></div>
 }
 
-function FeedSkeleton() { return <div className={styles.skeleton} aria-label="İçerik yükleniyor"><span /><span /><span /></div> }
+function FeedSkeleton() {
+  const { t } = useTranslation('community')
+  return <div className={styles.skeleton} aria-label={t('feed.contentLoading')}><span /><span /><span /></div>
+}
 function EmptyState({ text }) { return <div className={styles.empty}><Users size={34} /><p>{text}</p></div> }

@@ -12,7 +12,9 @@ import { mkdir, unlink, writeFile } from 'node:fs/promises'
 import { isAbsolute, join, relative, resolve } from 'node:path'
 import { detectFileType, FileValidationError, validateImageFile } from './documentSecurity.js'
 import { generateNumericCode, generateRawToken, hashToken, safeEqual } from '../lib/tokens.js'
+import { hesaplaUyelikDurumu } from '../config/billing.js'
 import { LEGAL_DOCUMENTS, missingConsents, requiredDocuments } from '../config/legal-documents.js'
+import { contentLanguage } from '../lib/content-language.js'
 import { sendMail } from './mailer.js'
 import { dogrulamaKoduMaili, sifreDegistiMaili, sifreSifirlamaMaili } from './mail-templates.js'
 import {
@@ -203,7 +205,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     return {
       token,
       refreshToken: yenileme.rawToken,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName), emailVerified: !!user.emailVerifiedAt }
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName), emailVerified: !!user.emailVerifiedAt, membership: hesaplaUyelikDurumu(user.createdAt) }
     }
   })
 
@@ -230,6 +232,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     }
 
     const token = issueToken(fastify, user)
+    const preference = await prisma.userPreference.findUnique({ where: { userId: user.id } })
 
     const yenileme = await yeniAileOlustur(prisma, user.id, user.tokenVersion)
     /* Fırsatçı temizlik: tablo yalnız giriş/yenileme ile büyüdüğü için
@@ -240,7 +243,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     return {
       token,
       refreshToken: yenileme.rawToken,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName), emailVerified: !!user.emailVerifiedAt }
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName), emailVerified: !!user.emailVerifiedAt, uiLanguage: preference?.uiLanguage || 'tr', membership: hesaplaUyelikDurumu(user.createdAt) }
     }
   })
 
@@ -265,8 +268,35 @@ export async function authRoutes(fastify: FastifyInstance) {
       websiteUrl: found.websiteUrl,
       createdAt: found.createdAt,
       onboardingCompleted: pref?.onboardingCompleted ?? false,
-      emailVerified: !!found.emailVerifiedAt
+      uiLanguage: pref?.uiLanguage || 'tr',
+      emailVerified: !!found.emailVerifiedAt,
+      /* Üyelik durumu SAKLANMIYOR, her istekte türetiliyor. Abonelik
+         tablosu geldiğinde bu çağrı ödeme kaydını da okuyacak; arayüz
+         sözleşmesi (alan adları) değişmeyecek. */
+      membership: hesaplaUyelikDurumu(found.createdAt)
     }
+  })
+
+  const preferenceSchema = z.object({ uiLanguage: z.enum(['tr', 'en']) })
+
+  fastify.patch('/preferences', {
+    preHandler: [fastify.authenticate],
+    config: { rateLimit: { max: 30, timeWindow: '1 minute' } }
+  }, async (request, reply) => {
+    const parsed = preferenceSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(422).send({
+        error: 'INVALID_PREFERENCE',
+        code: 'INVALID_PREFERENCE',
+        details: parsed.error.flatten().fieldErrors
+      })
+    }
+    const preference = await prisma.userPreference.upsert({
+      where: { userId: request.user.id },
+      update: { uiLanguage: parsed.data.uiLanguage },
+      create: { userId: request.user.id, uiLanguage: parsed.data.uiLanguage }
+    })
+    return { uiLanguage: preference.uiLanguage }
   })
 
   /*
@@ -677,8 +707,14 @@ export async function authRoutes(fastify: FastifyInstance) {
     return reply.send({ success: true })
   })
 
-  fastify.get('/legal-documents', async () => {
-    return { documents: LEGAL_DOCUMENTS }
+  fastify.get('/legal-documents', async request => {
+    const language = contentLanguage(request)
+    return {
+      documents: LEGAL_DOCUMENTS.map(({ titleEn, ...document }) => ({
+        ...document,
+        title: language === 'en' ? titleEn : document.title,
+      })),
+    }
   })
 
   /**

@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal'; // Assuming there is a Modal base component or we build a standalone dialog
 import styles from './MentorDeleteModal.module.css';
 
 export default function MentorDeleteModal({ isOpen, onClose, onConfirm, isDeleting, error }) {
+  const { t } = useTranslation(['mentor', 'common']);
   const cancelRef = useRef(null);
   const modalRef = useRef(null);
 
@@ -59,28 +61,28 @@ export default function MentorDeleteModal({ isOpen, onClose, onConfirm, isDeleti
         aria-labelledby="delete-modal-title"
         className={styles.dialog}
       >
-        <h2 id="delete-modal-title" className={styles.title}>Sohbet silinsin mi?</h2>
+        <h2 id="delete-modal-title" className={styles.title}>{t('mentor:deleteModal.title')}</h2>
         <p className={styles.description}>
-          Bu sohbet kalıcı olarak kaldırılacak. Bu işlem geri alınamaz.
+          {t('mentor:deleteModal.description')}
         </p>
-        
+
         {error && <div className={styles.error} role="alert">{error}</div>}
 
         <div className={styles.actions}>
-          <Button 
+          <Button
             ref={cancelRef}
-            variant="outline" 
-            onClick={onClose} 
+            variant="outline"
+            onClick={onClose}
             disabled={isDeleting}
           >
-            Vazgeç
+            {t('common:buttons.cancel')}
           </Button>
-          <Button 
-            variant="danger" 
+          <Button
+            variant="danger"
             onClick={onConfirm}
             disabled={isDeleting}
           >
-            {isDeleting ? 'Siliniyor...' : 'Sohbeti sil'}
+            {isDeleting ? t('mentor:deleteModal.deleting') : t('mentor:deleteModal.confirm')}
           </Button>
         </div>
       </div>

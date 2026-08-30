@@ -302,6 +302,13 @@
   border-top: 1px solid var(--line);
 }
 
+/* Kurucu üye rozeti çıkış düğmesinin üstünde; daraltılmış kenar
+   çubuğunda 64px genişliğe sığmadığı için gizleniyor (aşağıda). */
+.uyelikRozeti {
+  display: flex;
+  margin-bottom: var(--space-2);
+}
+
 .logoutBtn {
   display: flex;
   align-items: center;
@@ -387,6 +394,7 @@
   .collapsed .submenu,
   .collapsed .navLabel,
   .collapsed .logoutLabel,
+  .collapsed .uyelikRozeti,
   .collapsed .quickAction span {
     display: none;
   }

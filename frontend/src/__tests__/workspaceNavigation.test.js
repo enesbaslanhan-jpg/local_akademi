@@ -10,22 +10,22 @@ import { WORKSPACE_NAV_TABS } from '@/pages/Workspaces/navigation'
  * ayni diziyi paylasir; bu test tek kaynagi korur.
  */
 const EXPECTED = [
-  ['overview', 'Genel Bakış'],
-  ['tracker', 'Kayıtlar'],
-  ['orders', 'Siparişler'],
-  ['products', 'Ürünler'],
-  ['documents', 'Belgeler'],
-  ['notifications', 'Bildirimler'],
-  ['calendar', 'Takvim'],
-  ['team', 'Ekip'],
-  ['contacts', 'Kişiler'],
-  ['activity', 'Aktiviteler'],
-  ['settings', 'Ayarlar']
+  ['overview', 'workspace:nav.overview'],
+  ['tracker', 'workspace:nav.records'],
+  ['orders', 'workspace:nav.orders'],
+  ['products', 'workspace:nav.products'],
+  ['documents', 'workspace:nav.documents'],
+  ['notifications', 'workspace:nav.notifications'],
+  ['calendar', 'workspace:nav.calendar'],
+  ['team', 'workspace:nav.team'],
+  ['contacts', 'workspace:nav.contacts'],
+  ['activity', 'workspace:nav.activity'],
+  ['settings', 'workspace:nav.settings']
 ]
 
 describe('İşletme Takibi navigasyonu (regresyon)', () => {
   it('bölüm sırası ve etiketleri ürün kararına birebir uyar', () => {
-    expect(WORKSPACE_NAV_TABS.map(({ id, label }) => [id, label])).toEqual(EXPECTED)
+    expect(WORKSPACE_NAV_TABS.map(({ id, i18nKey }) => [id, i18nKey])).toEqual(EXPECTED)
   })
 
   it('yollar sekmelerle tutarlıdır', () => {

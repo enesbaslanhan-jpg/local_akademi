@@ -1,11 +1,18 @@
+import { createContext } from 'react'
 import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import Sidebar from '@/components/layout/Sidebar'
 
 const mockUseAuth = vi.fn()
+/* `AuthContext` de veriliyor: kenar çubuğundaki Kurucu Üye rozeti
+   bağlamı doğrudan okuyor (sağlayıcı yokken sayfayı düşürmemek için).
+   Taklit yalnız `useAuth` döndürseydi bileşen `useContext(undefined)`
+   çağırıp patlardı — modülün gerçekte dışa açtığı şeyi taklit de
+   açmalı. */
 vi.mock('@/context/AuthContext', () => ({
   useAuth: () => mockUseAuth(),
+  AuthContext: createContext(null),
 }))
 
 const mockUseWorkspace = vi.fn()
@@ -119,6 +126,20 @@ describe('Sidebar', () => {
     )
 
     expect(screen.getByText('İşletme Takibi')).toBeInTheDocument()
+  })
+
+  /* /yardim sayfası ve iletişim formu zaten vardı; eksik olan giriş
+     yapmış kullanıcının oraya gidebileceğiydi (tek bağlantı herkese
+     açık Hakkında sayfasının altındaydı). */
+  it('Diğer bölümünde Yardım bağlantısı görünür', () => {
+    render(
+      <MemoryRouter initialEntries={['/app/dashboard']}>
+        <Sidebar open={true} onClose={() => {}} />
+      </MemoryRouter>
+    )
+
+    const yardim = screen.getByRole('button', { name: /Yardım/ })
+    expect(yardim).toHaveAttribute('data-tour', 'yardim')
   })
 
   it('shows the tracker link for the active workspace', () => {

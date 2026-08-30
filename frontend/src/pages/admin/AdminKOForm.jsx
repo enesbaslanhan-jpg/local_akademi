@@ -1,34 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/services/api'
 import { Button, Input, Select, Loading } from '@/components/ui'
 import { ArrowLeft, Save } from 'lucide-react'
 import styles from './AdminKOForm.module.css'
 
-const TYPE_OPTIONS = [
-  { value: 'concept', label: 'Kavram' },
-  { value: 'fact', label: 'Gerçek' },
-  { value: 'procedure', label: 'Prosedür' },
-  { value: 'principle', label: 'İlke' }
-]
-
-const LEVEL_OPTIONS = [
-  { value: 'beginner', label: 'Başlangıç' },
-  { value: 'intermediate', label: 'Orta' },
-  { value: 'advanced', label: 'İleri' }
-]
-
-const REVIEW_GATE_OPTIONS = [
-  { value: 'standard', label: 'Standart' },
-  { value: 'requires_professional_approval', label: 'Uzman Onayı Gerekli' },
-  { value: 'requires_current_official_source_and_legal_approval', label: 'Resmi Kaynak + Yasal Onay' }
-]
-
-const VERIFICATION_OPTIONS = [
-  { value: 'unverified', label: 'Doğrulanmamış' },
-  { value: 'pending_review', label: 'İnceleme Bekliyor' },
-  { value: 'verified', label: 'Doğrulandı' }
-]
+const TYPE_KEYS = ['concept', 'fact', 'procedure', 'principle']
+const LEVEL_KEYS = ['beginner', 'intermediate', 'advanced']
+const REVIEW_GATE_KEYS = ['standard', 'requires_professional_approval', 'requires_current_official_source_and_legal_approval']
+const VERIFICATION_KEYS = ['unverified', 'pending_review', 'verified']
 
 const initialForm = {
   code: '',
@@ -45,9 +26,15 @@ const initialForm = {
 }
 
 export default function AdminKOForm() {
+  const { t } = useTranslation('admin')
   const { code } = useParams()
   const navigate = useNavigate()
   const isEdit = !!code
+
+  const typeOptions = TYPE_KEYS.map(k => ({ value: k, label: t(`knowledge.type.${k}`) }))
+  const levelOptions = LEVEL_KEYS.map(k => ({ value: k, label: t(`knowledge.level.${k}`) }))
+  const reviewGateOptions = REVIEW_GATE_KEYS.map(k => ({ value: k, label: t(`form.reviewGate.${k}`) }))
+  const verificationOptions = VERIFICATION_KEYS.map(k => ({ value: k, label: t(`form.verification.${k}`) }))
 
   const [form, setForm] = useState(initialForm)
   const [loading, setLoading] = useState(isEdit)
@@ -88,13 +75,13 @@ export default function AdminKOForm() {
 
   function validate() {
     const errs = {}
-    if (!form.title.trim()) errs.title = 'Başlık zorunludur'
-    if (!form.type) errs.type = 'Tür seçilmelidir'
-    if (!form.content.trim()) errs.content = 'İçerik zorunludur'
+    if (!form.title.trim()) errs.title = t('form.validation.titleRequired')
+    if (!form.type) errs.type = t('form.validation.typeRequired')
+    if (!form.content.trim()) errs.content = t('form.validation.contentRequired')
     if (isEdit && form.code !== originalCode && originalCode) {
       try {
         const current = api.knowledgeV2.getByCode(originalCode)
-        if (current?.status === 'published') errs.code = 'Yayındaki bir KO\'nun kodu değiştirilemez'
+        if (current?.status === 'published') errs.code = t('form.validation.codeChangeForbidden')
       } catch {}
     }
     setErrors(errs)
@@ -136,15 +123,15 @@ export default function AdminKOForm() {
     }
   }
 
-  if (loading) return <Loading text="Bilgi nesnesi yükleniyor..." />
+  if (loading) return <Loading text={t('form.loading')} />
 
   return (
     <div className={styles.page}>
       <div className={styles.header}>
         <Button variant="ghost" size="sm" onClick={() => navigate('/admin/knowledge')}>
-          <ArrowLeft size={16} /> Geri
+          <ArrowLeft size={16} /> {t('form.back')}
         </Button>
-        <h2>{isEdit ? 'KO Düzenle' : 'Yeni KO Oluştur'}</h2>
+        <h2>{isEdit ? t('form.editHeading') : t('form.newHeading')}</h2>
       </div>
 
       {apiError && <div className="alert alert-danger" style={{ marginBottom: 16 }}>{apiError}</div>}
@@ -152,99 +139,99 @@ export default function AdminKOForm() {
       <form onSubmit={handleSubmit}>
         <div className={styles.grid}>
           <div className="panel">
-            <h3>Temel Bilgiler</h3>
+            <h3>{t('form.sections.basicInfo')}</h3>
 
             <Input
-              label="Kod"
+              label={t('form.fields.code')}
               value={form.code}
               onChange={e => handleChange('code', e.target.value)}
-              placeholder="Örn: FIN-BREAKEVEN-001"
+              placeholder={t('form.placeholders.code')}
               disabled={isEdit}
               error={errors.code}
             />
 
             <Input
-              label="Başlık"
+              label={t('form.fields.title')}
               value={form.title}
               onChange={e => handleChange('title', e.target.value)}
-              placeholder="KO başlığı"
+              placeholder={t('form.placeholders.title')}
               error={errors.title}
             />
 
             <Input
-              label="Özet"
+              label={t('form.fields.summary')}
               value={form.summary}
               onChange={e => handleChange('summary', e.target.value)}
-              placeholder="Kısa açıklama"
+              placeholder={t('form.placeholders.summary')}
             />
 
             <Select
-              label="Tür"
+              label={t('form.fields.type')}
               value={form.type}
               onChange={value => handleChange('type', value)}
-              options={TYPE_OPTIONS}
+              options={typeOptions}
               error={errors.type}
             />
 
             <Select
-              label="Seviye"
+              label={t('form.fields.level')}
               value={form.level}
               onChange={value => handleChange('level', value)}
-              options={LEVEL_OPTIONS}
+              options={levelOptions}
             />
 
             <div className={styles.row}>
               <Input
-                label="Kategori"
+                label={t('form.fields.category')}
                 value={form.category}
                 onChange={e => handleChange('category', e.target.value)}
-                placeholder="Örn: Finans"
+                placeholder={t('form.placeholders.category')}
               />
               <Input
-                label="Alt Kategori"
+                label={t('form.fields.subcategory')}
                 value={form.subcategory}
                 onChange={e => handleChange('subcategory', e.target.value)}
-                placeholder="Örn: Başabaş Analizi"
+                placeholder={t('form.placeholders.subcategory')}
               />
             </div>
           </div>
 
           <div className={styles.sidePanel}>
             <div className="panel">
-              <h3>Yönetim</h3>
+              <h3>{t('form.sections.management')}</h3>
 
               <Select
-                label="İnceleme Kapısı"
+                label={t('form.fields.reviewGate')}
                 value={form.reviewGate}
                 onChange={value => handleChange('reviewGate', value)}
-                options={REVIEW_GATE_OPTIONS}
+                options={reviewGateOptions}
               />
 
               <Select
-                label="Doğrulama"
+                label={t('form.fields.verification')}
                 value={form.verificationStatus}
                 onChange={value => handleChange('verificationStatus', value)}
-                options={VERIFICATION_OPTIONS}
+                options={verificationOptions}
               />
             </div>
 
             <div className="panel" style={{ marginTop: 16 }}>
-              <h3>İşlemler</h3>
+              <h3>{t('form.sections.actions')}</h3>
               <Button type="submit" full disabled={saving} style={{ marginTop: 8 }}>
-                <Save size={16} /> {saving ? 'Kaydediliyor...' : isEdit ? 'Değişiklikleri Kaydet' : 'KO Oluştur'}
+                <Save size={16} /> {saving ? t('form.saving') : isEdit ? t('form.saveChanges') : t('form.createKo')}
               </Button>
             </div>
           </div>
         </div>
 
         <div className="panel" style={{ marginTop: 16 }}>
-          <h3>İçerik</h3>
+          <h3>{t('form.sections.content')}</h3>
           <div className={styles.editorWrapper}>
             <textarea
               className={styles.editor}
               value={form.content}
               onChange={e => handleChange('content', e.target.value)}
-              placeholder="KO içeriğini buraya yazın..."
+              placeholder={t('form.placeholders.content')}
               rows={14}
             />
           </div>

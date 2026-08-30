@@ -1,0 +1,133 @@
+/*
+ * Ortak public alt bilgi.
+ *
+ * Renkler `styles/auth-surface.css` `--auth-*` paletinden. Uygulama
+ * kabuğunun token'ları BİLEREK kullanılmıyor (bkz. PublicFooter.jsx
+ * başlığındaki gerekçe).
+ */
+
+.footer {
+  /* Esnek kaplarda içerik genişliğinde kalıp taşmasın. */
+  width: 100%;
+  margin-top: auto;
+  padding: 40px 24px 28px;
+  border-top: 1px solid var(--auth-divider);
+  background: var(--auth-page);
+  color: var(--auth-text-soft);
+  font-size: .82rem;
+}
+
+.icerik {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 28px 32px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.sutun,
+.kimlik {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* Grid öğeleri varsayılan olarak içeriğinden dar olmayı reddeder;
+     uzun adres satırı 375px'te yatay kaymaya yol açıyordu. */
+  min-width: 0;
+}
+
+.kimlik {
+  font-style: normal;
+  overflow-wrap: anywhere;
+}
+
+.baslik {
+  margin: 0 0 2px;
+  color: var(--auth-text);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.sutun a,
+.kimlik a {
+  color: var(--auth-text-soft);
+  text-decoration: none;
+  transition: color .16s ease;
+}
+
+.sutun a:hover,
+.kimlik a:hover {
+  color: var(--auth-link-hover);
+  text-decoration: underline;
+}
+
+.sutun a:focus-visible,
+.kimlik a:focus-visible {
+  outline: 2px solid var(--auth-focus-ring);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* Ürün sahibinden gelecek alanlar. Sayfada göze çarpsın ki
+   doldurulmadan yayına alınmasın. */
+.eksik {
+  color: var(--auth-error-text);
+  font-size: .74rem;
+}
+
+.alt {
+  max-width: 1080px;
+  margin: 26px auto 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--auth-divider);
+}
+
+@media (max-width: 640px) {
+  .footer { padding: 32px 18px 24px; }
+  .icerik { gap: 22px; }
+}
+
+/* ---------- Kompakt biçim (giriş / kayıt / şifre sıfırlama) ----------
+   Tek satır bağlantı + kısa satıcı satırı. Üç sütunlu blok o
+   ekranlarda kullanıcıyı gereksiz yere kaydırmaya zorluyordu. */
+.kompakt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 20px 24px 26px;
+  border-top: 1px solid var(--auth-divider);
+  background: var(--auth-page);
+  text-align: center;
+}
+
+.kompaktBaglantilar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 18px;
+}
+
+.kompaktBaglantilar a {
+  color: var(--auth-text-soft);
+  font-size: .78rem;
+  text-decoration: none;
+}
+
+.kompaktBaglantilar a:hover { color: var(--auth-text); text-decoration: underline; }
+
+.kompaktSatici {
+  color: var(--auth-text-soft);
+  font-size: .74rem;
+}
+
+.kompaktSatici a { color: var(--auth-text-soft); }
+
+.kompaktBaglantilar a:focus-visible,
+.kompaktSatici a:focus-visible {
+  outline: 2px solid var(--auth-focus-ring);
+  outline-offset: 3px;
+  border-radius: 3px;
+}

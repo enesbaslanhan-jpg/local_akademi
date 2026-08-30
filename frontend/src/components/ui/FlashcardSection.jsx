@@ -4,11 +4,13 @@ import { api } from '@/services/api'
 import { Card, Button, Badge } from './index'
 import { Brain, RotateCcw, ChevronLeft, ChevronRight, CheckCircle, BarChart3 } from 'lucide-react'
 import styles from './FlashcardSection.module.css'
+import { useTranslation } from 'react-i18next'
 
-const RATING_LABELS = { again: 'Tekrar', hard: 'Zor', good: 'İyi', easy: 'Kolay' }
+const RATING_LABEL_KEYS = { again: 'ui.flashcard.again', hard: 'ui.flashcard.hard', good: 'ui.flashcard.good', easy: 'ui.flashcard.easy' }
 const RATING_COLORS = { again: '#ef4444', hard: '#f59e0b', good: '#22c55e', easy: '#16a34a' }
 
 export default function FlashcardSection({ koId, onProgress }) {
+  const { t } = useTranslation('common')
   const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -44,25 +46,25 @@ export default function FlashcardSection({ koId, onProgress }) {
           {progress && (
             <Badge variant="success">%{progress.percent} ({progress.mastered}/{progress.seen})</Badge>
           )}
-          <Badge variant="info">{cards.length} kart</Badge>
+          <Badge variant="info">{t('ui.flashcard.cardCount', { count: cards.length })}</Badge>
         </div>
         {sessionComplete ? (
           <div className={styles.sessionDone}>
             <CheckCircle size={32} className={styles.doneIcon} />
-            <p className={styles.doneText}>Tebrikler! Bu oturumdaki tüm kartları tamamladın.</p>
+            <p className={styles.doneText}>{t('ui.flashcard.sessionComplete')}</p>
             <div className={styles.sessionStats}>
-              <span>İncelenen: {stats.reviewed}</span>
-              <span>Tekrar: {stats.again}</span>
-              <span>Zor: {stats.hard}</span>
-              <span>İyi: {stats.good}</span>
-              <span>Kolay: {stats.easy}</span>
+              <span>{t('ui.flashcard.reviewed')}: {stats.reviewed}</span>
+              <span>{t('ui.flashcard.again')}: {stats.again}</span>
+              <span>{t('ui.flashcard.hard')}: {stats.hard}</span>
+              <span>{t('ui.flashcard.good')}: {stats.good}</span>
+              <span>{t('ui.flashcard.easy')}: {stats.easy}</span>
             </div>
             <Button variant="primary" size="sm" onClick={() => navigate(`/app/flashcards/study/${koId}`)}>
-              <Brain size={14} /> Tam Ekran Çalış
+              <Brain size={14} /> {t('ui.flashcard.studyFullscreen')}
             </Button>
           </div>
         ) : (
-          <p className={styles.emptyText}>Kart bulunamadı.</p>
+          <p className={styles.emptyText}>{t('ui.flashcard.empty')}</p>
         )}
       </Card>
     )
@@ -90,7 +92,7 @@ export default function FlashcardSection({ koId, onProgress }) {
         <Brain size={18} />
         <span className={styles.title}>Flashcard</span>
         {progress && (
-          <Badge variant="success">%{progress.percent} tamamlandı</Badge>
+          <Badge variant="success">{t('ui.flashcard.percentComplete', { percent: progress.percent })}</Badge>
         )}
         <Badge variant="info">{currentIdx + 1}/{cards.length}</Badge>
       </div>
@@ -100,15 +102,15 @@ export default function FlashcardSection({ koId, onProgress }) {
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFlipped(!flipped) } }}>
         <div className={`${styles.cardInner} ${flipped ? styles.cardFlipped : ''}`}>
           <div className={styles.cardFace}>
-            <span className={styles.faceLabel}>Soru</span>
+            <span className={styles.faceLabel}>{t('ui.flashcard.question')}</span>
             <p className={styles.cardText}>{currentCard.front}</p>
             {currentCard.hint && !flipped && (
-              <p className={styles.hint}>İpucu: {currentCard.hint}</p>
+              <p className={styles.hint}>{t('ui.flashcard.hint')}: {currentCard.hint}</p>
             )}
-            <span className={styles.tapHint}>Dokun/Enter → Çevir</span>
+            <span className={styles.tapHint}>{t('ui.flashcard.flipHint')}</span>
           </div>
           <div className={`${styles.cardFace} ${styles.cardBack}`}>
-            <span className={styles.faceLabel}>Cevap</span>
+            <span className={styles.faceLabel}>{t('ui.flashcard.answer')}</span>
             <p className={styles.cardText}>{currentCard.back}</p>
           </div>
         </div>
@@ -123,9 +125,9 @@ export default function FlashcardSection({ koId, onProgress }) {
               className={styles.ratingBtn}
               style={{ background: RATING_COLORS[rating] }}
               onClick={() => handleRate(rating)}
-              ariaLabel={RATING_LABELS[rating]}
+              aria-label={t(RATING_LABEL_KEYS[rating])}
             >
-              {RATING_LABELS[rating]}
+              {t(RATING_LABEL_KEYS[rating])}
             </button>
           ))}
         </div>

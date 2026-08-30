@@ -1,17 +1,19 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
+import FounderBadge from '@/components/billing/FounderBadge'
 import { useWorkspace } from '@/context/WorkspaceContext'
 import {
   Home, BookOpen, Bot, Settings, Shield,
   Users, Database, X, Calculator, Newspaper,
-  Building2, ListChecks, Scale, LogOut,
+  Building2, ListChecks, Scale, LogOut, LifeBuoy,
   PanelLeftClose, PanelLeftOpen, MessagesSquare, Search, Plus, ChevronDown
 } from 'lucide-react'
 import styles from './Sidebar.module.css'
 import BrandMark from '@/components/ui/BrandMark'
 import { featureFlags } from '@/config/featureFlags'
 import { WORKSPACE_NAV_TABS } from '@/pages/Workspaces/navigation'
+import { useTranslation } from 'react-i18next'
 
 /*
  * ANA MENÜ — sadeleştirilmiş bilgi mimarisi (Paket 4).
@@ -26,19 +28,19 @@ import { WORKSPACE_NAV_TABS } from '@/pages/Workspaces/navigation'
  *   Model Laboratuvarı → Hesaplamalar içindeki detaylı mod (/app/finance/models redirect olur)
  *   Pratik Kartlar / Flashcard / Quiz → feature flag'li legacy route'lar
  */
-const dashboardLink = { id: 'dashboard', label: 'Ana Sayfa', icon: Home, path: '/app/dashboard', exact: true }
-const coursesLink = { id: 'courses', label: 'Kurslar', icon: BookOpen, path: '/app/courses' }
-const decisionLink = { id: 'decision-checks', label: 'Karar Araçları', kisaEtiket: 'Kararlar', icon: Scale, path: '/app/decision-checks', recommended: true }
-const toolsLink = { id: 'tools', label: 'Hesaplamalar', kisaEtiket: 'Hesaplama', icon: Calculator, path: '/app/calculations' }
-const mentorLink = { id: 'mentor', label: 'AI Mentor', icon: Bot, path: '/app/mentor' }
+const dashboardLink = { id: 'dashboard', i18nKey: 'nav.dashboard', icon: Home, path: '/app/dashboard', exact: true }
+const coursesLink = { id: 'courses', i18nKey: 'nav.courses', icon: BookOpen, path: '/app/courses' }
+const decisionLink = { id: 'decision-checks', i18nKey: 'nav.decisionTools', shortLabelKey: 'nav.mobileDecisionTools', icon: Scale, path: '/app/decision-checks', recommended: true }
+const toolsLink = { id: 'tools', i18nKey: 'nav.calculations', shortLabelKey: 'nav.mobileCalculations', icon: Calculator, path: '/app/calculations' }
+const mentorLink = { id: 'mentor', i18nKey: 'nav.mentor', icon: Bot, path: '/app/mentor' }
 
 const decisionGroup = featureFlags.decisionChecks ? [decisionLink] : []
 
 /* Haberler ve Topluluk aynı ağacın altında yaşıyor: Haberler kökte
    (`/app/community`), forum onun altında. Bu yüzden Haberler `exact` —
    yoksa forumdayken ikisi birden etkin görünür. */
-const newsLink = { id: 'community', label: 'Haberler', icon: Newspaper, path: '/app/community', exact: true }
-const forumLink = { id: 'community-forum', label: 'Topluluk', icon: MessagesSquare, path: '/app/community/topluluk' }
+const newsLink = { id: 'community', i18nKey: 'nav.news', icon: Newspaper, path: '/app/community', exact: true }
+const forumLink = { id: 'community-forum', i18nKey: 'nav.community', icon: MessagesSquare, path: '/app/community/topluluk' }
 
 /*
  * MOBİL alt sekme çubuğu — masaüstü rayından BİLEREK ayrı.
@@ -80,19 +82,24 @@ const desktopPrimaryLinks = [
    bakmıyor artık, diğeri grubun sonunda duruyor). */
 const secondaryLinks = [newsLink, forumLink]
 
-const settingsLink = { id: 'settings', label: 'Ayarlar', icon: Settings, path: '/app/settings' }
+const settingsLink = { id: 'settings', i18nKey: 'nav.settings', icon: Settings, path: '/app/settings' }
+
+/* /yardim sayfası ve çalışan iletişim formu zaten vardı; eksik olan
+   giriş yapmış kullanıcının oraya GİDEBİLMESİYDİ — tek bağlantı herkese
+   açık Hakkında sayfasının altındaydı. */
+const helpLink = { id: 'yardim', i18nKey: 'nav.help', icon: LifeBuoy, path: '/yardim' }
 
 /* Açılır menünün başlığı. `path` panele gidiyor: menüyü açmadan
    doğrudan tıklayan kullanıcı boşluğa düşmemeli. */
-const adminParentLink = { id: 'admin', label: 'Yönetim', icon: Shield, path: '/admin/dashboard' }
+const adminParentLink = { id: 'admin', i18nKey: 'nav.management', icon: Shield, path: '/admin/dashboard' }
 
 const adminLinks = [
-  { id: 'admin-dashboard', label: 'Panel', icon: Shield, path: '/admin/dashboard' },
-  { id: 'admin-knowledge', label: 'KO Yönetimi', icon: Database, path: '/admin/knowledge' },
-  { id: 'admin-users', label: 'Kullanıcılar', icon: Users, path: '/admin/users' },
-  { id: 'admin-imports', label: 'Toplu İçe Aktar', icon: Database, path: '/admin/imports' },
-  { id: 'admin-community', label: 'Haberler & Topluluk', icon: Newspaper, path: '/admin/community' },
-  { id: 'admin-audit', label: 'Denetim Kayıtları', icon: Shield, path: '/admin/audit-logs' }
+  { id: 'admin-dashboard', i18nKey: 'nav.admin.dashboard', icon: Shield, path: '/admin/dashboard' },
+  { id: 'admin-knowledge', i18nKey: 'nav.admin.knowledge', icon: Database, path: '/admin/knowledge' },
+  { id: 'admin-users', i18nKey: 'nav.admin.users', icon: Users, path: '/admin/users' },
+  { id: 'admin-imports', i18nKey: 'nav.admin.imports', icon: Database, path: '/admin/imports' },
+  { id: 'admin-community', i18nKey: 'nav.admin.community', icon: Newspaper, path: '/admin/community' },
+  { id: 'admin-audit', i18nKey: 'nav.admin.audit', icon: Shield, path: '/admin/audit-logs' }
 ]
 
 export default function Sidebar({
@@ -101,6 +108,7 @@ export default function Sidebar({
   collapsed = false,
   onToggleCollapsed
 }) {
+  const { t, i18n } = useTranslation(['common', 'workspace'])
   const { isAdmin, logout } = useAuth()
   const { activeWorkspaceId } = useWorkspace()
   const location = useLocation()
@@ -119,14 +127,15 @@ export default function Sidebar({
     if (routeGroup) setExpandedMenu(routeGroup)
   }, [routeGroup])
 
-  const normalizedQuery = navQuery.trim().toLocaleLowerCase('tr-TR')
-  const matchesQuery = link => !normalizedQuery || link.label.toLocaleLowerCase('tr-TR').includes(normalizedQuery)
+  const displayLabel = link => link.i18nKey ? t(link.i18nKey) : link.label
+  const normalizedQuery = navQuery.trim().toLocaleLowerCase(i18n.resolvedLanguage === 'en' ? 'en-US' : 'tr-TR')
+  const matchesQuery = link => !normalizedQuery || displayLabel(link).toLocaleLowerCase(i18n.resolvedLanguage === 'en' ? 'en-US' : 'tr-TR').includes(normalizedQuery)
 
   /* ANA MENÜ'nün son maddesi. Takvim ve İşletmelerim menüden çıktı; sırasıyla
      Takip sekmesinden ve işletme seçicisinden erişiliyor. */
   const trackerLink = activeWorkspaceId
-    ? { id: 'workspace-tracker', label: 'İşletme Takibi', icon: ListChecks, path: `/app/workspaces/${activeWorkspaceId}/tracker` }
-    : { id: 'workspace-create', label: 'İşletme Takibi', icon: Building2, path: '/app/workspaces' }
+      ? { id: 'workspace-tracker', i18nKey: 'nav.businessTracking', icon: ListChecks, path: `/app/workspaces/${activeWorkspaceId}/tracker` }
+      : { id: 'workspace-create', i18nKey: 'nav.businessTracking', icon: Building2, path: '/app/workspaces' }
 
   function handleNavigate(path) {
     navigate(path)
@@ -157,29 +166,29 @@ export default function Sidebar({
          sanıyordu. Sıra da aynı: girişte açılan görünüm (Katalog) ilk. */
       const onTools = location.pathname === '/app/calculations' || location.pathname === '/app/tools'
       return [
-        { label: 'Katalog', path: '/app/calculations?view=calculator', active: onTools && (view === null || view === 'calculator' || view === 'models') },
-        { label: 'Geçmiş', path: '/app/calculations?view=history', active: onTools && view === 'history' },
+        { label: t('nav.catalog'), path: '/app/calculations?view=calculator', active: onTools && (view === null || view === 'calculator' || view === 'models') },
+        { label: t('nav.history'), path: '/app/calculations?view=history', active: onTools && view === 'history' },
       ]
     }
     if (link.id === 'community-forum') {
       return [
-        { label: 'Akış', path: '/app/community/topluluk', active: location.pathname.startsWith('/app/community/topluluk') },
-        { label: 'Profil', path: '/app/profil?liste=posts', active: location.pathname === '/app/profil' },
-        { label: 'Takip ve engelleme', path: '/app/community/kisiler', active: location.pathname === '/app/community/kisiler' },
-        { label: 'Sohbetler', path: '/app/community/sohbetler', active: location.pathname === '/app/community/sohbetler' },
+        { label: t('nav.feed'), path: '/app/community/topluluk', active: location.pathname.startsWith('/app/community/topluluk') },
+        { label: t('nav.profile'), path: '/app/profil?liste=posts', active: location.pathname === '/app/profil' },
+        { label: t('nav.followingAndBlocking'), path: '/app/community/kisiler', active: location.pathname === '/app/community/kisiler' },
+        { label: t('nav.chats'), path: '/app/community/sohbetler', active: location.pathname === '/app/community/sohbetler' },
       ]
     }
     if (link.id === 'admin') {
       return adminLinks.map(item => ({
-        label: item.label,
+        label: displayLabel(item),
         path: item.path,
         active: location.pathname.startsWith(item.path),
       }))
     }
     if (link.id === 'workspace-tracker' && activeWorkspaceId) {
       // TEK KAYNAK: Workspaces/navigation.js (sekme sirasi urun karari).
-      return WORKSPACE_NAV_TABS.map(({ path, label }) => ({
-        label,
+      return WORKSPACE_NAV_TABS.map(({ path, i18nKey }) => ({
+        label: t(i18nKey),
         path: `/app/workspaces/${activeWorkspaceId}/${path}`,
         active: location.pathname === `/app/workspaces/${activeWorkspaceId}/${path}`,
       }))
@@ -190,6 +199,7 @@ export default function Sidebar({
   function renderLink(link) {
     if (!matchesQuery(link)) return null
     const Icon = link.icon
+    const label = displayLabel(link)
     const active = isActive(link.path)
     const submenu = submenuFor(link)
     const expanded = submenu.length > 0 && expandedMenu === link.id && !collapsed
@@ -217,12 +227,12 @@ export default function Sidebar({
         data-tour={link.id}
       >
         <Icon size={17} aria-hidden="true" />
-        <span className={styles.navLabel}>{link.label}</span>
-        {link.recommended && <span className={styles.recommendedBadge}>Önerilen</span>}
+        <span className={styles.navLabel}>{label}</span>
+        {link.recommended && <span className={styles.recommendedBadge}>{t('nav.recommended')}</span>}
         {submenu.length > 0 && <ChevronDown className={`${styles.submenuChevron} ${expanded ? styles.submenuChevronOpen : ''}`} size={15} aria-hidden="true" />}
       </button>
       {expanded && (
-        <div className={styles.submenu} aria-label={`${link.label} alt menüsü`}>
+        <div className={styles.submenu} aria-label={t('accessibility.submenu', { label })}>
           {submenu.map(item => (
             <button
               type="button"
@@ -253,18 +263,18 @@ export default function Sidebar({
      * zaten en üstte duruyor.
      */
     if (location.pathname === '/app/community' && isAdmin) {
-      return { label: 'Haber oluştur', path: '/admin/community' }
+      return { label: t('nav.createNews'), path: '/admin/community' }
     }
     if (location.pathname.startsWith('/app/calculations') || location.pathname.startsWith('/app/tools')) {
-      return { label: 'Hesaplama başlat', path: '/app/calculations?start=1' }
+      return { label: t('nav.startCalculation'), path: '/app/calculations?start=1' }
     }
     return null
-  }, [isAdmin, location.pathname])
+  }, [isAdmin, location.pathname, t])
 
   return (
     <>
       {open && <div className={styles.overlay} onClick={onClose} aria-hidden="true" />}
-      <aside className={`${styles.sidebar} ${open ? styles.open : ''} ${collapsed ? styles.collapsed : ''}`} aria-label="Ana navigasyon">
+      <aside className={`${styles.sidebar} ${open ? styles.open : ''} ${collapsed ? styles.collapsed : ''}`} aria-label={t('accessibility.mainNavigation')}>
         <div className={styles.logoArea}>
           <div className={styles.brand}>
             {/* Uygulamaya girildiğinde bir kez oynar; imleç üstüne gelince
@@ -272,19 +282,19 @@ export default function Sidebar({
             <BrandMark size={26} animated interactive />
             <span className={styles.logoText}>
               <strong>LocalKarar</strong>
-              <small lang="en">Professional Community</small>
+              <small>{t('nav.professionalCommunity')}</small>
             </span>
           </div>
-          <button className={styles.closeBtn} onClick={onClose} aria-label="Menüyü kapat">
+          <button className={styles.closeBtn} onClick={onClose} aria-label={t('accessibility.closeMenu')}>
             <X size={18} />
           </button>
           <button
             type="button"
             className={styles.collapseBtn}
             onClick={onToggleCollapsed}
-            aria-label={collapsed ? 'Menüyü genişlet' : 'Menüyü daralt'}
+            aria-label={collapsed ? t('accessibility.expandMenu') : t('accessibility.collapseMenu')}
             aria-expanded={!collapsed}
-            title={collapsed ? 'Menüyü genişlet' : 'Menüyü daralt'}
+            title={collapsed ? t('accessibility.expandMenu') : t('accessibility.collapseMenu')}
           >
             {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
           </button>
@@ -292,12 +302,12 @@ export default function Sidebar({
 
         <label className={styles.navSearch}>
           <Search size={17} aria-hidden="true" />
-          <span className="sr-only">Menüde ara</span>
+          <span className="sr-only">{t('nav.search')}</span>
           <input
             type="search"
             value={navQuery}
             onChange={event => setNavQuery(event.target.value)}
-            placeholder="Menüde ara..."
+            placeholder={t('nav.search')}
             /* Tarayıcı, arama alanlarında daha önce yazılanları gri bir
                öneri kutusunda gösteriyordu. Burası menüyü süzen yerel bir
                alan; geçmiş değerlerin anlamı yok, kutu yalnızca menüyü
@@ -307,14 +317,15 @@ export default function Sidebar({
         </label>
 
         <nav className={styles.nav}>
-          <div className={styles.sectionLabel}>Çalışma alanı</div>
+          <div className={styles.sectionLabel}>{t('nav.workspaceSection')}</div>
           {desktopPrimaryLinks.map(renderLink)}
           {renderLink(trackerLink)}
 
           <div className={styles.divider} />
-          <div className={styles.sectionLabel}>Diğer</div>
+          <div className={styles.sectionLabel}>{t('nav.otherSection')}</div>
           {secondaryLinks.map(renderLink)}
           {renderLink(settingsLink)}
+          {renderLink(helpLink)}
 
           {isAdmin && (
             <>
@@ -346,10 +357,12 @@ export default function Sidebar({
           </button>
         )}
 
-        <div className={styles.userArea} aria-label="Kullanıcı işlemleri">
-          <button className={styles.logoutBtn} onClick={logout} aria-label="Çıkış yap" title="Çıkış yap">
+        <div className={styles.userArea} aria-label={t('accessibility.userActions')}>
+          {/* Daraltılmış kenar çubuğunda gizleniyor (CSS). */}
+          <FounderBadge className={styles.uyelikRozeti} />
+          <button className={styles.logoutBtn} onClick={logout} aria-label={t('nav.logout')} title={t('nav.logout')}>
             <LogOut size={15} aria-hidden="true" />
-            <span className={styles.logoutLabel}>Çıkış yap</span>
+            <span className={styles.logoutLabel}>{t('nav.logout')}</span>
           </button>
         </div>
       </aside>

@@ -1,24 +1,34 @@
 import React, { useMemo, useState } from 'react'
 import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, ChevronRight, MessageSquare, Receipt, RotateCcw, ShieldCheck } from 'lucide-react'
+import { useTranslation, Trans } from 'react-i18next'
 import { api } from '@/services/api'
 import { DarkPanel, Modal } from '@/components/ui'
 import DecisionReceipt from './DecisionReceipt'
 import receiptTrigger from './ReceiptTrigger.module.css'
 import './ProfitabilityDecisionTool.css'
+import { getFormatLocale } from '@/utils/formatters'
 
-const fields = [
-  { code: 'salePrice', label: 'Satış fiyatı', hint: 'Müşterinin ödediği ürün fiyatı', suffix: '₺', min: 0.01 },
-  { code: 'productCost', label: 'Ürün maliyeti', hint: 'Satın alma veya üretim maliyeti', suffix: '₺', min: 0 },
-  { code: 'commissionRate', label: 'Komisyon', hint: 'Pazaryeri veya ödeme kesintisi', suffix: '%', min: 0, max: 100 },
-  { code: 'shippingCost', label: 'Kargo', hint: 'Sipariş başına ödediğiniz tutar', suffix: '₺', min: 0 },
-  { code: 'packagingCost', label: 'Paketleme', hint: 'Kutu, poşet, etiket ve koruma', suffix: '₺', min: 0 },
-  { code: 'returnLossAllowance', label: 'İade payı', hint: 'İade ve hasar için ortalama pay', suffix: '₺', min: 0 },
-  { code: 'otherVariableCost', label: 'Diğer giderler', hint: 'Reklam payı ve diğer ürün başı giderler', suffix: '₺', min: 0 },
-  { code: 'discountRate', label: 'İndirim oranı', hint: 'İndirim yoksa 0 yazın', suffix: '%', min: 0, max: 100 }
+const FIELD_META = [
+  { code: 'salePrice', suffix: '₺', min: 0.01 },
+  { code: 'productCost', suffix: '₺', min: 0 },
+  { code: 'commissionRate', suffix: '%', min: 0, max: 100 },
+  { code: 'shippingCost', suffix: '₺', min: 0 },
+  { code: 'packagingCost', suffix: '₺', min: 0 },
+  { code: 'returnLossAllowance', suffix: '₺', min: 0 },
+  { code: 'otherVariableCost', suffix: '₺', min: 0 },
+  { code: 'discountRate', suffix: '%', min: 0, max: 100 }
 ]
 
-const money = new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 2 })
-const percent = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 1 })
+function useFields(t) {
+  return useMemo(() => FIELD_META.map(meta => ({
+    ...meta,
+    label: t(`session.fields.${meta.code}.label`),
+    hint: t(`session.fields.${meta.code}.hint`)
+  })), [t])
+}
+
+const money = { format: value => new Intl.NumberFormat(getFormatLocale(), { style: 'currency', currency: 'TRY', maximumFractionDigits: 2 }).format(value) }
+const percent = { format: value => new Intl.NumberFormat(getFormatLocale(), { maximumFractionDigits: 1 }).format(value) }
 
 function Metric({ label, value, tone = 'neutral', detail }) {
   const tones = {
@@ -37,6 +47,7 @@ function Metric({ label, value, tone = 'neutral', detail }) {
 }
 
 function ResultView({ session, result, navigate, mentorContext, mentorEnabled }) {
+  const { t } = useTranslation('tools')
   const snapshot = result.snapshot || {}
   const calc = snapshot.calculationOutput || {}
   const discounted = calc.discountedScenario
@@ -54,7 +65,7 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
         navigate(`/app/decision-checks/${response.sessionId}`)
       }
     } catch (error) {
-      setRecalculateError('Yeni hesaplama başlatılamadı. Lütfen tekrar deneyin.')
+      setRecalculateError(t('session.recalculateError'))
     } finally {
       setRecalculating(false)
     }
@@ -63,19 +74,19 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
   return (
     <main className="profit-tool">
       <button onClick={() => navigate('/app/decision-checks')} className="profit-back">
-        <ArrowLeft size={17} /> Karar araçlarına dön
+        <ArrowLeft size={17} /> {t('decisions.backToTools')}
       </button>
 
       <section className="profit-card">
         <div className={`profit-hero ${contributionPositive ? 'good' : 'bad'}`}>
           <div className="profit-hero-row">
             <div>
-              <p>Hesaplama kaydedildi</p>
-              <h1>{contributionPositive ? 'Ürün katkı üretiyor' : 'Bu fiyatla ürün zarar ediyor'}</h1>
-              <p>Sonuç, girdiğiniz ürün başı maliyetler ve satış koşullarıyla hesaplandı.</p>
+              <p>{t('decisions.calcSaved')}</p>
+              <h1>{contributionPositive ? t('session.positiveVerdict') : t('session.negativeVerdict')}</h1>
+              <p>{t('session.resultExplainer')}</p>
             </div>
             <div className="profit-contribution">
-              <p>Ürün başına katkı</p>
+              <p>{t('session.contributionPerUnit')}</p>
               <strong>{money.format(calc.contribution ?? 0)}</strong>
             </div>
           </div>
@@ -84,42 +95,42 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
         {/* Karar fişi tetikleyicisi — mevcut imza paneli (DarkPanel), sweep açık */}
         <DarkPanel sweep className={receiptTrigger.bar} onClick={() => setReceiptOpen(true)}>
           <span className={receiptTrigger.icon} aria-hidden="true"><Receipt size={17} /></span>
-          <span className={receiptTrigger.label}>Karar fişini görüntüle</span>
+          <span className={receiptTrigger.label}>{t('receipt.viewTrigger')}</span>
           <ChevronRight size={17} className={receiptTrigger.chevron} aria-hidden="true" />
         </DarkPanel>
 
         <div className="profit-result-body">
           <div className="profit-metrics">
-            <Metric label="Toplam maliyet" value={money.format(calc.totalKnownCost ?? 0)} />
-            <Metric label="Katkı marjı" value={`%${percent.format(calc.contributionMarginPercent ?? 0)}`} tone={contributionPositive ? 'good' : 'bad'} />
-            <Metric label="Başabaş fiyatı" value={calc.breakEvenPrice == null ? 'Hesaplanamadı' : money.format(calc.breakEvenPrice)} tone="info" />
-            <Metric label="Mevcut satış fiyatı" value={money.format(calc.revenue ?? 0)} />
+            <Metric label={t('receipt.lines.totalKnownCost')} value={money.format(calc.totalKnownCost ?? 0)} />
+            <Metric label={t('session.contributionMargin')} value={`%${percent.format(calc.contributionMarginPercent ?? 0)}`} tone={contributionPositive ? 'good' : 'bad'} />
+            <Metric label={t('session.breakEvenPrice')} value={calc.breakEvenPrice == null ? t('session.metricUnavailable') : money.format(calc.breakEvenPrice)} tone="info" />
+            <Metric label={t('session.currentSalePrice')} value={money.format(calc.revenue ?? 0)} />
           </div>
 
           {discounted && (
             <section>
-              <h2>İndirim sonrası senaryo</h2>
+              <h2>{t('session.discountedScenarioHeading')}</h2>
               <div className="profit-metrics">
-                <Metric label="İndirimli fiyat" value={money.format(discounted.salePrice)} />
-                <Metric label="Yeni toplam maliyet" value={money.format(discounted.totalCost)} />
-                <Metric label="Yeni katkı" value={money.format(discounted.contribution)} tone={discounted.profitable ? 'good' : 'bad'} />
-                <Metric label="Yeni marj" value={`%${percent.format(discounted.marginPercent)}`} tone={discounted.profitable ? 'good' : 'bad'} />
+                <Metric label={t('calculations.results.discountedPrice')} value={money.format(discounted.salePrice)} />
+                <Metric label={t('session.newTotalCost')} value={money.format(discounted.totalCost)} />
+                <Metric label={t('session.newContribution')} value={money.format(discounted.contribution)} tone={discounted.profitable ? 'good' : 'bad'} />
+                <Metric label={t('session.newMargin')} value={`%${percent.format(discounted.marginPercent)}`} tone={discounted.profitable ? 'good' : 'bad'} />
               </div>
             </section>
           )}
 
           <div className="profit-panels">
             <section className="profit-panel warning">
-              <h2><AlertTriangle size={19} /> Risk uyarıları</h2>
+              <h2><AlertTriangle size={19} /> {t('decisions.riskWarnings')}</h2>
               {calc.riskWarnings?.length ? (
                 <ul>
                   {calc.riskWarnings.map(item => <li key={item}><span>•</span><span>{item}</span></li>)}
                 </ul>
-              ) : <p>Bu senaryoda kritik bir risk işareti bulunmadı.</p>}
+              ) : <p>{t('session.noCriticalRisks')}</p>}
             </section>
 
             <section className="profit-panel safe">
-              <h2><ShieldCheck size={19} /> Güvenli sonraki adımlar</h2>
+              <h2><ShieldCheck size={19} /> {t('decisions.safeNextSteps')}</h2>
               <ul>
                 {(calc.safeNextSteps || []).map(item => <li key={item}><CheckCircle2 size={16} /><span>{item}</span></li>)}
               </ul>
@@ -128,35 +139,35 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
 
           <section className="profit-formula">
             <div>
-              <p>Formül</p>
-              <p>Katkı = Satış fiyatı − ürün başı toplam maliyet</p>
-              <p>Komisyon, mevcut ve indirimli satış fiyatları üzerinden ayrı ayrı hesaplanır.</p>
+              <p>{t('session.formulaLabel')}</p>
+              <p>{t('session.formulaLine')}</p>
+              <p>{t('session.formulaNote')}</p>
             </div>
             <div>
-              <p>Karar öncesi kontrol</p>
+              <p>{t('decisions.preDecisionCheck')}</p>
               <ul>
-                <li>✓ Kargo ve paketleme güncel mi?</li>
-                <li>✓ İade payı gerçek sipariş verisine dayanıyor mu?</li>
-                <li>✓ İndirim sonrası katkı sıfırın üzerinde mi?</li>
+                <li>{t('session.checklist.shippingCurrent')}</li>
+                <li>{t('session.checklist.returnsData')}</li>
+                <li>{t('session.checklist.positiveContribution')}</li>
               </ul>
             </div>
           </section>
 
           {recalculateError && <p role="alert" className="profit-submit-error">{recalculateError}</p>}
           <div className="profit-actions">
-            <button onClick={() => navigate('/app/decision-checks')} className="profit-secondary">Listeye dön</button>
+            <button onClick={() => navigate('/app/decision-checks')} className="profit-secondary">{t('decisions.backToList')}</button>
             <button onClick={handleRecalculate} disabled={recalculating} className="profit-secondary">
-              <RotateCcw size={16} /> {recalculating ? 'Başlatılıyor…' : 'Yeniden Hesapla'}
+              <RotateCcw size={16} /> {recalculating ? t('session.starting') : t('session.recalculate')}
             </button>
             {mentorEnabled && (
               <button
                 onClick={() => mentorContext?.openMentorWithContext?.({
                   contextType: 'decision_check_result', source: 'decision_result', decisionCheckResultId: result.id,
-                  title: `${session.decisionCheckTitle || 'Kârlılık'} sonucu`, route: window.location.pathname
+                  title: t('session.mentorResultTitle', { title: session.decisionCheckTitle || t('session.profitabilityShort') }), route: window.location.pathname
                 })}
                 className="profit-mentor"
               >
-                <MessageSquare size={18} /> Sonucu Mentora sor
+                <MessageSquare size={18} /> {t('decisions.askMentorResult')}
               </button>
             )}
           </div>
@@ -171,7 +182,7 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
       >
         <DecisionReceipt
           snapshot={snapshot}
-          title={session.decisionCheckTitle || 'Ürün kârlılığı'}
+          title={session.decisionCheckTitle || t('session.productProfitabilityTitle')}
           completedAt={snapshot.completedAt}
         />
       </Modal>
@@ -180,10 +191,12 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
 }
 
 export default function ProfitabilityDecisionTool({ session, result, navigate, mentorContext, mentorEnabled }) {
+  const { t } = useTranslation('tools')
+  const fields = useFields(t)
   const initialValues = useMemo(() => Object.fromEntries(fields.map(field => {
     const saved = session.answers.find(answer => answer.questionCode === field.code)
     return [field.code, saved?.valueJson ?? '']
-  })), [session.answers])
+  })), [session.answers, fields])
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
@@ -200,7 +213,11 @@ export default function ProfitabilityDecisionTool({ session, result, navigate, m
     fields.forEach(field => {
       const numeric = Number(values[field.code])
       if (values[field.code] === '' || !Number.isFinite(numeric) || numeric < field.min || (field.max != null && numeric > field.max)) {
-        nextErrors[field.code] = field.code === 'salePrice' ? 'Satış fiyatı sıfırdan büyük olmalı.' : `0${field.max ? `–${field.max}` : ' veya üzeri'} bir değer girin.`
+        nextErrors[field.code] = field.code === 'salePrice'
+          ? t('session.errors.salePricePositive')
+          : field.max
+            ? t('session.errors.rangeWithMax', { max: field.max })
+            : t('session.errors.rangeOpen')
       }
     })
     setErrors(nextErrors)
@@ -217,7 +234,7 @@ export default function ProfitabilityDecisionTool({ session, result, navigate, m
       await api.decisionChecks.complete(session.id)
       window.location.reload()
     } catch (error) {
-      setSubmitError(error?.data?.message || 'Sonuç kaydedilemedi. Değerleri kontrol edip tekrar deneyin.')
+      setSubmitError(error?.data?.message || t('session.saveFailed'))
     } finally {
       setSubmitting(false)
     }
@@ -227,16 +244,16 @@ export default function ProfitabilityDecisionTool({ session, result, navigate, m
     <main className="profit-tool">
       <header className="profit-session-head">
         <div>
-          <p>Kontrollü değerlendirme</p>
-          <h1>Karar Oturumu</h1>
-          <strong>Ürünüm Gerçekten Kârlı mı?</strong>
-          <span>{completedFieldCount} / {fields.length} alan tamamlandı</span>
+          <p>{t('session.controlledAssessment')}</p>
+          <h1>{t('session.sessionTitle')}</h1>
+          <strong>{t('decisions.cards.profit.title')}</strong>
+          <span>{t('session.fieldsCompleted', { completed: completedFieldCount, total: fields.length })}</span>
         </div>
         <button onClick={() => navigate('/app/decision-checks')} className="profit-back">
-          <ArrowLeft size={17} /> Araçlara dön
+          <ArrowLeft size={17} /> {t('decisions.backToToolsShort')}
         </button>
       </header>
-      <div className="profit-progress" aria-label={`${completedFieldCount} / ${fields.length} alan tamamlandı`}>
+      <div className="profit-progress" aria-label={t('session.fieldsCompleted', { completed: completedFieldCount, total: fields.length })}>
         {fields.map((field, index) => <span key={field.code} className={index < completedFieldCount ? 'is-complete' : ''} />)}
       </div>
       <div className="profit-layout">
@@ -244,9 +261,9 @@ export default function ProfitabilityDecisionTool({ session, result, navigate, m
           <div className="profit-title-row">
             <div className="profit-icon"><Calculator size={26} /></div>
             <div>
-              <p className="profit-eyebrow">Karar aracı</p>
-              <h1>Ürünüm Gerçekten Kârlı mı?</h1>
-              <p className="profit-lead">Bir ürün ve bir sipariş için gerçek değerlerinizi girin. Tüm tutarlar ürün başına olmalı.</p>
+              <p className="profit-eyebrow">{t('decisions.toolEyebrow')}</p>
+              <h1>{t('decisions.cards.profit.title')}</h1>
+              <p className="profit-lead">{t('session.formLead')}</p>
             </div>
           </div>
 
@@ -275,19 +292,19 @@ export default function ProfitabilityDecisionTool({ session, result, navigate, m
 
           {submitError && <p role="alert" className="profit-submit-error">{submitError}</p>}
           <button disabled={submitting} className="profit-primary">
-            {submitting ? 'Hesaplanıyor ve kaydediliyor…' : 'Kârlılığımı hesapla'}
+            {submitting ? t('session.submittingSaving') : t('session.calculateProfitability')}
           </button>
         </form>
 
         <aside className="profit-aside">
-          <p className="profit-aside-title">Ne hesaplanır?</p>
+          <p className="profit-aside-title">{t('session.whatIsCalculated')}</p>
           <ul>
-            <li><strong>Gerçek toplam maliyet</strong>Komisyon dahil tüm ürün başı giderler.</li>
-            <li><strong>Katkı ve katkı marjı</strong>Her satışın işletmeye bıraktığı tutar ve oran.</li>
-            <li><strong>Başabaş fiyatı</strong>Zarar etmeden satış yapabileceğiniz en düşük fiyat.</li>
-            <li><strong>İndirim senaryosu</strong>İndirimli fiyatta komisyon ve katkı yeniden hesaplanır.</li>
+            <li><Trans i18nKey="session.calcItems.totalCost" ns="tools" components={[<strong key="0" />]} /></li>
+            <li><Trans i18nKey="session.calcItems.contribution" ns="tools" components={[<strong key="0" />]} /></li>
+            <li><Trans i18nKey="session.calcItems.breakEven" ns="tools" components={[<strong key="0" />]} /></li>
+            <li><Trans i18nKey="session.calcItems.discountScenario" ns="tools" components={[<strong key="0" />]} /></li>
           </ul>
-          <p className="profit-disclaimer">Bu araç karar desteği sağlar. Vergi ve muhasebe yükümlülüklerinizi ayrıca değerlendirmeniz gerekir.</p>
+          <p className="profit-disclaimer">{t('session.disclaimerProfit')}</p>
         </aside>
       </div>
     </main>

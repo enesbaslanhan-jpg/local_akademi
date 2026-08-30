@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next'
 import { useMentorContext } from '@/context/MentorContext'
 import { MessageSquare } from 'lucide-react'
 import styles from './MentorLauncher.module.css'
 
 export default function MentorLauncher() {
+  const { t } = useTranslation('mentor')
   const { isPanelOpen, togglePanel, isFullPage } = useMentorContext()
 
   if (isFullPage || isPanelOpen) return null
@@ -11,7 +13,7 @@ export default function MentorLauncher() {
     <button
       onClick={togglePanel}
       className={styles.launcher}
-      aria-label="AI Mentor'u Aç"
+      aria-label={t('launcher.openAriaLabel')}
       title="AI Mentor"
     >
       <MessageSquare size={24} />

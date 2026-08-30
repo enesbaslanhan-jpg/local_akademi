@@ -21,6 +21,8 @@ import {
 } from 'lucide-react'
 import styles from './CoursePlayerPage.module.css'
 import { featureFlags } from '@/config/featureFlags'
+import { useTranslation } from 'react-i18next'
+import { useLocalization } from '@/context/LocalizationContext'
 
 function buildShortSummary(metadata, content) {
   if (metadata?.summary) return metadata.summary
@@ -56,6 +58,8 @@ function resumeLessonId(lessons) {
 }
 
 export default function CoursePlayerPage() {
+  const { t } = useTranslation(['common', 'learning'])
+  const { uiLanguage } = useLocalization()
   const { courseId, lessonId } = useParams()
   const navigate = useNavigate()
   const [course, setCourse] = useState(null)
@@ -95,12 +99,12 @@ export default function CoursePlayerPage() {
        * öğrenemiyordu. Artık nedeni söyleyip kayıt olma yolunu sunuyoruz.
        */
       if (err.status === 403) setError('NOT_ENROLLED')
-      else setError(err.message || 'Yüklenemedi')
+      else setError(err.message || t('learning:player.errorLoad'))
     }
     setLoading(false)
-  }, [courseId, lessonId, navigate])
+  }, [courseId, lessonId, navigate, t, uiLanguage])
 
-  useEffect(() => { fetchLesson() }, [courseId, lessonId])
+  useEffect(() => { fetchLesson() }, [fetchLesson])
 
   const [katiliyor, setKatiliyor] = useState(false)
 
@@ -113,7 +117,7 @@ export default function CoursePlayerPage() {
       setError('')
       await fetchLesson()
     } catch (err) {
-      setError(err.message || 'Kursa kaydolunamadı.')
+      setError(err.message || t('learning:player.errorEnroll'))
     } finally {
       setKatiliyor(false)
     }
@@ -135,7 +139,7 @@ export default function CoursePlayerPage() {
         lessons: prev.lessons.map(item => item.id === lesson.id ? { ...item, progress } : item),
       } : prev)
     } catch (err) {
-      setError(err.message || 'Okuma ilerlemesi kaydedilemedi')
+      setError(err.message || t('learning:player.errorReadingSave'))
     }
   }
 
@@ -146,16 +150,16 @@ export default function CoursePlayerPage() {
     }
   }
 
-  if (loading) return <Loading text="Ders yükleniyor..." />
+  if (loading) return <Loading text={t('learning:player.loadingLesson')} />
   if (error === 'NOT_ENROLLED') return (
     <div className={styles.errorContainer}>
       <AlertCircle size={48} />
-      <p>Bu derse erişmek için önce kursa kaydolman gerekiyor.</p>
+      <p>{t('learning:player.notEnrolledMessage')}</p>
       <div className={styles.errorActions}>
         <button type="button" className={styles.errorPrimary} onClick={katilVeAc}>
-          {katiliyor ? 'Kaydolunuyor…' : 'Kursa katıl ve dersi aç'}
+          {katiliyor ? t('learning:player.joining') : t('learning:player.joinAndOpen')}
         </button>
-        <button type="button" onClick={() => navigate('/app/courses')}>Kurslara dön</button>
+        <button type="button" onClick={() => navigate('/app/courses')}>{t('learning:player.backToCourses')}</button>
       </div>
     </div>
   )
@@ -183,16 +187,17 @@ export default function CoursePlayerPage() {
 
   return (
     <div className={styles.player}>
+      {uiLanguage === 'en' && !lesson?.translated && <p role="note">{t('content.turkishOnly')}</p>}
       <PageHead
         className={styles.pageHead}
-        title="Ders Oynatıcı"
-        subtitle={`${course.title}${lessonIndex >= 0 ? ` · Ders ${lessonIndex + 1}` : ''}`}
+        title={t('learning:player.title')}
+        subtitle={lessonIndex >= 0 ? t('learning:player.subtitleWithLesson', { courseTitle: course.title, index: lessonIndex + 1 }) : course.title}
         actions={lesson && (!lesson.progress || lesson.progress.readingPercent < 100) ? (
-          <Button onClick={handleStartReading}><CheckCircle size={15} /> Dersi tamamla</Button>
+          <Button onClick={handleStartReading}><CheckCircle size={15} /> {t('learning:player.completeLessonAction')}</Button>
         ) : undefined}
       />
       {/* Mobile toggle */}
-      <button className={styles.mobileToggle} onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Ders listesi">
+      <button className={styles.mobileToggle} onClick={() => setSidebarOpen(!sidebarOpen)} aria-label={t('learning:player.lessonListAria')}>
         {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
@@ -202,7 +207,7 @@ export default function CoursePlayerPage() {
           <h2 className={styles.courseTitle}>{course.title}</h2>
           <div className={styles.courseMeta}>
             <Badge variant="info">{course.level}</Badge>
-            <span className={styles.lessonCount}>{course.lessonCount} ders</span>
+            <span className={styles.lessonCount}>{t('learning:player.lessonCount', { count: course.lessonCount })}</span>
           </div>
         </div>
         <nav className={styles.lessonList}>
@@ -226,7 +231,7 @@ export default function CoursePlayerPage() {
               <div className={styles.lessonInfo}>
                 <span className={styles.lessonTitle}>{l.title}</span>
                 <span className={styles.lessonMeta}>
-                  {l.estimatedMinutes} dk
+                  {t('learning:player.minutesShort', { count: l.estimatedMinutes })}
                   {l.progress?.overallPercent > 0 && ` · %${l.progress.overallPercent}`}
                 </span>
               </div>
@@ -237,7 +242,7 @@ export default function CoursePlayerPage() {
         </nav>
         {ko?.sources?.length > 0 && (
           <div className={styles.sidebarSources}>
-            <h3>Kaynaklar</h3>
+            <h3>{t('learning:player.sourcesHeading')}</h3>
             {ko.sources.map(ks => (
               <div key={ks.id} className={styles.sidebarSourceRow}>
                 <FileText size={13} aria-hidden="true" />
@@ -273,14 +278,14 @@ export default function CoursePlayerPage() {
               onClick={() => navigateLesson('prev')}
               disabled={!lesson?.prevLesson}
             >
-              <ChevronLeft size={16} /> Önceki
+              <ChevronLeft size={16} /> {t('learning:player.prevShort')}
             </button>
             <button
               className={styles.navBtn}
               onClick={() => navigateLesson('next')}
               disabled={!lesson?.nextLesson}
             >
-              Sonraki <ChevronRight size={16} />
+              {t('learning:player.nextShort')} <ChevronRight size={16} />
             </button>
           </div>
         </div>
@@ -289,7 +294,7 @@ export default function CoursePlayerPage() {
             katalogda olmadığını bilsin. İçerik ve ilerleme aynen korunur. */}
         {course.archived && (
           <p className={styles.archivedNotice} role="status">
-            Bu kurs artık aktif katalogda yer almıyor. İçeriğe ve ilerlemene erişmeye devam edebilirsin.
+            {t('learning:player.archivedNotice')}
           </p>
         )}
 
@@ -301,15 +306,15 @@ export default function CoursePlayerPage() {
                 okunuyor; altın hairline ve iç yansıma korunur. */}
             <DarkPanel bevel={false} className={styles.lessonHeaderPanel}>
               <div className={styles.lessonHeaderMain}>
-                <span className={styles.stageEyebrow}>Ders {lessonIndex + 1} · {lesson.estimatedMinutes || 0} dakika</span>
+                <span className={styles.stageEyebrow}>{t('learning:player.stageEyebrow', { index: lessonIndex + 1, minutes: lesson.estimatedMinutes || 0 })}</span>
                 <h1 className={styles.lessonHeaderTitle}>{lesson.title}</h1>
                 {shortSummary && <p className={styles.stageSummary}>{shortSummary}</p>}
                 <div className={styles.lessonMetaRow}>
                   {lessonIndex >= 0 && totalLessons > 0 && (
-                    <span>Ders {lessonIndex + 1}/{totalLessons}</span>
+                    <span>{t('learning:player.lessonOfTotal', { index: lessonIndex + 1, total: totalLessons })}</span>
                   )}
                   {lesson.estimatedMinutes > 0 && (
-                    <span><Clock size={13} aria-hidden="true" /> {lesson.estimatedMinutes} dk</span>
+                    <span><Clock size={13} aria-hidden="true" /> {t('learning:player.minutesShort', { count: lesson.estimatedMinutes })}</span>
                   )}
                   {meta.level && <span>{meta.level}</span>}
                   {ko?.code && <span>{ko.code}</span>}
@@ -317,7 +322,7 @@ export default function CoursePlayerPage() {
                 {meta.learningOutcomes?.length > 0 && (
                   <div className={styles.stageOutcomes}>
                     {meta.learningOutcomes.slice(0, 3).map((outcome, index) => (
-                      <div key={index}><span>Kazanım {index + 1}</span><strong>{outcome}</strong></div>
+                      <div key={index}><span>{t('learning:player.outcomeNumber', { index: index + 1 })}</span><strong>{outcome}</strong></div>
                     ))}
                   </div>
                 )}
@@ -328,8 +333,8 @@ export default function CoursePlayerPage() {
                     {lessons.map((item, index) => <span key={item.id} className={item.progress?.status === 'completed' || index <= lessonIndex ? styles.segmentDone : ''} />)}
                   </div>
                 )}
-                <span className={styles.headerProgressLabel}>Kurs ilerlemesi %{coursePercent}</span>
-                {lesson.nextLesson && <Button variant="secondary" size="sm" onClick={() => navigateLesson('next')}>Sonraki bölüm <ChevronRight size={14} /></Button>}
+                <span className={styles.headerProgressLabel}>{t('learning:player.courseProgressLabel', { value: coursePercent })}</span>
+                {lesson.nextLesson && <Button variant="secondary" size="sm" onClick={() => navigateLesson('next')}>{t('learning:player.nextSection')} <ChevronRight size={14} /></Button>}
               </div>
             </DarkPanel>
 
@@ -339,14 +344,14 @@ export default function CoursePlayerPage() {
                 className={`${styles.tab} ${activeTab === 'content' ? styles.tabActive : ''}`}
                 onClick={() => setActiveTab('content')}
               >
-                <BookOpen size={14} /> İçerik
+                <BookOpen size={14} /> {t('learning:player.tabContent')}
               </button>
               {featureFlags.legacyQuiz && lesson.quizzes?.length > 0 && (
                 <button
                   className={`${styles.tab} ${activeTab === 'quiz' ? styles.tabActive : ''}`}
                   onClick={() => setActiveTab('quiz')}
                 >
-                  <FileText size={14} /> Quiz
+                  <FileText size={14} /> {t('learning:player.tabQuiz')}
                 </button>
               )}
               {lesson.taskTemplates?.length > 0 && (
@@ -354,7 +359,7 @@ export default function CoursePlayerPage() {
                   className={`${styles.tab} ${activeTab === 'task' ? styles.tabActive : ''}`}
                   onClick={() => setActiveTab('task')}
                 >
-                  <ListChecks size={14} /> Görev
+                  <ListChecks size={14} /> {t('learning:player.tabTask')}
                 </button>
               )}
               {featureFlags.legacyFlashcards && ko && ko.hasFlashcards !== false && (
@@ -362,7 +367,7 @@ export default function CoursePlayerPage() {
                   className={`${styles.tab} ${activeTab === 'flashcard' ? styles.tabActive : ''}`}
                   onClick={() => setActiveTab('flashcard')}
                 >
-                  <Brain size={14} /> Flashcards
+                  <Brain size={14} /> {t('learning:player.tabFlashcards')}
                 </button>
               )}
               {ko?.hasVideo && (
@@ -370,7 +375,7 @@ export default function CoursePlayerPage() {
                   className={`${styles.tab} ${activeTab === 'video' ? styles.tabActive : ''}`}
                   onClick={() => setActiveTab('video')}
                 >
-                  <Film size={14} /> Video
+                  <Film size={14} /> {t('learning:player.tabVideo')}
                 </button>
               )}
             </div>
@@ -383,7 +388,7 @@ export default function CoursePlayerPage() {
               <>
                 {shortSummary && (
                   <Card className={`${styles.section} ${styles.summaryCard}`}>
-                    <h2 className={styles.sectionTitle}><Zap size={16} /> Kısa Özet</h2>
+                    <h2 className={styles.sectionTitle}><Zap size={16} /> {t('learning:player.shortSummaryTitle')}</h2>
                     <p className={styles.summaryText}>{shortSummary}</p>
                   </Card>
                 )}
@@ -396,7 +401,7 @@ export default function CoursePlayerPage() {
                     ayrılır; onlar aşağıda bileşen olarak render edilir.
                     Legacy derslerde içerik olduğu gibi basılır. */}
                 <Card className={styles.section}>
-                  <h2 className={styles.sectionTitle}><BookOpen size={16} /> İçerik</h2>
+                  <h2 className={styles.sectionTitle}><BookOpen size={16} /> {t('learning:player.tabContent')}</h2>
                   <div className={styles.markdown}>
                     <ReactMarkdown
                       remarkPlugins={isCanonical ? [remarkGfm, remarkMath] : [remarkGfm]}
@@ -418,10 +423,10 @@ export default function CoursePlayerPage() {
                 {/* Examples */}
                 {meta.examples?.length > 0 && (
                   <Card className={styles.section}>
-                    <h2 className={styles.sectionTitle}><Zap size={16} /> Örnekler</h2>
+                    <h2 className={styles.sectionTitle}><Zap size={16} /> {t('learning:player.examplesTitle')}</h2>
                     {meta.examples.map((ex, i) => (
                       <div key={i} className={styles.exampleBlock}>
-                        <span className={styles.exampleNum}>Örnek {i + 1}</span>
+                        <span className={styles.exampleNum}>{t('learning:player.exampleNumber', { index: i + 1 })}</span>
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{ex}</ReactMarkdown>
                       </div>
                     ))}
@@ -431,7 +436,7 @@ export default function CoursePlayerPage() {
                 {/* Steps */}
                 {meta.steps?.length > 0 && (
                   <Card className={styles.section}>
-                    <h2 className={styles.sectionTitle}>Adım Adım Uygulama</h2>
+                    <h2 className={styles.sectionTitle}>{t('learning:player.stepsTitle')}</h2>
                     <ol className={styles.stepsList}>
                       {meta.steps.map((step, i) => (
                         <li key={i} className={styles.stepItem}>{step}</li>
@@ -443,7 +448,7 @@ export default function CoursePlayerPage() {
                 {/* Checklist */}
                 {meta.checklist?.length > 0 && (
                   <Card className={styles.section}>
-                    <h2 className={styles.sectionTitle}><ListChecks size={16} /> Kontrol Listesi</h2>
+                    <h2 className={styles.sectionTitle}><ListChecks size={16} /> {t('learning:player.checklistTitle')}</h2>
                     <ul className={styles.checklist}>
                       {meta.checklist.map((item, i) => (
                         <li key={i}><CheckCircle size={14} /> {item}</li>
@@ -455,7 +460,7 @@ export default function CoursePlayerPage() {
                 {/* Formulas */}
                 {meta.formulas?.length > 0 && (
                   <Card className={styles.section}>
-                    <h2 className={styles.sectionTitle}><Zap size={16} /> Formüller</h2>
+                    <h2 className={styles.sectionTitle}><Zap size={16} /> {t('learning:player.formulasTitle')}</h2>
                     {meta.formulas.map((fm, i) => (
                       <div key={i} className={styles.formulaBlock}><code>{fm}</code></div>
                     ))}
@@ -468,7 +473,7 @@ export default function CoursePlayerPage() {
                     jenerik halini tekrar basmaya gerek yok. */}
                 {!isCanonical && lesson.embeddedPracticeBlocks?.length > 0 && (
                   <Card className={styles.section}>
-                    <h2 className={styles.sectionTitle}><Zap size={16} /> Uygulama Kutuları</h2>
+                    <h2 className={styles.sectionTitle}><Zap size={16} /> {t('learning:player.practiceBoxesTitle')}</h2>
                     <EmbeddedPracticeBlock
                       blocks={lesson.embeddedPracticeBlocks}
                       contextType="course"
@@ -481,7 +486,7 @@ export default function CoursePlayerPage() {
                 {/* Sources */}
                 {ko.sources?.length > 0 && (
                   <Card className={styles.section}>
-                    <h2 className={styles.sectionTitle}><Download size={16} /> Kaynaklar</h2>
+                    <h2 className={styles.sectionTitle}><Download size={16} /> {t('learning:player.sourcesHeading')}</h2>
                     <div className={styles.sourcesList}>
                       {ko.sources.map((ks) => (
                         <div key={ks.id} className={styles.sourceItem}>
@@ -496,12 +501,12 @@ export default function CoursePlayerPage() {
                             ks.source.authorityLevel === 'high' ? 'success' :
                             ks.source.authorityLevel === 'medium' ? 'info' : 'default'
                           }>
-                            {ks.source.authorityLevel === 'high' ? 'Doğrulanmış' :
-                             ks.source.authorityLevel === 'medium' ? 'Orta Güven' : 'Düşük Güven'}
+                            {ks.source.authorityLevel === 'high' ? t('learning:player.authorityHigh') :
+                             ks.source.authorityLevel === 'medium' ? t('learning:player.authorityMedium') : t('learning:player.authorityLow')}
                           </Badge>
                           {ks.source.url && (
                             <a href={ks.source.url} target="_blank" rel="noopener noreferrer" className={styles.sourceLink}>
-                              <ExternalLink size={12} aria-hidden="true" /> Kaynağa Git
+                              <ExternalLink size={12} aria-hidden="true" /> {t('learning:player.openSource')}
                             </a>
                           )}
                         </div>
@@ -514,13 +519,13 @@ export default function CoursePlayerPage() {
                 {(!lesson.progress || lesson.progress.readingPercent < 100) && (
                   <div className={styles.readingActions}>
                     <Button variant="cta" onClick={handleStartReading}>
-                      <Play size={14} /> Dersi Tamamla
+                      <Play size={14} /> {t('learning:player.readingCta')}
                     </Button>
                   </div>
                 )}
                 {lesson.progress?.readingPercent >= 100 && (
                   <div className={styles.readingDone}>
-                    <CheckCircle size={16} /> Okuma tamamlandı
+                    <CheckCircle size={16} /> {t('learning:player.readingDone')}
                   </div>
                 )}
 
@@ -528,12 +533,12 @@ export default function CoursePlayerPage() {
                 {ko?.code && (
                   <Card className={styles.section}>
                     <h2 className={styles.sectionTitle}><MessageCircle size={16} /> AI Mentor</h2>
-                    <p className={styles.mentorText}>Bu içerik hakkında AI Mentor'a soru sorabilirsin.</p>
+                    <p className={styles.mentorText}>{t('learning:player.mentorIntro')}</p>
                     <Button
                       variant="primary" size="sm"
                       onClick={() => navigate(`/app/mentor?context=ko&code=${ko.code}&title=${encodeURIComponent(ko.title || '')}`)}
                     >
-                      <MessageCircle size={14} /> AI Mentor'a Sor
+                      <MessageCircle size={14} /> {t('learning:player.askMentor')}
                     </Button>
                   </Card>
                 )}
@@ -565,27 +570,27 @@ export default function CoursePlayerPage() {
               <aside className={styles.rail}>
                 {totalLessons > 0 && (
                   <Card className={styles.railCard}>
-                    <h2 className={styles.railTitle}><Target size={14} /> İlerleme</h2>
-                    <span className={styles.railPercent}>%{coursePercent}</span>
+                    <h2 className={styles.railTitle}><Target size={14} /> {t('learning:player.progressRailTitle')}</h2>
+                    <span className={styles.railPercent}>{t('learning:player.percentShort', { value: coursePercent })}</span>
                     <Progress value={coursePercent} size="sm" variant="primary" />
                     <span className={styles.railHint}>
-                      {doneLessons} / {totalLessons} ders tamamlandı
+                      {t('learning:player.lessonsCompletedHint', { done: doneLessons, total: totalLessons })}
                     </span>
                   </Card>
                 )}
 
                 {lesson.embeddedPracticeBlocks?.length > 0 && (
                   <Card className={styles.railCard}>
-                    <h2 className={styles.railTitle}><Zap size={14} /> Uygulama</h2>
+                    <h2 className={styles.railTitle}><Zap size={14} /> {t('learning:player.practiceRailTitle')}</h2>
                     <span className={styles.railHint}>
-                      Bu derste {lesson.embeddedPracticeBlocks.length} uygulama kutusu var.
+                      {t('learning:player.practiceBoxesHint', { count: lesson.embeddedPracticeBlocks.length })}
                     </span>
                   </Card>
                 )}
 
                 {meta.learningOutcomes?.length > 0 && (
                   <Card className={styles.railCard}>
-                    <h2 className={styles.railTitle}><CheckCircle size={14} /> Bu derste kazanacaklarınız</h2>
+                    <h2 className={styles.railTitle}><CheckCircle size={14} /> {t('learning:player.outcomesRailTitle')}</h2>
                     <ul className={styles.railList}>
                       {meta.learningOutcomes.map((o, i) => (
                         <li key={i}><CheckCircle size={12} aria-hidden="true" /> {o}</li>
@@ -596,7 +601,7 @@ export default function CoursePlayerPage() {
 
                 {ko?.sources?.length > 0 && (
                   <Card className={styles.railCard}>
-                    <h2 className={styles.railTitle}><Download size={14} /> Ek kaynaklar</h2>
+                    <h2 className={styles.railTitle}><Download size={14} /> {t('learning:player.extraSourcesTitle')}</h2>
                     {ko.sources.map(ks => (
                       <div key={ks.id} className={styles.railSourceItem}>
                         <FileText size={13} aria-hidden="true" />
@@ -626,14 +631,14 @@ export default function CoursePlayerPage() {
                 onClick={() => navigateLesson('prev')}
                 disabled={!lesson?.prevLesson}
               >
-                <ChevronLeft size={16} /> Önceki Ders
+                <ChevronLeft size={16} /> {t('learning:player.prevLesson')}
               </button>
               <button
                 className={styles.navBtn}
                 onClick={() => navigateLesson('next')}
                 disabled={!lesson?.nextLesson}
               >
-                Sonraki Ders <ChevronRight size={16} />
+                {t('learning:player.nextLesson')} <ChevronRight size={16} />
               </button>
             </div>
           </>

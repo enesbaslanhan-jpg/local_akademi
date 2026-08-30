@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import styles from './CitationBadge.module.css'
 
 export default function CitationBadge({ id, title, code, sourceRefs }) {
-  const label = title || 'Bilinmeyen kaynak'
+  const { t } = useTranslation('mentor')
+  const label = title || t('citation.unknownSource')
   const sourceCount = Array.isArray(sourceRefs) ? sourceRefs.length : 0
   const showSourceIndicator = sourceCount > 0
 
@@ -32,7 +34,7 @@ export default function CitationBadge({ id, title, code, sourceRefs }) {
       <Link
         to={`/app/knowledge/${encodeURIComponent(code)}`}
         className={`${baseClasses} no-underline`}
-        aria-label={`${label} bilgi içeriğini aç`}
+        aria-label={t('citation.openAriaLabel', { label })}
         onClick={(e) => e.stopPropagation()}
       >
         {content}

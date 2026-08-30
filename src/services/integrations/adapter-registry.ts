@@ -3,7 +3,7 @@ import type { ProviderCode, MarketplaceProviderAdapter } from './types.js'
 /*
  * ADAPTER REGISTRY.
  *
- * Yeni pazaryeri (Hepsiburada, Shopify, WooCommerce...) eklemek
+ * Yeni pazaryeri (Hepsiburada, Shopify, Amazon...) eklemek
  * icin core sync logic DEGISTIRILMEZ: yeni adapter yazilir ve
  * registerAdapter ile kaydedilir. Trendyol'a ozel hicbir tip/kod
  * bu dosyanin disindaki core katmaninda yer almaz.
@@ -32,7 +32,9 @@ export const PROVIDER_CATALOG: Array<{
   { provider: 'HEPSIBURADA', label: 'Hepsiburada', enabled: true, comingSoon: false },
   { provider: 'N11', label: 'N11', enabled: true, comingSoon: false },
   { provider: 'SHOPIFY', label: 'Shopify', enabled: true, comingSoon: false },
-  { provider: 'WOOCOMMERCE', label: 'WooCommerce', enabled: false, comingSoon: true }
+  /* Amazon "Yakinda": SP-API gelistirici hesabi/onay sureci olmadan
+     gercek bagdastirici yazilamaz. Kart yalnizca varligi bildirir. */
+  { provider: 'AMAZON', label: 'Amazon', enabled: false, comingSoon: true }
 ]
 
 export function resetAdaptersForTests(): void {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { api, RATE_LIMIT_EVENT, RATE_LIMIT_MESSAGE } from '../services/api'
+import { api, RATE_LIMIT_EVENT, ERROR_CODES } from '../services/api'
 
 beforeEach(() => {
   vi.restoreAllMocks()
@@ -38,7 +38,7 @@ describe('api.request content-type handling', () => {
 
   it('throws safe API error for text/html response', async () => {
     mockFetch(makeResponse({ ok: true, status: 200, contentType: 'text/html', body: '<html><body>SPA fallback</body></html>' }))
-    await expect(api.financialModels.list()).rejects.toThrow('API sunucusuna ulaşılamadı veya beklenmeyen bir yanıt alındı.')
+    await expect(api.financialModels.list()).rejects.toThrow(ERROR_CODES.API_ERROR)
   })
 
   it('does not leak html content in error', async () => {
@@ -54,12 +54,17 @@ describe('api.request content-type handling', () => {
 
   it('preserves backend json error message', async () => {
     mockFetch(makeResponse({ ok: false, status: 422, contentType: 'application/json', body: { error: 'Girdi geçersiz' } }))
-    await expect(api.financialModels.list()).rejects.toThrow('Girdi geçersiz')
+    try {
+      await api.financialModels.list()
+      expect.fail('should have thrown')
+    } catch (err) {
+      expect(err.apiMessage).toBe('Girdi geçersiz')
+    }
   })
 
   it('throws generic error for non-json error response', async () => {
     mockFetch(makeResponse({ ok: false, status: 503, contentType: 'text/html', body: '<html>error</html>' }))
-    await expect(api.financialModels.list()).rejects.toThrow('İşlem başarısız')
+    await expect(api.financialModels.list()).rejects.toThrow(ERROR_CODES.API_ERROR)
   })
 
   it('429 yanıtını kontrollü mesaja çevirir ve Retry-After süresini taşır', async () => {
@@ -77,7 +82,7 @@ describe('api.request content-type handling', () => {
       await api.request('/courses')
       expect.fail('429 hata vermeliydi')
     } catch (error) {
-      expect(error.message).toBe(RATE_LIMIT_MESSAGE)
+      expect(error.code).toBe(ERROR_CODES.RATE_LIMIT)
       expect(error.status).toBe(429)
       expect(error.retryAfterSeconds).toBe(420)
     }

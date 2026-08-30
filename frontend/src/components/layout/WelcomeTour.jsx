@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { X } from 'lucide-react'
 import { api } from '@/services/api'
 import styles from './WelcomeTour.module.css'
+import { useTranslation } from 'react-i18next'
 
 /*
  * Karşılama turu — kullanıcıyı bölümlerin İÇİNE götürür.
@@ -26,32 +27,32 @@ const ADIMLAR = [
   {
     yol: '/app/dashboard',
     capa: 'dash-durum',
-    baslik: 'Kontrol Merkezi',
-    metin: 'Her girişte önce buraya düşersin. İşletmenin bugünkü durumu, yaklaşan işler ve yarım kalan kursun burada toplanır — rakamlar İşletme Takibi bölümünden gelir.'
+    baslikKey: 'tour.steps.dashboard.title',
+    metinKey: 'tour.steps.dashboard.description'
   },
   {
     yol: '/app/decision-checks',
     capa: 'karar-kartlari',
-    baslik: 'Karar Araçları',
-    metin: 'Ürünüm gerçekten kârlı mı, zam yapmalı mıyım gibi soruları adım adım yürütür. Sorulara cevap verirsin, sonunda gerekçesiyle birlikte bir sonuç çıkar.'
+    baslikKey: 'tour.steps.decisionTools.title',
+    metinKey: 'tour.steps.decisionTools.description'
   },
   {
     yol: '/app/workspaces',
     capa: 'isletme-baslik',
-    baslik: 'İşletme Takibi',
-    metin: 'Gelir, gider, cari hesaplar ve belgelerin burada durur. Fatura yüklediğinde içindeki tutarları okuyup kayıt önerir — sen onaylamadan hiçbir şey yazılmaz.'
+    baslikKey: 'tour.steps.businessTracking.title',
+    metinKey: 'tour.steps.businessTracking.description'
   },
   {
     yol: '/app/mentor',
     capa: 'mentor-girdi',
-    baslik: 'AI Mentor',
-    metin: 'Takıldığın yeri buraya yazarsın. Kurs içeriğine ve kurduysan kendi işletme rakamlarına bakarak cevap verir, kaynağını da gösterir.'
+    baslikKey: 'tour.steps.mentor.title',
+    metinKey: 'tour.steps.mentor.description'
   },
   {
     yol: '/app/community/topluluk',
     capa: 'topluluk-baslik',
-    baslik: 'Topluluk',
-    metin: 'Benzer işletmeleri yürüten insanlar burada. Yazdığın anda yayımlanır; yanıtlayabilir, beğenebilir, alıntılayabilirsin. Kendi paylaşımını istediğin zaman kaldırırsın.'
+    baslikKey: 'tour.steps.community.title',
+    metinKey: 'tour.steps.community.description'
   }
 ]
 
@@ -86,6 +87,7 @@ function gorunurKutu(capa, kaydir = false) {
 }
 
 export default function WelcomeTour() {
+  const { t } = useTranslation('common')
   const [durum, setDurum] = useState('bilinmiyor')   // bilinmiyor | gizli | acik
   const [adim, setAdim] = useState(0)
   const [kutu, setKutu] = useState(null)
@@ -216,7 +218,7 @@ export default function WelcomeTour() {
   })()
 
   return (
-    <div className={styles.katman} role="dialog" aria-modal="true" aria-label="Karşılama turu">
+    <div className={styles.katman} role="dialog" aria-modal="true" aria-label={t('tour.ariaLabel')}>
       <div className={styles.perde} onClick={bitir} />
 
       {kutu && (
@@ -228,23 +230,23 @@ export default function WelcomeTour() {
       )}
 
       <div className={`${styles.balon} ${balonStili ? '' : styles.balonOrta}`} style={balonStili || undefined}>
-        <button type="button" className={styles.kapat} onClick={bitir} aria-label="Turu kapat">
+        <button type="button" className={styles.kapat} onClick={bitir} aria-label={t('tour.close')}>
           <X size={15} aria-hidden="true" />
         </button>
 
         <p className={styles.sayac}>{adim + 1} / {ADIMLAR.length}</p>
-        <h2 className={styles.baslik}>{guncel.baslik}</h2>
-        <p className={styles.metin}>{guncel.metin}</p>
-        {bekliyor && <p className={styles.bekliyor}>Sayfa açılıyor…</p>}
+        <h2 className={styles.baslik}>{t(guncel.baslikKey)}</h2>
+        <p className={styles.metin}>{t(guncel.metinKey)}</p>
+        {bekliyor && <p className={styles.bekliyor}>{t('tour.openingPage')}</p>}
 
         <div className={styles.eylemler}>
           <button type="button" className={styles.atla} onClick={bitir}>
-            Turu atla
+            {t('tour.skip')}
           </button>
           <div className={styles.ilerleme}>
             {adim > 0 && (
               <button type="button" className={styles.geri} onClick={() => setAdim(a => a - 1)}>
-                Geri
+                {t('buttons.back')}
               </button>
             )}
             <button
@@ -252,7 +254,7 @@ export default function WelcomeTour() {
               className={styles.ileri}
               onClick={() => (sonAdim ? bitir() : setAdim(a => a + 1))}
             >
-              {sonAdim ? 'Başlayalım' : 'İleri'}
+              {sonAdim ? t('tour.getStarted') : t('tour.next')}
             </button>
           </div>
         </div>

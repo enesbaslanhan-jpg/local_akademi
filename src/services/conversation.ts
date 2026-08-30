@@ -309,8 +309,9 @@ async function buildContext(
 
   const chatMessages = applyHistoryBudget(rawHistory, intent, { userMessage: message })
 
-  const [dbUser, ctx, userBusinessContext, productCatalog] = await Promise.all([
+  const [dbUser, preference, ctx, userBusinessContext, productCatalog] = await Promise.all([
     prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } }),
+    prisma.userPreference.findUnique({ where: { userId: user.id }, select: { uiLanguage: true } }),
     resolvedContext ?? resolveKnowledgeContext(message, undefined, intent),
     fetchUserBusinessContext(user.id),
     PRODUCT_CATALOG_INTENTS.has(intent) ? getProductCatalog() : Promise.resolve(null),
@@ -326,7 +327,7 @@ async function buildContext(
     ctx.knowledgeContext,
     ctx.koTitle,
     ctx.selectedKOTitle,
-    { userRequestedLength: message ? 'normal' : 'normal' },
+    { userRequestedLength: message ? 'normal' : 'normal', responseLanguage: preference?.uiLanguage === 'en' ? 'en' : 'tr' },
     catalogContext,
     userBusinessContext,
   )
@@ -1310,8 +1311,9 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     telemetry?.set('rejectedKnowledgeObjectCount', resolvedContext.rejectedKnowledgeObjectCount)
     telemetry?.set('noRelevantKnowledgeFound', resolvedContext.noRelevantKnowledgeFound)
 
-    const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } })
-    const [userBusinessContext, productCatalog] = await Promise.all([
+    const [dbUser, preference, userBusinessContext, productCatalog] = await Promise.all([
+      prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } }),
+      prisma.userPreference.findUnique({ where: { userId: user.id }, select: { uiLanguage: true } }),
       fetchUserBusinessContext(user.id),
       PRODUCT_CATALOG_INTENTS.has(intent) ? getProductCatalog() : Promise.resolve(null),
     ])
@@ -1326,7 +1328,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       resolvedContext.knowledgeContext,
       resolvedContext.koTitle,
       resolvedContext.selectedKOTitle,
-      { userRequestedLength: lastUserContent ? 'normal' : 'normal' },
+      { userRequestedLength: lastUserContent ? 'normal' : 'normal', responseLanguage: preference?.uiLanguage === 'en' ? 'en' : 'tr' },
       catalogContext,
       userBusinessContext,
     )
@@ -1607,8 +1609,9 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     telemetry?.set('rejectedKnowledgeObjectCount', resolvedContext.rejectedKnowledgeObjectCount)
     telemetry?.set('noRelevantKnowledgeFound', resolvedContext.noRelevantKnowledgeFound)
 
-    const [dbUser, userBusinessContext, productCatalog] = await Promise.all([
+    const [dbUser, preference, userBusinessContext, productCatalog] = await Promise.all([
       prisma.user.findUnique({ where: { id: user.id }, select: { name: true, role: true } }),
+      prisma.userPreference.findUnique({ where: { userId: user.id }, select: { uiLanguage: true } }),
       fetchUserBusinessContext(user.id),
       PRODUCT_CATALOG_INTENTS.has(intent) ? getProductCatalog() : Promise.resolve(null),
     ])
@@ -1623,7 +1626,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       resolvedContext.knowledgeContext,
       resolvedContext.koTitle,
       resolvedContext.selectedKOTitle,
-      { userRequestedLength: cleanNewMessage ? 'normal' : 'normal' },
+      { userRequestedLength: cleanNewMessage ? 'normal' : 'normal', responseLanguage: preference?.uiLanguage === 'en' ? 'en' : 'tr' },
       catalogContext,
       userBusinessContext,
     )

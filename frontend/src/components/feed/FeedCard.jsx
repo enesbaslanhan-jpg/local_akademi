@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Card, Button } from '@/components/ui'
 import { X, ChevronRight, BookOpen, CheckSquare, Target, Calculator, Briefcase, MessageSquare } from 'lucide-react'
 import { useMentorContext } from '@/context/MentorContext'
 import styles from './Feed.module.css'
 
 export function FeedCard({ item, onDismiss, onAction }) {
+  const { t } = useTranslation('community')
   const [dismissing, setDismissing] = useState(false)
   const mentorContext = useMentorContext() // using optional approach if not available
   const isContextualMentorEnabled = import.meta.env.VITE_FF_CONTEXTUAL_MENTOR === 'true'
@@ -54,7 +56,7 @@ export function FeedCard({ item, onDismiss, onAction }) {
           <span className={styles.feedIcon}>{icons[item.type]}</span>
           <span className={styles.reasonText}>{item.reasonText}</span>
         </div>
-        <button className={styles.dismissBtn} onClick={handleDismiss} aria-label="Bu öneriyi gizle" title="Bu öneriyi gizle">
+        <button className={styles.dismissBtn} onClick={handleDismiss} aria-label={t('personalizedFeed.dismiss')} title={t('personalizedFeed.dismiss')}>
           <X size={16} />
         </button>
       </div>
@@ -63,7 +65,7 @@ export function FeedCard({ item, onDismiss, onAction }) {
         {item.shortDescription && <p className={styles.feedDesc}>{item.shortDescription}</p>}
         {item.type === 'complete_business_profile' && item.missingFieldLabels && (
           <div className={styles.missingFields}>
-            <span className={styles.missingCount}>{item.missingFieldCount} Eksik Alan:</span>
+            <span className={styles.missingCount}>{t('personalizedFeed.missingFields', { count: item.missingFieldCount })}</span>
             <ul className={styles.missingList}>
               {item.missingFieldLabels.map((label, idx) => (
                 <li key={idx} className={styles.missingBadge}>{label}</li>
@@ -78,7 +80,7 @@ export function FeedCard({ item, onDismiss, onAction }) {
           </Button>
           {isContextualMentorEnabled && (
             <Button variant="secondary" size="sm" onClick={handleAskMentor}>
-              <MessageSquare size={14} className="mr-1" /> Mentora Sor
+              <MessageSquare size={14} className="mr-1" /> {t('personalizedFeed.askMentor')}
             </Button>
           )}
         </div>

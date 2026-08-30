@@ -76,7 +76,7 @@ describe('Eğitim etkileşimleri', () => {
     }]} />)
 
     await user.click(await screen.findByRole('button', { name: 'Tamamla' }))
-    expect(await screen.findByText(/en az 10 kelime/i)).toBeInTheDocument()
+    expect(await screen.findByText(/Görevi tamamlamak için en az 10 kelime yazın/i)).toBeInTheDocument()
     expect(api.request).toHaveBeenCalledTimes(1)
   })
 

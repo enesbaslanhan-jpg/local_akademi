@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { api } from '@/services/api'
 import { Activity as ActivityIcon, UserPlus, Settings, Trash2, Mail, Building2 } from 'lucide-react'
 import styles from './Activity.module.css'
+import { useTranslation } from 'react-i18next'
 
 const actionIcons = {
   'workspace.created': Building2,
@@ -16,30 +17,31 @@ const actionIcons = {
   'contact.updated': Settings
 }
 
-const actionLabels = {
-  'workspace.created': 'İşletme oluşturuldu',
-  'workspace.updated': 'İşletme güncellendi',
-  'workspace.archived': 'İşletme arşivlendi',
-  'member.role.updated': 'Üye rolü güncellendi',
-  'member.removed': 'Üye çıkarıldı',
-  'invitation.sent': 'Davet gönderildi',
-  'invitation.accepted': 'Davet kabul edildi',
-  'contact.created': 'Kişi eklendi',
-  'contact.updated': 'Kişi güncellendi'
+const actionLabelKeys = {
+  'workspace.created': 'activity.created',
+  'workspace.updated': 'activity.updated',
+  'workspace.archived': 'activity.archived',
+  'member.role.updated': 'activity.roleUpdated',
+  'member.removed': 'activity.memberRemoved',
+  'invitation.sent': 'activity.invitationSent',
+  'invitation.accepted': 'activity.invitationAccepted',
+  'contact.created': 'activity.contactAdded',
+  'contact.updated': 'activity.contactUpdated'
 }
 
-function timeAgo(dateStr) {
+function timeAgo(dateStr, t) {
   const diff = Date.now() - new Date(dateStr).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'Az önce'
-  if (mins < 60) return `${mins} dk önce`
+  if (mins < 1) return t('relative.justNow')
+  if (mins < 60) return t('relative.minutesAgo', { count: mins })
   const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours} saat önce`
+  if (hours < 24) return t('relative.hoursAgoLong', { count: hours })
   const days = Math.floor(hours / 24)
-  return `${days} gün önce`
+  return t('relative.daysAgo', { count: days })
 }
 
 export default function Activity() {
+  const { t } = useTranslation('workspace')
   const { workspaceId } = useParams()
   const [activities, setActivities] = useState([])
   const [loading, setLoading] = useState(true)
@@ -52,17 +54,17 @@ export default function Activity() {
       .finally(() => setLoading(false))
   }, [workspaceId])
 
-  if (loading) return <p>Aktiviteler yükleniyor...</p>
+  if (loading) return <p>{t('activityPage.loading')}</p>
 
   if (activities.length === 0) {
-    return <div className={styles.empty}><ActivityIcon size={40} /><p>Henüz aktivite kaydı bulunmuyor.</p></div>
+    return <div className={styles.empty}><ActivityIcon size={40} /><p>{t('activityPage.empty')}</p></div>
   }
 
   return (
     <div className={styles.list}>
       {activities.map(a => {
         const Icon = actionIcons[a.action] || ActivityIcon
-        const label = actionLabels[a.action] || a.action
+        const label = actionLabelKeys[a.action] ? t(actionLabelKeys[a.action]) : a.action
         return (
           <div key={a.id} className={styles.item}>
             <div className={styles.icon}><Icon size={18} /></div>
@@ -70,7 +72,7 @@ export default function Activity() {
               <div className={styles.action}>{label}</div>
               {a.entityType !== 'workspace' && <div className={styles.meta}>{a.entityType}: {a.entityId || '-'}</div>}
             </div>
-            <div className={styles.time}>{timeAgo(a.createdAt)}</div>
+            <div className={styles.time}>{timeAgo(a.createdAt, t)}</div>
           </div>
         )
       })}

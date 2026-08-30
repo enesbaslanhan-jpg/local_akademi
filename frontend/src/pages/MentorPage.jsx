@@ -17,6 +17,9 @@ import {
   BookOpen, FlaskConical, Settings, Sparkles, ArrowRight, CirclePlus, History, Zap, Brain
 } from 'lucide-react'
 import styles from './MentorPage.module.css'
+import { useTranslation } from 'react-i18next'
+import { useLocalization } from '@/context/LocalizationContext'
+import { formatCurrency, getFormatLocale } from '@/utils/formatters'
 
 /* İşlem önerisi tipine göre ikon. Tip tanınmazsa nötr kıvılcım kullanılır —
    uydurma bir etiket veya ikon üretilmez. */
@@ -27,20 +30,20 @@ const ACTION_ICONS = {
 }
 
 const ACTION_DESCRIPTIONS = {
-  open_knowledge: 'Yanıtın dayandığı ilgili içeriği incele.',
-  open_financial_models: 'Finansal model kütüphanesinde çalışmaya devam et.',
-  open_business_profile: 'İşletme bilgilerini güncelle ve öneriyi netleştir.'
+  open_knowledge: 'actions.descriptionOpenKnowledge',
+  open_financial_models: 'actions.descriptionOpenFinancialModels',
+  open_business_profile: 'actions.descriptionOpenBusinessProfile'
 }
 
-function formatTime(dateStr) {
+function formatTime(dateStr, locale = getFormatLocale(), t) {
   if (!dateStr) return ''
   const d = new Date(dateStr)
   const now = new Date()
   const diffDays = Math.floor((now - d) / (1000 * 60 * 60 * 24))
-  if (diffDays === 0) return d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
-  if (diffDays === 1) return 'Dün'
-  if (diffDays < 7) return `${diffDays} gün önce`
-  return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })
+  if (diffDays === 0) return d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+  if (diffDays === 1) return t('time.yesterday')
+  if (diffDays < 7) return t('time.daysAgo', { count: diffDays })
+  return d.toLocaleDateString(locale, { day: 'numeric', month: 'short' })
 }
 
 function contentPreview(text) {
@@ -48,14 +51,13 @@ function contentPreview(text) {
   return text.length > 80 ? text.slice(0, 80) + '...' : text
 }
 
-function formatMoney(value, currency) {
-  return `${Number(value || 0).toLocaleString('tr-TR', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  })} ${currency || 'TRY'}`
+function formatMoney(value, currency, locale = getFormatLocale()) {
+  return formatCurrency(value, { locale, currency: currency || 'TRY', minimumFractionDigits: 0, maximumFractionDigits: 0 })
 }
 
 export default function MentorPage() {
+  const { t } = useTranslation('mentor')
+  const { formatLocale, uiLanguage } = useLocalization()
   const { user } = useAuth()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -228,9 +230,9 @@ const sessionLabel = useMemo(() => {
     if (Number.isNaN(date.getTime())) return ''
     const isToday = date.toDateString() === new Date().toDateString()
     return isToday
-      ? `Bugün, ${date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`
-      : date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
-  }, [messages])
+      ? t('session.todayWithTime', { time: date.toLocaleTimeString(formatLocale, { hour: '2-digit', minute: '2-digit' }) })
+      : date.toLocaleDateString(formatLocale, { day: 'numeric', month: 'long', year: 'numeric' })
+  }, [formatLocale, messages, t])
 
   /* HAFIZA: yalnız BusinessProfile'da gerçekten kayıtlı alanlar gösterilir.
      Alan yoksa sıra çizilmez; hiç veri yoksa boş durum mesajı çıkar. */
@@ -238,19 +240,19 @@ const sessionLabel = useMemo(() => {
     if (!businessProfile) return []
     const p = businessProfile
     const rows = []
-    if (p.sector) rows.push({ label: 'Sektör', value: p.sector })
-    if (p.city) rows.push({ label: 'Şehir', value: p.city })
-    if (p.businessStage) rows.push({ label: 'Aşama', value: p.businessStage })
-    if (p.monthly_sales > 0) rows.push({ label: 'Aylık Satış', value: formatMoney(p.monthly_sales, p.currency) })
-    if (p.monthly_expenses > 0) rows.push({ label: 'Aylık Gider', value: formatMoney(p.monthly_expenses, p.currency) })
-    if (p.primaryGoal) rows.push({ label: 'Hedef', value: p.primaryGoal })
+    if (p.sector) rows.push({ label: t('memory.sector'), value: p.sector })
+    if (p.city) rows.push({ label: t('memory.city'), value: p.city })
+    if (p.businessStage) rows.push({ label: t('memory.stage'), value: p.businessStage })
+    if (p.monthly_sales > 0) rows.push({ label: t('memory.monthlySales'), value: formatMoney(p.monthly_sales, p.currency, formatLocale) })
+    if (p.monthly_expenses > 0) rows.push({ label: t('memory.monthlyExpenses'), value: formatMoney(p.monthly_expenses, p.currency, formatLocale) })
+    if (p.primaryGoal) rows.push({ label: t('memory.goal'), value: p.primaryGoal })
     if (Array.isArray(p.challenges) && p.challenges.length > 0) {
-      rows.push({ label: 'Zorluklar', value: p.challenges.join(', ') })
+      rows.push({ label: t('memory.challenges'), value: p.challenges.join(', ') })
     }
     return rows
-  }, [businessProfile])
+  }, [businessProfile, t])
 
-  if (loading && conversations.length === 0) return <Loading text="Yükleniyor..." />
+  if (loading && conversations.length === 0) return <Loading text={t('states.loading')} />
 
   /* Aynı liste iki yere basılır: masaüstünde kabuğun bağlam paneline (portal),
      mobilde hamburgerden açılan drawer'a. Her breakpoint'te yalnızca biri
@@ -259,38 +261,38 @@ const sessionLabel = useMemo(() => {
     <div className={styles.convPanel}>
         <div className={styles.sidebarHeader}>
           <div>
-            <h2 className={styles.sidebarHeaderTitle}>Sohbet Geçmişi</h2>
-            <p className={styles.sidebarHeaderEyebrow}>Aktif Oturumlar</p>
+            <h2 className={styles.sidebarHeaderTitle}>{t('sidebar.history')}</h2>
+            <p className={styles.sidebarHeaderEyebrow}>{t('activeConversations')}</p>
           </div>
-          <button className={styles.memoryBtn} onClick={() => setMemoryPanelVisible(true)}>Hafıza</button>
+          <button className={styles.memoryBtn} onClick={() => setMemoryPanelVisible(true)}>{t('memory.title')}</button>
         </div>
 
         <button className={styles.newChatBtn} onClick={() => { handleNew(); setSidebarOpen(false) }}>
           <CirclePlus size={19} aria-hidden="true" />
-          Yeni Sohbet Başlat
+          {t('sidebar.newChat')}
         </button>
 
         <div className={styles.tabs}>
           <button
             onClick={() => setShowArchived(false)}
-            aria-label="Aktif sohbetler"
+            aria-label={t('activeConversations')}
             className={`${styles.tab} ${!showArchived ? styles.tabActive : ''}`}
           >
-            Aktif
+            {t('active')}
           </button>
           <button
             onClick={() => setShowArchived(true)}
-            aria-label="Arşivlenmiş sohbetler"
+            aria-label={t('archivedConversations')}
             className={`${styles.tab} ${showArchived ? styles.tabActive : ''}`}
           >
-            Arşiv
+            {t('archive')}
           </button>
         </div>
 
         <div className={styles.convList}>
           {conversations.length === 0 ? (
             <div className={styles.convListEmpty}>
-              Henüz sohbet yok
+              {t('empty')}
             </div>
           ) : (
             <ul>
@@ -314,15 +316,15 @@ const sessionLabel = useMemo(() => {
                     ) : (
                       <div className={styles.convTitle}>
                         <History size={13} aria-hidden="true" />
-                        {conv.title || 'İsimsiz'}
+                        {conv.title || t('untitled')}
                       </div>
                     )}
                     <div className={styles.convPreview}>
-                      {conv.lastMessage ? contentPreview(conv.lastMessage.content) : 'Henüz mesaj yok'}
+                      {conv.lastMessage ? contentPreview(conv.lastMessage.content) : t('sidebar.noMessages')}
                     </div>
                     <div className={styles.convMeta}>
-                      {formatTime(conv.lastMessageAt || conv.updatedAt)}
-                      {conv.messageCount > 0 && ` · ${conv.messageCount} mesaj`}
+                      {formatTime(conv.lastMessageAt || conv.updatedAt, formatLocale, t)}
+                      {conv.messageCount > 0 && t('sidebar.messageCount', { count: conv.messageCount })}
                     </div>
                   </div>
 
@@ -332,16 +334,16 @@ const sessionLabel = useMemo(() => {
                         <button
                           onClick={e => { e.stopPropagation(); setEditingId(conv.id); setEditValue(conv.title || '') }}
                           className={styles.convActionBtn}
-                          title="Düzenle"
-                          aria-label="Düzenle"
+                          title={t('sidebar.edit')}
+                          aria-label={t('sidebar.edit')}
                         >
                           <Pencil size={13} aria-hidden="true" />
                         </button>
                         <button
                           onClick={e => { e.stopPropagation(); handleArchive(conv.id) }}
                           className={styles.convActionBtn}
-                          title="Arşivle"
-                          aria-label="Arşivle"
+                          title={t('sidebar.archiveAction')}
+                          aria-label={t('sidebar.archiveAction')}
                         >
                           <Archive size={13} aria-hidden="true" />
                         </button>
@@ -351,8 +353,8 @@ const sessionLabel = useMemo(() => {
                       <button
                         onClick={e => { e.stopPropagation(); handleUnarchive(conv.id) }}
                         className={styles.convActionBtn}
-                        title="Arşivden çıkar"
-                        aria-label="Arşivden çıkar"
+                        title={t('sidebar.unarchive')}
+                        aria-label={t('sidebar.unarchive')}
                       >
                         <RotateCcw size={13} aria-hidden="true" />
                       </button>
@@ -360,8 +362,8 @@ const sessionLabel = useMemo(() => {
                     <button
                       onClick={e => { e.stopPropagation(); setConversationToDelete(conv.id); setDeleteModalOpen(true) }}
                       className={styles.convActionBtn}
-                      title="Sil"
-                      aria-label="Sil"
+                      title={t('sidebar.delete')}
+                      aria-label={t('sidebar.delete')}
                     >
                       <Trash2 size={13} aria-hidden="true" />
                     </button>
@@ -378,7 +380,7 @@ const sessionLabel = useMemo(() => {
      mesajların altı. Görünürlüğü CSS breakpoint'i belirler. */
   const actionsBlock = (
     <>
-      <div className={styles.actionsTitle}><Zap size={14} aria-hidden="true" /> İşlem Önerileri</div>
+      <div className={styles.actionsTitle}><Zap size={14} aria-hidden="true" /> {t('actions.title')}</div>
       {suggestedActions.length > 0 ? (
         <div className={styles.actionsList}>
           {suggestedActions.map(action => {
@@ -393,8 +395,8 @@ const sessionLabel = useMemo(() => {
               >
                 <span className={styles.actionIcon}><ActionIcon size={19} aria-hidden="true" /></span>
                 <span className={styles.actionCopy}>
-                  <span className={styles.actionLabel}>{action.label}</span>
-                  <small>{ACTION_DESCRIPTIONS[action.type] || 'İlgili çalışma alanını aç.'}</small>
+                  <span className={styles.actionLabel}>{t(action.labelKey)}</span>
+                  <small>{t(ACTION_DESCRIPTIONS[action.type] || 'actions.descriptionFallback')}</small>
                 </span>
                 <ArrowRight size={15} aria-hidden="true" />
               </button>
@@ -402,7 +404,7 @@ const sessionLabel = useMemo(() => {
           })}
         </div>
 ) : (
-        <div className={styles.actionsEmpty}>Mentor yanıtındaki uygun ve gerçek işlemler burada görünür.</div>
+        <div className={styles.actionsEmpty}>{t('actions.emptyHint')}</div>
       )}
     </>
   )
@@ -410,12 +412,12 @@ const sessionLabel = useMemo(() => {
   /* HAFIZA kartı: veriler yukarıda (erken dönüşten önce) hesaplanır;
      burada yalnızca render edilir. */
   const memoryBlock = (
-    <section className={styles.memorySection} aria-label="Hafıza">
-      <div className={styles.actionsTitle}><Brain size={14} aria-hidden="true" /> Hafıza</div>
+    <section className={styles.memorySection} aria-label={t('memory.title')}>
+      <div className={styles.actionsTitle}><Brain size={14} aria-hidden="true" /> {t('memory.title')}</div>
       {profileLoading ? (
-        <div className={styles.actionsEmpty}>Yükleniyor...</div>
+        <div className={styles.actionsEmpty}>{t('states.loading')}</div>
       ) : profileRows.length === 0 && !lastDecision ? (
-        <div className={styles.actionsEmpty}>Henüz kaydedilmiş işletme bilgisi yok.</div>
+        <div className={styles.actionsEmpty}>{t('memory.emptyProfile')}</div>
       ) : (
         <div className={styles.memoryCard}>
           {profileRows.map(row => (
@@ -426,7 +428,7 @@ const sessionLabel = useMemo(() => {
           ))}
           {lastDecision && (
             <div className={styles.memoryRow}>
-              <span className={styles.memoryLabel}>Son Karar</span>
+              <span className={styles.memoryLabel}>{t('memory.lastDecision')}</span>
               <span className={styles.memoryValue}>{lastDecision.summary || lastDecision.value}</span>
             </div>
           )}
@@ -437,7 +439,7 @@ const sessionLabel = useMemo(() => {
         className={styles.memoryManageBtn}
         onClick={() => setMemoryPanelVisible(true)}
       >
-        Hafızayı Yönet
+        {t('memory.manageButton')}
       </button>
     </section>
   )
@@ -454,7 +456,7 @@ const sessionLabel = useMemo(() => {
   return (
     <div className={styles.page}>
       {/* Sayfa adı üst barda yazıyor; görünür h1 yerine sr-only başlık. */}
-      <h1 className="sr-only">AI Mentor</h1>
+      <h1 className="sr-only">{t('title')}</h1>
 
       {/* Masaüstü: sohbet listesi kabuğun bağlam panelinde. Panel rayfaki
           düğmeyle kapatılınca sohbet alanı kendiliğinden genişler. */}
@@ -477,19 +479,19 @@ const sessionLabel = useMemo(() => {
           <button
             className={styles.menuBtn}
             onClick={() => setSidebarOpen(true)}
-            title="Sohbet listesi"
-            aria-label="Sohbet listesi"
+            title={t('sidebar.listButtonLabel')}
+            aria-label={t('sidebar.listButtonLabel')}
           >
             <Menu size={20} aria-hidden="true" />
           </button>
           <div className={styles.topBarTitleWrap}>
             <h2 className={styles.topBarTitle}>
-              AI Mentor
+              {t('title')}
             </h2>
-            <span className={styles.topBarProvider}>İşletme bağlamınla birlikte düşün{selectedConv?.title ? ` · ${selectedConv.title}` : ''}</span>
+            <span className={styles.topBarProvider}>{selectedConv?.title ? t('topbar.providerWithTitle', { title: selectedConv.title }) : t('topbar.provider')}</span>
           </div>
           {contextTitle && (
-            <span className={styles.contextBadge}>Bağlam: {contextTitle}</span>
+            <span className={styles.contextBadge}>{t('topbar.contextBadge', { title: contextTitle })}</span>
           )}
         </div>
 
@@ -501,7 +503,7 @@ const sessionLabel = useMemo(() => {
               onClick={scrollToBottom}
               className={styles.scrollToBottomBtn}
             >
-              En yeni mesaja git ↓
+              {t('chat.scrollToBottom')}
             </button>
           )}
 
@@ -536,7 +538,7 @@ const sessionLabel = useMemo(() => {
                       <p className={styles.streamingText}>{streamingContent}</p>
                     ) : (
                       <p className={styles.streamingPlaceholder}>
-                        <span className={styles.typingDot} /> AI düşünüyor...
+                        <span className={styles.typingDot} /> {t('chat.aiThinking')}
                       </p>
                     )}
                   </div>
@@ -559,7 +561,7 @@ const sessionLabel = useMemo(() => {
                 Mobilde hafızaya üst çubuktaki menü → "Hafıza" ile
                 ulaşılıyor, işlev kaybı yok.
               */}
-              <section className={styles.actionsInline} aria-label="Mentor işlem önerileri">
+              <section className={styles.actionsInline} aria-label={t('actions.inlineAriaLabel')}>
                 {actionsBlock}
               </section>
             </div>
@@ -579,13 +581,13 @@ const sessionLabel = useMemo(() => {
           </div>
         ) : (
           <div className={styles.archivedNotice}>
-            Arşivlenmiş sohbetlere yeni mesaj gönderilemez.
+            {t('chat.archivedNotice')}
           </div>
         )}
       </main>
 
       {/* Masaüstü üçüncü bölge: üstte HAFIZA, altta işlem önerileri. */}
-      <aside className={styles.actionsCol} aria-label="Mentor yan paneli">
+      <aside className={styles.actionsCol} aria-label={t('panel.rightAsideAriaLabel')}>
         {rightPanel}
       </aside>
 

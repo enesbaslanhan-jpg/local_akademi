@@ -4,8 +4,11 @@ import { api } from '@/services/api'
 import Button from '@/components/ui/Button'
 import { Select } from '@/components/ui'
 import styles from './Team.module.css'
+import { useTranslation } from 'react-i18next'
 
 export default function Team() {
+  const { t } = useTranslation('workspace')
+  const roleOptions = ['owner', 'admin', 'staff', 'viewer'].map(value => ({ value, label: t(`team.role.${value}`) }))
   const { workspaceId } = useParams()
   const [members, setMembers] = useState([])
   const [invitations, setInvitations] = useState([])
@@ -43,7 +46,7 @@ export default function Team() {
          gonderilemese bile ekranda hicbir sey olmuyordu. Posta
          gonderimi eklendigi icin artik gercek bir basarisizlik yolu
          da var (sunucu 502 donuyor), gizlenmesi kabul edilemez. */
-      setInviteError(err.message || 'Davet gönderilemedi.')
+      setInviteError(err.message || t('team.inviteFailed'))
     }
     finally { setSending(false) }
   }
@@ -54,7 +57,7 @@ export default function Team() {
   }
 
   async function handleRemoveMember(memberId) {
-    if (!confirm('Bu üyeyi çıkarmak istediğinize emin misiniz?')) return
+    if (!confirm(t('team.confirmRemove'))) return
     await api.workspace.members.remove(workspaceId, memberId)
     await loadData()
   }
@@ -68,12 +71,12 @@ export default function Team() {
     <div>
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
-          <h3>Ekip Üyeleri ({members.length})</h3>
-          <Button onClick={() => setShowInvite(true)}>Davet Et</Button>
+          <h3>{t('team.title')} ({members.length})</h3>
+          <Button onClick={() => setShowInvite(true)}>{t('team.invite')}</Button>
         </div>
         <table className={styles.table}>
           <thead>
-            <tr><th>Ad</th><th>E-posta</th><th>Rol</th><th>Durum</th><th></th></tr>
+            <tr><th>{t('team.col.name')}</th><th>{t('team.col.email')}</th><th>{t('team.col.role')}</th><th>{t('team.col.status')}</th><th></th></tr>
           </thead>
           <tbody>
             {members.map(m => (
@@ -88,12 +91,12 @@ export default function Team() {
                 </td>
                 <td>{m.email}</td>
                 <td>
-                  <Select className={styles.select} aria-label="Rol" options={[{ value: 'owner', label: 'Sahip' }, { value: 'admin', label: 'Yönetici' }, { value: 'staff', label: 'Personel' }, { value: 'viewer', label: 'İzleyici' }]} value={m.role} onChange={v => handleRoleChange(m.id, v)} />
+                  <Select className={styles.select} aria-label={t('team.col.role')} options={roleOptions} value={m.role} onChange={v => handleRoleChange(m.id, v)} />
                 </td>
                 <td><span className={styles.badge}>{m.status}</span></td>
                 <td>
                   {m.role !== 'owner' && (
-                    <button onClick={() => handleRemoveMember(m.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '0.85rem' }}>Çıkar</button>
+                    <button onClick={() => handleRemoveMember(m.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '0.85rem' }}>{t('team.remove')}</button>
                   )}
                 </td>
               </tr>
@@ -105,16 +108,16 @@ export default function Team() {
       {invitations.length > 0 && (
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
-            <h3>Bekleyen Davetler ({invitations.length})</h3>
+            <h3>{t('team.pendingInvitations')} ({invitations.length})</h3>
           </div>
           <table className={styles.table}>
-            <thead><tr><th>E-posta</th><th>Rol</th><th></th></tr></thead>
+            <thead><tr><th>{t('team.col.email')}</th><th>{t('team.col.role')}</th><th></th></tr></thead>
             <tbody>
               {invitations.map(inv => (
                 <tr key={inv.id}>
                   <td>{inv.email}</td>
                   <td>{inv.role}</td>
-                  <td><button onClick={() => handleCancelInvitation(inv.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '0.85rem' }}>İptal</button></td>
+                  <td><button onClick={() => handleCancelInvitation(inv.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '0.85rem' }}>{t('common:buttons.cancel')}</button></td>
                 </tr>
               ))}
             </tbody>
@@ -125,31 +128,30 @@ export default function Team() {
       {showInvite && (
         <div className={styles.overlay} onClick={() => { setShowInvite(false); setInviteSent(null); setInviteError('') }}>
           <div className={styles.dialog} onClick={e => e.stopPropagation()}>
-            <h3>Ekip Üyesi Davet Et</h3>
+            <h3>{t('team.inviteTitle')}</h3>
             {inviteSent ? (
               <div>
                 <p style={{ marginBottom: 12 }}>
-                  <strong>{inviteSent}</strong> adresine davet e-postası gönderildi.
-                  Bağlantı 7 gün geçerli ve yalnızca bu adresle açılmış bir hesapla kullanılabilir.
+                  {t('team.inviteSentMessage', { email: inviteSent })}
                 </p>
                 <div className={styles.actions}>
-                  <Button onClick={() => { setShowInvite(false); setInviteSent(null) }}>Kapat</Button>
+                  <Button onClick={() => { setShowInvite(false); setInviteSent(null) }}>{t('common:buttons.close')}</Button>
                 </div>
               </div>
             ) : (
               <form onSubmit={handleInvite}>
                 <div className={styles.field}>
-                  <label>E-posta</label>
+                  <label>{t('team.col.email')}</label>
                   <input value={inviteForm.email} onChange={e => setInviteForm(f => ({ ...f, email: e.target.value }))} type="email" required placeholder="ornek@email.com" />
                 </div>
                 <div className={styles.field}>
-                  <label>Rol</label>
-                  <Select aria-label="Rol" options={[{ value: 'admin', label: 'Yönetici' }, { value: 'staff', label: 'Personel' }, { value: 'viewer', label: 'İzleyici' }]} value={inviteForm.role} onChange={v => setInviteForm(f => ({ ...f, role: v }))} />
+                  <label>{t('team.col.role')}</label>
+                  <Select aria-label={t('team.col.role')} options={roleOptions.filter(option => option.value !== 'owner')} value={inviteForm.role} onChange={v => setInviteForm(f => ({ ...f, role: v }))} />
                 </div>
                 {inviteError && <p role="alert" style={{ color: 'var(--danger)', fontSize: '0.82rem', margin: '0 0 10px' }}>{inviteError}</p>}
                 <div className={styles.actions}>
-                  <Button type="button" variant="secondary" onClick={() => setShowInvite(false)}>İptal</Button>
-                  <Button type="submit" disabled={!inviteForm.email || sending}>{sending ? 'Gönderiliyor...' : 'Davet Et'}</Button>
+                  <Button type="button" variant="secondary" onClick={() => setShowInvite(false)}>{t('common:buttons.cancel')}</Button>
+                  <Button type="submit" disabled={!inviteForm.email || sending}>{sending ? t('team.sending') : t('team.invite')}</Button>
                 </div>
               </form>
             )}

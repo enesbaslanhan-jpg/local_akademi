@@ -2,72 +2,19 @@ import { useCallback, useEffect, useState } from 'react'
 import { X, FileSpreadsheet, Loader2, AlertCircle, CheckCircle, ChevronRight, ChevronLeft } from 'lucide-react'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
+import { useTranslation } from 'react-i18next'
 import styles from './ImportDialog.module.css'
 
 const REQUIRED_FIELDS = ['type', 'title', 'direction']
 const OPTIONAL_FIELDS = ['description', 'amount', 'currency', 'priority', 'dueAt', 'contactId', 'assignedToId', 'recurrenceRule']
 
-const FIELD_LABELS = {
-  type: 'Tür',
-  title: 'Başlık',
-  description: 'Açıklama',
-  direction: 'Yön',
-  amount: 'Tutar',
-  currency: 'Para Birimi',
-  priority: 'Öncelik',
-  dueAt: 'Son Tarih',
-  contactId: 'Cari',
-  assignedToId: 'Sorumlu',
-  recurrenceRule: 'Tekrarlama'
-}
-
-const FIELD_HELP = {
-  type: 'Örn: payment, receivable, promissory_note, purchase, shipment, task, deferred, other',
-  title: 'Kayıt başlığı (zorunlu)',
-  direction: 'payable (ödenecek), receivable (tahsil edilecek), neutral (finansal değil)',
-  amount: 'Sayısal değer',
-  currency: 'TRY, USD, EUR vb. (varsayılan: TRY)',
-  priority: 'low, normal, high, urgent (varsayılan: normal)',
-  dueAt: 'ISO format: YYYY-MM-DDTHH:MM',
-  contactId: 'Cari UUID',
-  assignedToId: 'Kullanıcı ID (sayı)',
-  recurrenceRule: 'weekly, monthly, quarterly, yearly'
-}
-
-const TYPE_OPTIONS = [
-  { value: 'payment', label: 'Ödeme' },
-  { value: 'receivable', label: 'Tahsilat' },
-  { value: 'promissory_note', label: 'Senet' },
-  { value: 'purchase', label: 'Alım' },
-  { value: 'shipment', label: 'Kargo' },
-  { value: 'task', label: 'Görev' },
-  { value: 'deferred', label: 'Ertelenmiş' },
-  { value: 'other', label: 'Diğer' }
-]
-
-const DIRECTION_OPTIONS = [
-  { value: 'payable', label: 'Ödenecek' },
-  { value: 'receivable', label: 'Tahsil edilecek' },
-  { value: 'neutral', label: 'Finansal değil' }
-]
-
-const PRIORITY_OPTIONS = [
-  { value: 'low', label: 'Düşük' },
-  { value: 'normal', label: 'Normal' },
-  { value: 'high', label: 'Yüksek' },
-  { value: 'urgent', label: 'Acil' }
-]
-
-const RECURRENCE_OPTIONS = [
-  { value: '', label: 'Tekrarlanmaz' },
-  { value: 'weekly', label: 'Her hafta' },
-  { value: 'monthly', label: 'Her ay' },
-  { value: 'quarterly', label: 'Her 3 ayda' },
-  { value: 'yearly', label: 'Her yıl' }
-]
+const IMPORT_FIELDS = [...REQUIRED_FIELDS, ...OPTIONAL_FIELDS]
 
 export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
+  const { t } = useTranslation('workspace')
   const toast = useToast()
+  const fieldLabels = Object.fromEntries(IMPORT_FIELDS.map(field => [field, t(`import.field.${field === 'dueAt' ? 'dueDate' : field === 'contactId' ? 'contact' : field === 'assignedToId' ? 'responsible' : field === 'recurrenceRule' ? 'recurrence' : field}`)]))
+  const fieldHelp = Object.fromEntries(IMPORT_FIELDS.map(field => [field, t(`import.help.${field === 'dueAt' ? 'dueDate' : field === 'contactId' ? 'contact' : field === 'assignedToId' ? 'responsible' : field === 'recurrenceRule' ? 'recurrence' : field}`)]))
   const [step, setStep] = useState(1) // 1: upload, 2: mapping, 3: preview, 4: importing
   const [file, setFile] = useState(null)
   const [fileId, setFileId] = useState(null)
@@ -84,7 +31,7 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
 
     const ext = selectedFile.name.split('.').pop()?.toLowerCase()
     if (!['csv', 'xlsx'].includes(ext)) {
-      toast.error('Sadece CSV ve XLSX dosyaları desteklenir.')
+      toast.error(t('import.unsupportedFormat'))
       return
     }
 
@@ -97,7 +44,7 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
       setFileId(uploaded.id)
       setStep(2)
     } catch (error) {
-      toast.error(error.message || 'Dosya yüklenemedi.')
+      toast.error(error.message || t('import.uploadFailed'))
     } finally {
       setUploading(false)
     }
@@ -156,7 +103,7 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
         setMapping(autoMap)
       }
     } catch (error) {
-      toast.error('Sütunlar yüklenemedi.')
+      toast.error(t('import.columnsFailed'))
     } finally {
       setLoading(false)
     }
@@ -175,7 +122,7 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
     // Check required fields
     const missing = REQUIRED_FIELDS.filter(f => !mapping[f])
     if (missing.length > 0) {
-      toast.error(`Zorunlu alanlar eşleştirilmeli: ${missing.map(f => FIELD_LABELS[f]).join(', ')}`)
+      toast.error(t('import.requiredFieldsMissing', { fields: missing.map(field => fieldLabels[field]).join(', ') }))
       return
     }
 
@@ -190,7 +137,7 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
       setErrors(result.errors || [])
       setStep(3)
     } catch (error) {
-      toast.error(error.message || 'Önizleme alınamadı.')
+      toast.error(error.message || t('import.previewFailed'))
     } finally {
       setLoading(false)
     }
@@ -204,11 +151,11 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
         columnMapping: mapping,
         previewOnly: false
       })
-      toast.success(`${result.imported} kayıt içe aktarıldı.${result.failed > 0 ? ` ${result.failed} satır başarısız.` : ''}`)
+      toast.success(`${t('import.success', { count: result.imported })}${result.failed > 0 ? ` ${t('import.failures', { count: result.failed })}` : ''}`)
       onSuccess?.()
       onClose()
     } catch (error) {
-      toast.error(error.message || 'İçe aktarım başarısız.')
+      toast.error(error.message || t('import.importFailed'))
       setStep(3)
     }
   }
@@ -225,7 +172,7 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
             onChange={e => handleMappingChange(field, e.target.value)}
             className={styles.select}
           >
-            <option value="">— Sütun seç —</option>
+            <option value="">{t('import.selectColumn')}</option>
             {columns.map(col => (
               <option key={col} value={col}>{col}</option>
             ))}
@@ -238,7 +185,7 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
             onChange={e => handleMappingChange(field, e.target.value)}
             className={styles.select}
           >
-            <option value="">— Sütun seç —</option>
+            <option value="">{t('import.selectColumn')}</option>
             {columns.map(col => (
               <option key={col} value={col}>{col}</option>
             ))}
@@ -251,7 +198,7 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
             onChange={e => handleMappingChange(field, e.target.value)}
             className={styles.select}
           >
-            <option value="">— Sütun seç —</option>
+            <option value="">{t('import.selectColumn')}</option>
             {columns.map(col => (
               <option key={col} value={col}>{col}</option>
             ))}
@@ -265,9 +212,9 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
       <div className={styles.stepIcon}>
         <FileSpreadsheet size={48} />
       </div>
-      <h3>Dosya Yükle</h3>
+      <h3>{t('import.step1Title')}</h3>
       <p className={styles.stepDesc}>
-        CSV veya Excel (.xlsx) dosyanızı seçin. İlk satır başlık olmalıdır.
+        {t('import.step1Desc')}
       </p>
       <input
         type="file"
@@ -276,7 +223,7 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
         disabled={uploading}
         className={styles.fileInput}
       />
-      {uploading && <p className={styles.loading}>Yükleniyor… <Loader2 size={16} className={styles.spin} /></p>}
+      {uploading && <p className={styles.loading}>{t('import.loading')} <Loader2 size={16} className={styles.spin} /></p>}
     </div>
   )
 
@@ -285,31 +232,31 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
       <div className={styles.stepIcon}>
         <FileSpreadsheet size={48} />
       </div>
-      <h3>Sütunları Eşleştir</h3>
+      <h3>{t('import.step2Title')}</h3>
       <p className={styles.stepDesc}>
-        Dosyanızdaki sütunları kayıt alanlarıyla eşleştirin. Zorunlu alanlar <strong> yıldızlı</strong>.
+        {t('import.step2Desc')}
       </p>
       {loading ? (
-        <p className={styles.loading}>Sütunlar okunuyor… <Loader2 size={16} className={styles.spin} /></p>
+        <p className={styles.loading}>{t('import.readingColumns')} <Loader2 size={16} className={styles.spin} /></p>
       ) : (
         <div className={styles.mappingGrid}>
           {REQUIRED_FIELDS.map(field => (
             <div key={field} className={styles.mappingRow}>
               <label className={styles.mappingLabel}>
-                <span className={styles.required}>*</span> {FIELD_LABELS[field]}
+                <span className={styles.required}>*</span> {fieldLabels[field]}
               </label>
               <div className={styles.mappingInput}>
                 {getFieldInput(field)}
-                <span className={styles.help}>{FIELD_HELP[field]}</span>
+                <span className={styles.help}>{fieldHelp[field]}</span>
               </div>
             </div>
           ))}
           {OPTIONAL_FIELDS.map(field => (
             <div key={field} className={styles.mappingRow}>
-              <label className={styles.mappingLabel}>{FIELD_LABELS[field]}</label>
+              <label className={styles.mappingLabel}>{fieldLabels[field]}</label>
               <div className={styles.mappingInput}>
                 {getFieldInput(field)}
-                <span className={styles.help}>{FIELD_HELP[field]}</span>
+                <span className={styles.help}>{fieldHelp[field]}</span>
               </div>
             </div>
           ))}
@@ -317,10 +264,10 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
       )}
       <div className={styles.stepActions}>
         <button className={styles.secondary} onClick={() => setStep(1)}>
-          <ChevronLeft size={16} /> Geri
+          <ChevronLeft size={16} /> {t('import.back')}
         </button>
         <button className={styles.primary} onClick={handlePreview} disabled={loading}>
-          {loading ? 'Yükleniyor…' : 'Önizle'}
+          {loading ? t('import.loading') : t('import.preview')}
           <ChevronRight size={16} />
         </button>
       </div>
@@ -332,25 +279,25 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
       <div className={styles.stepIcon}>
         <FileSpreadsheet size={48} />
       </div>
-      <h3>Önizleme</h3>
+      <h3>{t('import.step3Title')}</h3>
       <p className={styles.stepDesc}>
-        {preview?.validRows} geçerli, {errors.length} hatalı satır. Devam etmek için "İçe Aktar"a basın.
+        {t('import.step3Desc', { validRows: preview?.validRows, errorCount: errors.length })}
       </p>
 
       {errors.length > 0 && (
         <div className={styles.errorSummary}>
           <AlertCircle size={16} />
-          <span>{errors.length} hatalı satır (ilk 50 gösteriliyor)</span>
+          <span>{t('import.errorSummary', { count: errors.length })}</span>
         </div>
       )}
 
       {errors.length > 0 && (
         <details className={styles.errorDetails}>
-          <summary>Hataları göster</summary>
+          <summary>{t('import.showErrors')}</summary>
           <ul className={styles.errorList}>
             {errors.slice(0, 50).map((err, i) => (
               <li key={i} className={styles.errorItem}>
-                <strong>Satır {err.row}</strong> — <span className={styles.errorField}>{err.field}</span>: {err.message}
+                <strong>{t('import.row', { row: err.row })}</strong> — <span className={styles.errorField}>{err.field}</span>: {err.message}
               </li>
             ))}
           </ul>
@@ -362,9 +309,9 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
           <table>
             <thead>
               <tr>
-                <th>Satır</th>
-                {REQUIRED_FIELDS.map(f => <th key={f}>{FIELD_LABELS[f]}</th>)}
-                {OPTIONAL_FIELDS.filter(f => preview.sample[0]?.[f] !== undefined).map(f => <th key={f}>{FIELD_LABELS[f]}</th>)}
+                <th>{t('import.col.row')}</th>
+                {REQUIRED_FIELDS.map(f => <th key={f}>{fieldLabels[f]}</th>)}
+                {OPTIONAL_FIELDS.filter(f => preview.sample[0]?.[f] !== undefined).map(f => <th key={f}>{fieldLabels[f]}</th>)}
               </tr>
             </thead>
             <tbody>
@@ -382,13 +329,13 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
 
       <div className={styles.stepActions}>
         <button className={styles.secondary} onClick={() => setStep(2)}>
-          <ChevronLeft size={16} /> Düzenle
+          <ChevronLeft size={16} /> {t('import.edit')}
         </button>
         <button className={styles.primary} onClick={handleImport} disabled={step === 4}>
           {step === 4 ? (
-            <>İçe aktarılıyor… <Loader2 size={16} className={styles.spin} /></>
+            <>{t('import.importing')} <Loader2 size={16} className={styles.spin} /></>
           ) : (
-            <>İçe Aktar <ChevronRight size={16} /></>
+            <>{t('import.importButton')} <ChevronRight size={16} /></>
           )}
         </button>
       </div>
@@ -400,7 +347,7 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
       <div className={styles.dialog} onClick={e => e.stopPropagation()}>
         <header className={styles.header}>
           <div className={styles.headerLeft}>
-            <h2>Toplu İçe Aktarım</h2>
+            <h2>{t('import.title')}</h2>
             <div className={styles.stepIndicator}>
               {[1, 2, 3].map(s => (
                 <span key={s} className={`${styles.stepDot} ${step >= s ? styles.active : ''} ${step === s ? styles.current : ''}`}>
@@ -409,7 +356,7 @@ export default function ImportDialog({ workspaceId, onClose, onSuccess }) {
               ))}
             </div>
           </div>
-          <button onClick={onClose} className={styles.closeBtn} aria-label="Kapat"><X size={20} /></button>
+          <button onClick={onClose} className={styles.closeBtn} aria-label={t('common:buttons.close')}><X size={20} /></button>
         </header>
         <main className={styles.content}>
           {step === 1 && renderStep1()}

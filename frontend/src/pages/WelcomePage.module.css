@@ -1,0 +1,188 @@
+/*
+ * Kayıt sonrası karşılama.
+ *
+ * Uygulama kabuğunun içinde açılıyor, bu yüzden genel tema
+ * token'ları (`--text`, `--surface-*`) kullanılıyor — public
+ * sayfaların `--auth-*` paleti DEĞİL. İkisini karıştırmak koyu modda
+ * beyaz-üstüne-beyaz hatasına yol açtı ve paletler bilerek ayrıldı.
+ */
+
+.sayfa {
+  display: flex;
+  justify-content: center;
+  padding: 32px 20px 56px;
+}
+
+.kart {
+  width: 100%;
+  max-width: 560px;
+  padding: 30px 30px 26px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-panel);
+  box-shadow: var(--shadow-card);
+}
+
+.rozet {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface-panel));
+  color: var(--primary-deep);
+  font-size: var(--font-micro);
+  font-weight: var(--font-weight-bold);
+}
+
+.baslik {
+  margin: 16px 0 0;
+  color: var(--text);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  line-height: 1.2;
+}
+
+.metin {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  font-size: .93rem;
+  line-height: 1.6;
+}
+
+/* ---------- Sade zaman çizgisi ---------- */
+
+.cizgi {
+  display: flex;
+  gap: 10px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cizgi li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  /* Flex öğeleri varsayılan `min-width: auto` ile gelir ve
+     içeriğinden dar olmayı reddeder — 375px'te taşmanın sebebi bu. */
+  min-width: 0;
+  flex: 1;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+}
+
+.asamaSon {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface-panel));
+}
+
+.asamaNo {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface-panel);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+.asamaSon .asamaNo {
+  border-color: transparent;
+  background: var(--primary);
+  color: #fff;
+}
+
+.asamaMetin {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.asamaMetin strong {
+  color: var(--text);
+  font-size: .88rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.asamaMetin small {
+  color: var(--text-muted);
+  font-size: .72rem;
+}
+
+.indirim {
+  margin: 16px 0 0;
+  color: var(--text-muted);
+  font-size: .85rem;
+  line-height: 1.55;
+}
+
+.duyuru {
+  margin: 12px 0 0;
+  padding: 11px 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-size: .83rem;
+  line-height: 1.5;
+}
+
+/* ---------- Eylemler ---------- */
+
+.eylemler {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.birincilDugme {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: #fff;
+  font: inherit;
+  font-size: .92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.birincilDugme:hover { background: var(--primary-deep); }
+
+.ikincilLink {
+  color: var(--text-muted);
+  font-size: .87rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ikincilLink:hover { color: var(--text); }
+
+.birincilDugme:focus-visible,
+.ikincilLink:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+  .sayfa { padding: 20px 14px 40px; }
+  .kart { padding: 24px 20px 22px; }
+  /* Üç kutu 375px'te yan yana okunmuyordu; alt alta iniyor. */
+  .cizgi { flex-direction: column; gap: 8px; }
+  .eylemler { gap: 12px; }
+  .birincilDugme { flex: 1; justify-content: center; }
+}

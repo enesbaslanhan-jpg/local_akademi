@@ -11,9 +11,26 @@
  *      girdiğinde MÜŞTERİSİNİN verisini işliyor. O veriler bakımından
  *      veri sorumlusu kullanıcının kendisi; bunun yazılı olması şart.
  *
- * Abonelik, ödeme ve reklam maddeleri BİLEREK YOK: böyle bir akış
- * bulunmuyor. Var olmayan bir ödeme için cayma hakkı yazmak yanlış
- * beyandır. Eklendiğinde ayrı bölüm yazılıp sürüm artırılacak.
+ * ✅ ABONELİK VE ÜCRETLENDİRME EKLENDİ (29.08.2026 — 12. bölüm).
+ *
+ * Bu dosya uzun süre şunu yazıyordu: "Abonelik, ödeme ve reklam
+ * maddeleri BİLEREK YOK: böyle bir akış bulunmuyor. Var olmayan bir
+ * ödeme için cayma hakkı yazmak yanlış beyandır. Eklendiğinde ayrı
+ * bölüm yazılıp sürüm artırılacak."
+ *
+ * O talimat bu turda tetiklendi: PayTR başvurusu için ticari satış
+ * belgeleri yazıldı ve üyelik akışı kuruldu. 12. bölüm eklendi,
+ * sonraki bölüm numaraları kaydırıldı, sürüm artırıldı.
+ *
+ * ⚠️ REKLAM maddeleri HÂLÂ YOK ve bu doğru — reklam gösterimi
+ * bulunmuyor. Reklam eklendiği gün bu bölüm, `StorageNotice`'taki
+ * "üçüncü taraf izleme aracı yok" cümlesi ve çerez politikası AYNI
+ * ANDA güncellenmeli.
+ *
+ * ⚠️ Ayrıntılı ticari şartlar ayrı belgelerde: Mesafeli Hizmet
+ * Sözleşmesi, Ön Bilgilendirme Formu, Teslimat/İptal/İade ve Abonelik
+ * Koşulları. Buradaki 12. bölüm onlara işaret ediyor; ikisi ayrışırsa
+ * hangisinin bağlayıcı olduğu tartışmalı hâle gelir.
  */
 
 export default {
@@ -224,8 +241,31 @@ export default {
     },
 
     {
+      id: 'abonelik',
+      baslik: '12. Üyelik, ücretlendirme ve iptal',
+      paragraflar: [
+        'LocalKarar üyeliği ücretlidir. Ücretlendirme başlamadan önce tanınan ücretsiz ' +
+        'kullanım dönemi, bedeller, tahsilat dönemleri ve kurucu üye indiriminin ' +
+        'niteliği Abonelik ve Faturalandırma Koşulları metninde ayrıntılı olarak ' +
+        'düzenlenmiştir.',
+        'Satın alma işlemi, Mesafeli Hizmet Sözleşmesi ve Ön Bilgilendirme Formu ' +
+        'kapsamında gerçekleşir. Ödeme adımında bu belgeleri ve hizmetin derhal ' +
+        'ifasına ilişkin onayı ayrı ayrı vermeniz istenir.',
+        'Üyeliğinizi dilediğiniz zaman, uygulama içinden Ayarlar → Üyelik ve ' +
+        'Faturalandırma bölümünden, gerekçe göstermeksizin sona erdirebilirsiniz. ' +
+        'İptal hâlinde bedeli ödenmiş dönemin sonuna kadar erişiminiz sürer; ' +
+        'kullanılmayan günler için kısmi iade yapılmaz.',
+        'Ücretsiz kullanım dönemi sona erdiğinde ya da tahsilat gerçekleşmediğinde ' +
+        'hesabınız salt okunur moda geçer. Verileriniz durur, görüntülenebilir ve ' +
+        'dışa aktarılabilir kalır; hiçbir veriniz silinmez.',
+        'Bedel değişiklikleri yürürlüğe girmeden önce size bildirilir ve yürürlükteki ' +
+        'dönemin bedeli o dönem içinde değiştirilmez.'
+      ]
+    },
+
+    {
       id: 'fikri-mulkiyet',
-      baslik: '12. Fikri mülkiyet',
+      baslik: '13. Fikri mülkiyet',
       paragraflar: [
         'Uygulamanın arayüzü, yazılımı, eğitim içerikleri, karar araçları ve hesaplama ' +
         'şablonları üzerindeki haklar saklıdır.',
@@ -238,7 +278,7 @@ export default {
 
     {
       id: 'hizmet-degisiklikleri',
-      baslik: '13. Hizmette değişiklik, askıya alma ve sona erdirme',
+      baslik: '14. Hizmette değişiklik, askıya alma ve sona erdirme',
       paragraflar: [
         'Özellikler eklenebilir, değiştirilebilir veya kaldırılabilir. Kullanımınızı ' +
         'esaslı biçimde etkileyen değişiklikler uygun kanallardan duyurulur.',
@@ -250,7 +290,7 @@ export default {
 
     {
       id: 'sorumluluk',
-      baslik: '14. Sorumluluğun sınırı',
+      baslik: '15. Sorumluluğun sınırı',
       paragraflar: [
         'Hizmet kesintisiz ve hatasız olacağı taahhüt edilmeden sunulur. Bakım, ' +
         'sağlayıcı arızası veya güvenlik gereklilikleri nedeniyle geçici kesintiler ' +
@@ -264,7 +304,7 @@ export default {
 
     {
       id: 'hesap-sonu',
-      baslik: '15. Hesabınızı sona erdirmeniz',
+      baslik: '16. Hesabınızı sona erdirmeniz',
       paragraflar: [
         'Hesabınızı istediğiniz zaman Ayarlar sayfasından silebilirsiniz.',
         'Tek sahibi olduğunuz bir işletme çalışma alanı varsa, önce başka bir üyeyi ' +
@@ -276,7 +316,7 @@ export default {
 
     {
       id: 'uygulanacak-hukuk',
-      baslik: '16. Uygulanacak hukuk ve yetkili yargı yeri',
+      baslik: '17. Uygulanacak hukuk ve yetkili yargı yeri',
       paragraflar: [
         'Bu koşullara Türk hukuku uygulanır.',
         'Uyuşmazlıklarda Ankara mahkemeleri ve icra daireleri yetkilidir. Tüketici ' +
@@ -287,7 +327,7 @@ export default {
 
     {
       id: 'yururluk',
-      baslik: '17. Yürürlük ve değişiklikler',
+      baslik: '18. Yürürlük ve değişiklikler',
       paragraflar: [
         'Bu koşullar, hesabınızı oluşturduğunuz anda yürürlüğe girer.',
         'Koşullar güncellendiğinde yeni bir sürüm numarasıyla yayımlanır; Ayarlar’daki ' +

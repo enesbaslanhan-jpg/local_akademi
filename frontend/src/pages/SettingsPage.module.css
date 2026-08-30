@@ -20,12 +20,13 @@
 .settingsNav button:hover, .settingsNav button:focus-visible, .settingsNav .activeNav { background: var(--primary-light); color: var(--primary-dark); }
 .settingsNav .activeNav { box-shadow: inset 3px 0 var(--primary); }
 .flow { display: grid; gap: 15px; min-width: 0; }
-.show_profile > :global(#karsilama-turu), .show_profile > :global(#eposta), .show_profile > :global(#guvenlik), .show_profile > :global(#gorunum), .show_profile > :global(#bildirimler), .show_profile > :global(#yasal), .show_profile > :global(#hesap-sil), .show_profile > :global(#uygulama), .show_profile > :global(#entegrasyonlar) { display: none; }
+.show_profile > :global(#karsilama-turu), .show_profile > :global(#eposta), .show_profile > :global(#guvenlik), .show_profile > :global(#gorunum), .show_profile > :global(#bildirimler), .show_profile > :global(#yasal), .show_profile > :global(#hesap-sil), .show_profile > :global(#uygulama), .show_profile > :global(#entegrasyonlar), .show_profile > :global(#uyelik) { display: none; }
 .show_notifications > :not(:global(#bildirimler)) { display: none; }
 .show_appearance > :not(:global(#gorunum)):not(:global(#karsilama-turu)) { display: none; }
-.show_security > :global(#karsilama-turu), .show_security > :global(#hesap), .show_security > :global(#gorunum), .show_security > :global(#bildirimler), .show_security > :global(#isletme-ayarlari), .show_security > :global(#isletme-profili), .show_security > :global(#yasal), .show_security > :global(#uygulama), .show_security > :global(#entegrasyonlar) { display: none; }
-.show_privacy > :global(#karsilama-turu), .show_privacy > :global(#hesap), .show_privacy > :global(#eposta), .show_privacy > :global(#guvenlik), .show_privacy > :global(#gorunum), .show_privacy > :global(#bildirimler), .show_privacy > :global(#isletme-ayarlari), .show_privacy > :global(#isletme-profili) { display: none; }
+.show_security > :global(#karsilama-turu), .show_security > :global(#hesap), .show_security > :global(#gorunum), .show_security > :global(#bildirimler), .show_security > :global(#isletme-ayarlari), .show_security > :global(#isletme-profili), .show_security > :global(#yasal), .show_security > :global(#uygulama), .show_security > :global(#entegrasyonlar), .show_security > :global(#uyelik) { display: none; }
+.show_privacy > :global(#karsilama-turu), .show_privacy > :global(#hesap), .show_privacy > :global(#eposta), .show_privacy > :global(#guvenlik), .show_privacy > :global(#gorunum), .show_privacy > :global(#bildirimler), .show_privacy > :global(#isletme-ayarlari), .show_privacy > :global(#isletme-profili), .show_privacy > :global(#uyelik) { display: none; }
 .show_integrations > :not(:global(#entegrasyonlar)) { display: none; }
+.show_uyelik > :not(:global(#uyelik)) { display: none; }
 .card { overflow: hidden; scroll-margin-top: calc(var(--header-height) + 18px); border: 1px solid var(--border); border-radius: 17px; background: var(--surface-card); box-shadow: var(--shadow-card); }
 .cardHeader { display: flex; align-items: flex-start; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--surface-panel) 70%, transparent); }
 .cardHeader > span { display: grid; place-items: center; flex: 0 0 auto; width: 36px; height: 36px; border-radius: 11px; background: var(--primary-light); color: var(--primary-dark); }
@@ -78,6 +79,11 @@
 .consentInfo { display: grid; gap: 10px; }
 .consentDocument { display: grid; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .consentDocumentTitle { color: var(--text); font-size: .84rem; }
+/* "Metni oku": metin penceresi açılmadan onay kutusunun yanında duran
+   tek düğme. Aydınlatılmış onay, kabul edilen metnin erişilebilir
+   olmasını gerektirdiği için eklendi. */
+.consentReadButton { justify-self: start; margin: 4px 0 2px; padding: 3px 0; border: 0; background: none; color: var(--primary); font-size: .78rem; font-weight: 700; cursor: pointer; text-decoration: underline; }
+.consentReadButton:hover { color: var(--primary-hover); }
 .consentLoading, .consentError { padding: 12px; border-radius: 8px; font-size: .8rem; }
 .consentLoading { color: var(--text-light); background: var(--surface-panel); }
 .consentError { color: var(--danger); background: var(--danger-bg); border: 1px solid var(--danger); }

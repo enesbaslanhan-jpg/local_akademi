@@ -66,6 +66,15 @@
 
 .statusText { position: relative; z-index: 1; }
 
+/* Etiket ve kurucu rozeti aynı satırda; rozet yoksa satır tek
+   öğeyle aynı görünür (boşluk flex gap ile geliyor). */
+.statusEyebrowSatiri {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .statusEyebrow {
   display: inline-flex;
   min-height: 24px;

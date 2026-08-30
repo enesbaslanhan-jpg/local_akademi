@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/services/api'
 import { Card, CardHeader, CardTitle, Badge, Button, Progress, Loading, EmptyState } from '@/components/ui'
 import { Map, BookOpen, Brain, HelpCircle, CheckCircle, ArrowRight, Zap, RefreshCw } from 'lucide-react'
@@ -25,6 +26,7 @@ const CATEGORY_ICONS = {
 }
 
 export default function PilotLearningPathPage() {
+  const { t } = useTranslation('learning')
   const navigate = useNavigate()
   const [path, setPath] = useState(null)
   const [steps, setSteps] = useState([])
@@ -101,7 +103,7 @@ export default function PilotLearningPathPage() {
       }
     } catch (err) {
       if (!mountedRef.current) return
-      setError(err.message || 'Pilot program oluşturulamadı')
+      setError(err.message || t('path.pilot.errorGenerate'))
     } finally {
       if (mountedRef.current) setGenerating(false)
     }
@@ -112,7 +114,7 @@ export default function PilotLearningPathPage() {
   if (loading) {
     return (
       <div className={styles.page}>
-        <Loading text="Pilot program yükleniyor..." fullPage />
+        <Loading text={t('path.pilot.loading')} fullPage />
       </div>
     )
   }
@@ -121,11 +123,11 @@ export default function PilotLearningPathPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <div>
-          <h1 className="sr-only">Pilot Öğrenme Programı</h1>
-          <p className={styles.subtitle}>6 kategoride 30 bilgi nesnesi ile kapsamlı öğrenme yolu</p>
+          <h1 className="sr-only">{t('path.pilot.srTitle')}</h1>
+          <p className={styles.subtitle}>{t('path.pilot.subtitle')}</p>
         </div>
         <Button variant="primary" size="sm" onClick={handleGeneratePilot} disabled={generating}>
-          <RefreshCw size={16} /> {generating ? 'Oluşturuluyor...' : 'Programı Oluştur'}
+          <RefreshCw size={16} /> {generating ? t('path.generating') : t('path.pilot.generate')}
         </Button>
       </div>
 
@@ -135,10 +137,10 @@ export default function PilotLearningPathPage() {
         <div className={styles.emptySection}>
           <EmptyState
             icon={<Map size={48} />}
-            title="Henüz pilot program oluşturulmamış"
-            message="6 kategoriden oluşan pilot öğrenme programını başlatmak için yukarıdaki butonu kullanın."
+            title={t('path.pilot.emptyTitle')}
+            message={t('path.pilot.emptyMessage')}
             action
-            actionLabel="Programı Oluştur"
+            actionLabel={t('path.pilot.generate')}
             onAction={handleGeneratePilot}
           />
         </div>
@@ -148,15 +150,15 @@ export default function PilotLearningPathPage() {
             <div className={styles.summaryStats}>
               <div className={styles.summaryItem}>
                 <span className={styles.summaryValue}>{steps.length}</span>
-                <span className={styles.summaryLabel}>Kategori</span>
+                <span className={styles.summaryLabel}>{t('path.pilot.summaryCategories')}</span>
               </div>
               <div className={styles.summaryItem}>
                 <span className={styles.summaryValue}>{steps.reduce((s, st) => s + (st.kos?.length || 0), 0)}</span>
-                <span className={styles.summaryLabel}>Bilgi Nesnesi</span>
+                <span className={styles.summaryLabel}>{t('path.pilot.summaryObjects')}</span>
               </div>
               <div className={styles.summaryItem}>
-                <span className={styles.summaryValue}>%{overallProgress}</span>
-                <span className={styles.summaryLabel}>Genel İlerleme</span>
+                <span className={styles.summaryValue}>{t('path.pilot.percentShort', { value: overallProgress })}</span>
+                <span className={styles.summaryLabel}>{t('path.pilot.summaryOverall')}</span>
               </div>
             </div>
             <Progress value={overallProgress} size="lg" variant="primary" showLabel />
@@ -184,7 +186,7 @@ export default function PilotLearningPathPage() {
                       </div>
                       <div className={styles.stepMeta}>
                         <Badge variant={isCompleted ? 'success' : step.progress > 0 ? 'warning' : 'info'}>
-                          {isCompleted ? 'Tamamlandı' : step.progress > 0 ? `%${step.progress}` : `${kos.length} konu`}
+                          {isCompleted ? t('path.badgeCompleted') : step.progress > 0 ? t('path.pilot.percentShort', { value: step.progress }) : t('path.pilot.stepTopics', { count: kos.length })}
                         </Badge>
                       </div>
                     </div>
@@ -213,7 +215,7 @@ export default function PilotLearningPathPage() {
                             <div className={styles.koActions}>
                               <button
                                 className={styles.koActionBtn}
-                                title="Flashcard çalış"
+                                title={t('flashcardStudyAria')}
                                 onClick={() => navigate(`/app/flashcards/study/${ko.koId}`)}
                                 hidden={!featureFlags.legacyFlashcards}
                               >
@@ -221,7 +223,7 @@ export default function PilotLearningPathPage() {
                               </button>
                               <button
                                 className={styles.koActionBtn}
-                                title="Quiz çöz"
+                                title={t('quizStudyAria')}
                                 onClick={() => navigate(`/app/quiz/take/${ko.koId}`)}
                                 hidden={!featureFlags.legacyQuiz}
                               >
@@ -230,7 +232,7 @@ export default function PilotLearningPathPage() {
                               {ko.code && (
                                 <button
                                   className={styles.koActionBtn}
-                                  title="KO detayı"
+                                  title={t('koDetailTitle')}
                                   onClick={() => navigate(`/app/knowledge/${ko.code}`)}
                                 >
                                   <BookOpen size={14} />

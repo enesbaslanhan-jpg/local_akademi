@@ -83,6 +83,7 @@ model User {
   updatedBusinessRecords    BusinessRecord[]         @relation("UpdatedBusinessRecords")
   businessReminders         BusinessReminder[]
   businessNotifications     BusinessNotification[]
+  accountNotifications      AccountNotification[]
   financialModelRuns        FinancialModelRun[]
   decisionJournalEntries    DecisionJournalEntry[]
   DecisionCheckSession      DecisionCheckSession[]
@@ -95,7 +96,7 @@ model User {
   consents                  UserConsent[]
   refreshTokens             RefreshToken[]
   addedInboxSenders         BusinessInboxSender[]
-  createdIntegrations       IntegrationConnection[] @relation("IntegrationConnections")
+  createdIntegrations       IntegrationConnection[]  @relation("IntegrationConnections")
 
   @@index([deletedAt])
 }
@@ -329,6 +330,40 @@ model CommunityNotification {
   actor  User?            @relation("CommunityNotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
   post   CommunityPost?   @relation(fields: [postId], references: [id], onDelete: Cascade)
   thread CommunityThread? @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+}
+
+/// HESAP BILDIRIMI (uyelik, odeme, guvenlik).
+///
+/// UCUNCU bildirim tablosu. Sebebi olculdu, tercih degil:
+///
+///   * BusinessNotification: workspaceId ZORUNLU. Isletmesi olmayan
+///     kullanici uyelik uyarisi hic alamazdi; iki isletmesi olan ayni
+///     uyariyi iki kez alirdi. Uyelik ise kullanici bazlidir.
+///   * CommunityNotification: kullanici bazli ama turleri sosyal
+///     (follow / like / reply ...) ve dedupeKey YOK. Uretici belirli
+///     araliklarla calistigi icin ayni "5 gun kaldi" uyarisi her
+///     turda yeniden duserdi.
+///
+/// dedupeKey bu yuzden zorunlu degil ama @unique: uretici ayni olayi
+/// ikinci kez yazmaya calistiginda veritabani durduruyor.
+model AccountNotification {
+  id        String    @id @default(uuid())
+  userId    Int
+  /// trial_ending | trial_ended | payment_succeeded | payment_failed |
+  /// renewal_upcoming | membership_cancelled
+  type      String
+  title     String
+  body      String
+  /// Tiklaninca gidilecek uygulama ici yol (or. /app/settings#uyelik).
+  linkTo    String?
+  /// Ayni olayin tekrar yazilmasini engelleyen anahtar.
+  dedupeKey String?   @unique
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, readAt, createdAt])
 }
@@ -760,6 +795,9 @@ model UserPreference {
   compactMode         Boolean            @default(false)
   activityLimit       Int                @default(50)
   activeWorkspaceId   String?
+  /// UI language is user-scoped and deliberately independent from
+  /// BusinessSetting.locale, which controls number/date formatting.
+  uiLanguage          String             @default("tr")
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
   user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -2008,6 +2046,7 @@ enum IntegrationProvider {
   HEPSIBURADA
   N11
   SHOPIFY
+  AMAZON
   WOOCOMMERCE
 }
 
@@ -2047,29 +2086,29 @@ enum MarketplaceOrderStatus {
 /// Pazaryeri baglantisi. Bir workspace + provider + harici hesap
 /// kombinasyonu icin TEK satir vardir.
 model IntegrationConnection {
-  id                    String                     @id @default(uuid())
-  workspaceId           String
-  createdByUserId       Int
-  provider              IntegrationProvider
+  id                      String                      @id @default(uuid())
+  workspaceId             String
+  createdByUserId         Int
+  provider                IntegrationProvider
   /// Provider tarafindaki hesap kimligi (orn. Trendyol sellerId).
-  externalAccountId     String
-  displayName           String?
+  externalAccountId       String
+  displayName             String?
   // Sifreli credential'lar. Anahtar DB'de ve repoda DEGIL, env'de.
-  encryptedApiKey       String?
-  encryptedApiSecret    String?
-  encryptedAccessToken  String?
-  encryptedRefreshToken String?
-  status                IntegrationConnectionStatus @default(PENDING)
-  lastSyncedAt          DateTime?
-  lastSuccessfulSyncAt  DateTime?
-  lastErrorCode         String?
-  lastErrorAt           DateTime?
+  encryptedApiKey         String?
+  encryptedApiSecret      String?
+  encryptedAccessToken    String?
+  encryptedRefreshToken   String?
+  status                  IntegrationConnectionStatus @default(PENDING)
+  lastSyncedAt            DateTime?
+  lastSuccessfulSyncAt    DateTime?
+  lastErrorCode           String?
+  lastErrorAt             DateTime?
   /// Art arda basarisiz sync sayisi. Esik asilinca zamanlanmis sync
   /// atlanir (circuit breaker); manuel sync denemesi sayaci dusurur.
-  consecutiveFailureCount Int                      @default(0)
-  syncEnabled           Boolean                    @default(true)
+  consecutiveFailureCount Int                         @default(0)
+  syncEnabled             Boolean                     @default(true)
   /// Baglantiye ozel periyot. Null ise env varsayilani kullanilir.
-  syncIntervalMinutes   Int?
+  syncIntervalMinutes     Int?
   // Bu pazaryeri odemeyi kac GUN sonra yapiyor (kullanicinin bilgisi).
   //
   // 🔴 NEDEN KULLANICIYA SORULUYOR: odeme tarihi hicbir saglayicinin
@@ -2079,12 +2118,12 @@ model IntegrationConnection {
   //
   // NULL = vade yazilmaz. Kayit yine olusur ve Kayitlar'da gorunur,
   // ama takvime ve 30 gunluk tahsilat toplamina girmez.
-  payoutDelayDays       Int?
-  createdAt             DateTime                   @default(now())
-  updatedAt             DateTime                   @updatedAt
+  payoutDelayDays         Int?
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
 
-  workspace BusinessWorkspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  createdBy User                  @relation("IntegrationConnections", fields: [createdByUserId], references: [id])
+  workspace BusinessWorkspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy User                 @relation("IntegrationConnections", fields: [createdByUserId], references: [id])
   syncRuns  IntegrationSyncRun[]
 
   @@unique([workspaceId, provider, externalAccountId])
@@ -2095,21 +2134,21 @@ model IntegrationConnection {
 /// Tek bir sync calistirmasinin kaydi. Paralel calismayi engellemek
 /// icin RUNNING satiri ayni zamanda kilit gorevi gorur.
 model IntegrationSyncRun {
-  id                String                   @id @default(uuid())
-  connectionId      String
-  provider          IntegrationProvider
-  syncType          IntegrationSyncType
-  startedAt         DateTime                 @default(now())
-  finishedAt        DateTime?
-  status            IntegrationSyncRunStatus @default(RUNNING)
-  recordsFetched    Int                      @default(0)
-  recordsCreated    Int                      @default(0)
-  recordsUpdated    Int                      @default(0)
-  recordsSkipped    Int                      @default(0)
-  errorCode         String?
-  errorMessageSafe  String?
-  cursor            String?
-  createdAt         DateTime                 @default(now())
+  id               String                   @id @default(uuid())
+  connectionId     String
+  provider         IntegrationProvider
+  syncType         IntegrationSyncType
+  startedAt        DateTime                 @default(now())
+  finishedAt       DateTime?
+  status           IntegrationSyncRunStatus @default(RUNNING)
+  recordsFetched   Int                      @default(0)
+  recordsCreated   Int                      @default(0)
+  recordsUpdated   Int                      @default(0)
+  recordsSkipped   Int                      @default(0)
+  errorCode        String?
+  errorMessageSafe String?
+  cursor           String?
+  createdAt        DateTime                 @default(now())
 
   connection IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
 
@@ -2121,33 +2160,33 @@ model IntegrationSyncRun {
 /// DEGIL, kendi tablosunda tutulur; ihtiac duyulursa ayri projection
 /// katmanindan uretilir. Tutar alanlarinda Float KULLANILMAZ.
 model MarketplaceOrder {
-  id                   String                @id @default(uuid())
-  workspaceId          String
-  provider             IntegrationProvider
-  externalId           String
-  externalOrderNumber  String?
-  externalCustomerId   String?
+  id                  String                 @id @default(uuid())
+  workspaceId         String
+  provider            IntegrationProvider
+  externalId          String
+  externalOrderNumber String?
+  externalCustomerId  String?
   /// PII minimize edildi: ad + soyadin bas harfi (orn. "Ayse K.").
-  customerDisplayName  String?
-  currency             String                @default("TRY")
-  grossAmount          Decimal               @db.Decimal(18, 2)
-  discountAmount       Decimal?              @db.Decimal(18, 2)
+  customerDisplayName String?
+  currency            String                 @default("TRY")
+  grossAmount         Decimal                @db.Decimal(18, 2)
+  discountAmount      Decimal?               @db.Decimal(18, 2)
   /// Provider gercek komisyon TUTARI vermiyorsa null kalir;
   /// yuzdeden tahmin uydurulmaz.
-  commissionAmount     Decimal?              @db.Decimal(18, 2)
-  shippingAmount       Decimal?              @db.Decimal(18, 2)
-  refundAmount         Decimal?              @db.Decimal(18, 2)
-  taxAmount            Decimal?              @db.Decimal(18, 2)
+  commissionAmount    Decimal?               @db.Decimal(18, 2)
+  shippingAmount      Decimal?               @db.Decimal(18, 2)
+  refundAmount        Decimal?               @db.Decimal(18, 2)
+  taxAmount           Decimal?               @db.Decimal(18, 2)
   /// gross - discount - commission - shipping - refund. Verilerden
   /// herhangi biri yoksa null (sahte 0 ile yaniltma yasak).
-  netContribution      Decimal?              @db.Decimal(18, 2)
-  status               MarketplaceOrderStatus @default(UNKNOWN)
-  orderDate            DateTime
-  providerUpdatedAt    DateTime?
-  syncedAt             DateTime              @default(now())
-  metadata             Json?
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
+  netContribution     Decimal?               @db.Decimal(18, 2)
+  status              MarketplaceOrderStatus @default(UNKNOWN)
+  orderDate           DateTime
+  providerUpdatedAt   DateTime?
+  syncedAt            DateTime               @default(now())
+  metadata            Json?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
 
   workspace BusinessWorkspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   items     MarketplaceOrderItem[]
@@ -2159,7 +2198,7 @@ model MarketplaceOrder {
 }
 
 model MarketplaceOrderItem {
-  id                 String    @id @default(uuid())
+  id                 String   @id @default(uuid())
   orderId            String
   externalId         String?
   externalProductId  String?
@@ -2167,16 +2206,16 @@ model MarketplaceOrderItem {
   barcode            String?
   title              String
   quantity           Int
-  unitPrice          Decimal   @db.Decimal(18, 2)
-  grossAmount        Decimal   @db.Decimal(18, 2)
-  discountAmount     Decimal?  @db.Decimal(18, 2)
-  commissionAmount   Decimal?  @db.Decimal(18, 2)
-  shippingAllocation Decimal?  @db.Decimal(18, 2)
-  refundAmount       Decimal?  @db.Decimal(18, 2)
-  netContribution    Decimal?  @db.Decimal(18, 2)
+  unitPrice          Decimal  @db.Decimal(18, 2)
+  grossAmount        Decimal  @db.Decimal(18, 2)
+  discountAmount     Decimal? @db.Decimal(18, 2)
+  commissionAmount   Decimal? @db.Decimal(18, 2)
+  shippingAllocation Decimal? @db.Decimal(18, 2)
+  refundAmount       Decimal? @db.Decimal(18, 2)
+  netContribution    Decimal? @db.Decimal(18, 2)
   metadata           Json?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   order MarketplaceOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -2184,36 +2223,36 @@ model MarketplaceOrderItem {
 }
 
 model MarketplaceProduct {
-  id                String               @id @default(uuid())
-  workspaceId       String
-  provider          IntegrationProvider
-  externalId        String
-  sku               String?
-  barcode           String?
-  title             String
-  brand             String?
-  category          String?
-  salePrice         Decimal?             @db.Decimal(18, 2)
-  listPrice         Decimal?             @db.Decimal(18, 2)
-  stockQuantity     Int?
-  currency          String?
-  isActive          Boolean              @default(true)
+  id                        String              @id @default(uuid())
+  workspaceId               String
+  provider                  IntegrationProvider
+  externalId                String
+  sku                       String?
+  barcode                   String?
+  title                     String
+  brand                     String?
+  category                  String?
+  salePrice                 Decimal?            @db.Decimal(18, 2)
+  listPrice                 Decimal?            @db.Decimal(18, 2)
+  stockQuantity             Int?
+  currency                  String?
+  isActive                  Boolean             @default(true)
   /// Provider'in gercek urun gorseli (https URL). Provider saglamiyorsa
   /// null kalir; sahte resim uretilmez. Sync tarafindan yonetilir.
-  imageUrl          String?
-  images            Json?
-  providerUpdatedAt DateTime?
-  syncedAt          DateTime             @default(now())
-  metadata          Json?
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
+  imageUrl                  String?
+  images                    Json?
+  providerUpdatedAt         DateTime?
+  syncedAt                  DateTime            @default(now())
+  metadata                  Json?
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
   /// --- LocalKarar YEREL AYARLARI ---
   /// Bunlar isletmenin kendi notlaridir; provider sync'i bu alanlari
   /// ASLA ezmez (repository upsert update path'inde bulunmaz).
-  internalNote      String?
-  tags              Json?
+  internalNote              String?
+  tags                      Json?
   lowStockThresholdOverride Int?
-  isFavorite        Boolean              @default(false)
+  isFavorite                Boolean             @default(false)
 
   workspace BusinessWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 

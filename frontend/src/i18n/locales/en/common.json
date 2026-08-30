@@ -1,0 +1,926 @@
+{
+  "brand": "LocalKarar",
+  "nav": {
+    "mobileDecisionTools": "Decisions",
+    "mobileCalculations": "Calculate",
+    "bottomNavigation": "Bottom navigation",
+    "dashboard": "Home",
+    "courses": "Courses",
+    "decisionTools": "Decision Tools",
+    "calculations": "Calculations",
+    "mentor": "AI Mentor",
+    "businessTracking": "Business Tracking",
+    "news": "News",
+    "community": "Community",
+    "settings": "Settings",
+    "help": "Help",
+    "saved": "Saved",
+    "management": "Management",
+    "logout": "Sign out",
+    "search": "Search menu",
+    "profile": "Profile",
+    "practicalCards": "Practical Cards",
+    "knowledgeObjects": "Knowledge Objects",
+    "myEnrollments": "My Enrollments",
+    "learningPath": "Learning Path",
+    "notifications": "Notifications",
+    "catalog": "Catalog",
+    "history": "History",
+    "feed": "Feed",
+    "followingAndBlocking": "Following and blocking",
+    "chats": "Chats",
+    "recommended": "Recommended",
+    "createNews": "Create news",
+    "startCalculation": "Start calculation",
+    "workspaceSection": "Workspace",
+    "otherSection": "Other",
+    "professionalCommunity": "Professional Community",
+    "admin": {
+      "dashboard": "Dashboard",
+      "knowledge": "Knowledge Objects",
+      "users": "Users",
+      "imports": "Bulk Import",
+      "community": "News & Community",
+      "audit": "Audit Logs"
+    }
+  },
+  "buttons": {
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "close": "Close",
+    "retry": "Try again",
+    "refresh": "Refresh",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "sync": "Sync now",
+    "viewAll": "View all",
+    "back": "Back",
+    "continue": "Continue"
+  },
+  "states": {
+    "loading": "Loading…",
+    "error": "Something went wrong.",
+    "empty": "No records yet.",
+    "none": "None",
+    "never": "Never",
+    "connected": "Connected",
+    "notConnected": "Not connected",
+    "comingSoon": "Coming soon",
+    "unknown": "Unknown"
+  },
+  "language": {
+    "uiLanguage": "Interface language",
+    "turkish": "Türkçe",
+    "english": "English",
+    "formatLocale": "Date and number format",
+    "formatHint": "Controls date, number, and currency display independently of the interface language.",
+    "saved": "Language preference saved.",
+    "saveError": "Language preference could not be saved; the previous language remains active."
+  },
+  "formatLocales": {
+    "tr-TR": "Türkiye",
+    "en-US": "English (United States)",
+    "en-GB": "English (United Kingdom)",
+    "de-DE": "Deutsch (Deutschland)"
+  },
+  "content": {
+    "turkishOnly": "Content available in Turkish."
+  },
+  "accessibility": {
+    "selection": "Selection",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "expandMenu": "Expand menu",
+    "collapseMenu": "Collapse menu",
+    "mainNavigation": "Main navigation",
+    "userActions": "User actions",
+    "submenu": "{{label}} submenu",
+    "switchToLightMode": "Switch to light mode",
+    "switchToDarkMode": "Switch to dark mode",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
+    "unreadNotifications_one": "Notifications — {{count}} unread",
+    "unreadNotifications_other": "Notifications — {{count}} unread",
+    "openNotifications": "Open notifications",
+    "openProfile": "Open {{name}} profile",
+    "openAccountSettings": "Open profile and account settings"
+  },
+  "search": {
+    "placeholder": "Search courses, decision tools, calculations…",
+    "label": "Search site",
+    "results": "Search results",
+    "searching": "Searching…",
+    "noResults": "No results found.",
+    "groups": {
+      "people": "People",
+      "posts": "Posts",
+      "courses": "Courses",
+      "knowledge": "Knowledge Objects",
+      "decisionTools": "Decision Tools",
+      "calculations": "Calculations",
+      "news": "News"
+    },
+    "localKararMember": "LocalKarar member",
+    "localKararUser": "LocalKarar user",
+    "calculationCatalog": "Calculation catalog",
+    "viewAllKnowledge": "View all results in the knowledge base"
+  },
+  "ui": {
+    "select": {
+      "emptyMessage": "No matching results",
+      "choose": "Select",
+      "searchPlaceholder": "Search...",
+      "searchAria": "Search options"
+    },
+    "dataTable": {
+      "emptyMessage": "No data found",
+      "previousPage": "Previous page",
+      "nextPage": "Next page"
+    },
+    "password": {
+      "show": "Show password",
+      "hide": "Hide password"
+    },
+    "searchBar": {
+      "placeholder": "Search...",
+      "action": "Search"
+    },
+    "confirm": {
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "noteLabel": "Explanation",
+      "noteRequired": "An explanation is required",
+      "processing": "Processing..."
+    },
+    "video": {
+      "title": "Video",
+      "play": "Play video",
+      "pause": "Pause video",
+      "unmute": "Unmute",
+      "mute": "Mute",
+      "openConversation": "Open video and conversation",
+      "position": "Video position",
+      "completed": "Completed",
+      "transcript": "Transcript",
+      "minutesShort_one": "{{count}} min",
+      "minutesShort_other": "{{count}} mins"
+    },
+    "imageViewer": {
+      "videoPreview": "Video preview",
+      "imagePreview": "Image preview",
+      "goBack": "Go back"
+    },
+    "flashcard": {
+      "again": "Again",
+      "hard": "Hard",
+      "good": "Good",
+      "easy": "Easy",
+      "cardCount_one": "{{count}} card",
+      "cardCount_other": "{{count}} cards",
+      "sessionComplete": "Congratulations! You completed every card in this session.",
+      "reviewed": "Reviewed",
+      "studyFullscreen": "Study Full Screen",
+      "empty": "No cards found.",
+      "percentComplete": "{{percent}}% complete",
+      "question": "Question",
+      "answer": "Answer",
+      "hint": "Hint",
+      "flipHint": "Tap/Enter → Flip"
+    },
+    "storage": {
+      "ariaLabel": "Browser storage notice",
+      "before": "LocalKarar",
+      "emphasis": "does not use its own analytics or advertising cookies",
+      "after": "and runs no third-party tracking tools. Your session and preferences are stored in your browser; Cloudflare may create a technical security cookie when needed.",
+      "details": "Details",
+      "dismiss": "Dismiss notice"
+    },
+    "task": {
+      "steps": "Practice steps",
+      "checklist": "Submission checklist",
+      "rubric": "Assessment criteria",
+      "start": "Start Task",
+      "answerPlaceholder": "Write your answer here...",
+      "saveDraft": "Save Draft",
+      "complete": "Complete",
+      "completed": "Completed",
+      "awaitingReview": "Awaiting review",
+      "minutesShort_one": "{{count}} min",
+      "minutesShort_other": "{{count}} mins",
+      "wordCount_one": "{{count}} word",
+      "wordCount_other": "{{count}} words",
+      "minimumWords_one": "at least {{count}} word",
+      "minimumWords_other": "at least {{count}} words",
+      "errors": {
+        "start": "Task could not be started",
+        "saveDraft": "Draft could not be saved",
+        "complete": "Task could not be completed",
+        "minimumWords": "Write at least {{minimum}} words to complete the task ({{count}}/{{minimum}})."
+      }
+    },
+    "quiz": {
+      "answerAll": "Please answer every question",
+      "submitError": "Quiz could not be submitted",
+      "passed": "You passed!",
+      "failed": "You did not pass",
+      "correctCount": "{{correct}}/{{total}} correct",
+      "questionNumber": "Question {{number}}",
+      "correctAnswer": "Correct answer",
+      "retry": "Try Again",
+      "noOptions": "No options found",
+      "submitting": "Submitting...",
+      "submit": "Submit Answers"
+    }
+  },
+  "settings": {
+    "eyebrow": "ACCOUNT CENTER",
+    "title": "Settings and Profile",
+    "subtitle": "Manage your profile, business, security, and accessibility preferences.",
+    "profileBusiness": "Profile and business",
+    "integrations": "Integrations",
+    "notifications": "Notifications",
+    "accessibility": "Accessibility",
+    "security": "Security",
+    "privacy": "Data and privacy",
+    "integrationDescription": "Connect your store to securely sync orders and products. Opening this page does not contact external sites.",
+    "sectionsAria": "Settings sections",
+    "uiLanguageDescription": "Choose the language used for navigation, forms, and system messages.",
+    "membership": {
+      "title": "Membership and Billing",
+      "description": "View your plan, price, and next payment date."
+    },
+    "avatar": {
+      "enlarge": "Enlarge profile photo",
+      "alt": "{{name}} profile photo",
+      "processing": "Processing…",
+      "change": "Change photo",
+      "add": "Add photo",
+      "remove": "Remove"
+    },
+    "account": {
+      "title": "Account information",
+      "description": "Basic identity information shown on your account."
+    },
+    "email": {
+      "title": "Email address",
+      "description": "Securely change your sign-in email using your current password.",
+      "passwordHint": "Required to verify the change."
+    },
+    "securitySection": {
+      "title": "Security",
+      "description": "Update your password regularly; the new password cannot match the old one."
+    },
+    "sessions": {
+      "title": "Active sessions",
+      "description": "If you lost a device or left your account signed in somewhere, you can close every other session without changing your password. This device remains signed in.",
+      "closing": "Closing…",
+      "signOutOthers": "Sign out other devices"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "description": "Your theme preference is stored on this device and applied to every LocalKarar screen.",
+      "lightDescription": "Light, cool, and highly readable.",
+      "darkDescription": "Dark surfaces with vivid cyan accents."
+    },
+    "welcomeTour": {
+      "title": "Welcome tour",
+      "description": "You can replay the short tour that introduces the app's sections.",
+      "resetting": "Resetting…",
+      "showAgain": "Show tour again"
+    },
+    "notificationsSection": {
+      "title": "Notifications",
+      "description": "Manage in-app alerts for approaching business record dates.",
+      "selectBusiness": "Select an active business to set notification preferences.",
+      "reminders": "Upcoming record reminders",
+      "remindersDescription": "Creates notifications when payments, collections, and other dated records approach."
+    },
+    "workspacePreferences": {
+      "title": "Business preferences",
+      "description": "Set date, number, and currency display for your active business.",
+      "createBusiness": "Create a business profile to edit these preferences.",
+      "goToTracking": "Go to Business Tracking"
+    },
+    "businessProfile": {
+      "title": "Business profile",
+      "description": "Keep the business context used by AI Mentor and Decision Tools up to date."
+    },
+    "fields": {
+      "displayName": "Display name",
+      "email": "Email",
+      "accountRole": "Account role",
+      "newEmail": "New email",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "repeatPassword": "Repeat new password",
+      "passwordMinimum": "At least 10 characters",
+      "timezone": "Time zone",
+      "currency": "Currency",
+      "weekStartsOn": "Week starts on",
+      "sector": "Industry",
+      "city": "City",
+      "businessStage": "Business stage",
+      "employeeCount": "Employee count",
+      "primaryGoal": "Primary goal"
+    },
+    "values": {
+      "user": "User",
+      "notSelected": "Not selected",
+      "roles": {
+        "admin": "Administrator",
+        "editor": "Editor",
+        "member": "Member"
+      },
+      "weekDays": {
+        "sunday": "Sunday",
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday"
+      },
+      "stages": {
+        "idea": "Idea stage",
+        "startup": "New business",
+        "growth": "Growth",
+        "established": "Established business"
+      }
+    },
+    "actions": {
+      "saveChanges": "Save changes",
+      "updating": "Updating…",
+      "changeEmail": "Change email",
+      "changePassword": "Change password",
+      "saveProfile": "Save profile"
+    },
+    "messages": {
+      "connectionInfoUnavailable": "Connection information unavailable",
+      "consentsAccepted": "The current Terms of Use and Privacy Notice were accepted.",
+      "consentsError": "Legal documents could not be accepted.",
+      "accountSaved": "Account information saved.",
+      "saveError": "Could not save.",
+      "avatarType": "Upload a PNG or JPEG photo only.",
+      "avatarSize": "Profile photos can be up to 5 MB.",
+      "avatarUpdated": "Your profile photo was updated.",
+      "avatarUploadError": "Photo could not be uploaded.",
+      "avatarRemoved": "Profile photo removed.",
+      "avatarRemoveError": "Photo could not be removed.",
+      "passwordMinimum": "The new password must be at least 10 characters.",
+      "passwordMismatch": "The new passwords do not match.",
+      "passwordUpdated": "Your password was updated. Sessions on other devices were closed.",
+      "passwordError": "Password could not be changed.",
+      "sessionsClosed": "All sessions on other devices were closed.",
+      "sessionsError": "Sessions could not be closed.",
+      "emailUpdated": "Your email address was updated.",
+      "emailError": "Email could not be changed.",
+      "deleteConfirmation": "Type HESABIMI SİL in the confirmation field.",
+      "deleteError": "Account could not be deleted.",
+      "workspaceSaved": "Business preferences saved.",
+      "businessProfileSaved": "Business profile saved.",
+      "tourReset": "The tour was reset. It will restart when you go to Home.",
+      "tourResetError": "The tour could not be reset."
+    },
+    "legal": {
+      "title": "Privacy and legal information",
+      "description": "Review how your data is processed and the LocalKarar terms of use.",
+      "about": "About LocalKarar",
+      "privacy": "Privacy and KVKK notice",
+      "terms": "Terms of use",
+      "cookies": "Cookie and local storage policy"
+    },
+    "consents": {
+      "title": "Consent information",
+      "description": "Current legal document versions and the versions you accepted.",
+      "loadError": "Information could not be loaded",
+      "readText": "Read text",
+      "currentVersion": "Current version",
+      "acceptedVersion": "Accepted version",
+      "notAccepted": "Not accepted yet",
+      "lastAccepted": "Last accepted",
+      "upToDate": "You accepted the current documents.",
+      "reviewRequired": "You need to review and accept the new legal documents.",
+      "pending": "Some legal documents were updated and await your consent.",
+      "acceptCurrent": "Accept current documents"
+    },
+    "deleteAccount": {
+      "title": "Delete account",
+      "description": "This disables your account, anonymizes your personal identity information, and signs you out.",
+      "warning": "If you are the sole owner of a business, assign another member as owner first. This action cannot be undone.",
+      "confirmationLabel": "Confirmation",
+      "deleting": "Deleting account…",
+      "action": "Permanently delete my account"
+    },
+    "appInfo": {
+      "title": "Application information",
+      "description": "Current status of connected LocalKarar services.",
+      "version": "Version",
+      "server": "Server",
+      "database": "Database",
+      "connection": "Connection",
+      "checking": "Checking…"
+    }
+  },
+  "tour": {
+    "ariaLabel": "Welcome tour",
+    "close": "Close tour",
+    "openingPage": "Opening page…",
+    "skip": "Skip tour",
+    "getStarted": "Get started",
+    "next": "Next",
+    "steps": {
+      "dashboard": {
+        "title": "Control Center",
+        "description": "This is where you land each time you sign in. Today's business status, upcoming work, and your unfinished course come together here — the figures come from Business Tracking."
+      },
+      "decisionTools": {
+        "title": "Decision Tools",
+        "description": "Work through questions such as whether your product is truly profitable or whether to raise prices. Answer each question to reach a reasoned conclusion."
+      },
+      "businessTracking": {
+        "title": "Business Tracking",
+        "description": "Keep income, expenses, accounts, and documents here. When you upload an invoice, LocalKarar reads the amounts and suggests records — nothing is saved without your approval."
+      },
+      "mentor": {
+        "title": "AI Mentor",
+        "description": "Ask about anything that has you stuck. It answers using course content and, if configured, your business figures, and shows its sources."
+      },
+      "community": {
+        "title": "Community",
+        "description": "Meet people running similar businesses. Posts publish immediately; you can reply, like, or quote them, and remove your own posts whenever you want."
+      }
+    }
+  },
+  "verificationBanner": {
+    "title": "Your email address is not verified.",
+    "description": "Verify it so we can send you a reset link if you forget your password.",
+    "sendError": "The code could not be sent.",
+    "sending": "Sending…",
+    "verify": "Verify",
+    "dismiss": "Hide for this session"
+  },
+  "consentBanner": {
+    "title": "Legal documents have been updated.",
+    "description": "You need to read and accept the current documents before continuing.",
+    "saveError": "Consent could not be saved.",
+    "readDocument": "Read {{title}}",
+    "accepting": "Accepting…",
+    "accept": "I have read and accept"
+  },
+  "contextPanel": {
+    "myBusinesses": "My businesses",
+    "ariaLabel": "{{title}} context panel",
+    "searchPlaceholder": "Search this page",
+    "searchAria": "Search within {{title}}",
+    "subnavAria": "{{title}} sub-navigation"
+  },
+  "legal": {
+    "kicker": "Legal information",
+    "effectiveVersion": "Effective date: {{date}} · Version {{version}}",
+    "contents": "Contents",
+    "documents": {
+      "privacy": "Privacy and KVKK Notice",
+      "terms": "Terms of Use",
+      "cookies": "Cookie and Local Storage Policy",
+      "preInfo": "Pre-Contract Information Form",
+      "distanceSale": "Distance Service Agreement",
+      "deliveryRefund": "Delivery, Cancellation and Refund Terms",
+      "subscription": "Subscription and Billing Terms"
+    },
+    "turkishOnly": "This document is published in Turkish only. It is a binding contract governed by Turkish law, so no translation is provided."
+  },
+  "legacy": {
+    "decisionTools": "Decision Tools",
+    "practicalCards": "Practical Cards",
+    "title": "The {{feature}} experience has been updated",
+    "description": "This legacy workspace is no longer used in the standard learning flow. Your saved history is preserved; continue new work with {{replacement}}.",
+    "goToReplacement": "Go to {{replacement}}",
+    "backToDashboard": "Back to Dashboard"
+  },
+  "about": {
+    "signIn": "Sign in",
+    "createAccount": "Create account",
+    "heroTitle": "Better decisions for your business",
+    "heroText": "LocalKarar is a decision-support application for small and medium-sized businesses. It helps you make decisions based on your own figures instead of guesswork.",
+    "freeAccount": "Create a free account",
+    "haveAccount": "I already have an account",
+    "audienceTitle": "Who is it for?",
+    "audienceText": "Designed for shop, workshop, e-commerce, and service business owners who want to track their figures without needing an accounting background. It works for solo businesses and small teams.",
+    "modulesTitle": "What's included?",
+    "limitsTitle": "What doesn't it do?",
+    "limitsText": "LocalKarar is not accounting software and does not replace professional legal, tax, accounting, or investment advice. Its results depend on the data you enter, and the decision remains yours.",
+    "closingTitle": "All you need to start is an account",
+    "closingText": "No setup is required. After creating an account, a few questions introduce your business.",
+    "modules": {
+      "decisionTools": {
+        "title": "Decision Tools",
+        "description": "Work through questions such as whether to raise prices or whether a product is truly profitable. Enter your own figures to reach a reasoned conclusion.",
+        "outcome": "Make decisions using your figures instead of guesswork.",
+        "bullets": {
+          "b1": "Choose a tool, such as whether you can offer a discount or free shipping",
+          "b2": "Enter your own costs, prices, and quantities",
+          "b3": "See which figures produced the result"
+        }
+      },
+      "businessTracking": {
+        "title": "Business Tracking",
+        "description": "Keep income, expenses, accounts, and documents in one place. Upload an invoice to read its amounts and suggest records—nothing is saved without your approval.",
+        "outcome": "See where money comes from and where it goes in one place.",
+        "bullets": {
+          "b1": "Record income and expenses and track accounts",
+          "b2": "Upload invoices to read amounts and suggest records",
+          "b3": "Nothing is written to your records until you approve it"
+        }
+      },
+      "mentor": {
+        "title": "AI Mentor",
+        "description": "Ask about anything that has you stuck. It answers using course content and, if configured, your business figures, and shows the source it relied on.",
+        "outcome": "Ask questions in your own words.",
+        "bullets": {
+          "b1": "Write your question; answers draw on the application's content library",
+          "b2": "Sources appear below the answer",
+          "b3": "Answers may be wrong; verify figures and regulations with official sources"
+        }
+      },
+      "calculations": {
+        "title": "Calculations",
+        "description": "Use ready-made templates for break-even points, profit margins, cash flow, and more. Enter your figures instead of memorizing formulas.",
+        "outcome": "Get results without memorizing formulas.",
+        "bullets": {
+          "b1": "Choose a template such as break-even, profit margin, or cash flow",
+          "b2": "Enter only your own figures",
+          "b3": "Read what the result means alongside it"
+        }
+      },
+      "courses": {
+        "title": "Courses",
+        "description": "Short, practical lessons. Each section explains one concept and links it to a tool where you can calculate it.",
+        "outcome": "Learn a concept and immediately apply it to your figures.",
+        "bullets": {
+          "b1": "Short sections, each covering one concept",
+          "b2": "Continue to the relevant calculation tool at the end",
+          "b3": "Your place is remembered"
+        }
+      },
+      "community": {
+        "title": "Community",
+        "description": "Learn from people running similar businesses. Posts publish immediately; you can reply, like, and quote them.",
+        "outcome": "Ask people who run similar businesses.",
+        "bullets": {
+          "b1": "Ask questions and share your experience",
+          "b2": "Continue conversations through replies, likes, and quotes",
+          "b3": "Remove your own posts whenever you want",
+          "b4": "Do not post business information you prefer to keep private"
+        }
+      }
+    },
+    "screen": {
+      "enlargeAria": "Enlarge {{label}} screenshot",
+      "imageAlt": "{{label}} screenshot",
+      "enlarge": "Enlarge and inspect",
+      "closeHint": "Press Escape or click outside to close.",
+      "closeAria": "Close image",
+      "largeAlt": "Large view of the {{label}} screen"
+    },
+    "footer": {
+      "help": "Help and contact",
+      "privacy": "Privacy and KVKK",
+      "terms": "Terms of use",
+      "cookies": "Cookies",
+      "note": "For questions and KVKK requests, use the contact channel in the Privacy Notice."
+    }
+  },
+  "support": {
+    "kicker": "Support",
+    "title": "Help and contact",
+    "intro": "Answers to common situations are below. If you cannot find what you need, complete the form and we will reply to the address you provide.",
+    "faqTitle": "Frequently asked questions",
+    "guideTitle": "User guide",
+    "guideIntro": "The application's main flow has five steps. You do not need to complete all of them; start with the section that helps you.",
+    "faq": {
+      "verificationEmail": {
+        "question": "I didn't receive the verification email. What should I do?",
+        "answer": "Check your spam and promotions folders first. The code is valid for 15 minutes; if it expires, request a new one from the banner in the app. If you entered the wrong address, change it in Settings."
+      },
+      "forgotPassword": {
+        "question": "I forgot my password.",
+        "answer": "Use the Forgot Password link on the sign-in screen. The link is valid for one hour and can be used once. Reset emails are sent only to verified addresses; you will not receive one before verifying your address."
+      },
+      "session": {
+        "question": "Why do I have to sign in every time?",
+        "answer": "Your session remains open for 30 days. If it ends earlier, you may have visited the site sometimes with “www” and sometimes without it—browsers treat them as separate sites. The address now redirects to one format; contact us if the issue continues."
+      },
+      "workspace": {
+        "question": "What is a business workspace for?",
+        "answer": "It is where you keep income, expenses, accounts, and documents. You can invite others to a business through a single-use link sent by email."
+      },
+      "invoice": {
+        "question": "How is a record created from an uploaded invoice?",
+        "answer": "The document text is read and a record is suggested. Nothing is written to your business records until you approve it. You can edit or reject the suggestion."
+      },
+      "mentor": {
+        "question": "Can I trust information from AI Mentor?",
+        "answer": "AI Mentor uses a language model and may produce confident but incorrect information. Where possible, it grounds answers in our content library and shows the source. Verify figures, rates, deadlines, and regulations with official sources before acting. AI Mentor does not replace an accountant or lawyer."
+      },
+      "data": {
+        "question": "Where is my data stored?",
+        "answer": "Our servers are in France. Mentor conversations are processed by Mistral AI in France and retained for 30 days for abuse monitoring; they are not used for model training. See the Privacy and KVKK Notice for details."
+      },
+      "deleteAccount": {
+        "question": "How do I delete my account?",
+        "answer": "Go to Settings → Delete account. If you are the sole owner of a business, assign another member as owner first. The Privacy Notice explains what happens to your data after deletion."
+      }
+    },
+    "topicTypes": {
+      "question": "Question",
+      "issue": "Report an issue",
+      "feedback": "Feedback",
+      "other": "Other"
+    },
+    "guide": {
+      "createBusiness": {
+        "title": "Create your business",
+        "steps": {
+          "s1": "Open Business Tracking from the menu",
+          "s2": "Select Create First Business or New Business",
+          "s3": "Enter the business name; industry and city are optional"
+        }
+      },
+      "addRecord": {
+        "title": "Add a record",
+        "description": "Payments, collections, promissory notes, shipments, and tasks stay in one business list.",
+        "steps": {
+          "s1": "Open your business and go to Records",
+          "s2": "Select Add record in the top right",
+          "s3": "Enter its type, amount, and date, then save"
+        }
+      },
+      "uploadDocument": {
+        "title": "Upload a document",
+        "description": "When you upload an invoice, its amounts are read and a record is suggested—nothing is saved without your approval.",
+        "steps": {
+          "s1": "Open the Documents tab in your business",
+          "s2": "Drag in a file or use Choose file / Take photo",
+          "s3": "Edit or reject the suggestion created from the extracted information"
+        }
+      },
+      "connectMarketplace": {
+        "title": "Connect your marketplace store",
+        "description": "Trendyol, Hepsiburada, N11, and Shopify are supported; Amazon is coming soon.",
+        "steps": {
+          "s1": "Open Settings → Integrations",
+          "s2": "Select Connect on the store card and enter your panel credentials",
+          "s3": "After syncing, orders appear in the Orders tab"
+        }
+      },
+      "askMentor": {
+        "title": "Ask AI Mentor",
+        "steps": {
+          "s1": "Open AI Mentor from the menu",
+          "s2": "Describe the issue in your own words",
+          "s3": "Verify figures and regulations in the answer with official sources"
+        }
+      }
+    },
+    "privacy": {
+      "title": "Requests about your personal data",
+      "beforeEmail": "Send KVKK requests to",
+      "afterEmail": ". The information you need to include is listed",
+      "link": "in the application section of the Privacy Notice",
+      "suffix": "."
+    },
+    "form": {
+      "title": "Contact us",
+      "name": "Your name",
+      "email": "Your email address",
+      "topicType": "What is your message about?",
+      "selectOptional": "Select (optional)",
+      "subject": "Subject",
+      "message": "Your message",
+      "messagePlaceholder": "Describe the issue as specifically as possible: which screen you were on, what you did, and what happened.",
+      "website": "Your website",
+      "success": "Your message was sent. We will reply to the email address you provided.",
+      "failed": "The message could not be sent. Please try again later.",
+      "privacyNote": "When you submit the form, your name, email address, and message are processed only to answer your request and forwarded by email; these messages are not stored in our database.",
+      "privacyLink": "Privacy Notice",
+      "sending": "Sending…",
+      "send": "Send"
+    },
+    "legalNavAria": "Legal documents",
+    "aboutLink": "About LocalKarar"
+  },
+  "billing": {
+    "founderMember": "Founding Member",
+    "perMonth": "{{price}}/month",
+    "pricePerMonth": "{{price}} / month",
+    "settings": {
+      "membershipStatus": "Membership status",
+      "freeUse": "Free access",
+      "billing": "Billing",
+      "notStarted": "Not started yet",
+      "freeNotice_one": "The first {{count}} month is free. We will notify you before billing begins.",
+      "freeNotice_other": "The first {{count}} months are free. We will notify you before billing begins.",
+      "viewPrices": "View pricing",
+      "plan": "Plan",
+      "status": "Status",
+      "active": "Active",
+      "trialDaysLeft_one": "{{count}} trial day left",
+      "trialDaysLeft_other": "{{count}} trial days left",
+      "expired": "Expired",
+      "currentPrice": "Current price",
+      "pricePeriod": "Price period",
+      "launchPeriod_one": "{{count}}-month launch period",
+      "launchPeriod_other": "{{count}}-month launch period",
+      "nextStandardPrice": "Next standard price",
+      "lockedPrice": "Your founder discount is permanent: you always pay {{percent}}% below the standard price.",
+      "managePayment": "Manage payment",
+      "invoices": "Invoices",
+      "cancelMembership": "Cancel membership",
+      "billingPeriod": "Billing period",
+      "periodMonthly": "Monthly",
+      "periodYearly": "Yearly",
+      "actionsPending": "Viewing invoices and cancelling will become available once the payment system is live."
+    },
+    "modal": {
+      "successTitle": "Your membership is active",
+      "successDescription": "You can continue where you left off in LocalKarar.",
+      "nextPaymentValue": "Next payment: {{date}} · {{price}}",
+      "backToLocalKarar": "Back to LocalKarar",
+      "title": "Activate your LocalKarar membership",
+      "summaryAria": "Payment summary",
+      "dueToday": "Due today",
+      "nextPayment": "Next payment",
+      "fromMonth": "From month {{month}}",
+      "lockedPrice": "Your founder discount is permanent: even if the standard price rises, you always pay {{percent}}% less.",
+      "paymentAreaAria": "Payment area",
+      "securePaymentTitle": "Secure payment area",
+      "securePaymentDescription": "Payment setup is in progress. Once enabled, your card details will be requested here using PayTR’s secure form.",
+      "securityNote": "PayTR processes your card details. They never reach LocalKarar servers and are not stored by us.",
+      "consentBefore": "I have read and accept:",
+      "terms": "the Terms of Use",
+      "consentAfter": ".",
+      "payAndStart": "Pay {{price}} and Start Membership",
+      "billingNotStarted": "Billing has not started yet; no payment is being collected.",
+      "periodLabel": "Choose your billing period",
+      "yearlyNote": "Pay yearly and get {{count}} months free — you save {{saving}} a year.",
+      "distanceSale": "the Distance Service Agreement",
+      "preInfo": "the Pre-Contract Information Form",
+      "and": "and",
+      "withdrawalWaiver": "I want the service to begin immediately and I understand that I therefore lose my right of withdrawal."
+    },
+    "pricePerYear": "{{price}} / year",
+    "period": {
+      "aria": "Billing period",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "freeMonths_one": "{{count}} month free",
+      "freeMonths_other": "{{count}} months free"
+    }
+  },
+  "pricing": {
+    "eyebrow": "Founding Member Program",
+    "title": "Be one of LocalKarar’s first users",
+    "heroDescription": "First month free, then {{launchPrice}}/month for three months. After that {{founderPrice}}/month — and as a founding member you always pay {{percent}}% below the standard price.",
+    "notStartedTitle": "Billing has not started yet.",
+    "notStartedDescription": "All features are currently free to use. We will notify you before paid membership begins.",
+    "howItWorks": "How it works",
+    "free": "Free",
+    "lockedTitle": "The founding member price is locked.",
+    "lockedDescription": "Even if our standard price rises later, the {{price}}/month you pay from month {{month}} stays the same while your membership continues.",
+    "startFree": "Start free",
+    "startNote": "No card details required. Leave whenever you want.",
+    "securityTitle": "Payment security",
+    "securityDescription": "Your card details are entered in payment provider PayTR’s secure form and never reach LocalKarar servers. We do not store your card number.",
+    "faqTitle": "Frequently asked questions",
+    "timeline": {
+      "afterwards": "afterwards",
+      "months_one": "{{count}} month",
+      "months_other": "{{count}} months",
+      "stages": {
+        "free": {
+          "title": "First month",
+          "note": "No card details required."
+        },
+        "launch": {
+          "title": "Launch period",
+          "note": "Exclusive to founding members."
+        },
+        "founder": {
+          "title": "Founding member price",
+          "note": "Always {{percent}}% below the standard price."
+        }
+      }
+    },
+    "included": {
+      "decisionTools": "Decision Tools — check the figures before deciding",
+      "businessTracking": "Business Tracking — checks, notes, invoices, and collections in one place",
+      "calculations": "Calculations and financial models",
+      "mentor": "AI Mentor — talk using your own business data",
+      "courses": "Courses and practical content",
+      "integrations": "Marketplace integrations (Trendyol, Hepsiburada, N11, Shopify)",
+      "community": "Community"
+    },
+    "faq": {
+      "affordable": {
+        "question": "Why is it so affordable?",
+        "answer": "Because we are at an early stage. Founding members use the product as we grow and shape it with their feedback. In return, they keep the price advantage permanently."
+      },
+      "freeMonth": {
+        "question": "What happens when the free month ends?",
+        "answer": "Your data remains stored and exportable. If you do not start a membership, the account becomes read-only; adding records, calculations, and AI Mentor are disabled. None of your data is deleted."
+      },
+      "cancel": {
+        "question": "Can I cancel at any time?",
+        "answer": "Yes. After cancellation, your membership continues through the paid period. You do not need to contact anyone; cancel with one click under Settings → Membership."
+      },
+      "invoice": {
+        "question": "Can I get an invoice?",
+        "answer": "Yes. The document issued after payment is sent to your email address, and you can access previous invoices under Settings → Membership."
+      },
+      "increase": {
+        "question": "What happens if prices go up?",
+        "answer": "The founder price is not frozen; it is tied to the standard price. If the standard price rises, yours rises too — but it always stays {{percent}}% below it. So you are not exempt from increases, you are simply affected less than other members. You will be notified before any price change."
+      },
+      "yearly": {
+        "question": "Should I choose monthly or yearly?",
+        "answer": "With yearly billing you pay for 10 months instead of 12, saving {{saving}} a year. Monthly billing gives you flexibility and you can leave whenever you like. You choose at checkout and can change it later."
+      }
+    },
+    "yearlyEquivalent": "Equivalent to {{monthly}} a month · you save {{saving}} a year.",
+    "discountTitle": "Your founder discount is {{percent}}% and permanent.",
+    "discountDescription": "We do not freeze your price — we tie it to the standard price. From month {{month}} onwards, even if our standard price rises, you always pay {{percent}}% less. Increases affect you less than other members.",
+    "benefitsTitle": "What being a founding member gives you",
+    "benefits": {
+      "priceLock": {
+        "title": "A permanent price advantage",
+        "description": "Every time the standard price rises, your discount holds — increases affect you less than other members."
+      },
+      "badge": {
+        "title": "Founding Member badge",
+        "description": "Visible on your account and in the community. It shows you were one of the first."
+      }
+    }
+  },
+  "publicFooter": {
+    "corporateAria": "Company links",
+    "legalAria": "Legal links",
+    "legal": "Legal",
+    "seller": "Seller",
+    "links": {
+      "pricing": "Pricing",
+      "about": "About us",
+      "help": "Help and contact",
+      "privacy": "Privacy and KVKK",
+      "terms": "Terms of Use",
+      "cookies": "Cookies",
+      "preInfo": "Pre-Contract Info",
+      "distanceSale": "Distance Agreement",
+      "deliveryRefund": "Delivery and Refunds",
+      "subscription": "Subscription Terms"
+    },
+    "identity": {
+      "address": "Address",
+      "phone": "Phone",
+      "region": "Place of business"
+    }
+  },
+  "errors": {
+    "rateLimit": "Too many requests. Please try again in a few seconds.",
+    "rateLimitWithSeconds": "Too many requests. Approximately {{seconds}} seconds remaining.",
+    "networkError": "Connection error",
+    "unauthorized": "Your session may have expired.",
+    "streamError": "Stream error",
+    "noBody": "No response received",
+    "apiError": "Something went wrong",
+    "unknown": "An unexpected error occurred",
+    "sessionMissing": "No session found",
+    "mentorTitle": "Connection Error",
+    "mentorNetwork": "Could not reach the AI Mentor server. Check your connection and try again.",
+    "mentorTimeout": "Response took longer than expected. You can try sending the message again.",
+    "mentorRateLimit": "Too many requests. Wait a moment and try again.",
+    "mentorUnauthorized": "Your session may have expired. Please sign in again.",
+    "mentorProvider": "AI Mentor cannot generate a response right now. Try again in a few seconds.",
+    "mentorFallback": "A temporary system issue occurred. Please try again later.",
+    "notFoundSr": "404 — Page not found",
+    "notFoundTitle": "Page not found",
+    "notFoundDescription": "The page you are looking for does not exist or may have moved.",
+    "unauthorizedTitle": "Unauthorized access",
+    "unauthorizedDescription": "You do not have permission to access this page.",
+    "backHome": "Back to Home",
+    "exportFailed": "Export failed",
+    "downloadFailed": "Record could not be downloaded"
+  },
+  "loading": {
+    "page": "Loading page…"
+  },
+  "welcome": {
+    "title": "Welcome aboard",
+    "description_one": "You are one of the first people using LocalKarar. Your first {{count}} month is completely free — we do not ask for card details.",
+    "description_other": "You are one of the first people using LocalKarar. Your first {{count}} months are completely free — we do not ask for card details.",
+    "discountNote": "As a founding member you always pay {{percent}}% below the standard price. Today that means {{price}}/month; even if the price changes later, your discount rate stays the same.",
+    "notStarted": "Billing has not started yet. You will be notified before it does.",
+    "start": "Start using LocalKarar",
+    "seePricing": "See pricing"
+  }
+}

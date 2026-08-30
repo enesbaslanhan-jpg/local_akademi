@@ -1,19 +1,20 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '@/services/api'
 import { Card, Badge, Button, EmptyState, SearchBar, Select } from '@/components/ui'
 import { BookOpen, ChevronRight, Filter, X, Clock } from 'lucide-react'
 import styles from './KnowledgePage.module.css'
 
-const LEVELS = ['Başlangıç', 'Orta', 'İleri']
 const SORT_OPTIONS = [
-  { value: 'updatedAt_desc', label: 'En Yeni' },
-  { value: 'updatedAt_asc', label: 'En Eski' },
-  { value: 'title_asc', label: 'Başlık (A-Z)' },
-  { value: 'title_desc', label: 'Başlık (Z-A)' }
+  { value: 'updatedAt_desc', labelKey: 'knowledge.sortNewest' },
+  { value: 'updatedAt_asc', labelKey: 'knowledge.sortOldest' },
+  { value: 'title_asc', labelKey: 'knowledge.sortTitleAsc' },
+  { value: 'title_desc', labelKey: 'knowledge.sortTitleDesc' }
 ]
 
 export default function KnowledgePage() {
+  const { t, i18n } = useTranslation('learning')
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -58,11 +59,11 @@ export default function KnowledgePage() {
       setData(res)
     } catch (err) {
       if (!mountedRef.current || err.name === 'AbortError') return
-      setError(err.message || 'Liste yüklenemedi')
+      setError(err.message || t('knowledge.errorLoadList'))
     } finally {
       if (mountedRef.current && !controller.signal.aborted) setLoading(false)
     }
-  }, [page, pageSize, search, category, sortBy, sortOrder])
+  }, [page, pageSize, search, category, sortBy, sortOrder, t])
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -86,7 +87,7 @@ export default function KnowledgePage() {
   const totalPages = data?.totalPages || 0
 
   const groupedByCategory = results.reduce((acc, topic) => {
-    const cat = topic.category || 'Diğer'
+    const cat = topic.category || t('knowledge.otherCategory')
     if (!acc[cat]) acc[cat] = []
     acc[cat].push(topic)
     return acc
@@ -118,7 +119,7 @@ export default function KnowledgePage() {
       <div className={styles.page}>
         <div className={styles.errorBox}>
           <p>{error}</p>
-          <Button onClick={fetchData}>Tekrar Dene</Button>
+          <Button onClick={fetchData}>{t('knowledge.retry')}</Button>
         </div>
       </div>
     )
@@ -129,9 +130,9 @@ export default function KnowledgePage() {
       <div className={styles.header}>
         <div>
           {/* Sayfa adı üst barda yazıyor; görünür h1 yerine sr-only başlık. */}
-          <h1 className="sr-only">Bilgi Nesneleri</h1>
+          <h1 className="sr-only">{t('knowledge.objectsLabel')}</h1>
           <p className={styles.subtitle}>
-            {total > 0 ? `${total} konu başlığı bulundu` : 'Henüz içerik bulunmuyor'}
+            {total > 0 ? t('knowledge.topicsFound', { count: total }) : t('knowledge.noContentYet')}
           </p>
         </div>
         <Button
@@ -139,10 +140,10 @@ export default function KnowledgePage() {
           size="sm"
           className={styles.filterToggle}
           onClick={() => setFiltersOpen(!filtersOpen)}
-          ariaLabel="Filtreleri aç/kapa"
+          ariaLabel={t('knowledge.filtersToggleAria')}
         >
           <Filter size={16} />
-          Filtreler
+          {t('knowledge.filtersLabel')}
           {activeFilterCount > 0 && (
             <span className={styles.filterBadge}>{activeFilterCount}</span>
           )}
@@ -155,7 +156,7 @@ export default function KnowledgePage() {
             value={search}
             onChange={v => updateFilter('search', v)}
             onSearch={() => { if (search) updateFilter('search', search) }}
-            placeholder="Konu ara..."
+            placeholder={t('knowledge.searchPlaceholder')}
           />
         </div>
         <div className={styles.sortWrap}>
@@ -169,8 +170,8 @@ export default function KnowledgePage() {
               params.set('page', '1')
               setSearchParams(params, { replace: true })
             }}
-            options={SORT_OPTIONS.map(o => ({ value: o.value, label: o.label }))}
-            aria-label="Sıralama"
+            options={SORT_OPTIONS.map(o => ({ value: o.value, label: t(o.labelKey) }))}
+            aria-label={t('knowledge.sortAria')}
           />
         </div>
       </div>
@@ -179,16 +180,16 @@ export default function KnowledgePage() {
         <div className={styles.filtersPanel}>
           <div className={styles.filterRow}>
             <Select
-              label="Kategori"
+              label={t('knowledge.categoryLabel')}
               value={category}
               onChange={value => updateFilter('category', value)}
-              placeholder="Tüm Kategoriler"
+              placeholder={t('knowledge.allCategories')}
               options={categories.map(c => ({ value: c.name, label: `${c.name} (${c.count})` }))}
             />
           </div>
           {hasActiveFilters && (
             <button className={styles.clearFilters} onClick={() => setSearchParams({})}>
-              <X size={14} /> Tüm Filtreleri Temizle
+              <X size={14} /> {t('knowledge.clearAllFilters')}
             </button>
           )}
         </div>
@@ -198,14 +199,14 @@ export default function KnowledgePage() {
         <div className={styles.activeFilters}>
           {search && (
             <span className={styles.activeFilterBadge}>
-              Ara: "{search}"
-              <button onClick={() => updateFilter('search', '')} aria-label="Kaldır"><X size={12} /></button>
+              {t('knowledge.searchingFor', { query: search })}
+              <button onClick={() => updateFilter('search', '')} aria-label={t('knowledge.removeFilterAria')}><X size={12} /></button>
             </span>
           )}
           {category && (
             <span className={styles.activeFilterBadge}>
               {category}
-              <button onClick={() => updateFilter('category', '')} aria-label="Kaldır"><X size={12} /></button>
+              <button onClick={() => updateFilter('category', '')} aria-label={t('knowledge.removeFilterAria')}><X size={12} /></button>
             </span>
           )}
         </div>
@@ -215,12 +216,12 @@ export default function KnowledgePage() {
         <div className={styles.emptySection}>
           <EmptyState
             icon={<BookOpen size={48} />}
-            title="Henüz içerik yok"
+            title={t('knowledge.emptyTitle')}
             message={hasActiveFilters
-              ? 'Bu filtrelerle eşleşen konu bulunamadı.'
-              : 'Henüz yayınlanmış profesyonel içerik bulunmuyor.'}
+              ? t('knowledge.emptyFilteredMessage')
+              : t('knowledge.emptyMessage')}
             action
-            actionLabel={hasActiveFilters ? 'Filtreleri Temizle' : "Dashboard'a Dön"}
+            actionLabel={hasActiveFilters ? t('knowledge.clearFiltersAction') : t('knowledge.backToDashboard')}
             onAction={() => hasActiveFilters ? setSearchParams({}) : navigate('/app/dashboard')}
           />
         </div>
@@ -255,21 +256,21 @@ export default function KnowledgePage() {
                       </div>
                       <div className={styles.cardMeta}>
                         <span className={styles.sourceCount}>
-                          {topic.sourceCount > 0 ? `${topic.sourceCount} kaynak` : 'Kaynak yok'}
+                          {topic.sourceCount > 0 ? t('knowledge.sourcesCount', { count: topic.sourceCount }) : t('knowledge.noSourcesShort')}
                         </span>
                         {topic.estimatedTime > 0 && (
                           <span className={styles.cardDuration}>
-                            <Clock size={12} /> ~{topic.estimatedTime} dk
+                            <Clock size={12} /> ~{t('knowledgeTopic.minutes', { count: topic.estimatedTime })}
                           </span>
                         )}
                       </div>
                     </div>
                     <div className={styles.cardFooter}>
                       <span className={styles.cardDate}>
-                        {new Date(topic.updatedAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        {new Date(topic.updatedAt).toLocaleDateString(i18n.resolvedLanguage || i18n.language, { day: 'numeric', month: 'short', year: 'numeric' })}
                       </span>
                       <span className={styles.cardAction}>
-                        İncele <ChevronRight size={14} />
+                        {t('knowledge.inspect')} <ChevronRight size={14} />
                       </span>
                     </div>
                   </Card>
@@ -287,9 +288,9 @@ export default function KnowledgePage() {
             size="sm"
             disabled={page <= 1}
             onClick={() => updateFilter('page', String(page - 1))}
-            ariaLabel="Önceki sayfa"
+            ariaLabel={t('knowledge.prevPageAria')}
           >
-            Önceki
+            {t('knowledge.prevPage')}
           </Button>
           <div className={styles.pageInfo}>
             {page} / {totalPages}
@@ -299,9 +300,9 @@ export default function KnowledgePage() {
             size="sm"
             disabled={page >= totalPages}
             onClick={() => updateFilter('page', String(page + 1))}
-            ariaLabel="Sonraki sayfa"
+            ariaLabel={t('knowledge.nextPageAria')}
           >
-            Sonraki
+            {t('knowledge.nextPage')}
           </Button>
         </div>
       )}

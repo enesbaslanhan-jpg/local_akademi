@@ -1,7 +1,10 @@
 import { Search } from 'lucide-react'
 import styles from './SearchBar.module.css'
+import { useTranslation } from 'react-i18next'
 
-export default function SearchBar({ value, onChange, onSearch, placeholder = 'Ara...', className = '' }) {
+export default function SearchBar({ value, onChange, onSearch, placeholder, className = '' }) {
+  const { t } = useTranslation('common')
+  const effectivePlaceholder = placeholder || t('ui.searchBar.placeholder')
   function handleKeyDown(e) {
     if (e.key === 'Enter') onSearch?.()
   }
@@ -14,10 +17,10 @@ export default function SearchBar({ value, onChange, onSearch, placeholder = 'Ar
         value={value}
         onChange={e => onChange?.(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        aria-label={placeholder}
+        placeholder={effectivePlaceholder}
+        aria-label={effectivePlaceholder}
       />
-      <button className={styles.btn} onClick={onSearch} aria-label="Ara">
+      <button className={styles.btn} onClick={onSearch} aria-label={t('ui.searchBar.action')}>
         <Search size={18} />
       </button>
     </div>

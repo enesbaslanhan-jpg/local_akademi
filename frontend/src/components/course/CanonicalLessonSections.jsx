@@ -7,6 +7,7 @@ import rehypeKatex from 'rehype-katex'
 import { Calculator, Scale, AlertTriangle, CheckCircle2, Lightbulb, Target } from 'lucide-react'
 import { Button, Card } from '@/components/ui'
 import { CALCULATION_DEFINITIONS } from '@/data/calculationCatalog'
+import { useTranslation } from 'react-i18next'
 import {
   extractInlineReferences,
   resolveCalculation,
@@ -18,6 +19,22 @@ import {
   resolveDecisionTool
 } from '@/utils/canonicalContent'
 import styles from './CanonicalLessonSections.module.css'
+
+const DECISION_TOOL_TITLE_KEYS = {
+  'DC-PROFIT-001': 'tools:decisions.cards.profit.title',
+  'DC-DISCOUNT-002': 'tools:decisions.cards.discount.title',
+  'DC-FREESHIP-003': 'tools:decisions.cards.freeShipping.title',
+  'DC-MARKETPLACE-004': 'tools:decisions.cards.marketplace.title',
+  'DC-ADS-005': 'tools:decisions.cards.ads.title',
+  'DC-HIRE-006': 'tools:decisions.cards.hiring.title',
+  'DC-LOAN-007': 'tools:decisions.cards.loan.title',
+  'DC-CASHFLOW-008': 'tools:decisions.cards.cashflow.title',
+  'DC-BRANCH-009': 'tools:decisions.cards.branch.title',
+  'DC-CAMPAIGN-010': 'tools:decisions.cards.campaign.title',
+  'DC-STOCK-011': 'tools:decisions.cards.stock.title',
+  'DC-CONTINUE-012': 'tools:decisions.cards.continue.title',
+  'DC-TAX-013': 'tools:decisions.cards.tax.title'
+}
 
 /** KaTeX destekli küçük markdown render'ı (formül kartı içi). */
 function MathMarkdown({ children }) {
@@ -47,6 +64,11 @@ export default function CanonicalLessonSections({
   embeddedPracticeBlocks = []
 }) {
   const navigate = useNavigate()
+  const { t } = useTranslation(['learning', 'tools'])
+  const localizedDecisionTitle = code => {
+    const key = DECISION_TOOL_TITLE_KEYS[code]
+    return key ? t(key) : (DECISION_TOOL_TITLES[code] || code)
+  }
 
   /* Hesaplama referansları markdown'ın çıkarılan bölümlerinden okunur.
      Eşleşmeyen referans için SAHTE ROUTE üretilmez. */
@@ -94,20 +116,20 @@ export default function CanonicalLessonSections({
       return {
         ...parsed,
         toolCode: parsed.toolCode || decisionToolCode || null,
-        toolTitle: parsed.toolTitle || DECISION_TOOL_TITLES[parsed.toolCode || decisionToolCode] || parsed.toolCode || decisionToolCode || null
+        toolTitle: parsed.toolTitle || localizedDecisionTitle(parsed.toolCode || decisionToolCode) || parsed.toolCode || decisionToolCode || null
       }
     }
     if (decisionToolCode) {
       return {
         toolCode: decisionToolCode,
-        toolTitle: DECISION_TOOL_TITLES[decisionToolCode] || decisionToolCode,
+        toolTitle: localizedDecisionTitle(decisionToolCode),
         context: '',
         bullets: [],
-        result: 'Sonuç: gerekçeli karar fişi'
+        result: t('learning:player.decisionResultFallback')
       }
     }
     return null
-  }, [strippedSections, decisionToolCode])
+  }, [strippedSections, decisionToolCode, t])
 
   /* 4. bölüm → formül kartları + hata/doğru kartları.
      Her formül kartı, 3. bölümün referans listesine değil DOĞRUDAN
@@ -150,10 +172,10 @@ export default function CanonicalLessonSections({
   const hasCalculations = openable.length > 0
 
   const sectionHeading = hasCalculations && hasDecision
-    ? 'Hesaplamalar ve Karar Araçları Entegrasyonu'
+    ? t('learning:player.canonicalHeadingBoth')
     : hasCalculations
-      ? 'Hesaplamalar Entegrasyonu'
-      : 'Karar Araçları Entegrasyonu'
+      ? t('learning:player.canonicalHeadingCalculations')
+      : t('learning:player.canonicalHeadingDecision')
 
   if (!hasDecision && !hasCalculations && practice.formulaCards.length === 0 && practice.warningCards.length === 0) return null
 
@@ -167,12 +189,12 @@ export default function CanonicalLessonSections({
       {/* ---------- Karar aracı kartı ---------- */}
       {decision?.toolCode && (
         <div className={styles.decisionCard}>
-          <span className={styles.decisionEyebrow}>KARARINI TEST ET</span>
+          <span className={styles.decisionEyebrow}>{t('learning:player.decisionEyebrow')}</span>
           <h3 className={styles.decisionTitle}>{decision.toolTitle}</h3>
           {decision.context && <p className={styles.decisionContext}>{decision.context}</p>}
           {decision.bullets.length > 0 && (
             <div className={styles.decisionBullets}>
-              <span className={styles.decisionBulletsLabel}>Bu araçta</span>
+              <span className={styles.decisionBulletsLabel}>{t('learning:player.decisionBulletsLabel')}</span>
               <ul>
                 {decision.bullets.map((b, i) => (
                   <li key={i}>{b}</li>
@@ -185,7 +207,7 @@ export default function CanonicalLessonSections({
             variant="primary"
             onClick={() => navigate(`/app/decision-checks/${decision.toolCode}`)}
           >
-            Karar Aracını Aç →
+            {t('learning:player.openDecisionTool')}
           </Button>
           {extraDecisionCodes.length > 0 && (
             <div className={styles.ctaRow}>
@@ -196,7 +218,7 @@ export default function CanonicalLessonSections({
                   size="sm"
                   onClick={() => navigate(`/app/decision-checks/${code}`)}
                 >
-                  {DECISION_TOOL_TITLES[code] || code} →
+                  {localizedDecisionTitle(code)} →
                 </Button>
               ))}
             </div>
@@ -210,18 +232,18 @@ export default function CanonicalLessonSections({
           {openable.map(({ label, definition }) => (
             <div key={label} className={styles.calcItem}>
               <div className={styles.calcInfo}>
-                <strong>{definition.title}</strong>
+                <strong>{t(`tools:${definition.titleKey}`)}</strong>
                 <span className={styles.calcModes}>
-                  {definition.simple ? 'Basit mod' : ''}
+                  {definition.simple ? t('learning:player.simpleMode') : ''}
                   {definition.simple && definition.detailed ? ' · ' : ''}
-                  {definition.detailed ? 'Detaylı mod' : ''}
+                  {definition.detailed ? t('learning:player.detailedMode') : ''}
                 </span>
               </div>
               <Button
                 variant="secondary" size="sm"
                 onClick={() => navigate(`/app/tools?view=calculator&tool=${definition.id}`)}
               >
-                Hesaplamayı Aç →
+                {t('learning:player.openCalculation')}
               </Button>
             </div>
           ))}
@@ -231,24 +253,24 @@ export default function CanonicalLessonSections({
       {/* ---------- Formül kartları ---------- */}
       {practice.formulaCards.length > 0 && (
         <div className={styles.practiceGroup}>
-          <h3 className={styles.practiceGroupTitle}><Lightbulb size={15} aria-hidden="true" /> Formül Kartları</h3>
+          <h3 className={styles.practiceGroupTitle}><Lightbulb size={15} aria-hidden="true" /> {t('learning:player.formulaCardsTitle')}</h3>
           {practice.formulaCards.map((card, i) => {
             const calculation = card.calculation
             const open = calculation?.status === 'FOUND' && calculation.definition
               ? { definition: calculation.definition }
               : null
             const decisionToolCode = card.decisionToolCode
-            const decisionToolTitle = decisionToolCode ? DECISION_TOOL_TITLES[decisionToolCode] : null
+            const decisionToolTitle = decisionToolCode ? localizedDecisionTitle(decisionToolCode) : null
             return (
               <div key={`${card.title}-${i}`} className={styles.formulaBox}>
-                <span className={styles.boxLabel}><Lightbulb size={12} aria-hidden="true" /> FORMÜL KARTI</span>
+                <span className={styles.boxLabel}><Lightbulb size={12} aria-hidden="true" /> {t('learning:player.formulaCardLabel')}</span>
                 <span className={styles.boxTitle}>{card.title}</span>
                 {card.description && (
                   <div className={styles.boxText}><MathMarkdown>{card.description}</MathMarkdown></div>
                 )}
                 {card.formulas.length > 0 && (
                   <div className={styles.formulaBody}>
-                    <span className={styles.formulaLabel}>FORMÜL</span>
+                    <span className={styles.formulaLabel}>{t('learning:player.formulaLabel')}</span>
                     {card.formulas.map((f, j) => (
                       <MathMarkdown key={j}>{`$$\n${f}\n$$`}</MathMarkdown>
                     ))}
@@ -256,7 +278,7 @@ export default function CanonicalLessonSections({
                 )}
                 {card.example.intro && (
                   <div className={styles.formulaBody}>
-                    <span className={styles.formulaLabel}>ÖRNEK</span>
+                    <span className={styles.formulaLabel}>{t('learning:player.exampleLabel')}</span>
                     <MathMarkdown>{`*${card.example.intro}*`}</MathMarkdown>
                     {card.example.formulas.map((f, j) => (
                       <MathMarkdown key={j}>{`$$\n${f}\n$$`}</MathMarkdown>
@@ -273,7 +295,7 @@ export default function CanonicalLessonSections({
                         variant="secondary" size="sm"
                         onClick={() => navigate(`/app/tools?view=calculator&tool=${open.definition.id}`)}
                       >
-                        Hesaplamayı Aç →
+                        {t('learning:player.openCalculation')}
                       </Button>
                     )}
                     {decisionToolCode && (
@@ -281,7 +303,7 @@ export default function CanonicalLessonSections({
                         variant="primary" size="sm"
                         onClick={() => navigate(`/app/decision-checks/${decisionToolCode}`)}
                       >
-                        Karar Aracını Aç → {decisionToolTitle || decisionToolCode}
+                        {t('learning:player.openDecisionToolWithTitle', { title: decisionToolTitle || decisionToolCode })}
                       </Button>
                     )}
                   </div>
@@ -295,19 +317,19 @@ export default function CanonicalLessonSections({
       {/* ---------- Hata / Doğru kartları ---------- */}
       {practice.warningCards.length > 0 && (
         <div className={styles.practiceGroup}>
-          <h3 className={styles.practiceGroupTitle}><AlertTriangle size={15} aria-hidden="true" /> Hata / Doğru Kartları</h3>
+          <h3 className={styles.practiceGroupTitle}><AlertTriangle size={15} aria-hidden="true" /> {t('learning:player.warningCardsTitle')}</h3>
           {practice.warningCards.map((card, i) => (
             <div key={i} className={styles.mistakeBox}>
               {mistakeTitles[i] && <span className={styles.boxTitle}>{mistakeTitles[i]}</span>}
               <div className={styles.mistakeSide}>
                 <span className={`${styles.boxLabel} ${styles.wrongLabel}`}>
-                  <AlertTriangle size={12} aria-hidden="true" /> YAYGIN HATA
+                  <AlertTriangle size={12} aria-hidden="true" /> {t('learning:player.wrongLabel')}
                 </span>
                 {card.wrong && <p>{card.wrong}</p>}
               </div>
               <div className={styles.mistakeSide}>
                 <span className={`${styles.boxLabel} ${styles.correctLabel}`}>
-                  <CheckCircle2 size={12} aria-hidden="true" /> DOĞRU YAKLAŞIM
+                  <CheckCircle2 size={12} aria-hidden="true" /> {t('learning:player.correctLabel')}
                 </span>
                 {card.correct && <p>{card.correct}</p>}
               </div>

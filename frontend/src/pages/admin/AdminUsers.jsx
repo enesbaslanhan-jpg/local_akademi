@@ -1,17 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import { Select, DataTable, Badge, Button, Modal } from '@/components/ui'
 import { MoreVertical, Shield, AlertTriangle, UserCheck, UserMinus, Trash2 } from 'lucide-react'
 import styles from './AdminUsers.module.css'
+import { getFormatLocale } from '@/utils/formatters'
 
-const ROLE_LABELS = {
-  learner: 'Öğrenci',
-  content_editor: 'İçerik Editörü',
-  subject_expert: 'Konu Uzmanı',
-  admin: 'Admin'
-}
+const ROLE_KEYS = ['learner', 'content_editor', 'subject_expert', 'admin']
 
 const ROLE_BADGE = {
   learner: 'default',
@@ -23,17 +20,19 @@ const ROLE_BADGE = {
 function formatDate(dateStr) {
   if (!dateStr) return '-'
   try {
-    return new Date(dateStr).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })
+    return new Date(dateStr).toLocaleDateString(getFormatLocale(), { day: 'numeric', month: 'short', year: 'numeric' })
   } catch {
     return '-'
   }
 }
 
-const VALID_ROLES = Object.keys(ROLE_LABELS)
+const VALID_ROLES = ROLE_KEYS
 
 export default function AdminUsers() {
+  const { t } = useTranslation('admin')
   const { user: currentUser } = useAuth()
   const toast = useToast()
+  const roleLabel = (role) => t(`users.roles.${role}`) || role
 
   const [users, setUsers] = useState([])
   const [total, setTotal] = useState(0)
@@ -105,19 +104,19 @@ export default function AdminUsers() {
     try {
       if (eylem === 'suspend') {
         await api.admin.suspendUser(row.id, moderationReason.trim())
-        toast.success(`${row.email} askıya alındı. Açık oturumları kapatıldı.`)
+        toast.success(t('users.toasts.suspended', { email: row.email }))
       } else if (eylem === 'unsuspend') {
         await api.admin.unsuspendUser(row.id)
-        toast.success(`${row.email} yeniden aktif.`)
+        toast.success(t('users.toasts.unsuspended', { email: row.email }))
       } else {
         await api.admin.anonymizeUser(row.id)
-        toast.success('Hesap anonimleştirildi.')
+        toast.success(t('users.toasts.anonymized'))
       }
       setModerationUser(null)
       setModerationReason('')
       fetchUsers()
     } catch (err) {
-      toast.error(err.message || 'İşlem tamamlanamadı.')
+      toast.error(err.message || t('users.toasts.actionFailed'))
     } finally {
       setModerationLoading(false)
     }
@@ -178,25 +177,25 @@ export default function AdminUsers() {
     if (!roleChangeUser || newRole === roleChangeUser.role) return
 
     if (roleChangeUser.id === currentUser?.id && roleChangeUser.role === 'admin' && newRole !== 'admin') {
-      toast.error('Kendi admin rolünü kaldıramazsın')
+      toast.error(t('users.toasts.selfRoleRemove'))
       return
     }
 
     setRoleLoading(true)
     api.admin.updateUserRole(roleChangeUser.id, newRole)
       .then(() => {
-        toast.success(`Rol "${ROLE_LABELS[newRole] || newRole}" olarak güncellendi`)
+        toast.success(t('users.toasts.roleUpdated', { role: roleLabel(newRole) }))
         setUsers(prev => prev.map(u => u.id === roleChangeUser.id ? { ...u, role: newRole } : u))
         setRoleChangeUser(null)
       })
-      .catch(err => toast.error(err.message || 'Rol güncellenemedi'))
+      .catch(err => toast.error(err.message || t('users.toasts.roleUpdateFailed')))
       .finally(() => setRoleLoading(false))
   }
 
   const columns = [
     {
       key: 'name',
-      label: 'Kullanıcı',
+      label: t('users.table.user'),
       sortable: true,
       render: (row) => (
         <div className={styles.nameCell}>
@@ -207,27 +206,27 @@ export default function AdminUsers() {
     },
     {
       key: 'email',
-      label: 'E-posta',
+      label: t('users.table.email'),
       sortable: true
     },
     {
       key: 'role',
-      label: 'Rol',
+      label: t('users.table.role'),
       sortable: true,
       render: (row) => (
         <span className={styles.roleCell}>
-          <Badge variant={ROLE_BADGE[row.role] || 'default'}>{ROLE_LABELS[row.role] || row.role}</Badge>
+          <Badge variant={ROLE_BADGE[row.role] || 'default'}>{roleLabel(row.role)}</Badge>
           {/* Askı durumu listede görünmeli; yoksa kimin kapalı olduğu
               ancak menü açılınca anlaşılırdı. */}
           {row.anonymized
-            ? <Badge variant="default">Anonim</Badge>
-            : row.suspendedAt && <Badge variant="danger">Askıda</Badge>}
+            ? <Badge variant="default">{t('users.table.anonymous')}</Badge>
+            : row.suspendedAt && <Badge variant="danger">{t('users.table.suspended')}</Badge>}
         </span>
       )
     },
     {
       key: 'createdAt',
-      label: 'Kayıt Tarihi',
+      label: t('users.table.created'),
       sortable: true,
       render: (row) => formatDate(row.createdAt)
     },
@@ -240,7 +239,7 @@ export default function AdminUsers() {
           <button
             className={styles.actionBtn}
             onClick={(e) => handleActionClick(e, row.id)}
-            aria-label="İşlemler"
+            aria-label={t('users.table.actions')}
             aria-expanded={openDropdownId === row.id}
           >
             <MoreVertical size={18} />
@@ -248,7 +247,7 @@ export default function AdminUsers() {
           {openDropdownId === row.id && (
             <div className={styles.dropdown} role="menu">
               <button className={styles.dropdownItem} role="menuitem" onClick={() => openRoleModal(row)}>
-                <Shield size={16} /> Rol Değiştir
+                <Shield size={16} /> {t('users.menu.changeRole')}
               </button>
               {/* Kendi hesabına uygulanamaz: kendini askıya alan admin
                   sistemden kilitlenir ve geri dönemez. Sunucu da reddediyor,
@@ -257,19 +256,19 @@ export default function AdminUsers() {
                 row.suspendedAt ? (
                   <button className={styles.dropdownItem} role="menuitem"
                     onClick={() => { setOpenDropdownId(null); setModerationUser({ row, eylem: 'unsuspend' }) }}>
-                    <UserCheck size={16} /> Askıyı Kaldır
+                    <UserCheck size={16} /> {t('users.menu.unsuspend')}
                   </button>
                 ) : (
                   <button className={styles.dropdownItem} role="menuitem"
                     onClick={() => { setOpenDropdownId(null); setModerationReason(''); setModerationUser({ row, eylem: 'suspend' }) }}>
-                    <UserMinus size={16} /> Askıya Al
+                    <UserMinus size={16} /> {t('users.menu.suspend')}
                   </button>
                 )
               )}
               {row.id !== currentUser?.id && !row.anonymized && (
                 <button className={`${styles.dropdownItem} ${styles.dropdownDanger}`} role="menuitem"
                   onClick={() => { setOpenDropdownId(null); setModerationUser({ row, eylem: 'anonymize' }) }}>
-                  <Trash2 size={16} /> Hesabı Anonimleştir
+                  <Trash2 size={16} /> {t('users.menu.anonymize')}
                 </button>
               )}
             </div>
@@ -285,25 +284,25 @@ export default function AdminUsers() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h2>Kullanıcı Yönetimi</h2>
+        <h2>{t('users.heading')}</h2>
       </div>
 
       <div className={styles.filters}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
           <input
             type="search"
-            placeholder="Kullanıcı ara..."
+            placeholder={t('users.searchPlaceholder')}
             value={searchInput}
             onChange={e => handleSearchChange(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSearchSubmit()}
-            aria-label="Kullanıcı ara"
+            aria-label={t('users.searchAria')}
           />
         </div>
         <Select
           className={styles.filterSelect}
-          aria-label="Rol filtresi"
-          placeholder="Tüm Roller"
-          options={Object.entries(ROLE_LABELS).map(([k, v]) => ({ value: k, label: v }))}
+          aria-label={t('users.table.role')}
+          placeholder={t('users.roleFilter')}
+          options={ROLE_KEYS.map(k => ({ value: k, label: roleLabel(k) }))}
           value={roleFilter}
           onChange={setRoleFilter}
         />
@@ -312,7 +311,7 @@ export default function AdminUsers() {
       {error && (
         <div className={styles.errorInline}>
           <AlertTriangle size={16} />
-          <span>{error} — <button onClick={fetchUsers} style={{ background: 'none', border: 'none', color: 'var(--danger)', textDecoration: 'underline', cursor: 'pointer', font: 'inherit' }}>Tekrar dene</button></span>
+          <span>{error} — <button onClick={fetchUsers} style={{ background: 'none', border: 'none', color: 'var(--danger)', textDecoration: 'underline', cursor: 'pointer', font: 'inherit' }}>{t('users.retry')}</button></span>
         </div>
       )}
 
@@ -320,7 +319,7 @@ export default function AdminUsers() {
         columns={columns}
         data={users}
         loading={loading}
-        emptyMessage="Kullanıcı bulunamadı"
+        emptyMessage={t('users.emptyMessage')}
         page={page}
         pageSize={pageSize}
         total={total}
@@ -332,31 +331,31 @@ export default function AdminUsers() {
       />
 
       {roleChangeUser && (
-        <Modal open={true} onClose={closeRoleModal} title="Rol Değiştir" size="sm">
+        <Modal open={true} onClose={closeRoleModal} title={t('users.roleModal.title')} size="sm">
           <div className={styles.roleModalBody}>
             <div className={styles.roleModalInfo}>
-              <div><b>Kullanıcı:</b> {roleChangeUser.name || roleChangeUser.email}</div>
-              <div><b>Mevcut Rol:</b> {ROLE_LABELS[roleChangeUser.role] || roleChangeUser.role}</div>
+              <div><b>{t('users.roleModal.userLabel')}</b> {roleChangeUser.name || roleChangeUser.email}</div>
+              <div><b>{t('users.roleModal.currentRole')}</b> {roleLabel(roleChangeUser.role)}</div>
             </div>
 
             <Select
               className={styles.roleModalSelect}
-              aria-label="Yeni rol seçin"
-              options={Object.entries(ROLE_LABELS).map(([k, v]) => ({ value: k, label: v }))}
+              aria-label={t('users.roleModal.selectNewAria')}
+              options={ROLE_KEYS.map(k => ({ value: k, label: roleLabel(k) }))}
               value={newRole}
               onChange={setNewRole}
             />
 
             {isSelfAdminRemoval && (
               <div className={styles.roleModalWarning}>
-                <strong>Uyarı:</strong> Kendi admin rolünü kaldıramazsın. Bu işlem için başka bir admin yetkilisine ihtiyacın var.
+                <strong>{t('users.roleModal.warningHeader')}</strong> {t('users.roleModal.warningSelf')}
               </div>
             )}
 
             <div className={styles.roleModalActions}>
-              <Button variant="ghost" onClick={closeRoleModal} disabled={roleLoading}>İptal</Button>
+              <Button variant="ghost" onClick={closeRoleModal} disabled={roleLoading}>{t('users.roleModal.cancel')}</Button>
               <Button variant="primary" onClick={handleRoleSave} disabled={isRoleChangeDisabled || isSelfAdminRemoval} loading={roleLoading}>
-                {roleLoading ? 'Kaydediliyor...' : 'Kaydet'}
+                {roleLoading ? t('users.roleModal.saving') : t('users.roleModal.save')}
               </Button>
             </div>
           </div>
@@ -371,50 +370,45 @@ export default function AdminUsers() {
           <Modal
             open={true}
             onClose={() => { setModerationUser(null); setModerationReason('') }}
-            title={anonim ? 'Hesabı Anonimleştir' : askiyaAl ? 'Hesabı Askıya Al' : 'Askıyı Kaldır'}
+            title={anonim ? t('users.actionModals.anonymizeTitle') : askiyaAl ? t('users.actionModals.suspendTitle') : t('users.actionModals.unsuspendTitle')}
             size="sm"
           >
             <div className={styles.roleModalBody}>
               <div className={styles.roleModalInfo}>
-                <div><b>Kullanıcı:</b> {row.name || row.email}</div>
-                <div><b>E-posta:</b> {row.email}</div>
+                <div><b>{t('users.actionModals.userLabel')}</b> {row.name || row.email}</div>
+                <div><b>{t('users.actionModals.emailLabel')}</b> {row.email}</div>
               </div>
 
               {askiyaAl && (
                 <>
                   <p className={styles.moderationNote}>
-                    Hesap kapanır ve <b>açık oturumları anında sonlandırılır</b>.
-                    Giriş yapamaz. Bu işlem geri alınabilir.
+                    {t('users.actionModals.suspendDescription')}
                   </p>
                   <label className={styles.reasonField}>
-                    <span>Sebep (denetim kaydına yazılır, isteğe bağlı)</span>
+                    <span>{t('users.actionModals.reasonLabel')}</span>
                     <input
                       value={moderationReason}
                       onChange={e => setModerationReason(e.target.value)}
                       maxLength={500}
-                      placeholder="Örn. topluluk kurallarının ihlali"
+                      placeholder={t('users.actionModals.reasonPlaceholder')}
                     />
                   </label>
                 </>
               )}
 
               {eylem === 'unsuspend' && (
-                <p className={styles.moderationNote}>
-                  Hesap yeniden aktif olur. Kullanıcının <b>yeniden giriş yapması</b>
-                  {' '}gerekir; askıdan önceki oturumları geçersiz kalır.
-                </p>
+                  <p className={styles.moderationNote}>
+                    {t('users.actionModals.unsuspendDescription')}
+                  </p>
               )}
 
               {anonim && (
                 <div className={styles.dangerNote}>
                   <AlertTriangle size={16} />
                   <div>
-                    <b>Bu işlem geri alınamaz.</b>
+                    <b>{t('users.actionModals.anonymizeIrreversible')}</b>
                     <p>
-                      E-posta, ad ve profil fotoğrafı kalıcı olarak silinir. Hesap
-                      kaydı <b>silinmez</b> — denetim kayıtları, topluluk gönderileri
-                      ve yasal saklama yükümlülükleri kayda bağlı olduğu için
-                      ilişkiler korunur.
+                      {t('users.actionModals.anonymizeDescription')}
                     </p>
                   </div>
                 </div>
@@ -422,7 +416,7 @@ export default function AdminUsers() {
 
               <div className={styles.roleModalActions}>
                 <Button variant="ghost" onClick={() => { setModerationUser(null); setModerationReason('') }}>
-                  Vazgeç
+                  {t('users.actionModals.cancel')}
                 </Button>
                 <Button
                   variant={anonim || askiyaAl ? 'danger' : 'primary'}
@@ -430,8 +424,8 @@ export default function AdminUsers() {
                   onClick={() => moderasyonUygula(row, eylem)}
                 >
                   {moderationLoading
-                    ? 'İşleniyor…'
-                    : anonim ? 'Anonimleştir' : askiyaAl ? 'Askıya Al' : 'Askıyı Kaldır'}
+                    ? t('users.actionModals.processing')
+                    : anonim ? t('users.actionModals.confirmAnonymize') : askiyaAl ? t('users.actionModals.confirmSuspend') : t('users.actionModals.confirmUnsuspend')}
                 </Button>
               </div>
             </div>

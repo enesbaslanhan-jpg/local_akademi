@@ -1,0 +1,926 @@
+{
+  "brand": "LocalKarar",
+  "nav": {
+    "mobileDecisionTools": "Kararlar",
+    "mobileCalculations": "Hesaplama",
+    "bottomNavigation": "Alt navigasyon",
+    "dashboard": "Ana Sayfa",
+    "courses": "Kurslar",
+    "decisionTools": "Karar Araçları",
+    "calculations": "Hesaplamalar",
+    "mentor": "AI Mentor",
+    "businessTracking": "İşletme Takibi",
+    "news": "Haberler",
+    "community": "Topluluk",
+    "settings": "Ayarlar",
+    "help": "Yardım",
+    "saved": "Kaydedilenler",
+    "management": "Yönetim",
+    "logout": "Çıkış yap",
+    "search": "Menüde ara",
+    "profile": "Profil",
+    "practicalCards": "Pratik Kartlar",
+    "knowledgeObjects": "Bilgi Nesneleri",
+    "myEnrollments": "Kayıtlarım",
+    "learningPath": "Öğrenme Yolu",
+    "notifications": "Bildirimler",
+    "catalog": "Katalog",
+    "history": "Geçmiş",
+    "feed": "Akış",
+    "followingAndBlocking": "Takip ve engelleme",
+    "chats": "Sohbetler",
+    "recommended": "Önerilen",
+    "createNews": "Haber oluştur",
+    "startCalculation": "Hesaplama başlat",
+    "workspaceSection": "Çalışma alanı",
+    "otherSection": "Diğer",
+    "professionalCommunity": "Profesyonel Topluluk",
+    "admin": {
+      "dashboard": "Panel",
+      "knowledge": "KO Yönetimi",
+      "users": "Kullanıcılar",
+      "imports": "Toplu İçe Aktar",
+      "community": "Haberler ve Topluluk",
+      "audit": "Denetim Kayıtları"
+    }
+  },
+  "buttons": {
+    "save": "Kaydet",
+    "saving": "Kaydediliyor…",
+    "cancel": "Vazgeç",
+    "close": "Kapat",
+    "retry": "Tekrar dene",
+    "refresh": "Yenile",
+    "connect": "Bağla",
+    "disconnect": "Bağlantıyı kaldır",
+    "sync": "Şimdi eşitle",
+    "viewAll": "Tümünü gör",
+    "back": "Geri",
+    "continue": "Devam et"
+  },
+  "states": {
+    "loading": "Yükleniyor…",
+    "error": "Bir sorun oluştu.",
+    "empty": "Henüz kayıt yok.",
+    "none": "Yok",
+    "never": "Hiç",
+    "connected": "Bağlı",
+    "notConnected": "Bağlı değil",
+    "comingSoon": "Yakında",
+    "unknown": "Bilinmiyor"
+  },
+  "language": {
+    "uiLanguage": "Arayüz dili",
+    "turkish": "Türkçe",
+    "english": "English",
+    "formatLocale": "Tarih ve sayı biçimi",
+    "formatHint": "Arayüz dilinden bağımsız olarak tarih, sayı ve para gösterimini belirler.",
+    "saved": "Dil tercihi kaydedildi.",
+    "saveError": "Dil tercihi kaydedilemedi; önceki dil kullanılmaya devam ediyor."
+  },
+  "formatLocales": {
+    "tr-TR": "Türkiye",
+    "en-US": "English (United States)",
+    "en-GB": "English (United Kingdom)",
+    "de-DE": "Deutsch (Deutschland)"
+  },
+  "content": {
+    "turkishOnly": "İçerik Türkçe olarak sunuluyor."
+  },
+  "accessibility": {
+    "selection": "Seçim",
+    "openMenu": "Menüyü aç",
+    "closeMenu": "Menüyü kapat",
+    "expandMenu": "Menüyü genişlet",
+    "collapseMenu": "Menüyü daralt",
+    "mainNavigation": "Ana navigasyon",
+    "userActions": "Kullanıcı işlemleri",
+    "submenu": "{{label}} alt menüsü",
+    "switchToLightMode": "Açık moda geç",
+    "switchToDarkMode": "Koyu moda geç",
+    "lightMode": "Açık mod",
+    "darkMode": "Koyu mod",
+    "unreadNotifications_one": "Bildirimler — {{count}} okunmamış",
+    "unreadNotifications_other": "Bildirimler — {{count}} okunmamış",
+    "openNotifications": "Bildirimleri aç",
+    "openProfile": "{{name}} profilini aç",
+    "openAccountSettings": "Profil ve hesap ayarlarını aç"
+  },
+  "search": {
+    "placeholder": "Kurs, karar aracı, hesaplama ara…",
+    "label": "Sitede ara",
+    "results": "Arama sonuçları",
+    "searching": "Aranıyor…",
+    "noResults": "Sonuç bulunamadı.",
+    "groups": {
+      "people": "Kişiler",
+      "posts": "Paylaşımlar",
+      "courses": "Kurslar",
+      "knowledge": "Bilgi Nesneleri",
+      "decisionTools": "Karar Araçları",
+      "calculations": "Hesaplamalar",
+      "news": "Haberler"
+    },
+    "localKararMember": "LocalKarar üyesi",
+    "localKararUser": "LocalKarar kullanıcısı",
+    "calculationCatalog": "Hesaplama kataloğu",
+    "viewAllKnowledge": "Bilgi tabanında tüm sonuçları gör"
+  },
+  "ui": {
+    "select": {
+      "emptyMessage": "Eşleşen sonuç yok",
+      "choose": "Seçiniz",
+      "searchPlaceholder": "Ara...",
+      "searchAria": "Seçenek ara"
+    },
+    "dataTable": {
+      "emptyMessage": "Veri bulunamadı",
+      "previousPage": "Önceki sayfa",
+      "nextPage": "Sonraki sayfa"
+    },
+    "password": {
+      "show": "Şifreyi göster",
+      "hide": "Şifreyi gizle"
+    },
+    "searchBar": {
+      "placeholder": "Ara...",
+      "action": "Ara"
+    },
+    "confirm": {
+      "confirm": "Onayla",
+      "cancel": "İptal",
+      "noteLabel": "Açıklama",
+      "noteRequired": "Açıklama zorunludur",
+      "processing": "İşleniyor..."
+    },
+    "video": {
+      "title": "Video",
+      "play": "Videoyu oynat",
+      "pause": "Videoyu durdur",
+      "unmute": "Sesi aç",
+      "mute": "Sesi kapat",
+      "openConversation": "Videoyu ve konuşmayı aç",
+      "position": "Video konumu",
+      "completed": "Tamamlandı",
+      "transcript": "Transkript",
+      "minutesShort_one": "{{count}} dk",
+      "minutesShort_other": "{{count}} dk"
+    },
+    "imageViewer": {
+      "videoPreview": "Video önizleme",
+      "imagePreview": "Görsel önizleme",
+      "goBack": "Geri dön"
+    },
+    "flashcard": {
+      "again": "Tekrar",
+      "hard": "Zor",
+      "good": "İyi",
+      "easy": "Kolay",
+      "cardCount_one": "{{count}} kart",
+      "cardCount_other": "{{count}} kart",
+      "sessionComplete": "Tebrikler! Bu oturumdaki tüm kartları tamamladın.",
+      "reviewed": "İncelenen",
+      "studyFullscreen": "Tam Ekran Çalış",
+      "empty": "Kart bulunamadı.",
+      "percentComplete": "%{{percent}} tamamlandı",
+      "question": "Soru",
+      "answer": "Cevap",
+      "hint": "İpucu",
+      "flipHint": "Dokun/Enter → Çevir"
+    },
+    "storage": {
+      "ariaLabel": "Tarayıcı depolaması bilgilendirmesi",
+      "before": "LocalKarar",
+      "emphasis": "kendi analitik veya reklam çerezini kullanmıyor",
+      "after": "ve üçüncü taraf izleme aracı çalıştırmıyor. Tarayıcında oturumun ve tercihlerin saklanıyor; Cloudflare gerektiğinde teknik güvenlik çerezi oluşturabilir.",
+      "details": "Ayrıntılar",
+      "dismiss": "Bildirimi kapat"
+    },
+    "task": {
+      "steps": "Uygulama adımları",
+      "checklist": "Teslim kontrol listesi",
+      "rubric": "Değerlendirme ölçütleri",
+      "start": "Görevi Başlat",
+      "answerPlaceholder": "Cevabınızı buraya yazın...",
+      "saveDraft": "Taslak Kaydet",
+      "complete": "Tamamla",
+      "completed": "Tamamlandı",
+      "awaitingReview": "Değerlendirme bekliyor",
+      "minutesShort_one": "{{count}} dk",
+      "minutesShort_other": "{{count}} dk",
+      "wordCount_one": "{{count}} kelime",
+      "wordCount_other": "{{count}} kelime",
+      "minimumWords_one": "en az {{count}} kelime",
+      "minimumWords_other": "en az {{count}} kelime",
+      "errors": {
+        "start": "Görev başlatılamadı",
+        "saveDraft": "Taslak kaydedilemedi",
+        "complete": "Görev tamamlanamadı",
+        "minimumWords": "Görevi tamamlamak için en az {{minimum}} kelime yazın ({{count}}/{{minimum}})."
+      }
+    },
+    "quiz": {
+      "answerAll": "Lütfen tüm soruları cevaplayın",
+      "submitError": "Quiz gönderilemedi",
+      "passed": "Geçtiniz!",
+      "failed": "Kaldınız",
+      "correctCount": "{{correct}}/{{total}} doğru",
+      "questionNumber": "Soru {{number}}",
+      "correctAnswer": "Doğru cevap",
+      "retry": "Tekrar Çöz",
+      "noOptions": "Seçenek bulunamadı",
+      "submitting": "Gönderiliyor...",
+      "submit": "Cevapları Gönder"
+    }
+  },
+  "settings": {
+    "eyebrow": "HESAP MERKEZİ",
+    "title": "Ayarlar ve Profil",
+    "subtitle": "Profil, işletme, güvenlik ve erişilebilirlik tercihlerinizi yönetin.",
+    "profileBusiness": "Profil ve işletme",
+    "integrations": "Entegrasyonlar",
+    "notifications": "Bildirimler",
+    "accessibility": "Erişilebilirlik",
+    "security": "Güvenlik",
+    "privacy": "Veri ve gizlilik",
+    "integrationDescription": "Mağazanızı bağlayın; siparişleriniz ve ürünleriniz güvenli biçimde eşitlensin. Sayfa açılışında dış sitelere istek gönderilmez.",
+    "sectionsAria": "Ayar bölümleri",
+    "uiLanguageDescription": "Navigasyon, form ve sistem metinlerinin dilini seçin.",
+    "membership": {
+      "title": "Üyelik ve Faturalandırma",
+      "description": "Planınızı, ücretinizi ve sonraki ödeme tarihinizi görün."
+    },
+    "avatar": {
+      "enlarge": "Profil fotoğrafını büyüt",
+      "alt": "{{name}} profil fotoğrafı",
+      "processing": "İşleniyor…",
+      "change": "Fotoğrafı değiştir",
+      "add": "Fotoğraf ekle",
+      "remove": "Kaldır"
+    },
+    "account": {
+      "title": "Hesap bilgileri",
+      "description": "Hesabınızda görünen temel kimlik bilgileri."
+    },
+    "email": {
+      "title": "E-posta adresi",
+      "description": "Giriş yaptığınız e-posta adresini mevcut şifrenizle güvenli biçimde değiştirin.",
+      "passwordHint": "Değişikliği doğrulamak için gereklidir."
+    },
+    "securitySection": {
+      "title": "Güvenlik",
+      "description": "Parolanızı düzenli aralıklarla yenileyin; yeni parola eskisiyle aynı olamaz."
+    },
+    "sessions": {
+      "title": "Açık oturumlar",
+      "description": "Cihazınızı kaybettiyseniz veya bir yerde oturumunuzu açık bıraktıysanız, şifrenizi değiştirmeden diğer tüm oturumları kapatabilirsiniz. Bu cihazda oturumunuz açık kalır.",
+      "closing": "Kapatılıyor…",
+      "signOutOthers": "Diğer cihazlardan çık"
+    },
+    "appearance": {
+      "title": "Görünüm",
+      "description": "Tema tercihiniz bu cihazda saklanır ve tüm LocalKarar ekranlarına uygulanır.",
+      "lightDescription": "Açık, serin ve yüksek okunabilirlik.",
+      "darkDescription": "Koyu yüzeyler ve canlı cyan vurgu."
+    },
+    "welcomeTour": {
+      "title": "Karşılama turu",
+      "description": "Uygulamanın bölümlerini tanıtan kısa turu yeniden izleyebilirsiniz.",
+      "resetting": "Sıfırlanıyor…",
+      "showAgain": "Turu yeniden göster"
+    },
+    "notificationsSection": {
+      "title": "Bildirimler",
+      "description": "İşletme kayıtlarının yaklaşan tarihleri için uygulama içi uyarıları yönetin.",
+      "selectBusiness": "Bildirim tercihi için etkin bir işletme seçin.",
+      "reminders": "Yaklaşan kayıt hatırlatmaları",
+      "remindersDescription": "Ödeme, tahsilat ve diğer tarihli kayıtlar yaklaşınca bildirim oluşturur."
+    },
+    "workspacePreferences": {
+      "title": "İşletme tercihleri",
+      "description": "Tarih, sayı ve para gösterimini etkin işletmeniz için belirleyin.",
+      "createBusiness": "Tercihleri düzenlemek için bir işletme profili oluşturun.",
+      "goToTracking": "İşletme Takibi’ne git"
+    },
+    "businessProfile": {
+      "title": "İşletme profili",
+      "description": "Mentor ve karar araçlarının kullandığı işletme bağlamını güncel tutun."
+    },
+    "fields": {
+      "displayName": "Görünen ad",
+      "email": "E-posta",
+      "accountRole": "Hesap rolü",
+      "newEmail": "Yeni e-posta",
+      "currentPassword": "Mevcut şifre",
+      "newPassword": "Yeni şifre",
+      "repeatPassword": "Yeni şifre tekrar",
+      "passwordMinimum": "En az 10 karakter",
+      "timezone": "Saat dilimi",
+      "currency": "Para birimi",
+      "weekStartsOn": "Hafta başlangıcı",
+      "sector": "Sektör",
+      "city": "Şehir",
+      "businessStage": "İşletme aşaması",
+      "employeeCount": "Çalışan sayısı",
+      "primaryGoal": "Öncelikli hedef"
+    },
+    "values": {
+      "user": "Kullanıcı",
+      "notSelected": "Seçilmedi",
+      "roles": {
+        "admin": "Yönetici",
+        "editor": "Editör",
+        "member": "Üye"
+      },
+      "weekDays": {
+        "sunday": "Pazar",
+        "monday": "Pazartesi",
+        "tuesday": "Salı",
+        "wednesday": "Çarşamba",
+        "thursday": "Perşembe",
+        "friday": "Cuma",
+        "saturday": "Cumartesi"
+      },
+      "stages": {
+        "idea": "Fikir aşaması",
+        "startup": "Yeni işletme",
+        "growth": "Büyüme",
+        "established": "Yerleşik işletme"
+      }
+    },
+    "actions": {
+      "saveChanges": "Değişiklikleri kaydet",
+      "updating": "Güncelleniyor…",
+      "changeEmail": "E-postayı değiştir",
+      "changePassword": "Şifreyi değiştir",
+      "saveProfile": "Profili kaydet"
+    },
+    "messages": {
+      "connectionInfoUnavailable": "Bağlantı bilgisi alınamadı",
+      "consentsAccepted": "Güncel Kullanım Koşulları ve Aydınlatma Metni onaylandı.",
+      "consentsError": "Yasal metinler onaylanamadı.",
+      "accountSaved": "Hesap bilgileri kaydedildi.",
+      "saveError": "Kaydedilemedi.",
+      "avatarType": "Yalnız PNG veya JPEG fotoğraf yükleyin.",
+      "avatarSize": "Profil fotoğrafı en fazla 5 MB olabilir.",
+      "avatarUpdated": "Profil fotoğrafınız güncellendi.",
+      "avatarUploadError": "Fotoğraf yüklenemedi.",
+      "avatarRemoved": "Profil fotoğrafı kaldırıldı.",
+      "avatarRemoveError": "Fotoğraf kaldırılamadı.",
+      "passwordMinimum": "Yeni şifre en az 10 karakter olmalı.",
+      "passwordMismatch": "Yeni şifreler eşleşmiyor.",
+      "passwordUpdated": "Şifreniz güncellendi. Diğer cihazlardaki oturumlar kapatıldı.",
+      "passwordError": "Şifre değiştirilemedi.",
+      "sessionsClosed": "Diğer tüm cihazlardaki oturumlar kapatıldı.",
+      "sessionsError": "Oturumlar kapatılamadı.",
+      "emailUpdated": "E-posta adresiniz güncellendi.",
+      "emailError": "E-posta değiştirilemedi.",
+      "deleteConfirmation": "Onay alanına HESABIMI SİL yazın.",
+      "deleteError": "Hesap silinemedi.",
+      "workspaceSaved": "İşletme tercihleri kaydedildi.",
+      "businessProfileSaved": "İşletme profili kaydedildi.",
+      "tourReset": "Tur sıfırlandı. Ana Sayfa’ya gidince yeniden başlayacak.",
+      "tourResetError": "Tur sıfırlanamadı."
+    },
+    "legal": {
+      "title": "Gizlilik ve yasal bilgiler",
+      "description": "Verilerinizin nasıl işlendiğini ve LocalKarar kullanım koşullarını inceleyin.",
+      "about": "LocalKarar hakkında",
+      "privacy": "Gizlilik ve KVKK aydınlatma metni",
+      "terms": "Kullanım koşulları",
+      "cookies": "Çerez ve yerel depolama politikası"
+    },
+    "consents": {
+      "title": "Onay bilgileri",
+      "description": "Yasal metinlerin güncel sürümleri ve sizin kabul ettiğiniz sürümler.",
+      "loadError": "Bilgiler yüklenemedi",
+      "readText": "Metni oku",
+      "currentVersion": "Güncel sürüm",
+      "acceptedVersion": "Kabul edilen sürüm",
+      "notAccepted": "Henüz kabul edilmemiş",
+      "lastAccepted": "Son onay",
+      "upToDate": "Güncel metinleri kabul ettiniz.",
+      "reviewRequired": "Yeni yasal metinleri inceleyip onaylamanız gerekiyor.",
+      "pending": "Bazı yasal metinler güncellendi, onayınız bekleniyor.",
+      "acceptCurrent": "Güncel metinleri onayla"
+    },
+    "deleteAccount": {
+      "title": "Hesabı sil",
+      "description": "Bu işlem hesabınızı devre dışı bırakır, kişisel kimlik bilgilerinizi anonimleştirir ve oturumunuzu kapatır.",
+      "warning": "Tek sahibi olduğunuz bir işletme varsa önce başka bir üyeyi sahip yapmanız gerekir. Bu işlem geri alınamaz.",
+      "confirmationLabel": "Onay",
+      "deleting": "Hesap siliniyor…",
+      "action": "Hesabımı kalıcı olarak sil"
+    },
+    "appInfo": {
+      "title": "Uygulama bilgisi",
+      "description": "Bağlı LocalKarar servislerinin güncel durumu.",
+      "version": "Sürüm",
+      "server": "Sunucu",
+      "database": "Veritabanı",
+      "connection": "Bağlantı",
+      "checking": "Kontrol ediliyor…"
+    }
+  },
+  "tour": {
+    "ariaLabel": "Karşılama turu",
+    "close": "Turu kapat",
+    "openingPage": "Sayfa açılıyor…",
+    "skip": "Turu atla",
+    "getStarted": "Başlayalım",
+    "next": "İleri",
+    "steps": {
+      "dashboard": {
+        "title": "Kontrol Merkezi",
+        "description": "Her girişte önce buraya düşersin. İşletmenin bugünkü durumu, yaklaşan işler ve yarım kalan kursun burada toplanır — rakamlar İşletme Takibi bölümünden gelir."
+      },
+      "decisionTools": {
+        "title": "Karar Araçları",
+        "description": "Ürünüm gerçekten kârlı mı, zam yapmalı mıyım gibi soruları adım adım yürütür. Sorulara cevap verirsin, sonunda gerekçesiyle birlikte bir sonuç çıkar."
+      },
+      "businessTracking": {
+        "title": "İşletme Takibi",
+        "description": "Gelir, gider, cari hesaplar ve belgelerin burada durur. Fatura yüklediğinde içindeki tutarları okuyup kayıt önerir — sen onaylamadan hiçbir şey yazılmaz."
+      },
+      "mentor": {
+        "title": "AI Mentor",
+        "description": "Takıldığın yeri buraya yazarsın. Kurs içeriğine ve kurduysan kendi işletme rakamlarına bakarak cevap verir, kaynağını da gösterir."
+      },
+      "community": {
+        "title": "Topluluk",
+        "description": "Benzer işletmeleri yürüten insanlar burada. Yazdığın anda yayımlanır; yanıtlayabilir, beğenebilir, alıntılayabilirsin. Kendi paylaşımını istediğin zaman kaldırırsın."
+      }
+    }
+  },
+  "verificationBanner": {
+    "title": "E-posta adresin doğrulanmadı.",
+    "description": "Şifreni unutursan sıfırlama bağlantısı gönderebilmemiz için doğrulaman gerekiyor.",
+    "sendError": "Kod gönderilemedi.",
+    "sending": "Gönderiliyor…",
+    "verify": "Doğrula",
+    "dismiss": "Bu oturum için gizle"
+  },
+  "consentBanner": {
+    "title": "Yasal metinler güncellendi.",
+    "description": "Devam etmeden önce güncel metinleri okuyup onaylamanız gerekiyor.",
+    "saveError": "Onay kaydedilemedi.",
+    "readDocument": "{{title}} belgesini oku",
+    "accepting": "Onaylanıyor…",
+    "accept": "Okudum, onaylıyorum"
+  },
+  "contextPanel": {
+    "myBusinesses": "İşletmelerim",
+    "ariaLabel": "{{title}} bağlam paneli",
+    "searchPlaceholder": "Bu sayfada ara",
+    "searchAria": "{{title}} içinde ara",
+    "subnavAria": "{{title}} alt navigasyonu"
+  },
+  "legal": {
+    "kicker": "Yasal bilgilendirme",
+    "effectiveVersion": "Yürürlük tarihi: {{date}} · Sürüm {{version}}",
+    "contents": "İçindekiler",
+    "documents": {
+      "privacy": "Gizlilik ve KVKK Aydınlatma Metni",
+      "terms": "Kullanım Koşulları",
+      "cookies": "Çerez ve Yerel Depolama Politikası",
+      "preInfo": "Ön Bilgilendirme Formu",
+      "distanceSale": "Mesafeli Hizmet Sözleşmesi",
+      "deliveryRefund": "Teslimat, İptal ve İade Koşulları",
+      "subscription": "Abonelik ve Faturalandırma Koşulları"
+    },
+    "turkishOnly": "Bu belge yalnızca Türkçe olarak yayımlanmaktadır. Türk hukukuna tabi, bağlayıcı bir sözleşme metni olduğu için çevirisi sunulmamaktadır."
+  },
+  "legacy": {
+    "decisionTools": "Karar Araçları",
+    "practicalCards": "Pratik Kartlar",
+    "title": "{{feature}} deneyimi yenilendi",
+    "description": "Bu eski çalışma alanı artık normal öğrenme akışında kullanılmıyor. Kayıtlı geçmişiniz korunuyor; yeni çalışmalarınızı {{replacement}} ile sürdürebilirsiniz.",
+    "goToReplacement": "{{replacement}} bölümüne git",
+    "backToDashboard": "Panele Dön"
+  },
+  "about": {
+    "signIn": "Giriş yap",
+    "createAccount": "Hesap oluştur",
+    "heroTitle": "İşletmen için doğru kararlar",
+    "heroText": "LocalKarar, küçük ve orta ölçekli işletmeler için bir karar destek uygulaması. Tahmine değil, kendi rakamlarına dayanan kararlar vermene yardım eder.",
+    "freeAccount": "Ücretsiz hesap oluştur",
+    "haveAccount": "Zaten hesabım var",
+    "audienceTitle": "Kime göre?",
+    "audienceText": "Mağazası, atölyesi, e-ticaret sitesi ya da hizmet işletmesi olan; rakamlarını takip etmek isteyen ama muhasebe eğitimi almamış işletme sahipleri için tasarlandı. Tek kişilik işletmelerden küçük ekiplere kadar çalışır.",
+    "modulesTitle": "Neler var?",
+    "limitsTitle": "Neyi yapmaz?",
+    "limitsText": "LocalKarar bir muhasebe programı değildir ve profesyonel hukuk, vergi, muhasebe veya yatırım danışmanlığının yerine geçmez. Ürettiği sonuçlar senin girdiğin verilere dayanır ve karar senindir.",
+    "closingTitle": "Başlamak için hesap yeterli",
+    "closingText": "Kurulum gerekmez. Hesap açtıktan sonra birkaç soruyla işletmeni tanıtırsın.",
+    "modules": {
+      "decisionTools": {
+        "title": "Karar Araçları",
+        "description": "Zam yapmalı mıyım, bu ürün gerçekten kârlı mı gibi soruları adım adım yürütür. Kendi rakamlarını girersin, sonunda gerekçesiyle birlikte bir sonuç çıkar.",
+        "outcome": "Bir kararı, tahmin yerine kendi rakamlarınla verirsin.",
+        "bullets": {
+          "b1": "Aracı seçersin: “Bu indirimi yapabilir miyim?”, “Kargo ücretsiz olabilir mi?”",
+          "b2": "Maliyet, fiyat ve adet gibi kendi sayılarını girersin",
+          "b3": "Sonuç, hangi sayıdan çıktığı gösterilerek verilir"
+        }
+      },
+      "businessTracking": {
+        "title": "İşletme Takibi",
+        "description": "Gelir, gider, cari hesaplar ve belgeler tek yerde. Fatura yüklediğinde içindeki tutarları okuyup kayıt önerir — sen onaylamadan hiçbir şey yazılmaz.",
+        "outcome": "Paranın nereden gelip nereye gittiğini tek yerde görürsün.",
+        "bullets": {
+          "b1": "Gelir ve gideri kaydeder, cari hesapları takip edersin",
+          "b2": "Fatura yüklersin; içindeki tutarlar okunup kayıt önerilir",
+          "b3": "Öneriyi onaylamadan hiçbir şey kayıtlarına yazılmaz"
+        }
+      },
+      "mentor": {
+        "title": "AI Mentor",
+        "description": "Takıldığın yeri sorarsın. Kurs içeriğine ve kurduysan kendi işletme rakamlarına bakarak cevap verir, dayandığı kaynağı da gösterir.",
+        "outcome": "Takıldığın yeri kendi cümlelerinle sorarsın.",
+        "bullets": {
+          "b1": "Soruyu yazarsın; yanıt, uygulamanın içerik kütüphanesine dayandırılır",
+          "b2": "Dayandığı kaynak yanıtın altında gösterilir",
+          "b3": "Yanıtlar hata payı taşır; rakam ve mevzuatı resmî kaynağından doğrula"
+        }
+      },
+      "calculations": {
+        "title": "Hesaplamalar",
+        "description": "Başa baş noktası, kâr marjı, nakit akışı gibi hesaplar hazır şablonlarla. Formülü ezberlemek yerine rakamı girip sonucu okursun.",
+        "outcome": "Formül ezberlemeden sonucu alırsın.",
+        "bullets": {
+          "b1": "Hazır şablonu seçersin: başa baş noktası, kâr marjı, nakit akışı",
+          "b2": "Yalnız kendi sayılarını girersin",
+          "b3": "Sonucun ne anlama geldiği birlikte yazılır"
+        }
+      },
+      "courses": {
+        "title": "Kurslar",
+        "description": "Kısa ve uygulamalı anlatımlar. Her bölüm bir kavramı açıklayıp onu hesaplayabileceğin araca bağlar.",
+        "outcome": "Bir kavramı öğrenip hemen kendi rakamlarına uygularsın.",
+        "bullets": {
+          "b1": "Kısa bölümler; her biri tek bir kavramı anlatır",
+          "b2": "Anlatımın sonunda ilgili hesaplama aracına bağlanırsın",
+          "b3": "Kaldığın yer hatırlanır"
+        }
+      },
+      "community": {
+        "title": "Topluluk",
+        "description": "Benzer işletmeleri yürüten insanların deneyimleri. Yazdığın anda yayımlanır; yanıtlayabilir, beğenebilir, alıntılayabilirsin.",
+        "outcome": "Aynı işi yürüten insanlara sorarsın.",
+        "bullets": {
+          "b1": "Soru sorar, kendi deneyimini paylaşırsın",
+          "b2": "Yanıt, beğeni ve alıntıyla konuşma sürer",
+          "b3": "Kendi paylaşımını istediğin zaman kaldırırsın",
+          "b4": "Paylaşmak istemediğin işletme bilgilerini buraya yazma"
+        }
+      }
+    },
+    "screen": {
+      "enlargeAria": "{{label}} ekran görüntüsünü büyüt",
+      "imageAlt": "{{label}} ekran görüntüsü",
+      "enlarge": "Büyüt ve incele",
+      "closeHint": "Kapatmak için Escape tuşuna basabilir veya dışına tıklayabilirsin.",
+      "closeAria": "Görseli kapat",
+      "largeAlt": "{{label}} ekranının büyük görünümü"
+    },
+    "footer": {
+      "help": "Yardım ve iletişim",
+      "privacy": "Gizlilik ve KVKK",
+      "terms": "Kullanım koşulları",
+      "cookies": "Çerezler",
+      "note": "Sorular ve KVKK başvuruları için Gizlilik metnindeki iletişim kanalını kullanabilirsin."
+    }
+  },
+  "support": {
+    "kicker": "Destek",
+    "title": "Yardım ve iletişim",
+    "intro": "Sık karşılaşılan durumların yanıtları aşağıda. Aradığınızı bulamazsanız formu doldurun; yazdığınız adrese dönüş yapılır.",
+    "faqTitle": "Sık sorulanlar",
+    "guideTitle": "Kullanma kılavuzu",
+    "guideIntro": "Uygulamanın ana akışı beş adımda. Hepsini yapmanız gerekmez; işinize yarayan bölümden başlayabilirsiniz.",
+    "faq": {
+      "verificationEmail": {
+        "question": "E-posta doğrulama postası gelmedi, ne yapmalıyım?",
+        "answer": "Önce spam ve tanıtım klasörlerine bakın. Kod 15 dakika geçerlidir; süresi geçtiyse uygulamadaki şeritten yeni kod isteyebilirsiniz. Adresinizi yanlış yazdıysanız Ayarlar sayfasından değiştirebilirsiniz."
+      },
+      "forgotPassword": {
+        "question": "Şifremi unuttum.",
+        "answer": "Giriş ekranındaki “Şifremi unuttum” bağlantısını kullanın. Bağlantı 1 saat ve yalnızca bir kez geçerlidir. Şifre sıfırlama yalnızca DOĞRULANMIŞ e-posta adreslerine gönderilir; adresinizi henüz doğrulamadıysanız posta gelmez."
+      },
+      "session": {
+        "question": "Her açtığımda yeniden giriş yapmam gerekiyor.",
+        "answer": "Oturumunuz 30 gün açık kalır. Bu süreden önce kopuyorsa, siteye bazen “www” ile bazen “www”suz girmiş olabilirsiniz — tarayıcı bunları iki ayrı site sayar. Adres artık tek biçime yönlendiriliyor; sorun sürerse bize yazın."
+      },
+      "workspace": {
+        "question": "İşletme çalışma alanı ne işe yarar?",
+        "answer": "Gelir, gider, cari hesap ve belgelerinizi tuttuğunuz alandır. Bir işletmeye başka kişileri davet edebilirsiniz; davet, e-posta ile gönderilen tek kullanımlık bir bağlantı üzerinden kabul edilir."
+      },
+      "invoice": {
+        "question": "Yüklediğim faturadan kayıt nasıl oluşuyor?",
+        "answer": "Belgedeki metin okunur ve size bir kayıt ÖNERİSİ sunulur. Siz onaylamadan hiçbir şey işletme kayıtlarınıza yazılmaz. Öneriyi düzenleyebilir veya reddedebilirsiniz."
+      },
+      "mentor": {
+        "question": "AI Mentor’un verdiği bilgiye güvenebilir miyim?",
+        "answer": "Mentor bir dil modeli kullanır ve kendinden emin görünen hatalı bilgi üretebilir. Yanıtı mümkün olduğunda kendi içerik kütüphanemize dayandırır ve kaynağı gösterir. Rakam, oran, süre ve mevzuat içeren bilgileri işlem yapmadan önce resmî kaynağından doğrulayın. Mentor mali müşavir veya avukat yerine geçmez."
+      },
+      "data": {
+        "question": "Verilerim nerede tutuluyor?",
+        "answer": "Sunucularımız Fransa’dadır. Mentor yazışmaları Mistral AI (Fransa) tarafından işlenir ve kötüye kullanım denetimi için 30 gün saklanır; model eğitiminde kullanılmaz. Ayrıntılı döküm Gizlilik ve KVKK Aydınlatma Metni’ndedir."
+      },
+      "deleteAccount": {
+        "question": "Hesabımı nasıl silerim?",
+        "answer": "Ayarlar → Hesabı sil. Tek sahibi olduğunuz bir işletme varsa önce başka bir üyeyi sahip yapmanız gerekir. Silme sonrası verilerinize ne olduğu aydınlatma metninde yazılıdır."
+      }
+    },
+    "topicTypes": {
+      "question": "Soru",
+      "issue": "Sorun bildirimi",
+      "feedback": "Geri bildirim",
+      "other": "Diğer"
+    },
+    "guide": {
+      "createBusiness": {
+        "title": "İşletmeni oluştur",
+        "steps": {
+          "s1": "Menüden İşletme Takibi’ni aç",
+          "s2": "“İlk İşletmeyi Oluştur” ya da “Yeni İşletme”ye bas",
+          "s3": "İşletme adını gir; sektör ve şehir isteğe bağlıdır"
+        }
+      },
+      "addRecord": {
+        "title": "Kayıt ekle",
+        "description": "Ödeme, tahsilat, senet, sevkiyat ve görevler işletmenin tek listesinde durur.",
+        "steps": {
+          "s1": "İşletmeni aç; Takip ekranına gir",
+          "s2": "Sağ üstteki “Kayıt ekle” düğmesine bas",
+          "s3": "Türünü, tutarını ve tarihini girip kaydet"
+        }
+      },
+      "uploadDocument": {
+        "title": "Belge yükle",
+        "description": "Fatura yüklediğinde içindeki tutarlar okunup kayıt önerilir — sen onaylamadan hiçbir şey kayıtlarına yazılmaz.",
+        "steps": {
+          "s1": "İşletmende Belgeler sekmesini aç",
+          "s2": "Dosyayı sürükleyin ya da “Dosya seç / Fotoğraf çek” ile ekle",
+          "s3": "Okunan bilgilerle oluşan öneriyi düzenle veya reddet"
+        }
+      },
+      "connectMarketplace": {
+        "title": "Pazaryeri mağazanı bağla",
+        "description": "Trendyol, Hepsiburada, N11 ve Shopify desteklenir; Amazon hazırlanıyor.",
+        "steps": {
+          "s1": "Ayarlar → Entegrasyonlar bölümünü aç",
+          "s2": "Mağazanın kartındaki “Bağla”ya basıp panel bilgilerini gir",
+          "s3": "Eşitlemeden sonra siparişlerin Siparişler sekmesine düşer"
+        }
+      },
+      "askMentor": {
+        "title": "Mentora sor",
+        "steps": {
+          "s1": "Menüden AI Mentor’ı aç",
+          "s2": "Sorunu kendi cümlelerinle yaz",
+          "s3": "Rakam ve mevzuat içeren yanıtları resmî kaynağından doğrula"
+        }
+      }
+    },
+    "privacy": {
+      "title": "Kişisel verilerinizle ilgili talepler",
+      "beforeEmail": "KVKK kapsamındaki başvurularınızı",
+      "afterEmail": "adresine iletin. Hangi bilgileri eklemeniz gerektiği",
+      "link": "Aydınlatma Metni’nin başvuru bölümünde",
+      "suffix": "yazılıdır."
+    },
+    "form": {
+      "title": "Bize yazın",
+      "name": "Adınız",
+      "email": "E-posta adresiniz",
+      "topicType": "Konunuz ne hakkında?",
+      "selectOptional": "Seçin (isteğe bağlı)",
+      "subject": "Konu",
+      "message": "Mesajınız",
+      "messagePlaceholder": "Sorununuzu olabildiğince somut anlatın: hangi ekranda, ne yaptığınızda, ne olduğunu yazın.",
+      "website": "Web siteniz",
+      "success": "Mesajınız iletildi. Yanıtı yazdığınız e-posta adresine göndereceğiz.",
+      "failed": "Mesaj iletilemedi. Lütfen biraz sonra tekrar deneyin.",
+      "privacyNote": "Formu gönderdiğinizde adınız, e-posta adresiniz ve mesajınız yalnızca talebinizi yanıtlamak için işlenir ve e-posta olarak iletilir; bu mesajlar veritabanımızda saklanmaz.",
+      "privacyLink": "Aydınlatma Metni",
+      "sending": "Gönderiliyor…",
+      "send": "Gönder"
+    },
+    "legalNavAria": "Yasal metinler",
+    "aboutLink": "LocalKarar hakkında"
+  },
+  "billing": {
+    "founderMember": "Kurucu Üye",
+    "perMonth": "{{price}}/ay",
+    "pricePerMonth": "{{price}} / ay",
+    "settings": {
+      "membershipStatus": "Üyelik durumu",
+      "freeUse": "Ücretsiz kullanım",
+      "billing": "Ücretlendirme",
+      "notStarted": "Henüz başlamadı",
+      "freeNotice_one": "İlk {{count}} ay ücretsiz. Ücretlendirme başlamadan önce bilgilendirileceksiniz.",
+      "freeNotice_other": "İlk {{count}} ay ücretsiz. Ücretlendirme başlamadan önce bilgilendirileceksiniz.",
+      "viewPrices": "Fiyatları görüntüle",
+      "plan": "Plan",
+      "status": "Durum",
+      "active": "Aktif",
+      "trialDaysLeft_one": "{{count}} deneme günü kaldı",
+      "trialDaysLeft_other": "{{count}} deneme günü kaldı",
+      "expired": "Süresi doldu",
+      "currentPrice": "Güncel fiyat",
+      "pricePeriod": "Fiyat dönemi",
+      "launchPeriod_one": "{{count}} aylık lansman dönemi",
+      "launchPeriod_other": "{{count}} aylık lansman dönemi",
+      "nextStandardPrice": "Sonraki standart fiyat",
+      "lockedPrice": "Kurucu üye indirimin kalıcı: standart fiyatın her zaman %{{percent}} altını ödersin.",
+      "managePayment": "Ödemeyi yönet",
+      "invoices": "Faturalar",
+      "cancelMembership": "Üyeliği iptal et",
+      "billingPeriod": "Tahsilat dönemi",
+      "periodMonthly": "Aylık",
+      "periodYearly": "Yıllık",
+      "actionsPending": "Fatura görüntüleme ve iptal, ödeme altyapısı etkinleştiğinde kullanılabilir olacak."
+    },
+    "modal": {
+      "successTitle": "Üyeliğin aktif",
+      "successDescription": "LocalKarar’a kaldığın yerden devam edebilirsin.",
+      "nextPaymentValue": "Sonraki ödeme: {{date}} · {{price}}",
+      "backToLocalKarar": "LocalKarar’a Dön",
+      "title": "LocalKarar üyeliğini etkinleştir",
+      "summaryAria": "Ödeme özeti",
+      "dueToday": "Bugün ödenecek",
+      "nextPayment": "Sonraki ödeme",
+      "fromMonth": "{{month}}. aydan itibaren",
+      "lockedPrice": "Kurucu üye indirimin kalıcı: standart fiyat yükselse bile her zaman %{{percent}} altını ödersin.",
+      "paymentAreaAria": "Ödeme alanı",
+      "securePaymentTitle": "Güvenli ödeme alanı",
+      "securePaymentDescription": "Ödeme altyapısı kurulum aşamasında. Etkinleştiğinde kart bilgilerin bu alanda, PayTR’nin güvenli formunda istenecek.",
+      "securityNote": "Kart bilgilerin PayTR tarafından işlenir, LocalKarar sunucularına ulaşmaz ve tarafımızca saklanmaz.",
+      "consentBefore": "Okudum ve kabul ediyorum:",
+      "terms": "Kullanım Koşulları",
+      "consentAfter": ".",
+      "payAndStart": "{{price}} Öde ve Üyeliği Başlat",
+      "billingNotStarted": "Ücretlendirme henüz başlamadı; şu anda ödeme alınmıyor.",
+      "periodLabel": "Tahsilat dönemini seç",
+      "yearlyNote": "Yıllık ödemede {{count}} ay hediye — yılda {{saving}} kazanç.",
+      "distanceSale": "Mesafeli Hizmet Sözleşmesi",
+      "preInfo": "Ön Bilgilendirme Formu",
+      "and": "ve",
+      "withdrawalWaiver": "Hizmetin derhal ifasına başlanmasını istiyorum ve bu nedenle cayma hakkımı kaybedeceğimi biliyorum."
+    },
+    "pricePerYear": "{{price}} / yıl",
+    "period": {
+      "aria": "Tahsilat dönemi",
+      "monthly": "Aylık",
+      "yearly": "Yıllık",
+      "freeMonths_one": "{{count}} ay hediye",
+      "freeMonths_other": "{{count}} ay hediye"
+    }
+  },
+  "pricing": {
+    "eyebrow": "Kurucu Üye Programı",
+    "title": "LocalKarar’ın ilk kullanıcılarından biri ol",
+    "heroDescription": "İlk ay ücretsiz, sonraki üç ay {{launchPrice}}/ay. Ardından {{founderPrice}}/ay — ve kurucu üye olarak standart fiyatın her zaman %{{percent}} altını ödersin.",
+    "notStartedTitle": "Ücretlendirme henüz başlamadı.",
+    "notStartedDescription": "Şu anda tüm özellikler ücretsiz kullanılabiliyor. Ücretli üyelik başlamadan önce bilgilendirileceksin.",
+    "howItWorks": "Nasıl ilerliyor",
+    "free": "Ücretsiz",
+    "lockedTitle": "Kurucu üye fiyatı kilitlidir.",
+    "lockedDescription": "Standart fiyatımız ileride yükselse bile, {{month}}. aydan itibaren ödeyeceğin {{price}}/ay üyeliğin sürdüğü sürece aynı kalır.",
+    "startFree": "Ücretsiz başla",
+    "startNote": "Kart bilgisi istemiyoruz. İstediğin zaman bırakabilirsin.",
+    "securityTitle": "Ödeme güvenliği",
+    "securityDescription": "Kart bilgilerin ödeme kuruluşu PayTR’nin güvenli formunda girilir ve LocalKarar sunucularına hiç ulaşmaz. Kart numaran tarafımızca saklanmaz.",
+    "faqTitle": "Sık sorulanlar",
+    "timeline": {
+      "afterwards": "sonrasında",
+      "months_one": "{{count}} ay",
+      "months_other": "{{count}} ay",
+      "stages": {
+        "free": {
+          "title": "İlk ay",
+          "note": "Kart bilgisi istemiyoruz."
+        },
+        "launch": {
+          "title": "Lansman dönemi",
+          "note": "Kurucu üyelere özel."
+        },
+        "founder": {
+          "title": "Kurucu üye fiyatı",
+          "note": "Standart fiyatın her zaman %{{percent}} altı."
+        }
+      }
+    },
+    "included": {
+      "decisionTools": "Karar Araçları — kararı vermeden önce rakamlara bak",
+      "businessTracking": "İşletme Takibi — çek, senet, fatura, tahsilat tek yerde",
+      "calculations": "Hesaplamalar ve finansal modeller",
+      "mentor": "AI Mentor — kendi işletme verinle konuşur",
+      "courses": "Kurslar ve pratik içerik",
+      "integrations": "Pazaryeri entegrasyonları (Trendyol, Hepsiburada, N11, Shopify)",
+      "community": "Topluluk"
+    },
+    "faq": {
+      "affordable": {
+        "question": "Neden bu kadar uygun?",
+        "answer": "Çünkü erken dönemdeyiz. Kurucu üyeler ürünü biz büyürken kullanıyor ve geri bildirimiyle şekillendiriyor. Karşılığında fiyat avantajı kalıcı olarak onlarda kalıyor."
+      },
+      "freeMonth": {
+        "question": "Ücretsiz ay bitince ne oluyor?",
+        "answer": "Verilerin durur ve dışa aktarılabilir kalır. Üyeliği başlatmazsan hesap salt okunur moda geçer; yeni kayıt ekleme, hesaplama ve AI Mentor kapanır. Hiçbir verin silinmez."
+      },
+      "cancel": {
+        "question": "İstediğim zaman iptal edebilir miyim?",
+        "answer": "Evet. İptal ettiğinde ödemesi yapılmış dönemin sonuna kadar üyeliğin devam eder. İptal için kimseyle görüşmen gerekmez; Ayarlar → Üyelik bölümünden tek tıkla yapılır."
+      },
+      "invoice": {
+        "question": "Fatura alabilir miyim?",
+        "answer": "Evet. Ödeme sonrasında düzenlenen belge e-posta adresine iletilir ve Ayarlar → Üyelik bölümünden geçmiş faturalarına ulaşabilirsin."
+      },
+      "increase": {
+        "question": "Fiyatlar artarsa ne olacak?",
+        "answer": "Kurucu üye fiyatı dondurulmuyor, standart fiyata bağlanıyor. Standart fiyat yükselirse senin fiyatın da yükselir — ama her zaman %{{percent}} altında kalır. Yani zamdan muaf değilsin, zamdan diğer üyelere göre daha az etkileniyorsun. Her fiyat değişikliği öncesinde bilgilendirilirsin."
+      },
+      "yearly": {
+        "question": "Aylık mı yıllık mı seçmeliyim?",
+        "answer": "Yıllık ödemede 12 ay yerine 10 ay ödersin; yılda {{saving}} kazanırsın. Aylık ödeme ise esneklik verir, istediğin zaman bırakabilirsin. Seçimini ödeme sırasında yaparsın ve sonradan değiştirebilirsin."
+      }
+    },
+    "yearlyEquivalent": "Aylık {{monthly}} karşılığı · yılda {{saving}} kazanç.",
+    "discountTitle": "Kurucu üye indirimin %{{percent}} ve kalıcı.",
+    "discountDescription": "Fiyatını dondurmuyoruz — standart fiyata bağlıyoruz. {{month}}. aydan itibaren, standart fiyatımız ileride yükselse bile her zaman %{{percent}} altını ödersin. Zamlar seni diğer üyelerden daha az etkiler.",
+    "benefitsTitle": "Kurucu üye olmak ne kazandırır",
+    "benefits": {
+      "priceLock": {
+        "title": "Kalıcı fiyat avantajı",
+        "description": "Standart fiyat her yükseldiğinde indirimin korunur; artıştan diğer üyelere göre daha az etkilenirsin."
+      },
+      "badge": {
+        "title": "Kurucu Üye rozeti",
+        "description": "Hesabında ve toplulukta görünür. İlk kullanıcılardan biri olduğunu gösterir."
+      }
+    }
+  },
+  "publicFooter": {
+    "corporateAria": "Kurumsal bağlantılar",
+    "legalAria": "Yasal bağlantılar",
+    "legal": "Yasal",
+    "seller": "Satıcı",
+    "links": {
+      "pricing": "Fiyatlar",
+      "about": "Hakkımızda",
+      "help": "Yardım ve İletişim",
+      "privacy": "Gizlilik ve KVKK",
+      "terms": "Kullanım Koşulları",
+      "cookies": "Çerezler",
+      "preInfo": "Ön Bilgilendirme",
+      "distanceSale": "Mesafeli Sözleşme",
+      "deliveryRefund": "Teslimat ve İade",
+      "subscription": "Abonelik Koşulları"
+    },
+    "identity": {
+      "address": "Adres",
+      "phone": "Telefon",
+      "region": "Faaliyet yeri"
+    }
+  },
+  "errors": {
+    "rateLimit": "Çok kısa sürede fazla istek gönderildi. Birkaç saniye sonra tekrar deneyin.",
+    "rateLimitWithSeconds": "Çok kısa sürede fazla istek gönderildi. Yaklaşık {{seconds}} saniye kaldı.",
+    "networkError": "Bağlantı hatası",
+    "unauthorized": "Oturum süreniz dolmuş olabilir.",
+    "streamError": "Akış hatası",
+    "noBody": "Yanıt alınamadı",
+    "apiError": "Bir sorun oluştu",
+    "unknown": "Beklenmeyen bir hata oluştu",
+    "sessionMissing": "Oturum bulunamadı",
+    "mentorTitle": "Bağlantı Hatası",
+    "mentorNetwork": "AI Mentor sunucusuna ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
+    "mentorTimeout": "Yanıt beklenenden uzun sürdü. Mesajı tekrar deneyebilirsiniz.",
+    "mentorRateLimit": "Çok kısa sürede fazla istek gönderildi. Biraz bekleyip tekrar deneyin.",
+    "mentorUnauthorized": "Oturumunuz sona ermiş olabilir. Yeniden giriş yapın.",
+    "mentorProvider": "AI Mentor şu anda yanıt üretemiyor. Birkaç saniye sonra tekrar deneyin.",
+    "mentorFallback": "Sistemde geçici bir sorun oluştu. Lütfen daha sonra tekrar deneyin.",
+    "notFoundSr": "404 — Sayfa bulunamadı",
+    "notFoundTitle": "Sayfa bulunamadı",
+    "notFoundDescription": "Aradığınız sayfa mevcut değil veya taşınmış olabilir.",
+    "unauthorizedTitle": "Yetkisiz erişim",
+    "unauthorizedDescription": "Bu sayfaya erişim yetkiniz bulunmuyor.",
+    "backHome": "Ana Sayfaya Dön",
+    "exportFailed": "Dışa aktarım başarısız",
+    "downloadFailed": "Kayıt indirilemedi"
+  },
+  "loading": {
+    "page": "Sayfa yükleniyor…"
+  },
+  "welcome": {
+    "title": "Aramıza hoş geldin",
+    "description_one": "LocalKarar’ın ilk kullanıcılarından birisin. İlk {{count}} ay tamamen ücretsiz — kart bilgisi istemiyoruz.",
+    "description_other": "LocalKarar’ın ilk kullanıcılarından birisin. İlk {{count}} ay tamamen ücretsiz — kart bilgisi istemiyoruz.",
+    "discountNote": "Kurucu üye olarak standart fiyatın her zaman %{{percent}} altını ödersin. Bugün bu {{price}}/ay demek; fiyat ileride değişse bile indirim oranın aynı kalır.",
+    "notStarted": "Ücretlendirme henüz başlamadı. Başlamadan önce bilgilendirileceksin.",
+    "start": "LocalKarar’a başla",
+    "seePricing": "Fiyatları incele"
+  }
+}

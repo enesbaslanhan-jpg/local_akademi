@@ -1,20 +1,26 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma.js'
 import { getEmbeddedPracticeBlocksForCourse, getEmbeddedPracticeBlocksForLesson } from './embedded-practice-blocks.js'
+import { contentLanguage, localized } from '../lib/content-language.js'
+import { COURSE_CATEGORY_EN, COURSE_EN_BY_SLUG, COURSE_SOURCE_TITLE_EN } from '../content/i18n/course-en.js'
 
 export async function courseRoutes(fastify: FastifyInstance) {
   // Mobile Support: Get distinct categories
   fastify.get('/categories', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const language = contentLanguage(request)
     const courses = await prisma.course.findMany({
       where: { published: true, archivedAt: null },
       select: { category: true }
     })
-    const categories = Array.from(new Set(courses.map(c => c.category).filter(c => c !== null && c !== '')))
+    const categories = Array.from(new Set(courses.map(c => (
+      language === 'en' ? COURSE_CATEGORY_EN[c.category] || c.category : c.category
+    )).filter(c => c !== null && c !== '')))
     return categories
   })
 
   // List with pagination, filters, search
   fastify.get('/', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const language = contentLanguage(request)
     const query = request.query as any
     const page = Math.max(1, parseInt(query.page) || 1)
     const pageSize = Math.min(50, Math.max(1, parseInt(query.pageSize) || 12))
@@ -26,13 +32,27 @@ export async function courseRoutes(fastify: FastifyInstance) {
        kalır (bkz. GET /:id — arşiv durumu ayrıca işaretlenir). */
     const where: any = { published: true, archivedAt: null }
 
-    if (query.category) where.category = { contains: query.category, mode: 'insensitive' }
+    if (query.category) {
+      const sourceCategory = language === 'en'
+        ? Object.entries(COURSE_CATEGORY_EN).find(([, english]) => english === query.category)?.[0] || query.category
+        : query.category
+      where.category = { contains: sourceCategory, mode: 'insensitive' }
+    }
     if (query.level) where.level = query.level
     if (query.search) {
-      where.OR = [
-        { title: { contains: query.search, mode: 'insensitive' } },
-        { description: { contains: query.search, mode: 'insensitive' } },
-      ]
+      if (language === 'en') {
+        const needle = String(query.search).toLocaleLowerCase('en-US')
+        where.slug = {
+          in: Object.entries(COURSE_EN_BY_SLUG)
+            .filter(([, item]) => `${item.title} ${item.description || ''}`.toLocaleLowerCase('en-US').includes(needle))
+            .map(([slug]) => slug),
+        }
+      } else {
+        where.OR = [
+          { title: { contains: query.search, mode: 'insensitive' } },
+          { description: { contains: query.search, mode: 'insensitive' } },
+        ]
+      }
     }
     if (query.knowledgeObjectId !== undefined) {
       const knowledgeObjectId = Number(query.knowledgeObjectId)
@@ -72,12 +92,13 @@ export async function courseRoutes(fastify: FastifyInstance) {
 
     const result = courses.map(c => {
       const enrollment = enrollmentsMap[c.id]
+      const english = c.slug ? COURSE_EN_BY_SLUG[c.slug] : undefined
       return {
         id: c.id,
         slug: c.slug,
-        title: c.title,
-        description: c.description?.substring(0, 200),
-        category: c.category,
+        title: localized(c.title, english?.title, language),
+        description: localized(c.description, english?.description, language)?.substring(0, 200),
+        category: localized(c.category, COURSE_CATEGORY_EN[c.category], language),
         level: c.level,
         lessonCount: c._count?.lessons ?? 0,
         estimatedMinutes: c.estimatedMinutes,
@@ -106,6 +127,7 @@ export async function courseRoutes(fastify: FastifyInstance) {
 
   // Course detail with lessons and user progress
   fastify.get('/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const language = contentLanguage(request)
     const { id } = request.params as { id: string }
     const courseId = parseInt(id)
     if (isNaN(courseId)) return reply.status(400).send({ error: 'Invalid course ID' })
@@ -151,6 +173,7 @@ export async function courseRoutes(fastify: FastifyInstance) {
 
     const embeddedPracticeBlocks = await getEmbeddedPracticeBlocksForCourse(courseId)
 
+    const english = course.slug ? COURSE_EN_BY_SLUG[course.slug] : undefined
     const lessons: Array<{
       id: number; title: string; order: number; estimatedMinutes: number;
       knowledgeObjectId: number | null; knowledgeObjectCode: string | null;
@@ -161,7 +184,7 @@ export async function courseRoutes(fastify: FastifyInstance) {
       const isLocked = !enrollment
       return {
         id: l.id,
-        title: l.title,
+        title: localized(l.title, english?.lessonTitle || english?.title, language),
         order: l.order,
         estimatedMinutes: l.estimatedMinutes,
         knowledgeObjectId: l.knowledgeObjectId,
@@ -209,9 +232,9 @@ export async function courseRoutes(fastify: FastifyInstance) {
       course: {
         id: course.id,
         slug: course.slug,
-        title: course.title,
-        description: course.description,
-        category: course.category,
+        title: localized(course.title, english?.title, language),
+        description: localized(course.description, english?.description, language),
+        category: localized(course.category, COURSE_CATEGORY_EN[course.category], language),
         level: course.level,
         estimatedMinutes: course.estimatedMinutes,
         outcomes: JSON.parse(course.outcomes || '[]'),
@@ -276,6 +299,7 @@ export async function courseRoutes(fastify: FastifyInstance) {
   fastify.get('/:courseId/lessons/:lessonId', {
     preHandler: [fastify.authenticate],
   }, async (request, reply) => {
+    const language = contentLanguage(request)
     const user = request.user as any
     const { courseId, lessonId } = request.params as { courseId: string; lessonId: string }
     const cid = parseInt(courseId)
@@ -342,24 +366,47 @@ export async function courseRoutes(fastify: FastifyInstance) {
     const currentIdx = allLessons.findIndex(l => l.id === lid)
     const prevLesson = currentIdx > 0 ? allLessons[currentIdx - 1] : null
     const nextLesson = currentIdx < allLessons.length - 1 ? allLessons[currentIdx + 1] : null
+    const english = lesson.course.slug ? COURSE_EN_BY_SLUG[lesson.course.slug] : undefined
+    const englishLessonTitle = english?.lessonTitle || english?.title
+    const hasEnglishLesson = language === 'en' && Boolean(english?.lessonContent)
 
     return {
       lesson: {
         id: lesson.id,
         courseId: lesson.courseId,
-        title: lesson.title,
+        title: localized(lesson.title, englishLessonTitle, language),
         order: lesson.order,
         estimatedMinutes: lesson.estimatedMinutes,
-        content: lesson.content,
+        content: localized(lesson.content, english?.lessonContent, language),
+        translated: hasEnglishLesson,
         knowledgeObject: lesson.knowledgeObject ? {
           id: lesson.knowledgeObject.id,
           code: lesson.knowledgeObject.code,
-          title: lesson.knowledgeObject.title,
-          content: lesson.knowledgeObject.content,
+          title: localized(lesson.knowledgeObject.title, englishLessonTitle, language),
+          // Canonical player gövdeyi lesson.content yerine buradan okuyor.
+          content: localized(lesson.knowledgeObject.content, english?.lessonContent, language),
           metadata: (() => {
-            try { return JSON.parse(lesson.knowledgeObject.metadata) } catch { return {} }
+            try {
+              const metadata = JSON.parse(lesson.knowledgeObject.metadata)
+              if (!hasEnglishLesson) return metadata
+              // Metinsel metadata Türkçe kaynak içeriğidir. İngilizce gövde
+              // aynı bölümleri içerir; Türkçe parçaların yan raydan sızmasını önle.
+              return {
+                ...metadata,
+                learningOutcomes: [],
+                examples: [],
+                steps: [],
+                checklist: [],
+                formulas: [],
+              }
+            } catch { return {} }
           })(),
-          sources: lesson.knowledgeObject.sources,
+          sources: hasEnglishLesson
+            ? lesson.knowledgeObject.sources.map(item => ({
+                ...item,
+                source: { ...item.source, title: COURSE_SOURCE_TITLE_EN[item.source.title] ?? item.source.title },
+              }))
+            : lesson.knowledgeObject.sources,
           status: lesson.knowledgeObject.status,
           hasFlashcards: lesson.knowledgeObject.flashcards.length > 0,
           hasVideo: (Array.isArray(lesson.knowledgeObject?.videos) && (lesson.knowledgeObject.videos as Array<any>).length > 0),
@@ -378,9 +425,11 @@ export async function courseRoutes(fastify: FastifyInstance) {
              Course Player ilk derse değil, en son görüntülenen derse açar. */
           lastViewedAt: progress.lastViewedAt,
         } : null,
-        embeddedPracticeBlocks,
-        prevLesson: prevLesson ? { id: prevLesson.id, title: prevLesson.title } : null,
-        nextLesson: nextLesson ? { id: nextLesson.id, title: nextLesson.title } : null,
+        // İngilizce canonical gövdenin kendi formül/uyarı bölümleri ayrıştırılır.
+        // Veritabanındaki bloklar Türkçe olduğundan ikinci kez gösterilmez.
+        embeddedPracticeBlocks: hasEnglishLesson ? [] : embeddedPracticeBlocks,
+        prevLesson: prevLesson ? { id: prevLesson.id, title: localized(prevLesson.title, englishLessonTitle, language) } : null,
+        nextLesson: nextLesson ? { id: nextLesson.id, title: localized(nextLesson.title, englishLessonTitle, language) } : null,
       },
     }
   })

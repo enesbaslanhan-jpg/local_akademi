@@ -4,8 +4,13 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
 import styles from './Notifications.module.css'
+import { useTranslation } from 'react-i18next'
+import { useLocalization } from '@/context/LocalizationContext'
+import { formatDate } from '@/utils/formatters'
 
 export default function Notifications() {
+  const { t } = useTranslation('workspace')
+  const { formatLocale } = useLocalization()
   const { workspaceId } = useParams()
   const navigate = useNavigate()
   const toast = useToast()
@@ -15,9 +20,9 @@ export default function Notifications() {
     try {
       setData(await api.workspace.notifications.list(workspaceId))
     } catch (error) {
-      toast.error(error.message || 'Bildirimler yüklenemedi.')
+      toast.error(error.message || t('notifications.loadFailed'))
     }
-  }, [toast, workspaceId])
+  }, [t, toast, workspaceId])
 
   useEffect(() => { load() }, [load])
 
@@ -31,7 +36,7 @@ export default function Notifications() {
 
   async function readAll() {
     await api.workspace.notifications.readAll(workspaceId)
-    toast.success('Tüm bildirimler okundu olarak işaretlendi.')
+    toast.success(t('notifications.markedAllRead'))
     await load()
   }
 
@@ -39,16 +44,16 @@ export default function Notifications() {
     <section className={styles.page}>
       <div className={styles.heading}>
         <div>
-          <h2>Bildirimler</h2>
-          <p>Yaklaşan ödemeler, tahsilatlar, senetler ve diğer işletme tarihleri.</p>
+          <h2>{t('notifications.title')}</h2>
+          <p>{t('notifications.subtitle')}</p>
         </div>
         {data.unreadCount > 0 && (
-          <button onClick={readAll}><CheckCheck size={17} /> Tümünü okundu yap</button>
+          <button onClick={readAll}><CheckCheck size={17} /> {t('notifications.markAllRead')}</button>
         )}
       </div>
-      <div className={styles.summary}>{data.unreadCount} okunmamış bildirim</div>
+      <div className={styles.summary}>{t('notifications.unreadCount', { count: data.unreadCount })}</div>
       {data.notifications.length === 0 ? (
-        <div className={styles.empty}><Bell size={42} /><h3>Bildirim yok</h3><p>Yaklaşan tarihler burada görünecek.</p></div>
+        <div className={styles.empty}><Bell size={42} /><h3>{t('notifications.empty')}</h3><p>{t('notifications.emptyHint')}</p></div>
       ) : (
         <div className={styles.list}>
           {data.notifications.map(notification => (
@@ -62,7 +67,7 @@ export default function Notifications() {
                 <strong>{notification.title}</strong>
                 <small>{notification.body}</small>
               </span>
-              <time>{new Date(notification.createdAt).toLocaleString('tr-TR')}</time>
+              <time>{formatDate(notification.createdAt, { locale: formatLocale, dateStyle: 'medium', timeStyle: 'short' })}</time>
             </button>
           ))}
         </div>

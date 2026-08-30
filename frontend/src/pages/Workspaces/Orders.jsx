@@ -5,44 +5,22 @@ import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
 import Modal from '@/components/ui/Modal'
 import styles from './Orders.module.css'
+import { useTranslation } from 'react-i18next'
+import { useLocalization } from '@/context/LocalizationContext'
+import { formatCurrency, formatDate as formatDateValue } from '@/utils/formatters'
 
-const STATUS_LABELS = {
-  CREATED: 'Oluşturuldu',
-  PROCESSING: 'Hazırlanıyor',
-  SHIPPED: 'Kargoda',
-  DELIVERED: 'Teslim edildi',
-  CANCELLED: 'İptal',
-  RETURNED: 'İade',
-  PARTIALLY_RETURNED: 'Kısmi iade',
-  UNKNOWN: 'Bilinmiyor'
-}
+
 
 const PROVIDER_LABELS = {
   TRENDYOL: 'Trendyol',
   HEPSIBURADA: 'Hepsiburada',
   N11: 'N11',
   SHOPIFY: 'Shopify',
+  AMAZON: 'Amazon',
   WOOCOMMERCE: 'WooCommerce'
 }
 
-/* Deep-link filtre etiketleri (Overview/Dashboard action'lari buraya
-   ?status=CREATED,PROCESSING gibi sorgularla gonderir). */
-const STATUS_FILTER_LABELS = {
-  CREATED: 'Oluşturuldu',
-  PROCESSING: 'Hazırlanıyor',
-  'CREATED,PROCESSING': 'Kargoya bekleyen',
-  'RETURNED,PARTIALLY_RETURNED': 'İade sürecinde'
-}
 
-function money(value, currency = 'TRY') {
-  if (value === null || value === undefined) return '—'
-  return new Intl.NumberFormat('tr-TR', { style: 'currency', currency }).format(Number(value))
-}
-
-function formatDate(value) {
-  if (!value) return '—'
-  return new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
-}
 
 /*
  * İSLETME TAKIBI > SIPARISLER.
@@ -53,6 +31,31 @@ function formatDate(value) {
  * tetiklenir.
  */
 export default function Orders() {
+  const { t } = useTranslation(['workspace', 'common'])
+  const { formatLocale } = useLocalization()
+  const money = (value, currency = 'TRY') => formatCurrency(value, { locale: formatLocale, currency })
+  const formatDate = value => formatDateValue(value, { locale: formatLocale, dateStyle: 'medium', timeStyle: 'short' })
+  const statusLabel = status => t(`orderStatus.${String(status || 'UNKNOWN').toLowerCase()}`)
+
+  const STATUS_LABELS = {
+    CREATED: t('orderStatus.created'),
+    PROCESSING: t('orderStatus.processing'),
+    SHIPPED: t('orderStatus.shipped'),
+    DELIVERED: t('orderStatus.delivered'),
+    CANCELLED: t('orderStatus.cancelled'),
+    RETURNED: t('orderStatus.returned'),
+    PARTIALLY_RETURNED: t('orderStatus.partially_returned'),
+    UNKNOWN: t('orderStatus.unknown')
+  }
+
+  /* Deep-link filtre etiketleri (Overview/Dashboard action'lari buraya
+     ?status=CREATED,PROCESSING gibi sorgularla gonderir). */
+  const STATUS_FILTER_LABELS = {
+    CREATED: t('orderStatus.created'),
+    PROCESSING: t('orderStatus.processing'),
+    'CREATED,PROCESSING': t('orders.awaitingShipment'),
+    'RETURNED,PARTIALLY_RETURNED': t('orders.returnInProgress')
+  }
   const { workspaceId } = useParams()
   const toast = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -101,7 +104,7 @@ export default function Orders() {
       setLastSyncedAt(statusData?.connections?.[0]?.lastSyncedAt || null)
       setConnected(Boolean(statusData?.connected))
     } catch (err) {
-      setError(err.message || 'Siparişler yüklenemedi.')
+      setError(err.message || t('ordersLoadError'))
     } finally {
       setLoading(false)
     }
@@ -117,7 +120,7 @@ export default function Orders() {
         if (!statusData?.syncing) {
           setSyncing(false)
           await load()
-          toast.success('Eşitleme tamamlandı.')
+          toast.success(t('orders.syncComplete'))
         }
       } catch { /* gecici hata polling'i bozmasin */ }
     }, 3000)
@@ -128,10 +131,10 @@ export default function Orders() {
     try {
       await api.integrations.trendyolSync(workspaceId)
       setSyncing(true)
-      toast.success('Eşitleme başlatıldı…')
+      toast.success(t('orders.syncStarted'))
     } catch (err) {
       if (err.status === 409) { setSyncing(true); return }
-      toast.error(err.message || 'Eşitleme başlatılamadı.')
+      toast.error(err.message || t('orders.syncFailed'))
     }
   }
 
@@ -141,11 +144,11 @@ export default function Orders() {
     <div className={styles.page}>
       <header className={styles.heading}>
         <div>
-          <h2>Siparişler</h2>
+          <h2>{t('nav.orders')}</h2>
           <p className={styles.subtitle}>
             <Clock size={13} aria-hidden="true" />{' '}
-            Son eşitleme: {formatDate(lastSyncedAt)}
-            {!connected && <em> · Pazaryeri bağlı değil (Ayarlar → Entegrasyonlar)</em>}
+            {t('lastSync')}: {formatDate(lastSyncedAt)}
+            {!connected && <em> · {t('notConnected')}</em>}
           </p>
         </div>
         <button
@@ -153,34 +156,34 @@ export default function Orders() {
           className={styles.syncButton}
           onClick={handleSync}
           disabled={syncing || !connected}
-          title={connected ? 'Trendyol’dan son siparişleri çek' : 'Önce Ayarlar > Entegrasyonlar’dan Trendyol’u bağlayın'}
+          title={connected ? t('orders.syncTooltip') : t('orders.syncTooltipDisabled')}
         >
           <RefreshCw size={14} aria-hidden="true" className={syncing ? styles.spinning : ''} />
-          {syncing ? 'Eşitleniyor…' : 'Şimdi eşitle'}
+          {syncing ? t('syncing') : t('common:buttons.sync')}
         </button>
       </header>
 
       {error && (
         <div className={styles.errorState} role="alert">
           <p>{error}</p>
-          <button type="button" onClick={load}>Tekrar dene</button>
+          <button type="button" onClick={load}>{t('common:buttons.retry')}</button>
         </div>
       )}
 
       {statusFilter.length > 0 && (
         <div className={styles.filterChipRow}>
           <span className={styles.filterChip}>
-            Durum: {statusFilterLabel || statusFilter.join(', ')}
-            <button type="button" onClick={clearStatusFilter} aria-label="Filtreyi kaldır"><X size={12} /></button>
+            {t('orders.statusPrefix')} {statusFilterLabel || statusFilter.join(', ')}
+            <button type="button" onClick={clearStatusFilter} aria-label={t('orders.clearFilter')}><X size={12} /></button>
           </span>
         </div>
       )}
 
       <div className={styles.toolbar}>
         <label className={styles.providerFilter}>
-          <span>Kaynak</span>
-          <select value={providerFilter} onChange={event => setProviderFilter(event.target.value)} aria-label="Kaynak filtresi">
-            <option value="">Tümü</option>
+          <span>{t('provider')}</span>
+          <select value={providerFilter} onChange={event => setProviderFilter(event.target.value)} aria-label={t('orders.sourceFilter')}>
+            <option value="">{t('allProviders')}</option>
             <option value="TRENDYOL">Trendyol</option>
             <option value="HEPSIBURADA">Hepsiburada</option>
             <option value="N11">N11</option>
@@ -192,42 +195,33 @@ export default function Orders() {
       {!error && !loading && orders.length === 0 && (
         <div className={styles.emptyState}>
           <PackageSearch size={28} aria-hidden="true" />
-          <h3>Henüz sipariş yok</h3>
+          <h3>{t('ordersEmpty')}</h3>
           <p>
             {connected
-              ? '“Şimdi eşitle” ile Trendyol’daki son 30 günlük siparişleri çekebilirsiniz.'
-              : 'Trendyol mağazanızı bağladığınızda siparişler burada listelenir.'}
+              ? t('orders.emptyConnected')
+              : t('orders.emptyNotConnected')}
           </p>
         </div>
       )}
 
       {!error && (loading || orders.length > 0) && (
-        <div className={styles.tableWrap} role="region" aria-label="Pazaryeri siparişleri" tabIndex={0}>
+        <div className={styles.tableWrap} role="region" aria-label={t('marketplaceOrders')} tabIndex={0}>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th scope="col">Sipariş</th>
-                <th scope="col">Kaynak</th>
-                <th scope="col">Tarih</th>
-                <th scope="col">Müşteri</th>
-                <th scope="col" className={styles.numeric}>Brüt Tutar</th>
-                <th scope="col" className={styles.numeric}>Komisyon</th>
-                <th scope="col" className={styles.numeric}>Kargo</th>
-                <th scope="col" className={styles.numeric}>İade</th>
-                <th scope="col" className={styles.numeric}>Net Katkı</th>
-                <th scope="col">Durum</th>
+                <th scope="col">{t('order')}</th><th scope="col">{t('provider')}</th><th scope="col">{t('date')}</th><th scope="col">{t('customer')}</th><th scope="col" className={styles.numeric}>{t('grossAmount')}</th><th scope="col" className={styles.numeric}>{t('commission')}</th><th scope="col" className={styles.numeric}>{t('shipping')}</th><th scope="col" className={styles.numeric}>{t('refund')}</th><th scope="col" className={styles.numeric}>{t('netContribution')}</th><th scope="col">{t('statusLabel')}</th>
               </tr>
             </thead>
             <tbody>
               {loading && (
-                <tr><td colSpan={10} className={styles.loadingCell}>Yükleniyor…</td></tr>
+                <tr><td colSpan={10} className={styles.loadingCell}>{t('common:states.loading')}</td></tr>
               )}
               {!loading && visibleOrders.map(order => (
                 <tr key={order.id} onClick={() => setDetailId(order.id)} tabIndex={0}
                   onKeyDown={event => { if (event.key === 'Enter') setDetailId(order.id) }}>
                   <td className={styles.orderNo}>
                     <span>{order.externalOrderNumber || order.externalId}</span>
-                    <small>{order.itemCount != null ? `${order.itemCount} ürün` : ''}</small>
+                    <small>{order.itemCount != null ? t('orders.items', { count: order.itemCount }) : ''}</small>
                   </td>
                   <td>
                     <span className={`${styles.sourceBadge} ${styles[`source_${order.provider}`] || ''}`}>
@@ -242,11 +236,11 @@ export default function Orders() {
                   <td className={styles.numeric}>{money(order.refundAmount, order.currency)}</td>
                   <td className={styles.numeric}>
                     {order.netContribution === null || order.netContribution === undefined
-                      ? <span className={styles.mutedValue} title="Komisyon/kargo/iade tutarı sağlanmadığı için hesaplanmaz">—</span>
+                      ? <span className={styles.mutedValue} title={t('orders.netUnavailable')}>—</span>
                       : money(order.netContribution, order.currency)}
                   </td>
                   <td><span className={`${styles.statusChip} ${styles[`status_${order.status}`] || ''}`}>
-                    {STATUS_LABELS[order.status] || order.status}
+                    {statusLabel(order.status)}
                   </span></td>
                 </tr>
               ))}
@@ -256,15 +250,15 @@ export default function Orders() {
       )}
 
       {!loading && statusFilter.length > 0 && visibleOrders.length === 0 && orders.length > 0 && (
-        <p className={styles.moreNote}>Bu filtreyle eşleşen sipariş yok.</p>
+        <p className={styles.moreNote}>{t('orders.noFilterMatch')}</p>
       )}
 
       {!loading && total > orders.length && orders.length > 0 && (
-        <p className={styles.moreNote}>{total - orders.length} sipariş daha var. Aramayı veya filtrelemeyi backend API üzerinden kullanabilirsiniz.</p>
+        <p className={styles.moreNote}>{t('orders.moreAvailable', { count: total - orders.length })}</p>
       )}
 
       {/* Detay cekmecesi */}
-      <Modal open={Boolean(detail)} onClose={() => setDetailId(null)} title="Sipariş detayı" size="lg">
+      <Modal open={Boolean(detail)} onClose={() => setDetailId(null)} title={t('orderDetail')} size="lg">
         {detail && (
           <div className={styles.detail}>
             <header className={styles.detailHead}>
@@ -275,19 +269,19 @@ export default function Orders() {
                 </span>
               </div>
               <span className={`${styles.statusChip} ${styles[`status_${detail.status}`] || ''}`}>
-                {STATUS_LABELS[detail.status]}
+                {statusLabel(detail.status)}
               </span>
-              <button type="button" className={styles.closeDetail} onClick={() => setDetailId(null)} aria-label="Kapat"><X size={16} /></button>
+              <button type="button" className={styles.closeDetail} onClick={() => setDetailId(null)} aria-label={t('common:buttons.close')}><X size={16} /></button>
             </header>
 
             <dl className={styles.detailGrid}>
-              <div><dt>Sipariş tarihi</dt><dd>{formatDate(detail.orderDate)}</dd></div>
-              <div><dt>Müşteri</dt><dd>{detail.customerDisplayName || '—'}</dd></div>
-              <div><dt>Para birimi</dt><dd>{detail.currency}</dd></div>
+              <div><dt>{t('orders.detail.orderDate')}</dt><dd>{formatDate(detail.orderDate)}</dd></div>
+              <div><dt>{t('customer')}</dt><dd>{detail.customerDisplayName || '—'}</dd></div>
+              <div><dt>{t('currency')}</dt><dd>{detail.currency}</dd></div>
               <div><dt>Son senkron</dt><dd>{formatDate(detail.syncedAt)}</dd></div>
             </dl>
 
-            <h4 className={styles.itemsTitle}>Ürünler</h4>
+            <h4 className={styles.itemsTitle}>{t('items')}</h4>
             <ul className={styles.items}>
               {(detail.items || []).map(item => (
                 <li key={item.id}>
@@ -297,23 +291,23 @@ export default function Orders() {
                   </div>
                   <div className={styles.itemMoney}>
                     <span>Birim: {money(item.unitPrice, detail.currency)}</span>
-                    <span>Brüt: {money(item.grossAmount, detail.currency)}</span>
-                    {item.discountAmount !== null && item.discountAmount !== undefined && <span>İndirim: {money(item.discountAmount, detail.currency)}</span>}
+                    <span>{t('orders.detail.gross')} {money(item.grossAmount, detail.currency)}</span>
+                    {item.discountAmount !== null && item.discountAmount !== undefined && <span>{t('orders.detail.discount')} {money(item.discountAmount, detail.currency)}</span>}
                   </div>
                 </li>
               ))}
             </ul>
 
             <dl className={styles.totals}>
-              <div><dt>Brüt tutar</dt><dd>{money(detail.grossAmount, detail.currency)}</dd></div>
-              <div><dt>İndirim</dt><dd>{money(detail.discountAmount, detail.currency)}</dd></div>
-              <div><dt>Komisyon</dt><dd>{detail.commissionAmount == null ? 'Veri yok*' : money(detail.commissionAmount, detail.currency)}</dd></div>
-              <div><dt>Kargo</dt><dd>{detail.shippingAmount == null ? 'Veri yok*' : money(detail.shippingAmount, detail.currency)}</dd></div>
-              <div><dt>İade</dt><dd>{detail.refundAmount == null ? 'Veri yok*' : money(detail.refundAmount, detail.currency)}</dd></div>
-              <div className={styles.netRow}><dt>Net katkı</dt><dd>{detail.netContribution == null ? 'Hesaplanamaz*' : money(detail.netContribution, detail.currency)}</dd></div>
+              <div><dt>{t('grossAmount')}</dt><dd>{money(detail.grossAmount, detail.currency)}</dd></div>
+              <div><dt>{t('orders.discount')}</dt><dd>{money(detail.discountAmount, detail.currency)}</dd></div>
+              <div><dt>{t('commission')}</dt><dd>{detail.commissionAmount == null ? t('orders.detail.noData') : money(detail.commissionAmount, detail.currency)}</dd></div>
+              <div><dt>{t('shipping')}</dt><dd>{detail.shippingAmount == null ? t('orders.detail.noData') : money(detail.shippingAmount, detail.currency)}</dd></div>
+              <div><dt>{t('refund')}</dt><dd>{detail.refundAmount == null ? t('orders.detail.noData') : money(detail.refundAmount, detail.currency)}</dd></div>
+              <div className={styles.netRow}><dt>{t('netContribution')}</dt><dd>{detail.netContribution == null ? t('orders.detail.notCalculable') : money(detail.netContribution, detail.currency)}</dd></div>
             </dl>
             <p className={styles.footnote}>
-              * Pazaryeri bu tutarı paylaşmıyor; tahmin uydurulmaz. Komisyon/kargo/iade bilgileri ileride mutabakat verisiyle tamamlanabilir.
+              * {t('orders.detail.commissionNote')}
             </p>
           </div>
         )}

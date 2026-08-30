@@ -20,6 +20,7 @@ import { workspaceRoutes } from './services/workspace'
 import { businessTrackerRoutes } from './services/business-tracker'
 import { workspaceExportRoutes } from './services/workspace-exports'
 import { startBusinessReminderWorker } from './services/business-reminder-worker'
+import { accountNotificationRoutes, startAccountNotificationWorker } from './services/account-notifications'
 import { formulaRoutes } from './services/formulas'
 import { adminRoutes } from './services/admin'
 import { supportRoutes } from './services/support'
@@ -461,6 +462,7 @@ async function build() {
 
   server.register(authRoutes, { prefix: '/auth' })
   server.register(supportRoutes, { prefix: '/support' })
+  server.register(accountNotificationRoutes, { prefix: '/account/notifications' })
   server.register(courseRoutes, { prefix: '/courses' })
   server.register(lessonRoutes, { prefix: '/lessons' })
   server.register(enrollmentRoutes, { prefix: '/enrollments' })
@@ -628,10 +630,12 @@ export async function start() {
   let stopReminderWorker = () => {}
   let stopNewsWorker = () => {}
   let stopMarketplaceWorker = () => {}
+  let stopAccountNotificationWorker = () => {}
   server.addHook('onClose', async () => {
     stopReminderWorker()
     stopNewsWorker()
     stopMarketplaceWorker()
+    stopAccountNotificationWorker()
   })
   try {
     await server.listen({ port, host: process.env.HOST || '0.0.0.0' })
@@ -642,6 +646,11 @@ export async function start() {
 
   stopReminderWorker = startBusinessReminderWorker(undefined, {
     onError: error => server.log.error({ error }, 'Business reminder worker failed')
+  })
+  /* Üyelik uyarıları. BILLING_STARTS_AT null iken hiçbir şey üretmez;
+     ilk satırda kesiliyor. */
+  stopAccountNotificationWorker = startAccountNotificationWorker(undefined, {
+    onError: error => server.log.error({ error }, 'Account notification worker failed')
   })
   stopNewsWorker = startNewsWorker(undefined, {
     runImmediately: process.env.NEWS_RUN_ON_START === 'true',

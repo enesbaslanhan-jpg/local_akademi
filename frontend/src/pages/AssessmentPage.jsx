@@ -1,20 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/services/api'
 import { useNavigate } from 'react-router-dom'
 import styles from './AssessmentPage.module.css'
 
 const domainLabels = {
-  finance: 'Finansal Yönetim',
-  sales: 'Satış ve Müşteri',
-  operations: 'Operasyon ve Kalite',
-  people: 'İnsan ve İş Güvenliği',
-  supply: 'Tedarik Zinciri',
-  cyber: 'Siber Güvenlik ve Veri',
-  export: 'İhracat Hazırlığı',
-  ai: 'Yapay Zekâ Hazırlığı'
+  finance: 'assessment.domainFinance', sales: 'assessment.domainSales', operations: 'assessment.domainOperations',
+  people: 'assessment.domainPeople', supply: 'assessment.domainSupply', cyber: 'assessment.domainCyber',
+  export: 'assessment.domainExport', ai: 'assessment.domainAi'
 }
 
 export default function AssessmentPage() {
+  const { t } = useTranslation('learning')
   const navigate = useNavigate()
   const [questions, setQuestions] = useState([])
   const [totalSteps, setTotalSteps] = useState(0)
@@ -72,7 +69,7 @@ export default function AssessmentPage() {
       const res = await api.assessment.submit(answers)
       setResults(res)
     } catch (err) {
-      setError(err.message || 'Değerlendirme kaydedilirken hata oluştu.')
+      setError(err.message || t('assessment.errorSubmit'))
     } finally {
       setSaving(false)
     }
@@ -86,32 +83,32 @@ export default function AssessmentPage() {
   }
 
   if (loading) {
-    return <div className={styles.container}><p className={styles.centered}>Yükleniyor...</p></div>
+    return <div className={styles.container}><p className={styles.centered}>{t('assessment.loading')}</p></div>
   }
 
   if (results) {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
-          <h1 className={styles.title}>Değerlendirme Tamamlandı</h1>
-          <p className={styles.subtitle}>İşte size özel bulgular:</p>
+          <h1 className={styles.title}>{t('assessment.completedTitle')}</h1>
+          <p className={styles.subtitle}>{t('assessment.findingsSub')}</p>
         </div>
         <div className={styles.card}>
           <div className={styles.resultSection}>
-            <h2>Alan Puanlarınız</h2>
+            <h2>{t('assessment.scoresTitle')}</h2>
             <div className={styles.scoreList}>
               {Object.entries(results.scores || {}).map(([domain, rawScore]) => {
                 const score = Math.max(0, Math.min(100, Number(rawScore) || 0))
                 return (
                   <div className={styles.scoreItem} key={domain}>
                     <div className={styles.scoreHeader}>
-                      <span>{domainLabels[domain] || domain}</span>
+                      <span>{domainLabels[domain] ? t(domainLabels[domain]) : domain}</span>
                       <strong>{score}/100</strong>
                     </div>
                     <div
                       className={styles.scoreTrack}
                       role="progressbar"
-                      aria-label={domainLabels[domain] || domain}
+                      aria-label={domainLabels[domain] ? t(domainLabels[domain]) : domain}
                       aria-valuemin="0"
                       aria-valuemax="100"
                       aria-valuenow={score}
@@ -124,15 +121,15 @@ export default function AssessmentPage() {
             </div>
           </div>
           <div className={styles.resultSection}>
-            <h2>Öncelikli Alanlarınız</h2>
+            <h2>{t('assessment.prioritiesTitle')}</h2>
             <div className={styles.chips}>
               {results.priorityDomains?.map(d => (
-                <span key={d} className={styles.chip}>{domainLabels[d] || d}</span>
+                <span key={d} className={styles.chip}>{domainLabels[d] ? t(domainLabels[d]) : d}</span>
               ))}
             </div>
           </div>
           <div className={styles.resultSection}>
-            <h2>Öneriler</h2>
+            <h2>{t('assessment.recommendationsTitle')}</h2>
             <ul className={styles.recommendations}>
               {results.recommendations?.map((r, i) => (
                 <li key={i}>{r}</li>
@@ -141,10 +138,10 @@ export default function AssessmentPage() {
           </div>
           <div className={styles.actions}>
             <button className={styles.btnSecondary} onClick={handleRestart}>
-              Değerlendirmeyi Tekrarla
+              {t('assessment.retakeButton')}
             </button>
             <button className={styles.btnPrimary} onClick={() => navigate('/app/dashboard')}>
-              Panoya Git
+              {t('assessment.goToDashboard')}
             </button>
           </div>
         </div>
@@ -156,16 +153,16 @@ export default function AssessmentPage() {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
-          <h1 className={styles.title}>Değerlendirme</h1>
-          <p className={styles.subtitle}>Daha önce bir değerlendirme yapmışsınız. Tekrar yapabilir veya sonuçları görüntüleyebilirsiniz.</p>
+          <h1 className={styles.title}>{t('assessment.existingTitle')}</h1>
+          <p className={styles.subtitle}>{t('assessment.existingSubtitle')}</p>
         </div>
         <div className={styles.card}>
           <div className={styles.actions}>
             <button className={styles.btnSecondary} onClick={() => setExisting(null)}>
-              Yeniden Başla
+              {t('assessment.restartButton')}
             </button>
             <button className={styles.btnPrimary} onClick={() => navigate('/app/dashboard')}>
-              Panoya Git
+              {t('assessment.goToDashboard')}
             </button>
           </div>
         </div>
@@ -174,14 +171,14 @@ export default function AssessmentPage() {
   }
 
   if (!questions.length) {
-    return <div className={styles.container}><p className={styles.centered}>Sorular yüklenemedi.</p></div>
+    return <div className={styles.container}><p className={styles.centered}>{t('assessment.noQuestions')}</p></div>
   }
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>İşletme Değerlendirmesi</h1>
-        <p className={styles.subtitle}>Adım {step + 1} / {totalSteps}</p>
+        <h1 className={styles.title}>{t('assessment.mainTitle')}</h1>
+        <p className={styles.subtitle}>{t('assessment.stepOf', { index: step + 1, total: totalSteps })}</p>
       </div>
 
       <div className={styles.progress}>
@@ -225,8 +222,7 @@ export default function AssessmentPage() {
 
         {currentQ?.maxSelections && (
           <p className={styles.hint}>
-            En fazla {currentQ.maxSelections} seçim yapabilirsiniz
-            ({Array.isArray(answers[currentQ.id]) ? answers[currentQ.id].length : 0}/{currentQ.maxSelections})
+            {t('assessment.maxSelections', { max: currentQ.maxSelections, current: Array.isArray(answers[currentQ.id]) ? answers[currentQ.id].length : 0 })}
           </p>
         )}
 
@@ -235,17 +231,17 @@ export default function AssessmentPage() {
         <div className={styles.actions}>
           {step > 0 && (
             <button className={styles.btnSecondary} onClick={() => setStep(prev => prev - 1)}>
-              Geri
+              {t('assessment.backButton')}
             </button>
           )}
           <div className={styles.spacer} />
           {step < totalSteps - 1 ? (
             <button className={styles.btnPrimary} disabled={!canProceed()} onClick={() => setStep(prev => prev + 1)}>
-              Devam
+              {t('assessment.nextButton')}
             </button>
           ) : (
             <button className={styles.btnPrimary} disabled={!canProceed() || saving} onClick={handleSubmit}>
-              {saving ? 'Kaydediliyor...' : 'Tamamla'}
+              {saving ? t('assessment.saving') : t('assessment.finish')}
             </button>
           )}
         </div>

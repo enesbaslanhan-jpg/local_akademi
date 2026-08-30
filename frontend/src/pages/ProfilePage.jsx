@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Bookmark, Camera, Flag, Heart, Image as ImageIcon, Link2, MapPin,
   MessageSquare, Pencil, UserPlus, Users, X,
@@ -27,17 +28,21 @@ import styles from './CommunityPage.module.css'
  * kullanıcıya anlaşılır biçimde gösteriyoruz.
  */
 
-const KENDI_SEKMELERI = [
-  { anahtar: 'posts', etiket: 'Paylaşımlarım', ikon: MessageSquare, sayiAlani: 'paylasim', bos: 'Henüz bir şey paylaşmadın.' },
-  { anahtar: 'media', etiket: 'Medya', ikon: ImageIcon, bos: 'Henüz görsel veya video paylaşmadın.' },
-  { anahtar: 'likes', etiket: 'Beğendiklerim', ikon: Heart, sayiAlani: 'begeni', bos: 'Henüz bir paylaşımı beğenmedin.' },
-  { anahtar: 'bookmarks', etiket: 'Kaydettiklerim', ikon: Bookmark, sayiAlani: 'kayit', bos: 'Henüz bir paylaşım kaydetmedin.' },
-]
+function kendiSekmeleri(t) {
+  return [
+    { anahtar: 'posts', etiket: t('profile.tabs.mine.posts'), ikon: MessageSquare, sayiAlani: 'paylasim', bos: t('profile.tabs.mine.postsEmpty') },
+    { anahtar: 'media', etiket: t('profile.tabs.mine.media'), ikon: ImageIcon, bos: t('profile.tabs.mine.mediaEmpty') },
+    { anahtar: 'likes', etiket: t('profile.tabs.mine.likes'), ikon: Heart, sayiAlani: 'begeni', bos: t('profile.tabs.mine.likesEmpty') },
+    { anahtar: 'bookmarks', etiket: t('profile.tabs.mine.bookmarks'), ikon: Bookmark, sayiAlani: 'kayit', bos: t('profile.tabs.mine.bookmarksEmpty') },
+  ]
+}
 
-const BASKASININ_SEKMELERI = [
-  { anahtar: 'posts', etiket: 'Paylaşımlar', ikon: MessageSquare, bos: 'Henüz bir şey paylaşmamış.' },
-  { anahtar: 'media', etiket: 'Medya', ikon: ImageIcon, bos: 'Henüz görsel veya video paylaşmamış.' },
-]
+function baskasininSekmeleri(t) {
+  return [
+    { anahtar: 'posts', etiket: t('profile.tabs.their.posts'), ikon: MessageSquare, bos: t('profile.tabs.their.postsEmpty') },
+    { anahtar: 'media', etiket: t('profile.tabs.their.media'), ikon: ImageIcon, bos: t('profile.tabs.their.mediaEmpty') },
+  ]
+}
 
 /*
  * Takipçi ve takip edilen listeleri SEKME DEĞİL.
@@ -49,14 +54,17 @@ const BASKASININ_SEKMELERI = [
  * Bu yüzden geçerli liste değerleri sekmelerden AYRI tutuluyor:
  * "followers" geçerli bir görünüm ama sekmesi yok, sayaçtan açılıyor.
  */
-const KISI_LISTELERI = {
-  followers: { etiket: 'Takipçiler', ikon: Users, bos: 'Henüz takipçisi yok.' },
-  following: { etiket: 'Takip edilenler', ikon: UserPlus, bos: 'Henüz kimseyi takip etmiyor.' },
+function kisiListeleri(t) {
+  return {
+    followers: { etiket: t('profile.lists.followers'), ikon: Users, bos: t('profile.lists.followersEmpty') },
+    following: { etiket: t('profile.lists.following'), ikon: UserPlus, bos: t('profile.lists.followingEmpty') },
+  }
 }
 
 /* Düzenleme paneli ayrı bileşen: sayfa zaten liste, sekme ve profil
    durumunu taşıyor; form durumunu da aynı yere koymak okunmaz yapardı. */
 function ProfilDuzenle({ user, onKapat, onKaydedildi }) {
+  const { t } = useTranslation('community')
   const [ad, setAd] = useState(user?.name || '')
   const [bio, setBio] = useState(user?.bio || '')
   const [konum, setKonum] = useState(user?.location || '')
@@ -72,7 +80,7 @@ function ProfilDuzenle({ user, onKapat, onKaydedildi }) {
       const sonuc = await api.profil.guncelle({ name: ad, bio, location: konum, websiteUrl: adres })
       onKaydedildi(sonuc)
     } catch (kaydetmeHatasi) {
-      setHata(kaydetmeHatasi.message || 'Profil kaydedilemedi.')
+      setHata(kaydetmeHatasi.message || t('profile.edit.failed'))
     } finally {
       setKaydediliyor(false)
     }
@@ -81,20 +89,20 @@ function ProfilDuzenle({ user, onKapat, onKaydedildi }) {
   return (
     <form className={styles.profilDuzenle} onSubmit={kaydet}>
       {hata && <p className={styles.error}>{hata}</p>}
-      <label>Ad<input value={ad} onChange={e => setAd(e.target.value)} minLength={2} maxLength={80} required /></label>
+      <label>{t('profile.edit.name')}<input value={ad} onChange={e => setAd(e.target.value)} minLength={2} maxLength={80} required /></label>
       <label>
-        Hakkında
-        <textarea value={bio} onChange={e => setBio(e.target.value)} maxLength={280} rows={3} placeholder="İşletmenden kısaca bahset" />
+        {t('profile.edit.about')}
+        <textarea value={bio} onChange={e => setBio(e.target.value)} maxLength={280} rows={3} placeholder={t('profile.edit.bioPlaceholder')} />
         <small>{bio.length}/280</small>
       </label>
-      <label>Konum<input value={konum} onChange={e => setKonum(e.target.value)} maxLength={60} placeholder="Ankara / Yenimahalle" /></label>
+      <label>{t('profile.edit.location')}<input value={konum} onChange={e => setKonum(e.target.value)} maxLength={60} placeholder={t('profile.edit.locationPlaceholder')} /></label>
       {/* `type="url"` tarayıcıya da doğrulatıyor; sunucu ayrıca yalnız
           http/https kabul ediyor — serbest metin bırakılsaydı
           `javascript:` adresi profile konabilirdi. */}
-      <label>Web adresi<input type="url" value={adres} onChange={e => setAdres(e.target.value)} maxLength={200} placeholder="https://" /></label>
+      <label>{t('profile.edit.website')}<input type="url" value={adres} onChange={e => setAdres(e.target.value)} maxLength={200} placeholder="https://" /></label>
       <div className={styles.profilDuzenleAlt}>
-        <Button variant="ghost" onClick={onKapat}>Vazgeç</Button>
-        <Button type="submit" disabled={kaydediliyor}>{kaydediliyor ? 'Kaydediliyor…' : 'Kaydet'}</Button>
+        <Button variant="ghost" onClick={onKapat}>{t('common:buttons.cancel')}</Button>
+        <Button type="submit" disabled={kaydediliyor}>{kaydediliyor ? t('common:buttons.saving') : t('common:buttons.save')}</Button>
       </div>
     </form>
   )
@@ -108,15 +116,18 @@ function ProfilDuzenle({ user, onKapat, onKaydedildi }) {
  * harassment... yazın"). Kişi şikâyetinde o hatayı tekrarlamıyoruz:
  * seçenekler listeleniyor.
  */
-const SIKAYET_NEDENLERI = [
-  ['harassment', 'Taciz veya hakaret'],
-  ['spam', 'Spam / istenmeyen mesaj'],
-  ['impersonation', 'Başkası gibi davranıyor'],
-  ['unsafe', 'Güvenli olmayan içerik'],
-  ['other', 'Diğer'],
-]
+function sikayetNedenleri(t) {
+  return [
+    ['harassment', t('profile.reasons.harassment')],
+    ['spam', t('profile.reasons.spam')],
+    ['impersonation', t('profile.reasons.impersonation')],
+    ['unsafe', t('profile.reasons.unsafe')],
+    ['other', t('profile.reasons.other')],
+  ]
+}
 
 function SikayetPaneli({ profil, onKapat, onGonderildi, onHata }) {
+  const { t } = useTranslation('community')
   const [neden, setNeden] = useState('harassment')
   const [ayrinti, setAyrinti] = useState('')
   const [gonderiliyor, setGonderiliyor] = useState(false)
@@ -134,8 +145,8 @@ function SikayetPaneli({ profil, onKapat, onGonderildi, onHata }) {
       onGonderildi()
     } catch (sikayetHatasi) {
       onHata(sikayetHatasi.message?.includes('zaten')
-        ? 'Bu kullanıcıyı zaten bildirmiştin.'
-        : (sikayetHatasi.message || 'Şikâyet gönderilemedi.'))
+        ? t('profile.report.alreadyReported')
+        : (sikayetHatasi.message || t('profile.report.failed')))
       onKapat()
     } finally {
       setGonderiliyor(false)
@@ -144,31 +155,31 @@ function SikayetPaneli({ profil, onKapat, onGonderildi, onHata }) {
 
   return (
     <form className={styles.profilDuzenle} onSubmit={gonder}>
-      <strong>{profil.name} adlı kişiyi bildir</strong>
+      <strong>{t('profile.report.title', { name: profil.name })}</strong>
       <label>
-        Neden
+        {t('profile.report.reasonLabel')}
         <select value={neden} onChange={e => setNeden(e.target.value)}>
-          {SIKAYET_NEDENLERI.map(([deger, etiket]) => <option key={deger} value={deger}>{etiket}</option>)}
+          {sikayetNedenleri(t).map(([deger, etiket]) => <option key={deger} value={deger}>{etiket}</option>)}
         </select>
       </label>
       <label>
-        Açıklama {ayrintiZorunlu ? '(zorunlu)' : '(isteğe bağlı)'}
+        {ayrintiZorunlu ? t('profile.report.descriptionRequired') : t('profile.report.descriptionOptional')}
         <textarea
           value={ayrinti}
           onChange={e => setAyrinti(e.target.value)}
           maxLength={500}
           rows={3}
-          placeholder="Ne olduğunu kısaca anlat"
+          placeholder={t('profile.report.descriptionPlaceholder')}
           required={ayrintiZorunlu}
         />
       </label>
       <p className={styles.sikayetNot}>
-        Şikâyetin yönetim ekibine iletilir. Bildirdiğin kişiye kimin bildirdiği gösterilmez.
+        {t('profile.report.note')}
       </p>
       <div className={styles.profilDuzenleAlt}>
-        <Button variant="ghost" onClick={onKapat}>Vazgeç</Button>
+        <Button variant="ghost" onClick={onKapat}>{t('common:buttons.cancel')}</Button>
         <Button type="submit" disabled={gonderiliyor || !gonderilebilir}>
-          {gonderiliyor ? 'Gönderiliyor…' : 'Bildir'}
+          {gonderiliyor ? t('profile.report.submitting') : t('profile.report.action')}
         </Button>
       </div>
     </form>
@@ -176,6 +187,7 @@ function SikayetPaneli({ profil, onKapat, onGonderildi, onHata }) {
 }
 
 export default function ProfilePage() {
+  const { t } = useTranslation('community')
   const { userId } = useParams()
   const navigate = useNavigate()
   const { user, isAdmin, updateUser } = useAuth()
@@ -183,13 +195,14 @@ export default function ProfilePage() {
 
   /* Kendi profilim mi: adres parametresi yoksa ya da kendi kimliğimse. */
   const benimMi = !userId || Number(userId) === user?.id
-  const sekmeler = benimMi ? KENDI_SEKMELERI : BASKASININ_SEKMELERI
+  const sekmeler = useMemo(() => benimMi ? kendiSekmeleri(t) : baskasininSekmeleri(t), [benimMi, t])
+  const kisiListeleriMap = useMemo(() => kisiListeleri(t), [t])
 
   const istenen = arama.get('liste')
   /* Kişi listeleri sekme olmasa da geçerli görünüm; yoksa sayaçtan
      açılan liste sessizce "posts"a düşerdi. */
   const gecerliMi = sekmeler.some(s => s.anahtar === istenen)
-    || Boolean(KISI_LISTELERI[istenen])
+    || Boolean(kisiListeleriMap[istenen])
   const aktif = gecerliMi ? istenen : 'posts'
 
   const [profil, setProfil] = useState(null)
@@ -247,8 +260,8 @@ export default function ProfilePage() {
        * ikisini ayırmadan tek bir mesaj gösteriyoruz.
        */
       setHata(yuklemeHatasi.message?.includes('bulunamad')
-        ? 'Bu profil görüntülenemiyor.'
-        : (yuklemeHatasi.message || 'Profil yüklenemedi.'))
+        ? t('profile.hiddenProfile')
+        : (yuklemeHatasi.message || t('profile.loadFailed')))
     } finally {
       setYukleniyor(false)
     }
@@ -264,7 +277,7 @@ export default function ProfilePage() {
       setSayilar(mevcut => mevcut && { ...mevcut, takipci: (mevcut.takipci || 0) + (yeni ? 1 : -1) })
     } catch (takipHatasi) {
       setTakipEdiyorum(!yeni)
-      setHata(takipHatasi.message || 'İşlem tamamlanamadı.')
+      setHata(takipHatasi.message || t('feed.actionFailed'))
     }
   }
 
@@ -286,9 +299,9 @@ export default function ProfilePage() {
       const sonuc = await api.auth.uploadAvatar(dosya)
       updateUser({ avatarUrl: sonuc.avatarUrl })
       setProfil(mevcut => ({ ...mevcut, avatarUrl: sonuc.avatarUrl }))
-      setBildirim('Profil fotoğrafı güncellendi.')
+      setBildirim(t('profile.avatarChanged'))
     } catch (avatarHatasi) {
-      setHata(avatarHatasi.message || 'Fotoğraf yüklenemedi.')
+      setHata(avatarHatasi.message || t('profile.avatarFailed'))
     }
   }
 
@@ -300,9 +313,9 @@ export default function ProfilePage() {
       const sonuc = await api.profil.kapakYukle(dosya)
       updateUser({ coverUrl: sonuc.coverUrl })
       setProfil(mevcut => ({ ...mevcut, coverUrl: sonuc.coverUrl }))
-      setBildirim('Kapak fotoğrafı güncellendi.')
+      setBildirim(t('profile.coverChanged'))
     } catch (kapakHatasi) {
-      setHata(kapakHatasi.message || 'Kapak yüklenemedi.')
+      setHata(kapakHatasi.message || t('profile.coverFailed'))
     }
   }
 
@@ -314,23 +327,23 @@ export default function ProfilePage() {
     try {
       await api.community.etkilesim(post.id, tur, aktifMi)
       await yukle()
-    } catch (e) { setHata(e.message || 'İşlem tamamlanamadı.') }
+    } catch (e) { setHata(e.message || t('feed.actionFailed')) }
   }
 
   async function kaldir(postId) {
-    if (!window.confirm('Bu paylaşım kaldırılsın mı?')) return
-    try { await api.community.remove(postId); setBildirim('Paylaşım kaldırıldı.'); await yukle() }
-    catch (e) { setHata(e.message || 'Paylaşım kaldırılamadı.') }
+    if (!window.confirm(t('feed.removeConfirm'))) return
+    try { await api.community.remove(postId); setBildirim(t('feed.removeNotice')); await yukle() }
+    catch (e) { setHata(e.message || t('feed.removeFailed')) }
   }
 
   async function raporla(postId) {
     const izinli = ['spam', 'misinformation', 'harassment', 'unsafe', 'copyright', 'other']
-    const neden = window.prompt('Rapor nedeni: spam, misinformation, harassment, unsafe, copyright veya other', 'misinformation')?.trim()
+    const neden = window.prompt(t('feed.reportPrompt'), 'misinformation')?.trim()
     if (!neden || !izinli.includes(neden)) return
-    const ayrinti = neden === 'other' ? window.prompt('Kısa açıklama')?.trim() : undefined
+    const ayrinti = neden === 'other' ? window.prompt(t('feed.reportDetailsPrompt'))?.trim() : undefined
     if (neden === 'other' && !ayrinti) return
-    try { await api.community.report(postId, neden, ayrinti); setBildirim('Rapor moderasyon ekibine iletildi.') }
-    catch (e) { setHata(e.message || 'Rapor gönderilemedi.') }
+    try { await api.community.report(postId, neden, ayrinti); setBildirim(t('feed.reportSent')) }
+    catch (e) { setHata(e.message || t('feed.reportFailed')) }
   }
 
   async function paylas(post) {
@@ -339,12 +352,12 @@ export default function ProfilePage() {
       try { await navigator.share({ title: 'LocalKarar', text: post.summary || '', url: adres }) } catch { /* vazgeçildi */ }
       return
     }
-    try { await navigator.clipboard.writeText(adres); setBildirim('Bağlantı kopyalandı.') }
-    catch { setHata('Bağlantı kopyalanamadı.') }
+    try { await navigator.clipboard.writeText(adres); setBildirim(t('feed.linkCopied')) }
+    catch { setHata(t('feed.linkCopyFailed')) }
   }
 
   /* Etkin görünüm sekme de olabilir, sayaçtan açılan kişi listesi de. */
-  const aktifSekme = sekmeler.find(s => s.anahtar === aktif) || KISI_LISTELERI[aktif] || sekmeler[0]
+  const aktifSekme = sekmeler.find(s => s.anahtar === aktif) || kisiListeleriMap[aktif] || sekmeler[0]
 
   if (hata && !profil) {
     return (
@@ -362,7 +375,7 @@ export default function ProfilePage() {
         {benimMi && (
           <label className={styles.kapakDegistir}>
             <Camera size={16} aria-hidden="true" />
-            <span>Kapak</span>
+            <span>{t('profile.coverLabel')}</span>
             <input className="sr-only" type="file" accept="image/png,image/jpeg" onChange={kapakSec} />
           </label>
         )}
@@ -374,16 +387,16 @@ export default function ProfilePage() {
             ? <img src={profil.avatarUrl} alt="" />
             : initials(profil?.name)}
           {benimMi && (
-            <label className={styles.avatarDegistir} title="Profil fotoğrafını değiştir">
+            <label className={styles.avatarDegistir} title={t('profile.changeAvatar')}>
               <Camera size={18} aria-hidden="true" />
-              <span className="sr-only">Profil fotoğrafını değiştir</span>
+              <span className="sr-only">{t('profile.changeAvatar')}</span>
               <input className="sr-only" type="file" accept="image/png,image/jpeg" onChange={avatarSec} />
             </label>
           )}
         </span>
 
         <div className={styles.profilBilgi}>
-          <h1>{profil?.name || 'LocalKarar kullanıcısı'}</h1>
+          <h1>{profil?.name || t('feed.defaultAuthor')}</h1>
           {profil?.bio && <p className={styles.profilBio}>{profil.bio}</p>}
           <div className={styles.profilUstveri}>
             {profil?.location && <span><MapPin size={14} aria-hidden="true" /> {profil.location}</span>}
@@ -401,7 +414,7 @@ export default function ProfilePage() {
                 aria-current={aktif === 'posts' ? 'true' : undefined}
                 onClick={() => setArama({ liste: 'posts' })}
               >
-                <b>{sayilar.paylasim ?? 0}</b> paylaşım
+                <b>{sayilar.paylasim ?? 0}</b> {t('profile.counterPosts')}
               </button>
               {/* Takipçi ve takip sayıları KENDİ profilimde de var:
                   başkasınınkinde gösterilip kendiminkinde
@@ -412,7 +425,7 @@ export default function ProfilePage() {
                 aria-current={aktif === 'followers' ? 'true' : undefined}
                 onClick={() => setArama({ liste: 'followers' })}
               >
-                <b>{sayilar.takipci ?? 0}</b> takipçi
+                <b>{sayilar.takipci ?? 0}</b> {t('profile.counterFollowers')}
               </button>
               <button
                 type="button"
@@ -420,7 +433,7 @@ export default function ProfilePage() {
                 aria-current={aktif === 'following' ? 'true' : undefined}
                 onClick={() => setArama({ liste: 'following' })}
               >
-                <b>{sayilar.takipEdilen ?? 0}</b> takip
+                <b>{sayilar.takipEdilen ?? 0}</b> {t('profile.counterFollowing')}
               </button>
             </div>
           )}
@@ -430,18 +443,18 @@ export default function ProfilePage() {
           {benimMi
             ? <Button variant="secondary" onClick={() => setDuzenleAcik(a => !a)}>
               {duzenleAcik ? <X size={16} /> : <Pencil size={16} />}
-              {duzenleAcik ? 'Kapat' : 'Profili düzenle'}
+              {duzenleAcik ? t('common:buttons.close') : t('profile.editToggle')}
             </Button>
             : (
               <>
                 <Button variant={takipEdiyorum ? 'secondary' : 'primary'} onClick={takibiDegistir}>
-                  <UserPlus size={16} />{takipEdiyorum ? 'Takibi bırak' : 'Takip et'}
+                  <UserPlus size={16} />{takipEdiyorum ? t('people.unfollow') : t('people.follow')}
                 </Button>
                 {/* Şikâyet ikinci derece bir eylem: takip düğmesinin
                     yanında sade bir bağlantı, yoksa yanlışlıkla
                     tıklanması kolaylaşırdı. */}
                 <button type="button" className={styles.bildirDugmesi} onClick={() => setSikayetAcik(a => !a)}>
-                  <Flag size={14} aria-hidden="true" /> Bildir
+                  <Flag size={14} aria-hidden="true" /> {t('profile.report.action')}
                 </button>
               </>
             )}
@@ -458,7 +471,7 @@ export default function ProfilePage() {
           onHata={setHata}
           onGonderildi={() => {
             setSikayetAcik(false)
-            setBildirim('Şikâyetin yönetim ekibine iletildi.')
+            setBildirim(t('profile.report.sentNotice'))
           }}
         />
       )}
@@ -471,12 +484,12 @@ export default function ProfilePage() {
             updateUser(sonuc)
             setProfil(mevcut => ({ ...mevcut, ...sonuc }))
             setDuzenleAcik(false)
-            setBildirim('Profil güncellendi.')
+            setBildirim(t('profile.updated'))
           }}
         />
       )}
 
-      <nav className={styles.profilSekmeleri} aria-label="Profil listeleri">
+      <nav className={styles.profilSekmeleri} aria-label={t('profile.listsNavAria')}>
         {sekmeler.map(sekme => (
           <button
             key={sekme.anahtar}
@@ -493,7 +506,7 @@ export default function ProfilePage() {
       </nav>
 
       <section className={styles.feed} aria-live="polite">
-        {yukleniyor && <div className={styles.skeleton} aria-label="İçerik yükleniyor"><span /><span /><span /></div>}
+        {yukleniyor && <div className={styles.skeleton} aria-label={t('feed.contentLoading')}><span /><span /><span /></div>}
 
         {!yukleniyor && posts.length === 0 && kisiler.length === 0 && (
           <div className={styles.empty}>

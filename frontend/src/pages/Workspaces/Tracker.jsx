@@ -9,6 +9,9 @@ import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
 import { Select } from '@/components/ui'
 import { dosyaPaylas, paylasabilirMi } from '@/utils/dosyaPaylas'
+import { useTranslation } from 'react-i18next'
+import { useLocalization } from '@/context/LocalizationContext'
+import { formatCurrency, formatDate } from '@/utils/formatters'
 import KayitDetay from './KayitDetay'
 import ImportDialog from './ImportDialog'
 import styles from './Tracker.module.css'
@@ -25,49 +28,53 @@ const emptyForm = {
   recurrenceRule: ''
 }
 
-const typeLabels = {
-  payment: 'Ödeme',
-  receivable: 'Tahsilat',
-  promissory_note: 'Senet',
-  purchase: 'Alım',
-  shipment: 'Kargo',
-  task: 'Yapılacak',
-  deferred: 'Ertelenen',
-  other: 'Diğer'
-}
-
 /*
  * HIZLI AKSİYON ŞERİDİ — her biri MEVCUT kayıt oluşturma akışını `type`
  * (ve mantıklı olduğunda `direction`) ön seçili açar. Yeni endpoint yok.
  */
-const QUICK_ACTIONS = [
-  { id: 'payment', label: 'Yeni Ödeme', icon: Receipt, preset: { type: 'payment', direction: 'payable' } },
-  { id: 'receivable', label: 'Yeni Tahsilat', icon: HandCoins, preset: { type: 'receivable', direction: 'receivable' } },
-  { id: 'promissory_note', label: 'Yeni Senet', icon: FileSignature, preset: { type: 'promissory_note', direction: 'payable' } },
-  { id: 'shipment', label: 'Yeni Kargo', icon: Truck, preset: { type: 'shipment', direction: 'neutral' } }
-]
 
-const statusLabels = {
-  open: 'Açık',
-  in_progress: 'Devam ediyor',
-  completed: 'Tamamlandı',
-  cancelled: 'İptal',
-  deferred: 'Ertelendi'
-}
 
-function localDate(value) {
-  if (!value) return 'Tarih yok'
-  return new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
-}
 
-function money(value, currency = 'TRY') {
-  return new Intl.NumberFormat('tr-TR', { style: 'currency', currency }).format(Number(value || 0))
-}
+
+
 
 export default function Tracker() {
   const { workspaceId } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
   const toast = useToast()
+  const { t } = useTranslation('workspace')
+  const { formatLocale } = useLocalization()
+
+  const typeLabels = {
+    payment: t('type.payment'),
+    receivable: t('type.receivable'),
+    promissory_note: t('type.promissoryNote'),
+    purchase: t('type.purchase'),
+    shipment: t('type.shipment'),
+    task: t('type.task'),
+    deferred: t('type.deferred'),
+    other: t('type.other')
+  }
+
+  const statusLabels = {
+    open: t('status.open'),
+    in_progress: t('status.inProgress'),
+    completed: t('status.completed'),
+    cancelled: t('status.cancelled'),
+    deferred: t('status.deferred')
+  }
+
+  const QUICK_ACTIONS = [
+    { id: 'payment', label: t('quickAction.newPayment'), icon: Receipt, preset: { type: 'payment', direction: 'payable' } },
+    { id: 'receivable', label: t('quickAction.newReceivable'), icon: HandCoins, preset: { type: 'receivable', direction: 'receivable' } },
+    { id: 'promissory_note', label: t('quickAction.newNote'), icon: FileSignature, preset: { type: 'promissory_note', direction: 'payable' } },
+    { id: 'shipment', label: t('quickAction.newShipment'), icon: Truck, preset: { type: 'shipment', direction: 'neutral' } }
+  ]
+
+  function localDate(value) {
+    if (!value) return t('dateNone')
+    return formatDate(value, { locale: formatLocale, dateStyle: 'medium', timeStyle: 'short' })
+  }
   const [summary, setSummary] = useState(null)
   const [records, setRecords] = useState([])
   const [filters, setFilters] = useState({ status: '', type: '' })
@@ -97,15 +104,15 @@ export default function Tracker() {
       if (!paylas) {
         const { dosyaIndir } = await import('@/utils/dosyaPaylas')
         dosyaIndir(dosya)
-        toast.success('Kayıt PDF olarak indirildi.')
+        toast.success(t('toast.recordPdfDownloaded'))
         return
       }
       const sonuc = await dosyaPaylas(dosya, { baslik: record.title })
       /* İptal sessiz geçiliyor: kullanıcı vazgeçtiyse bu bir hata değil. */
-      if (sonuc === 'paylasildi') toast.success('Kayıt paylaşıldı.')
-      else if (sonuc === 'indirildi') toast.success('Kayıt PDF olarak indirildi.')
+      if (sonuc === 'paylasildi') toast.success(t('toast.recordShared'))
+      else if (sonuc === 'indirildi') toast.success(t('toast.recordPdfDownloaded'))
     } catch (error) {
-      toast.error(error.message || 'Kayıt indirilemedi.')
+      toast.error(error.message || t('toast.recordDownloadFailed'))
     } finally {
       setKayitIsleniyor('')
     }
@@ -125,7 +132,7 @@ export default function Tracker() {
       setSummary(summaryData)
       setRecords(listData.records)
     } catch (error) {
-      toast.error(error.message || 'İşletme kayıtları yüklenemedi.')
+      toast.error(error.message || t('toast.loadFailed'))
     } finally {
       setLoading(false)
     }
@@ -153,10 +160,10 @@ export default function Tracker() {
   ), [records])
 
   const visibleRecords = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase('tr-TR')
+    const query = search.trim().toLocaleLowerCase(formatLocale)
     if (!query) return records
-    return records.filter(record => `${record.title} ${record.description || ''} ${record.contact?.name || ''}`.toLocaleLowerCase('tr-TR').includes(query))
-  }, [records, search])
+    return records.filter(record => `${record.title} ${record.description || ''} ${record.contact?.name || ''}`.toLocaleLowerCase(formatLocale).includes(query))
+  }, [formatLocale, records, search])
 
   async function createRecord(event) {
     event.preventDefault()
@@ -170,10 +177,10 @@ export default function Tracker() {
       })
       setForm(emptyForm)
       setShowForm(false)
-      toast.success('Kayıt oluşturuldu.')
+      toast.success(t('toast.recordCreated'))
       await load()
     } catch (error) {
-      toast.error(error.message || 'Kayıt oluşturulamadı.')
+      toast.error(error.message || t('toast.recordCreateFailed'))
     } finally {
       setSaving(false)
     }
@@ -190,13 +197,9 @@ export default function Tracker() {
         Object.entries({ ...filters, q: search.trim() }).filter(([, value]) => value)
       )
       const result = await api.workspace.exports.downloadRecords(workspaceId, format, query)
-      toast.success(
-        result.truncated
-          ? `${result.rowCount} kayıt indirildi (üst sınıra ulaşıldı, filtre daraltın).`
-          : `${result.rowCount} kayıt indirildi.`
-      )
+      toast.success(t('export.downloaded', { count: result.rowCount }))
     } catch (error) {
-      toast.error(error.message || 'Dışa aktarım başarısız.')
+      toast.error(error.message || t('export.failed'))
     } finally {
       setExporting('')
     }
@@ -205,10 +208,10 @@ export default function Tracker() {
   async function setStatus(recordId, status) {
     try {
       await api.workspace.tracker.update(workspaceId, recordId, { status })
-      toast.success(status === 'completed' ? 'Kayıt tamamlandı.' : 'Kayıt yeniden açıldı.')
+      toast.success(status === 'completed' ? t('toast.completed') : t('toast.reopened'))
       await load()
     } catch (error) {
-      toast.error(error.message || 'Durum değiştirilemedi.')
+      toast.error(error.message || t('toast.statusChangeFailed'))
     }
   }
 
@@ -216,11 +219,11 @@ export default function Tracker() {
     <section className={styles.page}>
       <div className={styles.heading}>
         <div>
-          <h2>İşletme Kayıtları</h2>
-          <p>Ödeme, tahsilat, sözleşme ve operasyon kayıtlarını yönetin.</p>
+          <h2>{t('tracker.title')}</h2>
+          <p>{t('tracker.subtitle')}</p>
         </div>
         <div className={styles.headingActions}>
-          <div className={styles.exportGroup} role="group" aria-label="Kayıtları dışa aktar">
+          <div className={styles.exportGroup} role="group" aria-label={t('tracker.exportLabel')}>
             {[
               { fmt: 'csv', label: 'CSV' },
               { fmt: 'xlsx', label: 'Excel' },
@@ -232,35 +235,35 @@ export default function Tracker() {
                 className={styles.exportButton}
                 onClick={() => downloadExport(fmt)}
                 disabled={Boolean(exporting)}
-                title={`Ekrandaki filtreye uyan kayıtları ${label} olarak indir`}
+                title={t('export.downloadTooltip', { format: label })}
               >
                 <Download size={15} aria-hidden="true" />
-                {exporting === fmt ? 'Hazırlanıyor…' : label}
+                {exporting === fmt ? t('export.preparing') : label}
               </button>
             ))}
           </div>
           <button className={styles.secondaryCta} onClick={() => setShowImport(true)}>
-            <FileSpreadsheet size={18} /> İçe aktar
+            <FileSpreadsheet size={18} /> {t('tracker.import')}
           </button>
           <button className={styles.cta} onClick={() => openForm()}>
-            <Plus size={18} /> Kayıt ekle
+            <Plus size={18} /> {t('tracker.addRecord')}
           </button>
         </div>
       </div>
 
       <section className={styles.registry}>
         <div className={styles.registryToolbar}>
-          <label><Search size={16} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Kayıtlarda ara" /></label>
+          <label><Search size={16} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder={t('tracker.searchPlaceholder')} /></label>
           <div className={styles.filterChips}>
-            <button className={!filters.type ? styles.activeChip : ''} onClick={() => setFilters(current => ({ ...current, type: '' }))}>Tümü</button>
+            <button className={!filters.type ? styles.activeChip : ''} onClick={() => setFilters(current => ({ ...current, type: '' }))}>{t('tracker.all')}</button>
             {['payment', 'receivable', 'promissory_note', 'shipment', 'task'].map(type => <button key={type} className={filters.type === type ? styles.activeChip : ''} onClick={() => setFilters(current => ({ ...current, type }))}>{typeLabels[type]}</button>)}
           </div>
-          <Select aria-label="Durum filtresi" placeholder="Tüm durumlar" options={Object.entries(statusLabels).map(([value, label]) => ({ value, label }))} value={filters.status} onChange={v => setFilters(current => ({ ...current, status: v }))} />
+          <Select aria-label={t('tracker.statusFilter')} placeholder={t('tracker.allStatuses')} options={Object.entries(statusLabels).map(([value, label]) => ({ value, label }))} value={filters.status} onChange={v => setFilters(current => ({ ...current, status: v }))} />
         </div>
 
-        <div className={styles.tableHead}><span>Kayıt</span><span>Tür</span><span>Güncelleme</span><span>Durum</span><span /><span /></div>
-        {loading ? <div className={styles.tableState}>Kayıtlar yükleniyor…</div> : visibleRecords.length === 0 ? (
-          <div className={styles.tableState}><CalendarDays size={30} /><strong>{records.length ? 'Aramayla eşleşen kayıt yok' : 'Henüz işletme kaydı yok'}</strong><span>{records.length ? 'Arama veya filtreyi değiştirin.' : 'İlk kaydı ekleyerek işletme takibini başlatın.'}</span></div>
+        <div className={styles.tableHead}><span>{t('tracker.col.record')}</span><span>{t('tracker.col.type')}</span><span>{t('tracker.col.updated')}</span><span>{t('tracker.col.status')}</span><span /><span /></div>
+        {loading ? <div className={styles.tableState}>{t('tracker.col.loading')}</div> : visibleRecords.length === 0 ? (
+          <div className={styles.tableState}><CalendarDays size={30} /><strong>{records.length ? t('tracker.col.noMatch') : t('tracker.col.noRecords')}</strong><span>{records.length ? t('tracker.col.adjustSearch') : t('tracker.col.startTracking')}</span></div>
         ) : <div className={styles.recordTable}>{visibleRecords.map(record => (
           <article
             className={`${styles.tableRow} ${overdueIds.has(record.id) ? styles.overdueRow : ''}`}
@@ -270,18 +273,18 @@ export default function Tracker() {
             onClick={() => setDetayId(record.id)}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetayId(record.id) } }}
           >
-            <div><strong>{record.title}</strong><small>{record.description || record.contact?.name || (record.amount !== null ? money(record.amount, record.currency) : 'Açıklama eklenmedi')}</small></div>
+            <div><strong>{record.title}</strong><small>{record.description || record.contact?.name || (record.amount !== null ? formatCurrency(record.amount, { locale: formatLocale, currency: record.currency }) : t('tracker.noDescription'))}</small></div>
             <span>{typeLabels[record.type] || record.type}</span>
             <span>{localDate(record.updatedAt || record.dueAt || record.createdAt)}</span>
-            <button className={`${styles.rowStatus} ${styles[record.status] || ''} ${overdueIds.has(record.id) ? styles.late : ''}`} onClick={e => { e.stopPropagation(); setStatus(record.id, record.status === 'completed' ? 'open' : 'completed') }}><Check size={13} />{overdueIds.has(record.id) ? 'Gecikti' : statusLabels[record.status] || record.status}</button>
+            <button className={`${styles.rowStatus} ${styles[record.status] || ''} ${overdueIds.has(record.id) ? styles.late : ''}`} onClick={e => { e.stopPropagation(); setStatus(record.id, record.status === 'completed' ? 'open' : 'completed') }}><Check size={13} />{overdueIds.has(record.id) ? t('tracker.overdue') : statusLabels[record.status] || record.status}</button>
             {/* 🔴 `stopPropagation` şart: satırın kendisi detay panelini
                 açıyor; olmasaydı indirmeye basınca panel de açılırdı. */}
             <span className={styles.rowActions}>
               <button
                 type="button"
                 className={styles.rowAction}
-                title="Bu kaydı PDF olarak indir"
-                aria-label={`${record.title} kaydını PDF indir`}
+                title={t('tracker.downloadPdf')}
+                aria-label={t('tracker.downloadPdf')}
                 disabled={kayitIsleniyor === record.id}
                 onClick={e => { e.stopPropagation(); kaydiAl(record, false) }}
               ><FileDown size={14} /></button>
@@ -293,8 +296,8 @@ export default function Tracker() {
                 <button
                   type="button"
                   className={styles.rowAction}
-                  title="Bu kaydı paylaş"
-                  aria-label={`${record.title} kaydını paylaş`}
+                  title={t('tracker.share')}
+                  aria-label={t('tracker.share')}
                   disabled={kayitIsleniyor === record.id}
                   onClick={e => { e.stopPropagation(); kaydiAl(record, true) }}
                 ><Share2 size={14} /></button>
@@ -317,38 +320,38 @@ export default function Tracker() {
         <div className={styles.overlay} onMouseDown={() => setShowForm(false)}>
           <div className={styles.dialog} onMouseDown={event => event.stopPropagation()}>
             <div className={styles.dialogTitle}>
-              <div><h3>Yeni takip kaydı</h3><p>Günü geldiğinde gözden kaçmaması gereken işi kaydedin.</p></div>
-              <button aria-label="Kapat" onClick={() => setShowForm(false)}><X /></button>
+              <div><h3>{t('tracker.newRecordTitle')}</h3><p>{t('tracker.newRecordDesc')}</p></div>
+              <button aria-label={t('common:buttons.close')} onClick={() => setShowForm(false)}><X /></button>
             </div>
             <form onSubmit={createRecord}>
               <div className={styles.grid}>
-                <label>Tür
-                  <Select aria-label="Kayıt türü" options={Object.entries(typeLabels).map(([value, label]) => ({ value, label }))} value={form.type} onChange={v => setForm(current => ({ ...current, type: v }))} />
+                <label>{t('form.type')}
+                  <Select aria-label={t('form.type')} options={Object.entries(typeLabels).map(([value, label]) => ({ value, label }))} value={form.type} onChange={v => setForm(current => ({ ...current, type: v }))} />
                 </label>
-                <label>Yön
-                  <Select aria-label="Yön" options={[{ value: 'payable', label: 'Ödenecek' }, { value: 'receivable', label: 'Tahsil edilecek' }, { value: 'neutral', label: 'Finansal değil' }]} value={form.direction} onChange={v => setForm(current => ({ ...current, direction: v }))} />
+                <label>{t('form.direction')}
+                  <Select aria-label={t('form.direction')} options={[{ value: 'payable', label: t('form.payable') }, { value: 'receivable', label: t('form.receivable') }, { value: 'neutral', label: t('form.notFinancial') }]} value={form.direction} onChange={v => setForm(current => ({ ...current, direction: v }))} />
                 </label>
               </div>
-              <label>Başlık
-                <input required maxLength={240} value={form.title} onChange={event => setForm(current => ({ ...current, title: event.target.value }))} placeholder="Örn. Tedarikçi senedi" />
+              <label>{t('form.title')}
+                <input required maxLength={240} value={form.title} onChange={event => setForm(current => ({ ...current, title: event.target.value }))} placeholder={t('form.titlePlaceholder')} />
               </label>
-              <label>Açıklama
+              <label>{t('form.description')}
                 <textarea rows={3} value={form.description} onChange={event => setForm(current => ({ ...current, description: event.target.value }))} />
               </label>
               <div className={styles.grid}>
-                <label>Tutar
+                <label>{t('form.amount')}
                   <input type="number" min="0" step="0.01" value={form.amount} onChange={event => setForm(current => ({ ...current, amount: event.target.value }))} />
                 </label>
-                <label>Son tarih
+                <label>{t('form.dueDate')}
                   <input type="datetime-local" value={form.dueAt} onChange={event => setForm(current => ({ ...current, dueAt: event.target.value }))} />
                 </label>
               </div>
-              <label>Tekrarlama
-                <Select aria-label="Tekrarlama" options={[{ value: '', label: 'Tekrarlanmaz' }, { value: 'weekly', label: 'Her hafta' }, { value: 'monthly', label: 'Her ay' }, { value: 'quarterly', label: 'Her 3 ayda' }, { value: 'yearly', label: 'Her yıl' }]} value={form.recurrenceRule} onChange={v => setForm(current => ({ ...current, recurrenceRule: v }))} />
+              <label>{t('form.recurrence')}
+                <Select aria-label={t('form.recurrence')} options={[{ value: '', label: t('form.none') }, { value: 'weekly', label: t('form.weekly') }, { value: 'monthly', label: t('form.monthly') }, { value: 'quarterly', label: t('form.quarterly') }, { value: 'yearly', label: t('form.yearly') }]} value={form.recurrenceRule} onChange={v => setForm(current => ({ ...current, recurrenceRule: v }))} />
               </label>
               <div className={styles.actions}>
-                <button type="button" className={styles.secondary} onClick={() => setShowForm(false)}>Vazgeç</button>
-                <button type="submit" className={styles.primary} disabled={saving}>{saving ? 'Kaydediliyor…' : 'Kaydı oluştur'}</button>
+                <button type="button" className={styles.secondary} onClick={() => setShowForm(false)}>{t('common:buttons.cancel')}</button>
+                <button type="submit" className={styles.primary} disabled={saving}>{saving ? t('form.saving') : t('form.create')}</button>
               </div>
             </form>
           </div>

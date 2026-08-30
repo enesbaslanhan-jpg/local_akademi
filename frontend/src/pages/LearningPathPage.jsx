@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/services/api'
 import { Loading, EmptyState, Badge, Button, Card } from '@/components/ui'
 import { BookOpen, ChevronRight, RefreshCw, CheckCircle, Clock, Target } from 'lucide-react'
 import styles from './LearningPathPage.module.css'
 
 export default function LearningPathPage() {
+  const { t } = useTranslation('learning')
   const navigate = useNavigate()
   const [path, setPath] = useState(null)
   const [steps, setSteps] = useState([])
@@ -43,7 +45,7 @@ export default function LearningPathPage() {
       setPath(data.learningPath)
       setSteps(data.steps || [])
     } catch (err) {
-      setError(err.message || 'Plan oluşturulamadı')
+      setError(err.message || t('path.errorGenerate'))
     } finally {
       setGenerating(false)
     }
@@ -53,15 +55,15 @@ export default function LearningPathPage() {
   const completedSteps = steps.filter(s => s.status === 'completed').length
   const progressPercent = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0
 
-  if (loading) return <Loading text="Öğrenme planı yükleniyor..." />
+  if (loading) return <Loading text={t('path.loadingPlan')} />
 
   return (
     <div className={styles.page}>
       <div className={styles.header}>
         <div>
-          <h1 className="sr-only">Kişisel Öğrenme Planı</h1>
+          <h1 className="sr-only">{t('path.srTitle')}</h1>
           <p className={styles.subtitle}>
-            İşletme profilinize ve değerlendirme sonuçlarınıza göre oluşturulur.
+            {t('path.subtitle')}
           </p>
         </div>
         <Button
@@ -70,7 +72,7 @@ export default function LearningPathPage() {
           onClick={handleGenerate}
           disabled={generating}
         >
-          <RefreshCw size={16} /> {generating ? 'Oluşturuluyor...' : 'Planı Oluştur / Güncelle'}
+          <RefreshCw size={16} /> {generating ? t('path.generating') : t('path.generateButton')}
         </Button>
       </div>
 
@@ -80,8 +82,8 @@ export default function LearningPathPage() {
         <div className={styles.emptySection}>
           <EmptyState
             icon={<BookOpen size={48} />}
-            title="Henüz öğrenme planı yok"
-            message="İşletme profili ve değerlendirmenize göre kişiselleştirilmiş bir plan oluşturmak için yukarıdaki butonu kullanın."
+            title={t('path.emptyTitle')}
+            message={t('path.emptyMessage')}
           />
         </div>
       ) : (
@@ -92,28 +94,28 @@ export default function LearningPathPage() {
                 <Target size={20} />
                 <div>
                   <strong>{steps.length}</strong>
-                  <span>adım</span>
+                  <span>{t('path.unitSteps')}</span>
                 </div>
               </div>
               <div className={styles.summaryItem}>
                 <CheckCircle size={20} />
                 <div>
                   <strong>{completedSteps}</strong>
-                  <span>tamamlandı</span>
+                  <span>{t('path.unitCompleted')}</span>
                 </div>
               </div>
               <div className={styles.summaryItem}>
                 <Clock size={20} />
                 <div>
                   <strong>{steps.reduce((s, st) => s + (st.estimatedDays || 0), 0)}</strong>
-                  <span>tahmini gün</span>
+                  <span>{t('path.unitDays')}</span>
                 </div>
               </div>
             </div>
             {totalSteps > 0 && (
               <div className={styles.progressBar}>
                 <div className={styles.progressFill} style={{ width: `${progressPercent}%` }} />
-                <span className={styles.progressLabel}>%{progressPercent}</span>
+                <span className={styles.progressLabel}>{t('path.pilot.percentShort', { value: progressPercent })}</span>
               </div>
             )}
           </Card>
@@ -129,9 +131,9 @@ export default function LearningPathPage() {
                   </div>
                   <div className={styles.stepMeta}>
                     {step.status === 'completed' ? (
-                      <Badge variant="success">Tamamlandı</Badge>
+                      <Badge variant="success">{t('path.badgeCompleted')}</Badge>
                     ) : (
-                      <Badge variant="info">{step.estimatedDays || '?'} gün</Badge>
+                      <Badge variant="info">{t('path.daysShort', { count: step.estimatedDays || 0 })}</Badge>
                     )}
                   </div>
                 </div>

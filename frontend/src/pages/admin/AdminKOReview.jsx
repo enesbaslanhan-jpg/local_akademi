@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
@@ -7,15 +8,10 @@ import { Button, Badge, Loading, Modal } from '@/components/ui'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import { ArrowLeft, Edit3, Send, CheckCircle, XCircle, Upload, Archive, AlertTriangle, ClipboardCheck } from 'lucide-react'
 import styles from './AdminKOReview.module.css'
+import { getFormatLocale } from '@/utils/formatters'
 
-const STATUS_MAP = {
-  draft: { label: 'Taslak', variant: 'default' },
-  in_review: { label: 'İncelemede', variant: 'warning' },
-  approved: { label: 'Onaylı', variant: 'info' },
-  published: { label: 'Yayında', variant: 'success' },
-  archived: { label: 'Arşiv', variant: 'danger' },
-  rejected: { label: 'Red', variant: 'danger' }
-}
+const STATUS_KEYS = ['draft', 'in_review', 'approved', 'published', 'archived', 'rejected']
+const STATUS_VARIANTS = { draft: 'default', in_review: 'warning', approved: 'info', published: 'success', archived: 'danger', rejected: 'danger' }
 
 const VALID_TRANSITIONS = {
   draft: ['in_review'],
@@ -26,54 +22,33 @@ const VALID_TRANSITIONS = {
   archived: []
 }
 
-const WORKFLOW_CONFIRM = {
-  submitReview: {
-    title: 'İncelemeye Gönder',
-    desc: 'Bu KO inceleme sürecine gönderilecek. İnceleyenler onay veya red kararı verebilir.',
-    confirmLabel: 'İncelemeye Gönder',
-    variant: 'primary'
-  },
-  approve: {
-    title: 'KO\'yu Onayla',
-    desc: 'Bu KO\'yu onaylıyorsunuz. Onaylanan KO\'lar publish edilebilir.',
-    confirmLabel: 'Onayla',
-    variant: 'success'
-  },
-  reject: {
-    title: 'KO\'yu Reddet',
-    desc: 'Bu KO\'yu reddediyorsunuz. Red sebebini açıklamanız zorunludur.',
-    confirmLabel: 'Reddet',
-    variant: 'danger',
-    requireNote: true,
-    noteLabel: 'Red sebebi'
-  },
-  publish: {
-    title: 'KO\'yu Yayınla',
-    desc: 'Bu KO yayına alınacak. Yayındaki KO\'lar tüm kullanıcılar tarafından görülebilir.',
-    confirmLabel: 'Yayınla',
-    variant: 'success'
-  },
-  archive: {
-    title: 'KO\'yu Arşivle',
-    desc: 'Bu KO arşivlenecek. Arşivlenen KO\'lar yayından kalkar.',
-    confirmLabel: 'Arşivle',
-    variant: 'warning'
-  }
-}
+const WORKFLOW_ACTIONS = ['submitReview', 'approve', 'reject', 'publish', 'archive']
+const WORKFLOW_VARIANTS = { submitReview: 'primary', approve: 'success', reject: 'danger', publish: 'success', archive: 'warning' }
+const WORKFLOW_REQUIRE_NOTE = { reject: true }
 
-const ACTION_CONFIG = {
-  submitReview: { icon: Send, label: 'İncelemeye Gönder', roles: ['content_editor', 'admin'], fromStatuses: ['draft', 'rejected'] },
-  approve: { icon: CheckCircle, label: 'Onayla', roles: ['subject_expert', 'admin'], fromStatuses: ['in_review'] },
-  reject: { icon: XCircle, label: 'Reddet', roles: ['subject_expert', 'admin'], fromStatuses: ['in_review'] },
-  publish: { icon: Upload, label: 'Yayınla', roles: ['admin'], fromStatuses: ['approved'] },
-  archive: { icon: Archive, label: 'Arşivle', roles: ['admin'], fromStatuses: ['published', 'approved'] }
+const ACTION_ROLES = {
+  submitReview: ['content_editor', 'admin'],
+  approve: ['subject_expert', 'admin'],
+  reject: ['subject_expert', 'admin'],
+  publish: ['admin'],
+  archive: ['admin']
+}
+const ACTION_FROM_STATUSES = {
+  submitReview: ['draft', 'rejected'],
+  approve: ['in_review'],
+  reject: ['in_review'],
+  publish: ['approved'],
+  archive: ['published', 'approved']
 }
 
 export default function AdminKOReview() {
+  const { t } = useTranslation('admin')
   const { code } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
   const toast = useToast()
+
+  const statusLabel = (status) => t(`knowledge.status.${status}`)
 
   const [ko, setKO] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -104,16 +79,16 @@ export default function AdminKOReview() {
     if (!ko) return
     try {
       const checks = []
-      checks.push({ label: 'En az bir kaynak', ok: ko.sources?.length > 0 })
-      checks.push({ label: 'Doğrulama durumu uygun', ok: ko.verificationStatus === 'verified' })
-      checks.push({ label: 'KO kodu dolu', ok: !!ko.code })
-      checks.push({ label: 'KO versiyonu dolu', ok: !!ko.currentVersionId })
+      checks.push({ label: t('review.checks.sourceRequired'), ok: ko.sources?.length > 0 })
+      checks.push({ label: t('review.checks.verificationOk'), ok: ko.verificationStatus === 'verified' })
+      checks.push({ label: t('review.checks.codeFilled'), ok: !!ko.code })
+      checks.push({ label: t('review.checks.versionFilled'), ok: !!ko.currentVersionId })
       if (ko.reviewGate === 'requires_professional_approval') {
-        checks.push({ label: 'Uzman onayı alınmış', ok: ko.verificationStatus === 'verified' })
+        checks.push({ label: t('review.checks.expertApproval'), ok: ko.verificationStatus === 'verified' })
       }
       if (ko.reviewGate === 'requires_current_official_source_and_legal_approval') {
-        checks.push({ label: 'Resmi kaynak bağlantısı mevcut', ok: ko.sources?.some(s => s.source?.authorityLevel === 'official') })
-        checks.push({ label: 'Yasal onay alınmış', ok: false })
+        checks.push({ label: t('review.checks.officialSource'), ok: ko.sources?.some(s => s.source?.authorityLevel === 'official') })
+        checks.push({ label: t('review.checks.legalApproval'), ok: false })
       }
       setPublishChecks(checks)
     } catch {
@@ -131,7 +106,7 @@ export default function AdminKOReview() {
     try {
       const result = await api.admin.generateQuizDraft(ko.id)
       setGeneratedQuiz(result.quiz)
-      toast.success('Quiz taslağı üretildi; yayınlanmadan önce inceleyin.')
+      toast.success(t('review.toasts.quizGenerated'))
     } catch (err) {
       toast.error(err.message)
     } finally {
@@ -144,7 +119,7 @@ export default function AdminKOReview() {
     setQuizLoading(true)
     try {
       await api.admin.publishQuizDraft(generatedQuiz.id)
-      toast.success('Quiz yayımlandı.')
+      toast.success(t('review.toasts.quizPublished'))
       setGeneratedQuiz(null)
     } catch (err) {
       toast.error(err.message)
@@ -158,14 +133,14 @@ export default function AdminKOReview() {
     try {
       setError('')
       const fn = api.knowledgeV2[action]
-      if (!fn) throw new Error('Geçersiz işlem')
+      if (!fn) throw new Error(t('knowledge.errors.invalidAction'))
       await fn(code, note || undefined)
       toast.success(
-        action === 'submitReview' ? 'İncelemeye gönderildi' :
-        action === 'approve' ? 'KO onaylandı' :
-        action === 'reject' ? 'KO reddedildi' :
-        action === 'publish' ? 'KO yayınlandı' :
-        action === 'archive' ? 'KO arşivlendi' : 'İşlem başarılı'
+        action === 'submitReview' ? t('knowledge.toasts.submitted') :
+        action === 'approve' ? t('knowledge.toasts.approved') :
+        action === 'reject' ? t('knowledge.toasts.rejected') :
+        action === 'publish' ? t('knowledge.toasts.published') :
+        action === 'archive' ? t('knowledge.toasts.archived') : t('knowledge.toasts.success')
       )
       setActiveAction(null)
       setPublishChecks(null)
@@ -181,29 +156,24 @@ export default function AdminKOReview() {
   function getAvailableActions() {
     if (!ko || !user) return []
     const role = user.role
-    return Object.entries(ACTION_CONFIG).filter(([key, cfg]) => {
-      if (!cfg.roles.includes(role) && role !== 'admin') return false
-      if (role !== 'admin' && !cfg.roles.includes(role)) return false
-      if (!cfg.fromStatuses.includes(ko.status)) return false
+    const iconMap = { submitReview: Send, approve: CheckCircle, reject: XCircle, publish: Upload, archive: Archive }
+    return WORKFLOW_ACTIONS.filter(key => {
+      if (!ACTION_ROLES[key].includes(role) && role !== 'admin') return false
+      if (!ACTION_FROM_STATUSES[key].includes(ko.status)) return false
       return true
-    }).map(([key, cfg]) => ({ key, ...cfg }))
+    }).map(key => ({ key, icon: iconMap[key], label: t(`review.actions.${key}`) }))
   }
 
   function formatDate(d) {
     if (!d) return '-'
-    return new Date(d).toLocaleString('tr-TR')
+    return new Date(d).toLocaleString(getFormatLocale())
   }
 
   function getReviewGateLabel(gate) {
-    const labels = {
-      standard: 'Standart',
-      requires_professional_approval: 'Uzman Onayı Gerekli',
-      requires_current_official_source_and_legal_approval: 'Resmi Kaynak + Yasal Onay'
-    }
-    return labels[gate] || gate
+    return t(`form.reviewGate.${gate}`) || gate
   }
 
-  if (loading) return <Loading text="KO yükleniyor..." />
+  if (loading) return <Loading text={t('review.loading')} />
   if (error && !ko) return <div className="alert alert-danger">{error}</div>
 
   const availableActions = getAvailableActions()
@@ -215,16 +185,16 @@ export default function AdminKOReview() {
       {/* Header */}
       <div className={styles.header}>
         <Button variant="ghost" size="sm" onClick={() => navigate('/admin/knowledge')}>
-          <ArrowLeft size={16} /> Listeye Dön
+          <ArrowLeft size={16} /> {t('review.backToList')}
         </Button>
         {userRole === 'admin' && ko?.status === 'published' && (
           <Button size="sm" variant="secondary" onClick={generateQuiz} disabled={quizLoading}>
-            <ClipboardCheck size={15} /> {quizLoading ? 'Üretiliyor…' : 'AI Quiz Taslağı'}
+            <ClipboardCheck size={15} /> {quizLoading ? t('review.quiz.generating') : t('review.quiz.button')}
           </Button>
         )}
         {(userRole === 'content_editor' || userRole === 'admin') && (ko?.status === 'draft' || ko?.status === 'rejected') && (
           <Button size="sm" onClick={() => navigate(`/admin/knowledge/${code}/edit`)}>
-            <Edit3 size={15} /> Düzenle
+            <Edit3 size={15} /> {t('review.editButton')}
           </Button>
         )}
       </div>
@@ -238,26 +208,26 @@ export default function AdminKOReview() {
             <div className={styles.koCode}>{ko?.code || ko?.id}</div>
             <h2 className={styles.koTitle}>{ko?.title}</h2>
           </div>
-          <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+          <Badge variant={STATUS_VARIANTS[ko?.status] || STATUS_VARIANTS.draft}>{statusLabel(ko?.status)}</Badge>
         </div>
 
         <div className={styles.metaGrid}>
-          <div><small>Tür</small><b>{ko?.type}</b></div>
-          <div><small>Seviye</small><b>{ko?.level || 'beginner'}</b></div>
-          <div><small>Kategori</small><b>{ko?.category || '-'}</b></div>
-          <div><small>Doğrulama</small>
+          <div><small>{t('review.meta.type')}</small><b>{ko?.type}</b></div>
+          <div><small>{t('review.meta.level')}</small><b>{ko?.level || 'beginner'}</b></div>
+          <div><small>{t('review.meta.category')}</small><b>{ko?.category || '-'}</b></div>
+          <div><small>{t('review.meta.verification')}</small>
             <Badge variant={ko?.verificationStatus === 'verified' ? 'success' : 'warning'}>
-              {ko?.verificationStatus === 'verified' ? 'Doğrulandı' : ko?.verificationStatus || 'Beklemede'}
+              {ko?.verificationStatus === 'verified' ? t('knowledge.verification.verified') : ko?.verificationStatus || t('knowledge.verification.pending')}
             </Badge>
           </div>
-          <div><small>İnceleme Kapısı</small><b>{getReviewGateLabel(ko?.reviewGate)}</b></div>
-          <div><small>Güncellenme</small><b>{formatDate(ko?.updatedAt)}</b></div>
+          <div><small>{t('review.meta.reviewGate')}</small><b>{getReviewGateLabel(ko?.reviewGate)}</b></div>
+          <div><small>{t('review.meta.updated')}</small><b>{formatDate(ko?.updatedAt)}</b></div>
         </div>
       </div>
 
       {/* Content */}
       <div className="panel">
-        <h3>İçerik</h3>
+        <h3>{t('review.sections.content')}</h3>
         <div className={styles.content}>
           {ko?.content}
         </div>
@@ -266,13 +236,13 @@ export default function AdminKOReview() {
       {/* Publish Checks */}
       {activeAction === 'publish' && publishChecks && (
         <div className="panel">
-          <h3>Yayın Öncesi Kontroller</h3>
+          <h3>{t('review.sections.publishChecks')}</h3>
           <div className={styles.checks}>
             {publishChecks.map((c, i) => (
               <div key={i} className={`${styles.checkItem} ${c.ok ? styles.checkOk : styles.checkFail}`}>
                 <span>{c.ok ? '✓' : '✗'}</span>
                 <span>{c.label}</span>
-                {!c.ok && <small className={styles.checkHint}>Backend tarafından kontrol edilecek</small>}
+                {!c.ok && <small className={styles.checkHint}>{t('review.checkHint')}</small>}
               </div>
             ))}
           </div>
@@ -282,11 +252,10 @@ export default function AdminKOReview() {
       {/* Workflow Actions */}
       {availableActions.length > 0 && (
         <div className={styles.actions}>
-          <h3>İşlemler</h3>
+          <h3>{t('review.sections.actions')}</h3>
           <div className={styles.actionButtons}>
             {availableActions.map(action => {
               const Icon = action.icon
-              const confirmCfg = WORKFLOW_CONFIRM[action.key]
               return (
                 <Button
                   key={action.key}
@@ -309,7 +278,7 @@ export default function AdminKOReview() {
       {/* History */}
       {showHistory && ko?.publicationEvents?.length > 0 && (
         <div className="panel">
-          <h3>Yayın Geçmişi</h3>
+          <h3>{t('review.sections.publicationHistory')}</h3>
           {ko.publicationEvents.map((ev, i) => (
             <div key={i} className={styles.historyItem}>
               <div className={styles.historyHead}>
@@ -325,7 +294,7 @@ export default function AdminKOReview() {
 
       {ko?.reviews?.length > 0 && (
         <div className="panel" style={{ marginTop: 16 }}>
-          <h3>İnceleme Kayıtları</h3>
+          <h3>{t('review.sections.reviewHistory')}</h3>
           {ko.reviews.map((r, i) => (
             <div key={i} className={styles.historyItem}>
               <div className={styles.historyHead}>
@@ -341,20 +310,20 @@ export default function AdminKOReview() {
 
       {/* History toggle */}
       <Button variant="ghost" size="sm" onClick={() => setShowHistory(p => !p)} style={{ alignSelf: 'flex-start' }}>
-        {showHistory ? 'Geçmişi Gizle' : 'Geçmişi Göster'}
+        {showHistory ? t('review.history.hide') : t('review.history.show')}
       </Button>
 
       {/* Modals */}
       <Modal
         open={!!generatedQuiz}
         onClose={() => setGeneratedQuiz(null)}
-        title="AI Quiz Taslağını İncele"
+        title={t('review.quiz.modalTitle')}
         size="lg"
       >
         {generatedQuiz && (
           <div>
-            <p><strong>{generatedQuiz.title}</strong> · Geçme puanı: %{generatedQuiz.passScore}</p>
-            <p>Bu içerik henüz öğrencilere görünmez. Her soruyu, doğru cevabı ve açıklamayı kontrol edin.</p>
+            <p><strong>{generatedQuiz.title}</strong> · {t('review.quiz.passScore')}: %{generatedQuiz.passScore}</p>
+            <p>{t('review.quiz.hiddenNotice')}</p>
             <ol>
               {generatedQuiz.questions.map(question => (
                 <li key={question.id} style={{ marginBottom: 18 }}>
@@ -371,9 +340,9 @@ export default function AdminKOReview() {
               ))}
             </ol>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <Button variant="ghost" onClick={() => setGeneratedQuiz(null)}>Taslak olarak bırak</Button>
+              <Button variant="ghost" onClick={() => setGeneratedQuiz(null)}>{t('review.quiz.keepDraft')}</Button>
               <Button variant="success" onClick={publishGeneratedQuiz} disabled={quizLoading}>
-                İnceledim, yayınla
+                {t('review.quiz.publish')}
               </Button>
             </div>
           </div>
@@ -384,12 +353,12 @@ export default function AdminKOReview() {
         open={!!activeAction && activeAction !== 'publish'}
         onClose={() => { setActiveAction(null); setPublishChecks(null) }}
         onConfirm={(note) => executeWorkflow(activeAction, note)}
-        title={WORKFLOW_CONFIRM[activeAction]?.title || ''}
-        description={WORKFLOW_CONFIRM[activeAction]?.desc || ''}
-        confirmLabel={WORKFLOW_CONFIRM[activeAction]?.confirmLabel || 'Onayla'}
-        variant={WORKFLOW_CONFIRM[activeAction]?.variant || 'primary'}
-        requireNote={WORKFLOW_CONFIRM[activeAction]?.requireNote}
-        noteLabel={WORKFLOW_CONFIRM[activeAction]?.noteLabel}
+        title={activeAction ? t(`knowledge.workflow.${activeAction}.title`) : ''}
+        description={activeAction ? t(`knowledge.workflow.${activeAction}.desc`) : ''}
+        confirmLabel={activeAction ? t(`knowledge.workflow.${activeAction}.confirmLabel`) : t('knowledge.actions.approve')}
+        variant={activeAction ? WORKFLOW_VARIANTS[activeAction] || 'primary' : 'primary'}
+        requireNote={activeAction ? WORKFLOW_REQUIRE_NOTE[activeAction] : undefined}
+        noteLabel={activeAction && WORKFLOW_REQUIRE_NOTE[activeAction] ? t(`knowledge.workflow.${activeAction}.noteLabel`) : undefined}
         loading={actionLoading}
       />
 
@@ -398,9 +367,9 @@ export default function AdminKOReview() {
         open={activeAction === 'publish'}
         onClose={() => { setActiveAction(null); setPublishChecks(null) }}
         onConfirm={(note) => executeWorkflow('publish', note)}
-        title={WORKFLOW_CONFIRM.publish.title}
-        description={`Yayın öncesi kontroller yapıldı. ${publishChecks?.filter(c => !c.ok).length > 0 ? 'Bazı kontroller başarısız.' : 'Tüm kontroller başarılı.'} Devam etmek istiyor musunuz?`}
-        confirmLabel="Yayınla"
+        title={t('knowledge.workflow.publish.title')}
+        description={t('review.publishConfirm', { failed: publishChecks?.filter(c => !c.ok).length > 0 })}
+        confirmLabel={t('knowledge.workflow.publish.confirmLabel')}
         variant="success"
         loading={actionLoading}
       />

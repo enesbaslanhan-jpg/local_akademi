@@ -1,3 +1,7 @@
+/* Dış kabuk: içerik + tam genişlikte ortak alt bilgi.
+   `.page`in 24px dolgusu alt bilgiyi içeri çekiyordu. */
+.kabuk { min-height: 100vh; background: var(--surface-canvas); }
+
 .page { min-height: 100vh; padding: 24px; background: var(--surface-canvas); color: var(--text); }
 
 .header { width: min(100%, 820px); margin: 0 auto 18px; display: flex; align-items: center; gap: 10px; }
@@ -7,7 +11,7 @@
 
 .govde { width: min(100%, 820px); margin: 0 auto; display: grid; gap: 18px; }
 
-.giris, .sss, .formBolum, .kvkkKutu {
+.giris, .sss, .formBolum, .kvkkKutu, .kilavuz {
   box-sizing: border-box;
   padding: clamp(22px, 4vw, 38px);
   border: 1px solid var(--border);
@@ -22,6 +26,34 @@
 .aciklama { margin: 12px 0 0; color: var(--text-light); font-size: .95rem; line-height: 1.65; }
 
 .sss h2, .formBolum h2 { margin: 0 0 14px; font-size: 1.05rem; }
+
+/* Kullanma kılavuzu: akışlar SSS ile aynı kart dilinde, sıralı liste
+   olarak. Numaralandırmayı tarayıcıya bırakıyoruz (SSS'teki `details`
+   gibi davranış hazır geliyor). */
+.kilavuz h2 { margin: 0 0 8px; font-size: 1.05rem; }
+.kilavuzGiris { margin: 0 0 16px; color: var(--text-light); font-size: .87rem; line-height: 1.65; }
+.kilavuzListe, .kilavuzAdimlar { margin: 0; padding: 0; list-style: none; }
+.kilavuzAkis { padding: 14px 0; border-top: 1px solid var(--border); }
+.kilavuzAkis:first-child { border-top: 0; padding-top: 4px; }
+.kilavuzAkis h3 { margin: 0 0 6px; font-size: .92rem; }
+.kilavuzAkis > p { margin: 0 0 8px; color: var(--text-light); font-size: .85rem; line-height: 1.65; }
+.kilavuzAdimlar { counter-reset: adim; }
+.kilavuzAdimlar li {
+  position: relative;
+  margin: 0 0 6px 32px;
+  color: var(--text-light);
+  font-size: .85rem;
+  line-height: 1.6;
+  counter-increment: adim;
+}
+.kilavuzAdimlar li::before {
+  content: counter(adim);
+  position: absolute; left: -32px; top: 1px;
+  display: grid; place-items: center;
+  width: 22px; height: 22px; border-radius: 6px;
+  background: var(--surface-panel); color: var(--primary);
+  font-size: .72rem; font-weight: 800;
+}
 
 /* `details` kullanılıyor: açılır kapanır davranış tarayıcının kendi
    işidir, klavye ve ekran okuyucu desteği hazır gelir. */
@@ -49,16 +81,18 @@
 .form { display: grid; gap: 14px; }
 .ikili { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .alan { display: grid; gap: 6px; color: var(--text-light); font-size: .78rem; font-weight: 700; }
-.alan input, .alan textarea {
+.alan input, .alan textarea, .alan select {
   width: 100%; box-sizing: border-box; min-height: 44px; padding: 11px 13px;
   border: 1px solid var(--border-strong); border-radius: 10px;
   background: var(--input-bg); color: var(--text); font: inherit; font-weight: 500;
 }
 .alan textarea { min-height: 150px; resize: vertical; line-height: 1.6; }
-.alan input:focus, .alan textarea:focus {
+.alan input:focus, .alan textarea:focus, .alan select:focus {
   border-color: var(--primary); outline: 0;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
 }
+/* Konu türü seçimi: görünümü metin alanlarıyla aynı ailede tutar. */
+.alan select { appearance: none; cursor: pointer; }
 .sayac { justify-self: end; color: var(--text-light); font-size: .7rem; font-weight: 500; }
 
 /*

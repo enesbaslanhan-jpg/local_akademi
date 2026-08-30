@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/services/api'
 import { useWorkspace } from '@/context/WorkspaceContext'
 import { Badge, Button, Loading, EmptyState, PageHead } from '@/components/ui'
@@ -10,8 +11,9 @@ import {
   Store, TrendingUp, Users, WalletCards, Plus, Repeat, X,
   ArrowRight, AlertTriangle
 } from 'lucide-react'
-import { buildCalculationCatalog, CALCULATION_CATEGORIES, CALCULATION_DEFINITIONS, modeLabels } from '@/data/calculationCatalog'
+import { buildCalculationCatalog, CALCULATION_CATEGORIES, CALCULATION_DEFINITIONS, modeLabelKeys } from '@/data/calculationCatalog'
 import styles from './ToolsPage.module.css'
+import { getFormatLocale } from '@/utils/formatters'
 
 const ICONS = {
   kar_hesabi: TrendingUp,
@@ -55,59 +57,68 @@ const CATEGORIES = CALCULATION_CATEGORIES
  * `all` id'si geriye dönük uyumluluk için korundu (URL `?view=all`).
  * Sıra, girişte açılan görünümle (Katalog) başlıyor. */
 const VIEWS = [
-  { id: 'calculator', label: 'Katalog', icon: Calculator },
-  { id: 'history', label: 'Geçmiş', icon: History },
+  { id: 'calculator', labelKey: 'calculations.views.catalog', icon: Calculator },
+  { id: 'history', labelKey: 'calculations.views.history', icon: History },
 ]
 
-const RESULT_LABELS = {
-  kar: 'Kâr',
-  kar_marji: 'Kâr marjı',
-  katki_payi: 'Katkı payı',
-  basabas_adet: 'Başabaş adedi',
-  basabas_gelir: 'Başabaş geliri',
-  net_pozisyon: 'Net nakit pozisyonu',
-  nakit_oran: 'Nakit oranı',
-  isletme_sermayesi: 'İşletme sermayesi',
-  net_kar: 'Net kâr',
-  roi_yuzde: 'ROI',
-  devir_hizi: 'Stok devir hızı',
-  stokta_kalma_gunu: 'Stokta kalma süresi',
-  cac: 'Müşteri edinme maliyeti',
-  ltv: 'Müşteri yaşam boyu değeri',
-  ltv_cac_orani: 'LTV/CAC oranı',
-  degerlendirme: 'Değerlendirme',
-  indirimli_fiyat: 'İndirimli fiyat',
-  normal_kar: 'Normal kâr',
-  kampanya_kar: 'Kampanya kârı',
-  kar_farki: 'Kâr farkı',
-  aylik_taksit: 'Aylık taksit',
-  toplam_odeme: 'Toplam ödeme',
-  toplam_faiz: 'Toplam faiz',
-  birim_maliyet_try: 'Birim maliyet (TRY)',
-  birim_maliyet_usd: 'Birim maliyet (USD)',
-  toplam_maliyet: 'Toplam maliyet',
-  gercek_birim_maliyet: 'Gerçek birim maliyet',
-  onerilen_kdv_haric_fiyat: 'Önerilen KDV hariç fiyat',
-  komisyon_tutari: 'Komisyon tutarı',
-  odeme_kesintisi: 'Ödeme kesintisi',
-  birim_katki: 'Birim katkı',
-  gerceklesen_marj: 'Gerçekleşen marj',
-  kdv_haric_tutar: 'KDV hariç tutar',
-  kdv_tutari: 'KDV tutarı',
-  kdv_dahil_tutar: 'KDV dahil tutar',
-  toplam_giris: 'Toplam kasa girişi',
-  toplam_cikis: 'Toplam kasa çıkışı',
-  beklenen_kasa: 'Beklenen kasa',
-  aylik_nakit_acigi: 'Aylık nakit açığı',
-  dayanma_suresi_ay: 'Nakit dayanma süresi (ay)',
-  toplam_uretim_maliyeti: 'Toplam üretim maliyeti',
-  birim_maliyet: 'Birim maliyet',
-  vadeli_toplam: 'Vadeli toplam',
-  vade_farki: 'Vade farkı',
-  aylik_esit_odeme: 'Aylık eşit ödeme',
-  siparis_toplam_maliyeti: 'Sipariş toplam maliyeti',
-  siparis_katkisi: 'Sipariş katkısı',
-  siparis_marji: 'Sipariş marjı',
+/* Hesap servisinin döndürdüğü ham alan adları (Türkçe, snake_case) —
+   bunlar API sözleşmesi, değiştirilemez. Görüntülenen etiket
+   `tools:calculations.results.*`ten geliyor; eşleme yalnız hangi
+   çeviri anahtarının hangi ham alana karşılık geldiğini gösterir. */
+const RESULT_LABEL_KEYS = {
+  kar: 'profit',
+  kar_marji: 'profitMargin',
+  katki_payi: 'contributionShare',
+  basabas_adet: 'breakEvenUnits',
+  basabas_gelir: 'breakEvenRevenue',
+  net_pozisyon: 'netCashPosition',
+  nakit_oran: 'cashRatio',
+  isletme_sermayesi: 'workingCapital',
+  net_kar: 'netProfit',
+  roi_yuzde: 'roiPercent',
+  devir_hizi: 'inventoryTurnover',
+  stokta_kalma_gunu: 'inventoryDays',
+  cac: 'cac',
+  ltv: 'ltv',
+  ltv_cac_orani: 'ltvCacRatio',
+  degerlendirme: 'assessment',
+  indirimli_fiyat: 'discountedPrice',
+  normal_kar: 'regularProfit',
+  kampanya_kar: 'campaignProfit',
+  kar_farki: 'profitDifference',
+  aylik_taksit: 'monthlyInstallment',
+  toplam_odeme: 'totalPayment',
+  toplam_faiz: 'totalInterest',
+  birim_maliyet_try: 'unitCostTry',
+  birim_maliyet_usd: 'unitCostUsd',
+  toplam_maliyet: 'totalCost',
+  gercek_birim_maliyet: 'effectiveUnitCost',
+  onerilen_kdv_haric_fiyat: 'suggestedPriceExVat',
+  komisyon_tutari: 'commissionAmount',
+  odeme_kesintisi: 'paymentFee',
+  birim_katki: 'unitContribution',
+  gerceklesen_marj: 'realizedMargin',
+  kdv_haric_tutar: 'amountExVat',
+  kdv_tutari: 'vatAmount',
+  kdv_dahil_tutar: 'amountIncVat',
+  toplam_giris: 'cashInTotal',
+  toplam_cikis: 'cashOutTotal',
+  beklenen_kasa: 'expectedCashBalance',
+  aylik_nakit_acigi: 'monthlyCashGap',
+  dayanma_suresi_ay: 'cashRunwayMonths',
+  toplam_uretim_maliyeti: 'productionTotalCost',
+  birim_maliyet: 'unitCost',
+  vadeli_toplam: 'deferredTotal',
+  vade_farki: 'termSurcharge',
+  aylik_esit_odeme: 'equalMonthlyPayment',
+  siparis_toplam_maliyeti: 'orderTotalCost',
+  siparis_katkisi: 'orderContribution',
+  siparis_marji: 'orderMargin',
+}
+
+function resultLabel(key, t) {
+  const mapped = RESULT_LABEL_KEYS[key]
+  return mapped ? t(`calculations.results.${mapped}`) : key.replaceAll('_', ' ')
 }
 
 function resultTone(status = '') {
@@ -118,23 +129,15 @@ function resultTone(status = '') {
 
 function formatValue(value) {
   return typeof value === 'number'
-    ? value.toLocaleString('tr-TR', { maximumFractionDigits: 2 })
+    ? value.toLocaleString(getFormatLocale(), { maximumFractionDigits: 2 })
     : String(value)
-}
-
-const money = new Intl.NumberFormat('tr-TR', {
-  style: 'currency', currency: 'TRY', maximumFractionDigits: 0
-})
-
-function shortDueDate(value) {
-  if (!value) return 'Tarih yok'
-  return new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' }).format(new Date(value))
 }
 
 /* Varsayılan Katalog: 'all' görünümü kaldırıldı ve
    `/app/tools` rotası bu varsayılanı kullanıyor -- eski değer
    bırakılsaydı o rota boş sayfa açardı. */
 export default function ToolsPage({ initialView = 'calculator' }) {
+  const { t } = useTranslation('tools')
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const { activeWorkspaceId } = useWorkspace()
@@ -187,7 +190,7 @@ export default function ToolsPage({ initialView = 'calculator' }) {
         selectFormula(requested)
         setView('calculator')
       }
-    }).catch(() => setError('Hesaplamalar yüklenemedi.')).finally(() => setLoading(false))
+    }).catch(() => setError(t('calculations.errors.load'))).finally(() => setLoading(false))
   }, [])
 
   /*
@@ -263,22 +266,22 @@ export default function ToolsPage({ initialView = 'calculator' }) {
   const catalog = useMemo(() => buildCalculationCatalog(formulas, models), [formulas, models])
 
   const visibleCalculations = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase('tr-TR')
+    const query = search.trim().toLocaleLowerCase(getFormatLocale())
     return catalog.filter(calculation => {
       const categoryMatches = category === 'all' || calculation.category === category
-      const searchMatches = !query || `${calculation.title} ${calculation.description}`.toLocaleLowerCase('tr-TR').includes(query)
+      const searchMatches = !query || `${t(calculation.titleKey)} ${calculation.description}`.toLocaleLowerCase(getFormatLocale()).includes(query)
       return categoryMatches && searchMatches
     })
-  }, [catalog, category, search])
+  }, [catalog, category, search, t])
 
   const pickerResults = useMemo(() => {
-    const query = pickerQuery.trim().toLocaleLowerCase('tr-TR')
+    const query = pickerQuery.trim().toLocaleLowerCase(getFormatLocale())
     return catalog.filter(calculation => {
       const categoryMatches = pickerCategory === 'all' || calculation.category === pickerCategory
-      const searchMatches = !query || `${calculation.title} ${calculation.description}`.toLocaleLowerCase('tr-TR').includes(query)
+      const searchMatches = !query || `${t(calculation.titleKey)} ${calculation.description}`.toLocaleLowerCase(getFormatLocale()).includes(query)
       return categoryMatches && searchMatches
     })
-  }, [catalog, pickerCategory, pickerQuery])
+  }, [catalog, pickerCategory, pickerQuery, t])
 
   /* Seçicide "Son kullanılanlar": gerçek geçmiş kayıtlarından türetilir. */
   const recentCalculations = useMemo(() => {
@@ -330,7 +333,7 @@ export default function ToolsPage({ initialView = 'calculator' }) {
       navigate(`/app/finance/models/${calculation.detailed.modelCode}`)
       return
     }
-    selectFormula({ ...calculation.formula, category: calculation.category, calculation })
+    selectFormula({ ...calculation.formula, name: t(calculation.titleKey), category: calculation.category, calculation })
     setView('calculator')
   }
 
@@ -340,7 +343,7 @@ export default function ToolsPage({ initialView = 'calculator' }) {
   function openHistoryEntry(entry) {
     const formula = formulas.find(item => item.id === entry.formulaId)
     if (!formula) {
-      setError('Bu hesaplama artık katalogda yok.')
+      setError(t('calculations.errors.removed'))
       return
     }
     setSelected(formula)
@@ -411,7 +414,7 @@ export default function ToolsPage({ initialView = 'calculator' }) {
       const freshHistory = await api.formulas.getHistory().catch(() => null)
       if (Array.isArray(freshHistory)) setHistory(freshHistory)
     } catch (err) {
-      setError(err.message || 'Hesaplama yapılamadı.')
+      setError(err.message || t('calculations.errors.calculate'))
     } finally {
       setCalculating(false)
     }
@@ -421,8 +424,8 @@ export default function ToolsPage({ initialView = 'calculator' }) {
     const formula = formulas.find(entry => entry.id === item.formulaId)
     setSelected(formula || {
       id: item.formulaId || item.id,
-      name: item.formulaName || 'Kaydedilmiş hesaplama',
-      description: 'Geçmişte kaydedilen gerçek hesaplama sonucu.',
+      name: item.formulaName || t('calculations.savedCalculationName'),
+      description: t('calculations.savedCalculationDescription'),
       category: 'daily',
       inputs: []
     })
@@ -436,7 +439,7 @@ export default function ToolsPage({ initialView = 'calculator' }) {
     navigate(activeWorkspaceId ? `/app/workspaces/${activeWorkspaceId}/${section}` : '/app/workspaces')
   }
 
-  if (loading) return <Loading text="Hesaplamalar yükleniyor..." />
+  if (loading) return <Loading text={t('calculations.loading')} />
 
   const showTools = view === 'calculator'
   const showAside = false
@@ -452,13 +455,13 @@ export default function ToolsPage({ initialView = 'calculator' }) {
           {/* Sayfanın TEK turuncu ana CTA'sı */}
           <button type="button" className={styles.panelCta} onClick={startNewCalculation}>
             <Plus size={16} aria-hidden="true" />
-            Hesaplama Başlat
+            {t('calculations.startNew')}
           </button>
         </div>
 
         {frequentFormulas.length > 0 && (
           <div className={styles.panelBlock}>
-            <div className={styles.panelLabel}>Sık kullandıklarınız</div>
+            <div className={styles.panelLabel}>{t('calculations.panel.frequent')}</div>
             {frequentFormulas.map(({ formula, count }) => (
               <button
                 key={formula.id}
@@ -474,7 +477,7 @@ export default function ToolsPage({ initialView = 'calculator' }) {
         )}
 
         <div className={styles.panelBlock}>
-          <div className={styles.panelLabel}>Hesaplamalar</div>
+          <div className={styles.panelLabel}>{t('calculations.title')}</div>
           {catalog.slice(0, 12).map(calculation => (
             <button
               key={calculation.id}
@@ -482,31 +485,31 @@ export default function ToolsPage({ initialView = 'calculator' }) {
               className={`${styles.panelLink} ${selected?.calculation?.id === calculation.id && view === 'calculator' ? styles.panelLinkActive : ''}`}
               onClick={() => openCalculation(calculation)}
             >
-              <span className={styles.panelLinkText}>{calculation.title}</span>
+              <span className={styles.panelLinkText}>{t(calculation.titleKey)}</span>
             </button>
           ))}
         </div>
 
         <div className={styles.panelBlock}>
-          <div className={styles.panelLabel}>Kayıtlar</div>
+          <div className={styles.panelLabel}>{t('calculations.panel.records')}</div>
           <button
             type="button"
             className={`${styles.panelLink} ${view === 'history' ? styles.panelLinkActive : ''}`}
             onClick={() => changeView('history')}
           >
-            <span className={styles.panelLinkText}>Geçmiş</span>
+            <span className={styles.panelLinkText}>{t('calculations.views.history')}</span>
             <span className={styles.panelCount}>{history.length}</span>
           </button>
         </div>
       </ContextPanelSlot>
 
       <PageHead
-        title="Hesaplamalar"
-        subtitle="Bir sayı bulun; gerektiğinde aynı hesapta detaylı metodolojiye geçin."
+        title={t('calculations.title')}
+        subtitle={t('calculations.subtitle')}
         actions={(
           <>
-            <Button variant="secondary" onClick={() => workspaceRoute('documents')}><FileText size={15} /> İçe aktar</Button>
-            <Button onClick={startNewCalculation}><Calculator size={15} /> Hesaplama başlat</Button>
+            <Button variant="secondary" onClick={() => workspaceRoute('documents')}><FileText size={15} /> {t('calculations.importAction')}</Button>
+            <Button onClick={startNewCalculation}><Calculator size={15} /> {t('calculations.startNewButton')}</Button>
           </>
         )}
       />
@@ -515,7 +518,7 @@ export default function ToolsPage({ initialView = 'calculator' }) {
           çubuğu alt menüsü yapıyor; ikisini birlikte göstermek aynı iş için
           iki ayrı kumanda demekti. Mobilde kenar çubuğu bir çekmece
           olduğu için çipler orada tek geçiş yolu. */}
-      <div className={styles.viewChips} role="group" aria-label="Görünüm süzgeci">
+      <div className={styles.viewChips} role="group" aria-label={t('calculations.viewFilterAria')}>
         {VIEWS.map(item => {
           const Icon = item.icon
           return (
@@ -527,7 +530,7 @@ export default function ToolsPage({ initialView = 'calculator' }) {
               aria-pressed={view === item.id}
             >
               {Icon && <Icon size={15} aria-hidden="true" />}
-              {item.label}
+              {t(item.labelKey)}
               {item.id === 'history' && <span className={styles.chipCount}>{history.length}</span>}
             </button>
           )
@@ -537,16 +540,16 @@ export default function ToolsPage({ initialView = 'calculator' }) {
 
       {view === 'history' && (
         <div className={styles.historyList}>
-          {history.length === 0 ? <EmptyState message="Henüz hesaplama geçmişi yok." /> : history.map(item => (
+          {history.length === 0 ? <EmptyState message={t('calculations.historyEmpty')} /> : history.map(item => (
             <button
               key={item.id}
               type="button"
               className={styles.historyItem}
               onClick={() => openHistoryEntry(item)}
-              title={`${item.formulaName} hesaplamasını girdileriyle aç`}
+              title={t('calculations.openHistoryAria', { name: item.formulaName })}
             >
-              <div><strong>{item.formulaName}</strong><span>{new Date(item.createdAt).toLocaleString('tr-TR')}</span></div>
-              <p>{Object.entries(item.result || {}).filter(([key]) => key !== 'durum').slice(0, 4).map(([key, value]) => `${RESULT_LABELS[key] || key}: ${value}`).join(' · ')}</p>
+              <div><strong>{item.formulaName}</strong><span>{new Date(item.createdAt).toLocaleString(getFormatLocale())}</span></div>
+              <p>{Object.entries(item.result || {}).filter(([key]) => key !== 'durum').slice(0, 4).map(([key, value]) => `${resultLabel(key, t)}: ${value}`).join(' · ')}</p>
             </button>
           ))}
         </div>
@@ -555,10 +558,10 @@ export default function ToolsPage({ initialView = 'calculator' }) {
       {showTools && (
         <div className={`${styles.workArea} ${showAside ? styles.workAreaWithAside : ''}`}>
           <div className={styles.workMain}>
-            <h2 className={styles.sectionTitle} ref={gridRef}>Bugün ne hesaplamak istiyorsunuz?</h2>
+            <h2 className={styles.sectionTitle} ref={gridRef}>{t('calculations.todayQuestion')}</h2>
 
             <div className={styles.categories}>
-              {Object.entries(CATEGORIES).map(([id, label]) => (
+              {Object.entries(CATEGORIES).map(([id, labelKey]) => (
                 <button
                   key={id}
                   type="button"
@@ -566,13 +569,13 @@ export default function ToolsPage({ initialView = 'calculator' }) {
                   onClick={() => setCategory(id)}
                   aria-pressed={category === id}
                 >
-                  {label}
+                  {t(labelKey)}
                 </button>
               ))}
             </div>
 
             {visibleCalculations.length === 0 ? (
-              <EmptyState message="Aramanıza uygun hesaplama bulunamadı." />
+              <EmptyState message={t('calculations.searchEmpty')} />
             ) : (
               <div className={styles.toolGrid}>
                 {visibleCalculations.map(calculation => {
@@ -586,9 +589,9 @@ export default function ToolsPage({ initialView = 'calculator' }) {
                       aria-pressed={selected?.calculation?.id === calculation.id}
                     >
                       <Icon className={styles.toolIcon} size={38} strokeWidth={1.2} aria-hidden="true" />
-                      <strong>{calculation.title}</strong>
-                      <small>{calculation.description || `${calculation.inputCount} bilgiyle hesaplanır`}</small>
-                      <span className={styles.modeLabels}>{modeLabels(calculation).map(label => <em key={label}>{label}</em>)}</span>
+                      <strong>{t(calculation.titleKey)}</strong>
+                      <small>{calculation.description || t('calculations.inputCountSuffix', { count: calculation.inputCount })}</small>
+                      <span className={styles.modeLabels}>{modeLabelKeys(calculation).map(labelKey => <em key={labelKey}>{t(labelKey)}</em>)}</span>
                     </button>
                   )
                 })}
@@ -597,19 +600,19 @@ export default function ToolsPage({ initialView = 'calculator' }) {
 
             {selected && (
               <div className={styles.calcOverlay} role="presentation" onMouseDown={() => setSelected(null)}>
-              <div ref={calcPanelRef} className={`${styles.calcPanel} ${result ? styles.calcResultPanel : ''}`} role="dialog" aria-modal="true" aria-label={`${selected.name} hesaplama alanı`} tabIndex={-1} onMouseDown={event => event.stopPropagation()}>
-                <button type="button" className={styles.calcClose} onClick={() => setSelected(null)} aria-label="Hesaplama alanını kapat"><X size={19} /></button>
+              <div ref={calcPanelRef} className={`${styles.calcPanel} ${result ? styles.calcResultPanel : ''}`} role="dialog" aria-modal="true" aria-label={t('calculations.panelAria', { name: selected.name })} tabIndex={-1} onMouseDown={event => event.stopPropagation()}>
+                <button type="button" className={styles.calcClose} onClick={() => setSelected(null)} aria-label={t('calculations.closePanelAria')}><X size={19} /></button>
                 {!result ? (
                   <>
                     <div className={styles.panelHeading}>
-                      <Badge variant="info">{CATEGORIES[selected.category]}</Badge>
+                      <Badge variant="info">{t(CATEGORIES[selected.category])}</Badge>
                       <h2>{selected.name}</h2>
                       <p>{selected.description}</p>
                     </div>
                     {selected.calculation?.detailed && (
-                      <div className={styles.modeSwitch} role="tablist" aria-label="Hesaplama modu">
-                        <button type="button" role="tab" aria-selected="true">Basit</button>
-                        <button type="button" role="tab" aria-selected="false" onClick={() => openCalculation(selected.calculation, 'detailed')}>Detaylı</button>
+                      <div className={styles.modeSwitch} role="tablist" aria-label={t('calculations.modeAria')}>
+                        <button type="button" role="tab" aria-selected="true">{t('calculations.simpleMode')}</button>
+                        <button type="button" role="tab" aria-selected="false" onClick={() => openCalculation(selected.calculation, 'detailed')}>{t('calculations.detailedMode')}</button>
                       </div>
                     )}
                     {selected.warning && <div className={styles.warning}>{selected.warning}</div>}
@@ -625,33 +628,33 @@ export default function ToolsPage({ initialView = 'calculator' }) {
                       ))}
                     </div>
                     <Button variant="primary" onClick={calculate} disabled={calculating}>
-                      {calculating ? 'Hesaplanıyor…' : 'Sonucu Hesapla'}
+                      {calculating ? t('calculations.calculating') : t('calculations.calculate')}
                     </Button>
                     {error && <div className={styles.error}>{error}</div>}
                   </>
                 ) : (
                   <div className={styles.financeResultView}>
                     <header className={styles.financeResultHead}>
-                      <div><span>Finans Sonucu</span><h2>{selected.name}</h2><p>Hesaplama gerçek girdilerinizle tamamlandı ve geçmişe kaydedildi.</p></div>
-                      <Button variant="secondary" onClick={() => setResult(null)}>Varsayımları düzenle</Button>
+                      <div><span>{t('calculations.resultBadge')}</span><h2>{selected.name}</h2><p>{t('calculations.resultCompletedNote')}</p></div>
+                      <Button variant="secondary" onClick={() => setResult(null)}>{t('calculations.editAssumptions')}</Button>
                     </header>
                     <div className={styles.financeResultColumns}>
                       <section className={styles.financeResultHero}>
-                        <Badge variant={resultTone(result.durum) === 'danger' ? 'danger' : resultTone(result.durum) === 'success' ? 'success' : 'warning'}>{result.durum || 'Hesaplandı'}</Badge>
-                        <span>{RESULT_LABELS[resultEntries[0]?.[0]] || resultEntries[0]?.[0]?.replaceAll('_', ' ') || 'Ana sonuç'}</span>
+                        <Badge variant={resultTone(result.durum) === 'danger' ? 'danger' : resultTone(result.durum) === 'success' ? 'success' : 'warning'}>{result.durum || t('calculations.statusCalculated')}</Badge>
+                        <span>{resultEntries[0] ? resultLabel(resultEntries[0][0], t) : t('calculations.mainResultFallback')}</span>
                         <strong>{resultEntries[0] ? formatValue(resultEntries[0][1]) : '—'}</strong>
                         <p>{selected.description}</p>
                       </section>
                       <section className={styles.financeResultDrivers}>
-                        <h3>Sonucu etkileyenler</h3>
-                        {resultEntries.slice(1).length === 0 ? <p>Ek sonuç alanı bulunmuyor.</p> : resultEntries.slice(1).map(([key, value]) => (
-                          <div key={key}><span>{RESULT_LABELS[key] || key.replaceAll('_', ' ')}</span><strong>{formatValue(value)}</strong></div>
+                        <h3>{t('calculations.driversHeading')}</h3>
+                        {resultEntries.slice(1).length === 0 ? <p>{t('calculations.noExtraResults')}</p> : resultEntries.slice(1).map(([key, value]) => (
+                          <div key={key}><span>{resultLabel(key, t)}</span><strong>{formatValue(value)}</strong></div>
                         ))}
                       </section>
                     </div>
                     {(result.warnings?.length > 0 || result.assumptions?.length > 0) && (
                       <section className={styles.financeResultNotes}>
-                        <h3>Varsayım ve uyarılar</h3>
+                        <h3>{t('calculations.assumptionsHeading')}</h3>
                         {[...(result.assumptions || []), ...(result.warnings || [])].map((item, index) => <p key={index}>{item}</p>)}
                       </section>
                     )}
@@ -664,17 +667,17 @@ export default function ToolsPage({ initialView = 'calculator' }) {
 
           {/* Sağ sütun yalnızca GERÇEK geçmiş varken görünür. */}
           {showAside && (
-            <aside className={styles.aside} aria-label="Son hesaplama özeti">
+            <aside className={styles.aside} aria-label={t('calculations.asideAria')}>
               <section className={styles.asideCard}>
-                <div className={styles.asideLabel}>Son hesaplamanız</div>
+                <div className={styles.asideLabel}>{t('calculations.asideLastCalculation')}</div>
                 <strong className={styles.asideTitle}>{lastCalculation.formulaName}</strong>
                 <span className={styles.asideMeta}>
-                  {new Date(lastCalculation.createdAt).toLocaleString('tr-TR')}
+                  {new Date(lastCalculation.createdAt).toLocaleString(getFormatLocale())}
                 </span>
                 <dl className={styles.asideRows}>
                   {lastCalculationRows.map(([key, value]) => (
                     <div key={key}>
-                      <dt>{RESULT_LABELS[key] || key.replaceAll('_', ' ')}</dt>
+                      <dt>{resultLabel(key, t)}</dt>
                       <dd>{formatValue(value)}</dd>
                     </div>
                   ))}
@@ -683,16 +686,16 @@ export default function ToolsPage({ initialView = 'calculator' }) {
 
               {frequentFormulas[0] && (
                 <section className={styles.asideCard}>
-                  <div className={styles.asideLabel}>En sık kullandığınız araç</div>
+                  <div className={styles.asideLabel}>{t('calculations.asideMostUsedTool')}</div>
                   <strong className={styles.asideTitle}>{frequentFormulas[0].formula.name}</strong>
-                  <span className={styles.asideMeta}>{frequentFormulas[0].count} kez hesapladınız</span>
+                  <span className={styles.asideMeta}>{t('calculations.timesCalculated', { count: frequentFormulas[0].count })}</span>
                   <button
                     type="button"
                     className={styles.asideAction}
                     onClick={() => { selectFormula(frequentFormulas[0].formula); changeView('calculator') }}
                   >
                     <Repeat size={15} aria-hidden="true" />
-                    Yeniden hesapla
+                    {t('calculations.recalculate')}
                   </button>
                 </section>
               )}
@@ -703,8 +706,8 @@ export default function ToolsPage({ initialView = 'calculator' }) {
 
       {/* Son işlemler — gerçek geçmiş kayıtları. Kayıt yoksa hiç gösterilmez. */}
       {view === 'calculator' && history.length > 0 && (
-        <section className={styles.recent} aria-label="Son işlemler">
-          <h2 className={styles.sectionTitle}>Son işlemler</h2>
+        <section className={styles.recent} aria-label={t('calculations.recentSection')}>
+          <h2 className={styles.sectionTitle}>{t('calculations.recentSection')}</h2>
           <div className={styles.historyList}>
             {history.slice(0, 5).map(item => (
               <button
@@ -712,10 +715,10 @@ export default function ToolsPage({ initialView = 'calculator' }) {
                 type="button"
                 className={styles.historyItem}
                 onClick={() => openHistoryEntry(item)}
-                title={`${item.formulaName} hesaplamasını girdileriyle aç`}
+                title={t('calculations.openHistoryAria', { name: item.formulaName })}
               >
-                <div><strong>{item.formulaName}</strong><span>{new Date(item.createdAt).toLocaleString('tr-TR')}</span></div>
-                <p>{Object.entries(item.result || {}).filter(([key]) => key !== 'durum').slice(0, 4).map(([key, value]) => `${RESULT_LABELS[key] || key}: ${value}`).join(' · ')}</p>
+                <div><strong>{item.formulaName}</strong><span>{new Date(item.createdAt).toLocaleString(getFormatLocale())}</span></div>
+                <p>{Object.entries(item.result || {}).filter(([key]) => key !== 'durum').slice(0, 4).map(([key, value]) => `${resultLabel(key, t)}: ${value}`).join(' · ')}</p>
               </button>
             ))}
           </div>
@@ -724,36 +727,36 @@ export default function ToolsPage({ initialView = 'calculator' }) {
 
       {pickerOpen && (
         <div className={styles.startOverlay} role="presentation" onMouseDown={() => setPickerOpen(false)}>
-          <div ref={pickerRef} className={styles.startDialog} role="dialog" aria-modal="true" aria-label="Hesaplama seçici" tabIndex={-1} onMouseDown={event => event.stopPropagation()}>
-            <button type="button" className={styles.calcClose} onClick={() => setPickerOpen(false)} aria-label="Seçiciyi kapat"><X size={19} /></button>
+          <div ref={pickerRef} className={styles.startDialog} role="dialog" aria-modal="true" aria-label={t('calculations.pickerAria')} tabIndex={-1} onMouseDown={event => event.stopPropagation()}>
+            <button type="button" className={styles.calcClose} onClick={() => setPickerOpen(false)} aria-label={t('calculations.closePickerAria')}><X size={19} /></button>
             <div className={styles.panelHeading}>
-              <h2>Hesaplama Başlat</h2>
-              <p>Katalogdan bir hesaplama seçin; seçtiğinizde girdi alanı açılır.</p>
+              <h2>{t('calculations.startNew')}</h2>
+              <p>{t('calculations.pickerIntro')}</p>
             </div>
             <input
               type="search"
               className={styles.startSearch}
-              placeholder="Hesaplama ara (ör. kâr, stok, KDV…)"
+              placeholder={t('calculations.searchPlaceholder')}
               value={pickerQuery}
               onChange={event => setPickerQuery(event.target.value)}
               autoFocus
             />
-            <div className={styles.categories} role="group" aria-label="Hesaplama kategorileri">
-              <button type="button" className={pickerCategory === 'all' ? styles.categoryActive : ''} onClick={() => setPickerCategory('all')} aria-pressed={pickerCategory === 'all'}>Tümü</button>
-              {Object.entries(CATEGORIES).map(([id, label]) => (
-                <button key={id} type="button" className={pickerCategory === id ? styles.categoryActive : ''} onClick={() => setPickerCategory(id)} aria-pressed={pickerCategory === id}>{label}</button>
+            <div className={styles.categories} role="group" aria-label={t('calculations.categoriesAria')}>
+              <button type="button" className={pickerCategory === 'all' ? styles.categoryActive : ''} onClick={() => setPickerCategory('all')} aria-pressed={pickerCategory === 'all'}>{t('calculations.allCategories')}</button>
+              {Object.entries(CATEGORIES).map(([id, labelKey]) => (
+                <button key={id} type="button" className={pickerCategory === id ? styles.categoryActive : ''} onClick={() => setPickerCategory(id)} aria-pressed={pickerCategory === id}>{t(labelKey)}</button>
               ))}
             </div>
             {!pickerQuery && pickerCategory === 'all' && recentCalculations.length > 0 && (
               <div className={styles.startRecent}>
-                <div className={styles.startLabel}>Son kullanılanlar</div>
+                <div className={styles.startLabel}>{t('calculations.recentlyUsed')}</div>
                 <div className={styles.startList}>
                   {recentCalculations.map(calculation => {
                     const Icon = ICONS[calculation.simple?.formulaId] || Calculator
                     return (
                       <button key={calculation.id} type="button" className={styles.startItem} onClick={() => openPickerCalculation(calculation)}>
                         <Icon className={styles.toolIcon} size={20} strokeWidth={1.4} aria-hidden="true" />
-                        <span><strong>{calculation.title}</strong><small>{calculation.description}</small></span>
+                        <span><strong>{t(calculation.titleKey)}</strong><small>{calculation.description}</small></span>
                         <ArrowRight size={15} aria-hidden="true" />
                       </button>
                     )
@@ -761,9 +764,9 @@ export default function ToolsPage({ initialView = 'calculator' }) {
                 </div>
               </div>
             )}
-            <div className={styles.startLabel}>{pickerQuery || pickerCategory !== 'all' ? 'Sonuçlar' : 'Tüm hesaplamalar'}</div>
+            <div className={styles.startLabel}>{pickerQuery || pickerCategory !== 'all' ? t('calculations.resultsLabel') : t('calculations.allCalculations')}</div>
             {pickerResults.length === 0 ? (
-              <div className={styles.startEmpty}>Aramanıza uygun hesaplama bulunamadı.</div>
+              <div className={styles.startEmpty}>{t('calculations.searchEmpty')}</div>
             ) : (
               <div className={styles.startList}>
                 {pickerResults.map(calculation => {
@@ -771,8 +774,8 @@ export default function ToolsPage({ initialView = 'calculator' }) {
                   return (
                     <button key={calculation.id} type="button" className={styles.startItem} onClick={() => openPickerCalculation(calculation)}>
                       <Icon className={styles.toolIcon} size={20} strokeWidth={1.4} aria-hidden="true" />
-                      <span><strong>{calculation.title}</strong><small>{calculation.description}</small></span>
-                      <em className={styles.startModes}>{modeLabels(calculation).map(label => <b key={label}>{label}</b>)}</em>
+                      <span><strong>{t(calculation.titleKey)}</strong><small>{calculation.description}</small></span>
+                      <em className={styles.startModes}>{modeLabelKeys(calculation).map(labelKey => <b key={labelKey}>{t(labelKey)}</b>)}</em>
                       <ArrowRight size={15} aria-hidden="true" />
                     </button>
                   )

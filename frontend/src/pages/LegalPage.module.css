@@ -58,3 +58,16 @@
   .header, .icindekiler { display: none; }
   .document { width: 100%; border: 0; border-radius: 0; box-shadow: none; padding: 0; }
 }
+
+/* Metin istenen dilde değil uyarısı. Sessizce Türkçe göstermek,
+   dilin bozuk olduğu izlenimi verirdi. */
+.dilNotu {
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  border-left: 3px solid var(--auth-accent);
+  border-radius: 0;
+  background: var(--auth-hint-bg);
+  color: var(--auth-text-soft);
+  font-size: .86rem;
+  line-height: 1.55;
+}

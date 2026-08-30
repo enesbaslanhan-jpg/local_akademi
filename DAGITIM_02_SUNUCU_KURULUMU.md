@@ -45,6 +45,47 @@ docker run --rm hello-world
 
 ---
 
+## 1.5. 🔴 ÖNCE: yereldeki işi push'la
+
+Sunucu kodu **GitHub'dan** alıyor (aşağıdaki `git clone`). Yerel
+diskindeki commit'lenmemiş iş sunucuya **ULAŞMAZ** — ne kadar test
+edilmiş olursa olsun.
+
+Bu rehber uzun süre bunu hiç söylemiyordu ve 30.08.2026'da tam olarak
+bu duruma girildi: 202 dosyalık bir iş (yasal belgeler, satıcı
+kimliği, ortak alt bilgi, üyelik ekranları, üç yeni göç) yalnız
+yereldeydi; `origin` ile HEAD birebir aynıydı. O hâlde dağıtılsaydı
+sunucu aylar öncesinin kodunu çekecekti.
+
+Kendi makinende:
+
+```bash
+git status --porcelain | wc -l
+```
+
+**Sıfır olmalı.** Değilse commit'leyip push'la. Sonra:
+
+```bash
+git rev-list --left-right --count origin/design/localkarar-18...HEAD
+```
+
+**`0	0` olmalı** — soldaki sayı origin'de olup sende olmayanı, sağdaki
+sende olup origin'de olmayanı gösterir. Sağdaki sıfır değilse
+push'lanmamış commit var.
+
+⚠️ Özellikle `prisma/migrations/` altındaki YENİ klasörler: izlenmeyen
+bir göç klasörü sessizce dışarıda kalır, `migrate deploy` "bekleyen
+göç yok" der ve o tabloya dokunan her sorgu üretimde 500 verir.
+
+```bash
+git ls-files prisma/migrations/ | cut -d/ -f3 | sort -u | tail -5
+```
+
+Çıktıdaki son klasörler, `ls prisma/migrations` çıktısındaki son
+klasörlerle **aynı** olmalı.
+
+---
+
 ## 2. Kodu sunucuya al
 
 ```bash
@@ -76,13 +117,22 @@ cp deploy/env.production.example .env
 nano .env
 ```
 
-Doldurulacaklar dosyada tek tek yazılı. Üç tanesine dikkat:
+Doldurulacaklar dosyada tek tek yazılı. Dördüne dikkat:
 
 - **`JWT_SECRET`** — üret, elle uydurma:
   ```bash
   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
   ```
   (Node yoksa: `openssl rand -hex 32`)
+- **`INTEGRATION_ENCRYPTION_KEY`** — 🔴 **boş bırakma.** Aynı komutla
+  ayrı bir değer üret. Boş kalırsa uygulama anahtarı `JWT_SECRET`'ten
+  türetir; o zaman `JWT_SECRET` bir gün döndürüldüğünde saklanmış bütün
+  pazaryeri mağaza kimlik bilgileri kalıcı olarak çözülemez hâle gelir.
+  Hiçbir hata vermez, yıllar sonra ortaya çıkar.
+
+  ⚠️ Bu değişken uzun süre bu dosyada **hiç yoktu** (30.08.2026'da
+  eklendi). Eski bir sunucuda `.env` içinde yoksa şimdi ekle — üretimde
+  henüz bağlı mağaza yokken bedelsiz, sonra değil.
 - **`MAIL_FROM`** — `@mail.localkarar.com` ile bitmeli, yoksa Resend reddeder
 - **`TRUST_PROXY=2`** — dosyada zaten yazılı, **değiştirme**. Sebebi
   aşağıda 6. adımda.
@@ -361,7 +411,7 @@ Yol üstünde iki hata daha çıktı:
 
 ## 11. Kabul testleri — hepsi geçmeli
 
-### 10.1 Site açılıyor ve şifreli
+### 11.1 Site açılıyor ve şifreli
 
 ```bash
 curl -sI https://localkarar.com | head -3
@@ -370,7 +420,7 @@ curl -sI https://localkarar.com | head -3
 Tarayıcıda da aç: kilit görünmeli. Cloudflare **Full (strict)** olduğu
 için kenar–sunucu arası da şifreli demektir.
 
-### 10.2 🔴 Hız sınırı — iki yönlü
+### 11.2 🔴 Hız sınırı — iki yönlü
 
 `TRUST_PROXY` yanlışsa ikisinden biri kesin bozuk çıkar.
 
@@ -393,7 +443,7 @@ gelirse başlık uydurularak sınır aşılıyor demektir — **durdur**.
 siteye gir, giriş yapmayı dene. Az önce sınıra takıldıysan bile
 telefonda takılmamalısın.
 
-### 10.3 🔴 E-posta gerçekten gidiyor
+### 11.3 🔴 E-posta gerçekten gidiyor
 
 `https://localkarar.com/forgot-password` → kendi adresin.
 
@@ -406,7 +456,7 @@ Gelen postada kontrol et:
   `links.mail.localkarar.com` gibi bir adrese dönüşmüşse tıklama takibi
   açık kalmış demektir
 
-### 10.4 Yedek geri yükleniyor
+### 11.4 Yedek geri yükleniyor
 
 10. adımdaki `backup:restore:verify` çıktısı.
 
@@ -446,6 +496,40 @@ ls ~/localkarar/prisma/migrations | wc -l
 **İki sayı eşit olmalı.** Eşit değilse kapsayıcı eski dosyalarla
 çalışıyor demektir; `lk up -d --force-recreate server` ile tazele,
 düzelmezse `lk build server --no-cache`.
+
+### 🔴 Sayı saymak YETMEZ — şemayı doğrudan sor
+
+Yukarıdaki karşılaştırma yalnız **dosya taşınmadıysa** işe yarar.
+Başka bir arıza sınıfı daha var ve o buradan geçer: göç kaydı
+`_prisma_migrations` tablosuna yazılmış ama DDL'i veritabanına
+işlememiş. O zaman hem dosya sayıları eşit olur, hem
+`prisma migrate status` "Database schema is up to date!" der, hem de
+sütun ortada yoktur.
+
+29.08.2026'da yerelde tam bu yaşandı: `UserPreference.uiLanguage` göçü
+"uygulandı" görünüyordu, sütun yoktu ve **giriş tamamen kırıktı**
+(`P2022`). `migrate status` bunu göstermedi çünkü o yalnız kayıtlara
+bakıyor, gerçek şemaya değil.
+
+Bu yüzden her güncellemeden sonra şemaya **doğrudan** sor:
+
+```bash
+lk exec -T postgres psql -U postgres -d localakademi -c \
+  "SELECT to_regclass('public.\"AccountNotification\"') AS tablo;"
+```
+
+```bash
+lk exec -T postgres psql -U postgres -d localakademi -c \
+  "SELECT column_name FROM information_schema.columns
+   WHERE table_name='UserPreference' AND column_name='uiLanguage';"
+```
+
+Birincisi `NULL` dönerse tablo yok. İkincisi boş dönerse sütun yok.
+İkisi de doluysa göçler gerçekten işlemiş demektir.
+
+⚠️ Eksik çıkarsa çözüm `migrate deploy`i tekrar çalıştırmak DEĞİL —
+kayıt zaten "uygulandı" olduğu için hiçbir şey yapmaz. Eksik DDL'i
+göç dosyasından alıp elle çalıştırmak gerekir.
 
 ### Neden log'a güvenmek yetmiyor
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Cookie, X } from 'lucide-react'
 import styles from './StorageNotice.module.css'
+import { useTranslation } from 'react-i18next'
 
 /*
  * BİLGİLENDİRME bildirimi — onay bandı DEĞİL.
@@ -34,6 +35,7 @@ function shouldHideNotice(pathname, hash, inline) {
 }
 
 export default function StorageNotice({ inline = false }) {
+  const { t } = useTranslation('common')
   const location = useLocation()
   const [gorundu, setGorundu] = useState(() => {
     if (typeof window === 'undefined') return true
@@ -53,15 +55,13 @@ export default function StorageNotice({ inline = false }) {
   }
 
   return (
-    <aside className={inline ? styles.inlineNotice : styles.notice} role="note" aria-label="Tarayıcı depolaması bilgilendirmesi">
+    <aside className={inline ? styles.inlineNotice : styles.notice} role="note" aria-label={t('ui.storage.ariaLabel')}>
       <Cookie size={18} className={styles.icon} aria-hidden="true" />
       <p className={styles.text}>
-        LocalKarar <strong>kendi analitik veya reklam çerezini kullanmıyor</strong> ve
-        üçüncü taraf izleme aracı çalıştırmıyor. Tarayıcında oturumun ve tercihlerin
-        saklanıyor; Cloudflare gerektiğinde teknik güvenlik çerezi oluşturabilir.{' '}
-        <Link to="/cookies" className={styles.link}>Ayrıntılar</Link>
+        {t('ui.storage.before')} <strong>{t('ui.storage.emphasis')}</strong> {t('ui.storage.after')}{' '}
+        <Link to="/cookies" className={styles.link}>{t('ui.storage.details')}</Link>
       </p>
-      <button type="button" className={styles.dismiss} onClick={kapat} aria-label="Bildirimi kapat">
+      <button type="button" className={styles.dismiss} onClick={kapat} aria-label={t('ui.storage.dismiss')}>
         <X size={16} aria-hidden="true" />
       </button>
     </aside>

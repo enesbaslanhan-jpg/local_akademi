@@ -25,6 +25,7 @@ export interface MentorPromptProfile {
 }
 
 export type UserRequestedLength = 'short' | 'normal' | 'detailed'
+export type MentorResponseLanguage = 'tr' | 'en'
 
 const BASE_INSTRUCTION = `Sen LocalKarar'ın KOBİ, esnaf ve girişimcilere destek veren yapay zeka iş mentorusun.
 
@@ -110,7 +111,7 @@ export function detectUserRequestedLength(message: string): UserRequestedLength 
 
 export function getPromptProfile(
   intent: MentorIntent,
-  options?: { userRequestedLength?: UserRequestedLength },
+  options?: { userRequestedLength?: UserRequestedLength; responseLanguage?: MentorResponseLanguage },
 ): MentorPromptProfile {
   const profileName = mapIntentToProfileName(intent)
   const userLength = options?.userRequestedLength ?? 'normal'
@@ -179,12 +180,20 @@ export function buildProfiledSystemPrompt(
   knowledgeContext: string,
   koTitle?: string,
   selectedKOTitle?: string,
-  options?: { userRequestedLength?: UserRequestedLength },
+  options?: {
+    userRequestedLength?: UserRequestedLength
+    responseLanguage?: MentorResponseLanguage
+  },
   productCatalog?: ProductCatalogContext,
   userBusinessContext?: UserBusinessContext,
 ): string {
   const profile = getPromptProfile(intent, options)
   const parts: string[] = [profile.systemInstruction]
+
+  const responseLanguage = options?.responseLanguage || 'tr'
+  parts.push(responseLanguage === 'en'
+    ? 'responseLanguage: en\nDefault to natural English. If the user clearly asks in another language, you may answer in that language. Do not alter deterministic calculations or citation/source structures.'
+    : 'responseLanguage: tr\nVarsayılan olarak doğal Türkçe yanıt ver. Kullanıcı açıkça başka bir dilde sorarsa o dili dikkate alabilirsin. Deterministik hesapları ve kaynak/citation yapısını değiştirme.')
 
   parts.push(`Kullanıcı: ${user.name}\nRol: ${user.role}`)
   parts.push(profile.intentInstruction)

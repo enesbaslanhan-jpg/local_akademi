@@ -1,0 +1,328 @@
+/*
+ * Üyelik ödeme paneli.
+ *
+ * Modal uygulama kabuğunun İÇİNDE açıldığı için burada genel tema
+ * token'ları (`--text`, `--surface-*`) kullanılıyor — public sayfaların
+ * `--auth-*` paleti DEĞİL. İkisini karıştırmak, panelin çevresindeki
+ * uygulamayla farklı bir yüzeye ait görünmesine yol açardı.
+ */
+
+.govde {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ---------- Dönem seçimi ---------- */
+
+.donemAlani {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.donemEtiket {
+  color: var(--text-light);
+  font-size: .84rem;
+  font-weight: 600;
+}
+
+/* Yıllık seçilince beliren kazanç notu. Özetin ALTINDA duruyor:
+   önce ne ödeneceği, sonra neden avantajlı olduğu. */
+.yillikNot {
+  margin: -6px 0 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface-panel));
+  color: var(--primary-deep);
+  font-size: .83rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* ---------- Özet ---------- */
+
+.ozet {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  overflow: hidden;
+}
+
+.ozetSatir {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 16px;
+}
+
+.ozetSatir + .ozetSatir { border-top: 1px solid var(--border); }
+
+/* "Bugün ödenecek" görsel olarak baskın: kullanıcının şu an vereceği
+   karar bu tutar. */
+.ozetSatirVurgulu {
+  background: var(--surface-sunken);
+}
+
+.ozetEtiket {
+  min-width: 0;
+  color: var(--text-light);
+  font-size: .84rem;
+}
+
+.ozetSatirVurgulu .ozetEtiket {
+  color: var(--text);
+  font-weight: 650;
+}
+
+.ozetDeger {
+  flex: 0 0 auto;
+  color: var(--text);
+  font-size: .92rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.ozetSatirVurgulu .ozetDeger {
+  font-size: 1.55rem;
+  font-weight: 820;
+  letter-spacing: -.02em;
+}
+
+/* ---------- Fiyat kilidi ---------- */
+
+.kilit {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  background: var(--surface-sunken);
+  color: var(--text-light);
+  font-size: .8rem;
+  line-height: 1.5;
+}
+
+.kilit svg { flex: 0 0 auto; margin-top: 2px; color: var(--primary); }
+
+/* ---------- Ödeme alanı ---------- */
+
+.odemeAlani {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.yerTutucu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 30px 20px;
+  border: 1px dashed var(--border);
+  border-radius: 13px;
+  background: var(--surface-sunken);
+  text-align: center;
+}
+
+.yerTutucu svg { color: var(--text-light); }
+
+.yerTutucuBaslik {
+  margin: 0;
+  color: var(--text);
+  font-size: .9rem;
+  font-weight: 700;
+}
+
+.yerTutucuNot {
+  margin: 0;
+  max-width: 38ch;
+  color: var(--text-light);
+  font-size: .81rem;
+  line-height: 1.55;
+}
+
+.guvenlikNot {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 0;
+  color: var(--text-light);
+  font-size: .78rem;
+  line-height: 1.5;
+}
+
+.guvenlikNot svg { flex: 0 0 auto; margin-top: 2px; color: var(--success, var(--primary)); }
+
+/* ---------- Onay ve eylem ---------- */
+
+.onayMetni {
+  margin: 0;
+  color: var(--text-light);
+  font-size: .8rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.onayMetni a { color: var(--primary); }
+
+.birincilDugme {
+  width: 100%;
+  padding: 14px 20px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--primary);
+  color: var(--theme-on-primary, #fff);
+  font-family: var(--font-family);
+  font-size: .96rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background .16s ease, opacity .16s ease;
+}
+
+.birincilDugme:hover:not(:disabled) { background: var(--primary-hover, var(--primary)); }
+
+.birincilDugme:disabled { opacity: .5; cursor: not-allowed; }
+
+.birincilDugme:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+.pasifNot {
+  margin: -8px 0 0;
+  color: var(--text-light);
+  font-size: .78rem;
+  text-align: center;
+}
+
+/* ---------- Başarı durumu ---------- */
+
+.basari {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 4px 6px;
+  text-align: center;
+}
+
+.halkaSarmal { width: 68px; height: 68px; }
+
+.halka { width: 100%; height: 100%; }
+
+.halkaCizgi {
+  fill: none;
+  stroke: var(--success, var(--primary));
+  stroke-width: 2.5;
+  stroke-dasharray: 145;
+  stroke-dashoffset: 145;
+  animation: halkaCiz .45s ease-out forwards;
+}
+
+.tik {
+  fill: none;
+  stroke: var(--success, var(--primary));
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 36;
+  stroke-dashoffset: 36;
+  /* Halka bitince başlar; toplam ~0.9 sn. Konfeti yok — ödeme ciddi
+     bir işlem, kutlama abartısı güveni zayıflatır. */
+  animation: tikCiz .35s .42s ease-out forwards;
+}
+
+@keyframes halkaCiz { to { stroke-dashoffset: 0; } }
+@keyframes tikCiz { to { stroke-dashoffset: 0; } }
+
+/* Hareketi azalt tercihinde animasyon yok, sonuç doğrudan görünür. */
+@media (prefers-reduced-motion: reduce) {
+  .halkaCizgi,
+  .tik {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+.basariBaslik {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 1.22rem;
+  font-weight: 800;
+  letter-spacing: -.01em;
+}
+
+.basariMetin {
+  margin: 0;
+  max-width: 34ch;
+  color: var(--text-light);
+  font-size: .88rem;
+  line-height: 1.55;
+}
+
+.bilgiKarti {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-sunken);
+}
+
+.bilgiRozet {
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--theme-on-primary, #fff);
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.bilgiSatir {
+  color: var(--text-light);
+  font-size: .83rem;
+}
+
+.basari .birincilDugme { margin-top: 8px; }
+
+@media (max-width: 480px) {
+  .ozetSatirVurgulu .ozetDeger { font-size: 1.35rem; }
+  .yerTutucu { padding: 24px 14px; }
+}
+
+/* Onay kutuları.
+   İkisi ayrı satır: cayma feragati genel onaya gömülmemeli, gömülürse
+   mevzuatın aradığı AYRI ve AÇIK onay şartı karşılanmaz. */
+.onayKutusu {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: .82rem;
+  line-height: 1.55;
+  cursor: pointer;
+}
+
+.onayKutusu input {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.onayKutusu a {
+  color: var(--primary-deep);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

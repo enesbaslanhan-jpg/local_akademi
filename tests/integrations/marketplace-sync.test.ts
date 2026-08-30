@@ -316,6 +316,18 @@ describe('integration listing and status', () => {
     expect(marketplaces.find((m: any) => m.provider === 'N11').enabled).toBe(true)
     expect(marketplaces.find((m: any) => m.provider === 'SHOPIFY').enabled).toBe(true)
     expect(marketplaces.filter((m: any) => !['TRENDYOL', 'HEPSIBURADA', 'N11', 'SHOPIFY'].includes(m.provider)).every((m: any) => !m.enabled && m.comingSoon)).toBe(true)
+
+    /* Amazon katalogda "Yakinda" karti olarak durur: SP-API onay sureci
+       olmadan gercek bagdastirici yazilamayacagi icin devre disi. */
+    const amazon = marketplaces.find((m: any) => m.provider === 'AMAZON')
+    expect(amazon).toBeDefined()
+    expect(amazon.label).toBe('Amazon')
+    expect(amazon.enabled).toBe(false)
+    expect(amazon.comingSoon).toBe(true)
+
+    /* WooCommerce katalogdan CIKARILDI; enum degeri veritabaninda
+       kalir ama artik hicbir kullaniciya sunulmaz. */
+    expect(marketplaces.some((m: any) => m.provider === 'WOOCOMMERCE')).toBe(false)
   })
 
   it('status reports connected counts', async () => {

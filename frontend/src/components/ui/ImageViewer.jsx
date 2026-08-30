@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Pause, Play, Volume2, VolumeX, X } from 'lucide-react'
 import styles from './ImageViewer.module.css'
+import { useTranslation } from 'react-i18next'
 
 function sureyiYaz(saniye) {
   if (!Number.isFinite(saniye) || saniye < 0) return '0:00'
@@ -9,6 +10,7 @@ function sureyiYaz(saniye) {
 }
 
 function ViewerVideo({ url, overlayText = '', mediaActions = null }) {
+  const { t } = useTranslation('common')
   const videoRef = useRef(null)
   const [oynuyor, setOynuyor] = useState(false)
   const [sessiz, setSessiz] = useState(false)
@@ -55,7 +57,7 @@ function ViewerVideo({ url, overlayText = '', mediaActions = null }) {
         onTimeUpdate={event => setAnlik(event.currentTarget.currentTime)}
       />
       {!oynuyor && (
-        <button type="button" className={styles.viewerPlay} onClick={oynatDurdur} aria-label="Videoyu oynat">
+        <button type="button" className={styles.viewerPlay} onClick={oynatDurdur} aria-label={t('ui.video.play')}>
           <Play size={24} fill="currentColor" />
         </button>
       )}
@@ -63,11 +65,11 @@ function ViewerVideo({ url, overlayText = '', mediaActions = null }) {
         {overlayText && <p className={styles.videoText}>{overlayText}</p>}
         {mediaActions && <div className={styles.mediaActions}>{mediaActions}</div>}
         <div className={styles.videoControls}>
-          <button type="button" onClick={oynatDurdur} aria-label={oynuyor ? 'Videoyu durdur' : 'Videoyu oynat'}>
+          <button type="button" onClick={oynatDurdur} aria-label={oynuyor ? t('ui.video.pause') : t('ui.video.play')}>
             {oynuyor ? <Pause size={18} /> : <Play size={18} fill="currentColor" />}
           </button>
           <span>{sureyiYaz(anlik)} / {sureyiYaz(sure)}</span>
-          <button type="button" onClick={sesiDegistir} aria-label={sessiz ? 'Sesi aç' : 'Sesi kapat'}>
+          <button type="button" onClick={sesiDegistir} aria-label={sessiz ? t('ui.video.unmute') : t('ui.video.mute')}>
             {sessiz ? <VolumeX size={18} /> : <Volume2 size={18} />}
           </button>
         </div>
@@ -80,7 +82,7 @@ function ViewerVideo({ url, overlayText = '', mediaActions = null }) {
           step="0.1"
           value={Math.min(anlik, sure || 0)}
           onChange={konumuDegistir}
-          aria-label="Video konumu"
+          aria-label={t('ui.video.position')}
         />
       </div>
     </div>
@@ -103,6 +105,7 @@ function ViewerVideo({ url, overlayText = '', mediaActions = null }) {
  * fotoğrafı için "Değiştir" / "Kaldır").
  */
 export default function ImageViewer({ url, alt = '', onClose, actions = null, caption = null, tur = 'image', yan = null, overlayText = '', mediaActions = null }) {
+  const { t } = useTranslation('common')
   const panelRef = useRef(null)
   const closeRef = useRef(null)
   const oncekiOdakRef = useRef(null)
@@ -146,7 +149,7 @@ export default function ImageViewer({ url, alt = '', onClose, actions = null, ca
       className={styles.backdrop}
       role="dialog"
       aria-modal="true"
-      aria-label={tur === 'video' ? 'Video önizleme' : 'Görsel önizleme'}
+      aria-label={tur === 'video' ? t('ui.imageViewer.videoPreview') : t('ui.imageViewer.imagePreview')}
       /* Yalnız arka plana tıklayınca kapanır; içeriğe tıklayınca kapanmaz. */
       onClick={event => {
         event.stopPropagation()
@@ -154,7 +157,7 @@ export default function ImageViewer({ url, alt = '', onClose, actions = null, ca
       }}
     >
       <div className={`${styles.panel} ${yan ? styles.splitPanel : ''}`} ref={panelRef}>
-        <button ref={closeRef} type="button" className={styles.close} onClick={onClose} aria-label={yan ? 'Geri dön' : 'Kapat'}>
+        <button ref={closeRef} type="button" className={styles.close} onClick={onClose} aria-label={yan ? t('ui.imageViewer.goBack') : t('buttons.close')}>
           {yan ? <ArrowLeft size={22} /> : <X size={22} />}
         </button>
         {/*

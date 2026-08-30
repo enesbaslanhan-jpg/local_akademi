@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { api } from '@/services/api'
 import { getSafeErrorMessage } from '@/components/mentor/MentorErrorAlert'
+import i18n from '@/i18n'
 
 export function useMentorChat(contextCode = '', contextTitle = '') {
   const [conversations, setConversations] = useState([])
@@ -136,7 +137,7 @@ export function useMentorChat(contextCode = '', contextTitle = '') {
         setIsStreaming(false)
         setStreamingContent('')
         streamingBufferRef.current = ''
-        setError(data?.message || 'Bir hata oluştu')
+        setError(data?.message || i18n.t('common:states.error'))
         loadMessages(convId)
       }
     })

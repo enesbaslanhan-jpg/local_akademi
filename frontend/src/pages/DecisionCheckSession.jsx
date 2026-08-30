@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/services/api'
 import { useMentorContext } from '@/context/MentorContext'
 import { MessageSquare, RotateCcw } from 'lucide-react'
@@ -9,6 +10,8 @@ import './DecisionCheckSession.css'
 import styles from './DecisionCheckSession.module.css'
 
 export default function DecisionCheckSession() {
+  const { t, i18n } = useTranslation('tools')
+  const uiLanguage = i18n.resolvedLanguage || i18n.language
   const { code: routeIdentifier } = useParams()
   const navigate = useNavigate()
   
@@ -33,7 +36,7 @@ export default function DecisionCheckSession() {
         navigate(`/app/decision-checks/${response.sessionId}`)
       }
     } catch (err) {
-      setRecalculateError('Yeni hesaplama başlatılamadı. Lütfen tekrar deneyin.')
+      setRecalculateError(t('session.recalculateError'))
     } finally {
       setRecalculating(false)
     }
@@ -76,13 +79,13 @@ export default function DecisionCheckSession() {
         }
       } catch (err) {
         console.error(err)
-        setLoadError('Karar aracı yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.')
+        setLoadError(t('session.loadError'))
       } finally {
         setLoading(false)
       }
     }
     fetchSession()
-  }, [routeIdentifier, loadAttempt, navigate])
+  }, [routeIdentifier, loadAttempt, navigate, t, uiLanguage])
 
   const handleInputChange = async (questionCode, value) => {
     setFormData(prev => ({ ...prev, [questionCode]: value }))
@@ -121,15 +124,15 @@ export default function DecisionCheckSession() {
       }
     } catch (err) {
       console.error(err)
-      alert('Değerlendirme tamamlanamadı')
+      alert(t('session.completeAlert'))
     } finally {
       setSubmitting(false)
     }
   }
 
-  if (loading) return <div className="decision-session-state" aria-live="polite"><span className="decision-session-spinner" /><h1>Karar aracı yükleniyor</h1><p>Oturum ve kayıtlı yanıtlar hazırlanıyor.</p></div>
-  if (loadError) return <div className="decision-session-state" role="alert"><span className="decision-session-error-icon">!</span><h1>Araç yüklenemedi</h1><p>{loadError}</p><button type="button" onClick={() => setLoadAttempt(value => value + 1)}>Yeniden dene</button></div>
-  if (!session) return <div className="decision-session-state"><h1>Oturum bulunamadı</h1><p>Bu karar aracı oturumuna erişilemiyor.</p><button type="button" onClick={() => navigate('/app/decision-checks')}>Araç listesine dön</button></div>
+  if (loading) return <div className="decision-session-state" aria-live="polite"><span className="decision-session-spinner" /><h1>{t('session.loadingTitle')}</h1><p>{t('session.loadingText')}</p></div>
+  if (loadError) return <div className="decision-session-state" role="alert"><span className="decision-session-error-icon">!</span><h1>{t('session.errorTitle')}</h1><p>{loadError}</p><button type="button" onClick={() => setLoadAttempt(value => value + 1)}>{t('session.retry')}</button></div>
+  if (!session) return <div className="decision-session-state"><h1>{t('session.notFoundTitle')}</h1><p>{t('session.notFoundText')}</p><button type="button" onClick={() => navigate('/app/decision-checks')}>{t('session.backToListLink')}</button></div>
 
   if (session.decisionCheckCode === 'DC-PROFIT-001') {
     return (
@@ -159,25 +162,25 @@ export default function DecisionCheckSession() {
     const snap = result.snapshot || {}
     return (
       <div className={`p-8 max-w-3xl mx-auto ${styles.page}`}>
-        <h1 className={`text-2xl font-bold mb-4 ${styles.title}`}>Değerlendirme Sonucu</h1>
+        <h1 className={`text-2xl font-bold mb-4 ${styles.title}`}>{t('session.resultTitle')}</h1>
         <div className={`bg-white p-6 border rounded shadow-sm ${styles.resultCard}`}>
           <div className={`mb-4 ${styles.resultRow}`}>
-            <span className={`font-semibold text-gray-700 ${styles.resultLabel}`}>Durum: </span>
+            <span className={`font-semibold text-gray-700 ${styles.resultLabel}`}>{t('session.statusLabel')}</span>
             <span className={`font-bold ${styles.resultValue}`}>{snap.status}</span>
           </div>
           <div className={`mb-4 ${styles.resultRow}`}>
-            <span className={`font-semibold text-gray-700 ${styles.resultLabel}`}>Risk Seviyesi: </span>
+            <span className={`font-semibold text-gray-700 ${styles.resultLabel}`}>{t('session.riskLevelLabel')}</span>
             <span className={`font-bold ${styles.resultValue}`}>{snap.riskLevel}</span>
           </div>
           {snap.missingInformation && snap.missingInformation.length > 0 && (
             <div className={`mb-4 text-orange-600 ${styles.missingInfo}`}>
-              <span className={`font-semibold ${styles.missingInfoLabel}`}>Eksik Bilgiler: </span>
+              <span className={`font-semibold ${styles.missingInfoLabel}`}>{t('session.missingInfoLabel')}</span>
               {snap.missingInformation.join(', ')}
             </div>
           )}
           {snap.findings && snap.findings.length > 0 && (
             <div className={`mb-4 ${styles.resultRow}`}>
-              <span className={`font-semibold text-gray-700 ${styles.resultLabel}`}>Bulgular: </span>
+              <span className={`font-semibold text-gray-700 ${styles.resultLabel}`}>{t('session.findingsLabel')}</span>
               <ul className={`list-disc pl-5 mt-2 ${styles.list}`}>
                 {snap.findings.map((f, idx) => (
                   <li key={idx}>{f.message}</li>
@@ -187,7 +190,7 @@ export default function DecisionCheckSession() {
           )}
           {snap.recommendedActions && snap.recommendedActions.slice(0,3).length > 0 && (
             <div className={`mb-4 ${styles.resultRow}`}>
-              <span className={`font-semibold text-gray-700 ${styles.resultLabel}`}>Önerilen Aksiyonlar: </span>
+              <span className={`font-semibold text-gray-700 ${styles.resultLabel}`}>{t('session.actionsLabel')}</span>
               <ul className={`list-disc pl-5 mt-2 ${styles.list}`}>
                 {snap.recommendedActions.slice(0,3).map((a, idx) => (
                   <li key={idx}>{a}</li>
@@ -198,9 +201,9 @@ export default function DecisionCheckSession() {
 
           {recalculateError && <p role="alert" className={`text-red-600 text-sm mb-2 ${styles.recalcError}`}>{recalculateError}</p>}
           <div className={`mt-6 flex gap-4 ${styles.resultActions}`}>
-            <button onClick={() => navigate('/app/decision-checks')} className={`px-4 py-2 bg-gray-200 rounded ${styles.secondaryBtn}`}>Listeye Dön</button>
+            <button onClick={() => navigate('/app/decision-checks')} className={`px-4 py-2 bg-gray-200 rounded ${styles.secondaryBtn}`}>{t('session.backToListButton')}</button>
             <button onClick={handleRecalculate} disabled={recalculating} className={`px-4 py-2 bg-gray-200 rounded flex items-center gap-2 ${styles.secondaryBtn}`}>
-              <RotateCcw size={16} /> {recalculating ? 'Başlatılıyor…' : 'Yeniden Hesapla'}
+              <RotateCcw size={16} /> {recalculating ? t('session.starting') : t('session.recalculate')}
             </button>
             {isContextualMentorEnabled && (
               <button
@@ -208,12 +211,12 @@ export default function DecisionCheckSession() {
                   contextType: 'decision_check_result',
                   source: 'decision_result',
                   decisionCheckResultId: result.id,
-                  title: session.decisionCheckCode + ' Sonucu',
+                  title: t('session.resultContextTitle', { code: session.decisionCheckCode }),
                   route: window.location.pathname
                 })}
                 className={`flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded font-medium hover:bg-indigo-100 transition-colors ${styles.mentorBtn}`}
               >
-                <MessageSquare size={18} /> Mentora Sor
+                <MessageSquare size={18} /> {t('session.askMentorButton')}
               </button>
             )}
           </div>
@@ -224,7 +227,7 @@ export default function DecisionCheckSession() {
 
   return (
     <div className={`p-8 max-w-3xl mx-auto pb-24 ${styles.page} ${styles.pageForm}`}>
-      <h1 className={`text-2xl font-bold mb-6 ${styles.title} ${styles.titleForm}`}>Değerlendirme: {session.decisionCheckCode}</h1>
+      <h1 className={`text-2xl font-bold mb-6 ${styles.title} ${styles.titleForm}`}>{t('session.formTitle', { code: session.decisionCheckCode })}</h1>
       <div className={`space-y-8 ${styles.questionList}`}>
         {session.definition.map((q) => (
           <div key={q.code} className={`bg-white p-6 rounded-lg shadow-sm border ${styles.questionCard}`}>
@@ -238,7 +241,7 @@ export default function DecisionCheckSession() {
                 value={formData[q.code] || ''}
                 onChange={(e) => handleInputChange(q.code, e.target.value ? Number(e.target.value) : null)}
                 className={`flex-1 border p-2 rounded disabled:bg-gray-100 ${styles.numberInput}`}
-                placeholder={q.currency ? `Örn: 100 ${q.currency}` : 'Değer girin'}
+                placeholder={q.currency ? t('session.exampleValuePlaceholder', { currency: q.currency }) : t('session.valuePlaceholder')}
               />
 
               {q.allowUnknown && (
@@ -248,7 +251,7 @@ export default function DecisionCheckSession() {
                     checked={unknowns[q.code] || false}
                     onChange={(e) => handleUnknownToggle(q.code, e.target.checked)}
                   />
-                  Bilmiyorum / Emin Değilim
+                  {t('session.unknownLabel')}
                 </label>
               )}
             </div>
@@ -262,7 +265,7 @@ export default function DecisionCheckSession() {
           disabled={submitting}
           className={`bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50 ${styles.submitBtn}`}
         >
-          {submitting ? 'Hesaplanıyor...' : 'Sonuçları Gör'}
+          {submitting ? t('session.submitting') : t('session.viewResults')}
         </button>
       </div>
     </div>

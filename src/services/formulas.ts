@@ -1,6 +1,8 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma.js'
 import { z } from 'zod'
+import { contentLanguage } from '../lib/content-language.js'
+import { FORMULA_EN_BY_ID, localizeFormula, localizeFormulaResult } from '../content/i18n/formula-en.js'
 
 interface FormulaDef {
   id: string
@@ -439,15 +441,19 @@ const formulas: FormulaDef[] = [
 
 export async function formulaRoutes(fastify: FastifyInstance) {
   // GET /formulas — list all formulas
-  fastify.get('/formulas', async () => {
-    return formulas.map(f => ({
+  fastify.get('/formulas', async request => {
+    const language = contentLanguage(request)
+    return formulas.map(source => {
+      const f = localizeFormula(source, language)
+      return ({
       id: f.id,
       name: f.name,
       inputs: f.inputs,
       warning: f.warning,
       category: f.category,
       description: f.description,
-    }))
+      })
+    })
   })
 
   // POST /formulas/:formulaId/calculate — execute calculation
@@ -455,6 +461,7 @@ export async function formulaRoutes(fastify: FastifyInstance) {
     preHandler: [fastify.authenticate],
   }, async (request, reply) => {
     const user = request.user as { id: number }
+    const language = contentLanguage(request)
     const { formulaId } = request.params as { formulaId: string }
     const { inputs } = request.body as { inputs: Record<string, number> }
 
@@ -500,11 +507,12 @@ export async function formulaRoutes(fastify: FastifyInstance) {
       request.log.error({ error, formulaId, userId: user.id }, 'Could not save calculation')
     }
 
+    const localized = localizeFormula(formula, language)
     return {
       formulaId: formula.id,
-      result,
+      result: localizeFormulaResult(result, language),
       assumptions: [],
-      warnings: formula.warning ? [formula.warning] : [],
+      warnings: localized.warning ? [localized.warning] : [],
     }
   })
 
@@ -513,6 +521,7 @@ export async function formulaRoutes(fastify: FastifyInstance) {
     preHandler: [fastify.authenticate],
   }, async (request, reply) => {
     const user = request.user as { id: number }
+    const language = contentLanguage(request)
     try {
       const calculations = await prisma.formulaCalculation.findMany({
         where: { userId: user.id },
@@ -522,7 +531,7 @@ export async function formulaRoutes(fastify: FastifyInstance) {
       return calculations.map(c => ({
         id: c.id,
         formulaId: c.formulaId,
-        formulaName: c.formulaName,
+        formulaName: language === 'en' ? (FORMULA_EN_BY_ID[c.formulaId]?.name ?? c.formulaName) : c.formulaName,
         inputs: JSON.parse(c.inputs || '{}'),
         result: JSON.parse(c.result || '{}'),
         createdAt: c.createdAt,

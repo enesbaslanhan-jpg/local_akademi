@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Send } from 'lucide-react'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
@@ -46,6 +47,7 @@ function YanitAgaci({ dugumler, derinlik, ortak }) {
 }
 
 export default function CommunityPostPage() {
+  const { t } = useTranslation('community')
   const { postId } = useParams()
   const navigate = useNavigate()
   const { isAdmin, user } = useAuth()
@@ -66,7 +68,7 @@ export default function CommunityPostPage() {
       setPost(sonuc.post)
       setParent(sonuc.parent)
     } catch (yuklemeHatasi) {
-      setHata(yuklemeHatasi.message || 'Paylaşım yüklenemedi.')
+      setHata(yuklemeHatasi.message || t('post.loadFailed'))
     } finally {
       setYukleniyor(false)
     }
@@ -91,33 +93,33 @@ export default function CommunityPostPage() {
       await api.community.etkilesim(hedef.id, tur, aktif)
       await yukle()
     } catch (etkilesimHatasi) {
-      setHata(etkilesimHatasi.message || 'İşlem tamamlanamadı.')
+      setHata(etkilesimHatasi.message || t('feed.actionFailed'))
     }
   }
 
   async function kaldir(id) {
-    if (!window.confirm('Bu paylaşım kaldırılsın mı?')) return
+    if (!window.confirm(t('feed.removeConfirm'))) return
     try {
       await api.community.remove(id)
       /* Sayfanın konusu kaldırıldıysa burada kalmanın anlamı yok. */
       if (id === post?.id) navigate('/app/community/topluluk')
       else await yukle()
     } catch (kaldirmaHatasi) {
-      setHata(kaldirmaHatasi.message || 'Paylaşım kaldırılamadı.')
+      setHata(kaldirmaHatasi.message || t('feed.removeFailed'))
     }
   }
 
   async function raporla(id) {
     const izinli = ['spam', 'misinformation', 'harassment', 'unsafe', 'copyright', 'other']
-    const neden = window.prompt('Rapor nedeni: spam, misinformation, harassment, unsafe, copyright veya other', 'misinformation')?.trim()
+    const neden = window.prompt(t('feed.reportPrompt'), 'misinformation')?.trim()
     if (!neden || !izinli.includes(neden)) return
-    const ayrinti = neden === 'other' ? window.prompt('Kısa açıklama')?.trim() : undefined
+    const ayrinti = neden === 'other' ? window.prompt(t('feed.reportDetailsPrompt'))?.trim() : undefined
     if (neden === 'other' && !ayrinti) return
     try {
       await api.community.report(id, neden, ayrinti)
-      setBildirim('Rapor moderasyon ekibine iletildi.')
+      setBildirim(t('feed.reportSent'))
     } catch (raporHatasi) {
-      setHata(raporHatasi.message || 'Rapor gönderilemedi.')
+      setHata(raporHatasi.message || t('feed.reportFailed'))
     }
   }
 
@@ -129,9 +131,9 @@ export default function CommunityPostPage() {
     }
     try {
       await navigator.clipboard.writeText(adres)
-      setBildirim('Bağlantı kopyalandı.')
+      setBildirim(t('feed.linkCopied'))
     } catch {
-      setHata('Bağlantı kopyalanamadı.')
+      setHata(t('feed.linkCopyFailed'))
     }
   }
 
@@ -145,7 +147,7 @@ export default function CommunityPostPage() {
       setYanitMetni('')
       await yukle()
     } catch (yanitHatasi) {
-      setHata(yanitHatasi.message || 'Yanıt gönderilemedi.')
+      setHata(yanitHatasi.message || t('post.replyFailed'))
     } finally {
       setGonderiliyor(false)
     }
@@ -167,16 +169,16 @@ export default function CommunityPostPage() {
   return (
     <main className={`${styles.page} ${styles.communityPage} ${styles.singlePostPage}`}>
       <header className={styles.gonderiBasligi}>
-        <button type="button" onClick={() => navigate(-1)} aria-label="Geri dön">
+        <button type="button" onClick={() => navigate(-1)} aria-label={t('post.back')}>
           <ArrowLeft size={19} />
         </button>
-        <h1>Paylaşım</h1>
+        <h1>{t('post.title')}</h1>
       </header>
 
       {bildirim && <div className={styles.notice}>{bildirim}</div>}
       {hata && <div className={styles.error}>{hata}</div>}
 
-      {yukleniyor && <div className={styles.skeleton} aria-label="İçerik yükleniyor"><span /><span /><span /></div>}
+      {yukleniyor && <div className={styles.skeleton} aria-label={t('feed.contentLoading')}><span /><span /><span /></div>}
 
       {!yukleniyor && post && (
         <div className={styles.gonderiSutunu}>
@@ -184,7 +186,7 @@ export default function CommunityPostPage() {
             <>
               {/* Yanıtın bağlamı: neye yanıt verildiği görünmeden
                   yanıt tek başına anlamsız olurdu. */}
-              <p className={styles.baglamEtiketi}>Şu paylaşıma yanıt:</p>
+              <p className={styles.baglamEtiketi}>{t('post.replyContext')}</p>
               <CommunityCard post={parent} compact {...ortakKartOzellikleri(parent)} />
             </>
           )}
@@ -196,21 +198,21 @@ export default function CommunityPostPage() {
           <form className={styles.yanitKutusu} onSubmit={yanitla}>
             <span className={styles.authorAvatar}>{initials(user?.name)}</span>
             <textarea
-              aria-label="Yanıtın"
-              placeholder="Yanıtını yaz…"
+              aria-label={t('post.yourReplyAria')}
+              placeholder={t('post.replyPlaceholder')}
               value={yanitMetni}
               onChange={event => setYanitMetni(event.target.value)}
               maxLength={500}
               rows={2}
             />
             <Button type="submit" disabled={gonderiliyor || !yanitMetni.trim()}>
-              <Send size={16} />{gonderiliyor ? 'Gönderiliyor…' : 'Yanıtla'}
+              <Send size={16} />{gonderiliyor ? t('post.submitting') : t('post.replyAction')}
             </Button>
           </form>
 
           {post.replies?.length > 0 && (
-            <section className={styles.yanitlar} aria-label="Yanıtlar">
-              <h2>{post.yanitSayisi} yanıt</h2>
+            <section className={styles.yanitlar} aria-label={t('post.repliesAria')}>
+              <h2>{t('post.replyHeading', { count: post.yanitSayisi })}</h2>
               <YanitAgaci dugumler={post.replies} derinlik={1} ortak={ortakKartOzellikleri} />
             </section>
           )}

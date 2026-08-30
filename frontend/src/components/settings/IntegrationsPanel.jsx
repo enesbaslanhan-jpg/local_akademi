@@ -7,13 +7,9 @@ import Modal from '@/components/ui/Modal'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import PasswordInput from '@/components/ui/PasswordInput'
 import styles from './IntegrationsPanel.module.css'
-
-const STATUS_LABELS = {
-  PENDING: 'Beklemede',
-  ACTIVE: 'Bağlı',
-  ERROR: 'Hata',
-  DISABLED: 'Kapalı'
-}
+import { Trans, useTranslation } from 'react-i18next'
+import { useLocalization } from '@/context/LocalizationContext'
+import { formatDate } from '@/utils/formatters'
 
 /*
  * Provider yuzeyleri. Ortak modal shell + kart iskeleti; credential
@@ -57,13 +53,6 @@ const PROVIDERS = {
 
 const EMPTY_FORM = { merchantId: '', username: '', password: '', apiKey: '', apiSecret: '', storeName: '', shopDomain: '' }
 
-function formatDateTime(value) {
-  if (!value) return null
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return null
-  return date.toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' })
-}
-
 /*
  * Ayarlar > Entegrasyonlar paneli.
  *
@@ -74,6 +63,8 @@ function formatDateTime(value) {
  *   GOSTERILMEZ (sunucu da donmez).
  */
 export default function IntegrationsPanel() {
+  const { t } = useTranslation(['integrations', 'common'])
+  const { formatLocale } = useLocalization()
   const { activeWorkspaceId } = useWorkspace()
   const [catalog, setCatalog] = useState([])
   const [statusByProvider, setStatusByProvider] = useState({ TRENDYOL: null, HEPSIBURADA: null, N11: null, SHOPIFY: null })
@@ -97,7 +88,7 @@ export default function IntegrationsPanel() {
        kayıt yine oluşuyor ama takvime girmiyor. */
     const deger = ham === '' ? null : Number(ham)
     if (deger !== null && (!Number.isInteger(deger) || deger < 0 || deger > 365)) {
-      setMessage({ type: 'err', text: 'Ödeme vadesi 0 ile 365 gün arasında bir tam sayı olmalı.' })
+      setMessage({ type: 'err', text: t('payout.validation') })
       return
     }
     setVadeKaydediliyor(providerKey)
@@ -106,12 +97,12 @@ export default function IntegrationsPanel() {
       setMessage({
         type: 'ok',
         text: deger === null
-          ? 'Ödeme vadesi temizlendi. Yeni sipariş kayıtları vadesiz oluşacak.'
-          : `Ödeme vadesi ${deger} gün olarak kaydedildi. Bundan sonraki sipariş kayıtları takvime düşecek.`
+          ? t('payout.cleared')
+          : t('payout.saved', { count: deger })
       })
       await refresh()
     } catch (error) {
-      setMessage({ type: 'err', text: error.message || 'Ödeme vadesi kaydedilemedi.' })
+      setMessage({ type: 'err', text: error.message || t('payout.saveError') })
     } finally {
       setVadeKaydediliyor(null)
     }
@@ -142,11 +133,11 @@ export default function IntegrationsPanel() {
       }
       setVadeTaslak(vadeler)
     } catch (error) {
-      setMessage({ type: 'err', text: error.message || 'Entegrasyon bilgileri alınamadı.' })
+      setMessage({ type: 'err', text: error.message || t('loadError') })
     } finally {
       setLoading(false)
     }
-  }, [activeWorkspaceId])
+  }, [activeWorkspaceId, t])
 
   useEffect(() => { refresh() }, [refresh])
 
@@ -160,12 +151,12 @@ export default function IntegrationsPanel() {
         setStatusByProvider(current => ({ ...current, [syncingProvider]: statusData }))
         if (!statusData?.syncing) {
           setSyncingProvider(null)
-          setMessage({ type: 'ok', text: 'Eşitleme tamamlandı.' })
+          setMessage({ type: 'ok', text: t('syncComplete') })
         }
       } catch { /* gecici hata polling'i bozmasin */ }
     }, 3000)
     return () => window.clearInterval(timer)
-  }, [syncingProvider, activeWorkspaceId])
+  }, [syncingProvider, activeWorkspaceId, t])
 
   function openConnect(provider) {
     setForm(EMPTY_FORM)
@@ -181,21 +172,21 @@ export default function IntegrationsPanel() {
 
     if (providerKey === 'TRENDYOL') {
       if (!form.merchantId.trim() || !form.apiKey.trim() || !form.apiSecret.trim()) {
-        setFormError('Tüm alanları doldurun.')
+        setFormError(t('allFields'))
         return
       }
     } else if (providerKey === 'N11') {
       if (!form.storeName.trim() || !form.apiKey.trim() || !form.apiSecret.trim()) {
-        setFormError('Tüm alanları doldurun.')
+        setFormError(t('allFields'))
         return
       }
     } else if (providerKey === 'SHOPIFY') {
       if (!form.shopDomain.trim()) {
-        setFormError('Shopify mağaza alan adını yazın.')
+        setFormError(t('shopDomainRequired'))
         return
       }
     } else if (!form.merchantId.trim() || !form.username.trim() || !form.password.trim()) {
-      setFormError('Tüm alanları doldurun.')
+      setFormError(t('allFields'))
       return
     }
 
@@ -217,7 +208,7 @@ export default function IntegrationsPanel() {
         const result = await PROVIDERS.SHOPIFY.connect(activeWorkspaceId, {
           shopDomain: form.shopDomain.trim()
         })
-        if (!result?.authorizationUrl) throw new Error('Shopify yetkilendirme adresi alınamadı.')
+        if (!result?.authorizationUrl) throw new Error(t('errors.shopifyAuthorization'))
         window.location.assign(result.authorizationUrl)
         return
       } else {
@@ -229,10 +220,10 @@ export default function IntegrationsPanel() {
       }
       setForm(EMPTY_FORM)
       setConnectProvider(null)
-      setMessage({ type: 'ok', text: `${PROVIDERS[providerKey].label} mağazanız bağlandı. İlk eşitleme başlayabilir.` })
+      setMessage({ type: 'ok', text: t('connected', { provider: PROVIDERS[providerKey].label }) })
       await refresh()
     } catch (error) {
-      setFormError(error.message || 'Bağlantı kurulamadı.')
+      setFormError(error.message || t('errors.connect'))
     } finally {
       setSaving(false)
     }
@@ -243,13 +234,13 @@ export default function IntegrationsPanel() {
     try {
       await PROVIDERS[providerKey].sync(activeWorkspaceId)
       setSyncingProvider(providerKey)
-      setMessage({ type: 'ok', text: `${PROVIDERS[providerKey].label} eşitlemesi başlatıldı…` })
+      setMessage({ type: 'ok', text: t('syncStarted', { provider: PROVIDERS[providerKey].label }) })
     } catch (error) {
       if (error.status === 409) {
         setSyncingProvider(providerKey)
         return
       }
-      setMessage({ type: 'err', text: error.message || 'Eşitleme başlatılamadı.' })
+      setMessage({ type: 'err', text: error.message || t('errors.sync') })
     }
   }
 
@@ -259,17 +250,17 @@ export default function IntegrationsPanel() {
     try {
       await PROVIDERS[providerKey].disconnect(activeWorkspaceId)
       setSyncingProvider(null)
-      setMessage({ type: 'ok', text: 'Bağlantı kaldırıldı. Geçmiş sipariş kayıtları işletme geçmişinizde korunur.' })
+      setMessage({ type: 'ok', text: t('disconnected') })
       await refresh()
     } catch (error) {
-      setMessage({ type: 'err', text: error.message || 'Bağlantı kaldırılamadı.' })
+      setMessage({ type: 'err', text: error.message || t('errors.disconnect') })
     }
   }
 
   if (!activeWorkspaceId) {
     return (
       <div className={styles.empty}>
-        <p>Pazaryeri entegrasyonları işletmenize bağlıdır. Önce bir işletme oluşturun veya seçin.</p>
+        <p>{t('workspaceRequired')}</p>
       </div>
     )
   }
@@ -287,34 +278,34 @@ export default function IntegrationsPanel() {
           const status = statusByProvider[providerKey]
           const connected = Boolean(status?.connected)
           const syncing = syncingProvider === providerKey
-          const lastSync = formatDateTime(status?.connections?.[0]?.lastSyncedAt)
+          const lastSync = formatDate(status?.connections?.[0]?.lastSyncedAt, { locale: formatLocale, dateStyle: 'short', timeStyle: 'short' })
           return (
-            <article key={providerKey} className={styles.card} aria-label={`${provider.label} entegrasyonu`}>
+            <article key={providerKey} className={styles.card} aria-label={t('providerAria', { provider: provider.label })}>
               <header className={styles.cardHead}>
                 <span className={styles.logo} aria-hidden="true">
                   <Store size={18} />
                 </span>
                 <div className={styles.cardTitle}>
                   <strong>{provider.label}</strong>
-                  <small>Pazaryeri</small>
+                  <small>{t('marketplace')}</small>
                 </div>
-                <Badge variant={connected ? 'success' : 'default'}>{connected ? STATUS_LABELS.ACTIVE : 'Bağlı değil'}</Badge>
+                <Badge variant={connected ? 'success' : 'default'}>{connected ? t('status.active') : t('common:states.notConnected')}</Badge>
               </header>
 
               {loading ? (
-                <p className={styles.soon}>Yükleniyor…</p>
+                <p className={styles.soon}>{t('common:states.loading')}</p>
               ) : (
                 <>
                   <dl className={styles.meta}>
-                    <div><dt>{providerKey === 'N11' ? 'Mağaza Adı' : providerKey === 'SHOPIFY' ? 'Shopify Alan Adı' : 'Mağaza / Merchant ID'}</dt><dd>{status?.connections?.[0]?.externalAccountId || '—'}</dd></div>
-                    <div><dt>Son eşitleme</dt><dd>
+                    <div><dt>{providerKey === 'N11' ? t('storeName') : providerKey === 'SHOPIFY' ? t('shopDomain') : t('merchantId')}</dt><dd>{status?.connections?.[0]?.externalAccountId || '—'}</dd></div>
+                    <div><dt>{t('workspace:lastSync')}</dt><dd>
                       <Clock size={13} aria-hidden="true" />{' '}
-                      {lastSync || 'Hiç'}
-                      {status?.syncing && <em> · eşitleniyor…</em>}
+                      {lastSync || t('common:states.never')}
+                      {status?.syncing && <em> · {t('syncing')}</em>}
                     </dd></div>
-                    <div><dt>Kayıtlar</dt><dd>{status?.counts?.orders ?? 0} sipariş · {status?.counts?.products ?? 0} ürün</dd></div>
+                    <div><dt>{t('records')}</dt><dd>{t('ordersCount', { count: status?.counts?.orders ?? 0 })} · {t('productsCount', { count: status?.counts?.products ?? 0 })}</dd></div>
                     {status?.circuitBreakerTripped && (
-                      <div className={styles.warnRow}><dt>Durum</dt><dd>Tekrarlayan hata nedeniyle zamanlanmış eşitleme duraklatıldı.</dd></div>
+                      <div className={styles.warnRow}><dt>{t('statusLabel')}</dt><dd>{t('circuitBreakerPaused')}</dd></div>
                     )}
                   </dl>
 
@@ -330,14 +321,14 @@ export default function IntegrationsPanel() {
                   {connected && (
                     <div className={styles.vadeAlani}>
                       <label htmlFor={`vade-${providerKey}`}>
-                        Ödeme vadesi (gün)
+                        {t('payout.label')}
                       </label>
                       <div className={styles.vadeSatir}>
                         <input
                           id={`vade-${providerKey}`}
                           type="number" min="0" max="365"
                           className={styles.vadeGiris}
-                          placeholder="örn. 14"
+                          placeholder={t('payout.placeholder')}
                           value={vadeTaslak[providerKey] ?? ''}
                           onChange={e => setVadeTaslak(t => ({ ...t, [providerKey]: e.target.value }))}
                         />
@@ -346,13 +337,11 @@ export default function IntegrationsPanel() {
                           onClick={() => vadeKaydet(providerKey, status?.connections?.[0]?.id)}
                           disabled={vadeKaydediliyor === providerKey}
                         >
-                          {vadeKaydediliyor === providerKey ? 'Kaydediliyor…' : 'Kaydet'}
+                          {vadeKaydediliyor === providerKey ? t('common:buttons.saving') : t('common:buttons.save')}
                         </Button>
                       </div>
                       <p className={styles.vadeIpucu}>
-                        Bu pazaryeri satıştan kaç gün sonra ödüyor? Girerseniz sipariş
-                        kaydınız takvime ve 30 günlük tahsilat tahminine düşer.
-                        Boş bırakırsanız kayıt yine oluşur, sadece vadesiz kalır.
+                        {t('payout.hint')}
                       </p>
                     </div>
                   )}
@@ -360,23 +349,23 @@ export default function IntegrationsPanel() {
                   <div className={styles.actions}>
                     {!connected ? (
                       <Button type="button" onClick={() => openConnect(providerKey)}>
-                        <Plug size={15} aria-hidden="true" /> Bağla
+                        <Plug size={15} aria-hidden="true" /> {t('common:buttons.connect')}
                       </Button>
                     ) : (
                       <>
                         <Button type="button" variant="secondary" onClick={() => handleSync(providerKey)} disabled={syncing}>
                           <RefreshCw size={15} aria-hidden="true" className={syncing ? styles.spinning : ''} />
-                          {syncing ? 'Eşitleniyor…' : 'Şimdi eşitle'}
+                          {syncing ? t('workspace:syncing') : t('common:buttons.sync')}
                         </Button>
                         <Button type="button" variant="danger" onClick={() => setDisconnectProvider(providerKey)}>
-                          <Unplug size={15} aria-hidden="true" /> Bağlantıyı kaldır
+                          <Unplug size={15} aria-hidden="true" /> {t('common:buttons.disconnect')}
                         </Button>
                       </>
                     )}
                   </div>
 
                   {status?.latestRuns?.some(run => run.errorCode) && !status.syncing && (
-                    <p className={styles.errorNote}>Son eşitlemede sorun oluştu. Tekrar denemek için “Şimdi eşitle”yi kullanın.</p>
+                    <p className={styles.errorNote}>{t('lastSyncError')}</p>
                   )}
                 </>
               )}
@@ -386,13 +375,13 @@ export default function IntegrationsPanel() {
 
         {/* Diger pazaryerleri — yakinda */}
         {soonProviders.map(entry => (
-          <article key={entry.provider} className={`${styles.card} ${styles.disabled}`} aria-label={`${entry.label} entegrasyonu`}>
+          <article key={entry.provider} className={`${styles.card} ${styles.disabled}`} aria-label={t('providerAria', { provider: entry.label })}>
             <header className={styles.cardHead}>
               <span className={styles.logo} aria-hidden="true"><Store size={18} /></span>
-              <div className={styles.cardTitle}><strong>{entry.label}</strong><small>Pazaryeri</small></div>
-              <Badge>Yakında</Badge>
+              <div className={styles.cardTitle}><strong>{entry.label}</strong><small>{t('marketplace')}</small></div>
+              <Badge>{t('common:states.comingSoon')}</Badge>
             </header>
-            <p className={styles.soon}>{entry.label} entegrasyonu hazırlanıyor.</p>
+            <p className={styles.soon}>{t('comingSoonProvider', { provider: entry.label })}</p>
           </article>
         ))}
       </div>
@@ -402,48 +391,42 @@ export default function IntegrationsPanel() {
       )}
 
       {/* ORTAK MODAL SHELL — alanlar provider'a gore degisir */}
-      <Modal open={Boolean(connectProvider)} onClose={() => { setConnectProvider(null); setFormError(null) }} title={`${connectProvider ? PROVIDERS[connectProvider].label : ''} Mağazanı Bağla`}>
+      <Modal open={Boolean(connectProvider)} onClose={() => { setConnectProvider(null); setFormError(null) }} title={t('connectTitle', { provider: connectProvider ? PROVIDERS[connectProvider].label : '' })}>
         <form onSubmit={handleConnect} className={styles.form}>
           {connectProvider === 'TRENDYOL' && (
             <p className={styles.hint}>
-              Bilgilere Trendyol Satıcı Paneli → <strong>Hesap Bilgileri → Entegrasyon Bilgileri</strong> sayfasından ulaşabilirsiniz
-              (yalnızca ana kullanıcı görebilir). Bilgileriniz şifrelenerek saklanır ve geri okunarak gösterilmez.
+              <Trans t={t} i18nKey="providerHints.trendyol" components={{ strong: <strong /> }} />
             </p>
           )}
           {connectProvider === 'HEPSIBURADA' && (
             <p className={styles.hint}>
-              Bilgilere Hepsiburada Satıcı Paneli (<strong>merchant.hepsiburada.com</strong>) → <strong>Ayarlar → Entegrasyonlar</strong> sayfasından ulaşabilirsiniz.
-              Merchant ID UUID formatındadır; API kullanıcı adı ve şifreniz Basic Authentication ile kullanılır.
-              Bilgileriniz şifrelenerek saklanır ve geri okunarak gösterilmez.
+              <Trans t={t} i18nKey="providerHints.hepsiburada" components={{ strong: <strong /> }} />
             </p>
           )}
           {connectProvider === 'N11' && (
             <p className={styles.hint}>
-              Bilgilere N11 Satıcı Paneli (<strong>so.n11.com</strong>) → <strong>Hesabım → API Hesapları</strong> sayfasından ulaşabilirsiniz.
-              App Key ve App Secret her istekte header ile iletilir; mağaza adı bağlantınızı tanımlamak için kullanılır.
-              Bilgileriniz şifrelenerek saklanır ve geri okunarak gösterilmez.
+              <Trans t={t} i18nKey="providerHints.n11" components={{ strong: <strong /> }} />
             </p>
           )}
           {connectProvider === 'SHOPIFY' && (
             <p className={styles.hint}>
-              Mağazanızın <strong>magazaniz.myshopify.com</strong> alan adını yazın. Devam ettiğinizde Shopify’ın resmi izin ekranına yönlendirilirsiniz.
-              LocalKarar yalnız sipariş, ürün, stok ve iade okuma izinlerini ister; erişim belirteci tarayıcıya geri gösterilmez.
+              <Trans t={t} i18nKey="providerHints.shopify" components={{ strong: <strong /> }} />
             </p>
           )}
           {connectProvider === 'N11' ? (
             <label className={styles.field}>
-              <span>Mağaza Adı</span>
+              <span>{t('storeName')}</span>
               <input
                 autoComplete="off"
                 value={form.storeName}
                 onChange={event => setForm(current => ({ ...current, storeName: event.target.value }))}
-                placeholder="N11'deki mağaza adınız"
+                placeholder={t('placeholders.n11Store')}
                 required
               />
             </label>
           ) : connectProvider === 'SHOPIFY' ? (
             <label className={styles.field}>
-              <span>Shopify Mağaza Alan Adı</span>
+              <span>{t('shopDomain')}</span>
               <input
                 autoComplete="off"
                 spellCheck="false"
@@ -455,12 +438,12 @@ export default function IntegrationsPanel() {
             </label>
           ) : (
             <label className={styles.field}>
-              <span>Mağaza / Merchant ID</span>
+              <span>{t('merchantId')}</span>
               <input
                 autoComplete="off"
                 value={form.merchantId}
                 onChange={event => setForm(current => ({ ...current, merchantId: event.target.value }))}
-                placeholder={connectProvider === 'HEPSIBURADA' ? 'UUID biçiminde Merchant ID' : 'Örn. 123456'}
+                placeholder={connectProvider === 'HEPSIBURADA' ? t('placeholders.merchantUuid') : t('placeholders.merchantNumber')}
                 required
               />
             </label>
@@ -468,7 +451,7 @@ export default function IntegrationsPanel() {
           {connectProvider === 'SHOPIFY' ? null : connectProvider === 'HEPSIBURADA' ? (
             <>
               <label className={styles.field}>
-                <span>API Kullanıcı Adı</span>
+                <span>{t('apiUsername')}</span>
                 <input
                   type="text"
                   autoComplete="off"
@@ -479,7 +462,7 @@ export default function IntegrationsPanel() {
                 />
               </label>
               <label className={styles.field}>
-                <span>API Şifresi</span>
+                <span>{t('apiPassword')}</span>
                 <PasswordInput
                   overlay
                   autoComplete="new-password"
@@ -516,8 +499,8 @@ export default function IntegrationsPanel() {
           )}
           {formError && <p className={styles.noteErr} role="alert">{formError}</p>}
           <div className={styles.modalActions}>
-            <Button type="button" variant="secondary" onClick={() => { setConnectProvider(null); setFormError(null) }}>Vazgeç</Button>
-            <Button type="submit" disabled={saving}>{saving ? 'Doğrulanıyor…' : 'Doğrula ve bağla'}</Button>
+            <Button type="button" variant="secondary" onClick={() => { setConnectProvider(null); setFormError(null) }}>{t('common:buttons.cancel')}</Button>
+            <Button type="submit" disabled={saving}>{saving ? t('validating') : t('validateAndConnect')}</Button>
           </div>
         </form>
       </Modal>
@@ -526,9 +509,9 @@ export default function IntegrationsPanel() {
         open={Boolean(disconnectProvider)}
         onClose={() => setDisconnectProvider(null)}
         onConfirm={handleDisconnect}
-        title={`${disconnectProvider ? PROVIDERS[disconnectProvider].label : ''} bağlantısı kaldırılsın mı?`}
-        description="Kimlik bilgileriniz kalıcı olarak silinir ve eşitleme durur. Halihazırda indirilmiş sipariş kayıtları silinmez."
-        confirmLabel="Bağlantıyı kaldır"
+        title={t('disconnectConfirm', { provider: disconnectProvider ? PROVIDERS[disconnectProvider].label : '' })}
+        description={t('disconnectDescription')}
+        confirmLabel={t('common:buttons.disconnect')}
         variant="danger"
       />
     </div>

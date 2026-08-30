@@ -6,6 +6,8 @@ import { FINANCIAL_MODEL_REGISTRY, getFinancialModel } from './registry.js'
 import { recommendFinancialModels } from './suitability.js'
 import type { ModelAssumptionInput } from './types.js'
 import { mapDocumentToFinancialModels } from './document-mapping.js'
+import { contentLanguage } from '../../lib/content-language.js'
+import { localizeFinancialModel, localizeFinancialModelVersions } from '../../content/i18n/financial-model-en.js'
 
 const assumptionSchema = z.object({
   key: z.string().min(1).max(100),
@@ -44,21 +46,24 @@ async function membership(userId: number, workspaceId: string, write = false) {
   return member
 }
 
-function modelResponse(model: typeof FINANCIAL_MODEL_REGISTRY[number]) {
+function modelResponse(model: typeof FINANCIAL_MODEL_REGISTRY[number], language: 'tr' | 'en' = 'tr') {
+  const localizedModel = localizeFinancialModel(model, language)
   return {
-    ...model,
-    sources: model.sources,
+    ...localizedModel,
+    sources: localizedModel.sources,
     requirementCount: model.inputs.filter(input => input.required).length,
   }
 }
 
 export async function financialModelRoutes(fastify: FastifyInstance) {
-  fastify.get('/financial-models', { preHandler: [fastify.authenticate] }, async () => {
-    return { models: FINANCIAL_MODEL_REGISTRY.map(modelResponse), total: FINANCIAL_MODEL_REGISTRY.length }
+  fastify.get('/financial-models', { preHandler: [fastify.authenticate] }, async request => {
+    const language = contentLanguage(request)
+    return { models: FINANCIAL_MODEL_REGISTRY.map(model => modelResponse(model, language)), total: FINANCIAL_MODEL_REGISTRY.length }
   })
 
   fastify.get('/financial-models/:code', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const { code } = request.params as { code: string }
+    const language = contentLanguage(request)
     const model = getFinancialModel(code)
     if (!model) return reply.status(404).send({ error: 'Finansal model bulunamadı.' })
     const stored = await prisma.financialModel.findUnique({
@@ -69,7 +74,7 @@ export async function financialModelRoutes(fastify: FastifyInstance) {
         knowledgeObjects: { include: { knowledgeObject: { select: { id: true, code: true, title: true, status: true } } } },
       },
     })
-    return { ...modelResponse(model), versions: stored?.versions ?? [], linkedCourses: stored?.courses.map(item => item.course) ?? [], linkedKnowledgeObjects: stored?.knowledgeObjects.map(item => item.knowledgeObject) ?? [] }
+    return { ...modelResponse(model, language), versions: localizeFinancialModelVersions(stored?.versions ?? [], language), linkedCourses: stored?.courses.map(item => item.course) ?? [], linkedKnowledgeObjects: stored?.knowledgeObjects.map(item => item.knowledgeObject) ?? [] }
   })
 
   fastify.post('/financial-models/recommend', { preHandler: [fastify.authenticate] }, async (request, reply) => {
@@ -166,7 +171,7 @@ export async function financialModelRoutes(fastify: FastifyInstance) {
       id: storedRun.id,
       scenarioName: storedRun.scenarioName,
       createdAt: storedRun.createdAt,
-      model: modelResponse(definition),
+      model: modelResponse(definition, contentLanguage(request)),
       ...result,
     })
   })

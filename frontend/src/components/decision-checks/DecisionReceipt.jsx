@@ -1,6 +1,8 @@
 import { Scale, Printer, Bot, Check, AlertTriangle, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import styles from './DecisionReceipt.module.css'
+import { getFormatLocale } from '@/utils/formatters'
 
 /*
  * Karar Fişi — kararın saklanabilir / yazdırılabilir özet artefaktı.
@@ -9,25 +11,22 @@ import styles from './DecisionReceipt.module.css'
  * Tüm alanlar sonuç snapshot'ından okunur; bulunmayan alan hiç gösterilmez.
  */
 
-const money = new Intl.NumberFormat('tr-TR', {
-  style: 'currency', currency: 'TRY', maximumFractionDigits: 2
-})
-
-function formatValue(value, format) {
+function formatValue(value, format, t) {
   const n = Number(value)
   if (!Number.isFinite(n)) return null
-  if (format === 'money') return money.format(n)
-  if (format === 'percent') return `%${n.toLocaleString('tr-TR', { maximumFractionDigits: 2 })}`
-  if (format === 'months') return `${n.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} ay`
-  if (format === 'days') return `${n.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} gün`
-  return n.toLocaleString('tr-TR', { maximumFractionDigits: 2 })
+  const locale = getFormatLocale()
+  if (format === 'money') return new Intl.NumberFormat(locale, { style: 'currency', currency: 'TRY', maximumFractionDigits: 2 }).format(n)
+  if (format === 'percent') return new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 2 }).format(n / 100)
+  if (format === 'months') return t('session.monthsValue', { value: n.toLocaleString(locale, { maximumFractionDigits: 1 }) })
+  if (format === 'days') return t('session.daysValue', { value: n.toLocaleString(locale, { maximumFractionDigits: 1 }) })
+  return n.toLocaleString(locale, { maximumFractionDigits: 2 })
 }
 
 function longDate(value) {
   if (!value) return null
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return null
-  return d.toLocaleDateString('tr-TR', {
+  return d.toLocaleDateString(getFormatLocale(), {
     day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
   })
 }
@@ -46,20 +45,20 @@ function toneOf(snapshot) {
   return null
 }
 
-function verdictLabelOf(snapshot) {
+function verdictLabelOf(snapshot, t) {
   const label = snapshot?.calculationOutput?.decisionLabel
   if (label) return label
   const risk = snapshot?.riskLevel
-  if (risk === 'low') return 'Güçlü görünüm'
-  if (risk === 'medium') return 'Dikkat gerekiyor'
-  if (risk === 'high' || risk === 'critical') return 'Zayıf görünüm'
+  if (risk === 'low') return t('receipt.verdictStrong')
+  if (risk === 'medium') return t('receipt.verdictCaution')
+  if (risk === 'high' || risk === 'critical') return t('receipt.verdictWeak')
   return null
 }
 
 /* Satır kalemleri. Yapılandırılmış araçlarda metrics[] doğrudan kullanılır
    (girdi yankısı olanlar dahil — fişte detay göstermek doğru).
    DC-PROFIT-001 metrics[] üretmediği için kendi alanlarından kurulur. */
-function buildLines(snapshot, excludeKey) {
+function buildLines(snapshot, excludeKey, t) {
   const calc = snapshot?.calculationOutput
   if (!calc) return []
 
@@ -67,15 +66,15 @@ function buildLines(snapshot, excludeKey) {
     return calc.metrics
       // Ana sonuç olarak seçilen metrik burada tekrar basılmaz.
       .filter(m => !excludeKey || (m?.key ?? m?.label) !== excludeKey)
-      .map(m => ({ label: m.label, value: formatValue(m.value, m.format) }))
+      .map(m => ({ label: m.label, value: formatValue(m.value, m.format, t) }))
       .filter(l => l.label && l.value)
   }
 
   return [
-    { label: 'Satış fiyatı', value: formatValue(calc.revenue, 'money') },
-    { label: 'Toplam bilinen maliyet', value: formatValue(calc.totalKnownCost, 'money') },
-    { label: 'Katkı marjı', value: formatValue(calc.contributionMarginPercent, 'percent') },
-    { label: 'Başabaş fiyatı', value: formatValue(calc.breakEvenPrice, 'money') }
+    { label: t('receipt.lines.salePrice'), value: formatValue(calc.revenue, 'money', t) },
+    { label: t('receipt.lines.totalKnownCost'), value: formatValue(calc.totalKnownCost, 'money', t) },
+    { label: t('receipt.lines.contributionMargin'), value: formatValue(calc.contributionMarginPercent, 'percent', t) },
+    { label: t('receipt.lines.breakEvenPrice'), value: formatValue(calc.breakEvenPrice, 'money', t) }
   ].filter(l => l.value)
 }
 
@@ -83,20 +82,20 @@ function buildLines(snapshot, excludeKey) {
    metrik. Girdi yankısı olan metrikler (fiyat, adet) ana sonuç yapılmaz. */
 const OUTCOME_RE = /katkı|net|marj/i
 
-function buildTotal(snapshot) {
+function buildTotal(snapshot, t) {
   const calc = snapshot?.calculationOutput
   if (!calc) return null
 
   // DC-PROFIT-001 metrics[] üretmez; contribution zaten listede yer almaz.
   if (Number.isFinite(Number(calc.contribution))) {
-    return { label: 'Ürün başına net katkı', value: money.format(calc.contribution), key: null }
+    return { label: t('receipt.netContributionPerUnit'), value: formatValue(calc.contribution, 'money', t), key: null }
   }
 
   const metrics = Array.isArray(calc.metrics) ? calc.metrics : []
   const outcome = metrics.find(m => OUTCOME_RE.test(m?.label || '') && Number.isFinite(Number(m?.value)))
   if (!outcome) return null
 
-  const value = formatValue(outcome.value, outcome.format)
+  const value = formatValue(outcome.value, outcome.format, t)
   // key: satır kalemleri listesinden bu metriği çıkarmak için kullanılır.
   return value ? { label: outcome.label, value, key: outcome.key ?? outcome.label } : null
 }
@@ -115,14 +114,15 @@ const VERDICT_ICON = { Good: Check, Warn: AlertTriangle, Bad: X }
  * bir yerdeki kısıtı gerekçesiz olarak diğerlerine taşımak olurdu.
  */
 export default function DecisionReceipt({ snapshot, title, completedAt, sik = false }) {
+  const { t } = useTranslation('tools')
   const navigate = useNavigate()
   if (!snapshot) return null
 
   const tone = toneOf(snapshot)
-  const verdict = verdictLabelOf(snapshot)
+  const verdict = verdictLabelOf(snapshot, t)
   const summary = snapshot?.calculationOutput?.summary
-  const total = buildTotal(snapshot)
-  const lines = buildLines(snapshot, total?.key)
+  const total = buildTotal(snapshot, t)
+  const lines = buildLines(snapshot, total?.key, t)
   const date = longDate(completedAt || snapshot?.completedAt)
   const VerdictIcon = tone ? VERDICT_ICON[tone] : null
   const evidence = [
@@ -133,7 +133,7 @@ export default function DecisionReceipt({ snapshot, title, completedAt, sik = fa
 
   function askMentor() {
     const context = [title, verdict, summary].filter(Boolean).join(' — ')
-    navigate(`/app/mentor?prompt=${encodeURIComponent(`${context} karar fişini yorumla; kanıtları, riskleri ve en güvenli sonraki adımı açıkla.`)}`)
+    navigate(`/app/mentor?prompt=${encodeURIComponent(t('receipt.mentorPrompt', { context }))}`)
   }
 
   // `dr-print-root` global bir işaretçidir: CSS Module sınıf adları
@@ -147,7 +147,7 @@ export default function DecisionReceipt({ snapshot, title, completedAt, sik = fa
           <Scale size={19} />
         </span>
         <div className={styles.headText}>
-          <span className={styles.eyebrow}>Karar Fişi</span>
+          <span className={styles.eyebrow}>{t('receipt.eyebrow')}</span>
           {date && <span className={styles.date}>{date}</span>}
         </div>
       </div>
@@ -188,14 +188,14 @@ export default function DecisionReceipt({ snapshot, title, completedAt, sik = fa
 
       {evidence.length > 0 && (
         <section className={styles.receiptSection}>
-          <h4>Kanıt ve risk notları</h4>
+          <h4>{t('receipt.evidenceHeading')}</h4>
           <ul>{evidence.map((item, index) => <li key={index}>{item}</li>)}</ul>
         </section>
       )}
 
       {nextSteps.length > 0 && (
         <section className={styles.receiptSection}>
-          <h4>Sonraki adım</h4>
+          <h4>{t('receipt.nextStepHeading')}</h4>
           <ol>{nextSteps.map((item, index) => <li key={index}>{item}</li>)}</ol>
         </section>
       )}
@@ -203,11 +203,11 @@ export default function DecisionReceipt({ snapshot, title, completedAt, sik = fa
       <div className={styles.actions}>
         <button type="button" className={styles.action} onClick={() => window.print()}>
           <Printer size={16} aria-hidden="true" />
-          Yazdır / PDF
+          {t('receipt.printAction')}
         </button>
         <button type="button" className={styles.action} onClick={askMentor}>
           <Bot size={16} aria-hidden="true" />
-          Mentora sor
+          {t('receipt.askMentorAction')}
         </button>
       </div>
 

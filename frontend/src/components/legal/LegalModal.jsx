@@ -1,7 +1,8 @@
 import Modal from '@/components/ui/Modal'
-import { Bolum, BELGELER } from '@/pages/LegalPage'
+import { Bolum, BELGELER, belgeIcerigi } from '@/pages/LegalPage'
 import sayfaStilleri from '@/pages/LegalPage.module.css'
 import styles from './LegalModal.module.css'
+import { useTranslation } from 'react-i18next'
 
 /*
  * YASAL METNİ SAYFADAN ÇIKMADAN GÖSTEREN PENCERE.
@@ -20,13 +21,14 @@ import styles from './LegalModal.module.css'
  * biçimleri metinlerin her güncellemesinde ikiye bölünürdü.
  */
 export default function LegalModal({ type, open, onClose }) {
+  const { t, i18n } = useTranslation('common')
   const belge = BELGELER[type]
   if (!belge) return null
 
-  const { giris, bolumler } = belge.icerik
+  const { giris, bolumler } = belgeIcerigi(belge, i18n.resolvedLanguage || i18n.language)
 
   return (
-    <Modal open={open} onClose={onClose} title={belge.baslik} size="lg">
+    <Modal open={open} onClose={onClose} title={t(belge.baslikKey)} size="lg">
       {/*
         `sayfaStilleri.document` LegalPage'in tipografisini taşıyor
         (başlık, paragraf, tablo, tanım listesi). `styles.govde` yalnız

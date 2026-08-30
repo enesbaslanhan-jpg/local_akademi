@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { api } from '@/services/api'
 import { FeedCard } from './FeedCard'
@@ -7,6 +8,7 @@ import { AlertCircle, RefreshCw, Layers } from 'lucide-react'
 import styles from './Feed.module.css'
 
 export function PersonalizedFeed({ resumeItem }) {
+  const { t } = useTranslation('community')
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -22,7 +24,7 @@ export function PersonalizedFeed({ resumeItem }) {
       setItems(data.items.filter(i => !i.dismissed))
     } catch (err) {
       if (!mountedRef.current) return
-      setError(err.message || 'Akış yüklenemedi')
+      setError(err.message || t('personalizedFeed.loadFailed'))
     } finally {
       if (mountedRef.current) setLoading(false)
     }
@@ -56,7 +58,7 @@ export function PersonalizedFeed({ resumeItem }) {
   if (loading) {
     return (
       <div className={styles.feedContainer}>
-        <Loading text="Akış yükleniyor..." />
+        <Loading text={t('personalizedFeed.loading')} />
       </div>
     )
   }
@@ -68,7 +70,7 @@ export function PersonalizedFeed({ resumeItem }) {
           <AlertCircle size={32} />
           <p>{error}</p>
           <Button onClick={loadFeed} variant="outline" size="sm">
-            <RefreshCw size={14} className="mr-2" /> Tekrar Dene
+            <RefreshCw size={14} className="mr-2" /> {t('personalizedFeed.retry')}
           </Button>
         </div>
       </div>
@@ -82,8 +84,8 @@ export function PersonalizedFeed({ resumeItem }) {
       <div className={styles.feedContainer}>
         <EmptyState 
           icon={<Layers size={32} />} 
-          title="Akış boş" 
-          message="Şu an için yeni bir öneri bulunmuyor. Keşfetmeye devam edin." 
+          title={t('personalizedFeed.emptyTitle')}
+          message={t('personalizedFeed.emptyMessage')}
         />
       </div>
     )
@@ -96,7 +98,7 @@ export function PersonalizedFeed({ resumeItem }) {
     <div className={styles.feedContainer}>
       {(continueItems.length > 0 || resumeItem) && (
         <div className={styles.feedSection}>
-          <h2 className={styles.sectionTitle}>Kaldığın yerden devam et</h2>
+          <h2 className={styles.sectionTitle}>{t('personalizedFeed.continueTitle')}</h2>
           <div className={styles.feedGrid}>
             {continueItems.map(item => (
               <FeedCard key={item.itemKey} item={item} onDismiss={handleDismiss} onAction={handleAction} />
@@ -106,7 +108,7 @@ export function PersonalizedFeed({ resumeItem }) {
       )}
       {otherItems.length > 0 && (
         <div className={styles.feedSection}>
-          <h2 className={styles.sectionTitle}>Senin İçin Seçtiklerimiz</h2>
+          <h2 className={styles.sectionTitle}>{t('personalizedFeed.recommendedTitle')}</h2>
           <div className={styles.feedGrid}>
             {otherItems.map(item => (
               <FeedCard key={item.itemKey} item={item} onDismiss={handleDismiss} onAction={handleAction} />

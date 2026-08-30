@@ -1,42 +1,26 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import styles from './MentorEmptyState.module.css';
 
-const DEFAULT_QUICK_STARTS = [
-  "Kâr marjımı nasıl hesaplarım?",
-  "Müşteri segmentimi nasıl belirlerim?",
-  "Nakit akışımı nasıl iyileştirebilirim?",
-  "Bir işletme kararımı değerlendirelim."
-];
-
-const ESNAF_QUICK_STARTS = [
-  "Ürünümün gerçek kârını hesaplayalım.",
-  "Giderlerimi nasıl azaltabilirim?",
-  "Müşteri segmentimi nasıl belirlerim?",
-  "Nakit akışımı nasıl iyileştirebilirim?"
-];
-
-const GIRISIMCI_QUICK_STARTS = [
-  "İş fikrimi nasıl doğrulayabilirim?",
-  "Müşteri segmentimi belirleyelim.",
-  "Kâr marjımı nasıl hesaplarım?",
-  "Bir işletme kararımı değerlendirelim."
-];
-
-const YATIRIMCI_QUICK_STARTS = [
-  "Bir işletmenin nakit akışını nasıl değerlendiririm?",
-  "Kârlılık göstergelerini nasıl yorumlarım?",
-  "Müşteri segmentimi nasıl belirlerim?",
-  "Bir işletme kararımı değerlendirelim."
-];
+/* `getQuickStartsByRole` bileşen dışından da (test, olası başka
+   tüketici) çağrılabiliyor — bu yüzden hook değil, i18next tekil
+   örneğinin `t`sini doğrudan kullanır. Aktif arayüz diline göre
+   çevrilmiş döner. */
+function quickStartsKeyFor(role) {
+  if (role === 'esnaf' || role === 'merchant') return 'esnaf';
+  if (role === 'girisimci' || role === 'entrepreneur') return 'girisimci';
+  if (role === 'yatirimci' || role === 'investor') return 'yatirimci';
+  return 'default';
+}
 
 export function getQuickStartsByRole(role) {
-  if (role === 'esnaf' || role === 'merchant') return ESNAF_QUICK_STARTS;
-  if (role === 'girisimci' || role === 'entrepreneur') return GIRISIMCI_QUICK_STARTS;
-  if (role === 'yatirimci' || role === 'investor') return YATIRIMCI_QUICK_STARTS;
-  return DEFAULT_QUICK_STARTS;
+  const group = quickStartsKeyFor(role);
+  return ['q1', 'q2', 'q3', 'q4'].map(q => i18n.t(`mentor:quickStarts.${group}.${q}`));
 }
 
 export default function MentorEmptyState({ onQuickStart, role }) {
+  const { t } = useTranslation('mentor');
   const quickStarts = getQuickStartsByRole(role);
 
   return (
@@ -47,10 +31,10 @@ export default function MentorEmptyState({ onQuickStart, role }) {
         </svg>
       </div>
       <h3 className={`text-lg font-semibold text-[var(--text)] mb-2 ${styles.title}`}>
-        Yeni sohbet başlatın veya aşağıdaki hızlı başlangıçlardan birini seçin.
+        {t('emptyState.title')}
       </h3>
       <p className={`text-sm text-[var(--text-light)] mb-8 max-w-sm ${styles.subtitle}`}>
-        AI Mentor işletmenizle ilgili sorularınızı yanıtlayabilir, size özel analiz ve öneriler sunabilir.
+        {t('emptyState.subtitle')}
       </p>
 
       <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-md ${styles.quickGrid}`}>

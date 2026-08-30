@@ -1,5 +1,6 @@
-import { lazy, Suspense } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { lazy, Suspense, useLayoutEffect } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import AppLayout from '@/components/layout/AppLayout'
 import ProtectedRoute from '@/components/layout/ProtectedRoute'
 import Loading from '@/components/ui/Loading'
@@ -11,6 +12,9 @@ const AuthPage = lazy(() => import('@/pages/AuthPage'))
 const PasswordResetPage = lazy(() => import('@/pages/PasswordResetPage'))
 const EmailVerifyPage = lazy(() => import('@/pages/PasswordResetPage').then(m => ({ default: m.EmailVerifyPage })))
 const AboutPage = lazy(() => import('@/pages/AboutPage'))
+const PricingPage = lazy(() => import('@/pages/PricingPage'))
+/* Kayıt sonrası karşılama — yalnız kayıttan yönlendiriliyor. */
+const WelcomePage = lazy(() => import('@/pages/WelcomePage'))
 const InvitationPage = lazy(() => import('@/pages/InvitationPage'))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const OnboardingPage = lazy(() => import('@/pages/OnboardingPage'))
@@ -51,7 +55,6 @@ const WorkspaceSettings = lazy(() => import('@/pages/Workspaces/Settings'))
 const WorkspaceActivity = lazy(() => import('@/pages/Workspaces/Activity'))
 const DecisionCheckList = lazy(() => import('@/pages/DecisionCheckList'))
 const DecisionCheckSession = lazy(() => import('@/pages/DecisionCheckSession'))
-const DecisionToolsPage = lazy(() => import('@/pages/DecisionToolsPage'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
 const Unauthorized = lazy(() => import('@/pages/Unauthorized'))
 const LegalPage = lazy(() => import('@/pages/LegalPage'))
@@ -67,12 +70,42 @@ const AdminAuditLog = lazy(() => import('@/pages/admin/AdminAuditLog'))
 const AdminCommunity = lazy(() => import('@/pages/admin/AdminCommunity'))
 
 function SuspenseWrapper({ children }) {
-  return <Suspense fallback={<Loading text="Sayfa yükleniyor..." />}>{children}</Suspense>
+  const { t } = useTranslation('common')
+  return <Suspense fallback={<Loading text={t('loading.page')} />}>{children}</Suspense>
+}
+
+
+/*
+ * SAYFA DEĞİŞİNCE BAŞA DÖN.
+ *
+ * Tek sayfa uygulamasında gezinme kaydırma konumunu SIFIRLAMAZ.
+ * Ortak alt bilgi sayfanın dibine geldiğinden beri bu görünür bir
+ * arızaydı: kullanıcı alta inip bir yasal belgeye tıklıyor, yeni
+ * belge o kaydırma konumunda açılıyordu. Ölçüldü — /hakkinda'nın
+ * dibinden Mesafeli Sözleşme'ye tıklandığında sayfa 2823 pikselde,
+ * yani 9. maddenin ortasında açılıyordu.
+ *
+ * ⚠️ `hash` varsa DOKUNULMUYOR: `#bolum` bağlantıları kendi hedefine
+ * gitmeli. Başa döndürmek içindekiler listesini işlevsiz bırakırdı.
+ *
+ * `useLayoutEffect`: boyamadan önce çalışır, yoksa kullanıcı bir kare
+ * boyunca eski konumu görür.
+ */
+function SayfaBasinaDon() {
+  const { pathname, hash } = useLocation()
+
+  useLayoutEffect(() => {
+    if (hash) return
+    window.scrollTo(0, 0)
+  }, [pathname, hash])
+
+  return null
 }
 
 export default function AppRoutes() {
   return (
     <SuspenseWrapper>
+      <SayfaBasinaDon />
       <Routes>
         {/* Public auth routes */}
         <Route path="/login" element={<SuspenseWrapper><AuthPage mode="login" /></SuspenseWrapper>} />
@@ -84,8 +117,15 @@ export default function AppRoutes() {
         <Route path="/privacy" element={<SuspenseWrapper><LegalPage type="privacy" /></SuspenseWrapper>} />
         <Route path="/terms" element={<SuspenseWrapper><LegalPage type="terms" /></SuspenseWrapper>} />
         <Route path="/cookies" element={<SuspenseWrapper><LegalPage type="cookies" /></SuspenseWrapper>} />
+        {/* Ticari satış belgeleri — PayTR başvurusu ve Mesafeli
+            Sözleşmeler Yönetmeliği gereği herkese açık olmalı. */}
+        <Route path="/on-bilgilendirme" element={<SuspenseWrapper><LegalPage type="on-bilgilendirme" /></SuspenseWrapper>} />
+        <Route path="/mesafeli-satis" element={<SuspenseWrapper><LegalPage type="mesafeli-satis" /></SuspenseWrapper>} />
+        <Route path="/teslimat-iade" element={<SuspenseWrapper><LegalPage type="teslimat-iade" /></SuspenseWrapper>} />
+        <Route path="/abonelik" element={<SuspenseWrapper><LegalPage type="abonelik" /></SuspenseWrapper>} />
         <Route path="/yardim" element={<SuspenseWrapper><SupportPage /></SuspenseWrapper>} />
         <Route path="/hakkinda" element={<SuspenseWrapper><AboutPage /></SuspenseWrapper>} />
+        <Route path="/fiyatlar" element={<SuspenseWrapper><PricingPage /></SuspenseWrapper>} />
         {/* Davet baglantisinin dustugu yer. Giris GEREKMIYOR: davetli
             cogunlukla oturum acmamis geliyor, sayfa onu ?next= ile giris
             ekranina yonlendirip geri getiriyor. */}
@@ -93,10 +133,10 @@ export default function AppRoutes() {
 
         {/* Protected learner routes */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/decision-tools" element={<SuspenseWrapper><DecisionToolsPage /></SuspenseWrapper>} />
           <Route path="/app" element={<AppLayout />}>
             <Route index element={<Navigate to="/app/dashboard" replace />} />
             <Route path="dashboard" element={<SuspenseWrapper><Dashboard /></SuspenseWrapper>} />
+            <Route path="hosgeldin" element={<SuspenseWrapper><WelcomePage /></SuspenseWrapper>} />
             <Route path="onboarding" element={<SuspenseWrapper><OnboardingPage /></SuspenseWrapper>} />
             <Route path="assessment" element={<SuspenseWrapper><AssessmentPage /></SuspenseWrapper>} />
             <Route path="knowledge" element={<SuspenseWrapper><KnowledgePage /></SuspenseWrapper>} />

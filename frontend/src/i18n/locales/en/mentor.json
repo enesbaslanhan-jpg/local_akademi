@@ -1,0 +1,213 @@
+{
+  "title": "AI Mentor",
+  "newConversation": "New conversation",
+  "active": "Active",
+  "archive": "Archive",
+  "activeConversations": "Active conversations",
+  "archivedConversations": "Archived conversations",
+  "empty": "No conversations yet",
+  "untitled": "Untitled",
+  "placeholder": "Ask a question…",
+  "send": "Send",
+  "thinking": "Thinking…",
+  "responseLanguage": "Response language: English",
+
+  "states": {
+    "loading": "Loading..."
+  },
+  "sidebar": {
+    "history": "Chat history",
+    "newChat": "Start new chat",
+    "noMessages": "No messages yet",
+    "messageCount_one": " · {{count}} message",
+    "messageCount_other": " · {{count}} messages",
+    "listButtonLabel": "Conversation list",
+    "edit": "Edit",
+    "archiveAction": "Archive",
+    "unarchive": "Unarchive",
+    "delete": "Delete"
+  },
+  "time": {
+    "yesterday": "Yesterday",
+    "daysAgo_one": "{{count}} day ago",
+    "daysAgo_other": "{{count}} days ago"
+  },
+  "session": {
+    "todayWithTime": "Today, {{time}}"
+  },
+  "topbar": {
+    "provider": "Reasoning with your business context",
+    "providerWithTitle": "Reasoning with your business context · {{title}}",
+    "contextBadge": "Context: {{title}}"
+  },
+  "chat": {
+    "scrollToBottom": "Go to latest message ↓",
+    "aiThinking": "AI is thinking...",
+    "archivedNotice": "Archived conversations can't receive new messages."
+  },
+  "contextPrompts": {
+    "applyToBusiness": "How does this apply to my business?",
+    "summarizeKeyPoints": "Summarize the key points.",
+    "safestNextStep": "What's the safest next step?"
+  },
+  "actions": {
+    "title": "Suggested actions",
+    "inlineAriaLabel": "Mentor suggested actions",
+    "emptyHint": "Real, relevant actions from the mentor's response will appear here.",
+    "openKnowledge": "Open related content",
+    "openFinancialModels": "Open financial models",
+    "openBusinessProfile": "Update business profile",
+    "descriptionOpenKnowledge": "Review the source content behind the response.",
+    "descriptionOpenFinancialModels": "Continue working in the financial model library.",
+    "descriptionOpenBusinessProfile": "Update your business details to refine the suggestion.",
+    "descriptionFallback": "Open the related workspace."
+  },
+  "memory": {
+    "title": "Memory",
+    "manageButton": "Manage memory",
+    "emptyProfile": "No business information saved yet.",
+    "lastDecision": "Latest decision",
+    "sector": "Sector",
+    "city": "City",
+    "stage": "Stage",
+    "monthlySales": "Monthly sales",
+    "monthlyExpenses": "Monthly expenses",
+    "goal": "Goal",
+    "challenges": "Challenges",
+    "panelTitle": "Manage memory",
+    "searchPlaceholder": "Search...",
+    "typeFilterAriaLabel": "Type filter",
+    "filterAll": "All",
+    "empty": "No memories yet",
+    "typeProfile": "Profile",
+    "typeFact": "Fact",
+    "typeProblem": "Problem",
+    "typeGoal": "Goal",
+    "typePreference": "Preference",
+    "typeDecision": "Decision",
+    "statusActive": "Active",
+    "statusSuperseded": "Superseded",
+    "statusArchived": "Archived",
+    "importanceLabel": "Importance:",
+    "confidenceLabel": "Confidence:",
+    "sourceLabel": "Source:",
+    "sourceAiExtraction": "AI extraction",
+    "sourceManual": "Manual",
+    "createdAtLabel": "Created:",
+    "editButton": "Edit",
+    "confirmButton": "Confirm",
+    "disputeButton": "Dispute",
+    "deleteButton": "Delete",
+    "errorLoad": "Could not load memories",
+    "errorDelete": "Delete failed",
+    "errorDispute": "Dispute failed",
+    "errorConfirm": "Confirm failed",
+    "errorSave": "Save failed",
+    "newFormTitle": "New memory",
+    "editFormTitle": "Edit memory",
+    "fieldType": "Type",
+    "typeSelectAriaLabel": "Type",
+    "fieldKey": "Key",
+    "keyPlaceholder": "e.g. monthly_revenue",
+    "fieldValue": "Value",
+    "fieldSummary": "Summary",
+    "importancePercent": "Importance: {{percent}}%",
+    "confidencePercent": "Confidence: {{percent}}%",
+    "cancelButton": "Cancel",
+    "newButton": "New"
+  },
+  "panel": {
+    "drawerAriaLabel": "AI Mentor panel",
+    "backTitle": "Conversations",
+    "backAriaLabel": "Back to conversations",
+    "newShort": "+ New",
+    "contextLabel": "Context",
+    "contextFallbackContent": "Content",
+    "contextClear": "Clear context",
+    "rightAsideAriaLabel": "Mentor side panel"
+  },
+  "bubble": {
+    "answerLabel": "Mentor response",
+    "copy": "Copy",
+    "regenerateTitle": "Regenerate",
+    "regenerateLabel": "Regenerate",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "saveAndRegenerate": "Save & regenerate",
+    "sources": "Sources",
+    "cancelledNote": "Generation stopped",
+    "tokenCount_one": "· {{count}} token",
+    "tokenCount_other": "· {{count}} tokens"
+  },
+  "feedback": {
+    "helpful": "Helpful",
+    "notHelpful": "Not helpful",
+    "savedThanks": "Thanks for your feedback.",
+    "saveFailed": "Feedback could not be saved."
+  },
+  "error": {
+    "alertTitle": "Connection error",
+    "network": "Could not reach the AI Mentor server. Check your connection and try again.",
+    "timeout": "The response took longer than expected. You can try the message again.",
+    "rateLimit": "Too many requests were sent in a short time. Wait a moment and try again.",
+    "unauthorized": "Your session may have expired. Please sign in again.",
+    "provider": "AI Mentor can't generate a response right now. Try again in a few seconds.",
+    "generic": "A temporary issue occurred. Please try again later.",
+    "responseFailed": "Could not get an AI response"
+  },
+  "deleteModal": {
+    "title": "Delete this conversation?",
+    "description": "This conversation will be permanently removed. This action cannot be undone.",
+    "confirm": "Delete conversation",
+    "deleting": "Deleting..."
+  },
+  "citation": {
+    "unknownSource": "Unknown source",
+    "openAriaLabel": "Open knowledge content: {{label}}"
+  },
+  "beta": {
+    "tooltip": "AI Mentor responses are for informational purposes. Verify the information before important business decisions."
+  },
+  "launcher": {
+    "openAriaLabel": "Open AI Mentor"
+  },
+  "emptyState": {
+    "title": "Start a new conversation or pick one of the quick starts below.",
+    "subtitle": "AI Mentor can answer questions about your business and provide tailored analysis and recommendations."
+  },
+  "composer": {
+    "abortAriaLabel": "Stop generating",
+    "stop": "Stop"
+  },
+  "quickStarts": {
+    "default": {
+      "q1": "How do I calculate my profit margin?",
+      "q2": "How do I define my customer segment?",
+      "q3": "How can I improve my cash flow?",
+      "q4": "Let's evaluate a business decision."
+    },
+    "esnaf": {
+      "q1": "Let's calculate my product's real profit.",
+      "q2": "How can I reduce my expenses?",
+      "q3": "How do I define my customer segment?",
+      "q4": "How can I improve my cash flow?"
+    },
+    "girisimci": {
+      "q1": "How do I validate my business idea?",
+      "q2": "Let's define my customer segment.",
+      "q3": "How do I calculate my profit margin?",
+      "q4": "Let's evaluate a business decision."
+    },
+    "yatirimci": {
+      "q1": "How do I assess a business's cash flow?",
+      "q2": "How do I interpret profitability indicators?",
+      "q3": "How do I define my customer segment?",
+      "q4": "Let's evaluate a business decision."
+    }
+  },
+  "suggestedActions": {
+    "openRelatedContent": "Open Related Content",
+    "openFinancialModels": "Open Financial Models",
+    "updateBusinessProfile": "Update Business Information"
+  }
+}

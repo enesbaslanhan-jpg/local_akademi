@@ -17,6 +17,31 @@
  * tanımlansaydı zamanla ayrışırlardı.
  */
 
+/*
+ * DIŞ KABUK — giriş yüzeyi + altında ortak alt bilgi.
+ *
+ * `.page` ortalanmış yatay bir flex kabı. Alt bilgi onun ÇOCUĞU
+ * yapıldığında `align-items: center` esnemesini engelliyor ve alt
+ * bilgi kendi içerik genişliğinde kalıp sayfanın iki yanından
+ * taşıyordu (ölçüldü: 680px kutu, 499px sayfa, sol kenar -94px).
+ *
+ * Bu yüzden alt bilgi kardeş; kabuk da onları dikey diziyor.
+ */
+.kabuk {
+  /* ⚠️ FLEX DEĞİL, düz blok.
+   *
+   * İlk sürüm `display: flex; flex-direction: column` idi ve
+   * `.page`in yüksekliğini 100dvh'ye SABİTLİYORDU. `.page` zaten
+   * `overflow-y: auto` taşıdığı için (yatay glow taşmasını kırpan
+   * `overflow-x: hidden` diğer ekseni otomatik auto yapıyor) içeride
+   * ikinci bir kaydırma çubuğu oluşuyordu — ölçüldü: page 900px,
+   * içeriği 1200px, belge ayrıca 1226px.
+   *
+   * Blok akışta `.page` içeriğiyle birlikte büyüyor ve tek kaydırma
+   * çubuğu kalıyor. */
+  min-height: 100dvh;
+  background: var(--auth-page);
+}
 .page {
   position: relative;
   display: flex;
@@ -31,8 +56,23 @@
    * Açık uç da tam beyaza gitmiyor; kart kendi beyazıyla ayrışabilsin.
    */
   background: var(--auth-gradient);
-  overflow-x: hidden;
-  overflow-y: auto;
+  /*
+   * `clip`, `hidden` DEĞİL — ve fark burada belirleyici.
+   *
+   * `overflow-x: hidden` bir kaydırma kabı yaratır ve CSS diğer ekseni
+   * zorla `auto`ya çevirir. Işık huzmeleri (`.glow*`) mutlak konumlu ve
+   * `top: -180px`ten başlıyor; `scrollHeight`ı 1200px'e çıkarıyorlardı.
+   * Sonuç: sayfanın İÇİNDE ikinci bir dikey kaydırma çubuğu (ölçüldü:
+   * 900/1200) — alt bilgi eklenip belge de kayınca EKRANDA İKİ ÇUBUK.
+   *
+   * `clip` yalnız kırpar, kaydırma kabı YARATMAZ — bu yüzden iç çubuk
+   * oluşmuyor.
+   *
+   * ⚠️ İKİ EKSENDE de clip. Önce yalnız `overflow-x: clip` yazılmıştı;
+   * o zaman huzmeler dikeyde kırpılmayıp belgeyi uzatıyordu (ölçüldü:
+   * sayfa 900 + alt bilgi 93 = 993 beklenirken belge 1200 çıktı).
+   */
+  overflow: clip;
 }
 
 /* Vaat bölümü olmayan ekranlar (şifre sıfırlama, e-posta doğrulama):

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { api } from '@/services/api'
 import { Card, Badge, Button, Progress, Loading, EmptyState } from '@/components/ui'
@@ -6,16 +7,16 @@ import { BookOpen, CheckCircle, ArrowRight } from 'lucide-react'
 import styles from './EnrollmentsPage.module.css'
 
 const STATUS = {
-  completed: { label: 'Tamamlandı', cls: 'statusCompleted' },
-  in_progress: { label: 'Devam ediyor', cls: 'statusProgress' },
-  not_started: { label: 'Başlanmadı', cls: 'statusNotStarted' }
+  completed: { labelKey: 'enrollments.status.completed', cls: 'statusCompleted' },
+  in_progress: { labelKey: 'enrollments.status.inProgress', cls: 'statusProgress' },
+  not_started: { labelKey: 'enrollments.status.notStarted', cls: 'statusNotStarted' }
 }
 
-function lastSeen(dateStr) {
+function lastSeen(dateStr, locale) {
   if (!dateStr) return null
   const d = new Date(dateStr)
   if (Number.isNaN(d.getTime())) return null
-  return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+  return d.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 /*
@@ -25,6 +26,7 @@ function lastSeen(dateStr) {
  * Kurslar sayfası üzerinden gösterilir.
  */
 export default function EnrollmentsPage({ embedded = false }) {
+  const { t, i18n } = useTranslation('learning')
   const navigate = useNavigate()
   const [enrollments, setEnrollments] = useState([])
   const [loading, setLoading] = useState(true)
@@ -37,7 +39,7 @@ export default function EnrollmentsPage({ embedded = false }) {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <Loading text="Kayıtlar yükleniyor..." />
+  if (loading) return <Loading text={t('enrollments.loading')} />
 
   return (
     <div className={embedded ? styles.embedded : styles.page}>
@@ -45,35 +47,35 @@ export default function EnrollmentsPage({ embedded = false }) {
 
       {/* Sayfa adı üst barda yazıyor; görünür h1 yerine sr-only başlık. */}
       <div className={styles.header}>
-        {!embedded && <h1 className="sr-only">Kayıtlı Kurslarım</h1>}
-        <p className={styles.subtitle}>{enrollments.length} kursa kayıtlısınız</p>
+        {!embedded && <h1 className="sr-only">{t('enrollments.title')}</h1>}
+        <p className={styles.subtitle}>{t('enrollments.courseCount', { count: enrollments.length })}</p>
       </div>
 
       {enrollments.length === 0 ? (
         <EmptyState
-          message="Henüz kursa kayıt olmadın"
+          message={t('enrollments.empty')}
           action
-          actionLabel="Kurslara Göz At"
+          actionLabel={t('enrollments.browse')}
           onAction={() => navigate('/app/courses')}
         />
       ) : (
         <div className={styles.list}>
           {enrollments.map(e => {
             const status = STATUS[e.status] || STATUS.not_started
-            const seen = lastSeen(e.updatedAt)
+            const seen = lastSeen(e.updatedAt, i18n.resolvedLanguage || i18n.language)
             return (
               <Card key={e.id} className={styles.enrollmentCard} hoverable>
                 <div className={styles.cardMain}>
                   <div className={styles.cardTop}>
                     <h3 className={styles.courseTitle}>{e.courseTitle}</h3>
                     <span className={`${styles.statusBadge} ${styles[status.cls]}`}>
-                      {status.label}
+                      {t(status.labelKey)}
                     </span>
                   </div>
 
                   <div className={styles.meta}>
                     {e.courseLessonCount > 0 && (
-                      <span><BookOpen size={13} aria-hidden="true" /> {e.courseLessonCount} ders</span>
+                      <span><BookOpen size={13} aria-hidden="true" /> {t('enrollments.lessonCount', { count: e.courseLessonCount })}</span>
                     )}
                     {e.courseCategory && <Badge variant="info">{e.courseCategory}</Badge>}
                     {e.courseLevel && <Badge variant="default">{e.courseLevel}</Badge>}
@@ -86,19 +88,19 @@ export default function EnrollmentsPage({ embedded = false }) {
                     <span className={styles.progressText}>%{e.progress}</span>
                   </div>
 
-                  {seen && <p className={styles.lastSeen}>Son erişim: {seen}</p>}
+                  {seen && <p className={styles.lastSeen}>{t('enrollments.lastAccess', { date: seen })}</p>}
                 </div>
 
                 <div className={styles.cardAction}>
                   {e.status === 'completed' ? (
-                    <Badge variant="success"><CheckCircle size={13} /> Tamamlandı</Badge>
+                    <Badge variant="success"><CheckCircle size={13} /> {t('enrollments.status.completed')}</Badge>
                   ) : (
                     <Button
                       variant="primary"
                       size="sm"
                       onClick={() => navigate(`/app/courses/${e.courseId}/learn`)}
                     >
-                      {e.status === 'not_started' ? 'Başla' : 'Devam Et'} <ArrowRight size={14} />
+                      {e.status === 'not_started' ? t('enrollments.start') : t('enrollments.continue')} <ArrowRight size={14} />
                     </Button>
                   )}
                 </div>

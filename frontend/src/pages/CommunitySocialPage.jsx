@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Ban, Check, MessageCircle, Search, Send, UserPlus, Users, X } from 'lucide-react'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import Button from '@/components/ui/Button'
 import { initials } from './CommunityPage'
 import styles from './CommunitySocialPage.module.css'
+import { getFormatLocale } from '@/utils/formatters'
 
 /*
  * TOPLULUK SOSYAL EKRANLARI — kişiler ve sohbetler.
@@ -22,12 +24,13 @@ import styles from './CommunitySocialPage.module.css'
 
 /* Kişi seçici. Sohbet açarken de gruba eklerken de aynı panel. */
 function KisiSecici({ kisiler, secili, onDegis, coklu }) {
+  const { t } = useTranslation('community')
   const [arama, setArama] = useState('')
 
   const suzulmus = useMemo(() => {
-    const q = arama.trim().toLocaleLowerCase('tr-TR')
+    const q = arama.trim().toLocaleLowerCase(getFormatLocale())
     if (!q) return kisiler
-    return kisiler.filter(k => k.name.toLocaleLowerCase('tr-TR').includes(q))
+    return kisiler.filter(k => k.name.toLocaleLowerCase(getFormatLocale()).includes(q))
   }, [kisiler, arama])
 
   function degistir(kisi) {
@@ -47,8 +50,8 @@ function KisiSecici({ kisiler, secili, onDegis, coklu }) {
         <input
           value={arama}
           onChange={e => setArama(e.target.value)}
-          placeholder="Kişi ara"
-          aria-label="Kişi ara"
+          placeholder={t('people.searchPlaceholder')}
+          aria-label={t('people.searchPlaceholder')}
         />
       </label>
 
@@ -63,7 +66,7 @@ function KisiSecici({ kisiler, secili, onDegis, coklu }) {
       )}
 
       <div className={styles.seciciListe} role="listbox" aria-multiselectable={coklu}>
-        {suzulmus.length === 0 && <p className={styles.bos}>Kimse bulunamadı.</p>}
+        {suzulmus.length === 0 && <p className={styles.bos}>{t('people.noneFound')}</p>}
         {suzulmus.map(kisi => {
           const isaretli = secili.some(s => s.id === kisi.id)
           return (
@@ -87,6 +90,7 @@ function KisiSecici({ kisiler, secili, onDegis, coklu }) {
 }
 
 export default function CommunitySocialPage({ mode }) {
+  const { t } = useTranslation('community')
   const { user } = useAuth()
   const navigate = useNavigate()
 
@@ -128,7 +132,7 @@ export default function CommunitySocialPage({ mode }) {
       .catch(e => {
         /* Kabul edilmemiş grup daveti: mesajlar bilerek kapalı. */
         setMesajlar([])
-        setHata(e.message || 'Mesajlar yüklenemedi.')
+        setHata(e.message || t('people.chat.messagesLoadFailed'))
       })
   }, [aktif])
 
@@ -139,7 +143,7 @@ export default function CommunitySocialPage({ mode }) {
       await (tur === 'follow' ? api.community.follow(kisi.id, acikMi) : api.community.block(kisi.id, acikMi))
       await kisileriYukle(arama)
     } catch (iliskiHatasi) {
-      setHata(iliskiHatasi.message || 'İşlem tamamlanamadı.')
+      setHata(iliskiHatasi.message || t('feed.actionFailed'))
     }
   }
 
@@ -158,7 +162,7 @@ export default function CommunitySocialPage({ mode }) {
       await sohbetleriYukle()
       setAktif(sonuc.thread)
     } catch (kurmaHatasi) {
-      setHata(kurmaHatasi.message || 'Sohbet açılamadı.')
+      setHata(kurmaHatasi.message || t('people.chat.createFailed'))
     }
   }
 
@@ -168,7 +172,7 @@ export default function CommunitySocialPage({ mode }) {
       if (aktif?.id === thread.id) setAktif(null)
       await sohbetleriYukle()
     } catch (kararHatasi) {
-      setHata(kararHatasi.message || 'İşlem tamamlanamadı.')
+      setHata(kararHatasi.message || t('feed.actionFailed'))
     }
   }
 
@@ -182,14 +186,14 @@ export default function CommunitySocialPage({ mode }) {
       setMesajlar(sonuc.messages || [])
       await sohbetleriYukle()
     } catch (gonderHatasi) {
-      setHata(gonderHatasi.message || 'Mesaj gönderilemedi.')
+      setHata(gonderHatasi.message || t('people.chat.sendFailed'))
     }
   }
 
   function sohbetAdi(thread) {
     if (thread.name) return thread.name
     const digerleri = thread.members.filter(m => m.user.id !== user.id).map(m => m.user.name)
-    return digerleri.join(', ') || 'Sohbet'
+    return digerleri.join(', ') || t('people.chat.defaultThreadName')
   }
 
   /* --------------------------- KİŞİLER --------------------------- */
@@ -197,8 +201,8 @@ export default function CommunitySocialPage({ mode }) {
     return (
       <main className={styles.page}>
         <header>
-          <h1>Topluluk kişileri</h1>
-          <p>Takip ettiklerini ve engellediğin hesapları yönet. Profil kartına tıklayarak profili açabilirsin.</p>
+          <h1>{t('people.title')}</h1>
+          <p>{t('people.subtitle')}</p>
         </header>
         {hata && <p className={styles.error}>{hata}</p>}
 
@@ -207,8 +211,8 @@ export default function CommunitySocialPage({ mode }) {
           onSubmit={olay => { olay.preventDefault(); kisileriYukle(arama).catch(e => setHata(e.message)) }}
         >
           <Search size={17} aria-hidden="true" />
-          <input value={arama} onChange={e => setArama(e.target.value)} placeholder="Kişi ara" aria-label="Kişi ara" />
-          <Button type="submit">Ara</Button>
+          <input value={arama} onChange={e => setArama(e.target.value)} placeholder={t('people.searchPlaceholder')} aria-label={t('people.searchPlaceholder')} />
+          <Button type="submit">{t('people.searchAction')}</Button>
         </form>
 
         <div className={styles.people}>
@@ -223,11 +227,11 @@ export default function CommunitySocialPage({ mode }) {
               <div>
                 <button type="button" onClick={() => iliskiDegistir(kisi, 'follow')} disabled={engellenen.includes(kisi.id)}>
                   <UserPlus size={16} aria-hidden="true" />
-                  {takipEdilen.includes(kisi.id) ? 'Takibi bırak' : 'Takip et'}
+                  {takipEdilen.includes(kisi.id) ? t('people.unfollow') : t('people.follow')}
                 </button>
                 <button type="button" onClick={() => iliskiDegistir(kisi, 'block')}>
                   <Ban size={16} aria-hidden="true" />
-                  {engellenen.includes(kisi.id) ? 'Engeli kaldır' : 'Engelle'}
+                  {engellenen.includes(kisi.id) ? t('people.unblock') : t('people.block')}
                 </button>
               </div>
             </article>
@@ -244,20 +248,20 @@ export default function CommunitySocialPage({ mode }) {
     <main className={styles.page}>
       <header>
         <div>
-          <h1>Sohbetler</h1>
-          <p>Birebir konuş veya çalışma grubu oluştur.</p>
+          <h1>{t('people.chat.title')}</h1>
+          <p>{t('people.chat.subtitle')}</p>
         </div>
         <span>
           <Button
             variant="secondary"
             onClick={() => { setYeniSohbet({ grup: false }); setSecilenler([]); kisileriYukle().catch(() => {}) }}
           >
-            <MessageCircle size={16} aria-hidden="true" /> Yeni sohbet
+            <MessageCircle size={16} aria-hidden="true" /> {t('people.chat.newChat')}
           </Button>
           <Button
             onClick={() => { setYeniSohbet({ grup: true }); setSecilenler([]); kisileriYukle().catch(() => {}) }}
           >
-            <Users size={16} aria-hidden="true" /> Grup oluştur
+            <Users size={16} aria-hidden="true" /> {t('people.chat.newGroup')}
           </Button>
         </span>
       </header>
@@ -267,8 +271,8 @@ export default function CommunitySocialPage({ mode }) {
       {yeniSohbet && (
         <form className={styles.yeniSohbet} onSubmit={sohbetiKur}>
           <div className={styles.yeniSohbetBaslik}>
-            <strong>{yeniSohbet.grup ? 'Yeni grup' : 'Yeni sohbet'}</strong>
-            <button type="button" onClick={() => setYeniSohbet(null)} aria-label="Kapat"><X size={16} /></button>
+            <strong>{yeniSohbet.grup ? t('people.chat.newGroup') : t('people.chat.newChat')}</strong>
+            <button type="button" onClick={() => setYeniSohbet(null)} aria-label={t('people.chat.close')}><X size={16} /></button>
           </div>
 
           {yeniSohbet.grup && (
@@ -276,9 +280,9 @@ export default function CommunitySocialPage({ mode }) {
               className={styles.grupAdi}
               value={grupAdi}
               onChange={e => setGrupAdi(e.target.value)}
-              placeholder="Grup adı (isteğe bağlı)"
+              placeholder={t('people.chat.groupNamePlaceholder')}
               maxLength={80}
-              aria-label="Grup adı"
+              aria-label={t('people.chat.groupNameAria')}
             />
           )}
 
@@ -291,14 +295,14 @@ export default function CommunitySocialPage({ mode }) {
 
           {yeniSohbet.grup && (
             <p className={styles.ipucu}>
-              Gruba eklediğin kişiler davet alır; katılana kadar mesajları göremezler.
+              {t('people.chat.groupInviteHint')}
             </p>
           )}
 
           <div className={styles.yeniSohbetAlt}>
-            <Button variant="ghost" onClick={() => setYeniSohbet(null)}>Vazgeç</Button>
+            <Button variant="ghost" onClick={() => setYeniSohbet(null)}>{t('common:buttons.cancel')}</Button>
             <Button type="submit" disabled={secilenler.length === 0}>
-              {yeniSohbet.grup ? 'Grubu oluştur' : 'Sohbeti başlat'}
+              {yeniSohbet.grup ? t('people.chat.createGroup') : t('people.chat.startChat')}
             </Button>
           </div>
         </form>
@@ -306,7 +310,7 @@ export default function CommunitySocialPage({ mode }) {
 
       <div className={styles.chat}>
         <aside>
-          {threads.length === 0 && <p className={styles.bos}>Henüz sohbetin yok.</p>}
+          {threads.length === 0 && <p className={styles.bos}>{t('people.chat.empty')}</p>}
           {threads.map(thread => (
             <button
               key={thread.id}
@@ -316,24 +320,24 @@ export default function CommunitySocialPage({ mode }) {
             >
               <strong>{sohbetAdi(thread)}</strong>
               {thread.durumum === 'invited'
-                ? <small className={styles.davetEtiketi}>Grup daveti</small>
-                : <small>{thread.messages?.[0]?.body || 'Henüz mesaj yok'}</small>}
+                ? <small className={styles.davetEtiketi}>{t('people.chat.groupInviteBadge')}</small>
+                : <small>{thread.messages?.[0]?.body || t('people.chat.noMessages')}</small>}
             </button>
           ))}
         </aside>
 
         <section>
-          {!aktif && <p className={styles.bos}>Bir sohbet seç.</p>}
+          {!aktif && <p className={styles.bos}>{t('people.chat.selectOne')}</p>}
 
           {aktif && bekleyenDavet && (
             /* Davet ekranı: mesajlar SUNUCUDA da kapalı, burada yalnız
                kullanıcıya ne olduğu anlatılıyor. */
             <div className={styles.davetKutusu}>
               <h2>{sohbetAdi(aktif)}</h2>
-              <p>Bu gruba davet edildin. Katılmadan mesajları göremezsin.</p>
+              <p>{t('people.chat.invitedText')}</p>
               <div>
-                <Button onClick={() => davetKarari(aktif, 'accept')}><Check size={16} /> Katıl</Button>
-                <Button variant="ghost" onClick={() => davetKarari(aktif, 'decline')}><X size={16} /> Reddet</Button>
+                <Button onClick={() => davetKarari(aktif, 'accept')}><Check size={16} /> {t('people.chat.join')}</Button>
+                <Button variant="ghost" onClick={() => davetKarari(aktif, 'decline')}><X size={16} /> {t('people.chat.decline')}</Button>
               </div>
             </div>
           )}
@@ -341,7 +345,7 @@ export default function CommunitySocialPage({ mode }) {
           {aktif && !bekleyenDavet && (
             <>
               <div className={styles.messages}>
-                {mesajlar.length === 0 && <p className={styles.bos}>İlk mesajı sen yaz.</p>}
+                {mesajlar.length === 0 && <p className={styles.bos}>{t('people.chat.writeFirst')}</p>}
                 {mesajlar.map(mesaj => (
                   <div key={mesaj.id} className={mesaj.senderId === user.id ? styles.mine : ''}>
                     <strong>{mesaj.sender?.name}</strong>
@@ -353,11 +357,11 @@ export default function CommunitySocialPage({ mode }) {
                 <input
                   value={govde}
                   onChange={e => setGovde(e.target.value)}
-                  placeholder="Mesaj yaz…"
+                  placeholder={t('people.chat.messagePlaceholder')}
                   maxLength={2000}
-                  aria-label="Mesaj"
+                  aria-label={t('people.chat.messageAria')}
                 />
-                <Button type="submit" disabled={!govde.trim()} ariaLabel="Gönder"><Send size={16} /></Button>
+                <Button type="submit" disabled={!govde.trim()} ariaLabel={t('people.chat.send')}><Send size={16} /></Button>
               </form>
             </>
           )}

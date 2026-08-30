@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '@/services/api'
 import { Card, Badge, Button, Loading, EmptyState } from '@/components/ui'
@@ -45,28 +46,28 @@ const markdownComponents = {
   h2: ({ node, ...props }) => <h3 {...props} />,
   h3: ({ node, ...props }) => <h4 {...props} />,
   h4: ({ node, ...props }) => <h4 {...props} />,
-  table: ({ node, ...props }) => (
-    <div className={styles.tableWrap} role="region" aria-label="Tablo" tabIndex={0}>
-      <table {...props} />
-    </div>
-  )
 }
 
 const VERIFICATION_LABELS = {
-  verified: { label: 'Doğrulanmış', variant: 'success' },
-  unverified: { label: 'Doğrulanmamış', variant: 'warning' },
-  pending_review: { label: 'İncelemede', variant: 'info' },
-  demo_unverified: { label: 'Demo', variant: 'default' }
+  verified: { labelKey: 'knowledge.statusVerified', variant: 'success' },
+  unverified: { labelKey: 'knowledge.statusUnverified', variant: 'warning' },
+  pending_review: { labelKey: 'knowledge.statusPendingReview', variant: 'info' },
+  demo_unverified: { labelKey: 'knowledge.statusDemo', variant: 'default' }
 }
 
 const GATE_LABELS = {
-  standard: 'Standart',
-  demo_only: 'Demo',
-  requires_professional_approval: 'Uzman Onayı Gerekli',
-  requires_current_official_source_and_legal_approval: 'Resmi Kaynak + Hukuk Onayı'
+  standard: 'knowledge.gateStandard',
+  demo_only: 'knowledge.statusDemo',
+  requires_professional_approval: 'knowledge.gateProfessionalApproval',
+  requires_current_official_source_and_legal_approval: 'knowledge.gateOfficialLegal'
 }
 
 export default function KnowledgeDetail() {
+  const { t, i18n } = useTranslation('learning')
+  const localizedMarkdownComponents = {
+    ...markdownComponents,
+    table: ({ node, ...props }) => <div className={styles.tableWrap} role="region" aria-label={t('knowledge.tableAria')} tabIndex={0}><table {...props} /></div>
+  }
   const { code } = useParams()
   const navigate = useNavigate()
   const mountedRef = useRef(false)
@@ -100,13 +101,13 @@ export default function KnowledgeDetail() {
       const data = await api.courses.getAll({ knowledgeObjectId: ko.id, pageSize: 1 })
       const course = data.courses?.[0]
       if (!course) {
-        setCourseNavError('Bu konu henüz bir kursa bağlanmamış.')
+        setCourseNavError(t('knowledge.errorLinkCourse'))
         return
       }
       if (!course.enrollment) await api.enrollments.enroll(course.id)
       navigate(`/app/courses/${course.id}/learn`)
     } catch (err) {
-      setCourseNavError(err.message || 'Kursa geçilemedi. Lütfen tekrar deneyin.')
+      setCourseNavError(err.message || t('knowledge.errorGoCourse'))
     } finally {
       setCourseNavigating(false)
     }
@@ -133,7 +134,7 @@ export default function KnowledgeDetail() {
       await api.enrollments.enroll(canonicalLesson.courseId)
       navigate(`/app/courses/${canonicalLesson.courseId}/learn/${canonicalLesson.lessonId}`)
     } catch (err) {
-      setCourseNavError(err.message || 'Ders açılamadı. Lütfen tekrar deneyin.')
+      setCourseNavError(err.message || t('knowledge.errorOpenLesson'))
     } finally {
       setCourseNavigating(false)
     }
@@ -173,11 +174,11 @@ export default function KnowledgeDetail() {
     } catch (err) {
       if (!mountedRef.current) return
       if (err.status === 404) setNotFound(true)
-      else setError(err.message || 'Detay yüklenemedi')
+      else setError(err.message || t('knowledge.errorLoadDetail'))
     } finally {
       if (mountedRef.current) setLoading(false)
     }
-  }, [code])
+  }, [code, t])
 
   useEffect(() => {
     mountedRef.current = true
@@ -245,9 +246,9 @@ export default function KnowledgeDetail() {
       <div className={styles.page}>
         <div className={styles.errorContainer}>
           <AlertCircle size={48} />
-          <h2>İçerik bulunamadı</h2>
-          <p>Bu kodla eşleşen bir bilgi nesnesi bulunamadı veya erişim iznin yok.</p>
-          <Button onClick={() => navigate('/app/knowledge')}>Listeye Dön</Button>
+          <h2>{t('knowledge.notFoundTitle')}</h2>
+          <p>{t('knowledge.notFoundMessage')}</p>
+          <Button onClick={() => navigate('/app/knowledge')}>{t('knowledge.backToList')}</Button>
         </div>
       </div>
     )
@@ -258,9 +259,9 @@ export default function KnowledgeDetail() {
       <div className={styles.page}>
         <div className={styles.errorContainer}>
           <AlertCircle size={48} />
-          <h2>Hata oluştu</h2>
+          <h2>{t('knowledge.errorTitle')}</h2>
           <p>{error}</p>
-          <Button onClick={fetchData}>Tekrar Dene</Button>
+          <Button onClick={fetchData}>{t('knowledge.retry')}</Button>
         </div>
       </div>
     )
@@ -269,16 +270,16 @@ export default function KnowledgeDetail() {
   if (!ko) return null
 
   const meta = parseMeta(ko.metadata)
-  const vStatus = VERIFICATION_LABELS[ko.verificationStatus] || { label: ko.verificationStatus, variant: 'default' }
+  const vStatus = VERIFICATION_LABELS[ko.verificationStatus] || { labelKey: null, variant: 'default' }
   const hasSections = meta.problem || meta.learningOutcomes?.length || meta.examples?.length ||
     meta.steps?.length || meta.checklist?.length || meta.formulas?.length
 
   return (
     <div className={styles.page}>
       {/* Breadcrumb */}
-      <nav className={styles.breadcrumb} aria-label="Sayfa yolu">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/app/knowledge')} ariaLabel="Listeye dön">
-          <ArrowLeft size={16} /> Bilgi Nesneleri
+      <nav className={styles.breadcrumb} aria-label={t('knowledge.breadcrumbAria')}>
+        <Button variant="ghost" size="sm" onClick={() => navigate('/app/knowledge')} ariaLabel={t('knowledge.backToListAria')}>
+          <ArrowLeft size={16} /> {t('knowledge.objectsLabel')}
         </Button>
         <span className={styles.breadcrumbSep}>/</span>
         <span className={styles.breadcrumbCurrent}>{ko.code}</span>
@@ -290,18 +291,15 @@ export default function KnowledgeDetail() {
       {canonicalLesson && (
         <Card className={styles.canonicalNotice}>
           <div className={styles.canonicalNoticeText}>
-            <strong>Bu içeriğin dersi var</strong>
-            <p>
-              {canonicalLesson.courseTitle} dersini ilerleme takibi, uygulama
-              kutuları ve kaynaklarla birlikte aç.
-            </p>
+            <strong>{t('knowledge.canonicalNoticeTitle')}</strong>
+            <p>{t('knowledge.canonicalNoticeText', { courseTitle: canonicalLesson.courseTitle })}</p>
           </div>
           <Button
             variant="primary"
             disabled={courseNavigating}
             onClick={acCanonicalDers}
           >
-            {courseNavigating ? 'Açılıyor…' : 'Dersi Aç'}
+            {courseNavigating ? t('knowledge.opening') : t('knowledge.openLesson')}
           </Button>
         </Card>
       )}
@@ -310,22 +308,22 @@ export default function KnowledgeDetail() {
       <div className={styles.sessionBar}>
         {!progress || progress.status === 'not_started' ? (
           <div className={styles.sessionRow}>
-            <span className={styles.sessionLabel}>Henüz başlamadın</span>
+            <span className={styles.sessionLabel}>{t('knowledge.sessionNotStarted')}</span>
             <button className={styles.sessionBtn} onClick={handleStart} disabled={saving}>
-              <Play size={14} /> Öğrenmeye Başla
+              <Play size={14} /> {t('knowledge.startLearning')}
             </button>
           </div>
         ) : progress.status === 'completed' ? (
           <div className={styles.sessionRow}>
             <CheckCircle size={16} className={styles.sessionDoneIcon} />
-            <span className={styles.sessionDone}>Tamamlandı</span>
+            <span className={styles.sessionDone}>{t('knowledge.completed')}</span>
             <button className={styles.sessionBtnOutline} onClick={handleStart} disabled={saving}>
-              Tekrarla
+              {t('knowledge.repeat')}
             </button>
           </div>
         ) : (
           <div className={styles.sessionRow}>
-            <span className={styles.sessionLabel}>Öğrenme devam ediyor</span>
+            <span className={styles.sessionLabel}>{t('knowledge.sessionInProgress')}</span>
             <div className={styles.sessionProgressWrap}>
               <div className={styles.sessionProgress}>
                 <div className={styles.sessionProgressFill} style={{ width: `${progress.progressPercent}%` }} />
@@ -334,7 +332,7 @@ export default function KnowledgeDetail() {
             </div>
             <div className={styles.sessionActions}>
               <button className={styles.sessionBtnDone} onClick={handleComplete} disabled={saving}>
-                <CheckCircle size={14} /> Tamamla
+                <CheckCircle size={14} /> {t('knowledge.complete')}
               </button>
             </div>
           </div>
@@ -345,11 +343,11 @@ export default function KnowledgeDetail() {
           {flashcardData && (
             <div className={styles.toolStat}>
               <Brain size={14} />
-              <span className={styles.toolStatLabel}>Kart</span>
+              <span className={styles.toolStatLabel}>{t('knowledge.cardsLabel')}</span>
               <span className={styles.toolStatValue}>
                 {flashcardData.progress
-                  ? `%${flashcardData.progress.percent} (${flashcardData.progress.mastered}/${flashcardData.totalCards})`
-                  : `0/${flashcardData.totalCards}`}
+                  ? t('knowledge.cardStatPercent', { percent: flashcardData.progress.percent, mastered: flashcardData.progress.mastered, total: flashcardData.totalCards })
+                  : t('knowledge.cardStatInitial', { total: flashcardData.totalCards })}
               </span>
             </div>
           )}
@@ -358,15 +356,15 @@ export default function KnowledgeDetail() {
               <HelpCircle size={14} />
               <span className={styles.toolStatLabel}>Quiz</span>
               <span className={styles.toolStatValue}>
-                {quizStats ? `En iyi %${quizStats.best} (${quizStats.total} deneme)` : 'Çözülmedi'}
+                {quizStats ? t('knowledge.quizBestStat', { score: quizStats.best, count: quizStats.total }) : t('knowledge.quizNotAttempted')}
               </span>
             </div>
           )}
           {taskTemplates.length > 0 && (
             <div className={styles.toolStat}>
               <ListChecks size={14} />
-              <span className={styles.toolStatLabel}>Görev</span>
-              <span className={styles.toolStatValue}>{taskTemplates.length} adet</span>
+              <span className={styles.toolStatLabel}>{t('knowledge.taskLabel')}</span>
+              <span className={styles.toolStatValue}>{t('knowledge.taskCountShort', { count: taskTemplates.length })}</span>
             </div>
           )}
         </div>
@@ -386,7 +384,7 @@ export default function KnowledgeDetail() {
                 <Badge variant="default" className={styles.typeBadge}>{ko.type}</Badge>
                 {isContextualMentorEnabled && (
                   <Button variant="secondary" size="sm" onClick={handleAskMentor}>
-                    <MessageSquare size={14} className="mr-1" /> Mentora Sor
+                    <MessageSquare size={14} className="mr-1" /> {t('knowledge.askContextualMentor')}
                   </Button>
                 )}
               </div>
@@ -399,18 +397,18 @@ export default function KnowledgeDetail() {
               {ko.currentVersion && (
                 <Badge variant="default">v{ko.currentVersion.versionNumber}</Badge>
               )}
-              <Badge variant={vStatus.variant}>{vStatus.label}</Badge>
+              <Badge variant={vStatus.variant}>{vStatus.labelKey ? t(vStatus.labelKey) : ko.verificationStatus}</Badge>
               {ko.reviewGate && ko.reviewGate !== 'standard' && ko.reviewGate !== 'demo_only' && (
-                <Badge variant="warning">{GATE_LABELS[ko.reviewGate] || ko.reviewGate}</Badge>
+                <Badge variant="warning">{GATE_LABELS[ko.reviewGate] ? t(GATE_LABELS[ko.reviewGate]) : ko.reviewGate}</Badge>
               )}
               {meta.duration && (
                 <span className={styles.duration}>
-                  <Clock size={14} /> {meta.duration} dk
+                  <Clock size={14} /> {t('knowledgeTopic.minutes', { count: meta.duration })}
                 </span>
               )}
             </div>
             <p className={styles.updatedAt}>
-              Son güncelleme: {new Date(ko.updatedAt).toLocaleDateString('tr-TR', {
+              {t('knowledge.lastUpdated')} {new Date(ko.updatedAt).toLocaleDateString(i18n.resolvedLanguage || i18n.language, {
                 day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
               })}
             </p>
@@ -419,7 +417,7 @@ export default function KnowledgeDetail() {
           {/* Summary */}
           {meta.summary && (
             <Card className={styles.section}>
-              <h2 className={styles.sectionTitle}><FileText size={18} /> Özet</h2>
+              <h2 className={styles.sectionTitle}><FileText size={18} /> {t('knowledge.summaryTitle')}</h2>
               <p className={styles.summaryText}>{meta.summary}</p>
             </Card>
           )}
@@ -427,7 +425,7 @@ export default function KnowledgeDetail() {
           {/* Problem */}
           {meta.problem && (
             <Card className={styles.section}>
-              <h2 className={styles.sectionTitle}><AlertCircle size={18} /> Çözülen Problem</h2>
+              <h2 className={styles.sectionTitle}><AlertCircle size={18} /> {t('knowledge.problemTitle')}</h2>
               <p className={styles.bodyText}>{meta.problem}</p>
             </Card>
           )}
@@ -435,7 +433,7 @@ export default function KnowledgeDetail() {
           {/* Learning Outcomes */}
           {meta.learningOutcomes?.length > 0 && (
             <Card className={styles.section}>
-              <h2 className={styles.sectionTitle}><Target size={18} /> Öğrenme Çıktıları</h2>
+              <h2 className={styles.sectionTitle}><Target size={18} /> {t('knowledge.outcomesTitle')}</h2>
               <ul className={styles.list}>
                 {meta.learningOutcomes.map((item, i) => (
                   <li key={i} className={styles.listItem}><CheckCircle size={14} /> {item}</li>
@@ -447,9 +445,9 @@ export default function KnowledgeDetail() {
           {/* Main Content */}
           {ko.content && (
             <Card className={styles.section}>
-              <h2 className={styles.sectionTitle}><BookOpen size={18} /> Açıklama</h2>
+              <h2 className={styles.sectionTitle}><BookOpen size={18} /> {t('knowledge.descriptionTitle')}</h2>
               <div className={styles.markdown}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} components={localizedMarkdownComponents}>
                   {stripRawMetadataBlock(ko.content)}
                 </ReactMarkdown>
               </div>
@@ -459,10 +457,10 @@ export default function KnowledgeDetail() {
           {/* Examples */}
           {meta.examples?.length > 0 && (
             <Card className={styles.section}>
-              <h2 className={styles.sectionTitle}><Zap size={18} /> Örnekler</h2>
+              <h2 className={styles.sectionTitle}><Zap size={18} /> {t('knowledge.examplesTitle')}</h2>
               {meta.examples.map((ex, i) => (
                 <div key={i} className={styles.exampleBlock}>
-                  <span className={styles.exampleNum}>Örnek {i + 1}</span>
+                  <span className={styles.exampleNum}>{t('knowledge.exampleNumber', { index: i + 1 })}</span>
                   <p className={styles.bodyText}>{ex}</p>
                 </div>
               ))}
@@ -472,7 +470,7 @@ export default function KnowledgeDetail() {
           {/* Step-by-Step */}
           {meta.steps?.length > 0 && (
             <Card className={styles.section}>
-              <h2 className={styles.sectionTitle}><ArrowLeft size={18} className={styles.rotate180} /> Adım Adım Uygulama</h2>
+              <h2 className={styles.sectionTitle}><ArrowLeft size={18} className={styles.rotate180} /> {t('knowledge.stepsTitle')}</h2>
               <ol className={styles.stepsList}>
                 {meta.steps.map((step, i) => (
                   <li key={i} className={styles.stepItem}>
@@ -487,7 +485,7 @@ export default function KnowledgeDetail() {
           {/* Checklist */}
           {meta.checklist?.length > 0 && (
             <Card className={styles.section}>
-              <h2 className={styles.sectionTitle}><ListChecks size={18} /> Kontrol Listesi</h2>
+              <h2 className={styles.sectionTitle}><ListChecks size={18} /> {t('knowledge.checklistTitle')}</h2>
               <ul className={styles.list}>
                 {meta.checklist.map((item, i) => (
                   <li key={i} className={styles.listItem}><CheckCircle size={14} /> {item}</li>
@@ -499,7 +497,7 @@ export default function KnowledgeDetail() {
           {/* Formulas */}
           {meta.formulas?.length > 0 && (
             <Card className={styles.section}>
-              <h2 className={styles.sectionTitle}><Zap size={18} /> Formüller</h2>
+              <h2 className={styles.sectionTitle}><Zap size={18} /> {t('knowledge.formulasTitle')}</h2>
               {meta.formulas.map((fm, i) => (
                 <div key={i} className={styles.formulaBlock}>
                   <code className={styles.formula}>{fm}</code>
@@ -514,7 +512,7 @@ export default function KnowledgeDetail() {
           {/* Embedded Practice Blocks — her kart ayrı bölüm olarak */}
           {embeddedPracticeBlocks.length > 0 && (
             <div className={styles.embeddedBlocksSection}>
-              <h2 className={styles.sectionTitle}><Zap size={18} /> Uygulama Kutuları</h2>
+              <h2 className={styles.sectionTitle}><Zap size={18} /> {t('knowledge.practiceBoxesTitle')}</h2>
               <EmbeddedPracticeBlock
                 blocks={embeddedPracticeBlocks}
                 contextType="knowledge_object"
@@ -527,7 +525,7 @@ export default function KnowledgeDetail() {
           {/* Task Templates */}
           {taskTemplates.length > 0 && (
             <Card className={styles.section}>
-              <h2 className={styles.sectionTitle}><ListChecks size={18} /> Görev</h2>
+              <h2 className={styles.sectionTitle}><ListChecks size={18} /> {t('knowledge.taskLabel')}</h2>
               <TaskWorkspace koId={ko.id} taskTemplates={taskTemplates} onProgress={fetchData} />
             </Card>
           )}
@@ -535,7 +533,7 @@ export default function KnowledgeDetail() {
           {/* Quiz */}
           {quizzes.length > 0 && (
             <Card className={styles.section}>
-              <h2 className={styles.sectionTitle}><HelpCircle size={18} /> Mini Quiz</h2>
+              <h2 className={styles.sectionTitle}><HelpCircle size={18} /> {t('knowledge.miniQuizTitle')}</h2>
               <QuizWidget koId={ko.id} quizzes={quizzes} onProgress={fetchData} />
             </Card>
           )}
@@ -546,7 +544,7 @@ export default function KnowledgeDetail() {
           {/* Sources */}
           <Card className={styles.sideSection}>
             <div className={styles.sourceHeader}>
-              <h2 className={styles.sideSectionTitle}><Download size={16} /> Kaynaklar</h2>
+              <h2 className={styles.sideSectionTitle}><Download size={16} /> {t('knowledge.sourcesTitle')}</h2>
               <span className={styles.sourceCountBadge}>{ko.sources?.length || 0}</span>
             </div>
             {ko.sources?.length > 0 ? (
@@ -561,42 +559,42 @@ export default function KnowledgeDetail() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className={styles.sourceLink}
-                          aria-label={`${ks.source.title} (yeni sekmede açılır)`}
+                          aria-label={t('knowledge.sourceOpenAria', { title: ks.source.title })}
                         >
-                          <ExternalLink size={12} /> Kaynağa Git
+                          <ExternalLink size={12} /> {t('knowledge.openSource')}
                         </a>
                       )}
                       <Badge variant={
                         ks.source.authorityLevel === 'high' ? 'success' :
                         ks.source.authorityLevel === 'medium' ? 'info' : 'default'
                       }>
-                        {ks.source.authorityLevel === 'high' ? 'Doğrulanmış' :
-                         ks.source.authorityLevel === 'medium' ? 'Orta Güven' : 'Düşük Güven'}
+                        {ks.source.authorityLevel === 'high' ? t('knowledge.authorityHigh') :
+                         ks.source.authorityLevel === 'medium' ? t('knowledge.authorityMedium') : t('knowledge.authorityLow')}
                       </Badge>
                     </div>
                     {ks.source.lastChecked && (
                       <span className={styles.sourceChecked}>
-                        Son kontrol: {new Date(ks.source.lastChecked).toLocaleDateString('tr-TR')}
+                        {t('knowledge.lastChecked')} {new Date(ks.source.lastChecked).toLocaleDateString(i18n.resolvedLanguage || i18n.language)}
                       </span>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
-              <p className={styles.emptyText}>Henüz kaynak eklenmemiş.</p>
+              <p className={styles.emptyText}>{t('knowledge.noSources')}</p>
             )}
           </Card>
 
           {/* Go to Course */}
           {(ko.code?.startsWith('CUR-') || ko.code?.startsWith('KBX-')) ? (
                 <Card className={styles.sideSection}>
-                  <h2 className={styles.sideSectionTitle}><GraduationCap size={16} /> Kurs</h2>
+                  <h2 className={styles.sideSectionTitle}><GraduationCap size={16} /> {t('knowledge.courseCardTitle')}</h2>
                   <Button
                     variant="primary" size="sm" className={styles.mentorBtn}
                     onClick={handleGoToCourse}
                     disabled={courseNavigating}
                   >
-                    <GraduationCap size={14} /> {courseNavigating ? 'Kurs Açılıyor...' : 'Bu Konunun Kursuna Git'}
+                    <GraduationCap size={14} /> {courseNavigating ? t('knowledge.openingCourse') : t('knowledge.goToCourseCta')}
                   </Button>
                   {courseNavError && <p className={styles.courseNavError}>{courseNavError}</p>}
                 </Card>
@@ -605,24 +603,24 @@ export default function KnowledgeDetail() {
           {/* Quick Actions */}
           {((featureFlags.legacyFlashcards && flashcardData) || (featureFlags.legacyQuiz && quizzes.length > 0)) && (
             <Card className={styles.sideSection}>
-              <h2 className={styles.sideSectionTitle}><Zap size={16} /> Hızlı Çalışma</h2>
+              <h2 className={styles.sideSectionTitle}><Zap size={16} /> {t('knowledge.quickStudyTitle')}</h2>
               <div className={styles.quickActions}>
                 {featureFlags.legacyFlashcards && flashcardData && flashcardData.totalCards > 0 && (
                   <Button
                     variant="primary" size="sm" className={styles.quickBtn}
                     onClick={() => navigate(`/app/flashcards/study/${ko.id}`)}
-                    ariaLabel="Flashcard çalış"
+                    ariaLabel={t('knowledge.flashcardStudyAria')}
                   >
-                    <Brain size={14} /> Flashcard Çalış ({flashcardData.totalCards} kart)
+                    <Brain size={14} /> {t('knowledge.flashcardStudyCta', { count: flashcardData.totalCards })}
                   </Button>
                 )}
                 {featureFlags.legacyQuiz && quizzes.length > 0 && (
                   <Button
                     variant="primary" size="sm" className={styles.quickBtn}
                     onClick={() => navigate(`/app/quiz/take/${ko.id}`)}
-                    ariaLabel="Quiz çöz"
+                    ariaLabel={t('knowledge.quizStudyAria')}
                   >
-                    <HelpCircle size={14} /> Quiz Çöz ({quizzes.length} quiz)
+                    <HelpCircle size={14} /> {t('knowledge.quizStudyCta', { count: quizzes.length })}
                   </Button>
                 )}
               </div>
@@ -633,23 +631,23 @@ export default function KnowledgeDetail() {
           <Card className={styles.sideSection}>
             <h2 className={styles.sideSectionTitle}><MessageCircle size={16} /> AI Mentor</h2>
             <p className={styles.mentorText}>
-              Bu içerik hakkında AI Mentor'a soru sorabilirsin.
+              {t('knowledge.mentorIntro')}
             </p>
             <Button
               variant="primary"
               size="sm"
               className={styles.mentorBtn}
               onClick={() => navigate(`/app/mentor?context=ko&code=${ko.code}&title=${encodeURIComponent(ko.title)}`)}
-              ariaLabel="AI Mentora sor"
+              ariaLabel={t('knowledge.askMentorAria')}
             >
-              <MessageCircle size={16} /> AI Mentor'a Sor
+              <MessageCircle size={16} /> {t('knowledge.askMentor')}
             </Button>
           </Card>
 
           {/* Related KOs */}
           {relatedKOs.length > 0 && (
             <Card className={styles.sideSection}>
-              <h2 className={styles.sideSectionTitle}><Layers size={16} /> İlgili İçerikler</h2>
+              <h2 className={styles.sideSectionTitle}><Layers size={16} /> {t('knowledge.relatedTitle')}</h2>
               <div className={styles.relatedList}>
                 {relatedKOs.map(rko => {
                   const rMeta = parseMeta(rko.metadata)

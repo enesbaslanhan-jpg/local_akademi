@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
@@ -7,81 +8,32 @@ import { Select, Button, Badge, DataTable } from '@/components/ui'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import { Plus, Eye, Edit3, CheckCircle, XCircle, Send, Upload, Archive } from 'lucide-react'
 import styles from './AdminKnowledge.module.css'
+import { getFormatLocale } from '@/utils/formatters'
 
-const STATUS_MAP = {
-  draft: { label: 'Taslak', variant: 'default' },
-  in_review: { label: 'İncelemede', variant: 'warning' },
-  approved: { label: 'Onaylı', variant: 'info' },
-  published: { label: 'Yayında', variant: 'success' },
-  archived: { label: 'Arşiv', variant: 'danger' },
-  rejected: { label: 'Red', variant: 'danger' }
-}
+const STATUS_KEYS = ['draft', 'in_review', 'approved', 'published', 'archived', 'rejected']
+const STATUS_VARIANTS = { draft: 'default', in_review: 'warning', approved: 'info', published: 'success', archived: 'danger', rejected: 'danger' }
 
-const TYPE_OPTIONS = [
-  { value: '', label: 'Tümü' },
-  { value: 'concept', label: 'Kavram' },
-  { value: 'fact', label: 'Gerçek' },
-  { value: 'procedure', label: 'Prosedür' },
-  { value: 'principle', label: 'İlke' }
-]
+const TYPE_KEYS = ['', 'concept', 'fact', 'procedure', 'principle']
+const LEVEL_KEYS = ['', 'beginner', 'intermediate', 'advanced']
 
-const STATUS_OPTIONS = [
-  { value: '', label: 'Tümü' },
-  { value: 'draft', label: 'Taslak' },
-  { value: 'in_review', label: 'İncelemede' },
-  { value: 'approved', label: 'Onaylı' },
-  { value: 'published', label: 'Yayında' },
-  { value: 'archived', label: 'Arşiv' },
-  { value: 'rejected', label: 'Red' }
-]
-
-const LEVEL_OPTIONS = [
-  { value: '', label: 'Tümü' },
-  { value: 'beginner', label: 'Başlangıç' },
-  { value: 'intermediate', label: 'Orta' },
-  { value: 'advanced', label: 'İleri' }
-]
-
-const WORKFLOW_CONFIRM = {
-  submitReview: {
-    title: 'İncelemeye Gönder',
-    desc: 'Bu KO inceleme sürecine gönderilecek.',
-    confirmLabel: 'İncelemeye Gönder',
-    variant: 'primary'
-  },
-  approve: {
-    title: 'KO\'yu Onayla',
-    desc: 'Bu KO\'yu onaylıyorsunuz. Onaylanan KO\'lar publish edilebilir.',
-    confirmLabel: 'Onayla',
-    variant: 'success'
-  },
-  reject: {
-    title: 'KO\'yu Reddet',
-    desc: 'Bu KO\'yu reddediyorsunuz. Red sebebini açıklamanız zorunludur.',
-    confirmLabel: 'Reddet',
-    variant: 'danger',
-    requireNote: true,
-    noteLabel: 'Red sebebi'
-  },
-  publish: {
-    title: 'KO\'yu Yayınla',
-    desc: 'Bu KO yayına alınacak.',
-    confirmLabel: 'Yayınla',
-    variant: 'success'
-  },
-  archive: {
-    title: 'KO\'yu Arşivle',
-    desc: 'Bu KO arşivlenecek.',
-    confirmLabel: 'Arşivle',
-    variant: 'warning'
-  }
-}
+const WORKFLOW_ACTIONS = ['submitReview', 'approve', 'reject', 'publish', 'archive']
+const WORKFLOW_VARIANTS = { submitReview: 'primary', approve: 'success', reject: 'danger', publish: 'success', archive: 'warning' }
+const WORKFLOW_REQUIRE_NOTE = { reject: true }
 
 export default function AdminKnowledge() {
+  const { t } = useTranslation('admin')
   const navigate = useNavigate()
   const { user } = useAuth()
   const toast = useToast()
   const isEditor = user?.role === 'content_editor' || user?.role === 'admin'
+
+  const statusLabel = (status) => t(`knowledge.status.${status}`)
+  const typeLabel = (type) => type ? t(`knowledge.type.${type}`) : t('knowledge.type.all')
+  const levelLabel = (level) => level ? t(`knowledge.level.${level}`) : t('knowledge.level.all')
+
+  const typeOptions = TYPE_KEYS.map(k => ({ value: k, label: typeLabel(k) }))
+  const statusOptions = STATUS_KEYS.map(k => ({ value: k, label: statusLabel(k) }))
+  const levelOptions = LEVEL_KEYS.map(k => ({ value: k, label: levelLabel(k) }))
 
   const [objects, setObjects] = useState([])
   const [loading, setLoading] = useState(true)
@@ -132,14 +84,14 @@ export default function AdminKnowledge() {
     try {
       setError('')
       const fn = api.knowledgeV2[action]
-      if (!fn) throw new Error('Geçersiz işlem')
+      if (!fn) throw new Error(t('knowledge.errors.invalidAction'))
       await fn(activeCode, note || undefined)
       toast.success(
-        action === 'submitReview' ? 'İncelemeye gönderildi' :
-        action === 'approve' ? 'KO onaylandı' :
-        action === 'reject' ? 'KO reddedildi' :
-        action === 'publish' ? 'KO yayınlandı' :
-        action === 'archive' ? 'KO arşivlendi' : 'İşlem başarılı'
+        action === 'submitReview' ? t('knowledge.toasts.submitted') :
+        action === 'approve' ? t('knowledge.toasts.approved') :
+        action === 'reject' ? t('knowledge.toasts.rejected') :
+        action === 'publish' ? t('knowledge.toasts.published') :
+        action === 'archive' ? t('knowledge.toasts.archived') : t('knowledge.toasts.success')
       )
       setActiveAction(null)
       setActiveCode(null)
@@ -164,65 +116,64 @@ export default function AdminKnowledge() {
 
   function formatDate(d) {
     if (!d) return '-'
-    return new Date(d).toLocaleDateString('tr-TR')
+    return new Date(d).toLocaleDateString(getFormatLocale())
   }
 
   const columns = [
-    { key: 'code', label: 'Kod', width: '120px', render: row => <code className={styles.code}>{row.code || row.id}</code> },
-    { key: 'title', label: 'Başlık', render: row => (
+    { key: 'code', label: t('knowledge.table.code'), width: '120px', render: row => <code className={styles.code}>{row.code || row.id}</code> },
+    { key: 'title', label: t('knowledge.table.title'), render: row => (
       <div>
         <div className={styles.title}>{row.title}</div>
         <div className={styles.meta}>{row.type}</div>
       </div>
     )},
-    { key: 'level', label: 'Seviye', width: '90px', render: row => <Badge>{row.level || 'beginner'}</Badge> },
-    { key: 'status', label: 'Durum', width: '110px', render: row => {
-      const s = STATUS_MAP[row.status] || STATUS_MAP.draft
-      return <Badge variant={s.variant}>{s.label}</Badge>
+    { key: 'level', label: t('knowledge.table.level'), width: '90px', render: row => <Badge>{row.level || 'beginner'}</Badge> },
+    { key: 'status', label: t('knowledge.table.status'), width: '110px', render: row => {
+      return <Badge variant={STATUS_VARIANTS[row.status] || STATUS_VARIANTS.draft}>{statusLabel(row.status)}</Badge>
     }},
-    { key: 'verificationStatus', label: 'Doğrulama', width: '100px', render: row => (
+    { key: 'verificationStatus', label: t('knowledge.table.verification'), width: '100px', render: row => (
       <Badge variant={row.verificationStatus === 'verified' ? 'success' : 'warning'}>
-        {row.verificationStatus === 'verified' ? 'Doğrulandı' : 'Beklemede'}
+        {row.verificationStatus === 'verified' ? t('knowledge.verification.verified') : t('knowledge.verification.pending')}
       </Badge>
     )},
-    { key: 'updatedAt', label: 'Güncelleme', width: '100px', render: row => formatDate(row.updatedAt) },
-    { key: 'actions', label: 'İşlemler', width: '200px', render: row => (
+    { key: 'updatedAt', label: t('knowledge.table.updated'), width: '100px', render: row => formatDate(row.updatedAt) },
+    { key: 'actions', label: t('knowledge.table.actions'), width: '200px', render: row => (
       <div className={styles.actions}>
-        <button className={styles.actionBtn} onClick={() => navigate(`/admin/knowledge/${row.code || row.id}`)} aria-label="Detay" title="Detay">
+        <button className={styles.actionBtn} onClick={() => navigate(`/admin/knowledge/${row.code || row.id}`)} aria-label={t('knowledge.actions.detail')} title={t('knowledge.actions.detail')}>
           <Eye size={15} />
         </button>
         {(role === 'admin' || role === 'content_editor') && (row.status === 'draft' || row.status === 'rejected') && (
-          <button className={styles.actionBtn} onClick={() => navigate(`/admin/knowledge/${row.code || row.id}/edit`)} aria-label="Düzenle" title="Düzenle">
+          <button className={styles.actionBtn} onClick={() => navigate(`/admin/knowledge/${row.code || row.id}/edit`)} aria-label={t('knowledge.actions.edit')} title={t('knowledge.actions.edit')}>
             <Edit3 size={15} />
           </button>
         )}
         {canShowAction('submitReview', row) && (
           <button className={styles.actionBtn} onClick={() => openConfirm('submitReview', row.code)}
-            disabled={actionLoading} aria-label="İncelemeye gönder" title="İncelemeye gönder">
+            disabled={actionLoading} aria-label={t('knowledge.actions.submitReview')} title={t('knowledge.actions.submitReview')}>
             <Send size={15} />
           </button>
         )}
         {canShowAction('approve', row) && (
           <button className={`${styles.actionBtn} ${styles.approve}`} onClick={() => openConfirm('approve', row.code)}
-            disabled={actionLoading} aria-label="Onayla" title="Onayla">
+            disabled={actionLoading} aria-label={t('knowledge.actions.approve')} title={t('knowledge.actions.approve')}>
             <CheckCircle size={15} />
           </button>
         )}
         {canShowAction('reject', row) && (
           <button className={`${styles.actionBtn} ${styles.reject}`} onClick={() => openConfirm('reject', row.code)}
-            disabled={actionLoading} aria-label="Reddet" title="Reddet">
+            disabled={actionLoading} aria-label={t('knowledge.actions.reject')} title={t('knowledge.actions.reject')}>
             <XCircle size={15} />
           </button>
         )}
         {role === 'admin' && row.status === 'approved' && (
           <button className={`${styles.actionBtn} ${styles.publish}`} onClick={() => openConfirm('publish', row.code)}
-            disabled={actionLoading} aria-label="Yayınla" title="Yayınla">
+            disabled={actionLoading} aria-label={t('knowledge.actions.publish')} title={t('knowledge.actions.publish')}>
             <Upload size={15} />
           </button>
         )}
         {role === 'admin' && (row.status === 'published' || row.status === 'approved') && (
           <button className={`${styles.actionBtn} ${styles.archiveBtn}`} onClick={() => openConfirm('archive', row.code)}
-            disabled={actionLoading} aria-label="Arşivle" title="Arşivle">
+            disabled={actionLoading} aria-label={t('knowledge.actions.archive')} title={t('knowledge.actions.archive')}>
             <Archive size={15} />
           </button>
         )}
@@ -230,7 +181,14 @@ export default function AdminKnowledge() {
     )}
   ]
 
-  const confirmCfg = WORKFLOW_CONFIRM[activeAction]
+  const confirmCfg = activeAction ? {
+    title: t(`knowledge.workflow.${activeAction}.title`),
+    desc: t(`knowledge.workflow.${activeAction}.desc`),
+    confirmLabel: t(`knowledge.workflow.${activeAction}.confirmLabel`),
+    variant: WORKFLOW_VARIANTS[activeAction] || 'primary',
+    requireNote: WORKFLOW_REQUIRE_NOTE[activeAction],
+    noteLabel: WORKFLOW_REQUIRE_NOTE[activeAction] ? t(`knowledge.workflow.${activeAction}.noteLabel`) : undefined
+  } : null
   const filteredObjects = objects
 
   return (
@@ -240,10 +198,10 @@ export default function AdminKnowledge() {
             için ilk sayfa çoğunlukla yayındaki kayıtlardan oluşuyor ve
             arşivdekilerin varlığı hiç görünmüyordu. Filtre seçiliyken de
             kaç kayıt olduğu buradan okunur. */}
-        <h2>KO Yönetimi {total > 0 && <span className={styles.totalBadge}>{total.toLocaleString('tr-TR')} kayıt</span>}</h2>
+        <h2>{t('knowledge.heading')} {total > 0 && <span className={styles.totalBadge}>{total.toLocaleString(getFormatLocale())} {t('knowledge.recordCount')}</span>}</h2>
         {isEditor && (
           <Button onClick={() => navigate('/admin/knowledge/new')}>
-            <Plus size={16} /> Yeni KO
+            <Plus size={16} /> {t('knowledge.newKo')}
           </Button>
         )}
       </div>
@@ -251,11 +209,11 @@ export default function AdminKnowledge() {
       {error && <div className="alert alert-danger" style={{ marginBottom: 16 }}>{error}</div>}
 
       <div className={styles.filters}>
-        <input className={styles.filterInput} placeholder="Ara..." value={filters.search}
+        <input className={styles.filterInput} placeholder={t('knowledge.searchPlaceholder')} value={filters.search}
           onChange={e => handleFilterChange('search', e.target.value)} />
-        <Select className={styles.filterSelect} aria-label="Tür filtresi" options={TYPE_OPTIONS} value={filters.type} onChange={v => handleFilterChange('type', v)} />
-        <Select className={styles.filterSelect} aria-label="Durum filtresi" options={STATUS_OPTIONS} value={filters.status} onChange={v => handleFilterChange('status', v)} />
-        <Select className={styles.filterSelect} aria-label="Seviye filtresi" options={LEVEL_OPTIONS} value={filters.level} onChange={v => handleFilterChange('level', v)} />
+        <Select className={styles.filterSelect} aria-label={t('knowledge.filters.type')} options={typeOptions} value={filters.type} onChange={v => handleFilterChange('type', v)} />
+        <Select className={styles.filterSelect} aria-label={t('knowledge.filters.status')} options={statusOptions} value={filters.status} onChange={v => handleFilterChange('status', v)} />
+        <Select className={styles.filterSelect} aria-label={t('knowledge.filters.level')} options={levelOptions} value={filters.level} onChange={v => handleFilterChange('level', v)} />
       </div>
 
       <div className="panel" style={{ padding: 0 }}>
@@ -267,7 +225,7 @@ export default function AdminKnowledge() {
           pageSize={pageSize}
           total={total}
           onPageChange={setPage}
-          emptyMessage="Bilgi nesnesi bulunamadı"
+          emptyMessage={t('knowledge.emptyMessage')}
           keyField="code"
         />
       </div>
@@ -278,7 +236,7 @@ export default function AdminKnowledge() {
         onConfirm={(note) => executeWorkflow(activeAction, note)}
         title={confirmCfg?.title || ''}
         description={confirmCfg?.desc || ''}
-        confirmLabel={confirmCfg?.confirmLabel || 'Onayla'}
+        confirmLabel={confirmCfg?.confirmLabel || t('knowledge.actions.approve')}
         variant={confirmCfg?.variant || 'primary'}
         requireNote={confirmCfg?.requireNote}
         noteLabel={confirmCfg?.noteLabel}

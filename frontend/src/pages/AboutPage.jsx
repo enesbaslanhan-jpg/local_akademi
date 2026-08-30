@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Bot, ClipboardList, GraduationCap, MessagesSquare, Scale, Sheet } from 'lucide-react'
 import BrandMark from '@/components/ui/BrandMark'
 import EkranCizimi from '@/components/about/EkranCizimi'
 import AuthThemeToggle from './AuthThemeToggle'
 import styles from './AboutPage.module.css'
+import PublicFooter from '@/components/layout/PublicFooter'
 
 /*
  * Hakkında / tanıtım sayfası.
@@ -31,83 +33,46 @@ import styles from './AboutPage.module.css'
  * hangi soruyu çözdüğü, ne girdiğin ve ne çıktığı yazıyor. Aşağıdaki
  * "Neyi yapmaz?" bölümüyle çelişen tek bir cümle olmamalı.
  */
-const MODULLER = [
+/*
+ * Dışa açık: /yardim'daki kullanma kılavuzu da aynı anlatımlardan
+ * besleniyor. İkinci bir modül tanımı yazılsaydı iki sayfa kaçınılmaz
+ * olarak ayrışırdı.
+ */
+export const MODULLER = [
   {
     ikon: Scale,
     tur: 'karar-araclari',
-    baslik: 'Karar Araçları',
-    metin: 'Zam yapmalı mıyım, bu ürün gerçekten kârlı mı gibi soruları adım adım yürütür. Kendi rakamlarını girersin, sonunda gerekçesiyle birlikte bir sonuç çıkar.',
-    neYaparsin: 'Bir kararı, tahmin yerine kendi rakamlarınla verirsin.',
-    maddeler: [
-      'Aracı seçersin: “Bu indirimi yapabilir miyim?”, “Kargo ücretsiz olabilir mi?”',
-      'Maliyet, fiyat ve adet gibi kendi sayılarını girersin',
-      'Sonuç, hangi sayıdan çıktığı gösterilerek verilir'
-    ]
+    key: 'decisionTools'
   },
   {
     ikon: ClipboardList,
     tur: 'isletme-takibi',
-    baslik: 'İşletme Takibi',
-    metin: 'Gelir, gider, cari hesaplar ve belgeler tek yerde. Fatura yüklediğinde içindeki tutarları okuyup kayıt önerir — sen onaylamadan hiçbir şey yazılmaz.',
-    neYaparsin: 'Paranın nereden gelip nereye gittiğini tek yerde görürsün.',
-    maddeler: [
-      'Gelir ve gideri kaydeder, cari hesapları takip edersin',
-      'Fatura yüklersin; içindeki tutarlar okunup kayıt önerilir',
-      'Öneriyi onaylamadan hiçbir şey kayıtlarına yazılmaz'
-    ]
+    key: 'businessTracking'
   },
   {
     ikon: Bot,
     tur: 'ai-mentor',
-    baslik: 'AI Mentor',
-    metin: 'Takıldığın yeri sorarsın. Kurs içeriğine ve kurduysan kendi işletme rakamlarına bakarak cevap verir, dayandığı kaynağı da gösterir.',
-    neYaparsin: 'Takıldığın yeri kendi cümlelerinle sorarsın.',
-    maddeler: [
-      'Soruyu yazarsın; yanıt, uygulamanın içerik kütüphanesine dayandırılır',
-      'Dayandığı kaynak yanıtın altında gösterilir',
-      'Yanıtlar hata payı taşır; rakam ve mevzuatı resmî kaynağından doğrula'
-    ]
+    key: 'mentor'
   },
   {
     ikon: Sheet,
     tur: 'hesaplamalar',
-    baslik: 'Hesaplamalar',
-    metin: 'Başa baş noktası, kâr marjı, nakit akışı gibi hesaplar hazır şablonlarla. Formülü ezberlemek yerine rakamı girip sonucu okursun.',
-    neYaparsin: 'Formül ezberlemeden sonucu alırsın.',
-    maddeler: [
-      'Hazır şablonu seçersin: başa baş noktası, kâr marjı, nakit akışı',
-      'Yalnız kendi sayılarını girersin',
-      'Sonucun ne anlama geldiği birlikte yazılır'
-    ]
+    key: 'calculations'
   },
   {
     ikon: GraduationCap,
     tur: 'kurslar',
-    baslik: 'Kurslar',
-    metin: 'Kısa ve uygulamalı anlatımlar. Her bölüm bir kavramı açıklayıp onu hesaplayabileceğin araca bağlar.',
-    neYaparsin: 'Bir kavramı öğrenip hemen kendi rakamlarına uygularsın.',
-    maddeler: [
-      'Kısa bölümler; her biri tek bir kavramı anlatır',
-      'Anlatımın sonunda ilgili hesaplama aracına bağlanırsın',
-      'Kaldığın yer hatırlanır'
-    ]
+    key: 'courses'
   },
   {
     ikon: MessagesSquare,
     tur: 'topluluk',
-    baslik: 'Topluluk',
-    metin: 'Benzer işletmeleri yürüten insanların deneyimleri. Yazdığın anda yayımlanır; yanıtlayabilir, beğenebilir, alıntılayabilirsin.',
-    neYaparsin: 'Aynı işi yürüten insanlara sorarsın.',
-    maddeler: [
-      'Soru sorar, kendi deneyimini paylaşırsın',
-      'Yanıt, beğeni ve alıntıyla konuşma sürer',
-      'Kendi paylaşımını istediğin zaman kaldırırsın',
-      'Paylaşmak istemediğin işletme bilgilerini buraya yazma'
-    ]
+    key: 'community'
   }
 ]
 
 export default function AboutPage() {
+  const { t } = useTranslation('common')
   return (
     <div className={styles.page}>
       <AuthThemeToggle />
@@ -128,22 +93,25 @@ export default function AboutPage() {
               </span>
             </div>
             <nav className={styles.ustEylemler}>
-              <Link to="/login" className={styles.girisLink}>Giriş yap</Link>
-              <Link to="/register" className={styles.kayitDugmesi}>Hesap oluştur</Link>
+              {/* Ana sayfa aynı zamanda `/` — ziyaretçinin ilk gördüğü
+                  yer. Fiyat bağlantısı buradan yoksa fiyat sayfası
+                  pratikte bulunamıyor (ölçüldü: hiçbir public sayfadan
+                  linki yoktu). */}
+              <Link to="/fiyatlar" className={styles.girisLink}>{t('publicFooter.links.pricing')}</Link>
+              <Link to="/login" className={styles.girisLink}>{t('about.signIn')}</Link>
+              <Link to="/register" className={styles.kayitDugmesi}>{t('about.createAccount')}</Link>
             </nav>
           </header>
 
           <section className={styles.kahraman}>
-            <h1>İşletmen için doğru kararlar</h1>
+            <h1>{t('about.heroTitle')}</h1>
             <div className={styles.kahramanDetay}>
               <p className={styles.kahramanMetin}>
-                LocalKarar, küçük ve orta ölçekli işletmeler için bir karar
-                destek uygulaması. Tahmine değil, kendi rakamlarına dayanan
-                kararlar vermene yardım eder.
+                {t('about.heroText')}
               </p>
               <div className={styles.kahramanEylemler}>
-                <Link to="/register" className={styles.birincilDugme}>Ücretsiz hesap oluştur</Link>
-                <Link to="/login" className={styles.ikincilDugme}>Zaten hesabım var</Link>
+                <Link to="/register" className={styles.birincilDugme}>{t('about.freeAccount')}</Link>
+                <Link to="/login" className={styles.ikincilDugme}>{t('about.haveAccount')}</Link>
               </div>
             </div>
           </section>
@@ -152,24 +120,22 @@ export default function AboutPage() {
 
       <div className={styles.icerik}>
         <section className={styles.kimeSection}>
-          <h2>Kime göre?</h2>
-          <p>
-            Mağazası, atölyesi, e-ticaret sitesi ya da hizmet işletmesi olan;
-            rakamlarını takip etmek isteyen ama muhasebe eğitimi almamış
-            işletme sahipleri için tasarlandı. Tek kişilik işletmelerden
-            küçük ekiplere kadar çalışır.
-          </p>
+          <h2>{t('about.audienceTitle')}</h2>
+          <p>{t('about.audienceText')}</p>
         </section>
 
         <section aria-labelledby="moduller-baslik">
-          <h2 id="moduller-baslik" className={styles.bolumBaslik}>Neler var?</h2>
+          <h2 id="moduller-baslik" className={styles.bolumBaslik}>{t('about.modulesTitle')}</h2>
 
           {/* Zikzak: geniş ekranda ekran ve metin dönüşümlü yer değiştirir,
               dar ekranda tek sütuna iner (ekran önce). */}
           <div className={styles.modulListesi}>
-            {MODULLER.map(({ ikon: Ikon, tur, baslik, metin, neYaparsin, maddeler }, sira) => (
+            {MODULLER.map(({ ikon: Ikon, tur, key }, sira) => {
+              const base = `about.modules.${key}`
+              const maddeler = Object.values(t(`${base}.bullets`, { returnObjects: true }))
+              return (
               <article
-                key={baslik}
+                key={key}
                 className={`${styles.modul} ${sira % 2 === 1 ? styles.modulTers : ''}`}
               >
                 <div className={styles.modulEkran}>
@@ -178,15 +144,16 @@ export default function AboutPage() {
 
                 <div className={styles.modulMetin}>
                   <span className={styles.kartIkon}><Ikon size={20} aria-hidden="true" /></span>
-                  <h3>{baslik}</h3>
-                  <p className={styles.neYaparsin}>{neYaparsin}</p>
-                  <p>{metin}</p>
+                  <h3>{t(`${base}.title`)}</h3>
+                  <p className={styles.neYaparsin}>{t(`${base}.outcome`)}</p>
+                  <p>{t(`${base}.description`)}</p>
                   <ul className={styles.maddeler}>
                     {maddeler.map(madde => <li key={madde}>{madde}</li>)}
                   </ul>
                 </div>
               </article>
-            ))}
+              )
+            })}
           </div>
         </section>
 
@@ -196,34 +163,25 @@ export default function AboutPage() {
           * gizlenmesi tutarsız olurdu.
           */}
         <section className={styles.sinirlar}>
-          <h2>Neyi yapmaz?</h2>
-          <p>
-            LocalKarar bir muhasebe programı değildir ve profesyonel hukuk,
-            vergi, muhasebe veya yatırım danışmanlığının yerine geçmez.
-            Ürettiği sonuçlar senin girdiğin verilere dayanır ve karar
-            senindir.
-          </p>
+          <h2>{t('about.limitsTitle')}</h2>
+          <p>{t('about.limitsText')}</p>
         </section>
 
         <section className={styles.kapanis}>
-          <h2>Başlamak için hesap yeterli</h2>
-          <p>Kurulum gerekmez. Hesap açtıktan sonra birkaç soruyla işletmeni tanıtırsın.</p>
-          <Link to="/register" className={styles.birincilDugme}>Hesap oluştur</Link>
+          <h2>{t('about.closingTitle')}</h2>
+          <p>{t('about.closingText')}</p>
+          <Link to="/register" className={styles.birincilDugme}>{t('about.createAccount')}</Link>
         </section>
 
-        <footer className={styles.alt}>
-          <div className={styles.altBaglantilar}>
-            <Link to="/yardim">Yardım ve iletişim</Link>
-            <Link to="/privacy">Gizlilik ve KVKK</Link>
-            <Link to="/terms">Kullanım koşulları</Link>
-            <Link to="/cookies">Çerezler</Link>
-          </div>
-          <p className={styles.altNot}>
-            Sorular ve KVKK başvuruları için Gizlilik metnindeki iletişim
-            kanalını kullanabilirsin.
-          </p>
-        </footer>
+        {/* Kopya bağlantı listesi kaldırıldı — ortak `PublicFooter`
+            aşağıda ve yasal sayfaların tamamını taşıyor. Sayfaya özgü
+            not burada kalıyor. */}
+        <p className={styles.altNot}>
+          {t('about.footer.note')}
+        </p>
       </div>
+
+      <PublicFooter />
     </div>
   )
 }

@@ -257,3 +257,43 @@ export function destekTalebiMaili(
     ])
   }
 }
+
+/*
+ * ÜYELİK / ÖDEME BİLDİRİMLERİ.
+ *
+ * ⚠️ Bu şablonlar YALNIZ `BILLING_STARTS_AT` dolu olduğunda üretilir
+ * (`account-notifications.ts` ilk satırda kesiyor). Ücretlendirme
+ * başlamadan "süren doluyor" postası atmak yanlış vaat olurdu.
+ */
+
+/** Ücretsiz kullanım süresi dolmak üzere. */
+export function denemeBitiyorMaili(to: string, ad: string, kalanGun: number): MailMesaji {
+  const link = `${uygulamaAdresi()}/app/settings#uyelik`
+  const gun = `${kalanGun} gün`
+  return {
+    to,
+    subject: konuGuvenli(`LocalKarar — ücretsiz kullanım sürenizin bitmesine ${gun} kaldı`),
+    text: cerceve(
+      'Ücretsiz kullanım süreniz doluyor',
+      [
+        `Merhaba ${ad},`,
+        '',
+        `LocalKarar'daki ücretsiz kullanım sürenizin bitmesine ${gun} kaldı.`,
+        '',
+        'Üyeliğinizi başlatmazsanız hesabınız salt okunur moda geçer:',
+        'verileriniz durur ve dışa aktarılabilir kalır, ancak yeni kayıt',
+        'ekleme, hesaplama ve AI Mentor kapanır.',
+        '',
+        `Üyelik ayarlarınız: ${link}`
+      ].join('\n'),
+      'Hiçbir veriniz silinmez. Üyeliğinizi istediğiniz zaman başlatabilirsiniz.'
+    ),
+    html: htmlCerceve('Ücretsiz kullanım süreniz doluyor', [
+      `Merhaba <strong>${htmlKacir(ad)}</strong>,`,
+      `LocalKarar'daki ücretsiz kullanım sürenizin bitmesine <strong>${htmlKacir(gun)}</strong> kaldı.`,
+      'Üyeliğinizi başlatmazsanız hesabınız salt okunur moda geçer: verileriniz durur ve dışa aktarılabilir kalır, ancak yeni kayıt ekleme, hesaplama ve AI Mentor kapanır.',
+      `<a href="${link}" style="color:#0d556f;font-weight:600">Üyelik ayarlarına git</a>`,
+      '<span style="color:#6b7780;font-size:13px">Hiçbir veriniz silinmez.</span>'
+    ])
+  }
+}

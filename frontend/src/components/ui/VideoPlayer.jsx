@@ -3,8 +3,10 @@ import { api } from '@/services/api'
 import { Card, Badge } from './index'
 import { Clock, Film, AlertCircle } from 'lucide-react'
 import styles from './VideoPlayer.module.css'
+import { useTranslation } from 'react-i18next'
 
 export default function VideoPlayer({ koId, onProgress }) {
+  const { t } = useTranslation('common')
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const lastObservedRef = useRef(0)
@@ -56,13 +58,13 @@ export default function VideoPlayer({ koId, onProgress }) {
     <Card className={styles.container}>
       <div className={styles.header}>
         <Film size={18} />
-        <span className={styles.title}>{video.title || 'Video'}</span>
+        <span className={styles.title}>{video.title || t('ui.video.title')}</span>
         {video.durationTarget && (
-          <Badge variant="info"><Clock size={12} /> {Math.round(video.durationTarget / 60)} dk</Badge>
+          <Badge variant="info"><Clock size={12} /> {t('ui.video.minutesShort', { count: Math.round(video.durationTarget / 60) })}</Badge>
         )}
         {progress && (
           <Badge variant={progress.completed ? 'success' : 'default'}>
-            {progress.completed ? 'Tamamlandı' : `%${progress.percent}`}
+            {progress.completed ? t('ui.video.completed') : `%${progress.percent}`}
           </Badge>
         )}
       </div>
@@ -89,7 +91,7 @@ export default function VideoPlayer({ koId, onProgress }) {
       </div>
       {video.transcript && (
         <details className={styles.transcript}>
-          <summary className={styles.transcriptToggle}>Transkript</summary>
+          <summary className={styles.transcriptToggle}>{t('ui.video.transcript')}</summary>
           <pre className={styles.transcriptText}>{video.transcript}</pre>
         </details>
       )}

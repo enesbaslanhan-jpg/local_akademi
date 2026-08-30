@@ -1,0 +1,213 @@
+{
+  "title": "AI Mentor",
+  "newConversation": "Yeni sohbet",
+  "active": "Aktif",
+  "archive": "Arşiv",
+  "activeConversations": "Aktif sohbetler",
+  "archivedConversations": "Arşivlenmiş sohbetler",
+  "empty": "Henüz sohbet yok",
+  "untitled": "İsimsiz",
+  "placeholder": "Sorunuzu yazın…",
+  "send": "Gönder",
+  "thinking": "Düşünüyor…",
+  "responseLanguage": "Yanıt dili: Türkçe",
+
+  "states": {
+    "loading": "Yükleniyor..."
+  },
+  "sidebar": {
+    "history": "Sohbet Geçmişi",
+    "newChat": "Yeni Sohbet Başlat",
+    "noMessages": "Henüz mesaj yok",
+    "messageCount_one": " · {{count}} mesaj",
+    "messageCount_other": " · {{count}} mesaj",
+    "listButtonLabel": "Sohbet listesi",
+    "edit": "Düzenle",
+    "archiveAction": "Arşivle",
+    "unarchive": "Arşivden çıkar",
+    "delete": "Sil"
+  },
+  "time": {
+    "yesterday": "Dün",
+    "daysAgo_one": "{{count}} gün önce",
+    "daysAgo_other": "{{count}} gün önce"
+  },
+  "session": {
+    "todayWithTime": "Bugün, {{time}}"
+  },
+  "topbar": {
+    "provider": "İşletme bağlamınla birlikte düşün",
+    "providerWithTitle": "İşletme bağlamınla birlikte düşün · {{title}}",
+    "contextBadge": "Bağlam: {{title}}"
+  },
+  "chat": {
+    "scrollToBottom": "En yeni mesaja git ↓",
+    "aiThinking": "AI düşünüyor...",
+    "archivedNotice": "Arşivlenmiş sohbetlere yeni mesaj gönderilemez."
+  },
+  "contextPrompts": {
+    "applyToBusiness": "Bu konuyu işletmeme nasıl uygularım?",
+    "summarizeKeyPoints": "En önemli noktaları özetle.",
+    "safestNextStep": "Sonraki en güvenli adım nedir?"
+  },
+  "actions": {
+    "title": "İşlem Önerileri",
+    "inlineAriaLabel": "Mentor işlem önerileri",
+    "emptyHint": "Mentor yanıtındaki uygun ve gerçek işlemler burada görünür.",
+    "openKnowledge": "İlgili İçeriği Aç",
+    "openFinancialModels": "Finansal Modelleri Aç",
+    "openBusinessProfile": "İşletme Bilgilerini Güncelle",
+    "descriptionOpenKnowledge": "Yanıtın dayandığı ilgili içeriği incele.",
+    "descriptionOpenFinancialModels": "Finansal model kütüphanesinde çalışmaya devam et.",
+    "descriptionOpenBusinessProfile": "İşletme bilgilerini güncelle ve öneriyi netleştir.",
+    "descriptionFallback": "İlgili çalışma alanını aç."
+  },
+  "memory": {
+    "title": "Hafıza",
+    "manageButton": "Hafızayı Yönet",
+    "emptyProfile": "Henüz kaydedilmiş işletme bilgisi yok.",
+    "lastDecision": "Son Karar",
+    "sector": "Sektör",
+    "city": "Şehir",
+    "stage": "Aşama",
+    "monthlySales": "Aylık Satış",
+    "monthlyExpenses": "Aylık Gider",
+    "goal": "Hedef",
+    "challenges": "Zorluklar",
+    "panelTitle": "Hafıza Yönetimi",
+    "searchPlaceholder": "Ara...",
+    "typeFilterAriaLabel": "Tür filtresi",
+    "filterAll": "Tümü",
+    "empty": "Henüz hafıza kaydı yok",
+    "typeProfile": "Profil",
+    "typeFact": "Bilgi",
+    "typeProblem": "Sorun",
+    "typeGoal": "Hedef",
+    "typePreference": "Tercih",
+    "typeDecision": "Karar",
+    "statusActive": "Aktif",
+    "statusSuperseded": "Güncellendi",
+    "statusArchived": "Arşivlendi",
+    "importanceLabel": "Önem:",
+    "confidenceLabel": "Güven:",
+    "sourceLabel": "Kaynak:",
+    "sourceAiExtraction": "AI Çıkarımı",
+    "sourceManual": "Manuel",
+    "createdAtLabel": "Oluşturma:",
+    "editButton": "Düzenle",
+    "confirmButton": "Onayla",
+    "disputeButton": "İtiraz Et",
+    "deleteButton": "Sil",
+    "errorLoad": "Hafıza yüklenemedi",
+    "errorDelete": "Silme başarısız",
+    "errorDispute": "İtiraz başarısız",
+    "errorConfirm": "Onaylama başarısız",
+    "errorSave": "Kaydetme başarısız",
+    "newFormTitle": "Yeni Hafıza",
+    "editFormTitle": "Hafızayı Düzenle",
+    "fieldType": "Tür",
+    "typeSelectAriaLabel": "Tür",
+    "fieldKey": "Anahtar",
+    "keyPlaceholder": "örn: monthly_revenue",
+    "fieldValue": "Değer",
+    "fieldSummary": "Özet",
+    "importancePercent": "Önem: {{percent}}%",
+    "confidencePercent": "Güven: {{percent}}%",
+    "cancelButton": "İptal",
+    "newButton": "Yeni"
+  },
+  "panel": {
+    "drawerAriaLabel": "AI Mentor Paneli",
+    "backTitle": "Sohbetler",
+    "backAriaLabel": "Sohbetlere dön",
+    "newShort": "+ Yeni",
+    "contextLabel": "Bağlam",
+    "contextFallbackContent": "İçerik",
+    "contextClear": "Bağlamı Temizle",
+    "rightAsideAriaLabel": "Mentor yan paneli"
+  },
+  "bubble": {
+    "answerLabel": "Mentor Yanıtı",
+    "copy": "Kopyala",
+    "regenerateTitle": "Yeniden oluştur",
+    "regenerateLabel": "Yeniden Üret",
+    "edit": "Düzenle",
+    "cancel": "İptal",
+    "saveAndRegenerate": "Kaydet ve Üret",
+    "sources": "Kaynaklar",
+    "cancelledNote": "Üretim durduruldu",
+    "tokenCount_one": "· {{count}} token",
+    "tokenCount_other": "· {{count}} token"
+  },
+  "feedback": {
+    "helpful": "Faydalı",
+    "notHelpful": "Faydalı değil",
+    "savedThanks": "Geri bildiriminiz alındı.",
+    "saveFailed": "Geri bildirim kaydedilemedi."
+  },
+  "error": {
+    "alertTitle": "Bağlantı Hatası",
+    "network": "AI Mentor sunucusuna ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
+    "timeout": "Yanıt beklenenden uzun sürdü. Mesajı tekrar deneyebilirsiniz.",
+    "rateLimit": "Çok kısa sürede fazla istek gönderildi. Biraz bekleyip tekrar deneyin.",
+    "unauthorized": "Oturumunuz sona ermiş olabilir. Yeniden giriş yapın.",
+    "provider": "AI Mentor şu anda yanıt üretemiyor. Birkaç saniye sonra tekrar deneyin.",
+    "generic": "Sistemde geçici bir sorun oluştu. Lütfen daha sonra tekrar deneyin.",
+    "responseFailed": "AI yanıtı alınamadı"
+  },
+  "deleteModal": {
+    "title": "Sohbet silinsin mi?",
+    "description": "Bu sohbet kalıcı olarak kaldırılacak. Bu işlem geri alınamaz.",
+    "confirm": "Sohbeti sil",
+    "deleting": "Siliniyor..."
+  },
+  "citation": {
+    "unknownSource": "Bilinmeyen kaynak",
+    "openAriaLabel": "{{label}} bilgi içeriğini aç"
+  },
+  "beta": {
+    "tooltip": "AI Mentor yanıtları bilgilendirme amaçlıdır. Önemli işletme kararlarında bilgileri doğrulayın."
+  },
+  "launcher": {
+    "openAriaLabel": "AI Mentor'u Aç"
+  },
+  "emptyState": {
+    "title": "Yeni sohbet başlatın veya aşağıdaki hızlı başlangıçlardan birini seçin.",
+    "subtitle": "AI Mentor işletmenizle ilgili sorularınızı yanıtlayabilir, size özel analiz ve öneriler sunabilir."
+  },
+  "composer": {
+    "abortAriaLabel": "Üretimi durdur",
+    "stop": "Durdur"
+  },
+  "quickStarts": {
+    "default": {
+      "q1": "Kâr marjımı nasıl hesaplarım?",
+      "q2": "Müşteri segmentimi nasıl belirlerim?",
+      "q3": "Nakit akışımı nasıl iyileştirebilirim?",
+      "q4": "Bir işletme kararımı değerlendirelim."
+    },
+    "esnaf": {
+      "q1": "Ürünümün gerçek kârını hesaplayalım.",
+      "q2": "Giderlerimi nasıl azaltabilirim?",
+      "q3": "Müşteri segmentimi nasıl belirlerim?",
+      "q4": "Nakit akışımı nasıl iyileştirebilirim?"
+    },
+    "girisimci": {
+      "q1": "İş fikrimi nasıl doğrulayabilirim?",
+      "q2": "Müşteri segmentimi belirleyelim.",
+      "q3": "Kâr marjımı nasıl hesaplarım?",
+      "q4": "Bir işletme kararımı değerlendirelim."
+    },
+    "yatirimci": {
+      "q1": "Bir işletmenin nakit akışını nasıl değerlendiririm?",
+      "q2": "Kârlılık göstergelerini nasıl yorumlarım?",
+      "q3": "Müşteri segmentimi nasıl belirlerim?",
+      "q4": "Bir işletme kararımı değerlendirelim."
+    }
+  },
+  "suggestedActions": {
+    "openRelatedContent": "İlgili İçeriği Aç",
+    "openFinancialModels": "Finansal Modelleri Aç",
+    "updateBusinessProfile": "İşletme Bilgilerini Güncelle"
+  }
+}

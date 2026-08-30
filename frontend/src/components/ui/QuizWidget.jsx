@@ -3,6 +3,7 @@ import { api } from '@/services/api'
 import { Button, Badge } from './index'
 import { CheckCircle, XCircle, HelpCircle, Send } from 'lucide-react'
 import styles from './QuizWidget.module.css'
+import { useTranslation } from 'react-i18next'
 
 export default function QuizWidget({ koId, quizzes, onProgress }) {
   if (!quizzes || quizzes.length === 0) return null
@@ -17,6 +18,7 @@ export default function QuizWidget({ koId, quizzes, onProgress }) {
 }
 
 function QuizInstance({ koId, quiz, onProgress }) {
+  const { t } = useTranslation('common')
   const [answers, setAnswers] = useState({})
   const [result, setResult] = useState(null)
   const [submitting, setSubmitting] = useState(false)
@@ -29,7 +31,7 @@ function QuizInstance({ koId, quiz, onProgress }) {
     }))
 
     if (answerList.length !== (quiz.questions?.length || 0)) {
-      setError('Lütfen tüm soruları cevaplayın')
+      setError(t('ui.quiz.answerAll'))
       return
     }
 
@@ -43,7 +45,7 @@ function QuizInstance({ koId, quiz, onProgress }) {
       setResult(res)
       await onProgress?.()
     } catch (err) {
-      setError(err.message || 'Quiz gönderilemedi')
+      setError(err.message || t('ui.quiz.submitError'))
     } finally {
       setSubmitting(false)
     }
@@ -55,10 +57,10 @@ function QuizInstance({ koId, quiz, onProgress }) {
         <div className={`${styles.resultBanner} ${result.passed ? styles.passed : styles.failed}`}>
           <div className={styles.resultScore}>{result.score}%</div>
           <div className={styles.resultLabel}>
-            {result.passed ? 'Geçtiniz!' : 'Kaldınız'}
+            {result.passed ? t('ui.quiz.passed') : t('ui.quiz.failed')}
           </div>
           <Badge variant={result.passed ? 'success' : 'danger'}>
-            {result.correct}/{result.total} doğru
+            {t('ui.quiz.correctCount', { correct: result.correct, total: result.total })}
           </Badge>
         </div>
         <div className={styles.questionsReview}>
@@ -70,11 +72,11 @@ function QuizInstance({ koId, quiz, onProgress }) {
                 ) : (
                   <XCircle size={16} className={styles.wrongIcon} />
                 )}
-                <strong>Soru {i + 1}</strong>
+                <strong>{t('ui.quiz.questionNumber', { number: i + 1 })}</strong>
               </div>
               {!fb.is_correct && fb.correct_answer && (
                 <div className={styles.correctAnswer}>
-                  Doğru cevap: {fb.correct_answer}
+                  {t('ui.quiz.correctAnswer')}: {fb.correct_answer}
                 </div>
               )}
               {fb.explanation && <div className={styles.correctAnswer}>{fb.explanation}</div>}
@@ -82,7 +84,7 @@ function QuizInstance({ koId, quiz, onProgress }) {
           ))}
         </div>
         <Button variant="ghost" size="sm" onClick={() => { setResult(null); setAnswers({}) }}>
-          Tekrar Çöz
+          {t('ui.quiz.retry')}
         </Button>
       </div>
     )
@@ -109,13 +111,13 @@ function QuizInstance({ koId, quiz, onProgress }) {
                 <span>{opt}</span>
               </label>
             )) : (
-              <p className={styles.noOptions}>Seçenek bulunamadı</p>
+              <p className={styles.noOptions}>{t('ui.quiz.noOptions')}</p>
             )}
           </div>
         </div>
       ))}
       <Button variant="primary" size="sm" onClick={handleSubmit} disabled={submitting}>
-        <Send size={14} /> {submitting ? 'Gönderiliyor...' : 'Cevapları Gönder'}
+        <Send size={14} /> {submitting ? t('ui.quiz.submitting') : t('ui.quiz.submit')}
       </Button>
     </div>
   )

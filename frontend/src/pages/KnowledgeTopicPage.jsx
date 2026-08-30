@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '@/services/api'
 import { Card, Badge, Button, Loading } from '@/components/ui'
@@ -6,6 +7,7 @@ import { ArrowLeft, ChevronRight, Clock, BookOpen } from 'lucide-react'
 import styles from './KnowledgeTopicPage.module.css'
 
 export default function KnowledgeTopicPage() {
+  const { t, i18n } = useTranslation('learning')
   const { topicKey } = useParams()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -20,18 +22,18 @@ export default function KnowledgeTopicPage() {
     const params = selectedLevel ? `?level=${selectedLevel}` : ''
     api.knowledgeV2.getTopic(topicKey, selectedLevel)
       .then(setTopic)
-      .catch(err => setError(err.message || 'Konu yüklenemedi'))
+      .catch(err => setError(err.message || t('knowledgeTopic.loadFailed')))
       .finally(() => setLoading(false))
-  }, [topicKey, selectedLevel])
+  }, [topicKey, selectedLevel, t])
 
-  if (loading) return <Loading text="Konu yükleniyor..." />
+  if (loading) return <Loading text={t('knowledgeTopic.loading')} />
 
   if (error) {
     return (
       <div className={styles.page}>
         <div className={styles.errorBox}>
           <p>{error}</p>
-          <Button onClick={() => navigate('/app/knowledge')}>Geri Dön</Button>
+          <Button onClick={() => navigate('/app/knowledge')}>{t('knowledgeTopic.back')}</Button>
         </div>
       </div>
     )
@@ -45,15 +47,15 @@ export default function KnowledgeTopicPage() {
   return (
     <div className={styles.page}>
       <Link to="/app/knowledge" className={styles.backLink}>
-        <ArrowLeft size={16} /> Bilgi Nesneleri
+        <ArrowLeft size={16} /> {t('knowledgeTopic.knowledgeObjects')}
       </Link>
 
       <div className={styles.header}>
-        <h1 className="sr-only">Konu: {topicKey}</h1>
-        <div className={styles.title}>Konu: {topicKey}</div>
+        <h1 className="sr-only">{t('knowledgeTopic.topic', { topic: topicKey })}</h1>
+        <div className={styles.title}>{t('knowledgeTopic.topic', { topic: topicKey })}</div>
         {availableLevels.length > 0 && (
           <div className={styles.levelSelector}>
-            <span className={styles.levelLabel}>Seviye:</span>
+            <span className={styles.levelLabel}>{t('knowledgeTopic.level')}</span>
             {availableLevels.map(lvl => (
               <button
                 key={lvl.level}
@@ -68,13 +70,13 @@ export default function KnowledgeTopicPage() {
       </div>
 
       <div className={styles.resultCount}>
-        {kos.length} içerik bulundu
+        {t('knowledgeTopic.resultCount', { count: kos.length })}
       </div>
 
       {kos.length === 0 ? (
         <div className={styles.emptyState}>
           <BookOpen size={48} />
-          <p>Bu kriterlerle eşleşen içerik bulunamadı.</p>
+          <p>{t('knowledgeTopic.empty')}</p>
         </div>
       ) : (
         <div className={styles.cardGrid}>
@@ -91,7 +93,7 @@ export default function KnowledgeTopicPage() {
                   <Badge variant="default">{ko.type}</Badge>
                   {meta.level && <Badge variant="info">{meta.level}</Badge>}
                   {ko.verificationStatus === 'verified' && (
-                    <Badge variant="success">Doğrulanmış</Badge>
+                    <Badge variant="success">{t('knowledgeTopic.verified')}</Badge>
                   )}
                 </div>
                 <div className={styles.cardBody}>
@@ -101,17 +103,17 @@ export default function KnowledgeTopicPage() {
                     <span className={styles.cardCode}>{ko.code}</span>
                     {meta.duration && (
                       <span className={styles.cardDuration}>
-                        <Clock size={12} /> {meta.duration} dk
+                        <Clock size={12} /> {t('knowledgeTopic.minutes', { count: meta.duration })}
                       </span>
                     )}
                   </div>
                 </div>
                 <div className={styles.cardFooter}>
                   <span className={styles.cardDate}>
-                    {new Date(ko.updatedAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    {new Date(ko.updatedAt).toLocaleDateString(i18n.resolvedLanguage || i18n.language, { day: 'numeric', month: 'short', year: 'numeric' })}
                   </span>
                   <span className={styles.cardAction}>
-                    İncele <ChevronRight size={14} />
+                    {t('knowledgeTopic.inspect')} <ChevronRight size={14} />
                   </span>
                 </div>
               </Card>

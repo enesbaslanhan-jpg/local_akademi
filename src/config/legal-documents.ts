@@ -13,12 +13,31 @@
  * gösterilen metin ayrışır.
  */
 
-export type LegalDocumentType = 'terms' | 'privacy' | 'cookies'
+/*
+ * Ticari satış belgeleri (29.08.2026) — PayTR sanal POS başvurusu ve
+ * Mesafeli Sözleşmeler Yönetmeliği gereği eklendi.
+ *
+ * 🔴 DÖRDÜ DE `requiredAtSignup: false`.
+ * Bunlar kayıt anında değil SATIN ALMA anında onaylanır. `true`
+ * yapmak `auth.ts:181-187`'nin her required belgeye otomatik onay
+ * satırı yazmasını tetikler, kayıt formunun etiketini yalan hâline
+ * getirir ve mevcut bütün kullanıcılara onay şeridi çıkarır.
+ */
+export type LegalDocumentType =
+  | 'terms'
+  | 'privacy'
+  | 'cookies'
+  | 'mesafeli-satis'
+  | 'on-bilgilendirme'
+  | 'teslimat-iade'
+  | 'abonelik'
 
 export interface LegalDocumentMeta {
   type: LegalDocumentType
   /** Kullanıcıya gösterilen ad. */
   title: string
+  /** İngilizce arayüzde gösterilen ad; onay türü ve sürümü değişmez. */
+  titleEn: string
   /** `YYYY-MM-DD`. Metin değiştiğinde ARTIRILIR. */
   version: string
   /** Kayıt sırasında onaylanması ZORUNLU mu. */
@@ -29,6 +48,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
   {
     type: 'terms',
     title: 'Kullanım Koşulları',
+    titleEn: 'Terms of Use',
     /* 2026-08-23.2: dört açık kapatıldı -- üyeler arası ÖZEL MESAJLAŞMA,
        ENGELLEME kayıtları, REKLAM sayaçları ve işletmeye özel GELEN
        E-POSTA KUTUSU. Dördü de canlıda çalışan özelliklerdi ama metinde
@@ -45,18 +65,30 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
        gün iki kez onay istemek zorunda kalmamızın dersi buydu. */
     /* 2026-08-25: pazaryeri magaza baglantisi bolumu eklendi (11.
        madde) ve sonraki bolum numaralari kaydirildi. */
-    version: '2026-08-25',
+    /* 2026-08-29: ABONELİK VE ÜCRETLENDİRME bölümü eklendi (12. madde),
+       sonraki bölüm numaraları kaydırıldı. PayTR sanal POS başvurusu
+       için ticari satış belgeleri yazıldı ve üyelik akışı kuruldu;
+       terms.js'in kendi başlık yorumundaki "eklendiğinde ayrı bölüm
+       yazılıp sürüm artırılacak" talimatı bu turda tetiklendi.
+       Türkçe ve İngilizce metinler AYNI turda güncellendi. */
+    version: '2026-08-29',
     requiredAtSignup: true
   },
   {
     type: 'privacy',
     title: 'Gizlilik ve KVKK Aydınlatma Metni',
+    titleEn: 'Privacy and KVKK Notice',
     /* 2026-08-23.3: AI Mentor işletme takip özetini (sayılar ve toplamlar; müşteri adı, fatura no, başlık hariç) alıyor. */
     /* 2026-08-25: pazaryeri magaza verileri yeni bir kategori olarak
        eklendi (alici adi dahil), Shopify aktarim tablosuna girdi,
        mentora giden ozete urun adlari eklendi. Ozellik ve metin AYNI
        turda guncellendi. */
-    version: '2026-08-25',
+    /* 2026-08-29: ÖDEME VERİSİ ve ödeme kuruluşu bölümü eklendi
+       (7.1). PayTR yurt İÇİ aktarım olduğu için yurt dışı tablosuna
+       yazılmadı. Fatura kimlik bilgisi ve vergi mevzuatı kaynaklı
+       saklama süresi de bu bölümde. Açık adres notu artık koşullu:
+       adres yayımlandığı gün kendiliğinden düşüyor. */
+    version: '2026-08-29',
     requiredAtSignup: true
   },
   {
@@ -64,9 +96,40 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
        kayıtta onay şartı değil. */
     type: 'cookies',
     title: 'Çerez ve Yerel Depolama Politikası',
+    titleEn: 'Cookie and Local Storage Policy',
     /* 2026-08-23: sessionStorage ve Cloudflare'ın koşullu teknik
        güvenlik çerezleri eklendi. Bilgilendirme metnidir. */
     version: '2026-08-23',
+    requiredAtSignup: false
+  },
+  {
+    /* Sözleşme kurulmadan ÖNCE sunulan bilgilendirme. Ayrı bir belge
+       olmasının sebebi mevzuatın onu sözleşmeden ayrı aramasıdır. */
+    type: 'on-bilgilendirme',
+    title: 'Ön Bilgilendirme Formu',
+    titleEn: 'Pre-Contract Information Form',
+    version: '2026-08-29',
+    requiredAtSignup: false
+  },
+  {
+    type: 'mesafeli-satis',
+    title: 'Mesafeli Hizmet Sözleşmesi',
+    titleEn: 'Distance Service Agreement',
+    version: '2026-08-29',
+    requiredAtSignup: false
+  },
+  {
+    type: 'teslimat-iade',
+    title: 'Teslimat, İptal ve İade Koşulları',
+    titleEn: 'Delivery, Cancellation and Refund Terms',
+    version: '2026-08-29',
+    requiredAtSignup: false
+  },
+  {
+    type: 'abonelik',
+    title: 'Abonelik ve Faturalandırma Koşulları',
+    titleEn: 'Subscription and Billing Terms',
+    version: '2026-08-29',
     requiredAtSignup: false
   }
 ]

@@ -100,7 +100,8 @@
     "ops:backup": "node dist/ops/backup-database.js",
     "ops:backup:verify": "node dist/ops/verify-backup-restore.js",
     "ops:logs:rotate": "node dist/ops/rotate-operational-logs.js",
-    "sql:scan": "node scripts/raw-sql-scan.js"
+    "sql:scan": "node scripts/raw-sql-scan.js",
+    "i18n:check": "node scripts/check-i18n.mjs"
   },
   "dependencies": {
     "@fastify/cors": "^10.1.0",

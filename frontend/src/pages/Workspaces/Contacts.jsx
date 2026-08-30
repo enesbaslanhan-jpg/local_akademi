@@ -4,10 +4,13 @@ import { api } from '@/services/api'
 import Button from '@/components/ui/Button'
 import { Select } from '@/components/ui'
 import styles from './Contacts.module.css'
+import { useTranslation } from 'react-i18next'
 
 const emptyContact = { type: 'customer', name: '', legalName: '', contactPerson: '', email: '', phone: '', city: '', address: '', notes: '' }
 
 export default function Contacts() {
+  const { t } = useTranslation('workspace')
+  const typeOptions = ['customer', 'supplier', 'partner', 'other'].map(value => ({ value, label: t(`contacts.${value}`) }))
   const { workspaceId } = useParams()
   const [contacts, setContacts] = useState([])
   const [showForm, setShowForm] = useState(false)
@@ -51,7 +54,7 @@ export default function Contacts() {
   }
 
   async function handleArchive(contactId) {
-    if (!confirm('Bu kişiyi arşivlemek istediğinize emin misiniz?')) return
+    if (!confirm(t('contacts.confirmArchive'))) return
     await api.workspace.contacts.archive(workspaceId, contactId)
     await loadContacts()
   }
@@ -59,16 +62,16 @@ export default function Contacts() {
   return (
     <div>
       <div className={styles.sectionHeader}>
-        <h3>Kişiler ({contacts.length})</h3>
-        <Button onClick={openCreate}>Yeni Kişi</Button>
+        <h3>{t('contacts.title')} ({contacts.length})</h3>
+        <Button onClick={openCreate}>{t('contacts.newContact')}</Button>
       </div>
 
       {contacts.length === 0 ? (
-        <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: 32 }}>Henüz kişi eklenmemiş.</p>
+        <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: 32 }}>{t('contacts.empty')}</p>
       ) : (
         <table className={styles.table}>
           <thead>
-            <tr><th>Ad</th><th>Tür</th><th>E-posta</th><th>Telefon</th><th>Şehir</th><th></th></tr>
+            <tr><th>{t('contacts.col.name')}</th><th>{t('contacts.col.type')}</th><th>{t('contacts.col.email')}</th><th>{t('contacts.col.phone')}</th><th>{t('contacts.col.city')}</th><th></th></tr>
           </thead>
           <tbody>
             {contacts.map(c => (
@@ -81,13 +84,13 @@ export default function Contacts() {
                     {c.name}
                   </span>
                 </td>
-                <td><span className={styles.badge}>{c.type}</span></td>
+                <td><span className={styles.badge}>{t(`contacts.${c.type}`, { defaultValue: c.type })}</span></td>
                 <td>{c.email || '-'}</td>
                 <td>{c.phone || '-'}</td>
                 <td>{c.city || '-'}</td>
                 <td>
-                  <button onClick={() => openEdit(c)} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', marginRight: 8, fontSize: '0.85rem' }}>Düzenle</button>
-                  <button onClick={() => handleArchive(c.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '0.85rem' }}>Arşivle</button>
+                  <button onClick={() => openEdit(c)} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', marginRight: 8, fontSize: '0.85rem' }}>{t('contacts.edit')}</button>
+                  <button onClick={() => handleArchive(c.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '0.85rem' }}>{t('contacts.archive')}</button>
                 </td>
               </tr>
             ))}
@@ -98,47 +101,47 @@ export default function Contacts() {
       {showForm && (
         <div className={styles.overlay} onClick={() => setShowForm(false)}>
           <div className={styles.dialog} onClick={e => e.stopPropagation()}>
-            <h3>{editingId ? 'Kişiyi Düzenle' : 'Yeni Kişi'}</h3>
+            <h3>{editingId ? t('contacts.editTitle') : t('contacts.newTitle')}</h3>
             <form onSubmit={handleSubmit}>
               <div className={styles.field}>
-                <label>Tür</label>
-                <Select aria-label="Tür" options={[{ value: 'customer', label: 'Müşteri' }, { value: 'supplier', label: 'Tedarikçi' }, { value: 'partner', label: 'İş Ortağı' }, { value: 'other', label: 'Diğer' }]} value={form.type} onChange={v => setForm(f => ({ ...f, type: v }))} />
+                <label>{t('contacts.type')}</label>
+                <Select aria-label={t('contacts.type')} options={typeOptions} value={form.type} onChange={v => setForm(f => ({ ...f, type: v }))} />
               </div>
               <div className={styles.field}>
-                <label>Ad *</label>
+                <label>{t('contacts.nameLabel')}</label>
                 <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
               </div>
               <div className={styles.field}>
-                <label>Unvan</label>
+                <label>{t('contacts.legalName')}</label>
                 <input value={form.legalName} onChange={e => setForm(f => ({ ...f, legalName: e.target.value }))} />
               </div>
               <div className={styles.field}>
-                <label>Yetkili Kişi</label>
+                <label>{t('contacts.contactPerson')}</label>
                 <input value={form.contactPerson} onChange={e => setForm(f => ({ ...f, contactPerson: e.target.value }))} />
               </div>
               <div className={styles.field}>
-                <label>E-posta</label>
+                <label>{t('contacts.email')}</label>
                 <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} type="email" />
               </div>
               <div className={styles.field}>
-                <label>Telefon</label>
+                <label>{t('contacts.phone')}</label>
                 <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
               </div>
               <div className={styles.field}>
-                <label>Şehir</label>
+                <label>{t('contacts.city')}</label>
                 <input value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} />
               </div>
               <div className={styles.field}>
-                <label>Adres</label>
+                <label>{t('contacts.address')}</label>
                 <textarea value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
               </div>
               <div className={styles.field}>
-                <label>Notlar</label>
+                <label>{t('contacts.notes')}</label>
                 <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
               </div>
               <div className={styles.actions}>
-                <Button type="button" variant="secondary" onClick={() => setShowForm(false)}>İptal</Button>
-                <Button type="submit" disabled={!form.name.trim() || saving}>{saving ? 'Kaydediliyor...' : 'Kaydet'}</Button>
+                <Button type="button" variant="secondary" onClick={() => setShowForm(false)}>{t('common:buttons.cancel')}</Button>
+                <Button type="submit" disabled={!form.name.trim() || saving}>{saving ? t('contacts.saving') : t('contacts.save')}</Button>
               </div>
             </form>
           </div>

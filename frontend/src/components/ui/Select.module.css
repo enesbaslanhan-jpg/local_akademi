@@ -67,14 +67,27 @@
   cursor: not-allowed;
 }
 
-/* ---------- Popover (listbox) ---------- */
+/*
+ * ---------- Popover (listbox) ----------
+ *
+ * `position: fixed`, absolute DEĞİL: bir üst kartın köşe yuvarlama için
+ * kullandığı `overflow: hidden`'ı fixed konumlu bir öğeyi kesmiyor —
+ * öğe DOM ağacında yine kartın içinde kalıyor (dış tıklama denetimi
+ * bozulmuyor), yalnız görsel konumu viewport'a göre. `Select.jsx`
+ * tetikleyicinin `getBoundingClientRect()`ini JS'te hesaplayıp
+ * `top`/`left`/`width`i satır içi stille yazıyor; buradaki `top: 0;
+ * left: 0;` yalnız o hesap gelmeden önceki bir kare için düşen
+ * varsayılandır.
+ */
 .menu {
-  position: absolute;
-  top: calc(100% + 6px);
+  position: fixed;
+  top: 0;
   left: 0;
-  right: 0;
-  min-width: 100%;
-  z-index: 60;
+  min-width: 160px;
+  /* Açılır liste, mobil alt navigasyonun üstünde; drawer ve modalın
+     altında kalır. Aksi hâlde görünen seçenek yerine alttaki sekme
+     tıklanabiliyordu. */
+  z-index: var(--z-dropdown, 200);
   display: flex;
   flex-direction: column;
   border: 1px solid var(--line);
@@ -159,17 +172,15 @@
   margin-top: 2px;
 }
 
-/* ---------- Mobil: ekranın altında bottom-sheet davranışı ---------- */
+/* ---------- Mobil: tetikleyiciye bağlı, sınırlı yükseklikte menü ---------- */
 @media (max-width: 640px) {
   .menu {
-    position: fixed;
-    inset: auto 12px 12px 12px;
     max-height: 55dvh;
     border-radius: var(--radius-md);
   }
 
   .list {
-    max-height: none;
+    max-height: calc(55dvh - 12px);
     flex: 1;
   }
 }
@@ -206,4 +217,3 @@
   border-bottom-color: var(--primary);
   box-shadow: none;
 }
-

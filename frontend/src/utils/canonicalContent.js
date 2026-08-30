@@ -30,16 +30,16 @@
 const STRIPPED_SECTIONS = [
   {
     key: 'decisionTools',
-    test: /karar\s+ara[çc]lar[ıi]|hesaplamalar?\s+entegrasyon|finans\s+merkez\w*\s+entegrasyon|model\s*lab/i
+    test: /karar\s+ara[çc]lar[ıi]|hesaplamalar?\s+entegrasyon|finans\s+merkez\w*\s+entegrasyon|model\s*lab|decision\s+tools?\s+integration|calculations?\s+(?:and\s+decision\s+tools?\s+)?integration|financial\s+hub\s+integration/i
   },
-  { key: 'practiceCards', test: /pratik\s+bilgi\s+kartlar[ıi]/i },
-  { key: 'sources', test: /(do[ğg]rulanm[ıi][şs]\s+)?resm[îi]\s+kaynak|^kaynak[çc]a$/i }
+  { key: 'practiceCards', test: /pratik\s+bilgi\s+kartlar[ıi]|practical\s+(?:information|knowledge)\s+cards|practice\s+cards/i },
+  { key: 'sources', test: /(do[ğg]rulanm[ıi][şs]\s+)?resm[îi]\s+kaynak|^kaynak[çc]a$|verified\s+official\s+sources?|^sources?$|^references?$/i }
 ]
 
 const H2 = /^##\s+(.*)$/
 
 /** Gövde içinde geçen `[ Karar Araçları > ... ]` / `[ Hesaplamalar > ... ]`. */
-const INLINE_REF = /\[\s*(?:Karar Ara[çc]lar[ıi]|Hesaplamalar|Modeller)\s*>\s*[^\]]+\]/g
+const INLINE_REF = /\[\s*(?:Karar Ara[çc]lar[ıi]|Hesaplamalar|Modeller|Decision Tools?|Calculations?|Models?)\s*>\s*[^\]]+\]/gi
 
 /* ------------------------------------------------------------------ *
  * LaTeX onarımı
@@ -136,8 +136,8 @@ export function parseMistakeCard(text) {
     .replace(/\*\*/g, '')
     .replace(/\r/g, '')
 
-  const wrongMatch = clean.match(/Yayg[ıi]n\s+Hata\s*:?\s*([\s\S]*?)(?=Do[ğg]ru\s+Yakla[şs][ıi]m\s*:|$)/i)
-  const correctMatch = clean.match(/Do[ğg]ru\s+Yakla[şs][ıi]m\s*:?\s*([\s\S]*)$/i)
+  const wrongMatch = clean.match(/(?:Yayg[ıi]n\s+Hata|Common\s+Mistake)\s*:?\s*([\s\S]*?)(?=(?:Do[ğg]ru\s+Yakla[şs][ıi]m|Correct\s+Approach)\s*:|$)/i)
+  const correctMatch = clean.match(/(?:Do[ğg]ru\s+Yakla[şs][ıi]m|Correct\s+Approach)\s*:?\s*([\s\S]*)$/i)
 
   const wrong = wrongMatch?.[1]?.trim() || null
   const correct = correctMatch?.[1]?.trim() || null
@@ -169,11 +169,11 @@ export function extractInlineReferences(markdown) {
   const decisionTools = []
   const calculations = []
 
-  const pattern = /\[\s*(Karar Ara[çc]lar[ıi]|Hesaplamalar)\s*>\s*([^\]]+)\]/gi
+  const pattern = /\[\s*(Karar Ara[çc]lar[ıi]|Hesaplamalar|Decision Tools?|Calculations?)\s*>\s*([^\]]+)\]/gi
   let match
   while ((match = pattern.exec(markdown)) !== null) {
     const label = match[2].trim()
-    if (/^Karar/i.test(match[1])) decisionTools.push(label)
+    if (/^(?:Karar|Decision)/i.test(match[1])) decisionTools.push(label)
     else calculations.push(label)
   }
   return { decisionTools, calculations }
@@ -321,10 +321,15 @@ export function resolveCalculation(rawLabel, definitions = []) {
   }
 
   const scored = definitions
-    .map(d => ({
-      definition: d,
-      score: Math.max(dice(label, d.title), subset(label, d.title), normalize(d.title) === normalize(label) ? 1 : 0)
-    }))
+    .map(d => {
+      // Yeni katalog `matchTitle`, eski/test tanımları `title` taşır.
+      // İkisi de kullanıcıya gösterilen metin değil, yalnız eşleştirme verisidir.
+      const candidateTitle = d.matchTitle || d.title || ''
+      return {
+        definition: d,
+        score: Math.max(dice(label, candidateTitle), subset(label, candidateTitle), normalize(candidateTitle) === normalize(label) ? 1 : 0)
+      }
+    })
     .sort((a, b) => b.score - a.score)
 
   const best = scored[0]
@@ -366,7 +371,7 @@ export function resolveCalculation(rawLabel, definitions = []) {
   if (
     best.score >= 0.5 &&
     best.score - (second?.score ?? 0) >= 0.15 &&
-    paylasilanKelime(label, best.definition.title) >= 2
+    paylasilanKelime(label, best.definition.matchTitle || best.definition.title || '') >= 2
   ) {
     return { status: 'FOUND', definition: best.definition }
   }
@@ -406,7 +411,7 @@ export const DECISION_TOOL_TITLES = {
 /* List başlığı varyantları: "Bu araçta yapacağınız analiz adımları:",
    "Kasa Dedektifliği İş Akışı:", "Kapasite Karar Adımları:",
    "İhracat Karar Adımları:", "ROI Karar Adımları:" */
-const BULLET_HEADER = /bu\s+ara[çc]ta|ad[ıiİ]mlar[ıiİ]|[ıiİ][şŞs]\s+ak[ıiİ][şŞs]|karar\s+ad[ıiİ]mlar[ıiİ]/i
+const BULLET_HEADER = /bu\s+ara[çc]ta|ad[ıiİ]mlar[ıiİ]|[ıiİ][şŞs]\s+ak[ıiİ][şŞs]|karar\s+ad[ıiİ]mlar[ıiİ]|in\s+this\s+tool|analysis\s+steps?|workflow|decision\s+steps?/i
 const LIST_ITEM = /^\s*\d+[.)]\s+(.+)$/
 const CODE_BLOCK = /```[\s\S]*?```/g
 
@@ -454,7 +459,7 @@ export function parseDecisionIntegration(section) {
   if (!section) return null
 
   const { title: rawTitle, code } = extractToolTitleAndCode(section)
-  const hasSignal = code || /karar/i.test(section) || /^\s*\d+[.)]\s+/m.test(section)
+  const hasSignal = code || /karar|decision/i.test(section) || /^\s*\d+[.)]\s+/m.test(section)
   if (!hasSignal) return null
 
   const codeBlockless = String(section).replace(CODE_BLOCK, '')
@@ -488,22 +493,22 @@ export function parseDecisionIntegration(section) {
 
   const toolTitle = rawTitle
     ? stripMarkdownTokens(rawTitle)
-        .replace(/\s*(Arac[ıi]n[ıi]\s*A[çc]|Karar\s*Arac[ıi]'n[ıi])\s*$/i, '')
+        .replace(/\s*(Arac[ıi]n[ıi]\s*A[çc]|Karar\s*Arac[ıi]'n[ıi]|Open\s+(?:the\s+)?Tool|Decision\s+Tool)\s*$/i, '')
         .trim()
     : null
 
-  return { toolCode: code, toolTitle, context, bullets, result: 'Sonuç: gerekçeli karar fişi' }
+  return { toolCode: code, toolTitle, context, bullets, result: /[çğıöşüÇĞİÖŞÜ]|\b(?:karar|araç|sonuç)\b/i.test(section) ? 'Sonuç: gerekçeli karar fişi' : 'Result: an evidence-based decision record' }
 }
 
 /* ------------------------------------------------------------------ *
  * Pratik bilgi kartları (4. bölüm) → formül kartları + hata/doğru kartları
  * ------------------------------------------------------------------ */
 
-const FORMULA_CARD_HEADING = /^###\s*💡\s*Form[üu]l\s*(Kart[ıi]|Kutusu)[:：]?\s*(.*)$/i
-const WARNING_CARD_HEADING = /^###\s*⚠️?\s*Hata\s*\/\s*Do[ğg]ru\s*Kart[ıi][:：]?/i
+const FORMULA_CARD_HEADING = /^###\s*💡\s*(?:Form[üu]l\s*(Kart[ıi]|Kutusu)|Formula\s*Card)[:：]?\s*(.*)$/i
+const WARNING_CARD_HEADING = /^###\s*⚠️?\s*(?:Hata\s*\/\s*Do[ğg]ru\s*Kart[ıi]|Mistake\s*\/\s*Correct\s*Card)[:：]?/i
 const MATH_BLOCK = /\$\$([\s\S]*?)\$\$/g
 
-const EXAMPLE_MARKERS = /vaka|senaryo|örne[ğg]in|yukar[ıi]daki|mevcut\s+oranlar|hesaplayal[ıi]m|d[ıi]yelim/i
+const EXAMPLE_MARKERS = /vaka|senaryo|örne[ğg]in|yukar[ıi]daki|mevcut\s+oranlar|hesaplayal[ıi]m|d[ıi]yelim|case|scenario|example|for\s+instance|let(?:'s|\s+us)\s+calculate/i
 
 /** `###` başlıklarına göre bölümü bloklara böler. */
 function splitHeadingBlocks(markdown) {
@@ -596,7 +601,7 @@ export function parsePracticeCards(section) {
   for (const block of splitHeadingBlocks(section)) {
     const formulaMatch = block.heading.match(FORMULA_CARD_HEADING)
     if (formulaMatch) {
-      const card = parseFormulaCard(formulaMatch[2], block.body)
+      const card = parseFormulaCard(formulaMatch[2] || formulaMatch[3], block.body)
       if (card) formulaCards.push(card)
       continue
     }

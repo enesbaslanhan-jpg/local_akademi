@@ -6,10 +6,11 @@ import IntegrationsPanel from '@/components/settings/IntegrationsPanel'
 /*
  * AYARLAR > ENTEGRASYONLAR panel testleri.
  *
- * Kurallar: Trendyol + Hepsiburada + N11 + Shopify AKTIF; WooCommerce "Yakinda"
- * ve devre disi. Credential input'lari maskelidir ve formu dolduktan
- * sonra ekrana GERI YAZILMAZ. Ortak modal shell, provider'a gore alan
- * seti degistirir (resmi auth modelleri).
+ * Kurallar: Trendyol + Hepsiburada + N11 + Shopify AKTIF; WooCommerce
+ * katalogdan ÇIKTI (enum değeri DB'de kalır), Amazon "Yakında" olarak
+ * görünür ve devre dışıdır. Credential input'lari maskelidir ve formu
+ * dolduktan sonra ekrana GERİ YAZILMAZ. Ortak modal shell, provider'a
+ * göre alan seti değiştirir (resmî auth modelleri).
  */
 
 const mocks = vi.hoisted(() => ({
@@ -65,7 +66,7 @@ const CATALOG = [
   { provider: 'HEPSIBURADA', label: 'Hepsiburada', enabled: true, comingSoon: false },
   { provider: 'N11', label: 'N11', enabled: true, comingSoon: false },
   { provider: 'SHOPIFY', label: 'Shopify', enabled: true, comingSoon: false },
-  { provider: 'WOOCOMMERCE', label: 'WooCommerce', enabled: false, comingSoon: true }
+  { provider: 'AMAZON', label: 'Amazon', enabled: false, comingSoon: true }
 ]
 
 const DISCONNECTED = {
@@ -86,7 +87,7 @@ beforeEach(() => {
 })
 
 describe('Entegrasyonlar paneli', () => {
-  it('dört provider aktif; yalnız WooCommerce “Yakında”', async () => {
+  it('dört provider aktif; Amazon “Yakında”, WooCommerce katalogda yok', async () => {
     ciz()
     const trendyol = await screen.findByLabelText('Trendyol entegrasyonu')
     expect(await within(trendyol).findByRole('button', { name: /Bağla/ })).toBeInTheDocument()
@@ -99,9 +100,14 @@ describe('Entegrasyonlar paneli', () => {
 
     const shopify = screen.getByLabelText('Shopify entegrasyonu')
     expect(await within(shopify).findByRole('button', { name: /Bağla/ })).toBeInTheDocument()
-    const woo = screen.getByLabelText(/WooCommerce entegrasyonu/)
-    expect(within(woo).getByText(/Yakında/)).toBeInTheDocument()
-    expect(within(woo).queryByRole('button')).toBeNull()
+
+    /* Amazon SP-API onay süreci olmadan bağlanamaz: kart salt "Yakında". */
+    const amazon = screen.getByLabelText(/Amazon entegrasyonu/)
+    expect(within(amazon).getByText(/Yakında/)).toBeInTheDocument()
+    expect(within(amazon).queryByRole('button')).toBeNull()
+
+    /* WooCommerce katalogdan çıktı; kullanıcıya artık sunulmaz. */
+    expect(screen.queryByLabelText(/WooCommerce entegrasyonu/)).toBeNull()
   })
 
   it('Trendyol bağla modalında API Secret maskelidir ve resmî rehber yolu gösterilir', async () => {

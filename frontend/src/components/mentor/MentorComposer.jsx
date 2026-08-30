@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react'
 import { Send, Square } from 'lucide-react'
 import styles from './MentorComposer.module.css'
+import { useTranslation } from 'react-i18next'
 
 export default function MentorComposer({
   value,
@@ -10,6 +11,7 @@ export default function MentorComposer({
   isStreaming,
   disabled
 }) {
+  const { t } = useTranslation('mentor')
   const textareaRef = useRef(null)
   const MAX_LENGTH = 2000 // typical backend limit
 
@@ -39,7 +41,7 @@ export default function MentorComposer({
           value={value}
           onChange={e => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={isStreaming ? 'Yanıt bekleniyor...' : 'Mesajınızı yazın...'}
+          placeholder={isStreaming ? t('thinking') : t('placeholder')}
           disabled={isStreaming || disabled}
           className={styles.textarea}
           rows={1}
@@ -50,8 +52,8 @@ export default function MentorComposer({
             <button
               onClick={onAbort}
               className={styles.abortBtn}
-              aria-label="Üretimi durdur"
-              title="Durdur"
+              aria-label={t('composer.abortAriaLabel')}
+              title={t('composer.stop')}
             >
               <Square size={20} fill="currentColor" />
             </button>
@@ -60,8 +62,8 @@ export default function MentorComposer({
               onClick={onSend}
               disabled={!value.trim() || isOverLimit || disabled}
               className={styles.sendBtn}
-              aria-label="Gönder"
-              title="Gönder"
+              aria-label={t('send')}
+              title={t('send')}
             >
               <Send size={20} />
             </button>

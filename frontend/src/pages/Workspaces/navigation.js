@@ -9,15 +9,15 @@
  * tests/navigasyon-regresyonu bu sirayi korur.
  */
 export const WORKSPACE_NAV_TABS = [
-  { id: 'overview', label: 'Genel Bakış', path: 'overview' },
-  { id: 'tracker', label: 'Kayıtlar', path: 'tracker' },
-  { id: 'orders', label: 'Siparişler', path: 'orders' },
-  { id: 'products', label: 'Ürünler', path: 'products' },
-  { id: 'documents', label: 'Belgeler', path: 'documents' },
-  { id: 'notifications', label: 'Bildirimler', path: 'notifications' },
-  { id: 'calendar', label: 'Takvim', path: 'calendar' },
-  { id: 'team', label: 'Ekip', path: 'team' },
-  { id: 'contacts', label: 'Kişiler', path: 'contacts' },
-  { id: 'activity', label: 'Aktiviteler', path: 'activity' },
-  { id: 'settings', label: 'Ayarlar', path: 'settings' }
+  { id: 'overview', i18nKey: 'workspace:nav.overview', path: 'overview' },
+  { id: 'tracker', i18nKey: 'workspace:nav.records', path: 'tracker' },
+  { id: 'orders', i18nKey: 'workspace:nav.orders', path: 'orders' },
+  { id: 'products', i18nKey: 'workspace:nav.products', path: 'products' },
+  { id: 'documents', i18nKey: 'workspace:nav.documents', path: 'documents' },
+  { id: 'notifications', i18nKey: 'workspace:nav.notifications', path: 'notifications' },
+  { id: 'calendar', i18nKey: 'workspace:nav.calendar', path: 'calendar' },
+  { id: 'team', i18nKey: 'workspace:nav.team', path: 'team' },
+  { id: 'contacts', i18nKey: 'workspace:nav.contacts', path: 'contacts' },
+  { id: 'activity', i18nKey: 'workspace:nav.activity', path: 'activity' },
+  { id: 'settings', i18nKey: 'workspace:nav.settings', path: 'settings' }
 ]

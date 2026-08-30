@@ -44,6 +44,34 @@ Gerçek Birim Maliyet = Malzeme + İşçilik
 - GİB, Vergi Usul Kanunu
 `
 
+const CANONICAL_EN = `# True Unit Cost
+
+## Practical Decision: "What is my product's true cost?"
+
+## 1. Cost Components
+
+English lesson body.
+
+## 3. Calculations and Decision Tools Integration
+
+[ Decision Tools > Is my product truly profitable? (DC-PROFIT-001) ]
+[ Calculations > Actual Unit Cost ]
+
+## 4. Practical Knowledge Cards
+
+### 💡 Formula Card: True Unit Cost
+
+$$\\text{True Unit Cost}=\\text{Materials}+\\text{Labor}$$
+
+### ⚠️ Mistake / Correct Card
+**Common Mistake:** Counting materials only.
+**Correct Approach:** Allocate every relevant cost.
+
+## 5. Verified Official Sources
+
+- Official source
+`
+
 describe('splitCanonicalMarkdown', () => {
   it('gövdede yalnız 1 ve 2. bölümleri bırakır', () => {
     const { body } = splitCanonicalMarkdown(CANONICAL)
@@ -77,6 +105,15 @@ describe('splitCanonicalMarkdown', () => {
   it('boş girdide çökmez', () => {
     expect(splitCanonicalMarkdown('')).toEqual({ body: '', sections: {} })
   })
+
+  it('İngilizce canonical bölüm başlıklarını da ayırır', () => {
+    const { body, sections } = splitCanonicalMarkdown(CANONICAL_EN)
+    expect(body).toContain('English lesson body')
+    expect(body).not.toContain('Decision Tools Integration')
+    expect(sections.decisionTools).toContain('DC-PROFIT-001')
+    expect(sections.practiceCards).toContain('Formula Card')
+    expect(sections.sources).toContain('Official source')
+  })
 })
 
 describe('parseMistakeCard', () => {
@@ -99,6 +136,10 @@ describe('parseMistakeCard', () => {
     expect(wrong).toBe('Etiketsiz açıklama metni')
     expect(correct).toBeNull()
   })
+
+  it('İngilizce hata/doğru etiketlerini ayırır', () => {
+    expect(parseMistakeCard('**Common Mistake:** A. **Correct Approach:** B.')).toEqual({ wrong: 'A.', correct: 'B.' })
+  })
 })
 
 describe('extractInlineReferences', () => {
@@ -108,6 +149,12 @@ describe('extractInlineReferences', () => {
     )
     expect(refs.decisionTools).toHaveLength(1)
     expect(refs.calculations).toEqual(['Katkı Payı'])
+  })
+
+  it('İngilizce referansları ayırır', () => {
+    const refs = extractInlineReferences('[ Decision Tools > Profitability (DC-PROFIT-001) ]\n[ Calculations > Actual Unit Cost ]')
+    expect(refs.decisionTools).toHaveLength(1)
+    expect(refs.calculations).toEqual(['Actual Unit Cost'])
   })
 })
 

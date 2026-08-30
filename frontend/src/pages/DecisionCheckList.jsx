@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   ArrowRight, ChevronRight, RotateCcw, Search, CircleDashed,
   Percent, Truck, Store, Target, UserPlus, Landmark, Wallet,
@@ -13,27 +14,27 @@ import './DecisionCheckList.css'
 
 const STATUS_CONTENT = {
   not_started: {
-    label: 'Başlanmadı',
-    cta: 'Aracı Aç',
+    labelKey: 'decisions.status.notStarted',
+    ctaKey: 'decisions.cta.openTool',
     className: 'not-started'
   },
   in_progress: {
-    label: 'Devam ediyor',
-    cta: 'Devam Et',
+    labelKey: 'decisions.status.inProgress',
+    ctaKey: 'decisions.cta.continue',
     className: 'in-progress'
   },
   completed: {
-    label: 'Tamamlandı',
-    cta: 'Sonucu Gör',
+    labelKey: 'decisions.status.completed',
+    ctaKey: 'decisions.cta.viewResult',
     className: 'completed'
   }
 }
 
 /* Bağlam panelindeki durum süzgeçleri. */
 const STATUS_FILTERS = [
-  { id: 'all', label: 'Tümü' },
-  { id: 'in_progress', label: 'Devam eden' },
-  { id: 'completed', label: 'Tamamlanan' }
+  { id: 'all', labelKey: 'decisions.filters.all' },
+  { id: 'in_progress', labelKey: 'decisions.filters.active' },
+  { id: 'completed', labelKey: 'decisions.filters.done' }
 ]
 
 /*
@@ -68,6 +69,8 @@ function normalizeStatus(status) {
 }
 
 export default function DecisionCheckList() {
+  const { t, i18n } = useTranslation('tools')
+  const uiLanguage = i18n.resolvedLanguage || i18n.language
   const [checks, setChecks] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
@@ -116,7 +119,7 @@ export default function DecisionCheckList() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [uiLanguage])
 
   useEffect(() => {
     loadChecks()
@@ -138,22 +141,23 @@ export default function DecisionCheckList() {
       }
     } catch (error) {
       console.error(error)
-      setActionError('Araç şu anda açılamadı. Lütfen tekrar deneyin.')
+      setActionError(t('decisions.errors.openTool'))
     } finally {
       setOpeningCode(null)
     }
   }
 
   const visibleChecks = useMemo(() => {
-    const needle = query.trim().toLocaleLowerCase('tr')
+    const locale = i18n.resolvedLanguage || i18n.language
+    const needle = query.trim().toLocaleLowerCase(locale)
     return checks.filter((check) => {
       if (statusFilter !== 'all' && normalizeStatus(check.status) !== statusFilter) return false
       if (!needle) return true
       return [check.title, check.category, check.description]
         .filter(Boolean)
-        .some(field => field.toLocaleLowerCase('tr').includes(needle))
+        .some(field => field.toLocaleLowerCase(locale).includes(needle))
     })
-  }, [checks, query, statusFilter])
+  }, [checks, query, statusFilter, i18n.language, i18n.resolvedLanguage])
 
   const statusCounts = useMemo(() => {
     const counts = { all: checks.length, in_progress: 0, completed: 0 }
@@ -174,7 +178,7 @@ export default function DecisionCheckList() {
           süzgeçler sayfanın kendi hap satırında kalır. */}
       <ContextPanelSlot>
         <div className="decision-panel-block">
-          <div className="decision-panel-label">Durum</div>
+          <div className="decision-panel-label">{t('decisions.statusLabel')}</div>
           <div className="decision-panel-filters">
             {STATUS_FILTERS.map((filter) => (
               <button
@@ -184,7 +188,7 @@ export default function DecisionCheckList() {
                 onClick={() => setStatusFilter(filter.id)}
                 aria-pressed={statusFilter === filter.id}
               >
-                <span>{filter.label}</span>
+                <span>{t(filter.labelKey)}</span>
                 <span className="decision-panel-count">{statusCounts[filter.id] ?? 0}</span>
               </button>
             ))}
@@ -193,7 +197,7 @@ export default function DecisionCheckList() {
 
         {visibleChecks.length > 0 && (
           <div className="decision-panel-block">
-            <div className="decision-panel-label">Araçlar</div>
+            <div className="decision-panel-label">{t('decisions.toolsLabel')}</div>
             <div className="decision-panel-tools">
               {visibleChecks.map((check) => (
                 <button
@@ -212,16 +216,14 @@ export default function DecisionCheckList() {
       </ContextPanelSlot>
 
       <div className="decision-list-shell">
-        <PageHead title="Karar Araçları" subtitle="Doğru karar yöntemini seç." actions={<Button variant="quiet" onClick={() => setStatusFilter('completed')}>Geçmiş kararlar</Button>} />
+        <PageHead title={t('decisions.title')} subtitle={t('decisions.subtitle')} actions={<Button variant="quiet" onClick={() => setStatusFilter('completed')}>{t('decisions.historyButton')}</Button>} />
 
         <div className="decision-hero-wrap">
           <DarkPanel bevel={false} sweep className="decision-hero">
             <span className="decision-hero-beam" aria-hidden="true" />
-            <p className="decision-hero-eyebrow">Karar öncesi kontrol</p>
-            <p className="decision-hero-title">Karar vermeden önce rakamlara bakın</p>
-            <p className="decision-hero-intro">
-              Önemli iş kararlarını vermeden önce temel riskleri, maliyetleri ve sonraki adımları hızlıca kontrol edin.
-            </p>
+            <p className="decision-hero-eyebrow">{t('decisions.heroEyebrow')}</p>
+            <p className="decision-hero-title">{t('decisions.heroTitle')}</p>
+            <p className="decision-hero-intro">{t('decisions.heroIntro')}</p>
           </DarkPanel>
 
           {/* Panelin alt kenarından taşan cam arama hapı — yarısı dışarıda. */}
@@ -231,15 +233,15 @@ export default function DecisionCheckList() {
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Araç ara"
-              aria-label="Karar araçlarında ara"
+              placeholder={t('decisions.searchPlaceholder')}
+              aria-label={t('decisions.searchAria')}
             />
           </div>
         </div>
 
         {/* Mobilde bağlam paneli yok; süzgeçler burada kalır. */}
         {hasChecks && (
-          <div className="decision-filter-row" role="group" aria-label="Durum süzgeci">
+          <div className="decision-filter-row" role="group" aria-label={t('decisions.filterRowAria')}>
             {STATUS_FILTERS.map((filter) => (
               <button
                 key={filter.id}
@@ -248,7 +250,7 @@ export default function DecisionCheckList() {
                 onClick={() => setStatusFilter(filter.id)}
                 aria-pressed={statusFilter === filter.id}
               >
-                {filter.label}
+                {t(filter.labelKey)}
                 <span className="decision-filter-count">{statusCounts[filter.id] ?? 0}</span>
               </button>
             ))}
@@ -258,19 +260,19 @@ export default function DecisionCheckList() {
         {loading && (
           <section className="decision-list-state" aria-live="polite" aria-busy="true">
             <span className="decision-list-spinner" aria-hidden="true" />
-            <h2>Araçlar hazırlanıyor</h2>
-            <p>Karar kontrolleriniz yükleniyor.</p>
+            <h2>{t('decisions.loadingTitle')}</h2>
+            <p>{t('decisions.loadingText')}</p>
           </section>
         )}
 
         {!loading && loadError && (
           <section className="decision-list-state decision-list-state-error" role="alert">
             <span className="decision-list-state-icon" aria-hidden="true">!</span>
-            <h2>Araçlar yüklenemedi</h2>
-            <p>Bağlantınızı kontrol edip yeniden deneyin.</p>
+            <h2>{t('decisions.errorTitle')}</h2>
+            <p>{t('decisions.errorText')}</p>
             <button type="button" className="decision-list-retry" onClick={loadChecks}>
               <RotateCcw size={17} aria-hidden="true" />
-              Yeniden dene
+              {t('decisions.retry')}
             </button>
           </section>
         )}
@@ -278,22 +280,22 @@ export default function DecisionCheckList() {
         {!loading && !loadError && checks.length === 0 && (
           <section className="decision-list-state">
             <span className="decision-list-state-icon" aria-hidden="true">✓</span>
-            <h2>Henüz araç bulunmuyor</h2>
-            <p>Yayınlanan yeni karar araçları burada görünecek.</p>
+            <h2>{t('decisions.emptyTitle')}</h2>
+            <p>{t('decisions.emptyText')}</p>
           </section>
         )}
 
         {hasChecks && (
           <div className="decision-workspace">
           {/* data-tour: karsilama turu tutunma noktasi (WelcomeTour.jsx) */}
-          <section className="decision-list-content" aria-label="Karar araçları" data-tour="karar-kartlari">
+          <section className="decision-list-content" aria-label={t('decisions.contentAria')} data-tour="karar-kartlari">
             <div className="decision-list-summary">
               <div>
-                <h2>İşinize uygun araçlar</h2>
+                <h2>{t('decisions.suitableTools')}</h2>
                 <p>
                   {filtersActive
-                    ? `${visibleChecks.length} / ${checks.length} araç gösteriliyor.`
-                    : `${checks.length} karar aracı kullanıma hazır.`}
+                    ? t('decisions.showingCount', { shown: visibleChecks.length, total: checks.length })
+                    : t('decisions.readyCount', { count: checks.length })}
                 </p>
               </div>
             </div>
@@ -302,8 +304,8 @@ export default function DecisionCheckList() {
 
             {visibleChecks.length > 1 && !filtersActive && (
               <article className="decision-recommended">
-                <div><span>Bağlamınıza göre önerilen</span><h3>{visibleChecks[0].title}</h3><p>{visibleChecks[0].description}</p></div>
-                <Button onClick={() => openCheck(visibleChecks[0])}>Karar sürecini başlat <ArrowRight size={15} /></Button>
+                <div><span>{t('decisions.recommended')}</span><h3>{visibleChecks[0].title}</h3><p>{visibleChecks[0].description}</p></div>
+                <Button onClick={() => openCheck(visibleChecks[0])}>{t('decisions.startProcess')} <ArrowRight size={15} /></Button>
               </article>
             )}
 
@@ -312,8 +314,8 @@ export default function DecisionCheckList() {
                 <span className="decision-list-state-icon" aria-hidden="true">
                   <CircleDashed size={22} />
                 </span>
-                <h2>Bu süzgece uyan araç yok</h2>
-                <p>Aramayı temizleyin veya başka bir durum seçin.</p>
+                <h2>{t('decisions.noMatchTitle')}</h2>
+                <p>{t('decisions.noMatchText')}</p>
               </div>
             )}
 
@@ -349,7 +351,7 @@ export default function DecisionCheckList() {
                         onClick={() => openCheck(check)}
                         disabled={isOpening}
                       >
-                        <span>{isOpening ? 'Açılıyor…' : status.cta}</span>
+                        <span>{isOpening ? t('decisions.opening') : t(status.ctaKey)}</span>
                         <ArrowRight size={18} aria-hidden="true" />
                       </button>
                     </article>
@@ -359,14 +361,14 @@ export default function DecisionCheckList() {
             )}
           </section>
           <aside className="decision-recent">
-            <h2>Son oturumlar</h2>
+            <h2>{t('decisions.recentSessions')}</h2>
             {checks.filter(check => check.sessionId).slice(0, 5).map(check => (
               <button key={check.sessionId} onClick={() => openCheck(check)}>
-                <span><strong>{check.title}</strong><small>{normalizeStatus(check.status) === 'completed' ? 'Sonuç hazır' : 'Sürdürmeye hazır'}</small></span>
-                <span>{normalizeStatus(check.status) === 'completed' ? 'Aç' : 'Sürdür'}</span><ChevronRight size={14} />
+                <span><strong>{check.title}</strong><small>{normalizeStatus(check.status) === 'completed' ? t('decisions.resultReady') : t('decisions.resumeReady')}</small></span>
+                <span>{normalizeStatus(check.status) === 'completed' ? t('decisions.openShort') : t('decisions.resumeShort')}</span><ChevronRight size={14} />
               </button>
             ))}
-            {checks.every(check => !check.sessionId) && <p>Henüz bir karar oturumu yok.</p>}
+            {checks.every(check => !check.sessionId) && <p>{t('decisions.noSessions')}</p>}
           </aside>
           </div>
         )}

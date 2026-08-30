@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import { api } from '@/services/api'
 import AuthThemeToggle from './AuthThemeToggle'
 import styles from './AuthPage.module.css'
+import { useTranslation } from 'react-i18next'
 
 /*
  * İşletme daveti kabul ekranı (`/davet?token=...`).
@@ -21,6 +22,7 @@ import styles from './AuthPage.module.css'
  */
 
 export default function InvitationPage() {
+  const { t } = useTranslation('auth')
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token') || ''
   const { isAuthenticated, loading } = useAuth()
@@ -41,10 +43,10 @@ export default function InvitationPage() {
       setWorkspaceId(sonuc?.workspaceId || null)
       setDurum('tamam')
     } catch (err) {
-      setHata(err.message || 'Davet kabul edilemedi.')
+      setHata(err.message || t('invitation.acceptError'))
       setDurum('hata')
     }
-  }, [token])
+  }, [token, t])
 
   useEffect(() => {
     if (loading || !token || !isAuthenticated) return
@@ -78,48 +80,45 @@ export default function InvitationPage() {
           {!token && (
             <>
               <div className={styles.cardHead}>
-                <h1>Davet bağlantısı eksik</h1>
-                <p>Bağlantı tam kopyalanmamış olabilir. E-postadaki bağlantıya yeniden tıklayın.</p>
+                <h1>{t('invitation.missingTitle')}</h1>
+                <p>{t('invitation.missingDescription')}</p>
               </div>
-              <Link to="/login" className={styles.backLink}>Giriş ekranına dön</Link>
+              <Link to="/login" className={styles.backLink}>{t('invitation.backToLogin')}</Link>
             </>
           )}
 
           {token && loading && (
             <div className={styles.cardHead}>
-              <h1>Kontrol ediliyor…</h1>
+              <h1>{t('invitation.checking')}</h1>
             </div>
           )}
 
           {token && !loading && !isAuthenticated && (
             <>
               <div className={styles.cardHead}>
-                <h1>Bir işletmeye davet edildin</h1>
-                <p>
-                  Daveti kabul etmek için hesabına giriş yap. Davet, e-postanın
-                  gönderildiği adresle açılmış bir hesap gerektirir.
-                </p>
+                <h1>{t('invitation.title')}</h1>
+                <p>{t('invitation.description')}</p>
               </div>
               <div className={styles.cardForm}>
                 <Link to={girisYolu} className={styles.submit} style={{ display: 'grid', placeItems: 'center', textDecoration: 'none' }}>
-                  Giriş yap
+                  {t('login')}
                 </Link>
-                <Link to={kayitYolu} className={styles.backLink}>Hesabım yok, oluştur</Link>
+                <Link to={kayitYolu} className={styles.backLink}>{t('invitation.createAccount')}</Link>
               </div>
             </>
           )}
 
           {token && !loading && isAuthenticated && durum === 'calisiyor' && (
             <div className={styles.cardHead}>
-              <h1>Davet işleniyor…</h1>
+              <h1>{t('invitation.processing')}</h1>
             </div>
           )}
 
           {durum === 'tamam' && (
             <>
               <div className={styles.cardHead}>
-                <h1><Check size={20} aria-hidden="true" /> Katıldın</h1>
-                <p>Artık bu işletmenin ekibindesin. İşletme takibi paneline geçebilirsin.</p>
+                <h1><Check size={20} aria-hidden="true" /> {t('invitation.joined')}</h1>
+                <p>{t('invitation.joinedDescription')}</p>
               </div>
               <div className={styles.cardForm}>
                 <button
@@ -127,7 +126,7 @@ export default function InvitationPage() {
                   className={styles.submit}
                   onClick={() => navigate(workspaceId ? `/app/workspaces/${workspaceId}/tracker` : '/app/workspaces', { replace: true })}
                 >
-                  İşletmeye git
+                  {t('invitation.goToBusiness')}
                 </button>
               </div>
             </>
@@ -136,7 +135,7 @@ export default function InvitationPage() {
           {durum === 'hata' && (
             <>
               <div className={styles.cardHead}>
-                <h1><MailWarning size={20} aria-hidden="true" /> Davet kabul edilemedi</h1>
+                <h1><MailWarning size={20} aria-hidden="true" /> {t('invitation.acceptError')}</h1>
               </div>
               {/*
                 * Sunucunun mesajı olduğu gibi gösteriliyor: "farklı bir
@@ -148,7 +147,7 @@ export default function InvitationPage() {
               <p className={styles.error} role="alert">{hata}</p>
               <div className={styles.cardForm}>
                 <button type="button" className={styles.submit} onClick={() => navigate('/app/workspaces')}>
-                  <Users size={16} aria-hidden="true" /> İşletmelerime git
+                  <Users size={16} aria-hidden="true" /> {t('invitation.goToBusinesses')}
                 </button>
               </div>
             </>

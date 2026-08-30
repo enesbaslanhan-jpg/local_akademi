@@ -1,5 +1,8 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma.js'
+import { contentLanguage, localized } from '../lib/content-language.js'
+import { COURSE_CATEGORY_EN, COURSE_EN_BY_SLUG } from '../content/i18n/course-en.js'
+import { localizeSystemTaskTitle } from '../content/i18n/task-en.js'
 
 export function isLegacyCourseTitle(title: string): boolean {
   return /^\s*\[[^\]]*kopya[^\]]*\]/i.test(title)
@@ -14,7 +17,17 @@ export async function learnerDashboardRoutes(fastify: FastifyInstance) {
     preHandler: [fastify.authenticate]
   }, async (request) => {
     const user = request.user
+    const language = contentLanguage(request)
     const now = new Date()
+
+    const localizedCourse = (course: { title: string; category?: string | null; slug?: string | null } | null | undefined) => {
+      if (!course) return null
+      const english = course.slug ? COURSE_EN_BY_SLUG[course.slug] : undefined
+      return {
+        title: localized(course.title, english?.title, language),
+        category: course.category ? localized(course.category, COURSE_CATEGORY_EN[course.category], language) : null,
+      }
+    }
 
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
@@ -133,7 +146,7 @@ export async function learnerDashboardRoutes(fastify: FastifyInstance) {
               { title: { contains: stripLegacyCourseTitle(legacyEnrollment.course.title).slice(0, 60) } }
             ]
           },
-          select: { id: true, title: true }
+          select: { id: true, title: true, slug: true, category: true }
         }).catch(() => null)
         if (activeMatch) {
           resumeItem = {
@@ -169,7 +182,7 @@ export async function learnerDashboardRoutes(fastify: FastifyInstance) {
 
     return {
       user: {
-        name: dbUser?.name || 'Kullanıcı',
+        name: dbUser?.name || (language === 'en' ? 'User' : 'Kullanıcı'),
         email: dbUser?.email || user.email,
         role: dbUser?.role || user.role
       },
@@ -187,8 +200,8 @@ export async function learnerDashboardRoutes(fastify: FastifyInstance) {
       enrollments: visibleEnrollments.map(e => ({
         id: e.id,
         courseId: e.courseId,
-        courseTitle: e.course?.title || `Kurs #${e.courseId}`,
-        courseCategory: e.course?.category || null,
+        courseTitle: localizedCourse(e.course)?.title || (language === 'en' ? `Course #${e.courseId}` : `Kurs #${e.courseId}`),
+        courseCategory: localizedCourse(e.course)?.category,
         courseLevel: e.course?.level || null,
         progress: e.progress,
         status: e.status,
@@ -206,7 +219,7 @@ export async function learnerDashboardRoutes(fastify: FastifyInstance) {
       resumeItem: resumeItem ? {
         id: resumeItem.id,
         courseId: resumeItem.courseId,
-        courseTitle: resumeItem.course?.title || `Kurs #${resumeItem.courseId}`,
+        courseTitle: localizedCourse(resumeItem.course)?.title || (language === 'en' ? `Course #${resumeItem.courseId}` : `Kurs #${resumeItem.courseId}`),
         progress: resumeItem.progress,
         status: resumeItem.status,
         updatedAt: resumeItem.updatedAt
@@ -222,7 +235,7 @@ export async function learnerDashboardRoutes(fastify: FastifyInstance) {
       upcomingTasks: openTasks.slice(0, 5).map(t => ({
         id: t.id,
         taskId: t.taskId,
-        title: t.taskTemplate?.title || 'Görevi tamamla',
+        title: localizeSystemTaskTitle(t.taskTemplate?.title, language),
         status: t.status,
         progressPercent: t.progressPercent,
         createdAt: t.createdAt,

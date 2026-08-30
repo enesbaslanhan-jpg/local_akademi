@@ -4,6 +4,8 @@ import { z } from 'zod'
 import { evaluateDecisionCheck, calculateDecisionCheckProfitability, type Finding } from './decision-check-rule-engine'
 import { calculateStructuredDecisionTool, decisionResultFromCalculation, STRUCTURED_TOOL_BY_CODE, validateStructuredToolAnswers } from './decision-tool-catalog'
 import { LearningProgressService } from './learning-progress'
+import { contentLanguage } from '../lib/content-language'
+import { DECISION_CHECK_EN_BY_CODE, localizeDecisionCheck, localizeDecisionSnapshot } from '../content/i18n/decision-check-en'
 
 const featureFlag = process.env.FEATURE_DECISION_CHECKS_ENABLED === 'true'
 const lpService = new LearningProgressService(prisma)
@@ -29,6 +31,7 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
 
   // 8. GET /api/v1/decision-checks/sessions/me
   server.get('/sessions/me', { preValidation: [server.authenticate] }, async (request, reply) => {
+    const language = contentLanguage(request)
     const sessions = await prisma.decisionCheckSession.findMany({
       where: { userId: (request.user as any).id, archivedAt: null },
       include: { decisionCheck: true },
@@ -37,7 +40,7 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
     return reply.send(sessions.map(s => ({
       id: s.id,
       decisionCheckCode: s.decisionCheck.code,
-      decisionCheckTitle: s.decisionCheck.title,
+      decisionCheckTitle: localizeDecisionCheck(s.decisionCheck, language).title,
       status: s.status,
       startedAt: s.startedAt,
       updatedAt: s.updatedAt,
@@ -47,6 +50,7 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
 
   // 1. GET /api/v1/decision-checks
   server.get('/', async (request, reply) => {
+    const language = contentLanguage(request)
     const publishedChecks = await prisma.decisionCheck.findMany({
       where: { published: true, deletedAt: null },
       select: {
@@ -58,11 +62,12 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
         currentVersion: true
       }
     })
-    return reply.send(publishedChecks)
+    return reply.send(publishedChecks.map(check => localizeDecisionCheck(check, language)))
   })
 
   // 2. GET /api/v1/decision-checks/:code
   server.get('/:code', async (request, reply) => {
+    const language = contentLanguage(request)
     const { code } = request.params as { code: string }
     const check = await prisma.decisionCheck.findUnique({
       where: { code, published: true, deletedAt: null }
@@ -75,12 +80,14 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
     
     if (!version) return reply.status(404).send({ error: 'DECISION_CHECK_NOT_PUBLISHED' })
 
+    const visibleCheck = localizeDecisionCheck(check, language)
+    const englishDefinition = language === 'en' ? DECISION_CHECK_EN_BY_CODE[check.code]?.definition : undefined
     return reply.send({
       code: check.code,
-      title: check.title,
-      description: check.description,
+      title: visibleCheck.title,
+      description: visibleCheck.description,
       version: version.version,
-      definition: (version.definitionJson as any)?.questions || []
+      definition: (englishDefinition as any)?.questions || (version.definitionJson as any)?.questions || []
     })
   })
 
@@ -125,6 +132,7 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
 
   // 4. GET /api/v1/decision-check-sessions/:id
   server.get('/sessions/:id', { preValidation: [server.authenticate] }, async (request, reply) => {
+    const language = contentLanguage(request)
     const { id } = request.params as { id: string }
     const session = await prisma.decisionCheckSession.findUnique({
       where: { id },
@@ -141,13 +149,14 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
       where: { id: session.versionId! }
     })
 
-    const definitionJson = version?.definitionJson as any
+    const visibleCheck = localizeDecisionCheck(session.decisionCheck, language)
+    const definitionJson = (language === 'en' ? DECISION_CHECK_EN_BY_CODE[session.decisionCheck.code]?.definition : null) || version?.definitionJson as any
     return reply.send({
       id: session.id,
       status: session.status,
       decisionCheckCode: session.decisionCheck.code,
-      decisionCheckTitle: session.decisionCheck.title,
-      decisionCheckDescription: session.decisionCheck.description,
+      decisionCheckTitle: visibleCheck.title,
+      decisionCheckDescription: visibleCheck.description,
       definition: definitionJson?.questions || [],
       toolMeta: definitionJson?.ui || null,
       answers: session.answers
@@ -220,7 +229,7 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
     if (session.completedAt) {
       // Idempotency: return existing result
       const existingRes = await prisma.decisionCheckResult.findUnique({ where: { sessionId: id } })
-      if (existingRes) return reply.send({ resultId: existingRes.id, snapshot: existingRes.snapshotJson })
+      if (existingRes) return reply.send({ resultId: existingRes.id, snapshot: localizeDecisionSnapshot(existingRes.snapshotJson, contentLanguage(request)) })
       return reply.status(400).send({ error: 'SESSION_ALREADY_COMPLETED' })
     }
 
@@ -334,11 +343,12 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
       contentCode: session.decisionCheck.code
     }).catch(console.error)
 
-    return reply.send({ resultId: finalRes.id, snapshot: snapshotJson })
+    return reply.send({ resultId: finalRes.id, snapshot: localizeDecisionSnapshot(snapshotJson, contentLanguage(request)) })
   })
 
   // 7. GET /api/v1/decision-check-sessions/:id/result
   server.get('/sessions/:id/result', { preValidation: [server.authenticate] }, async (request, reply) => {
+    const language = contentLanguage(request)
     const { id } = request.params as { id: string }
     const session = await prisma.decisionCheckSession.findUnique({
       where: { id },
@@ -353,7 +363,7 @@ export async function decisionCheckRoutes(server: FastifyInstance) {
       id: session.result.id,
       status: session.result.status,
       riskLevel: session.result.riskLevel,
-      snapshot: session.result.snapshotJson
+      snapshot: localizeDecisionSnapshot(session.result.snapshotJson, language)
     })
   })
 }

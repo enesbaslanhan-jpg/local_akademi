@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import { useWorkspace } from '@/context/WorkspaceContext'
 import styles from './ContextPanel.module.css'
+import { useTranslation } from 'react-i18next'
 
 /*
  * BAĞLAM PANELİ — ikon rayının yanında duran, 240px genişliğinde ikinci
@@ -57,7 +58,7 @@ export function resolveContextPanel(pathname, { activeWorkspaceId, workspaces } 
   if (pathname.startsWith('/app/decision-checks')) {
     return {
       key: 'decision-checks',
-      title: 'Karar Araçları',
+      titleKey: 'nav.decisionTools',
       /* Durum ve gerçek araç listesi sayfadan ContextPanelSlot ile gelir. */
       links: []
     }
@@ -66,8 +67,8 @@ export function resolveContextPanel(pathname, { activeWorkspaceId, workspaces } 
   if (pathname.startsWith('/app/calculations') || pathname.startsWith('/app/tools') || pathname.startsWith('/app/finance/models')) {
     return {
       key: 'tools',
-      title: 'Hesaplamalar',
-      links: [{ label: 'Hesaplama kataloğu', path: '/app/calculations' }]
+      titleKey: 'nav.calculations',
+      links: [{ labelKey: 'search.calculationCatalog', path: '/app/calculations' }]
     }
   }
 
@@ -75,18 +76,18 @@ export function resolveContextPanel(pathname, { activeWorkspaceId, workspaces } 
     /* İşletme Takibi'nin tüm bölümleri masaüstünde bu bağlam panelinde yaşar.
        İçerikteki kompakt sekmeler yalnızca küçük ekranlarda erişim yedeğidir. */
     const links = activeWorkspaceId
-      ? WORKSPACE_NAV_TABS.map(({ path, label }) => ({
-        label,
+      ? WORKSPACE_NAV_TABS.map(({ path, i18nKey }) => ({
+        labelKey: i18nKey,
         path: `/app/workspaces/${activeWorkspaceId}/${path}`
       }))
       : []
     return {
       key: 'workspaces',
-      title: 'İşletme Takibi',
+      titleKey: 'nav.businessTracking',
       links,
       groups: (workspaces?.length ?? 0) > 1
         ? [{
-          label: 'İşletmelerim',
+          labelKey: 'contextPanel.myBusinesses',
           links: workspaces.map(ws => ({
             label: ws.name,
             path: `/app/workspaces/${ws.id}/overview`
@@ -98,13 +99,14 @@ export function resolveContextPanel(pathname, { activeWorkspaceId, workspaces } 
 
   if (pathname.startsWith('/app/mentor')) {
     /* Sohbet listesi sayfadan enjekte edilir (İŞ 6) — burada sabit link yok. */
-    return { key: 'mentor', title: 'AI Mentor', links: [] }
+    return { key: 'mentor', titleKey: 'nav.mentor', links: [] }
   }
 
   return null
 }
 
 export default function ContextPanel({ open, embedded = false }) {
+  const { t } = useTranslation(['common', 'workspace'])
   const location = useLocation()
   const navigate = useNavigate()
   const { activeWorkspaceId, workspaces } = useWorkspace()
@@ -112,6 +114,7 @@ export default function ContextPanel({ open, embedded = false }) {
 
   const config = resolveContextPanel(location.pathname, { activeWorkspaceId, workspaces })
   if (!config) return null
+  const title = t(config.titleKey)
 
   const isActive = path => location.pathname === path || location.pathname.startsWith(path + '/')
 
@@ -123,14 +126,14 @@ export default function ContextPanel({ open, embedded = false }) {
       onClick={() => navigate(link.path)}
       aria-current={isActive(link.path) ? 'page' : undefined}
     >
-      <span className={styles.linkLabel}>{link.label}</span>
+      <span className={styles.linkLabel}>{link.labelKey ? t(link.labelKey) : link.label}</span>
     </button>
   ))
 
   return (
     <aside
       className={`${styles.panel} ${embedded ? styles.embedded : ''} ${config.key === 'mentor' ? styles.mentorPanel : ''} ${config.key === 'workspaces' ? styles.workspacePanel : ''} ${open ? styles.open : ''}`}
-      aria-label={`${config.title} bağlam paneli`}
+      aria-label={t('contextPanel.ariaLabel', { title })}
       /* Kapalıyken içindeki alanlar tab sırasına girmesin */
       inert={!open || undefined}
     >
@@ -141,24 +144,24 @@ export default function ContextPanel({ open, embedded = false }) {
           className={styles.searchInput}
           value={ctx?.query ?? ''}
           onChange={e => ctx?.setQuery(e.target.value)}
-          placeholder="Bu sayfada ara"
-          aria-label={`${config.title} içinde ara`}
+          placeholder={t('contextPanel.searchPlaceholder')}
+          aria-label={t('contextPanel.searchAria', { title })}
         />
       </div>
 
       <div className={styles.body}>
-        <h2 className={styles.panelTitle}>{config.title}</h2>
+        <h2 className={styles.panelTitle}>{title}</h2>
 
         {config.links.length > 0 && (
-          <nav className={styles.nav} aria-label={`${config.title} alt navigasyonu`}>
+          <nav className={styles.nav} aria-label={t('contextPanel.subnavAria', { title })}>
             {renderLinks(config.links)}
           </nav>
         )}
 
         {config.groups?.map(group => (
-          <div key={group.label} className={styles.group}>
-            <div className={styles.groupLabel}>{group.label}</div>
-            <nav className={styles.nav} aria-label={group.label}>
+          <div key={group.labelKey || group.label} className={styles.group}>
+            <div className={styles.groupLabel}>{group.labelKey ? t(group.labelKey) : group.label}</div>
+            <nav className={styles.nav} aria-label={group.labelKey ? t(group.labelKey) : group.label}>
               {renderLinks(group.links)}
             </nav>
           </div>

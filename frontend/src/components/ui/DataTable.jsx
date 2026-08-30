@@ -1,7 +1,9 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import styles from './DataTable.module.css'
+import { useTranslation } from 'react-i18next'
 
-export default function DataTable({ columns = [], data = [], loading, emptyMessage = 'Veri bulunamadı', page, pageSize, total, onPageChange, onSort, sortKey, sortDir, keyField = 'id', mobileCard }) {
+export default function DataTable({ columns = [], data = [], loading, emptyMessage, page, pageSize, total, onPageChange, onSort, sortKey, sortDir, keyField = 'id', mobileCard }) {
+  const { t } = useTranslation('common')
   if (loading) {
     return (
       <div className={styles.wrapper}>
@@ -16,7 +18,7 @@ export default function DataTable({ columns = [], data = [], loading, emptyMessa
   }
 
   if (!data || data.length === 0) {
-    return <div className={styles.empty}>{emptyMessage}</div>
+    return <div className={styles.empty}>{emptyMessage || t('ui.dataTable.emptyMessage')}</div>
   }
 
   const totalPages = Math.ceil((total || data.length) / (pageSize || data.length))
@@ -81,7 +83,7 @@ export default function DataTable({ columns = [], data = [], loading, emptyMessa
             className={styles.pageBtn}
             disabled={page <= 1}
             onClick={() => onPageChange?.(page - 1)}
-            aria-label="Önceki sayfa"
+            aria-label={t('ui.dataTable.previousPage')}
           >
             <ChevronLeft size={16} />
           </button>
@@ -94,7 +96,7 @@ export default function DataTable({ columns = [], data = [], loading, emptyMessa
             className={styles.pageBtn}
             disabled={page >= totalPages}
             onClick={() => onPageChange?.(page + 1)}
-            aria-label="Sonraki sayfa"
+            aria-label={t('ui.dataTable.nextPage')}
           >
             <ChevronRight size={16} />
           </button>

@@ -1,9 +1,14 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, CheckCircle2, AlertCircle, LifeBuoy, ShieldCheck, Send } from 'lucide-react'
 import BrandMark from '@/components/ui/BrandMark'
 import { api } from '@/services/api'
+/* Modül anlatımlarının TEK KAYNAĞI: Hakkında sayfasındaki dizi.
+   Aşağıdaki kılavuz aynı betimlerden besleniyor, ikinci bir tanım yok. */
+import { MODULLER } from './AboutPage'
 import styles from './SupportPage.module.css'
+import PublicFooter from '@/components/layout/PublicFooter'
 
 /*
  * Destek ve Yardım.
@@ -18,74 +23,68 @@ import styles from './SupportPage.module.css'
  * saatlik hız sınırı var.
  */
 
-const SSS = [
-  {
-    soru: 'E-posta doğrulama postası gelmedi, ne yapmalıyım?',
-    cevap:
-      'Önce spam ve tanıtım klasörlerine bakın. Kod 15 dakika geçerlidir; süresi geçtiyse ' +
-      'uygulamadaki şeritten yeni kod isteyebilirsiniz. Adresinizi yanlış yazdıysanız ' +
-      'Ayarlar sayfasından değiştirebilirsiniz.'
-  },
-  {
-    soru: 'Şifremi unuttum.',
-    cevap:
-      'Giriş ekranındaki “Şifremi unuttum” bağlantısını kullanın. Bağlantı 1 saat ve ' +
-      'yalnızca bir kez geçerlidir. Şifre sıfırlama yalnızca DOĞRULANMIŞ e-posta ' +
-      'adreslerine gönderilir; adresinizi henüz doğrulamadıysanız posta gelmez.'
-  },
-  {
-    soru: 'Her açtığımda yeniden giriş yapmam gerekiyor.',
-    cevap:
-      'Oturumunuz 30 gün açık kalır. Bu süreden önce kopuyorsa, siteye bazen “www” ile ' +
-      'bazen “www”suz girmiş olabilirsiniz — tarayıcı bunları iki ayrı site sayar. ' +
-      'Adres artık tek biçime yönlendiriliyor; sorun sürerse bize yazın.'
-  },
-  {
-    soru: 'İşletme çalışma alanı ne işe yarar?',
-    cevap:
-      'Gelir, gider, cari hesap ve belgelerinizi tuttuğunuz alandır. Bir işletmeye başka ' +
-      'kişileri davet edebilirsiniz; davet, e-posta ile gönderilen tek kullanımlık bir ' +
-      'bağlantı üzerinden kabul edilir.'
-  },
-  {
-    soru: 'Yüklediğim faturadan kayıt nasıl oluşuyor?',
-    cevap:
-      'Belgedeki metin okunur ve size bir kayıt ÖNERİSİ sunulur. Siz onaylamadan hiçbir ' +
-      'şey işletme kayıtlarınıza yazılmaz. Öneriyi düzenleyebilir veya reddedebilirsiniz.'
-  },
-  {
-    soru: 'AI Mentor’un verdiği bilgiye güvenebilir miyim?',
-    cevap:
-      'Mentor bir dil modeli kullanır ve kendinden emin görünen hatalı bilgi üretebilir. ' +
-      'Yanıtı mümkün olduğunda kendi içerik kütüphanemize dayandırır ve kaynağı gösterir. ' +
-      'Rakam, oran, süre ve mevzuat içeren bilgileri işlem yapmadan önce resmî kaynağından ' +
-      'doğrulayın. Mentor mali müşavir veya avukat yerine geçmez.'
-  },
-  {
-    soru: 'Verilerim nerede tutuluyor?',
-    cevap:
-      'Sunucularımız Fransa’dadır. Mentor yazışmaları Mistral AI (Fransa) tarafından ' +
-      'işlenir ve kötüye kullanım denetimi için 30 gün saklanır; model eğitiminde ' +
-      'kullanılmaz. Ayrıntılı döküm Gizlilik ve KVKK Aydınlatma Metni’ndedir.'
-  },
-  {
-    soru: 'Hesabımı nasıl silerim?',
-    cevap:
-      'Ayarlar → Hesabı sil. Tek sahibi olduğunuz bir işletme varsa önce başka bir üyeyi ' +
-      'sahip yapmanız gerekir. Silme sonrası verilerinize ne olduğu aydınlatma metninde ' +
-      'yazılıdır.'
-  }
-]
+const SSS = ['verificationEmail', 'forgotPassword', 'session', 'workspace', 'invoice', 'mentor', 'data', 'deleteAccount']
 
 const BOS_FORM = { ad: '', eposta: '', konu: '', mesaj: '', website: '' }
 
+/*
+ * KONU TÜRÜ SEÇİMİ — kullanıcının "konu" kutusuna ne yazacağını
+ * bilmediği için. Arka uç DEĞİŞMEDİ: şema serbest metin bekliyor,
+ * seçim yalnızca o metni ÖN DOLDURUR ve kullanıcı üzerine yazar.
+ */
+const KONU_TURLERI = [
+  ['soru', 'support.topicTypes.question'],
+  ['sorun', 'support.topicTypes.issue'],
+  ['geri-bildirim', 'support.topicTypes.feedback'],
+  ['diger', 'support.topicTypes.other']
+]
+
+/*
+ * KULLANMA KILAVUZU — ana akış adım adım.
+ *
+ * Betimlemeler MODULLER'den gelir (aynı cümleler Hakkında sayfasında
+ * da var); pazaryeri bağlantısı MODULLER'de olmadığı için onun tek
+ * satırlığı burada, gerçekten çalışan dört sağlayıcıyla yazıldı.
+ * Var olmayan özellik anlatılmıyor.
+ */
+const modulBetimi = tur => `about.modules.${MODULLER.find(m => m.tur === tur)?.key}.description`
+
+const KILAVUZ = [
+  {
+    key: 'createBusiness', betimKey: modulBetimi('isletme-takibi')
+  },
+  {
+    key: 'addRecord', betimKey: 'support.guide.addRecord.description'
+  },
+  {
+    key: 'uploadDocument', betimKey: 'support.guide.uploadDocument.description'
+  },
+  {
+    key: 'connectMarketplace', betimKey: 'support.guide.connectMarketplace.description'
+  },
+  {
+    key: 'askMentor', betimKey: modulBetimi('ai-mentor')
+  }
+]
+
 export default function SupportPage() {
+  const { t } = useTranslation('common')
   const navigate = useNavigate()
   const [form, setForm] = useState(BOS_FORM)
+  const [konuTuru, setKonuTuru] = useState('')
   const [durum, setDurum] = useState({ tur: null, mesaj: '' })
   const [gonderiliyor, setGonderiliyor] = useState(false)
 
   const guncelle = alan => olay => setForm(o => ({ ...o, [alan]: olay.target.value }))
+
+  /* Seçim konu alanını ön doldurur; alan form.konu'ya bağlı kaldığı
+     için kullanıcı yazının üzerine serbestçe değiştirebilir. */
+  function konuTuruSec(olay) {
+    const deger = olay.target.value
+    setKonuTuru(deger)
+    const secilen = KONU_TURLERI.find(([anahtar]) => anahtar === deger)
+    if (secilen) setForm(o => ({ ...o, konu: t(secilen[1]) }))
+  }
 
   async function gonder(olay) {
     olay.preventDefault()
@@ -96,16 +95,17 @@ export default function SupportPage() {
     try {
       await api.auth.destekTalebi(form)
       setForm(BOS_FORM)
+      setKonuTuru('')
       setDurum({
         tur: 'ok',
-        mesaj: 'Mesajınız iletildi. Yanıtı yazdığınız e-posta adresine göndereceğiz.'
+        mesaj: t('support.form.success')
       })
     } catch (hata) {
       /* Sunucu "iletilemedi" diyorsa aynen o söyleniyor; "gönderildi"
          deyip göndermemek en kötü sonuç olurdu. */
       setDurum({
         tur: 'hata',
-        mesaj: hata?.message || 'Mesaj iletilemedi. Lütfen biraz sonra tekrar deneyin.'
+        mesaj: hata?.message || t('support.form.failed')
       })
     } finally {
       setGonderiliyor(false)
@@ -113,9 +113,10 @@ export default function SupportPage() {
   }
 
   return (
+    <div className={styles.kabuk}>
     <main className={styles.page}>
       <header className={styles.header}>
-        <button type="button" onClick={() => navigate(-1)} aria-label="Geri dön"><ArrowLeft size={19} /></button>
+        <button type="button" onClick={() => navigate(-1)} aria-label={t('buttons.back')}><ArrowLeft size={19} /></button>
         <BrandMark size={30} interactive />
         <strong>LocalKarar</strong>
       </header>
@@ -123,44 +124,57 @@ export default function SupportPage() {
       <div className={styles.govde}>
         <section className={styles.giris}>
           <div className={styles.ikon}><LifeBuoy size={24} /></div>
-          <p className={styles.kicker}>Destek</p>
-          <h1>Yardım ve iletişim</h1>
-          <p className={styles.aciklama}>
-            Sık karşılaşılan durumların yanıtları aşağıda. Aradığınızı bulamazsanız
-            formu doldurun; yazdığınız adrese dönüş yapılır.
-          </p>
+          <p className={styles.kicker}>{t('support.kicker')}</p>
+          <h1>{t('support.title')}</h1>
+          <p className={styles.aciklama}>{t('support.intro')}</p>
         </section>
 
         <section className={styles.sss} aria-labelledby="sss-baslik">
-          <h2 id="sss-baslik">Sık sorulanlar</h2>
-          {SSS.map(({ soru, cevap }) => (
-            <details key={soru} className={styles.sssKalem}>
-              <summary>{soru}</summary>
-              <p>{cevap}</p>
+          <h2 id="sss-baslik">{t('support.faqTitle')}</h2>
+          {SSS.map(key => (
+            <details key={key} className={styles.sssKalem}>
+              <summary>{t(`support.faq.${key}.question`)}</summary>
+              <p>{t(`support.faq.${key}.answer`)}</p>
             </details>
           ))}
+        </section>
+
+        <section className={styles.kilavuz} aria-labelledby="kilavuz-baslik">
+          <h2 id="kilavuz-baslik">{t('support.guideTitle')}</h2>
+          <p className={styles.kilavuzGiris}>{t('support.guideIntro')}</p>
+          <ol className={styles.kilavuzListe}>
+            {KILAVUZ.map((akis, sira) => (
+              <li key={akis.key} className={styles.kilavuzAkis}>
+                <h3>{sira + 1}. {t(`support.guide.${akis.key}.title`)}</h3>
+                <p>{t(akis.betimKey)}</p>
+                <ol className={styles.kilavuzAdimlar}>
+                  {Object.values(t(`support.guide.${akis.key}.steps`, { returnObjects: true })).map(adim => <li key={adim}>{adim}</li>)}
+                </ol>
+              </li>
+            ))}
+          </ol>
         </section>
 
         <section className={styles.kvkkKutu}>
           <ShieldCheck size={20} aria-hidden="true" />
           <div>
-            <strong>Kişisel verilerinizle ilgili talepler</strong>
+            <strong>{t('support.privacy.title')}</strong>
             <p>
-              KVKK kapsamındaki başvurularınızı{' '}
+              {t('support.privacy.beforeEmail')}{' '}
               <a href="mailto:kvkk@localkarar.com">kvkk@localkarar.com</a> adresine
-              iletin. Hangi bilgileri eklemeniz gerektiği{' '}
-              <Link to="/privacy">Aydınlatma Metni’nin başvuru bölümünde</Link> yazılıdır.
+              {' '}{t('support.privacy.afterEmail')}{' '}
+              <Link to="/privacy">{t('support.privacy.link')}</Link> {t('support.privacy.suffix')}
             </p>
           </div>
         </section>
 
         <section className={styles.formBolum} aria-labelledby="form-baslik">
-          <h2 id="form-baslik">Bize yazın</h2>
+          <h2 id="form-baslik">{t('support.form.title')}</h2>
 
           <form className={styles.form} onSubmit={gonder}>
             <div className={styles.ikili}>
               <label className={styles.alan}>
-                <span>Adınız</span>
+                <span>{t('support.form.name')}</span>
                 <input
                   id="destek-ad" name="name" autoComplete="name"
                   value={form.ad} onChange={guncelle('ad')}
@@ -169,7 +183,7 @@ export default function SupportPage() {
               </label>
 
               <label className={styles.alan}>
-                <span>E-posta adresiniz</span>
+                <span>{t('support.form.email')}</span>
                 <input
                   id="destek-eposta" name="email" type="email" autoComplete="email"
                   value={form.eposta} onChange={guncelle('eposta')}
@@ -179,7 +193,22 @@ export default function SupportPage() {
             </div>
 
             <label className={styles.alan}>
-              <span>Konu</span>
+              <span>{t('support.form.topicType')}</span>
+              <select
+                id="destek-konu-turu"
+                className={styles.secim}
+                value={konuTuru}
+                onChange={konuTuruSec}
+              >
+                <option value="">{t('support.form.selectOptional')}</option>
+                {KONU_TURLERI.map(([deger, etiketKey]) => (
+                  <option key={deger} value={deger}>{t(etiketKey)}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className={styles.alan}>
+              <span>{t('support.form.subject')}</span>
               <input
                 id="destek-konu" name="subject"
                 value={form.konu} onChange={guncelle('konu')}
@@ -188,12 +217,12 @@ export default function SupportPage() {
             </label>
 
             <label className={styles.alan}>
-              <span>Mesajınız</span>
+              <span>{t('support.form.message')}</span>
               <textarea
                 id="destek-mesaj" name="message" rows={7}
                 value={form.mesaj} onChange={guncelle('mesaj')}
                 minLength={20} maxLength={5000} required
-                placeholder="Sorununuzu olabildiğince somut anlatın: hangi ekranda, ne yaptığınızda, ne olduğunu yazın."
+                placeholder={t('support.form.messagePlaceholder')}
               />
               <small className={styles.sayac}>{form.mesaj.length} / 5000</small>
             </label>
@@ -206,7 +235,7 @@ export default function SupportPage() {
             */}
             <div className={styles.balKupu} aria-hidden="true">
               <label>
-                Web siteniz
+                {t('support.form.website')}
                 <input
                   type="text" name="website" tabIndex={-1} autoComplete="off"
                   value={form.website} onChange={guncelle('website')}
@@ -226,25 +255,24 @@ export default function SupportPage() {
 
             <div className={styles.formAlt}>
               <p className={styles.aydinlatma}>
-                Formu gönderdiğinizde adınız, e-posta adresiniz ve mesajınız yalnızca
-                talebinizi yanıtlamak için işlenir ve e-posta olarak iletilir; bu
-                mesajlar veritabanımızda saklanmaz.{' '}
-                <Link to="/privacy">Aydınlatma Metni</Link>
+                {t('support.form.privacyNote')}{' '}
+                <Link to="/privacy">{t('support.form.privacyLink')}</Link>
               </p>
               <button type="submit" className={styles.gonderBtn} disabled={gonderiliyor}>
-                {gonderiliyor ? 'Gönderiliyor…' : <>Gönder <Send size={16} /></>}
+                {gonderiliyor ? t('support.form.sending') : <>{t('support.form.send')} <Send size={16} /></>}
               </button>
             </div>
           </form>
         </section>
 
-        <nav className={styles.altBaglantilar} aria-label="Yasal metinler">
-          <Link to="/privacy">Gizlilik ve KVKK</Link>
-          <Link to="/terms">Kullanım koşulları</Link>
-          <Link to="/cookies">Çerezler</Link>
-          <Link to="/hakkinda">LocalKarar hakkında</Link>
-        </nav>
+        {/* Kopya yasal bağlantı listesi kaldırıldı; ortak
+            `PublicFooter` aşağıda ve satıcı kimliğini de taşıyor. */}
       </div>
     </main>
+
+    {/* Alt bilgi `.page`in DIŞINDA: içeride 24px dolgunun içinde
+        kalıyor ve tam genişlik olmuyordu (ölçüldü: 471px / 499px). */}
+    <PublicFooter />
+    </div>
   )
 }

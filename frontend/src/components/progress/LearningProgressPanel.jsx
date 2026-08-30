@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../services/api';
 import { Button } from '../ui';
 import { Play, CheckCircle2, Clock, MapPin, Eye, MessageSquare } from 'lucide-react';
@@ -6,21 +7,22 @@ import { useMentorContext } from '@/context/MentorContext';
 import styles from './LearningProgressPanel.module.css';
 
 const TYPE_LABELS = {
-  course: 'Eğitim',
-  lesson: 'Ders',
-  decision_check: 'Karar Aracı',
-  practical_card: 'Pratik Kart',
-  financial_tool: 'Finansal Araç',
-  guide: 'Rehber'
+  course: 'progress.types.course',
+  lesson: 'progress.types.lesson',
+  decision_check: 'progress.types.decisionCheck',
+  practical_card: 'progress.types.practicalCard',
+  financial_tool: 'progress.types.financialTool',
+  guide: 'progress.types.guide'
 };
 
 const STATUS_MAP = {
-  started: { label: 'Başlandı', color: 'bg-blue-100 text-blue-800', moduleClass: styles.statusStarted },
-  in_progress: { label: 'Devam Ediyor', color: 'bg-yellow-100 text-yellow-800', moduleClass: styles.statusInProgress },
-  completed: { label: 'Tamamlandı', color: 'bg-green-100 text-green-800', moduleClass: styles.statusCompleted }
+  started: { labelKey: 'progress.status.started', color: 'bg-blue-100 text-blue-800', moduleClass: styles.statusStarted },
+  in_progress: { labelKey: 'progress.status.inProgress', color: 'bg-yellow-100 text-yellow-800', moduleClass: styles.statusInProgress },
+  completed: { labelKey: 'progress.status.completed', color: 'bg-green-100 text-green-800', moduleClass: styles.statusCompleted }
 };
 
 export const LearningProgressPanel = () => {
+  const { t } = useTranslation('learning');
   const [continueItems, setContinueItems] = useState([]);
   const [recentItems, setRecentItems] = useState([]);
   const [completedItems, setCompletedItems] = useState([]);
@@ -49,7 +51,7 @@ export const LearningProgressPanel = () => {
       setCompletedItems(completedRes.items || []);
     } catch (err) {
       console.error(err);
-      setError('İlerleme verileri yüklenirken bir hata oluştu.');
+      setError(t('progress.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -82,16 +84,16 @@ export const LearningProgressPanel = () => {
       <div>
         <div className={`flex justify-between items-start mb-2 ${styles.cardTop}`}>
           <span className={`text-xs font-semibold text-gray-500 uppercase tracking-wider ${styles.typeLabel}`}>
-            {TYPE_LABELS[item.contentType] || item.contentType}
+            {TYPE_LABELS[item.contentType] ? t(TYPE_LABELS[item.contentType]) : item.contentType}
           </span>
           {item.status && STATUS_MAP[item.status] && (
             <span className={`text-xs px-2 py-1 rounded-full ${STATUS_MAP[item.status].color} ${styles.status} ${STATUS_MAP[item.status].moduleClass}`}>
-              {STATUS_MAP[item.status].label}
+              {t(STATUS_MAP[item.status].labelKey)}
             </span>
           )}
         </div>
         <h4 className={`font-medium text-gray-900 mb-1 line-clamp-2 ${styles.cardTitle}`} title={item.title || item.contentCode}>
-          {item.title || item.contentCode || 'İçerik'}
+          {item.title || item.contentCode || t('progress.contentFallback')}
         </h4>
         {item.progressPercent !== undefined && item.progressPercent !== null && (
           <div className={`w-full bg-gray-200 rounded-full h-2 mb-3 ${styles.progressTrack}`}>
@@ -119,13 +121,13 @@ export const LearningProgressPanel = () => {
                 });
               }
             }}
-            title="Mentora Sor"
+            title={t('progress.askMentor')}
           >
             <MessageSquare className="w-4 h-4" size={16} />
           </Button>
         )}
         {item.status !== 'completed' && (
-          <Button variant="outline" size="sm" onClick={() => toggleContinueLater(item)} title={item.continueLater ? 'Daha Sonra Devam Et İşaretini Kaldır' : 'Daha Sonra Devam Et'}>
+          <Button variant="outline" size="sm" onClick={() => toggleContinueLater(item)} title={item.continueLater ? t('progress.removeContinueLater') : t('progress.continueLater')}>
             <Clock className={`w-4 h-4 ${item.continueLater ? 'text-blue-600' : 'text-gray-400'} ${item.continueLater ? styles.laterIconActive : styles.laterIcon}`} size={16} />
           </Button>
         )}
@@ -134,14 +136,14 @@ export const LearningProgressPanel = () => {
   );
 
   if (loading) {
-    return <div className={`p-6 bg-gray-50 rounded-xl animate-pulse ${styles.loading}`}>İlerleme yükleniyor...</div>;
+    return <div className={`p-6 bg-gray-50 rounded-xl animate-pulse ${styles.loading}`}>{t('progress.loading')}</div>;
   }
 
   if (error) {
     return (
       <div className={`p-6 bg-red-50 rounded-xl text-red-600 flex justify-between items-center ${styles.errorBox}`}>
         <span>{error}</span>
-        <Button variant="outline" size="sm" onClick={fetchData}>Tekrar Dene</Button>
+        <Button variant="outline" size="sm" onClick={fetchData}>{t('progress.retry')}</Button>
       </div>
     );
   }
@@ -151,13 +153,13 @@ export const LearningProgressPanel = () => {
       <div>
         <h3 className={`text-lg font-bold text-gray-900 mb-4 flex items-center ${styles.sectionTitle}`}>
           <MapPin className={`w-5 h-5 mr-2 text-blue-600 ${styles.sectionIconContinue}`} size={20} />
-          Kaldığınız Yerden Devam Edin
+          {t('progress.continueHeading')}
         </h3>
         {continueItems.length === 0 ? (
-          <p className={`text-sm text-gray-500 ${styles.emptyText}`}>Henüz devam eden bir içeriğiniz bulunmuyor.</p>
+          <p className={`text-sm text-gray-500 ${styles.emptyText}`}>{t('progress.continueEmpty')}</p>
         ) : (
           <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${styles.cardGrid}`}>
-            {continueItems.map(item => renderItemCard(item, 'Devam Et', Play, navigateToItem))}
+            {continueItems.map(item => renderItemCard(item, t('progress.continue'), Play, navigateToItem))}
           </div>
         )}
       </div>
@@ -166,21 +168,21 @@ export const LearningProgressPanel = () => {
         <div>
           <h3 className={`text-lg font-bold text-gray-900 mb-4 flex items-center ${styles.sectionTitle}`}>
             <Eye className={`w-5 h-5 mr-2 text-gray-600 ${styles.sectionIconRecent}`} size={20} />
-            Son Görüntülenenler
+            {t('progress.recentHeading')}
           </h3>
           {recentItems.length === 0 ? (
-            <p className={`text-sm text-gray-500 ${styles.emptyText}`}>Son görüntülenen içerik yok.</p>
+            <p className={`text-sm text-gray-500 ${styles.emptyText}`}>{t('progress.recentEmpty')}</p>
           ) : (
             <div className={`space-y-3 ${styles.rowList}`}>
               {recentItems.map(item => (
                  <div key={`${item.contentType}-${item.contentId}`} className={`flex items-center justify-between p-3 border rounded-lg bg-white hover:bg-gray-50 cursor-pointer ${styles.row}`} onClick={() => navigateToItem(item)}>
                    <div>
-                     <p className={`text-sm font-medium text-gray-900 line-clamp-1 ${styles.rowTitle}`}>{item.title || item.contentCode || 'İçerik'}</p>
-                     <p className={`text-xs text-gray-500 ${styles.rowMeta}`}>{TYPE_LABELS[item.contentType]}</p>
+                     <p className={`text-sm font-medium text-gray-900 line-clamp-1 ${styles.rowTitle}`}>{item.title || item.contentCode || t('progress.contentFallback')}</p>
+                     <p className={`text-xs text-gray-500 ${styles.rowMeta}`}>{TYPE_LABELS[item.contentType] ? t(TYPE_LABELS[item.contentType]) : item.contentType}</p>
                    </div>
                    {item.status && STATUS_MAP[item.status] && (
                       <span className={`text-xs px-2 py-1 rounded-full ${STATUS_MAP[item.status].color} ${styles.status} ${STATUS_MAP[item.status].moduleClass}`}>
-                        {STATUS_MAP[item.status].label}
+                        {t(STATUS_MAP[item.status].labelKey)}
                       </span>
                     )}
                  </div>
@@ -192,17 +194,17 @@ export const LearningProgressPanel = () => {
         <div>
           <h3 className={`text-lg font-bold text-gray-900 mb-4 flex items-center ${styles.sectionTitle}`}>
             <CheckCircle2 className={`w-5 h-5 mr-2 text-green-600 ${styles.sectionIconCompleted}`} size={20} />
-            Tamamlananlar
+            {t('progress.completedHeading')}
           </h3>
           {completedItems.length === 0 ? (
-            <p className={`text-sm text-gray-500 ${styles.emptyText}`}>Henüz tamamlanmış bir içerik yok.</p>
+            <p className={`text-sm text-gray-500 ${styles.emptyText}`}>{t('progress.completedEmpty')}</p>
           ) : (
             <div className={`space-y-3 ${styles.rowList}`}>
               {completedItems.map(item => (
                  <div key={`${item.contentType}-${item.contentId}`} className={`flex items-center justify-between p-3 border rounded-lg bg-green-50 ${styles.row} ${styles.rowDone}`}>
                    <div>
-                     <p className={`text-sm font-medium text-green-900 line-clamp-1 ${styles.rowTitle} ${styles.rowTitleDone}`}>{item.title || item.contentCode || 'İçerik'}</p>
-                     <p className={`text-xs text-green-700 ${styles.rowMeta} ${styles.rowMetaDone}`}>{TYPE_LABELS[item.contentType]}</p>
+                     <p className={`text-sm font-medium text-green-900 line-clamp-1 ${styles.rowTitle} ${styles.rowTitleDone}`}>{item.title || item.contentCode || t('progress.contentFallback')}</p>
+                     <p className={`text-xs text-green-700 ${styles.rowMeta} ${styles.rowMetaDone}`}>{TYPE_LABELS[item.contentType] ? t(TYPE_LABELS[item.contentType]) : item.contentType}</p>
                    </div>
                    <CheckCircle2 className={`w-5 h-5 text-green-600 ${styles.rowDoneIcon}`} size={20} />
                  </div>

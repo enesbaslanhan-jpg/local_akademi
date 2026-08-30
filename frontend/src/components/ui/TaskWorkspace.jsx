@@ -3,6 +3,7 @@ import { api } from '@/services/api'
 import { Button, Badge } from './index'
 import { Save, CheckCircle, Play } from 'lucide-react'
 import styles from './TaskWorkspace.module.css'
+import { useTranslation } from 'react-i18next'
 
 function parseJson(value, fallback) {
   if (!value) return fallback
@@ -23,6 +24,7 @@ export default function TaskWorkspace({ koId, taskTemplates, onProgress }) {
 }
 
 function TaskInstance({ koId, template, onProgress }) {
+  const { t } = useTranslation('common')
   const [assignment, setAssignment] = useState(null)
   const [answerText, setAnswerText] = useState('')
   const [loading, setLoading] = useState(true)
@@ -62,7 +64,7 @@ function TaskInstance({ koId, template, onProgress }) {
       setAssignment(res)
       await onProgress?.()
     } catch (err) {
-      setError(err.message || 'Görev başlatılamadı')
+      setError(err.message || t('ui.task.errors.start'))
     }
     setSaving(false)
   }
@@ -78,7 +80,7 @@ function TaskInstance({ koId, template, onProgress }) {
       })
       setAssignment(res)
     } catch (err) {
-      setError(err.message || 'Taslak kaydedilemedi')
+      setError(err.message || t('ui.task.errors.saveDraft'))
     }
     setSaving(false)
   }
@@ -88,7 +90,7 @@ function TaskInstance({ koId, template, onProgress }) {
     const minimumWords = Number(parseJson(template.exampleOutput, {}).minWords) || 10
     const wordCount = answerText.trim() ? answerText.trim().split(/\s+/).length : 0
     if (wordCount < minimumWords) {
-      setError(`Görevi tamamlamak için en az ${minimumWords} kelime yazın (${wordCount}/${minimumWords}).`)
+      setError(t('ui.task.errors.minimumWords', { minimum: minimumWords, count: wordCount }))
       return
     }
     setSaving(true)
@@ -101,12 +103,12 @@ function TaskInstance({ koId, template, onProgress }) {
       setAssignment(res)
       await onProgress?.()
     } catch (err) {
-      setError(err.message || 'Görev tamamlanamadı')
+      setError(err.message || t('ui.task.errors.complete'))
     }
     setSaving(false)
   }
 
-  if (loading) return <div className={styles.loading}>Yükleniyor...</div>
+  if (loading) return <div className={styles.loading}>{t('states.loading')}</div>
 
   const isStarted = !!assignment
   const isCompleted = assignment?.status === 'completed'
@@ -121,24 +123,24 @@ function TaskInstance({ koId, template, onProgress }) {
       <h3 className={styles.taskTitle}>{template.title}</h3>
       <p className={styles.taskDescription}>{template.description}</p>
       {template.estimatedTime && (
-        <Badge variant="info">{template.estimatedTime} dk</Badge>
+        <Badge variant="info">{t('ui.task.minutesShort', { count: template.estimatedTime })}</Badge>
       )}
 
       {taskInstructions.length > 0 && (
         <div className={styles.guidance}>
-          <strong>Uygulama adımları</strong>
+          <strong>{t('ui.task.steps')}</strong>
           <ol>{taskInstructions.map((item, index) => <li key={index}>{item.text || item}</li>)}</ol>
         </div>
       )}
       {taskChecklist.length > 0 && (
         <div className={styles.guidance}>
-          <strong>Teslim kontrol listesi</strong>
+          <strong>{t('ui.task.checklist')}</strong>
           <ul>{taskChecklist.map((item, index) => <li key={index}>{item.item || item}</li>)}</ul>
         </div>
       )}
       {taskRubric.length > 0 && (
         <details className={styles.rubric}>
-          <summary>Değerlendirme ölçütleri</summary>
+          <summary>{t('ui.task.rubric')}</summary>
           <ul>{taskRubric.map((item, index) => <li key={index}><strong>{item.level}</strong>: {item.description}</li>)}</ul>
         </details>
       )}
@@ -147,7 +149,7 @@ function TaskInstance({ koId, template, onProgress }) {
 
       {!isStarted ? (
         <Button variant="primary" size="sm" onClick={handleStart} disabled={saving}>
-          <Play size={14} /> Görevi Başlat
+          <Play size={14} /> {t('ui.task.start')}
         </Button>
       ) : (
         <div className={styles.workspace}>
@@ -155,26 +157,26 @@ function TaskInstance({ koId, template, onProgress }) {
             className={styles.textarea}
             value={answerText}
             onChange={e => setAnswerText(e.target.value)}
-            placeholder="Cevabınızı buraya yazın..."
+            placeholder={t('ui.task.answerPlaceholder')}
             disabled={isCompleted}
             rows={5}
           />
           <div className={styles.wordCount}>
-            {wordCount} kelime{outputGuide.minWords ? ` / en az ${outputGuide.minWords}` : ''}
+            {t('ui.task.wordCount', { count: wordCount })}{outputGuide.minWords ? ` / ${t('ui.task.minimumWords', { count: outputGuide.minWords })}` : ''}
           </div>
           <div className={styles.actions}>
             {!isCompleted && (
               <>
                 <Button variant="ghost" size="sm" onClick={handleSaveDraft} disabled={saving}>
-                  <Save size={14} /> Taslak Kaydet
+                  <Save size={14} /> {t('ui.task.saveDraft')}
                 </Button>
                 <Button variant="primary" size="sm" onClick={handleComplete} disabled={saving}>
-                  <CheckCircle size={14} /> Tamamla
+                  <CheckCircle size={14} /> {t('ui.task.complete')}
                 </Button>
               </>
             )}
             {isCompleted && (
-              <Badge variant="success">Tamamlandı · {assignment.reviewStatus === 'submitted' ? 'Değerlendirme bekliyor' : assignment.reviewStatus}</Badge>
+              <Badge variant="success">{t('ui.task.completed')} · {assignment.reviewStatus === 'submitted' ? t('ui.task.awaitingReview') : assignment.reviewStatus}</Badge>
             )}
           </div>
         </div>

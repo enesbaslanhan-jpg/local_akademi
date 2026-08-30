@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMentorContext } from '@/context/MentorContext'
 import {
@@ -8,10 +9,10 @@ import {
 import styles from './EmbeddedPracticeBlock.module.css'
 
 const TYPE_LABELS = {
-  formula: 'Formül Kutusu',
-  checklist: 'Kontrol Listesi',
-  common_mistake: 'Yaygın Hata',
-  quick_application: 'Hızlı Uygulama'
+  formula: 'cards.blockTypeFormula',
+  checklist: 'cards.blockTypeChecklist',
+  common_mistake: 'cards.blockTypeMistake',
+  quick_application: 'cards.blockTypeQuick'
 }
 
 const TYPE_ICONS = {
@@ -34,6 +35,7 @@ export function EmbeddedPracticeBlock({
   contextCode,
   contextTitle
 }) {
+  const { t } = useTranslation('learning')
   const navigate = useNavigate()
   const mentorContext = useMentorContext()
   const isContextualMentorEnabled = import.meta.env.VITE_FF_CONTEXTUAL_MENTOR === 'true'
@@ -41,7 +43,7 @@ export function EmbeddedPracticeBlock({
   if (!blocks || blocks.length === 0) return null
 
   return (
-    <section aria-label="Uygulama kutuları" className={styles.blocks}>
+    <section aria-label={t('cards.blocksAria')} className={styles.blocks}>
       {blocks.map(block => (
         <BlockItem
           key={block.id}
@@ -59,6 +61,7 @@ export function EmbeddedPracticeBlock({
 }
 
 function BlockItem({ block, contextType, contextCode, contextTitle, isContextualMentorEnabled, mentorContext, navigate }) {
+  const { t } = useTranslation('learning')
   const { type, title, shortDescription, content, source, relatedDecisionCheckCode } = block
   const Icon = TYPE_ICONS[type]
 
@@ -106,7 +109,7 @@ function BlockItem({ block, contextType, contextCode, contextTitle, isContextual
       <div className={styles.header}>
         <h3 className={styles.title}>{title}</h3>
         <span className={`${styles.badge} ${TYPE_BADGE_CLASS[type]}`}>
-          <Icon size={12} /> {TYPE_LABELS[type]}
+          <Icon size={12} /> {t(TYPE_LABELS[type])}
         </span>
       </div>
 
@@ -118,14 +121,14 @@ function BlockItem({ block, contextType, contextCode, contextTitle, isContextual
 
       {type === 'formula' && content.formula && (
         <div className={styles.formulaBox}>
-          <div className={styles.formulaLabel}>Hesaplama / Formül</div>
+          <div className={styles.formulaLabel}>{t('cards.formulaLabel')}</div>
           <code className={styles.formula}>{content.formula}</code>
         </div>
       )}
 
       {content.example && (
         <div className={styles.exampleBox}>
-          <div className={styles.exampleLabel}>Örnek Senaryo</div>
+          <div className={styles.exampleLabel}>{t('cards.exampleLabel')}</div>
           <p className={styles.example}>{content.example}</p>
         </div>
       )}
@@ -134,13 +137,13 @@ function BlockItem({ block, contextType, contextCode, contextTitle, isContextual
         <>
           {content.mistake && (
             <div className={styles.warningBox}>
-              <div className={styles.warningTitle}><AlertTriangle size={14} /> Yaygın Hata</div>
+              <div className={styles.warningTitle}><AlertTriangle size={14} /> {t('cards.mistakeLabel')}</div>
               <p className={styles.warningText}>{content.mistake}</p>
             </div>
           )}
           {content.correctApproach && (
             <div className={styles.correctBox}>
-              <div className={styles.correctLabel}><CheckSquare size={14} /> Doğru Yaklaşım</div>
+              <div className={styles.correctLabel}><CheckSquare size={14} /> {t('cards.correctApproachLabel')}</div>
               <p className={styles.correctText}>{content.correctApproach}</p>
             </div>
           )}
@@ -166,7 +169,7 @@ function BlockItem({ block, contextType, contextCode, contextTitle, isContextual
       <div className={styles.actions}>
         {source?.code && source.route && !isSelfReferentialSource && (
           <Link to={source.route} className={`${styles.actionLink} ${styles.sourceLink}`}>
-            <ExternalLink size={14} /> Kaynak: {source.title}
+            <ExternalLink size={14} /> {t('cards.sourcePrefix', { title: source.title })}
           </Link>
         )}
 
@@ -189,7 +192,7 @@ function BlockItem({ block, contextType, contextCode, contextTitle, isContextual
             className={`${styles.actionLink} ${styles.toolLink}`}
             onClick={() => navigate(`/app/decision-checks/${relatedDecisionCheckCode}`)}
           >
-            <ArrowRight size={14} /> İlgili Karar Aracı
+            <ArrowRight size={14} /> {t('cards.relatedTool')}
           </button>
         ) : null}
 
@@ -199,7 +202,7 @@ function BlockItem({ block, contextType, contextCode, contextTitle, isContextual
             className={`${styles.actionLink} ${styles.mentorBtn}`}
             onClick={handleAskMentor}
           >
-            <MessageSquare size={14} /> Mentora Sor
+            <MessageSquare size={14} /> {t('cards.askMentor')}
           </button>
         )}
       </div>

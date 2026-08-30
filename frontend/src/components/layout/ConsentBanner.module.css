@@ -1,0 +1,76 @@
+/*
+ * Onay şeridi VerificationBanner ile aynı ailede duruyor: aynı tokenlar
+ * (--warning, --surface-panel), aynı dolgu ve radius. İki şerit üst üste
+ * geldiğinde birbirine yabancı görünmemesi için.
+ */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 0 0 16px;
+  border: 1px solid color-mix(in srgb, var(--warning) 42%, transparent);
+  background: color-mix(in srgb, var(--warning) 12%, var(--surface-panel));
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  flex-wrap: wrap;
+}
+
+.icon {
+  flex-shrink: 0;
+  color: var(--warning);
+}
+
+.text {
+  flex: 1;
+  margin: 0;
+  min-width: 200px;
+}
+
+.detail {
+  color: var(--text-secondary);
+}
+
+.error {
+  color: var(--danger);
+}
+
+.readLink,
+.action {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* "Metni oku" ikincil eylem: onay düğmesi görsel olarak önde durmalı —
+   kullanıcıyı metni açmadan onaylamaya itmemek için bilinçli hiyerarşi. */
+.readLink {
+  border: 1px solid color-mix(in srgb, var(--warning) 55%, transparent);
+  background: transparent;
+  color: var(--text);
+}
+.readLink:hover { background: var(--surface-raised); }
+
+.action {
+  border: 0;
+  background: var(--primary);
+  color: var(--on-primary);
+}
+.action:hover:not(:disabled) { background: var(--primary-hover); }
+.action:disabled { opacity: 0.6; cursor: default; }
+
+.readLink:focus-visible,
+.action:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .detail { display: none; }
+  .readLink, .action { flex: 1 1 auto; text-align: center; }
+}

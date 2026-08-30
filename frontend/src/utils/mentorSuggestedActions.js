@@ -48,7 +48,7 @@ export function generateSuggestedActions(message) {
       addAction({
         id: `open_knowledge_${validCitation.knowledgeObjectCode}`,
         type: 'open_knowledge',
-        label: 'İlgili İçeriği Aç',
+        labelKey: 'suggestedActions.openRelatedContent',
         route: getSafeKnowledgeRoute(validCitation.knowledgeObjectCode),
         source: 'citation',
         disabled: false
@@ -63,7 +63,7 @@ export function generateSuggestedActions(message) {
     addAction({
       id: 'open_financial_models',
       type: 'open_financial_models',
-      label: 'Finansal Modelleri Aç',
+      labelKey: 'suggestedActions.openFinancialModels',
       route: '/app/finance/models',
       source: 'intent',
       disabled: false
@@ -75,7 +75,7 @@ export function generateSuggestedActions(message) {
     addAction({
       id: 'open_business_profile',
       type: 'open_business_profile',
-      label: 'İşletme Bilgilerini Güncelle',
+      labelKey: 'suggestedActions.updateBusinessProfile',
       route: '/app/settings',
       source: 'intent',
       disabled: false

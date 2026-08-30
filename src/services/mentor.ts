@@ -116,7 +116,7 @@ async function getSingleKOContext(code: string): Promise<string> {
   return result
 }
 
-function buildSystemPrompt(user: any, koContext: string, bizProfile?: string): string {
+function buildSystemPrompt(user: any, koContext: string, bizProfile?: string, responseLanguage: 'tr' | 'en' = 'tr'): string {
   let prompt = `Sen LocalKarar'ın KOBİ, esnaf ve girişimcilere destek veren yapay zeka iş mentorusun. Görevin öğrencilere Türkçe olarak yardım etmek.
 
 Kurallar:
@@ -130,6 +130,10 @@ Kurallar:
 
 Kullanıcı: ${user.name}
 Rol: ${user.role}`
+
+  prompt += responseLanguage === 'en'
+    ? '\nresponseLanguage: en\nDefault to natural English. If the user clearly asks in another language, you may follow the user language. Keep calculations and source references unchanged.'
+    : '\nresponseLanguage: tr\nVarsayılan yanıt dili Türkçedir. Kullanıcı açıkça başka bir dilde sorarsa o dili dikkate alabilirsin. Hesapları ve kaynak referanslarını değiştirme.'
 
   if (bizProfile) {
     prompt += bizProfile
@@ -200,12 +204,13 @@ export async function mentorRoutes(fastify: FastifyInstance, opts?: { aiProvider
       }
     }
 
-    const [koBlock, bizProfile] = await Promise.all([
+    const [koBlock, bizProfile, preference] = await Promise.all([
       getRelevantKOs(code),
-      getBusinessProfileContext(user.id)
+      getBusinessProfileContext(user.id),
+      prisma.userPreference.findUnique({ where: { userId: user.id }, select: { uiLanguage: true } })
     ])
 
-    const systemContent = buildSystemPrompt(user, koBlock, bizProfile)
+    const systemContent = buildSystemPrompt(user, koBlock, bizProfile, preference?.uiLanguage === 'en' ? 'en' : 'tr')
     const systemMessage: ChatMessage = { role: 'system', content: systemContent }
     const userMessage: ChatMessage = { role: 'user', content: message }
 

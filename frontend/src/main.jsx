@@ -25,14 +25,17 @@ import './styles/print.css'
 import './styles/tailwind.css'
 import './styles/fields.css'
 import './styles/buttons.css'
+import './i18n'
+import { LocalizationProvider } from './context/LocalizationContext'
 
 installButtonFeedback()
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ThemeProvider>
-      <BrowserRouter>
-        <AuthProvider>
+      <LocalizationProvider>
+        <BrowserRouter>
+          <AuthProvider>
           <WorkspaceProvider>
             <ToastProvider>
               <MentorProvider>
@@ -41,8 +44,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               </MentorProvider>
             </ToastProvider>
           </WorkspaceProvider>
-        </AuthProvider>
-      </BrowserRouter>
+          </AuthProvider>
+        </BrowserRouter>
+      </LocalizationProvider>
     </ThemeProvider>
   </React.StrictMode>
 )

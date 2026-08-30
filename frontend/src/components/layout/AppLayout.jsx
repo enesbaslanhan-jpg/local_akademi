@@ -7,6 +7,7 @@ import MobileTabBar from './MobileTabBar'
 import MentorLauncher from '../mentor/MentorLauncher'
 import MentorPanel from '../mentor/MentorPanel'
 import VerificationBanner from './VerificationBanner'
+import ConsentBanner from './ConsentBanner'
 import WelcomeTour from './WelcomeTour'
 import styles from './AppLayout.module.css'
 
@@ -59,6 +60,9 @@ export default function AppLayout() {
         >
           <Header onToggleSidebar={() => setDrawerOpen(prev => !prev)} />
           <main className={styles.content}>
+            {/* Yasal metin sürümü arttığında onay şeridi en üstte; kapatılamaz.
+                Doğrulama hatırlatması onun altında. */}
+            <ConsentBanner />
             <VerificationBanner />
             {/* key={pathname}: route değiştiğinde ortak fadeSlideUp ile yeniden görünür,
                 içerik/route/iş mantığı değişmez, sadece giriş animasyonu tetiklenir. */}

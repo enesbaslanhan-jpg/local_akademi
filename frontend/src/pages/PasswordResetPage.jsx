@@ -8,6 +8,8 @@ import { passwordChecks, passwordMeetsMinimum } from '@/constants/password'
 import AuthThemeToggle from './AuthThemeToggle'
 import PasswordInput from '@/components/ui/PasswordInput'
 import styles from './AuthPage.module.css'
+import { useTranslation } from 'react-i18next'
+import PublicFooter from '@/components/layout/PublicFooter'
 
 /*
  * Şifre sıfırlama — iki ekran, tek dosya.
@@ -20,10 +22,12 @@ import styles from './AuthPage.module.css'
  */
 
 function Kart({ baslik, aciklama, children }) {
+  const { t } = useTranslation('auth')
   return (
     /* Giriş ekranıyla aynı yüzey: çapraz degrade + üzerinde yüzen cam kart.
        `soloPage` vaat bölümü olmadığı için kartı ortalar. */
-    <div className={`${styles.page} ${styles.soloPage}`}>
+    <div className={styles.kabuk}>
+      <div className={`${styles.page} ${styles.soloPage}`}>
       <AuthThemeToggle />
       <div className={styles.glowCool} aria-hidden="true" />
       <div className={styles.glowLight} aria-hidden="true" />
@@ -47,16 +51,17 @@ function Kart({ baslik, aciklama, children }) {
         </div>
       </div>
 
-      <div className={styles.legal} aria-label="Yasal belgeler">
-        <Link to="/privacy">Gizlilik</Link>
-        <Link to="/terms">Kullanım koşulları</Link>
-        <Link to="/cookies">Çerezler</Link>
       </div>
+
+      {/* Alt bilgi `.page`in KARDEŞİ: içine konduğunda ortalanmış flex
+          kabı onu esnetmiyor ve iki yandan taşıyordu. */}
+      <PublicFooter compact />
     </div>
   )
 }
 
 function IstekEkrani() {
+  const { t } = useTranslation('auth')
   const [email, setEmail] = useState('')
   const [gonderildi, setGonderildi] = useState(false)
   const [hata, setHata] = useState('')
@@ -69,7 +74,7 @@ function IstekEkrani() {
       await api.auth.requestPasswordReset(email)
       setGonderildi(true)
     } catch (err) {
-      setHata(err.message || 'İstek gönderilemedi. Az sonra tekrar deneyin.')
+      setHata(err.message || t('reset.requestError'))
     } finally {
       setCalisiyor(false)
     }
@@ -78,30 +83,30 @@ function IstekEkrani() {
   if (gonderildi) {
     return (
       <Kart
-        baslik="E-postanı kontrol et"
+        baslik={t('reset.checkEmailTitle')}
         /*
          * Bu mesaj, adresin kayıtlı olup olmadığını SÖYLEMEZ. Sunucu da
          * ayrım yapmıyor; arayüzün "böyle bir kullanıcı yok" demesi o
          * korumayı boşa çıkarırdı.
          */
-        aciklama={`${email} adresi sistemde kayıtlıysa şifre sıfırlama bağlantısı gönderildi. Bağlantı 1 saat geçerli.`}
+        aciklama={t('reset.checkEmailDescription', { email })}
       >
         <p className={styles.note}>
-          E-posta birkaç dakika içinde gelmezse gereksiz (spam) klasörünü kontrol edin.
+          {t('reset.spamHint')}
         </p>
-        <Link to="/login" className={styles.backLink}>Giriş ekranına dön</Link>
+        <Link to="/login" className={styles.backLink}>{t('reset.backToLogin')}</Link>
       </Kart>
     )
   }
 
   return (
     <Kart
-      baslik="Şifreni sıfırla"
-      aciklama="Hesabının e-posta adresini gir; sıfırlama bağlantısını gönderelim."
+      baslik={t('reset.requestTitle')}
+      aciklama={t('reset.requestDescription')}
     >
       <form className={styles.cardForm} onSubmit={gonder}>
         <label className={styles.field}>
-          <span>E-posta</span>
+          <span>{t('email')}</span>
           <span className={styles.inputShell}>
             <Mail size={17} aria-hidden="true" />
             <input
@@ -113,15 +118,16 @@ function IstekEkrani() {
         </label>
         {hata && <p className={styles.error} role="alert">{hata}</p>}
         <button type="submit" className={styles.submit} disabled={calisiyor}>
-          {calisiyor ? 'Gönderiliyor…' : 'Sıfırlama bağlantısı gönder'}
+          {calisiyor ? t('reset.sending') : t('reset.sendLink')}
         </button>
-        <Link to="/login" className={styles.backLink}>Giriş ekranına dön</Link>
+        <Link to="/login" className={styles.backLink}>{t('reset.backToLogin')}</Link>
       </form>
     </Kart>
   )
 }
 
 function OnayEkrani() {
+  const { t } = useTranslation('auth')
   const [params] = useSearchParams()
   const token = params.get('token') || ''
   const navigate = useNavigate()
@@ -133,9 +139,9 @@ function OnayEkrani() {
 
   if (!token) {
     return (
-      <Kart baslik="Bağlantı geçersiz" aciklama="Sıfırlama bağlantısı eksik ya da bozuk görünüyor.">
+      <Kart baslik={t('reset.invalidTitle')} aciklama={t('reset.invalidDescription')}>
         <Link to="/forgot-password" className={styles.submit} style={{ textAlign: 'center', textDecoration: 'none' }}>
-          Yeni bağlantı iste
+          {t('reset.requestNewLink')}
         </Link>
       </Kart>
     )
@@ -144,7 +150,7 @@ function OnayEkrani() {
   async function gonder(event) {
     event.preventDefault()
     setHata('')
-    if (sifre !== tekrar) return setHata('Şifreler eşleşmiyor.')
+    if (sifre !== tekrar) return setHata(t('reset.passwordMismatch'))
     setCalisiyor(true)
     try {
       const oturum = await api.auth.confirmPasswordReset(token, sifre)
@@ -153,7 +159,7 @@ function OnayEkrani() {
       if (oturum?.token) replaceSession(oturum)
       navigate('/app/dashboard', { replace: true })
     } catch (err) {
-      setHata(err.message || 'Şifre değiştirilemedi.')
+      setHata(err.message || t('reset.passwordError'))
     } finally {
       setCalisiyor(false)
     }
@@ -162,10 +168,10 @@ function OnayEkrani() {
   const checks = passwordChecks(sifre)
 
   return (
-    <Kart baslik="Yeni şifre belirle" aciklama="Bu işlem diğer tüm cihazlardaki oturumlarını kapatır.">
+    <Kart baslik={t('reset.newPasswordTitle')} aciklama={t('reset.newPasswordDescription')}>
       <form className={styles.cardForm} onSubmit={gonder}>
         <label className={styles.field}>
-          <span>Yeni şifre</span>
+          <span>{t('reset.newPassword')}</span>
           <span className={styles.inputShell}>
             <LockKeyhole size={17} aria-hidden="true" />
             <PasswordInput
@@ -179,13 +185,13 @@ function OnayEkrani() {
           {checks.map(c => (
             <li key={c.key} className={c.ok ? styles.pwOk : undefined}>
               {c.ok ? <Check size={13} aria-hidden="true" /> : <Minus size={13} aria-hidden="true" />}
-              <span>{c.label}{c.required ? '' : ' (önerilir)'}</span>
+              <span>{t(c.labelKey, c.values)}{c.required ? '' : ` ${t('passwordChecks.recommended')}`}</span>
             </li>
           ))}
         </ul>
 
         <label className={styles.field}>
-          <span>Yeni şifre tekrar</span>
+          <span>{t('reset.repeatPassword')}</span>
           <span className={styles.inputShell}>
             <LockKeyhole size={17} aria-hidden="true" />
             <PasswordInput
@@ -198,7 +204,7 @@ function OnayEkrani() {
         {hata && <p className={styles.error} role="alert">{hata}</p>}
 
         <button type="submit" className={styles.submit} disabled={calisiyor || !passwordMeetsMinimum(sifre)}>
-          {calisiyor ? 'Kaydediliyor…' : 'Şifreyi değiştir'}
+          {calisiyor ? t('reset.saving') : t('reset.changePassword')}
         </button>
       </form>
     </Kart>
@@ -211,6 +217,7 @@ export default function PasswordResetPage({ mode = 'request' }) {
 
 /** Doğrulanmamış e-posta şeridinden yönlendirilen kod giriş ekranı. */
 export function EmailVerifyPage() {
+  const { t } = useTranslation('auth')
   const [kod, setKod] = useState('')
   const [mesaj, setMesaj] = useState('')
   const [hata, setHata] = useState('')
@@ -222,9 +229,9 @@ export function EmailVerifyPage() {
     setHata(''); setMesaj(''); setCalisiyor(true)
     try {
       await api.auth.requestEmailVerification()
-      setMesaj('Kod gönderildi. 15 dakika geçerli.')
+      setMesaj(t('verify.codeSent'))
     } catch (err) {
-      setHata(err.message || 'Kod gönderilemedi.')
+      setHata(err.message || t('verify.sendError'))
     } finally { setCalisiyor(false) }
   }
 
@@ -238,15 +245,15 @@ export function EmailVerifyPage() {
       updateUser({ emailVerified: true })
       navigate('/app/dashboard', { replace: true })
     } catch (err) {
-      setHata(err.message || 'Kod doğrulanamadı.')
+      setHata(err.message || t('verify.confirmError'))
     } finally { setCalisiyor(false) }
   }
 
   return (
-    <Kart baslik="E-postanı doğrula" aciklama="Adresine gönderdiğimiz 6 haneli kodu gir.">
+    <Kart baslik={t('verify.title')} aciklama={t('verify.description')}>
       <form className={styles.cardForm} onSubmit={dogrula}>
         <label className={styles.field}>
-          <span>Doğrulama kodu</span>
+          <span>{t('verify.codeLabel')}</span>
           <span className={styles.inputShell}>
             <MailCheck size={17} aria-hidden="true" />
             <input
@@ -260,10 +267,10 @@ export function EmailVerifyPage() {
         {mesaj && <p className={styles.note}>{mesaj}</p>}
         {hata && <p className={styles.error} role="alert">{hata}</p>}
         <button type="submit" className={styles.submit} disabled={calisiyor || kod.length !== 6}>
-          {calisiyor ? 'Doğrulanıyor…' : 'Doğrula'}
+          {calisiyor ? t('verify.verifying') : t('verify.verify')}
         </button>
         <button type="button" className={styles.backLink} onClick={kodIste} disabled={calisiyor}>
-          Kod gelmedi mi? Yeniden gönder
+          {t('verify.resend')}
         </button>
       </form>
     </Kart>

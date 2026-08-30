@@ -5,6 +5,7 @@ import { useWorkspace } from '@/context/WorkspaceContext'
 import {
   Card, Button, Progress, DarkPanel, Modal, PageHead
 } from '@/components/ui'
+import FounderBadge from '@/components/billing/FounderBadge'
 import DecisionReceipt from '@/components/decision-checks/DecisionReceipt'
 import {
   BookOpen, ChevronRight, ArrowRight, AlertCircle,
@@ -12,26 +13,26 @@ import {
 } from 'lucide-react'
 import styles from './Dashboard.module.css'
 import { featureFlags } from '@/config/featureFlags'
+import { useTranslation } from 'react-i18next'
+import { useLocalization } from '@/context/LocalizationContext'
+import { formatCurrency } from '@/utils/formatters'
+import { marketplaceActionLabel } from '@/utils/marketplaceActionLabels'
 
-const money = new Intl.NumberFormat('tr-TR', {
-  style: 'currency', currency: 'TRY', maximumFractionDigits: 0
-})
-
-function shortDate(dateStr) {
+function shortDate(dateStr, locale) {
   if (!dateStr) return ''
-  return new Date(dateStr).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })
+  return new Date(dateStr).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
 }
 
-function relativeTime(dateStr) {
-  if (!dateStr) return 'hiç'
+function relativeTime(dateStr, t) {
+  if (!dateStr) return t('dashboard:relative.never')
   const diffMs = Date.now() - new Date(dateStr).getTime()
   const minutes = Math.round(diffMs / 60000)
-  if (minutes < 1) return 'az önce'
-  if (minutes < 60) return `${minutes} dk önce`
+  if (minutes < 1) return t('dashboard:relative.justNow')
+  if (minutes < 60) return t('dashboard:relative.minutesAgo', { count: minutes })
   const hours = Math.round(minutes / 60)
-  if (hours < 24) return `${hours} sa önce`
+  if (hours < 24) return t('dashboard:relative.hoursAgo', { count: hours })
   const days = Math.round(hours / 24)
-  return `${days} gün önce`
+  return t('dashboard:relative.daysAgo', { count: days })
 }
 
 /* Öncelik skalası — Düşük yeşil, Orta turuncu, Yüksek bordo. Backend farklı
@@ -42,8 +43,6 @@ function priorityLevel(raw) {
   if (['low', 'düşük', 'dusuk'].includes(v)) return 'low'
   return 'medium'
 }
-
-const PRIORITY_LABEL = { low: 'Düşük', medium: 'Orta', high: 'Yüksek' }
 
 /* Action engine severity -> mevcut görev rozeti dili. Eşikler backend'de
    MARKETPLACE_ACTION_THRESHOLDS'tadır; UI yalnızca seviyeyi çevirir. */
@@ -60,6 +59,9 @@ function operationsLink(workspaceId, action) {
 }
 
 export default function Dashboard() {
+  const { t } = useTranslation('dashboard')
+  const { formatLocale } = useLocalization()
+  const money = { format: value => formatCurrency(value, { locale: formatLocale, currency: tracker?.currency || 'TRY', maximumFractionDigits: 0 }) }
   const { activeWorkspaceId } = useWorkspace()
   const navigate = useNavigate()
   const [data, setData] = useState(null)
@@ -82,11 +84,11 @@ export default function Dashboard() {
       setData(summary)
     } catch (err) {
       if (!mountedRef.current) return
-      setError(err.message || 'Dashboard yüklenemedi')
+      setError(err.message || t('dashboard:loadError'))
     } finally {
       if (mountedRef.current) setLoading(false)
     }
-  }, [])
+  }, [t])
 
   // İşletme takibi özeti — gerçek finansal KPI kaynağı. Aktif işletme yoksa
   // veya endpoint erişilemezse sessizce boş kalır, KPI şeridi boş durum gösterir.
@@ -189,9 +191,9 @@ export default function Dashboard() {
       <div className={styles.page}>
         <div className={styles.errorContainer}>
           <AlertCircle size={44} className={styles.errorIcon} />
-          <h2>Ana sayfa yüklenemedi</h2>
+          <h2>{t('loadError')}</h2>
           <p>{error}</p>
-          <Button onClick={fetchData} variant="primary">Tekrar Dene</Button>
+          <Button onClick={fetchData} variant="primary">{t('common:buttons.retry')}</Button>
         </div>
       </div>
     )
@@ -218,27 +220,27 @@ export default function Dashboard() {
         title: r.title,
         done: r.status === 'completed',
         priority: priorityLevel(r.priority),
-        date: shortDate(r.dueAt),
-        kind: ({ payment: 'Ödeme', receivable: 'Tahsilat', promissory_note: 'Senet', purchase: 'Satın alma', shipment: 'Sevkiyat', task: 'Görev', deferred: 'Ertelenen', other: 'Kayıt' })[r.type] || 'Kayıt',
+        date: shortDate(r.dueAt, formatLocale),
+        kind: ({ payment: t('workspace:type.payment'), receivable: t('workspace:type.receivable'), promissory_note: t('workspace:type.promissoryNote'), purchase: t('workspace:type.purchase'), shipment: t('workspace:type.shipment'), task: t('workspace:type.task'), deferred: t('workspace:type.deferred'), other: t('workspace:type.other') })[r.type] || t('workspace:type.other'),
         link: null
       }))
-    : tasks.slice(0, 3).map(t => ({
-        id: t.id,
-        title: t.title,
-        done: t.status === 'completed',
+    : tasks.slice(0, 3).map(task => ({
+        id: task.id,
+        title: task.title,
+        done: task.status === 'completed',
         priority: null,
-        date: shortDate(t.updatedAt || t.createdAt),
-        kind: 'Öğrenme',
+        date: shortDate(task.updatedAt || task.createdAt, formatLocale),
+        kind: t('dashboard:learning'),
         link: null
       }))
   const mktRows = mktConnected
     ? mktActions.slice(0, 2).map(action => ({
         id: `mkt-${action.type}`,
-        title: action.title,
+        title: marketplaceActionLabel(action, t),
         done: false,
         priority: severityToPriority(action.severity),
         date: '',
-        kind: action.category || 'Pazaryeri',
+        kind: action.category || t('marketplace'),
         link: operationsLink(activeWorkspaceId, action)
       }))
     : []
@@ -253,37 +255,37 @@ export default function Dashboard() {
     const parts = []
     if (Number.isFinite(Number(net))) {
       parts.push(net < 0
-        ? `önümüzdeki 30 günde ${money.format(Math.abs(net))} nakit açığın görünüyor`
-        : `önümüzdeki 30 günde ${money.format(net)} net nakit girişin görünüyor`)
+        ? t('dashboard:status.cashDeficit', { amount: money.format(Math.abs(net)) })
+        : t('dashboard:status.cashPositive', { amount: money.format(net) }))
     }
     parts.push(overdue > 0
-      ? `${overdue} kayıt gecikmiş durumda`
-      : 'geciken kaydın yok')
+      ? t('dashboard:status.overdueRecords', { count: overdue })
+      : t('dashboard:status.noOverdue'))
     let sentence = parts.join(', ') + '.'
     if (mktIssues.length > 0) {
-      sentence += ' ' + mktIssues.slice(0, 2).map(action => action.title).join(', ') + '.'
+      sentence += ' ' + mktIssues.slice(0, 2).map(action => marketplaceActionLabel(action, t)).join(', ') + '.'
     }
-    statusSentence = sentence.charAt(0).toLocaleUpperCase('tr') + sentence.slice(1)
+    statusSentence = sentence.charAt(0).toLocaleUpperCase(formatLocale) + sentence.slice(1)
   }
 
   const totalIssues = overdue + mktIssues.length
   const statusHeadline = tracker
     ? totalIssues > 0
-      ? `İşletmeniz dengeli, ${totalIssues} konu dikkat istiyor.`
+      ? t('dashboard:status.headlineIssues', { count: totalIssues })
       : net < 0
-        ? 'Önümüzdeki 30 gün için nakit planı gerekiyor.'
-        : 'İşletmeniz dengeli, takip düzenli ilerliyor.'
-    : 'İşletme görünümünüzü kurarak başlayın.'
+        ? t('dashboard:status.headlinePlanning')
+        : t('dashboard:status.headlineBalanced')
+    : t('dashboard:status.headlineSetup')
   return (
     <div className={styles.page}>
       <PageHead
-        title="Kontrol Merkezi"
-        subtitle="Bugün işletmenizde ne önemli?"
+        title={t('title')}
+        subtitle={t('subtitle')}
         actions={(
           <>
-            <Button variant="secondary" onClick={() => navigate('/app/calculations')}><Calculator size={15} /> Hesapla</Button>
-            <Button variant="quiet" onClick={() => navigate('/app/mentor')}><Bot size={15} /> Mentor'a Sor</Button>
-            <Button onClick={() => navigate('/app/decision-checks')}><Scale size={15} /> Karar Ver</Button>
+            <Button variant="secondary" onClick={() => navigate('/app/calculations')}><Calculator size={15} /> {t('calculate')}</Button>
+            <Button variant="quiet" onClick={() => navigate('/app/mentor')}><Bot size={15} /> {t('askMentor')}</Button>
+            <Button onClick={() => navigate('/app/decision-checks')}><Scale size={15} /> {t('makeDecision')}</Button>
           </>
         )}
       />
@@ -292,28 +294,32 @@ export default function Dashboard() {
         {/* data-tour: karsilama turunun tutundugu nokta (WelcomeTour.jsx) */}
         <DarkPanel className={styles.statusPanel} bevel={false} data-tour="dash-durum">
           <div className={styles.statusText}>
-            <span className={styles.statusEyebrow}>Bugünkü durum</span>
+            <span className={styles.statusEyebrowSatiri}>
+              <span className={styles.statusEyebrow}>{t('today')}</span>
+              {/* Kurucu üye değilse hiç çizilmez. */}
+              <FounderBadge onDark />
+            </span>
             <h2 className={styles.statusHeadline}>{statusHeadline}</h2>
             <p className={styles.statusSentence}>
-              {statusSentence || 'Gerçek işletme metrikleri için işletme profilinizi ve takip kayıtlarınızı oluşturun.'}
+              {statusSentence || t('contentFallback')}
             </p>
           </div>
           {tracker ? (
             <div className={styles.statusKpis}>
               <div className={styles.statusKpi}>
-                <span className={styles.statusKpiLabel}>Tahsilat</span>
+                <span className={styles.statusKpiLabel}>{t('receivables')}</span>
                 <strong className={styles.statusKpiValue}>{money.format(tracker.nextThirtyDays?.receivable ?? 0)}</strong>
-                <span className={styles.statusKpiHint}>30 gün</span>
+                <span className={styles.statusKpiHint}>{t('thirtyDays')}</span>
               </div>
               <div className={styles.statusKpi}>
-                <span className={styles.statusKpiLabel}>Ödeme</span>
+                <span className={styles.statusKpiLabel}>{t('payments')}</span>
                 <strong className={styles.statusKpiValue}>{money.format(tracker.nextThirtyDays?.payable ?? 0)}</strong>
-                <span className={styles.statusKpiHint}>30 gün</span>
+                <span className={styles.statusKpiHint}>{t('thirtyDays')}</span>
               </div>
               <div className={styles.statusKpi}>
-                <span className={styles.statusKpiLabel}>Net görünüm</span>
+                <span className={styles.statusKpiLabel}>{t('netOutlook')}</span>
                 <strong className={`${styles.statusKpiValue} ${net < 0 ? styles.kpiRiskDark : ''}`}>{money.format(net ?? 0)}</strong>
-                <span className={styles.statusKpiHint}>{net < 0 ? 'Planlama gerekli' : 'Olumlu'}</span>
+                <span className={styles.statusKpiHint}>{net < 0 ? t('planningRequired') : t('positive')}</span>
               </div>
               {/*
                 * YÖN BEKLEYENLER.
@@ -334,51 +340,51 @@ export default function Dashboard() {
                   className={`${styles.statusKpi} ${styles.statusKpiAction}`}
                   onClick={() => navigate(`/app/workspaces/${activeWorkspaceId}/tracker`)}
                 >
-                  <span className={styles.statusKpiLabel}>Yön bekliyor</span>
+                  <span className={styles.statusKpiLabel}>{t('dashboard:awaitingDirection')}</span>
                   <strong className={styles.statusKpiValue}>{money.format(tracker.awaitingDirection.amount ?? 0)}</strong>
-                  <span className={styles.statusKpiHint}>{tracker.awaitingDirection.count} kayıt · borç mu alacak mı belirsiz</span>
+                  <span className={styles.statusKpiHint}>{t('dashboard:awaitingDirectionHint', { count: tracker.awaitingDirection.count })}</span>
                 </button>
               )}
             </div>
           ) : (
             <Button variant="secondary" size="sm" className={styles.setupButton} onClick={() => navigate('/app/workspaces')}>
-              İşletmeyi kur <ArrowRight size={14} />
+              {t('setupBusiness')} <ArrowRight size={14} />
             </Button>
           )}
         </DarkPanel>
 
         <Card className={`${styles.operationPanel} ${styles.tasksPanel}`}>
           <div className={styles.panelHead}>
-            <h2>Sıradaki işler</h2>
+            <h2>{t('nextActions')}</h2>
             {activeWorkspaceId && (
               <button type="button" className={styles.panelLink} onClick={() => navigate(`/app/workspaces/${activeWorkspaceId}/tracker`)}>
-                Tümünü gör
+                {t('common:buttons.viewAll')}
               </button>
             )}
           </div>
           <div className={styles.rows}>
             {taskRows.length === 0 ? (
-              <p className={styles.emptyLine}>Şu an sırada bir iş yok.</p>
-            ) : taskRows.map(t => (
+              <p className={styles.emptyLine}>{t('noActions')}</p>
+            ) : taskRows.map(task => (
               <button
                 type="button"
-                key={t.id}
-                className={`${styles.dataRow} ${t.done ? styles.taskDone : ''}`}
+                key={task.id}
+                className={`${styles.dataRow} ${task.done ? styles.taskDone : ''}`}
                 onClick={() => {
-                  if (t.link) navigate(t.link)
+                  if (task.link) navigate(task.link)
                   else if (activeWorkspaceId) navigate(`/app/workspaces/${activeWorkspaceId}/tracker`)
                 }}
               >
                 <span className={styles.rowLead}>
-                  {t.done ? <CheckSquare size={15} aria-hidden="true" /> : <Square size={15} aria-hidden="true" />}
-                  <span><strong>{t.title}</strong><small>{t.date || 'Tarih belirtilmedi'}</small></span>
+                  {task.done ? <CheckSquare size={15} aria-hidden="true" /> : <Square size={15} aria-hidden="true" />}
+                  <span><strong>{task.title}</strong><small>{task.date || t('dateMissing')}</small></span>
                 </span>
-                <span className={styles.rowKind}>{t.kind}</span>
-                {t.priority ? (
-                  <span className={`${styles.prio} ${styles[`prio${t.priority.charAt(0).toUpperCase()}${t.priority.slice(1)}`]}`}>
-                    {PRIORITY_LABEL[t.priority]}
+                <span className={styles.rowKind}>{task.kind}</span>
+                {task.priority ? (
+                  <span className={`${styles.prio} ${styles[`prio${task.priority.charAt(0).toUpperCase()}${task.priority.slice(1)}`]}`}>
+                    {t(`priority.${task.priority}`)}
                   </span>
-                ) : <span className={styles.rowState}>{t.done ? 'Tamam' : 'Hazır'}</span>}
+                ) : <span className={styles.rowState}>{task.done ? t('dashboard:taskDone') : t('dashboard:taskReady')}</span>}
                 <ChevronRight size={14} aria-hidden="true" />
               </button>
             ))}
@@ -386,37 +392,37 @@ export default function Dashboard() {
         </Card>
 
         <Card className={`${styles.operationPanel} ${styles.resumePanel}`}>
-          <div className={styles.panelHead}><h2>Kaldığın yer</h2></div>
+          <div className={styles.panelHead}><h2>{t('dashboard:resume.title')}</h2></div>
           {resume ? (
             <button type="button" className={styles.resumeContent} onClick={() => navigate('/app/enrollments')}>
               <span className={styles.courseMark} aria-hidden="true"><BookOpen size={25} /><b>LK</b></span>
               <span className={styles.resumeCopy}>
-                <small>ÖĞRENMEYE DEVAM</small>
+                <small>{t('dashboard:resume.continueLearning')}</small>
                 <strong>{resume.courseTitle}</strong>
                 <span className={styles.resumeProgressLine}>
                   <Progress value={resume.progress} size="md" variant="primary" />
                   <em>%{resume.progress}</em>
                 </span>
-                <span className={styles.resumeCta}>Derse devam et <ArrowRight size={14} /></span>
+                <span className={styles.resumeCta}>{t('dashboard:resume.continueToLesson')} <ArrowRight size={14} /></span>
               </span>
             </button>
           ) : (
             <div className={styles.emptyResume}>
               <span className={styles.courseMark} aria-hidden="true"><BookOpen size={25} /><b>LK</b></span>
-              <div><strong>Yeni bir öğrenme rotası seçin.</strong><p>İlerlemeniz burada kaldığınız yerden devam edecek.</p></div>
-              <Button size="sm" onClick={() => navigate('/app/courses')}>Kurslara git</Button>
+              <div><strong>{t('dashboard:resume.newRoute')}</strong><p>{t('dashboard:resume.newRouteHint')}</p></div>
+              <Button size="sm" onClick={() => navigate('/app/courses')}>{t('dashboard:resume.goToCourses')}</Button>
             </div>
           )}
         </Card>
 
         <Card className={`${styles.operationPanel} ${styles.decisionsPanel}`}>
           <div className={styles.panelHead}>
-            <h2>Son kararlar</h2>
-            <button type="button" className={styles.panelLink} onClick={() => navigate('/app/decision-checks')}>Tümünü gör</button>
+            <h2>{t('dashboard:decisions.title')}</h2>
+            <button type="button" className={styles.panelLink} onClick={() => navigate('/app/decision-checks')}>{t('dashboard:decisions.viewAll')}</button>
           </div>
           <div className={styles.rows}>
             {decisionRows.length === 0 ? (
-              <p className={styles.emptyLine}>Henüz tamamlanmış bir karar yok.</p>
+              <p className={styles.emptyLine}>{t('dashboard:decisions.empty')}</p>
             ) : decisionRows.map((session, index) => (
               <button
                 type="button"
@@ -426,10 +432,10 @@ export default function Dashboard() {
               >
                 <span className={styles.rowLead}>
                   <Scale size={15} aria-hidden="true" />
-                  <span><strong>{session.decisionCheckTitle}</strong><small>{shortDate(session.completedAt)}</small></span>
+                  <span><strong>{session.decisionCheckTitle}</strong><small>{shortDate(session.completedAt, formatLocale)}</small></span>
                 </span>
-                <span className={styles.rowKind}>Karar</span>
-                <span className={styles.rowState}>{index === 0 && lastDecision ? 'İncele' : 'Tamam'}</span>
+                <span className={styles.rowKind}>{t('dashboard:decisions.decision')}</span>
+                <span className={styles.rowState}>{index === 0 && lastDecision ? t('dashboard:decisions.review') : t('dashboard:taskDone')}</span>
                 <ChevronRight size={14} aria-hidden="true" />
               </button>
             ))}
@@ -441,36 +447,36 @@ export default function Dashboard() {
         {activeWorkspaceId && (mktConnected ? (
           <Card className={`${styles.operationPanel} ${styles.marketplacePanel}`}>
             <div className={styles.panelHead}>
-              <h2>Pazaryeri Özeti</h2>
+              <h2>{t('dashboard:marketplacePanel.title')}</h2>
               <span className={styles.mktProviders}>
                 {(mktSummary?.providers || []).filter(p => p.status !== 'DISABLED').map(provider => (
                   <span key={provider.provider} className={styles.mktProviderChip}>
                     <Store size={11} aria-hidden="true" />
-                    {({ TRENDYOL: 'Trendyol', HEPSIBURADA: 'Hepsiburada', N11: 'N11', SHOPIFY: 'Shopify', WOOCOMMERCE: 'WooCommerce' })[provider.provider] || provider.provider}
+                    {({ TRENDYOL: 'Trendyol', HEPSIBURADA: 'Hepsiburada', N11: 'N11', SHOPIFY: 'Shopify', AMAZON: 'Amazon', WOOCOMMERCE: 'WooCommerce' })[provider.provider] || provider.provider}
                   </span>
                 ))}
               </span>
-              <button type="button" className={styles.panelLink} onClick={() => navigate(`/app/workspaces/${activeWorkspaceId}/orders`)}>Siparişler</button>
-              <button type="button" className={styles.panelLink} onClick={() => navigate(`/app/workspaces/${activeWorkspaceId}/products`)}>Ürünler</button>
+              <button type="button" className={styles.panelLink} onClick={() => navigate(`/app/workspaces/${activeWorkspaceId}/orders`)}>{t('dashboard:marketplacePanel.orders')}</button>
+              <button type="button" className={styles.panelLink} onClick={() => navigate(`/app/workspaces/${activeWorkspaceId}/products`)}>{t('dashboard:marketplacePanel.products')}</button>
             </div>
             {mktSummary?.sync?.hasError && (
-              <p className={styles.mktSyncWarning}>Pazaryeri verileri güncellenemedi. Son başarılı eşitleme: {relativeTime(mktSummary.sync.lastSyncedAt)}</p>
+              <p className={styles.mktSyncWarning}>{t('marketplacePanel.syncError', { time: relativeTime(mktSummary.sync.lastSyncedAt, t) })}</p>
             )}
             <div className={styles.mktStats}>
-              <div><span>Bugün sipariş</span><strong>{mktSummary?.today?.orderCount ?? 0}</strong></div>
-              <div><span>Bugün satış</span><strong>{money.format(mktSummary?.today?.grossSales ?? 0)}</strong></div>
-              <div><span>Bekleyen kargo</span><strong>{mktSummary?.today?.pendingShipmentCount ?? 0}</strong></div>
-              <div><span>Düşük stok</span><strong>{mktSummary?.inventory?.lowStockCount ?? 0}</strong></div>
-              <div><span>İade</span><strong>{(mktSummary?.today?.returnCount ?? 0) + mktActions.filter(a => a.type === 'RETURN_PENDING').reduce((sum, a) => sum + a.count, 0)}</strong></div>
-              <div><span>Son eşitleme</span><small>{relativeTime(mktSummary?.sync?.lastSyncedAt)}</small></div>
+              <div><span>{t('dashboard:marketplacePanel.todayOrders')}</span><strong>{mktSummary?.today?.orderCount ?? 0}</strong></div>
+              <div><span>{t('dashboard:marketplacePanel.todaySales')}</span><strong>{money.format(mktSummary?.today?.grossSales ?? 0)}</strong></div>
+              <div><span>{t('dashboard:marketplacePanel.pendingShipment')}</span><strong>{mktSummary?.today?.pendingShipmentCount ?? 0}</strong></div>
+              <div><span>{t('dashboard:marketplacePanel.lowStock')}</span><strong>{mktSummary?.inventory?.lowStockCount ?? 0}</strong></div>
+              <div><span>{t('dashboard:marketplacePanel.return')}</span><strong>{(mktSummary?.today?.returnCount ?? 0) + mktActions.filter(a => a.type === 'RETURN_PENDING').reduce((sum, a) => sum + a.count, 0)}</strong></div>
+              <div><span>{t('marketplacePanel.lastSync')}</span><small>{relativeTime(mktSummary?.sync?.lastSyncedAt, t)}</small></div>
               {mktSummary?.performance?.bestSeller && (
-                <div><span>En çok satan</span><em>{mktSummary.performance.bestSeller.title}</em></div>
+                <div><span>{t('dashboard:marketplacePanel.bestSeller')}</span><em>{mktSummary.performance.bestSeller.title}</em></div>
               )}
             </div>
           </Card>
         ) : (
           <button type="button" className={styles.marketplaceEmptyCta} onClick={() => navigate('/app/settings?bolum=integrations')}>
-            <Store size={13} aria-hidden="true" /> Henüz pazaryeri bağlantısı yok — Ayarlar → Entegrasyonlar
+            <Store size={13} aria-hidden="true" /> {t('dashboard:marketplacePanel.noConnection')}
           </button>
         ))}
       </div>

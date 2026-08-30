@@ -1,6 +1,17 @@
+import i18n from '@/i18n'
+
 const API_URL = import.meta.env.VITE_API_URL || '';
 export const RATE_LIMIT_EVENT = 'localkarar:rate-limit';
-export const RATE_LIMIT_MESSAGE = 'Çok kısa sürede fazla istek gönderildi. Birkaç saniye sonra tekrar deneyin.';
+
+export const ERROR_CODES = {
+  RATE_LIMIT: 'RATE_LIMIT',
+  NETWORK_ERROR: 'NETWORK_ERROR',
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  STREAM_ERROR: 'STREAM_ERROR',
+  NO_BODY: 'NO_BODY',
+  API_ERROR: 'API_ERROR',
+  UNKNOWN: 'UNKNOWN'
+};
 
 export function retryAfterSaniyesi(headers) {
   const raw = headers?.get?.('retry-after');
@@ -15,12 +26,16 @@ export function retryAfterSaniyesi(headers) {
 function hizSiniriniBildir(retryAfterSeconds) {
   if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return;
   window.dispatchEvent(new CustomEvent(RATE_LIMIT_EVENT, {
-    detail: { message: RATE_LIMIT_MESSAGE, retryAfterSeconds }
+    detail: { code: ERROR_CODES.RATE_LIMIT, retryAfterSeconds }
   }));
 }
 
 const getHeaders = (includeAuth = true) => {
-  const headers = { 'Content-Type': 'application/json' };
+  const language = i18n.resolvedLanguage || i18n.language || 'tr';
+  const headers = {
+    'Content-Type': 'application/json',
+    'Accept-Language': language === 'en' ? 'en' : 'tr'
+  };
   const token = localStorage.getItem('token');
   if (token && includeAuth) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -97,11 +112,13 @@ function yenilemeyiPaylas() {
 }
 
 export class ApiError extends Error {
-  constructor(message, status, data, retryAfterSeconds = null) {
-    super(message);
+  constructor(code, status, data, retryAfterSeconds = null) {
+    super(code);
     this.name = 'ApiError';
+    this.code = code;
     this.status = status;
     this.data = data;
+    this.apiMessage = data?.error || data?.message || null;
     this.retryAfterSeconds = retryAfterSeconds;
   }
 };
@@ -135,7 +152,7 @@ function parseSSEChunk(buffer) {
 async function streamSSE({ url, method, body, signal, onStart, onProvider, onDelta, onDone, onCancelled, onError }) {
   const token = localStorage.getItem('token');
   if (!token) {
-    if (onError) onError({ code: 'AUTH_ERROR', message: 'Oturum bulunamadı' });
+    if (onError) onError({ code: 'AUTH_ERROR', message: i18n.t('common:errors.sessionMissing') });
     return;
   }
 
@@ -145,6 +162,7 @@ async function streamSSE({ url, method, body, signal, onStart, onProvider, onDel
       method,
       headers: {
         'Content-Type': 'application/json',
+        'Accept-Language': (i18n.resolvedLanguage || i18n.language) === 'en' ? 'en' : 'tr',
         'Authorization': `Bearer ${token}`
       },
       body,
@@ -152,7 +170,7 @@ async function streamSSE({ url, method, body, signal, onStart, onProvider, onDel
     });
   } catch (err) {
     if (err.name === 'AbortError') return;
-    if (onError) onError({ code: 'NETWORK_ERROR', message: 'Bağlantı hatası' });
+    if (onError) onError({ code: ERROR_CODES.NETWORK_ERROR });
     return;
   }
 
@@ -161,16 +179,16 @@ async function streamSSE({ url, method, body, signal, onStart, onProvider, onDel
     if (response.status === 429) {
       const retryAfterSeconds = retryAfterSaniyesi(response.headers);
       hizSiniriniBildir(retryAfterSeconds);
-      if (onError) onError({ code: 'RATE_LIMITED', message: RATE_LIMIT_MESSAGE, retryAfterSeconds });
+      if (onError) onError({ code: ERROR_CODES.RATE_LIMIT, retryAfterSeconds });
       return;
     }
-    if (onError) onError({ code: 'API_ERROR', message: data?.error?.message || data?.error || 'Hata oluştu' });
+    if (onError) onError({ code: ERROR_CODES.API_ERROR, apiMessage: data?.error?.message || data?.error });
     return;
   }
 
   const reader = response.body?.getReader();
   if (!reader) {
-    if (onError) onError({ code: 'NO_BODY', message: 'Yanıt alınamadı' });
+    if (onError) onError({ code: ERROR_CODES.NO_BODY });
     return;
   }
 
@@ -211,7 +229,7 @@ async function streamSSE({ url, method, body, signal, onStart, onProvider, onDel
     }
   } catch (err) {
     if (err.name === 'AbortError') return;
-    if (onError) onError({ code: 'STREAM_ERROR', message: 'Akış hatası' });
+    if (onError) onError({ code: ERROR_CODES.STREAM_ERROR });
   } finally {
     reader.releaseLock();
   }
@@ -281,10 +299,11 @@ export const api = {
     if (!response.ok) {
       const data = isJson ? await response.json().catch(() => ({})) : {};
       const retryAfterSeconds = response.status === 429 ? retryAfterSaniyesi(response.headers) : null;
-      const message = response.status === 429
-        ? RATE_LIMIT_MESSAGE
-        : data.error || data.message || 'İşlem başarısız';
-      const error = new ApiError(message, response.status, data, retryAfterSeconds);
+      const errorCode = response.status === 429
+        ? ERROR_CODES.RATE_LIMIT
+        : response.status === 401 ? ERROR_CODES.UNAUTHORIZED
+        : ERROR_CODES.API_ERROR;
+      const error = new ApiError(errorCode, response.status, data, retryAfterSeconds);
       if (response.status === 429) hizSiniriniBildir(retryAfterSeconds);
       if (response.status === 401 && includeAuth && !tekrarMi && !YENILEME_DISI.some(y => path.startsWith(y))) {
         /* FormData govdesi tek kullanimlik bir akis; tekrarlanamaz. */
@@ -303,14 +322,14 @@ export const api = {
 
     if (!isJson) {
       throw new ApiError(
-        'API sunucusuna ulaşılamadı veya beklenmeyen bir yanıt alındı.',
+        ERROR_CODES.API_ERROR,
         response.status,
         {}
       );
     }
 
     const data = await response.json().catch(() => {
-      throw new ApiError('API yanıtı işlenemedi.', response.status, {});
+      throw new ApiError(ERROR_CODES.API_ERROR, response.status, {});
     });
     return data;
   },
@@ -357,6 +376,12 @@ export const api = {
     },
     async me() {
       return api.request('/auth/me');
+    },
+    async updatePreferences(preferences) {
+      return api.request('/auth/preferences', {
+        method: 'PATCH',
+        body: JSON.stringify(preferences)
+      });
     },
     async changePassword(currentPassword, newPassword) {
       return api.request('/auth/password', {
@@ -591,6 +616,19 @@ export const api = {
     },
     async update(id, data) { return api.request(`/learning-path/${id}`, { method: 'PUT', body: JSON.stringify(data) }); },
     async delete(id) { return api.request(`/learning-path/${id}`, { method: 'DELETE' }); }
+  },
+
+  /*
+   * HESAP BİLDİRİMLERİ — üyelik, ödeme, güvenlik.
+   *
+   * Topluluk bildirimlerinden AYRI bir uç: sunucuda da ayrı bir
+   * tablo (`AccountNotification`). Sebep `account-notifications.ts`
+   * içinde yazılı — işletme bildirimi çalışma alanına bağlı,
+   * topluluk bildiriminin tekrar koruması yok.
+   */
+  hesap: {
+    async bildirimler() { return api.request('/account/notifications'); },
+    async bildirimleriOkundu() { return api.request('/account/notifications/read', { method: 'POST' }); },
   },
 
   community: {
@@ -1192,7 +1230,7 @@ export const api = {
         if (!res.ok) {
           let data = null
           try { data = await res.json() } catch { /* ikili/boş yanıt */ }
-          throw new ApiError(data?.error || 'Dışa aktarım başarısız', res.status, data)
+          throw new ApiError(data?.error || i18n.t('common:errors.exportFailed'), res.status, data)
         }
 
         const disposition = res.headers.get('Content-Disposition') || ''
@@ -1235,7 +1273,7 @@ export const api = {
         if (!res.ok) {
           let data = null
           try { data = await res.json() } catch { /* ikili/boş yanıt */ }
-          throw new ApiError(data?.error || 'Kayıt indirilemedi', res.status, data)
+          throw new ApiError(data?.error || i18n.t('common:errors.downloadFailed'), res.status, data)
         }
         const disposition = res.headers.get('Content-Disposition') || ''
         const match = disposition.match(/filename="?([^";]+)"?/i)

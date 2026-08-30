@@ -1,5 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma.js'
+import { contentLanguage, localized } from '../lib/content-language.js'
+import { COURSE_CATEGORY_EN, COURSE_EN_BY_SLUG } from '../content/i18n/course-en.js'
 
 async function computeEnrollmentProgress(courseId: number, userId: number) {
   const lessons = await prisma.lesson.findMany({
@@ -38,6 +40,7 @@ export async function enrollmentRoutes(fastify: FastifyInstance) {
     preHandler: [fastify.authenticate],
   }, async (request) => {
     const user = request.user as any
+    const language = contentLanguage(request)
     const { includeArchived } = request.query as { includeArchived?: string }
 
     /*
@@ -68,6 +71,7 @@ export async function enrollmentRoutes(fastify: FastifyInstance) {
     })
 
     const result = await Promise.all(enrollments.map(async e => {
+      const english = e.course.slug ? COURSE_EN_BY_SLUG[e.course.slug] : undefined
       const computed = await computeEnrollmentProgress(e.courseId, user.id)
       // Update if changed
       if (computed.progress !== e.progress || computed.status !== e.status) {
@@ -79,8 +83,8 @@ export async function enrollmentRoutes(fastify: FastifyInstance) {
       return {
         id: e.id,
         courseId: e.courseId,
-        courseTitle: e.course.title,
-        courseCategory: e.course.category,
+        courseTitle: localized(e.course.title, english?.title, language),
+        courseCategory: localized(e.course.category, COURSE_CATEGORY_EN[e.course.category], language),
         courseLevel: e.course.level,
         courseLessonCount: e.course._count.lessons,
         progress: computed.progress,

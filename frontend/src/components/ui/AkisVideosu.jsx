@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Play, Volume2, VolumeX } from 'lucide-react'
 import styles from './AkisVideosu.module.css'
+import { useTranslation } from 'react-i18next'
 
 /*
  * AKIŞ VİDEOSU — "Sessiz Akış" + "Yüzen Cam Kapsül"
@@ -97,6 +98,7 @@ function secimIste() {
 }
 
 export default function AkisVideosu({ src, onAc, kucuk = false }) {
+  const { t } = useTranslation('common')
   const videoRef = useRef(null)
   const sarmalRef = useRef(null)
   const [oynuyor, setOynuyor] = useState(false)
@@ -170,7 +172,7 @@ export default function AkisVideosu({ src, onAc, kucuk = false }) {
         type="button"
         className={styles.acKatmani}
         onClick={olay => { olay.stopPropagation(); onAc ? onAc() : oynatDurdur() }}
-        aria-label={onAc ? 'Videoyu ve konuşmayı aç' : (oynuyor ? 'Videoyu durdur' : 'Videoyu oynat')}
+        aria-label={onAc ? t('ui.video.openConversation') : (oynuyor ? t('ui.video.pause') : t('ui.video.play'))}
       />
 
       {!oynuyor && <span className={styles.oynatRozeti} aria-hidden="true"><Play size={20} fill="currentColor" /></span>}
@@ -178,7 +180,7 @@ export default function AkisVideosu({ src, onAc, kucuk = false }) {
         type="button"
         className={styles.sesDugmesi}
         onClick={olay => { olay.stopPropagation(); sesiDegistir() }}
-        aria-label={sessiz ? 'Sesi aç' : 'Sesi kapat'}
+        aria-label={sessiz ? t('ui.video.unmute') : t('ui.video.mute')}
       >
         {sessiz ? <VolumeX size={16} /> : <Volume2 size={16} />}
       </button>

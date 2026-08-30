@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, useId, useMemo, useCallback } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useId, useMemo, useCallback } from 'react'
 import { ChevronDown, ChevronUp, Check, Search } from 'lucide-react'
 import styles from './Select.module.css'
+import { useTranslation } from 'react-i18next'
 
-const DEFAULT_EMPTY_MESSAGE = 'Eşleşen sonuç yok'
 const SEARCH_THRESHOLD = 12
 
 /*
@@ -26,9 +26,10 @@ export default function Select({
   disabled,
   name,
   searchable,
-  emptyMessage = DEFAULT_EMPTY_MESSAGE,
+  emptyMessage,
   'aria-label': ariaLabel,
 }) {
+  const { t, i18n } = useTranslation('common')
   const uid = useId().replace(/:/g, '')
   const selectId = id || `select-${uid}`
   const listboxId = `${selectId}-listbox`
@@ -36,6 +37,15 @@ export default function Select({
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
   const [query, setQuery] = useState('')
+  /* Menü konumu — tetikleyicinin ekran koordinatlarından hesaplanır.
+     `position: fixed` kullanıyoruz (absolute değil): bir üst kartın
+     `overflow: hidden`'ı (köşe yuvarlama için yaygın) fixed öğeleri
+     KESMEZ, çünkü menü DOM ağacında yine sarmalayıcının içinde kalıyor
+     — dış tıklama denetimi bozulmuyor, yalnız görsel konum viewport'a
+     göre hesaplanıyor. Önceki `position: absolute` bir kartın içindeki
+     her seçim kutusunda ikinci seçeneği görünmez ve tıklanamaz
+     yapıyordu. */
+  const [menuRect, setMenuRect] = useState(null)
 
   const containerRef = useRef(null)
   const triggerRef = useRef(null)
@@ -50,10 +60,11 @@ export default function Select({
   }, [options, placeholder])
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLocaleLowerCase('tr-TR')
+    const locale = i18n.resolvedLanguage === 'en' ? 'en-US' : 'tr-TR'
+    const q = query.trim().toLocaleLowerCase(locale)
     if (!q) return allOptions
-    return allOptions.filter(o => o.label.toLocaleLowerCase('tr-TR').includes(q))
-  }, [allOptions, query])
+    return allOptions.filter(o => o.label.toLocaleLowerCase(locale).includes(q))
+  }, [allOptions, query, i18n.resolvedLanguage])
 
   const effectiveSearchable = searchable ?? allOptions.length >= SEARCH_THRESHOLD
   const selected = allOptions.find(o => o.value === value)
@@ -70,6 +81,42 @@ export default function Select({
     setActiveIndex(initial)
     setOpen(true)
   }, [selectedIndex])
+
+  /* Menü açıkken tetikleyicinin viewport konumunu izler. Menü her ekran
+     genişliğinde tetikleyiciye bağlıdır: aşağıda yeterli alan varsa alta,
+     yoksa üste açılır. Böylece mobilde seçim kutusuna basınca listenin
+     ekranın ilgisiz biçimde en altına sıçraması önlenir. */
+  useLayoutEffect(() => {
+    if (!open) { setMenuRect(null); return undefined }
+    function updateRect() {
+      const rect = triggerRef.current?.getBoundingClientRect()
+      const menu = listRef.current?.getBoundingClientRect()
+      if (!rect || !menu) return
+
+      const gap = 6
+      const margin = 12
+      const width = Math.min(rect.width, window.innerWidth - margin * 2)
+      const left = Math.min(
+        Math.max(margin, rect.left),
+        window.innerWidth - margin - width,
+      )
+      const availableBelow = window.innerHeight - rect.bottom - gap - margin
+      const availableAbove = rect.top - gap - margin
+      const opensAbove = availableBelow < menu.height && availableAbove > availableBelow
+      const top = opensAbove
+        ? Math.max(margin, rect.top - gap - menu.height)
+        : Math.min(rect.bottom + gap, window.innerHeight - margin - menu.height)
+
+      setMenuRect({ top, left, width })
+    }
+    updateRect()
+    window.addEventListener('scroll', updateRect, true)
+    window.addEventListener('resize', updateRect)
+    return () => {
+      window.removeEventListener('scroll', updateRect, true)
+      window.removeEventListener('resize', updateRect)
+    }
+  }, [open])
 
   /* Dış tıklama + Escape kapatma */
   useEffect(() => {
@@ -97,18 +144,25 @@ export default function Select({
   useEffect(() => {
     if (!open) return
     if (effectiveSearchable) {
-      searchRef.current?.focus()
+      searchRef.current?.focus({ preventScroll: true })
     } else {
       const el = optionRefs.current[activeIndex]
-      ;(el || triggerRef.current)?.focus()
+      ;(el || triggerRef.current)?.focus({ preventScroll: true })
     }
   }, [open, effectiveSearchable, activeIndex])
 
-  /* Aktif seçeneği görünürde tut. */
+  /* Aktif seçeneği yalnız menünün kendi kaydırma alanında görünür tut.
+     Element.scrollIntoView sayfanın kendisini de kaydırabildiği için
+     burada iç listenin scrollTop değeri doğrudan ayarlanır. */
   useEffect(() => {
     if (!open) return
     const el = optionRefs.current[activeIndex]
-    el?.scrollIntoView({ block: 'nearest' })
+    const list = el?.parentElement
+    if (!el || !list) return
+    const optionRect = el.getBoundingClientRect()
+    const listRect = list.getBoundingClientRect()
+    if (optionRect.top < listRect.top) list.scrollTop -= listRect.top - optionRect.top
+    else if (optionRect.bottom > listRect.bottom) list.scrollTop += optionRect.bottom - listRect.bottom
   }, [open, activeIndex])
 
   function select(opt) {
@@ -206,7 +260,7 @@ export default function Select({
   }
 
   const triggerLabel =
-    ariaLabel || label || 'Seçim'
+    ariaLabel || label || t('accessibility.selection')
 
   return (
     <div className={`${styles.wrapper} ${variant === 'bare' ? styles.wrapperBare : ''} ${className}`} ref={containerRef}>
@@ -231,7 +285,7 @@ export default function Select({
         onKeyDown={handleTriggerKeyDown}
       >
         <span className={styles.triggerText}>
-          {selected ? selected.label : placeholder || 'Seçiniz'}
+          {selected ? selected.label : placeholder || t('ui.select.choose')}
         </span>
         {open ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
       </button>
@@ -246,6 +300,7 @@ export default function Select({
           ref={listRef}
           tabIndex={-1}
           onKeyDown={handleListKeyDown}
+          style={menuRect ? { top: `${menuRect.top}px`, left: `${menuRect.left}px`, width: `${menuRect.width}px`, right: 'auto' } : undefined}
         >
           {effectiveSearchable && (
             <div className={styles.searchWrap}>
@@ -258,14 +313,14 @@ export default function Select({
                   setQuery(event.target.value)
                   setActiveIndex(0)
                 }}
-                placeholder="Ara..."
-                aria-label="Seçenek ara"
+                placeholder={t('ui.select.searchPlaceholder')}
+                aria-label={t('ui.select.searchAria')}
               />
             </div>
           )}
           <div className={styles.list}>
             {filtered.length === 0 && (
-              <div className={styles.empty}>{emptyMessage}</div>
+              <div className={styles.empty}>{emptyMessage || t('ui.select.emptyMessage')}</div>
             )}
             {filtered.map((opt, index) => (
               <div
@@ -280,9 +335,13 @@ export default function Select({
                   index === activeIndex ? styles.optionActive : ''
                 }`}
                 onMouseDown={event => {
+                  /* Odağın tetikleyiciden kaçmasını önle; seçimi burada
+                     TAMAMLAMA. Menüyü mousedown sırasında kaldırmak,
+                     mouseup/click olayının mobil alt navigasyona geçip
+                     yanlış sayfayı açmasına yol açar. */
                   event.preventDefault()
-                  select(opt)
                 }}
+                onClick={() => select(opt)}
                 onMouseEnter={() => setActiveIndex(index)}
               >
                 <span className={styles.optionLabel}>{opt.label}</span>

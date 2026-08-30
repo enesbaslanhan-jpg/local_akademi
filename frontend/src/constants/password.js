@@ -15,10 +15,10 @@ export const PASSWORD_MIN = 10
  */
 export function passwordChecks(value = '') {
   return [
-    { key: 'length', label: `En az ${PASSWORD_MIN} karakter`, required: true, ok: value.length >= PASSWORD_MIN },
-    { key: 'case', label: 'Büyük ve küçük harf', required: false, ok: /[a-zçğıöşü]/.test(value) && /[A-ZÇĞİÖŞÜ]/.test(value) },
-    { key: 'digit', label: 'En az bir rakam', required: false, ok: /\d/.test(value) },
-    { key: 'symbol', label: 'En az bir sembol', required: false, ok: /[^\p{L}\p{N}]/u.test(value) }
+    { key: 'length', labelKey: 'passwordChecks.length', values: { count: PASSWORD_MIN }, required: true, ok: value.length >= PASSWORD_MIN },
+    { key: 'case', labelKey: 'passwordChecks.case', required: false, ok: /[a-zçğıöşü]/.test(value) && /[A-ZÇĞİÖŞÜ]/.test(value) },
+    { key: 'digit', labelKey: 'passwordChecks.digit', required: false, ok: /\d/.test(value) },
+    { key: 'symbol', labelKey: 'passwordChecks.symbol', required: false, ok: /[^\p{L}\p{N}]/u.test(value) }
   ]
 }
 

@@ -7,46 +7,50 @@ import { useTheme } from '@/context/ThemeContext'
 import { api } from '@/services/api'
 import { CALCULATION_DEFINITIONS } from '@/data/calculationCatalog'
 import styles from './Header.module.css'
+import { useTranslation } from 'react-i18next'
+import { useLocalization } from '@/context/LocalizationContext'
 
 /*
  * Sayfa başlığı, route'tan türetilir. Route'lar veya navigasyon değişmez;
  * burada yalnızca üst alanda gösterilecek insan-okur başlık eşlenir.
  */
 const TITLES = [
-  ['/app/dashboard', 'Ana Sayfa'],
-  ['/app/courses', 'Kurslar'],
-  ['/app/decision-checks', 'Karar Araçları'],
-  ['/app/calculations', 'Hesaplamalar'],
-  ['/app/tools', 'Hesaplamalar'],
-  ['/app/mentor', 'AI Mentor'],
-  ['/app/practical-cards', 'Pratik Kartlar'],
-  ['/app/knowledge', 'Bilgi Nesneleri'],
-  ['/app/enrollments', 'Kayıtlarım'],
-  ['/app/learning-path', 'Öğrenme Yolu'],
-  ['/app/finance/models', 'Hesaplamalar'],
+  ['/app/dashboard', 'nav.dashboard'],
+  ['/app/courses', 'nav.courses'],
+  ['/app/decision-checks', 'nav.decisionTools'],
+  ['/app/calculations', 'nav.calculations'],
+  ['/app/tools', 'nav.calculations'],
+  ['/app/mentor', 'nav.mentor'],
+  ['/app/practical-cards', 'nav.practicalCards'],
+  ['/app/knowledge', 'nav.knowledgeObjects'],
+  ['/app/enrollments', 'nav.myEnrollments'],
+  ['/app/learning-path', 'nav.learningPath'],
+  ['/app/finance/models', 'nav.calculations'],
   ['/app/flashcards', 'Flashcard'],
   ['/app/quiz', 'Quiz'],
   /* Daha spesifik olan önce gelmeli: resolveTitle ilk eşleşeni döndürür.
      Tek gönderi sayfası da topluluğun altında; bu satır olmadan üst
      çubukta "Haberler" yazıyordu. */
-  ['/app/community/topluluk', 'Topluluk'],
-  ['/app/community/gonderi', 'Topluluk'],
-  ['/app/community', 'Haberler'],
-  ['/app/profil', 'Profil'],
-  ['/app/bildirimler', 'Bildirimler'],
-  ['/app/settings', 'Ayarlar'],
-  ['/app/workspaces', 'İşletme Takibi'],
-  ['/admin', 'Yönetim']
+  ['/app/community/topluluk', 'nav.community'],
+  ['/app/community/gonderi', 'nav.community'],
+  ['/app/community', 'nav.news'],
+  ['/app/profil', 'nav.profile'],
+  ['/app/bildirimler', 'workspace:nav.notifications'],
+  ['/app/settings', 'nav.settings'],
+  ['/app/workspaces', 'nav.businessTracking'],
+  ['/admin', 'nav.management']
 ]
 
-function resolveTitle(pathname) {
+function resolveTitle(pathname, t) {
   const match = TITLES.find(([prefix]) => pathname === prefix || pathname.startsWith(prefix + '/'))
-  return match ? match[1] : 'LocalKarar'
+  return match ? t(match[1]) : 'LocalKarar'
 }
 
 const EMPTY_RESULTS = { courses: [], knowledge: [], decisionChecks: [], news: [], people: [], posts: [] }
 
 export default function Header({ onToggleSidebar }) {
+  const { t, i18n } = useTranslation(['common', 'tools'])
+  const { formatLocale } = useLocalization()
   const { user } = useAuth()
   const { activeWorkspaceId } = useWorkspace()
   const { theme, toggleTheme } = useTheme()
@@ -66,8 +70,29 @@ export default function Header({ onToggleSidebar }) {
    */
   useEffect(() => {
     let iptal = false
-    const oku = () => api.community.bildirimler()
-      .then(sonuc => { if (!iptal) setOkunmamis(sonuc.unread || 0) })
+    /*
+     * İKİ KAYNAK TOPLANIYOR: topluluk + hesap (üyelik/ödeme).
+     *
+     * Zil daha önce yalnız topluluğu sayıyordu. Üyelik uyarıları ayrı
+     * bir tabloda tutulduğu için (sebebi `account-notifications.ts`
+     * içinde yazılı) buraya eklenmeseydi kullanıcı "süren doluyor"
+     * bildirimini zilde HİÇ görmezdi.
+     *
+     * `allSettled`: biri düşerse diğeri yine sayılsın. Zil sayacı
+     * kritik değil, ama yarısının çalışması hiç çalışmamasından iyi.
+     */
+    const oku = () => Promise.allSettled([
+      api.community.bildirimler(),
+      api.hesap.bildirimler(),
+    ])
+      .then(sonuclar => {
+        if (iptal) return
+        const toplam = sonuclar.reduce(
+          (t, s) => t + (s.status === 'fulfilled' ? (s.value?.unread || 0) : 0),
+          0,
+        )
+        setOkunmamis(toplam)
+      })
       .catch(() => { /* Bildirim sayısı kritik değil; sessiz geç. */ })
 
     oku()
@@ -97,12 +122,13 @@ export default function Header({ onToggleSidebar }) {
 
   /* Hesaplama kataloğu yerel — aranabilir katalog client'ta durur. */
   const calculationHits = useMemo(() => {
-    const q = term.toLocaleLowerCase('tr-TR')
+    const locale = i18n.resolvedLanguage === 'en' ? 'en-US' : 'tr-TR'
+    const q = term.toLocaleLowerCase(locale)
     if (!q) return []
     return CALCULATION_DEFINITIONS
-      .filter(entry => `${entry.title} ${entry.description || ''}`.toLocaleLowerCase('tr-TR').includes(q))
+      .filter(entry => t(`tools:${entry.titleKey}`).toLocaleLowerCase(locale).includes(q))
       .slice(0, 5)
-  }, [term])
+  }, [term, t, i18n.resolvedLanguage])
 
   useEffect(() => {
     if (term.length < 2) {
@@ -173,7 +199,7 @@ export default function Header({ onToggleSidebar }) {
     || (results.posts?.length ?? 0) > 0
     || calculationHits.length > 0
 
-  const today = new Date().toLocaleDateString('tr-TR', {
+  const today = new Date().toLocaleDateString(formatLocale, {
     day: 'numeric', month: 'long', year: 'numeric', weekday: 'long'
   })
 
@@ -188,10 +214,10 @@ export default function Header({ onToggleSidebar }) {
   return (
     <header className={styles.header}>
       <div className={styles.left}>
-        <button className={styles.menuBtn} onClick={onToggleSidebar} aria-label="Menüyü aç/kapat">
+        <button className={styles.menuBtn} onClick={onToggleSidebar} aria-label={t('accessibility.openMenu')}>
           <Menu size={19} />
         </button>
-        <h1 className={styles.pageTitle}>{resolveTitle(location.pathname)}</h1>
+        <h1 className={styles.pageTitle}>{resolveTitle(location.pathname, t)}</h1>
       </div>
 
       <div className={styles.right}>
@@ -204,8 +230,8 @@ export default function Header({ onToggleSidebar }) {
               value={query}
               onChange={event => setQuery(event.target.value)}
               onFocus={() => { if (term.length >= 2 && hasAny) setOpen(true) }}
-              placeholder="Kurs, karar aracı, hesaplama ara…"
-              aria-label="Sitede ara"
+              placeholder={t('search.placeholder')}
+              aria-label={t('search.label')}
               /* Bu alanın KENDİ öneri paneli var (aşağıdaki searchDropdown).
                  Tarayıcının arama geçmişi kutusu onun üstüne biniyor ve iki
                  ayrı öneri listesi aynı anda görünüyordu. */
@@ -213,9 +239,9 @@ export default function Header({ onToggleSidebar }) {
             />
           </form>
           {open && (
-            <div className={styles.searchDropdown} role="listbox" aria-label="Arama sonuçları">
-              {loading && <div className={styles.searchStatus}>Aranıyor…</div>}
-              {!loading && !hasAny && <div className={styles.searchStatus}>Sonuç bulunamadı.</div>}
+            <div className={styles.searchDropdown} role="listbox" aria-label={t('search.results')}>
+              {loading && <div className={styles.searchStatus}>{t('search.searching')}</div>}
+              {!loading && !hasAny && <div className={styles.searchStatus}>{t('search.noResults')}</div>}
               {!loading && hasAny && (
                 <>
                   {/* Kişiler ve paylaşımlar ÖNCE: arama kutusuna bir
@@ -223,10 +249,10 @@ export default function Header({ onToggleSidebar }) {
                       Sunucu engellediklerimi zaten listeden düşürüyor. */}
                   {results.people?.length > 0 && (
                     <div className={styles.searchGroup}>
-                      <div className={styles.searchGroupLabel}><Users size={13} /> Kişiler</div>
+                      <div className={styles.searchGroupLabel}><Users size={13} /> {t('search.groups.people')}</div>
                       {results.people.map(kisi => (
                         <button key={`p-${kisi.id}`} type="button" className={styles.searchItem} role="option" onClick={() => go(`/app/profil/${kisi.id}`)}>
-                          <span><strong>{kisi.name}</strong><small>{kisi.bio || 'LocalKarar üyesi'}</small></span>
+                          <span><strong>{kisi.name}</strong><small>{kisi.bio || t('search.localKararMember')}</small></span>
                           <ArrowRight size={14} aria-hidden="true" />
                         </button>
                       ))}
@@ -234,10 +260,10 @@ export default function Header({ onToggleSidebar }) {
                   )}
                   {results.posts?.length > 0 && (
                     <div className={styles.searchGroup}>
-                      <div className={styles.searchGroupLabel}><MessagesSquare size={13} /> Paylaşımlar</div>
+                      <div className={styles.searchGroupLabel}><MessagesSquare size={13} /> {t('search.groups.posts')}</div>
                       {results.posts.map(gonderi => (
                         <button key={`g-${gonderi.id}`} type="button" className={styles.searchItem} role="option" onClick={() => go(`/app/community/gonderi/${gonderi.id}`)}>
-                          <span><strong>{gonderi.ozet}</strong><small>{gonderi.author?.name || 'LocalKarar kullanıcısı'}</small></span>
+                          <span><strong>{gonderi.ozet}</strong><small>{gonderi.author?.name || t('search.localKararUser')}</small></span>
                           <ArrowRight size={14} aria-hidden="true" />
                         </button>
                       ))}
@@ -245,7 +271,7 @@ export default function Header({ onToggleSidebar }) {
                   )}
                   {results.courses.length > 0 && (
                     <div className={styles.searchGroup}>
-                      <div className={styles.searchGroupLabel}><BookOpen size={13} /> Kurslar</div>
+                      <div className={styles.searchGroupLabel}><BookOpen size={13} /> {t('search.groups.courses')}</div>
                       {results.courses.map(item => (
                         <button key={`c-${item.id}`} type="button" className={styles.searchItem} role="option" onClick={() => go(`/app/courses/${item.id}/learn`)}>
                           <span><strong>{item.title}</strong><small>{item.category} · {item.level}</small></span>
@@ -256,7 +282,7 @@ export default function Header({ onToggleSidebar }) {
                   )}
                   {results.knowledge.length > 0 && (
                     <div className={styles.searchGroup}>
-                      <div className={styles.searchGroupLabel}><BookOpen size={13} /> Bilgi Nesneleri</div>
+                      <div className={styles.searchGroupLabel}><BookOpen size={13} /> {t('search.groups.knowledge')}</div>
                       {results.knowledge.map(item => (
                         <button key={`k-${item.id}`} type="button" className={styles.searchItem} role="option" onClick={() => go(`/app/knowledge/${item.code}`)}>
                           <span><strong>{item.title}</strong><small>{item.category?.name || item.code}</small></span>
@@ -267,7 +293,7 @@ export default function Header({ onToggleSidebar }) {
                   )}
                   {results.decisionChecks.length > 0 && (
                     <div className={styles.searchGroup}>
-                      <div className={styles.searchGroupLabel}><ShieldCheck size={13} /> Karar Araçları</div>
+                      <div className={styles.searchGroupLabel}><ShieldCheck size={13} /> {t('search.groups.decisionTools')}</div>
                       {results.decisionChecks.map(item => (
                         <button key={`d-${item.id}`} type="button" className={styles.searchItem} role="option" onClick={() => go(`/app/decision-checks/${item.code}`)}>
                           <span><strong>{item.title}</strong><small>{item.description || item.code}</small></span>
@@ -278,10 +304,10 @@ export default function Header({ onToggleSidebar }) {
                   )}
                   {calculationHits.length > 0 && (
                     <div className={styles.searchGroup}>
-                      <div className={styles.searchGroupLabel}><Calculator size={13} /> Hesaplamalar</div>
+                      <div className={styles.searchGroupLabel}><Calculator size={13} /> {t('search.groups.calculations')}</div>
                       {calculationHits.map(item => (
                         <button key={`m-${item.id}`} type="button" className={styles.searchItem} role="option" onClick={() => go(`/app/calculations?tool=${item.id}`)}>
-                          <span><strong>{item.title}</strong><small>{item.description || 'Hesaplama kataloğu'}</small></span>
+                          <span><strong>{t(`tools:${item.titleKey}`)}</strong><small>{t('search.calculationCatalog')}</small></span>
                           <ArrowRight size={14} aria-hidden="true" />
                         </button>
                       ))}
@@ -289,7 +315,7 @@ export default function Header({ onToggleSidebar }) {
                   )}
                   {results.news.length > 0 && (
                     <div className={styles.searchGroup}>
-                      <div className={styles.searchGroupLabel}><Newspaper size={13} /> Haberler</div>
+                      <div className={styles.searchGroupLabel}><Newspaper size={13} /> {t('search.groups.news')}</div>
                       {results.news.map(item => (
                         <button key={`n-${item.id}`} type="button" className={styles.searchItem} role="option" onClick={() => go('/app/community')}>
                           <span><strong>{item.title}</strong><small>{item.category}</small></span>
@@ -299,7 +325,7 @@ export default function Header({ onToggleSidebar }) {
                     </div>
                   )}
                   <button type="button" className={styles.searchFooter} onClick={() => go(`/app/knowledge?search=${encodeURIComponent(term)}`)}>
-                    Bilgi tabanında tüm sonuçları gör <ArrowRight size={14} aria-hidden="true" />
+                    {t('search.viewAllKnowledge')} <ArrowRight size={14} aria-hidden="true" />
                   </button>
                 </>
               )}
@@ -310,8 +336,8 @@ export default function Header({ onToggleSidebar }) {
         <button
           type="button"
           className={styles.iconBtn}
-          aria-label={theme === 'dark' ? 'Açık moda geç' : 'Koyu moda geç'}
-          title={theme === 'dark' ? 'Açık mod' : 'Koyu mod'}
+          aria-label={theme === 'dark' ? t('accessibility.switchToLightMode') : t('accessibility.switchToDarkMode')}
+          title={theme === 'dark' ? t('accessibility.lightMode') : t('accessibility.darkMode')}
           aria-pressed={theme === 'dark'}
           onClick={toggleTheme}
         >
@@ -327,8 +353,8 @@ export default function Header({ onToggleSidebar }) {
           */}
         <button
           className={styles.iconBtn}
-          aria-label={okunmamis > 0 ? `Bildirimler — ${okunmamis} okunmamış` : 'Bildirimleri aç'}
-          title="Bildirimler"
+          aria-label={okunmamis > 0 ? t('accessibility.unreadNotifications', { count: okunmamis }) : t('accessibility.openNotifications')}
+          title={t('nav.notifications')}
           onClick={() => navigate('/app/bildirimler')}
         >
           <Bell size={17} />
@@ -337,8 +363,8 @@ export default function Header({ onToggleSidebar }) {
         <button
           type="button"
           className={styles.avatar}
-          title={`${user?.name || user?.email || 'Profil'} profilini aç`}
-          aria-label="Profil ve hesap ayarlarını aç"
+          title={t('accessibility.openProfile', { name: user?.name || user?.email || t('nav.profile') })}
+          aria-label={t('accessibility.openAccountSettings')}
           onClick={() => navigate('/app/settings#hesap')}
         >{user?.avatarUrl ? <img src={user.avatarUrl} alt="" /> : initials}</button>
       </div>

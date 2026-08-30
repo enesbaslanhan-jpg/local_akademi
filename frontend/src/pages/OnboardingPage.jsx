@@ -4,60 +4,62 @@ import { useAuth } from '@/context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { Select } from '@/components/ui'
 import styles from './OnboardingPage.module.css'
+import { useTranslation } from 'react-i18next'
 
 const STAGES = [
-  { value: 'startup', label: 'Kuruluş / Erken Aşama' },
-  { value: 'growth', label: 'Büyüme' },
-  { value: 'mature', label: 'Olgun' }
+  { value: 'startup', labelKey: 'onboarding.options.stages.startup' },
+  { value: 'growth', labelKey: 'onboarding.options.stages.growth' },
+  { value: 'mature', labelKey: 'onboarding.options.stages.mature' }
 ]
 
 const EMPLOYEE_RANGES = [
-  { value: '1', label: 'Sadece ben' },
-  { value: '3', label: '2-5' },
-  { value: '10', label: '6-20' },
-  { value: '35', label: '21-50' },
-  { value: '51', label: '51+' }
+  { value: '1', labelKey: 'onboarding.options.employees.solo' },
+  { value: '3', labelKey: 'onboarding.options.employees.twoToFive' },
+  { value: '10', labelKey: 'onboarding.options.employees.sixToTwenty' },
+  { value: '35', labelKey: 'onboarding.options.employees.twentyOneToFifty' },
+  { value: '51', labelKey: 'onboarding.options.employees.fiftyOnePlus' }
 ]
 
 const CHANNELS = [
-  { value: 'retail_store', label: 'Fiziksel Mağaza' },
-  { value: 'ecommerce', label: 'E-Ticaret' },
-  { value: 'marketplace', label: 'Pazaryeri (Trendyol, Hepsiburada vb.)' },
-  { value: 'other', label: 'Sosyal Medya / Diğer' },
-  { value: 'wholesale', label: 'Toptan Satış' },
-  { value: 'service', label: 'Hizmet İşletmesi' },
-  { value: 'export', label: 'İhracat' }
+  { value: 'retail_store', labelKey: 'onboarding.options.channels.retail' },
+  { value: 'ecommerce', labelKey: 'onboarding.options.channels.ecommerce' },
+  { value: 'marketplace', labelKey: 'onboarding.options.channels.marketplace' },
+  { value: 'other', labelKey: 'onboarding.options.channels.other' },
+  { value: 'wholesale', labelKey: 'onboarding.options.channels.wholesale' },
+  { value: 'service', labelKey: 'onboarding.options.channels.service' },
+  { value: 'export', labelKey: 'onboarding.options.channels.export' }
 ]
 
 const GOALS = [
-  { value: 'increase_sales', label: 'Satışları Artırmak' },
-  { value: 'digital_transform', label: 'Dijital Dönüşüm' },
-  { value: 'new_markets', label: 'Yeni Pazarlara Açılmak' },
-  { value: 'brand_awareness', label: 'Marka Bilinirliği' },
-  { value: 'operational', label: 'Operasyonel Verimlilik' },
-  { value: 'product_dev', label: 'Ürün Geliştirme' }
+  { value: 'increase_sales', labelKey: 'onboarding.options.goals.increaseSales' },
+  { value: 'digital_transform', labelKey: 'onboarding.options.goals.digitalTransform' },
+  { value: 'new_markets', labelKey: 'onboarding.options.goals.newMarkets' },
+  { value: 'brand_awareness', labelKey: 'onboarding.options.goals.brandAwareness' },
+  { value: 'operational', labelKey: 'onboarding.options.goals.operational' },
+  { value: 'product_dev', labelKey: 'onboarding.options.goals.productDevelopment' }
 ]
 
 const CHALLENGES_LIST = [
-  { value: 'digital_skills', label: 'Bilgi / Dijital Beceri Eksikliği' },
-  { value: 'cash_flow', label: 'Bütçe ve Nakit Akışı' },
-  { value: 'employee_finding', label: 'Ekip/Eleman Eksikliği' },
-  { value: 'customer_acquisition', label: 'Müşteri Kazanımı' },
-  { value: 'competition', label: 'Rekabet' },
-  { value: 'regulation', label: 'Mevzuat' },
-  { value: 'technology_adoption', label: 'Teknoloji Altyapısı' },
-  { value: 'other', label: 'Diğer' }
+  { value: 'digital_skills', labelKey: 'onboarding.options.challenges.digitalSkills' },
+  { value: 'cash_flow', labelKey: 'onboarding.options.challenges.cashFlow' },
+  { value: 'employee_finding', labelKey: 'onboarding.options.challenges.employees' },
+  { value: 'customer_acquisition', labelKey: 'onboarding.options.challenges.customerAcquisition' },
+  { value: 'competition', labelKey: 'onboarding.options.challenges.competition' },
+  { value: 'regulation', labelKey: 'onboarding.options.challenges.regulation' },
+  { value: 'technology_adoption', labelKey: 'onboarding.options.challenges.technology' },
+  { value: 'other', labelKey: 'onboarding.options.challenges.other' }
 ]
 
 const LEARNING_OPTIONS = [
-  { value: '30', label: '30 dk (günde yarım saat)' },
-  { value: '60', label: '60 dk (günde 1 saat)' },
-  { value: '120', label: '120 dk (günde 2 saat)' },
-  { value: '300', label: '5 saat (haftada)' },
-  { value: '600', label: '10 saat (haftada)' }
+  { value: '30', labelKey: 'onboarding.options.learning.thirty' },
+  { value: '60', labelKey: 'onboarding.options.learning.sixty' },
+  { value: '120', labelKey: 'onboarding.options.learning.oneTwenty' },
+  { value: '300', labelKey: 'onboarding.options.learning.threeHundred' },
+  { value: '600', labelKey: 'onboarding.options.learning.sixHundred' }
 ]
 
 export default function OnboardingPage() {
+  const { t } = useTranslation('auth')
   const { completeOnboarding } = useAuth()
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
@@ -136,31 +138,31 @@ export default function OnboardingPage() {
       await completeOnboarding()
       navigate('/app/dashboard', { replace: true })
     } catch (err) {
-      setError(err.message || 'Profil kaydedilemedi. Lütfen bilgileri kontrol edin.')
+      setError(err.message || t('onboarding.saveError'))
     } finally {
       setSaving(false)
     }
   }
 
   const steps = [
-    { label: 'İşletme', description: 'İşletmenizin temel bilgileri' },
-    { label: 'Kanallar', description: 'Satış kanalları ve ölçek' },
-    { label: 'Hedefler', description: 'Öncelikleriniz ve zorluklar' },
-    { label: 'Özet', description: 'Bilgilerinizi gözden geçirin' }
+    { label: t('onboarding.steps.business'), description: t('onboarding.steps.businessDescription') },
+    { label: t('onboarding.steps.channels'), description: t('onboarding.steps.channelsDescription') },
+    { label: t('onboarding.steps.goals'), description: t('onboarding.steps.goalsDescription') },
+    { label: t('onboarding.steps.summary'), description: t('onboarding.steps.summaryDescription') }
   ]
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>İşletme Profili Oluşturun</h1>
+        <h1 className={styles.title}>{t('onboarding.title')}</h1>
         <p className={styles.subtitle}>
-          LocalKarar deneyiminizi işletmenize özel hale getirmek için birkaç soru.
+          {t('onboarding.subtitle')}
         </p>
       </div>
 
       <div className={styles.actions}>
         <button className={styles.btnSecondary} onClick={() => navigate('/app/dashboard', { replace: true })}>
-          Şimdilik Atla ve Uygulamaya Geç
+          {t('onboarding.skip')}
         </button>
       </div>
 
@@ -182,71 +184,71 @@ export default function OnboardingPage() {
       <div className={styles.card}>
         {step === 0 && (
           <div className={styles.stepContent}>
-            <h2 className={styles.stepTitle}>İşletme Bilgileri</h2>
+            <h2 className={styles.stepTitle}>{t('onboarding.business.title')}</h2>
 
             <div className={styles.field}>
-              <label className={styles.label}>İşletme Adı (isteğe bağlı)</label>
+              <label className={styles.label}>{t('onboarding.business.name')}</label>
               <input
                 type="text"
                 className={styles.input}
-                placeholder="Örn: ABC Teknoloji"
+                placeholder={t('onboarding.business.namePlaceholder')}
                 value={form.businessName}
                 onChange={e => setForm(prev => ({ ...prev, businessName: e.target.value }))}
               />
             </div>
 
             <div className={styles.field}>
-              <label className={styles.label}>Sektör (isteğe bağlı)</label>
+              <label className={styles.label}>{t('onboarding.business.sector')}</label>
               <input
                 type="text"
                 className={styles.input}
-                placeholder="Örn: Perakende, Teknoloji, Hizmet"
+                placeholder={t('onboarding.business.sectorPlaceholder')}
                 value={form.sector}
                 onChange={e => setForm(prev => ({ ...prev, sector: e.target.value }))}
               />
             </div>
 
             <div className={styles.field}>
-              <label className={styles.label}>İşletme Aşaması</label>
+              <label className={styles.label}>{t('onboarding.business.stage')}</label>
               <Select
                 className={styles.select}
-                aria-label="İşletme Aşaması"
-                placeholder="Seçiniz"
-                options={STAGES.map(s => ({ value: s.value, label: s.label }))}
+                aria-label={t('onboarding.business.stage')}
+                placeholder={t('onboarding.select')}
+                options={STAGES.map(s => ({ value: s.value, label: t(s.labelKey) }))}
                 value={form.businessStage}
                 onChange={v => setForm(prev => ({ ...prev, businessStage: v }))}
               />
             </div>
 
             <div className={styles.field}>
-              <label className={styles.label}>Çalışan Sayısı</label>
+              <label className={styles.label}>{t('onboarding.business.employeeCount')}</label>
               <Select
                 className={styles.select}
-                aria-label="Çalışan Sayısı"
-                placeholder="Seçiniz"
-                options={EMPLOYEE_RANGES.map(r => ({ value: r.value, label: r.label }))}
+                aria-label={t('onboarding.business.employeeCount')}
+                placeholder={t('onboarding.select')}
+                options={EMPLOYEE_RANGES.map(r => ({ value: r.value, label: t(r.labelKey) }))}
                 value={form.employeeCount}
                 onChange={v => setForm(prev => ({ ...prev, employeeCount: v }))}
               />
             </div>
 
             <div className={styles.field}>
-              <label className={styles.label}>Haftalık öğrenmeye ayırabileceğiniz süre</label>
+              <label className={styles.label}>{t('onboarding.business.learningTime')}</label>
               <Select
                 className={styles.select}
-                aria-label="Haftalık öğrenmeye ayrılan süre"
-                options={LEARNING_OPTIONS.map(o => ({ value: o.value, label: o.label }))}
+                aria-label={t('onboarding.business.learningTimeAria')}
+                options={LEARNING_OPTIONS.map(o => ({ value: o.value, label: t(o.labelKey) }))}
                 value={form.weeklyLearningMinutes}
                 onChange={v => setForm(prev => ({ ...prev, weeklyLearningMinutes: v }))}
               />
             </div>
 
             <div className={`${styles.field} ${styles.fieldFull}`}>
-              <label className={styles.label}>Kısa Açıklama (isteğe bağlı)</label>
+              <label className={styles.label}>{t('onboarding.business.shortDescription')}</label>
               <textarea
                 className={styles.textarea}
                 rows={3}
-                placeholder="İşletmenizi kısaca tanıtın..."
+                placeholder={t('onboarding.business.descriptionPlaceholder')}
                 value={form.description}
                 onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
               />
@@ -256,10 +258,10 @@ export default function OnboardingPage() {
 
         {step === 1 && (
           <div className={styles.stepContent}>
-            <h2 className={styles.stepTitle}>Satış Kanalları ve Ölçek</h2>
+            <h2 className={styles.stepTitle}>{t('onboarding.channels.title')}</h2>
 
             <div className={styles.field}>
-              <label className={styles.label}>Satış Kanalları (birden fazla seçebilirsiniz)</label>
+              <label className={styles.label}>{t('onboarding.channels.label')}</label>
               <div className={styles.checkboxGroup}>
                 {CHANNELS.map(ch => (
                   <label key={ch.value} className={styles.checkboxLabel}>
@@ -268,7 +270,7 @@ export default function OnboardingPage() {
                       checked={form.salesChannels.includes(ch.value)}
                       onChange={() => toggleChannel(ch.value)}
                     />
-                    <span>{ch.label}</span>
+                    <span>{t(ch.labelKey)}</span>
                   </label>
                 ))}
               </div>
@@ -276,21 +278,21 @@ export default function OnboardingPage() {
 
             <div className={styles.row}>
               <div className={styles.field}>
-                <label className={styles.label}>Aylık Ortalama Ciro (₺, isteğe bağlı)</label>
+                <label className={styles.label}>{t('onboarding.channels.monthlySales')}</label>
                 <input
                   type="number"
                   className={styles.input}
-                  placeholder="Örn: 100000"
+                  placeholder={t('onboarding.channels.salesPlaceholder')}
                   value={form.monthlySales}
                   onChange={e => setForm(prev => ({ ...prev, monthlySales: e.target.value }))}
                 />
               </div>
               <div className={styles.field}>
-                <label className={styles.label}>Aylık Ortalama Gider (₺, isteğe bağlı)</label>
+                <label className={styles.label}>{t('onboarding.channels.monthlyExpenses')}</label>
                 <input
                   type="number"
                   className={styles.input}
-                  placeholder="Örn: 80000"
+                  placeholder={t('onboarding.channels.expensesPlaceholder')}
                   value={form.monthlyExpenses}
                   onChange={e => setForm(prev => ({ ...prev, monthlyExpenses: e.target.value }))}
                 />
@@ -301,22 +303,22 @@ export default function OnboardingPage() {
 
         {step === 2 && (
           <div className={styles.stepContent}>
-            <h2 className={styles.stepTitle}>Öncelikleriniz ve Zorluklar</h2>
+            <h2 className={styles.stepTitle}>{t('onboarding.goals.title')}</h2>
 
             <div className={styles.field}>
-              <label className={styles.label}>Birincil Hedefiniz</label>
+              <label className={styles.label}>{t('onboarding.goals.primary')}</label>
               <Select
                 className={styles.select}
-                aria-label="Birincil Hedef"
-                placeholder="Seçiniz"
-                options={GOALS.map(g => ({ value: g.value, label: g.label }))}
+                aria-label={t('onboarding.goals.primaryAria')}
+                placeholder={t('onboarding.select')}
+                options={GOALS.map(g => ({ value: g.value, label: t(g.labelKey) }))}
                 value={form.primaryGoal}
                 onChange={v => setForm(prev => ({ ...prev, primaryGoal: v }))}
               />
             </div>
 
             <div className={styles.field}>
-              <label className={styles.label}>Karşılaştığınız Zorluklar (birden fazla seçebilirsiniz)</label>
+              <label className={styles.label}>{t('onboarding.goals.challenges')}</label>
               <div className={styles.checkboxGroup}>
                 {CHALLENGES_LIST.map(ch => (
                   <label key={ch.value} className={styles.checkboxLabel}>
@@ -325,7 +327,7 @@ export default function OnboardingPage() {
                       checked={form.challenges.includes(ch.value)}
                       onChange={() => toggleChallenge(ch.value)}
                     />
-                    <span>{ch.label}</span>
+                    <span>{t(ch.labelKey)}</span>
                   </label>
                 ))}
               </div>
@@ -335,26 +337,26 @@ export default function OnboardingPage() {
 
         {step === 3 && (
           <div className={styles.stepContent}>
-            <h2 className={styles.stepTitle}>Bilgilerinizi Gözden Geçirin</h2>
+            <h2 className={styles.stepTitle}>{t('onboarding.summary.title')}</h2>
             <div className={styles.summary}>
               <div className={styles.summaryGroup}>
-                <h3>İşletme Bilgileri</h3>
-                <p><strong>Ad:</strong> {form.businessName || '—'}</p>
-                <p><strong>Sektör:</strong> {form.sector || '—'}</p>
-                <p><strong>Aşama:</strong> {STAGES.find(s => s.value === form.businessStage)?.label || '—'}</p>
-                <p><strong>Çalışan:</strong> {EMPLOYEE_RANGES.find(r => r.value === form.employeeCount)?.label || '—'}</p>
-                <p><strong>Haftalık öğrenme:</strong> {LEARNING_OPTIONS.find(o => o.value === form.weeklyLearningMinutes)?.label || form.weeklyLearningMinutes} dk</p>
+                <h3>{t('onboarding.business.title')}</h3>
+                <p><strong>{t('onboarding.summary.name')}:</strong> {form.businessName || '—'}</p>
+                <p><strong>{t('onboarding.summary.sector')}:</strong> {form.sector || '—'}</p>
+                <p><strong>{t('onboarding.summary.stage')}:</strong> {STAGES.find(s => s.value === form.businessStage)?.labelKey ? t(STAGES.find(s => s.value === form.businessStage).labelKey) : '—'}</p>
+                <p><strong>{t('onboarding.summary.employees')}:</strong> {EMPLOYEE_RANGES.find(r => r.value === form.employeeCount)?.labelKey ? t(EMPLOYEE_RANGES.find(r => r.value === form.employeeCount).labelKey) : '—'}</p>
+                <p><strong>{t('onboarding.summary.weeklyLearning')}:</strong> {LEARNING_OPTIONS.find(o => o.value === form.weeklyLearningMinutes)?.labelKey ? t(LEARNING_OPTIONS.find(o => o.value === form.weeklyLearningMinutes).labelKey) : form.weeklyLearningMinutes}</p>
               </div>
               <div className={styles.summaryGroup}>
-                <h3>Satış Kanalları</h3>
-                <p>{form.salesChannels.length ? form.salesChannels.map(c => CHANNELS.find(ch => ch.value === c)?.label).join(', ') : '—'}</p>
-                <p><strong>Ciro:</strong> {form.monthlySales ? `${Number(form.monthlySales).toLocaleString()} ₺` : '—'}</p>
-                <p><strong>Gider:</strong> {form.monthlyExpenses ? `${Number(form.monthlyExpenses).toLocaleString()} ₺` : '—'}</p>
+                <h3>{t('onboarding.channels.title')}</h3>
+                <p>{form.salesChannels.length ? form.salesChannels.map(c => t(CHANNELS.find(ch => ch.value === c)?.labelKey)).join(', ') : '—'}</p>
+                <p><strong>{t('onboarding.summary.revenue')}:</strong> {form.monthlySales ? `${Number(form.monthlySales).toLocaleString()} ₺` : '—'}</p>
+                <p><strong>{t('onboarding.summary.expenses')}:</strong> {form.monthlyExpenses ? `${Number(form.monthlyExpenses).toLocaleString()} ₺` : '—'}</p>
               </div>
               <div className={styles.summaryGroup}>
-                <h3>Hedef ve Zorluklar</h3>
-                <p><strong>Hedef:</strong> {GOALS.find(g => g.value === form.primaryGoal)?.label || '—'}</p>
-                <p><strong>Zorluklar:</strong> {form.challenges.length ? form.challenges.map(c => CHALLENGES_LIST.find(ch => ch.value === c)?.label).join(', ') : '—'}</p>
+                <h3>{t('onboarding.summary.goalsAndChallenges')}</h3>
+                <p><strong>{t('onboarding.summary.goal')}:</strong> {GOALS.find(g => g.value === form.primaryGoal)?.labelKey ? t(GOALS.find(g => g.value === form.primaryGoal).labelKey) : '—'}</p>
+                <p><strong>{t('onboarding.summary.challenges')}:</strong> {form.challenges.length ? form.challenges.map(c => t(CHALLENGES_LIST.find(ch => ch.value === c)?.labelKey)).join(', ') : '—'}</p>
               </div>
             </div>
           </div>
@@ -365,16 +367,16 @@ export default function OnboardingPage() {
         <div className={styles.actions}>
           {step > 0 && (
             <button className={styles.btnSecondary} onClick={() => setStep(prev => prev - 1)}>
-              Geri
+              {t('onboarding.back')}
             </button>
           )}
           {step < 3 ? (
             <button className={styles.btnPrimary} onClick={() => setStep(prev => prev + 1)}>
-              Devam
+              {t('onboarding.continue')}
             </button>
           ) : (
             <button className={styles.btnPrimary} onClick={handleSave} disabled={saving}>
-              {saving ? 'Kaydediliyor...' : 'Tamamla ve Başla'}
+              {saving ? t('onboarding.saving') : t('onboarding.finish')}
             </button>
           )}
         </div>

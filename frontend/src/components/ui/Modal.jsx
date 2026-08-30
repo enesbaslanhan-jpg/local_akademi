@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import styles from './Modal.module.css'
+import { useTranslation } from 'react-i18next'
 
 /*
  * `cerceve={false}` -- modal kendi zeminini, kenarligini ve golgesini
@@ -12,6 +13,7 @@ import styles from './Modal.module.css'
  * kaliyordu -- olculdu. Icerigin kendi yuzeyi varsa modalinki fazladir.
  */
 export default function Modal({ open, onClose, title, children, size = 'md', cerceve = true }) {
+  const { t } = useTranslation('common')
   const overlayRef = useRef(null)
   const contentRef = useRef(null)
 
@@ -50,7 +52,7 @@ export default function Modal({ open, onClose, title, children, size = 'md', cer
             kapatma düğmesi kalır, ayırıcı çizgi çizilmez. */}
         <div className={`${styles.header} ${!title ? styles.headerBare : ''}`}>
           {title && <h2 className={styles.title}>{title}</h2>}
-          <button className={styles.close} onClick={onClose} aria-label="Kapat">
+          <button className={styles.close} onClick={onClose} aria-label={t('buttons.close')}>
             <X size={20} />
           </button>
         </div>

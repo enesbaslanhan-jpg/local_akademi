@@ -5,26 +5,23 @@ import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
 import { Select, Button } from '@/components/ui'
 import styles from './Documents.module.css'
+import { Trans, useTranslation } from 'react-i18next'
+import { useLocalization } from '@/context/LocalizationContext'
+import { formatDate, formatNumber } from '@/utils/formatters'
 
-const categories = {
-  invoice: 'Fatura',
-  receipt: 'Fiş / Makbuz',
-  contract: 'Sözleşme',
-  promissory_note: 'Senet',
-  shipment: 'Kargo belgesi',
-  purchase: 'Alım belgesi',
-  other: 'Diğer'
+const categoryKeys = {
+  invoice: 'invoice', receipt: 'receipt', contract: 'contract',
+  promissory_note: 'promissoryNote', shipment: 'shipment', purchase: 'purchase', other: 'other'
 }
 
-const recordTypes = {
-  payment: 'Ödeme',
-  receivable: 'Tahsilat',
-  promissory_note: 'Senet',
-  purchase: 'Alım',
-  shipment: 'Kargo'
+const recordTypeKeys = {
+  payment: 'payment', receivable: 'receivable', promissory_note: 'promissoryNote', purchase: 'purchase', shipment: 'shipment'
 }
 
 export default function Documents() {
+  const { t } = useTranslation('workspace')
+  const { formatLocale } = useLocalization()
+  const categoryLabel = value => t(`documents.category.${categoryKeys[value] || 'other'}`)
   const { workspaceId } = useParams()
   const navigate = useNavigate()
   const toast = useToast()
@@ -56,9 +53,9 @@ export default function Documents() {
       const data = await api.workspace.documents.list(workspaceId)
       setDocuments(data.documents)
     } catch (error) {
-      toast.error(error.message || 'Belgeler yüklenemedi.')
+      toast.error(error.message || t('documents.loadFailed'))
     }
-  }, [toast, workspaceId])
+  }, [t, toast, workspaceId])
 
   useEffect(() => { load() }, [load])
 
@@ -73,10 +70,10 @@ export default function Documents() {
     setUploading(true)
     try {
       await api.workspace.documents.upload(workspaceId, file, { category })
-      toast.success('Belge okundu. Algılanan takip bilgilerini kontrol edin.')
+      toast.success(t('documents.uploadSuccess'))
       await load()
     } catch (error) {
-      toast.error(error.message || 'Belge yüklenemedi.')
+      toast.error(error.message || t('documents.uploadFailed'))
     } finally {
       setUploading(false)
     }
@@ -94,29 +91,29 @@ export default function Documents() {
   }
 
   async function archive(documentId) {
-    if (!confirm('Bu belgeyi arşivlemek istiyor musunuz?')) return
+    if (!confirm(t('documents.confirmArchive'))) return
     await api.workspace.documents.archive(workspaceId, documentId)
-    toast.success('Belge arşivlendi.')
+    toast.success(t('documents.archived'))
     await load()
   }
 
   async function acceptSuggestion(suggestionId) {
     try {
       await api.workspace.documents.acceptSuggestion(workspaceId, suggestionId)
-      toast.success('Öneri onaylandı ve işletme takip kaydı oluşturuldu.')
+      toast.success(t('documents.suggestionAccepted'))
       await load()
     } catch (error) {
-      toast.error(error.message || 'Öneri onaylanamadı.')
+      toast.error(error.message || t('documents.suggestionAcceptFailed'))
     }
   }
 
   async function rejectSuggestion(suggestionId) {
     try {
       await api.workspace.documents.rejectSuggestion(workspaceId, suggestionId)
-      toast.success('Öneri reddedildi. Takip kaydı oluşturulmadı.')
+      toast.success(t('documents.suggestionRejected'))
       await load()
     } catch (error) {
-      toast.error(error.message || 'Öneri reddedilemedi.')
+      toast.error(error.message || t('documents.suggestionRejectFailed'))
     }
   }
 
@@ -125,9 +122,9 @@ export default function Documents() {
     try {
       const data = await api.workspace.documents.financialModelSuggestions(workspaceId, document.id)
       setModelMappings(current => ({ ...current, [document.id]: data }))
-      if (!data.models?.length) toast.info('Bu belgede finansal model girdisi olarak eşleşen alan bulunamadı.')
+      if (!data.models?.length) toast.info(t('documents.noModelMatch'))
     } catch (error) {
-      toast.error(error.message || 'Model eşleştirmesi yapılamadı.')
+      toast.error(error.message || t('documents.modelMatchFailed'))
     } finally {
       setMappingLoading(null)
     }
@@ -137,8 +134,8 @@ export default function Documents() {
     <section className={styles.page}>
       <div className={styles.heading}>
         <div>
-          <h2>İşletme Belgeleri</h2>
-          <p>Belgeyi yükleyin veya fotoğrafını çekin; sistem metni okuyup takip kaydı önerisi hazırlasın.</p>
+          <h2>{t('documents.title')}</h2>
+          <p>{t('documents.subtitle')}</p>
         </div>
       </div>
 
@@ -153,28 +150,28 @@ export default function Documents() {
       >
         <div className={styles.uploadIcon}><FileImage size={34} /></div>
         <div className={styles.uploadText}>
-          <h3>{uploading ? 'Belge okunuyor ve analiz ediliyor…' : 'Belge veya fotoğraf ekleyin'}</h3>
-          <p>Dosyayı buraya sürükleyebilir ya da aşağıdaki seçeneklerden birini kullanabilirsiniz.</p>
+          <h3>{uploading ? t('documents.analyzing') : t('documents.addDocument')}</h3>
+          <p>{t('documents.dragHint')}</p>
         </div>
 
         <label className={styles.categoryField}>
-          Belge türü
-          <Select aria-label="Belge türü" options={Object.entries(categories).map(([value, label]) => ({ value, label }))} value={category} onChange={setCategory} disabled={uploading} />
+          {t('documents.typeLabel')}
+          <Select aria-label={t('documents.typeLabel')} options={Object.keys(categoryKeys).map(value => ({ value, label: categoryLabel(value) }))} value={category} onChange={setCategory} disabled={uploading} />
         </label>
 
         <div className={styles.uploadActions}>
           <button className={styles.primaryUpload} onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-            <Upload size={18} /> Dosya seç
+            <Upload size={18} /> {t('documents.selectFile')}
           </button>
           <button onClick={() => photoInputRef.current?.click()} disabled={uploading}>
-            <ImagePlus size={18} /> Fotoğraf seç
+            <ImagePlus size={18} /> {t('documents.selectPhoto')}
           </button>
           <button onClick={() => cameraInputRef.current?.click()} disabled={uploading}>
-            <Camera size={18} /> Fotoğraf çek
+            <Camera size={18} /> {t('documents.takePhoto')}
           </button>
           {inbox?.kanalHazir && (
             <button onClick={() => setEpostaAcik(a => !a)} disabled={uploading} aria-expanded={epostaAcik}>
-              <Mail size={18} /> E-posta ile gönder
+              <Mail size={18} /> {t('documents.emailSend')}
             </button>
           )}
         </div>
@@ -183,17 +180,17 @@ export default function Documents() {
           <div className={styles.epostaKanali}>
             {inbox.acik ? (
               <>
-                <p>Faturaları bu adrese gönderin; onay bekleyen kayıt olarak düşer.</p>
+                <p>{t('documents.inboxHint')}</p>
                 <div className={styles.epostaAdres}>
                   <code>{inbox.adres}</code>
                   <Button
                     type="button" variant="secondary"
                     onClick={() => {
                       navigator.clipboard?.writeText(inbox.adres)
-                      toast.success('Adres kopyalandı.')
+                      toast.success(t('documents.addressCopied'))
                     }}
                   >
-                    Kopyala
+                    {t('documents.copy')}
                   </Button>
                 </div>
                 {/* Yönlendirme kuralı, ürün sahibinin "otomatik düşsün"
@@ -201,18 +198,10 @@ export default function Documents() {
                     gönderen TEDARİKÇİ olarak kaldığı için o adresin
                     güvenilir listeye eklenmesi şart -- kullanıcı bunu
                     bilmezse kuralı kurar ve hiçbir şey gelmez. */}
-                <p className={styles.epostaIpucu}>
-                  E-posta kutunuzda bir yönlendirme kuralı kurarak faturaların
-                  buraya kendiliğinden düşmesini sağlayabilirsiniz. Bunun için
-                  faturayı gönderen adresi <strong>Ayarlar → güvenilir gönderenler</strong>
-                  {' '}listesine eklemeniz gerekir; aksi hâlde yönlendirilen posta kabul edilmez.
-                </p>
+                <p className={styles.epostaIpucu}><Trans t={t} i18nKey="documents.forwardingNote" components={{ strong: <strong /> }} /></p>
               </>
             ) : (
-              <p>
-                Bu çalışma alanı için e-posta adresi henüz oluşturulmadı.
-                <strong> Ayarlar</strong> sayfasından açabilirsiniz.
-              </p>
+              <p><Trans t={t} i18nKey="documents.inboxNotCreated" components={{ strong: <strong /> }} /></p>
             )}
           </div>
         )}
@@ -223,11 +212,11 @@ export default function Documents() {
       </div>
 
       <div className={styles.note}>
-        PDF, DOCX, XLSX, PNG, JPEG, CSV, JSON, XML, TXT ve MD desteklenir. Muhasebe programınızdan aldığınız e-Fatura XML dosyasını doğrudan yükleyebilirsiniz. Fotoğraf ve taranmış belgeler yerel Türkçe OCR ile okunur; dış servise gönderilmez. Algılanan kayıt siz onaylamadan kesinleşmez.
+        {t('documents.supportedFormats')}
       </div>
 
       {documents.length === 0 ? (
-        <div className={styles.empty}><FileText size={42} /><h3>Henüz belge yok</h3><p>İşletmenize ait ilk belgeyi yükleyin.</p></div>
+        <div className={styles.empty}><FileText size={42} /><h3>{t('documents.empty')}</h3><p>{t('documents.emptyHint')}</p></div>
       ) : (
         <div className={styles.grid}>
           {documents.map(document => (
@@ -236,20 +225,20 @@ export default function Documents() {
                 <FileText size={28} />
                 <div className={styles.body}>
                   <h3>{document.originalName}</h3>
-                  <p>{categories[document.category] || 'Sınıflandırılmamış'} · {(document.sizeBytes / 1024).toFixed(1)} KB</p>
-                  <span>{document.linkedRecordCount} takip kaydına bağlı</span>
-                  {document.analysis?.extraction_method === 'ocr_tur' && <span className={styles.ocrBadge}>Yerel OCR ile okundu</span>}
-                  {document.analysisStatus === 'review_required' && <span className={styles.reviewBadge}>Veriler algılandı · onay bekliyor</span>}
-                  {document.analysisStatus === 'accepted' && <span className={styles.acceptedBadge}>Takip kaydı oluşturuldu</span>}
-                  {document.analysisStatus === 'no_suggestion' && <span className={styles.noSuggestionBadge}>Metin okundu · takip bilgisi bulunamadı</span>}
+                  <p>{categoryLabel(document.category) || t('documents.unclassified')} · {formatNumber(document.sizeBytes / 1024, { locale: formatLocale, maximumFractionDigits: 1 })} KB</p>
+                  <span>{t('documents.linkedRecords', { count: document.linkedRecordCount })}</span>
+                  {document.analysis?.extraction_method === 'ocr_tur' && <span className={styles.ocrBadge}>{t('documents.ocrBadge')}</span>}
+                  {document.analysisStatus === 'review_required' && <span className={styles.reviewBadge}>{t('documents.reviewBadge')}</span>}
+                  {document.analysisStatus === 'accepted' && <span className={styles.acceptedBadge}>{t('documents.acceptedBadge')}</span>}
+                  {document.analysisStatus === 'no_suggestion' && <span className={styles.noSuggestionBadge}>{t('documents.noSuggestionBadge')}</span>}
                 </div>
-                <button className={styles.previewButton} onClick={() => setPreview(document)}><Eye size={17} /> İçerik</button>
-                <button className={styles.delete} aria-label="Arşivle" onClick={() => archive(document.id)}><Trash2 size={17} /></button>
+                <button className={styles.previewButton} onClick={() => setPreview(document)}><Eye size={17} /> {t('documents.viewContent')}</button>
+                <button className={styles.delete} aria-label={t('documents.archive')} onClick={() => archive(document.id)}><Trash2 size={17} /></button>
               </div>
               {document.suggestions?.filter(item => item.status === 'proposed').map(suggestion => (
                 <div className={styles.suggestion} key={suggestion.id}>
                   <div>
-                    <strong>Takip kaydı önerisi · %{Math.round(suggestion.confidence * 100)} güven</strong>
+                    <strong>{t('documents.suggestionConfidence', { percent: Math.round(suggestion.confidence * 100) })}</strong>
                     <p>
                       {/* 🔴 Yön belirsizse TÜR ETİKETİ GÖSTERİLMEZ.
                           `payload.type` alanında "belirsiz" diye bir değer
@@ -259,32 +248,32 @@ export default function Documents() {
                           fatura için "bu senin borcun" deniyordu.
                           Tarayıcıda görülüp düzeltildi. */}
                       {suggestion.payload.direction === 'neutral'
-                        ? 'Gelen mi giden mi belirlenemedi'
-                        : (recordTypes[suggestion.payload.type] || suggestion.payload.type)}
-                      {suggestion.payload.amount != null ? ` · ${Number(suggestion.payload.amount).toLocaleString('tr-TR')} ${suggestion.payload.currency}` : ''}
-                      {suggestion.payload.dueAt ? ` · ${new Date(suggestion.payload.dueAt).toLocaleDateString('tr-TR')}` : ''}
+                        ? t('documents.directionUnknown')
+                        : (recordTypeKeys[suggestion.payload.type] ? t(`type.${recordTypeKeys[suggestion.payload.type]}`) : suggestion.payload.type)}
+                      {suggestion.payload.amount != null ? ` · ${formatNumber(suggestion.payload.amount, { locale: formatLocale })} ${suggestion.payload.currency}` : ''}
+                      {suggestion.payload.dueAt ? ` · ${formatDate(suggestion.payload.dueAt, { locale: formatLocale })}` : ''}
                     </p>
                     {suggestion.payload.direction === 'neutral' && suggestion.payload.description && (
                       <p className={styles.suggestionHint}>{suggestion.payload.description}</p>
                     )}
-                    <small>Bu öneri siz onaylamadan işletme kaydına dönüşmez.</small>
+                    <small>{t('documents.suggestionNote')}</small>
                   </div>
                   <div className={styles.suggestionActions}>
-                    <button className={styles.accept} onClick={() => acceptSuggestion(suggestion.id)}><Check size={16} /> Kaydı oluştur</button>
-                    <button className={styles.reject} onClick={() => rejectSuggestion(suggestion.id)}><X size={16} /> Reddet</button>
+                    <button className={styles.accept} onClick={() => acceptSuggestion(suggestion.id)}><Check size={16} /> {t('documents.createRecord')}</button>
+                    <button className={styles.reject} onClick={() => rejectSuggestion(suggestion.id)}><X size={16} /> {t('documents.reject')}</button>
                   </div>
                 </div>
               ))}
               <div className={styles.modelMapping}>
                 <button onClick={() => findFinancialModels(document)} disabled={mappingLoading === document.id}>
-                  <BarChart3 size={17} /> {mappingLoading === document.id ? 'Alanlar eşleştiriliyor…' : 'Finansal model öner'}
+                  <BarChart3 size={17} /> {mappingLoading === document.id ? t('documents.matching') : t('documents.suggestModel')}
                 </button>
                 {modelMappings[document.id] && (
                   <div className={styles.modelResults}>
                     <small>{modelMappings[document.id].warning}</small>
                     {modelMappings[document.id].models?.slice(0, 4).map(model => (
                       <button key={model.code} onClick={() => navigate(`/app/finance/models/${model.code}?documentId=${document.id}`)}>
-                        <span><strong>{model.name}</strong><small>%{Math.round(model.coverage * 100)} alan eşleşmesi · {model.missingFields.length} eksik alan</small></span>
+                        <span><strong>{model.name}</strong><small>{t('documents.modelCoverage', { percent: Math.round(model.coverage * 100), count: model.missingFields.length })}</small></span>
                         <BarChart3 size={16} />
                       </button>
                     ))}
@@ -300,10 +289,10 @@ export default function Documents() {
         <div className={styles.overlay} onMouseDown={() => setPreview(null)}>
           <div className={styles.preview} onMouseDown={event => event.stopPropagation()}>
             <div className={styles.previewHeading}>
-              <div><h3>{preview.originalName}</h3><p>{preview.analysis?.extraction_method === 'ocr_tur' ? 'Türkçe OCR sonucu' : 'Belgeden çıkarılan metin'}</p></div>
-              <button aria-label="Kapat" onClick={() => setPreview(null)}><X /></button>
+              <div><h3>{preview.originalName}</h3><p>{preview.analysis?.extraction_method === 'ocr_tur' ? t('documents.ocrResult') : t('documents.extractedText')}</p></div>
+              <button aria-label={t('common:buttons.close')} onClick={() => setPreview(null)}><X /></button>
             </div>
-            <pre>{preview.extractedText || 'Bu belgeden gösterilebilir metin çıkarılmadı.'}</pre>
+            <pre>{preview.extractedText || t('documents.noExtractableText')}</pre>
           </div>
         </div>
       )}

@@ -8,8 +8,18 @@ import {
 } from 'lucide-react'
 import EnrollmentsPage from './EnrollmentsPage'
 import styles from './CoursesPage.module.css'
+import { useTranslation } from 'react-i18next'
+import { useLocalization } from '@/context/LocalizationContext'
 
 const PAGE_SIZE = 6
+const DOMAIN_KEYS = {
+  'Temel Finans': 'basicFinance',
+  'Maliyet ve Fiyatlandırma': 'costPricing',
+  'E-Ticaret': 'ecommerce',
+  'Girişimcilik': 'entrepreneurship',
+  'Dijital Ekonomi': 'digitalEconomy',
+  'Finansman ve Yatırım': 'financeInvestment',
+}
 
 /* Öğrenme yolu adımları backend'de alan/konu tabanlıdır (kurs değil):
    { step, domain, title, description, koCodes, estimatedDays, status }.
@@ -33,7 +43,7 @@ function isStepDone(step) {
 const CATALOG_PAGE_SIZE = 50
 const MAX_CATALOG_PAGES = 20 // güvenlik sınırı (≈1000 kurs)
 
-async function collectAllCategories() {
+async function collectAllCategories(locale = 'tr') {
   const found = new Set()
   let page = 1
   let totalPages = 1
@@ -46,7 +56,7 @@ async function collectAllCategories() {
     page += 1
   } while (page <= totalPages && page <= MAX_CATALOG_PAGES)
 
-  return [...found].sort((a, b) => a.localeCompare(b, 'tr'))
+  return [...found].sort((a, b) => a.localeCompare(b, locale))
 }
 
 /* Sayfa numaraları — çok sayfalı listelerde satırın taşmaması için aktif
@@ -64,6 +74,8 @@ function pageWindow(current, totalPages, size = 5) {
  * açık şekilde gösterir. Eski route çalışmaya devam eder.
  */
 export default function CoursesPage({ initialTab = 'all' }) {
+  const { t } = useTranslation(['common', 'learning'])
+  const { uiLanguage } = useLocalization()
   const navigate = useNavigate()
   const [tab, setTab] = useState(initialTab)
   const [courses, setCourses] = useState([])
@@ -97,7 +109,7 @@ export default function CoursesPage({ initialTab = 'all' }) {
   useEffect(() => {
     loadCourses()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, category, level])
+  }, [page, category, level, uiLanguage])
 
   // Öğrenme yolu — Ana Sayfa ile aynı kaynak (dashboard özeti).
   useEffect(() => {
@@ -115,12 +127,12 @@ export default function CoursesPage({ initialTab = 'all' }) {
       })
       .catch(() => { if (mountedRef.current) setEnrollments([]) })
 
-    collectAllCategories()
+    collectAllCategories(uiLanguage)
       .then(list => { if (mountedRef.current && list) setAllCategories(list) })
       // Sessizce başarısız olur: filtre menüsü mevcut sayfadan türetilen
       // listeye düşer, sayfa bozulmaz.
       .catch(() => {})
-  }, [])
+  }, [uiLanguage])
 
   async function loadCourses() {
     setLoading(true)
@@ -136,7 +148,7 @@ export default function CoursesPage({ initialTab = 'all' }) {
       setTotalPages(data.totalPages || 1)
       setTotal(data.total || 0)
     } catch (err) {
-      if (mountedRef.current) setError(err.message || 'Kurslar yüklenemedi')
+      if (mountedRef.current) setError(err.message || t('learning:courses.errorLoad'))
     }
     if (mountedRef.current) setLoading(false)
   }
@@ -160,7 +172,7 @@ export default function CoursesPage({ initialTab = 'all' }) {
       await api.enrollments.enroll(courseId)
       navigate(`/app/courses/${courseId}/learn`)
     } catch (err) {
-      setError(err.message || 'Kayıt yapılamadı')
+      setError(err.message || t('learning:courses.errorEnroll'))
     }
   }
 
@@ -207,7 +219,7 @@ export default function CoursesPage({ initialTab = 'all' }) {
           <div className={styles.promise}>
             <Target size={14} aria-hidden="true" />
             <div className={styles.promiseBody}>
-              <span className={styles.promiseLabel}>Kurs çıktısı:</span>
+              <span className={styles.promiseLabel}>{t('learning:courses.promiseLabel')}</span>
               <span className={styles.promiseText}>{course.metadata.promise}</span>
             </div>
           </div>
@@ -227,7 +239,7 @@ export default function CoursesPage({ initialTab = 'all' }) {
         {course.enrollment && (
           <div className={styles.progressBlock}>
             <Progress value={course.enrollment.progress} size="sm" variant="primary" />
-            <span className={styles.progressText}>İlerleme: %{course.enrollment.progress}</span>
+            <span className={styles.progressText}>{t('courses.progressLabel', { value: course.enrollment.progress })}</span>
           </div>
         )}
 
@@ -297,7 +309,7 @@ export default function CoursesPage({ initialTab = 'all' }) {
   if (tab === 'enrollments') {
     return (
       <div className={styles.page}>
-        <PageHead title="Kayıtlarım" subtitle="Başladığın kurslara ve ilerlemene dön." actions={<Button variant="secondary" onClick={() => setTab('all')}>Tüm kurslar</Button>} />
+        <PageHead title={t('learning:courses.myEnrollmentsTitle')} subtitle={t('learning:courses.myEnrollmentsSubtitle')} actions={<Button variant="secondary" onClick={() => setTab('all')}>{t('learning:courses.allCoursesTab')}</Button>} />
         <EnrollmentsPage embedded />
       </div>
     )
@@ -305,60 +317,63 @@ export default function CoursesPage({ initialTab = 'all' }) {
 
   return (
     <div className={styles.page}>
+      {uiLanguage === 'en' && <p role="note" className={styles.contentLanguageNotice}>{t('content.turkishOnly')}</p>}
       <PageHead
-        title="Kurslar"
-        subtitle="Öğrenme yolunu kaldığın yerden sürdür."
-        actions={<Button variant="quiet" onClick={() => setFiltersOpen(value => !value)}><SlidersHorizontal size={15} /> Filtrele</Button>}
+        title={t('learning:courses.title')}
+        subtitle={t('learning:courses.subtitle')}
+        actions={<Button variant="quiet" onClick={() => setFiltersOpen(value => !value)}><SlidersHorizontal size={15} /> {t('learning:courses.filterButton')}</Button>}
       />
 
       {filtersOpen && (
         <div className={styles.filterBar}>
-          <label className={styles.searchWrapper}><Search size={15} /><input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSearch()} placeholder="Kurs ara" /></label>
-          <Select placeholder="Tüm alanlar" options={categories.map(c => ({ value: c, label: c }))} value={category} onChange={v => { setCategory(v); setPage(1) }} />
-          <Select placeholder="Tüm türler" options={[{ value: 'uygulamalı', label: 'Uygulamalı' }]} value={level} onChange={v => { setLevel(v); setPage(1) }} />
-          <Button variant="ghost" size="sm" onClick={resetFilters}>Temizle</Button>
+          <label className={styles.searchWrapper}><Search size={15} /><input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSearch()} placeholder={t('learning:courses.searchPlaceholder')} /></label>
+          <Select placeholder={t('learning:courses.allDomains')} options={categories.map(c => ({ value: c, label: c }))} value={category} onChange={v => { setCategory(v); setPage(1) }} />
+          <Select placeholder={t('learning:courses.allTypes')} options={[{ value: 'uygulamalı', label: t('learning:courses.levelPractical') }]} value={level} onChange={v => { setLevel(v); setPage(1) }} />
+          <Button variant="ghost" size="sm" onClick={resetFilters}>{t('learning:courses.clearButton')}</Button>
         </div>
       )}
 
       <Card raised className={styles.activePath}>
         <span className={styles.courseCover} aria-hidden="true"><BookOpen size={28} /><b>LK</b></span>
         <span className={styles.activeCopy}>
-          <small>{activeCourse ? 'AKTİF ÖĞRENME' : showPath ? 'AKTİF ÖĞRENME YOLU' : 'KURS KATALOĞU'}</small>
-          <h2>{activeCourse?.courseTitle || learningPath?.title || 'İşletmeni güçlendiren uygulamalı kurslar'}</h2>
-          <p>{activeCourse ? `${activeCourse.courseLessonCount || 0} derslik kursunda ilerliyorsun.` : showPath ? `${pathSteps.length} adımlık öğrenme yolun hazır.` : `${total || 0} yayınlanmış kursu keşfet.`}</p>
+          <small>{activeCourse ? t('learning:courses.eyebrowActive') : showPath ? t('learning:courses.eyebrowActivePath') : t('learning:courses.eyebrowCatalog')}</small>
+          <h2>{activeCourse?.courseTitle || learningPath?.title || t('learning:courses.defaultHeadline')}</h2>
+          <p>{activeCourse ? t('learning:courses.activeCourseLine', { count: activeCourse.courseLessonCount || 0 }) : showPath ? t('learning:courses.activePathLine', { count: pathSteps.length }) : t('learning:courses.catalogLine', { count: total || 0 })}</p>
           <span className={styles.activeProgress}><Progress value={activeCourse?.progress ?? pathPercent} size="md" variant="primary" /><em>%{activeCourse?.progress ?? pathPercent}</em></span>
         </span>
         <Button onClick={() => activeCourse ? navigate(`/app/courses/${activeCourse.courseId}/learn`) : showPath ? navigate('/app/learning-path') : listTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
-          {activeCourse || showPath ? 'Derse devam et' : 'Kursları keşfet'} <ArrowRight size={15} />
+          {activeCourse || showPath ? t('learning:courses.continueLessonCta') : t('learning:courses.exploreCatalogCta')} <ArrowRight size={15} />
         </Button>
       </Card>
 
       <div className={styles.courseWorkspace}>
         <Card className={styles.catalogPanel}>
           <div className={styles.categoryChips}>
-            <button className={!category ? styles.chipActive : ''} onClick={() => { setCategory(''); setPage(1) }}>Tümü</button>
+            <button className={!category ? styles.chipActive : ''} onClick={() => { setCategory(''); setPage(1) }}>{t('learning:courses.allChip')}</button>
             {categories.slice(0, 4).map(item => <button key={item} className={category === item ? styles.chipActive : ''} onClick={() => { setCategory(item); setPage(1) }}>{item}</button>)}
           </div>
           {error && <div className={styles.error}>{error}</div>}
           <div className={styles.courseRows} ref={listTopRef}>
-            {loading ? <Loading text="Kurslar yükleniyor..." /> : courses.length === 0 ? <EmptyState message="Kurs bulunamadı" action actionLabel="Filtreleri temizle" onAction={resetFilters} /> : courses.map(course => (
+            {loading ? <Loading text={t('learning:courses.loadingCourses')} /> : courses.length === 0 ? <EmptyState message={t('learning:courses.emptyCourses')} action actionLabel={t('learning:courses.clearFiltersAction')} onAction={resetFilters} /> : courses.map(course => (
               <button type="button" className={styles.courseRow} key={course.id} onClick={() => course.enrollment ? navigate(`/app/courses/${course.id}/learn`) : handleEnroll(course.id)}>
                 <span className={styles.miniCover}>LK</span>
-                <span className={styles.courseInfo}><strong>{course.title}</strong><small>{course.lessonCount || 0} ders{course.estimatedMinutes ? ` · ${course.estimatedMinutes} dk` : ''}</small><em>{course.enrollment ? `%${course.enrollment.progress} tamamlandı` : course.level || 'Yeni'}</em></span>
+                <span className={styles.courseInfo}><strong>{course.title}</strong><small>{t('learning:courses.lessonCount', { count: course.lessonCount || 0 })}{course.estimatedMinutes ? ` · ${t('learning:courses.minutesShort', { count: course.estimatedMinutes })}` : ''}</small><em>{course.enrollment ? t('learning:courses.rowPercentCompleted', { value: course.enrollment.progress }) : course.level || t('learning:courses.rowNew')}</em></span>
                 <ChevronRight size={16} />
               </button>
             ))}
           </div>
-          {totalPages > 1 && <div className={styles.compactPagination}><button disabled={page <= 1} onClick={() => goToPage(page - 1)}>Önceki</button><span>{page} / {totalPages}</span><button disabled={page >= totalPages} onClick={() => goToPage(page + 1)}>Sonraki</button></div>}
+          {totalPages > 1 && <div className={styles.compactPagination}><button disabled={page <= 1} onClick={() => goToPage(page - 1)}>{t('learning:courses.prevPage')}</button><span>{page} / {totalPages}</span><button disabled={page >= totalPages} onClick={() => goToPage(page + 1)}>{t('learning:courses.nextPage')}</button></div>}
         </Card>
 
         <Card className={styles.competencyPanel}>
-          <h2>Yetkinlik görünümü</h2>
+          <h2>{t('learning:courses.competencyTitle')}</h2>
           {showPath ? pathSteps.slice(0, 6).map((step, index) => {
             const done = isStepDone(step)
             const next = index === nextStepIndex
-            return <div className={styles.competencyRow} key={step.step ?? index}><span className={`${styles.competencyDot} ${done ? styles.dotDone : next ? styles.dotNext : ''}`} /><span><strong>{step.title || step.domain}</strong><small>{done ? 'Tamamlandı' : next ? 'İlerliyor' : 'Başlamaya hazır'}</small></span></div>
-          }) : <p className={styles.emptyCompetency}>Kişisel öğrenme yolunuz oluşturulduğunda yetkinlik ilerlemeniz burada görünecek.</p>}
+            const domain = step.title || step.domain
+            const domainKey = DOMAIN_KEYS[domain]
+            return <div className={styles.competencyRow} key={step.step ?? index}><span className={`${styles.competencyDot} ${done ? styles.dotDone : next ? styles.dotNext : ''}`} /><span><strong>{domainKey ? t(`learning:courses.domains.${domainKey}`) : domain}</strong><small>{done ? t('learning:courses.stepDone') : next ? t('learning:courses.stepInProgress') : t('learning:courses.stepReady')}</small></span></div>
+          }) : <p className={styles.emptyCompetency}>{t('learning:courses.competencyEmpty')}</p>}
         </Card>
       </div>
     </div>

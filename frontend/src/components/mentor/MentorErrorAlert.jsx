@@ -1,50 +1,51 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { AlertCircle } from 'lucide-react'
 import styles from './MentorErrorAlert.module.css'
 
-export function getSafeErrorMessage(rawError) {
+export function getSafeErrorMessage(rawError, t) {
   if (!rawError) return null
   
   const errStr = String(rawError).toLowerCase()
 
-  if (errStr.includes('network') || errStr.includes('fetch') || errStr.includes('ulaşılamadı') || errStr.includes('econnrefused')) {
-    return 'AI Mentor sunucusuna ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin.'
+  if (errStr.includes('network') || errStr.includes('fetch') || errStr.includes('econnrefused')) {
+    return t('errors.mentorNetwork')
   }
   
-  if (errStr.includes('timeout') || errStr.includes('zaman aşımı')) {
-    return 'Yanıt beklenenden uzun sürdü. Mesajı tekrar deneyebilirsiniz.'
+  if (errStr.includes('timeout')) {
+    return t('errors.mentorTimeout')
   }
   
   if (errStr.includes('429') || errStr.includes('rate limit') || errStr.includes('too many requests')) {
-    return 'Çok kısa sürede fazla istek gönderildi. Biraz bekleyip tekrar deneyin.'
+    return t('errors.mentorRateLimit')
   }
   
   if (errStr.includes('401') || errStr.includes('unauthorized')) {
-    return 'Oturumunuz sona ermiş olabilir. Yeniden giriş yapın.'
+    return t('errors.mentorUnauthorized')
   }
   
   if (errStr.includes('provider') || errStr.includes('500') || errStr.includes('502') || errStr.includes('503')) {
-    return 'AI Mentor şu anda yanıt üretemiyor. Birkaç saniye sonra tekrar deneyin.'
+    return t('errors.mentorProvider')
   }
 
-  // Fallback safe message
-  return 'Sistemde geçici bir sorun oluştu. Lütfen daha sonra tekrar deneyin.'
+  return t('errors.mentorFallback')
 }
 
 export default function MentorErrorAlert({ error, onDismiss }) {
+  const { t } = useTranslation('common')
   if (!error) return null
 
-  const safeMsg = getSafeErrorMessage(error)
+  const safeMsg = getSafeErrorMessage(error, t)
 
   return (
     <div className={styles.alert} role="alert">
       <AlertCircle className={`w-5 h-5 shrink-0 mt-0.5 text-red-500 ${styles.alertIcon}`} />
       <div className={`flex-1 ${styles.alertBody}`}>
-        <p className={`font-medium ${styles.alertTitle}`}>Bağlantı Hatası</p>
+        <p className={`font-medium ${styles.alertTitle}`}>{t('errors.mentorTitle')}</p>
         <p className={`opacity-90 ${styles.alertMessage}`}>{safeMsg}</p>
       </div>
       {onDismiss && (
-        <button onClick={onDismiss} className={`text-red-400 hover:text-red-600 p-1 rounded-md ${styles.dismissBtn}`} aria-label="Kapat">
+        <button onClick={onDismiss} className={`text-red-400 hover:text-red-600 p-1 rounded-md ${styles.dismissBtn}`} aria-label={t('buttons.close')}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M18 6L6 18M6 6l12 12" />
           </svg>

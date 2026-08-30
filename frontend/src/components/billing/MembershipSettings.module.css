@@ -1,0 +1,164 @@
+/* Ayarlar → Üyelik bölümü. Uygulama kabuğu içinde olduğu için genel
+   tema token'ları kullanılıyor (`--auth-*` değil). */
+
+.govde {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.liste {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.satir {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 15px;
+}
+
+.satir + .satir { border-top: 1px solid var(--border); }
+
+.etiket {
+  min-width: 0;
+  color: var(--text-light);
+  font-size: .83rem;
+}
+
+.deger {
+  flex: 0 0 auto;
+  margin: 0;
+  min-width: 0;
+  color: var(--text);
+  font-size: .86rem;
+  font-weight: 700;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.degerIkincil { font-weight: 500; color: var(--text-light); }
+
+.rozetAktif,
+.rozetUyari {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: .74rem;
+  font-weight: 700;
+}
+
+.rozetAktif {
+  background: color-mix(in srgb, var(--success, var(--primary)) 16%, transparent);
+  color: var(--success, var(--primary));
+}
+
+.rozetUyari {
+  background: color-mix(in srgb, var(--warning, var(--danger)) 16%, transparent);
+  color: var(--warning, var(--danger));
+}
+
+.not {
+  margin: 0;
+  color: var(--text-light);
+  font-size: .85rem;
+  line-height: 1.6;
+}
+
+.kilit {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 11px 13px;
+  border-radius: 10px;
+  background: var(--surface-sunken);
+  color: var(--text-light);
+  font-size: .81rem;
+  line-height: 1.5;
+}
+
+.kilit svg { flex: 0 0 auto; margin-top: 2px; color: var(--primary); }
+
+.eylemler {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  align-items: center;
+}
+
+.ikincilDugme {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-family);
+  font-size: .84rem;
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color .16s ease;
+}
+
+.ikincilDugme:hover { border-color: var(--primary); }
+
+/*
+ * Devre dışı hâl — bugün fatura ve iptal uçları yok.
+ *
+ * ⚠️ `opacity` tek başına bırakılmıyor: solmuş ama hâlâ hover'a
+ * tepki veren bir düğme "çalışıyor ama tıklamam işe yaramadı"
+ * hissi verir. İmleç ve hover da kapatılıyor ki durum belirsiz
+ * kalmasın; sebebi de altındaki notta yazılı.
+ */
+.ikincilDugme:disabled,
+.iptalDugmesi:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.ikincilDugme:disabled:hover { border-color: var(--border); }
+.iptalDugmesi:disabled:hover { color: var(--text-muted); opacity: .55; }
+
+/*
+ * İptal düğmesi sade ama GİZLİ DEĞİL. Karanlık desenlerden kaçınmak
+ * için: ne gri-üstüne-gri okunmaz bir bağlantı, ne de yanlışlıkla
+ * basılacak kadar baskın bir buton.
+ */
+.iptalDugmesi {
+  margin-left: auto;
+  padding: 9px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--danger);
+  font-family: var(--font-family);
+  font-size: .84rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.iptalDugmesi:hover { color: var(--danger); opacity: .82; }
+
+.ikincilDugme:focus-visible,
+.iptalDugmesi:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+@media (max-width: 560px) {
+  .satir { flex-direction: column; gap: 3px; align-items: flex-start; }
+  .deger { text-align: left; }
+  .iptalDugmesi { margin-left: 0; }
+}

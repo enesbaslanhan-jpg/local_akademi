@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   AlertCircle, ArrowRight, Clock3, ExternalLink, Newspaper,
   Banknote, Scale, ReceiptText, Building2, MonitorSmartphone, HandCoins, LineChart
@@ -7,14 +8,14 @@ import { api } from '@/services/api'
 import styles from './NewsPage.module.css'
 
 const CATEGORIES = [
-  ['', 'Tümü'],
-  ['FINANS', 'Finans'],
-  ['MEVZUAT', 'Mevzuat'],
-  ['VERGI', 'Vergi'],
-  ['IS_DUNYASI', 'İş dünyası'],
-  ['DIJITALLESME', 'Dijitalleşme'],
-  ['DESTEK', 'Destekler'],
-  ['GENEL_EKONOMI', 'Genel ekonomi'],
+  ['', 'news.categories.all'],
+  ['FINANS', 'news.categories.finance'],
+  ['MEVZUAT', 'news.categories.legal'],
+  ['VERGI', 'news.categories.tax'],
+  ['IS_DUNYASI', 'news.categories.business'],
+  ['DIJITALLESME', 'news.categories.digital'],
+  ['DESTEK', 'news.categories.support'],
+  ['GENEL_EKONOMI', 'news.categories.economy'],
 ]
 
 /*
@@ -50,14 +51,11 @@ function KategoriIkonu({ category, size }) {
 }
 
 const IMPORTANCE = {
-  LOW: 'Bilgi',
-  MEDIUM: 'Önemli',
-  HIGH: 'Yüksek önem',
-  CRITICAL: 'Kritik',
+  LOW: 'news.importance.low', MEDIUM: 'news.importance.medium', HIGH: 'news.importance.high', CRITICAL: 'news.importance.critical',
 }
 
-function formatDate(value) {
-  return new Intl.DateTimeFormat('tr-TR', {
+function formatDate(value, locale) {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: 'long',
     timeStyle: 'short',
     timeZone: 'Europe/Istanbul',
@@ -65,6 +63,8 @@ function formatDate(value) {
 }
 
 export default function NewsPage() {
+  const { t, i18n } = useTranslation('community')
+  const formatLocale = i18n.resolvedLanguage || i18n.language
   const [category, setCategory] = useState('')
   const [items, setItems] = useState([])
   const [cursor, setCursor] = useState(null)
@@ -84,10 +84,10 @@ export default function NewsPage() {
         setItems(result.items)
         setCursor(result.nextCursor)
       })
-      .catch(() => active && setError('Haberler şu anda alınamıyor. Lütfen biraz sonra yeniden deneyin.'))
+      .catch(() => active && setError(t('news.loadError')))
       .finally(() => active && setLoading(false))
     return () => { active = false }
-  }, [category])
+  }, [category, t])
 
   async function loadMore() {
     if (visibleCount < items.length) {
@@ -103,7 +103,7 @@ export default function NewsPage() {
       setVisibleCount(current => current + result.items.length)
       setCursor(result.nextCursor)
     } catch {
-      setError('Yeni haberler yüklenemedi. Tekrar deneyebilirsiniz.')
+      setError(t('news.moreLoadError'))
     } finally {
       setLoadingMore(false)
     }
@@ -115,45 +115,45 @@ export default function NewsPage() {
   return (
     <main className={styles.page}>
       <header className={styles.pageHead}>
-        <h1>Haberler</h1>
-        <p>Resmî kaynaklardan işletmenizi etkileyen gelişmeler.</p>
+        <h1>{t('news.pageTitle')}</h1>
+        <p>{t('news.pageSubtitle')}</p>
       </header>
 
       {error && <div className={styles.error} role="alert"><AlertCircle size={18} />{error}</div>}
       {loading ? <NewsSkeleton /> : items.length === 0 ? (
-        <div className={styles.empty}><Newspaper size={34} /><h2>Bu kategoride haber yok</h2><p>Yeni resmî gelişmeler saat başı kontrol ediliyor.</p></div>
+        <div className={styles.empty}><Newspaper size={34} /><h2>{t('news.emptyCategoryTitle')}</h2><p>{t('news.emptyCategoryBody')}</p></div>
       ) : (
         <div className={styles.newsLayout}>
-          <section className={styles.newsMain} aria-label="Haber listesi">
+          <section className={styles.newsMain} aria-label={t('news.listAria')}>
             <a className={`${styles.featured} ${styles[featured.imageId] || ''}`} href={featured.canonicalUrl} target="_blank" rel="noreferrer">
               <div className={styles.featuredShade} />
               <div className={styles.featuredCopy}>
-                <span>{IMPORTANCE[featured.importance] || featured.importance}</span>
+                <span>{IMPORTANCE[featured.importance] ? t(IMPORTANCE[featured.importance]) : featured.importance}</span>
                 <h2>{featured.title}</h2>
-                <p><span>{featured.sourceName}</span> · {formatDate(featured.sourcePublishedAt)}</p>
+                <p><span>{featured.sourceName}</span> · {formatDate(featured.sourcePublishedAt, formatLocale)}</p>
               </div>
             </a>
             <div className={styles.newsList}>
               {secondaryItems.map(item => (
                 <a key={item.id} href={item.canonicalUrl} target="_blank" rel="noreferrer">
                   <div className={`${styles.thumb} ${styles[item.imageId] || ''}`}><KategoriIkonu category={item.category} size={22} /></div>
-                  <div><strong>{item.title}</strong><small>{CATEGORIES.find(([value]) => value === item.category)?.[1] || item.category} · {formatDate(item.sourcePublishedAt)}</small><p>{item.whyItMatters || item.summary}</p></div>
+                  <div><strong>{item.title}</strong><small>{CATEGORIES.find(([value]) => value === item.category)?.[1] ? t(CATEGORIES.find(([value]) => value === item.category)[1]) : item.category} · {formatDate(item.sourcePublishedAt, formatLocale)}</small><p>{item.whyItMatters || item.summary}</p></div>
                   <ExternalLink size={14} />
                 </a>
               ))}
             </div>
           </section>
           <aside className={styles.newsAside}>
-            <h2>Konular</h2>
-            <nav className={styles.filters} aria-label="Haber kategorileri">
-              {CATEGORIES.map(([value, label]) => <button key={value} type="button" className={category === value ? styles.activeFilter : ''} onClick={() => setCategory(value)}>{label}</button>)}
+            <h2>{t('news.topics')}</h2>
+            <nav className={styles.filters} aria-label={t('news.filtersAria')}>
+              {CATEGORIES.map(([value, labelKey]) => <button key={value} type="button" className={category === value ? styles.activeFilter : ''} onClick={() => setCategory(value)}>{t(labelKey)}</button>)}
             </nav>
             <div className={styles.whyPanel}>
-              <h2>Neden önemli?</h2>
-              <span className={styles.srOnly}>İşletmeniz için anlamı</span>
+              <h2>{t('news.whyTitle')}</h2>
+              <span className={styles.srOnly}>{t('news.whySr')}</span>
               <p>{featured.whyItMatters || featured.summary}</p>
               {featured.tags?.length > 0 && <div className={styles.featureTags}>{featured.tags.map(tag => <span key={tag}>#{tag}</span>)}</div>}
-              <a href={featured.canonicalUrl} target="_blank" rel="noreferrer">Resmî kaynağı aç <ExternalLink size={14} /></a>
+              <a href={featured.canonicalUrl} target="_blank" rel="noreferrer">{t('news.openSource')} <ExternalLink size={14} /></a>
             </div>
           </aside>
         </div>
@@ -161,7 +161,7 @@ export default function NewsPage() {
 
       {(cursor || visibleCount < items.length) && !loading && (
         <button className={styles.loadMore} type="button" onClick={loadMore} disabled={loadingMore}>
-          {loadingMore ? 'Yükleniyor…' : 'Daha fazla haber'} <ArrowRight size={17} />
+          {loadingMore ? t('news.loadingMore') : t('news.loadMore')} <ArrowRight size={17} />
         </button>
       )}
     </main>
@@ -169,30 +169,32 @@ export default function NewsPage() {
 }
 
 function NewsCard({ item }) {
+  const { t, i18n } = useTranslation('community')
   return (
     <article className={styles.card} data-image-id={item.imageId || undefined}>
       <div className={`${styles.visual} ${styles[item.imageId] || ''}`}>
         <KategoriIkonu category={item.category} size={30} />
-        <span>{CATEGORIES.find(([value]) => value === item.category)?.[1] || item.category}</span>
+        <span>{CATEGORIES.find(([value]) => value === item.category)?.[1] ? t(CATEGORIES.find(([value]) => value === item.category)[1]) : item.category}</span>
       </div>
       <div className={styles.body}>
         <div className={styles.meta}>
           <strong>{item.sourceName}</strong>
-          <span><Clock3 size={13} />{formatDate(item.sourcePublishedAt)}</span>
+          <span><Clock3 size={13} />{formatDate(item.sourcePublishedAt, i18n.resolvedLanguage || i18n.language)}</span>
         </div>
         <h2>{item.title}</h2>
         <p>{item.summary}</p>
-        <aside><b>İşletmeniz için anlamı</b><p>{item.whyItMatters}</p></aside>
+        <aside><b>{t('news.whyCard')}</b><p>{item.whyItMatters}</p></aside>
         <div className={styles.tags}>
-          <span className={`${styles.importance} ${styles[item.importance?.toLowerCase()]}`}>{IMPORTANCE[item.importance] || item.importance}</span>
+          <span className={`${styles.importance} ${styles[item.importance?.toLowerCase()]}`}>{IMPORTANCE[item.importance] ? t(IMPORTANCE[item.importance]) : item.importance}</span>
           {item.tags.map(tag => <span key={tag}>#{tag}</span>)}
         </div>
-        <a href={item.canonicalUrl} target="_blank" rel="noreferrer">Resmî kaynağı aç <ExternalLink size={15} /></a>
+        <a href={item.canonicalUrl} target="_blank" rel="noreferrer">{t('news.openSource')} <ExternalLink size={15} /></a>
       </div>
     </article>
   )
 }
 
 function NewsSkeleton() {
-  return <div className={styles.skeleton} aria-label="Haberler yükleniyor"><span /><span /><span /></div>
+  const { t } = useTranslation('community')
+  return <div className={styles.skeleton} aria-label={t('news.skeletonAria')}><span /><span /><span /></div>
 }

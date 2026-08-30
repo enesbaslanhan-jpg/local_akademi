@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { AlertTriangle, FileText, HelpCircle, History, Bell, X, Edit, Trash2, Loader2, Check, X as XIcon } from 'lucide-react'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
+import { useLocalization } from '@/context/LocalizationContext'
+import { formatCurrency, formatDate } from '@/utils/formatters'
+import { useTranslation } from 'react-i18next'
 import styles from './KayitDetay.module.css'
 
 /*
@@ -18,35 +21,21 @@ import styles from './KayitDetay.module.css'
  * gösteriliyor. Kullanıcı rakama körlemesine güvenmek zorunda kalmıyor.
  */
 
-const turEtiketleri = {
-  payment: 'Ödeme', receivable: 'Tahsilat', promissory_note: 'Senet',
-  purchase: 'Alım', shipment: 'Sevkiyat', task: 'Görev',
-  deferred: 'Ertelenmiş', other: 'Diğer'
+const typeKeys = {
+  payment: 'payment', receivable: 'receivable', promissory_note: 'promissoryNote',
+  purchase: 'purchase', shipment: 'shipment', task: 'task', deferred: 'deferred', other: 'other'
 }
 
-const durumEtiketleri = {
-  open: 'Açık', in_progress: 'Devam ediyor', completed: 'Tamamlandı',
-  cancelled: 'İptal', deferred: 'Ertelendi'
+const statusKeys = {
+  open: 'open', in_progress: 'inProgress', completed: 'completed', cancelled: 'cancelled', deferred: 'deferred'
 }
 
-const yonEtiketleri = {
-  payable: 'Ödenecek (borç)',
-  receivable: 'Tahsil edilecek (alacak)',
+const directionKeys = {
+  payable: 'payable',
+  receivable: 'receivable',
   /* Kısa tutuluyor: ayrıntılı açıklama yukarıdaki uyarı kutusunda;
      aynı cümleyi iki yerde tekrarlamak ekranı şişiriyordu. */
-  neutral: 'Belirsiz'
-}
-
-function tarih(deger, saatli = false) {
-  if (!deger) return '—'
-  return new Intl.DateTimeFormat('tr-TR', saatli
-    ? { dateStyle: 'medium', timeStyle: 'short' }
-    : { dateStyle: 'medium' }).format(new Date(deger))
-}
-
-function para(deger, birim = 'TRY') {
-  if (deger === null || deger === undefined) return '—'
-  return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: birim }).format(Number(deger))
+  neutral: 'neutral'
 }
 
 /* `analysis` sunucudan METİN olarak geliyor; burada çözülüyor. */
@@ -57,6 +46,7 @@ function analiziCoz(ham) {
 }
 
 function KayitForm({ kayit, onClose, onSave }) {
+  const { t } = useTranslation('workspace')
   const [form, setForm] = useState({
     type: kayit.type,
     title: kayit.title,
@@ -89,9 +79,9 @@ function KayitForm({ kayit, onClose, onSave }) {
         status: form.status
       }
       await onSave(payload)
-      toast.success('Kayıt güncellendi.')
+      toast.success(t('detail.updated'))
     } catch (error) {
-      toast.error(error.message || 'Kayıt güncellenemedi.')
+      toast.error(error.message || t('detail.updateFailed'))
     } finally {
       setKaydediyor(false)
     }
@@ -100,39 +90,39 @@ function KayitForm({ kayit, onClose, onSave }) {
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.grid}>
-        <label>Tür
+        <label>{t('form.type')}
           <select
             value={form.type}
             onChange={e => setForm(current => ({ ...current, type: e.target.value }))}
-            aria-label="Kayıt türü"
+            aria-label={t('form.type')}
           >
-            {Object.entries(turEtiketleri).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
+            {Object.entries(typeKeys).map(([value, key]) => (
+              <option key={value} value={value}>{t(`type.${key}`)}</option>
             ))}
           </select>
         </label>
-        <label>Yön
+        <label>{t('form.direction')}
           <select
             value={form.direction}
             onChange={e => setForm(current => ({ ...current, direction: e.target.value }))}
-            aria-label="Yön"
+            aria-label={t('form.direction')}
           >
-            <option value="payable">Ödenecek</option>
-            <option value="receivable">Tahsil edilecek</option>
-            <option value="neutral">Finansal değil</option>
+            <option value="payable">{t('form.payable')}</option>
+            <option value="receivable">{t('form.receivable')}</option>
+            <option value="neutral">{t('form.notFinancial')}</option>
           </select>
         </label>
       </div>
-      <label>Başlık
+      <label>{t('form.title')}
         <input
           required
           maxLength={240}
           value={form.title}
           onChange={e => setForm(current => ({ ...current, title: e.target.value }))}
-          placeholder="Örn. Tedarikçi senedi"
+          placeholder={t('form.titlePlaceholder')}
         />
       </label>
-      <label>Açıklama
+      <label>{t('form.description')}
         <textarea
           rows={3}
           value={form.description}
@@ -140,7 +130,7 @@ function KayitForm({ kayit, onClose, onSave }) {
         />
       </label>
       <div className={styles.grid}>
-        <label>Tutar
+        <label>{t('form.amount')}
           <input
             type="number"
             min="0"
@@ -149,7 +139,7 @@ function KayitForm({ kayit, onClose, onSave }) {
             onChange={e => setForm(current => ({ ...current, amount: e.target.value }))}
           />
         </label>
-        <label>Son tarih
+        <label>{t('form.dueDate')}
           <input
             type="datetime-local"
             value={form.dueAt}
@@ -158,35 +148,35 @@ function KayitForm({ kayit, onClose, onSave }) {
         </label>
       </div>
       <div className={styles.grid}>
-        <label>Tekrarlama
+        <label>{t('form.recurrence')}
           <select
             value={form.recurrenceRule}
             onChange={e => setForm(current => ({ ...current, recurrenceRule: e.target.value }))}
-            aria-label="Tekrarlama"
+            aria-label={t('form.recurrence')}
           >
-            <option value="">Tekrarlanmaz</option>
-            <option value="weekly">Her hafta</option>
-            <option value="monthly">Her ay</option>
-            <option value="quarterly">Her 3 ayda</option>
-            <option value="yearly">Her yıl</option>
+            <option value="">{t('form.none')}</option>
+            <option value="weekly">{t('form.weekly')}</option>
+            <option value="monthly">{t('form.monthly')}</option>
+            <option value="quarterly">{t('form.quarterly')}</option>
+            <option value="yearly">{t('form.yearly')}</option>
           </select>
         </label>
-        <label>Durum
+        <label>{t('form.status')}
           <select
             value={form.status}
             onChange={e => setForm(current => ({ ...current, status: e.target.value }))}
-            aria-label="Durum"
+            aria-label={t('form.status')}
           >
-            {Object.entries(durumEtiketleri).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
+            {Object.entries(statusKeys).map(([value, key]) => (
+              <option key={value} value={value}>{t(`status.${key}`)}</option>
             ))}
           </select>
         </label>
       </div>
       <div className={styles.actions}>
-        <button type="button" className={styles.secondary} onClick={onClose}>Vazgeç</button>
+        <button type="button" className={styles.secondary} onClick={onClose}>{t('common:buttons.cancel')}</button>
         <button type="submit" className={styles.primary} disabled={kaydediyor}>
-          {kaydediyor ? <Loader2 size={16} className={styles.spin} /> : 'Kaydet'}
+          {kaydediyor ? <Loader2 size={16} className={styles.spin} /> : t('common:buttons.save')}
         </button>
       </div>
     </form>
@@ -194,16 +184,17 @@ function KayitForm({ kayit, onClose, onSave }) {
 }
 
 function SilmeOnay({ onConfirm, onCancel }) {
+  const { t } = useTranslation('workspace')
   return (
     <div className={styles.onayKutusu} role="alertdialog" aria-modal="true" aria-labelledby="silmeBaslik">
-      <h3 id="silmeBaslik" className={styles.onayBaslik}>Kaydı sil</h3>
+      <h3 id="silmeBaslik" className={styles.onayBaslik}>{t('detail.deleteTitle')}</h3>
       <p className={styles.onayMetin}>
-        Bu işlem geri alınamaz. Kayıt ve geçmişi kalıcı olarak silinir.
+        {t('detail.deleteConfirm')}
       </p>
       <div className={styles.onayButonlar}>
-        <button type="button" className={styles.secondary} onClick={onCancel}>Vazgeç</button>
+        <button type="button" className={styles.secondary} onClick={onCancel}>{t('common:buttons.cancel')}</button>
         <button type="button" className={`${styles.primary} ${styles.danger}`} onClick={onConfirm}>
-          <Trash2 size={16} /> Evet, sil
+          <Trash2 size={16} /> {t('detail.yesDelete')}
         </button>
       </div>
     </div>
@@ -211,6 +202,8 @@ function SilmeOnay({ onConfirm, onCancel }) {
 }
 
 export default function KayitDetay({ workspaceId, recordId, onClose }) {
+  const { t } = useTranslation('workspace')
+  const { formatLocale } = useLocalization()
   const [kayit, setKayit] = useState(null)
   const [hata, setHata] = useState('')
   const [yukleniyor, setYukleniyor] = useState(true)
@@ -225,10 +218,10 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
     setHata('')
     api.workspace.tracker.get(workspaceId, recordId)
       .then(sonuc => { if (!iptal) setKayit(sonuc) })
-      .catch(e => { if (!iptal) setHata(e.message || 'Kayıt yüklenemedi') })
+      .catch(e => { if (!iptal) setHata(e.message || t('detail.loadError')) })
       .finally(() => { if (!iptal) setYukleniyor(false) })
     return () => { iptal = true }
-  }, [workspaceId, recordId])
+  }, [workspaceId, recordId, t])
 
   /* Düzenleme kaydedildikten sonra panelin taze veriye geçmesi için:
      kaydı yeniden GET'ler, yükleme iskeletini tekrar göstermez. */
@@ -236,7 +229,7 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
     try {
       setKayit(await api.workspace.tracker.get(workspaceId, recordId))
     } catch (e) {
-      setHata(e.message || 'Kayıt yüklenemedi')
+      setHata(e.message || t('detail.loadError'))
     }
   }
 
@@ -256,24 +249,26 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
     setSiliniyor(true)
     try {
       await api.workspace.tracker.archive(workspaceId, recordId)
-      toast.success('Kayıt silindi.')
+      toast.success(t('detail.deleted'))
       onClose()
     } catch (error) {
-      toast.error(error.message || 'Kayıt silinemedi.')
+      toast.error(error.message || t('detail.deleteFailed'))
     } finally {
       setSiliniyor(false)
     }
   }
 
   const belgeler = kayit?.documents || []
+  const tarih = (deger, saatli = false) => formatDate(deger, { locale: formatLocale, ...(saatli ? { dateStyle: 'medium', timeStyle: 'short' } : { dateStyle: 'medium' }) })
+  const para = (deger, birim = 'TRY') => formatCurrency(deger, { locale: formatLocale, currency: birim })
 
   return (
     <div className={styles.ortu} onClick={e => { if (e.target === e.currentTarget) { if (duzenlemeModu) setDuzenlemeModu(false); else if (silmeOnay) setSilmeOnay(false); else onClose?.() } }}>
-      <div className={styles.panel} role="dialog" aria-modal="true" aria-label="Kayıt detayı">
+      <div className={styles.panel} role="dialog" aria-modal="true" aria-label={t('detail.dialogAria')}>
         <header className={styles.baslik}>
           <div>
-            <span className={styles.ustEtiket}>İŞLETME KAYDI</span>
-            <h2>{kayit?.title || (yukleniyor ? 'Yükleniyor…' : 'Kayıt')}</h2>
+            <span className={styles.ustEtiket}>{t('detail.recordLabel')}</span>
+            <h2>{kayit?.title || (yukleniyor ? t('detail.loading') : t('detail.record'))}</h2>
           </div>
           <div className={styles.baslikActions}>
             {!duzenlemeModu && !silmeOnay && kayit && (
@@ -282,7 +277,7 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
                   type="button"
                   className={styles.actionButton}
                   onClick={() => setDuzenlemeModu(true)}
-                  aria-label="Kaydı düzenle"
+                  aria-label={t('detail.editRecord')}
                 >
                   <Edit size={18} />
                 </button>
@@ -290,19 +285,19 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
                   type="button"
                   className={`${styles.actionButton} ${styles.danger}`}
                   onClick={() => setSilmeOnay(true)}
-                  aria-label="Kaydı sil"
+                  aria-label={t('detail.deleteRecord')}
                 >
                   <Trash2 size={18} />
                 </button>
               </>
             )}
-            <button type="button" onClick={() => { if (duzenlemeModu) setDuzenlemeModu(false); else if (silmeOnay) setSilmeOnay(false); else onClose?.() }} aria-label="Kapat"><X size={20} /></button>
+            <button type="button" onClick={() => { if (duzenlemeModu) setDuzenlemeModu(false); else if (silmeOnay) setSilmeOnay(false); else onClose?.() }} aria-label={t('common:buttons.close')}><X size={20} /></button>
           </div>
         </header>
 
         <div className={styles.govde}>
           {hata && <div className={styles.hata}>{hata}</div>}
-          {yukleniyor && <p className={styles.sessiz}>Kayıt getiriliyor…</p>}
+          {yukleniyor && <p className={styles.sessiz}>{t('detail.fetching')}</p>}
 
           {duzenlemeModu && kayit && (
             <KayitForm kayit={kayit} onClose={() => setDuzenlemeModu(false)} onSave={handleGuncelle} />
@@ -324,14 +319,14 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
                   için açıyor. Uyarılar üstte olduğunda tutar ve vade
                   ekranın dışında kalıyordu. */}
               <dl className={styles.alanlar}>
-                <div><dt>Tutar</dt><dd className={styles.tutar}>{para(kayit.amount, kayit.currency)}</dd></div>
-                <div><dt>Yön</dt><dd>{yonEtiketleri[kayit.direction] || kayit.direction}</dd></div>
-                <div><dt>Tür</dt><dd>{turEtiketleri[kayit.type] || kayit.type}</dd></div>
-                <div><dt>Durum</dt><dd>{durumEtiketleri[kayit.status] || kayit.status}</dd></div>
-                <div><dt>Vade</dt><dd>{tarih(kayit.dueAt)}</dd></div>
-                <div><dt>Oluşturma</dt><dd>{tarih(kayit.createdAt)}</dd></div>
-                {kayit.contact?.name && <div><dt>Cari</dt><dd>{kayit.contact.name}</dd></div>}
-                {kayit.assignedTo?.name && <div><dt>Sorumlu</dt><dd>{kayit.assignedTo.name}</dd></div>}
+                <div><dt>{t('detail.field.amount')}</dt><dd className={styles.tutar}>{para(kayit.amount, kayit.currency)}</dd></div>
+                <div><dt>{t('detail.field.direction')}</dt><dd>{directionKeys[kayit.direction] ? t(`detail.direction.${directionKeys[kayit.direction]}`) : kayit.direction}</dd></div>
+                <div><dt>{t('detail.field.type')}</dt><dd>{typeKeys[kayit.type] ? t(`type.${typeKeys[kayit.type]}`) : kayit.type}</dd></div>
+                <div><dt>{t('detail.field.status')}</dt><dd>{statusKeys[kayit.status] ? t(`status.${statusKeys[kayit.status]}`) : kayit.status}</dd></div>
+                <div><dt>{t('detail.field.dueDate')}</dt><dd>{tarih(kayit.dueAt)}</dd></div>
+                <div><dt>{t('detail.field.created')}</dt><dd>{tarih(kayit.createdAt)}</dd></div>
+                {kayit.contact?.name && <div><dt>{t('detail.field.contact')}</dt><dd>{kayit.contact.name}</dd></div>}
+                {kayit.assignedTo?.name && <div><dt>{t('detail.field.responsible')}</dt><dd>{kayit.assignedTo.name}</dd></div>}
               </dl>
 
               {/*
@@ -348,21 +343,21 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
               {kayit.overdue && (
                 <p className={styles.uyari}>
                   <AlertTriangle size={15} aria-hidden="true" />
-                  <span><strong>Vadesi geçmiş</strong> — {tarih(kayit.dueAt)}. Takvimde o ayda görünür.</span>
+                  <span><strong>{t('detail.overdue')}</strong> — {tarih(kayit.dueAt)}. {t('detail.overdueHint')}</span>
                 </p>
               )}
 
               {kayit.direction === 'neutral' && kayit.amount !== null && (
                 <p className={styles.uyari}>
                   <HelpCircle size={15} aria-hidden="true" />
-                  <span><strong>Yön belirlenemedi</strong> — borç ve alacak toplamlarına dahil edilmiyor.</span>
+                  <span><strong>{t('detail.directionUnknown')}</strong> — {t('detail.directionUnknownHint')}</span>
                 </p>
               )}
 
 
               {kayit.description && (
                 <section className={styles.bolum}>
-                  <h3>Açıklama</h3>
+                  <h3>{t('detail.description')}</h3>
                   <p className={styles.aciklama}>{kayit.description}</p>
                 </section>
               )}
@@ -375,7 +370,7 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
                 */}
               {belgeler.length > 0 && (
                 <section className={styles.bolum}>
-                  <h3>Dayanak belge</h3>
+                  <h3>{t('detail.sourceDocument')}</h3>
                   {belgeler.map(bag => {
                     const belge = bag.document || {}
                     const fatura = analiziCoz(belge.analysis).eFatura
@@ -389,20 +384,20 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
 
                         {fatura ? (
                           <>
-                            <p className={styles.rozet}>e-Fatura olarak okundu — alanlar tahmin edilmedi</p>
+                            <p className={styles.rozet}>{t('detail.invoiceRead')}</p>
                             <dl className={styles.faturaAlanlari}>
-                              <div><dt>Fatura no</dt><dd>{fatura.id}</dd></div>
-                              <div><dt>Düzenleme</dt><dd>{tarih(fatura.duzenlemeTarihi)}</dd></div>
-                              <div><dt>Vade</dt><dd>{fatura.vadeTarihi ? tarih(fatura.vadeTarihi) : 'Faturada yok'}</dd></div>
-                              <div><dt>Tutar</dt><dd>{para(fatura.odenecekTutar, fatura.paraBirimi)}</dd></div>
+                              <div><dt>{t('detail.invoice.number')}</dt><dd>{fatura.id}</dd></div>
+                              <div><dt>{t('detail.invoice.issueDate')}</dt><dd>{tarih(fatura.duzenlemeTarihi)}</dd></div>
+                              <div><dt>{t('detail.invoice.dueDate')}</dt><dd>{fatura.vadeTarihi ? tarih(fatura.vadeTarihi) : t('detail.invoice.notOnInvoice')}</dd></div>
+                              <div><dt>{t('detail.invoice.amount')}</dt><dd>{para(fatura.odenecekTutar, fatura.paraBirimi)}</dd></div>
                               <div>
-                                <dt>Satıcı</dt>
+                                <dt>{t('detail.invoice.seller')}</dt>
                                 <dd>{fatura.satici?.unvan || '—'}
                                   {fatura.satici?.kimlik && <small> · {fatura.satici.kimlikTuru} {fatura.satici.kimlik}</small>}
                                 </dd>
                               </div>
                               <div>
-                                <dt>Alıcı</dt>
+                                <dt>{t('detail.invoice.buyer')}</dt>
                                 <dd>{fatura.alici?.unvan || '—'}
                                   {fatura.alici?.kimlik && <small> · {fatura.alici.kimlikTuru} {fatura.alici.kimlik}</small>}
                                 </dd>
@@ -411,8 +406,7 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
                           </>
                         ) : (
                           <p className={styles.sessiz}>
-                            Bu belge e-Fatura olarak okunamadı; kayıt metinden çıkarılan
-                            bilgilere dayanıyor.
+                            {t('detail.invoiceParseFailed')}
                           </p>
                         )}
                       </div>
@@ -423,12 +417,12 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
 
               {kayit.reminders?.length > 0 && (
                 <section className={styles.bolum}>
-                  <h3><Bell size={14} aria-hidden="true" /> Hatırlatmalar</h3>
+                  <h3><Bell size={14} aria-hidden="true" /> {t('detail.reminders')}</h3>
                   <ul className={styles.liste}>
                     {kayit.reminders.slice(0, 2).map(h => (
                       <li key={h.id}>
                         {tarih(h.scheduledAt, true)}
-                        <span className={styles.durumEtiketi}>{h.status === 'sent' ? 'gönderildi' : h.status === 'pending' ? 'bekliyor' : h.status}</span>
+                        <span className={styles.durumEtiketi}>{h.status === 'sent' ? t('detail.reminder.sent') : h.status === 'pending' ? t('detail.reminder.pending') : h.status}</span>
                       </li>
                     ))}
                   </ul>
@@ -437,7 +431,7 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
 
               {kayit.history?.length > 0 && (
                 <section className={styles.bolum}>
-                  <h3><History size={14} aria-hidden="true" /> Geçmiş</h3>
+                  <h3><History size={14} aria-hidden="true" /> {t('detail.history')}</h3>
                   <ul className={styles.liste}>
                     {kayit.history.slice(0, 2).map(g => (
                       <li key={g.id}>

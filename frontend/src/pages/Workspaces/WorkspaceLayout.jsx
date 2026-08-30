@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react'
 import { Select } from '@/components/ui'
 import { WORKSPACE_NAV_TABS } from './navigation'
 import styles from './WorkspaceLayout.module.css'
+import { useTranslation } from 'react-i18next'
 
 /*
  * Sekme sirasi ve etiketleri TEK KAYNAKTAN gelir:
@@ -19,6 +20,7 @@ const ALL_WORKSPACES = '__all__'
 const NEW_INTEGRATION = '__integration__'
 
 export default function WorkspaceLayout() {
+  const { t } = useTranslation(['workspace', 'common'])
   const { workspaceId } = useParams()
   const { refreshActiveWorkspace, switchWorkspace, activeWorkspace, workspaces } = useWorkspace()
   const navigate = useNavigate()
@@ -69,7 +71,7 @@ export default function WorkspaceLayout() {
       <div className={styles.back}>
         <button onClick={() => navigate('/app/workspaces')}>
           <ArrowLeft size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} />
-          Tüm İşletmeler
+          {t('layout.allBusinesses')}
         </button>
       </div>
 
@@ -77,21 +79,21 @@ export default function WorkspaceLayout() {
         <div className={styles.header}>
           {/* İşletme adı sayfa adı DEĞİL (üst bar "İşletme Takibi" diyor), bu
               yüzden görünür kalır; erişilebilir başlık ayrıca sr-only verilir. */}
-          <h1 className="sr-only">{activeWorkspace.name} — İşletme Takibi</h1>
+          <h1 className="sr-only">{t('layout.srTitle', { name: activeWorkspace.name })}</h1>
           {showPicker ? (
             <div className={styles.wsPicker}>
               <Select
                 className={styles.wsSelect}
                 variant="bare"
-                aria-label="İşletme seç"
+                aria-label={t('layout.selectBusiness')}
                 value={activeWorkspace.id}
                 onChange={handlePick}
                 options={[
                   ...workspaces.map(w => ({ value: w.id, label: w.name })),
                   { value: '__separator__', label: '──────────', disabled: true },
-                  { value: NEW_WORKSPACE, label: '+ Yeni işletme oluştur' },
-                  { value: NEW_INTEGRATION, label: '+ Pazaryeri mağazası bağla' },
-                  { value: ALL_WORKSPACES, label: 'Tüm işletmeler' }
+                  { value: NEW_WORKSPACE, label: t('layout.createBusiness') },
+                  { value: NEW_INTEGRATION, label: t('layout.connectMarketplace') },
+                  { value: ALL_WORKSPACES, label: t('layout.allBusinessesLower') }
                 ]}
               />
             </div>
@@ -101,19 +103,19 @@ export default function WorkspaceLayout() {
           <div className={styles.headerMeta}>
             {activeWorkspace.sector && <span>{activeWorkspace.sector}</span>}
             {activeWorkspace.city && <span>{activeWorkspace.city}</span>}
-            <span>{activeWorkspace.memberCount} üye</span>
+            <span>{t('layout.members', { count: activeWorkspace.memberCount })}</span>
             {activeWorkspace.myRole && <span>({activeWorkspace.myRole})</span>}
           </div>
         </div>
       )}
 
-      <div className={styles.tabs} aria-label="İşletme Takibi bölümleri">
+      <div className={styles.tabs} aria-label={t('layout.sections')}>
         {tabs.map(tab => (
           <button key={tab.id}
             className={`${styles.tab} ${currentTab === tab.id ? styles.tabActive : ''}`}
             onClick={() => navigate(`/app/workspaces/${workspaceId}/${tab.path}`)}
           >
-            {tab.label}
+            {t(tab.i18nKey)}
           </button>
         ))}
       </div>

@@ -4,6 +4,7 @@ import { MailWarning, X } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { api } from '@/services/api'
 import styles from './VerificationBanner.module.css'
+import { useTranslation } from 'react-i18next'
 
 /*
  * YUMUŞAK doğrulama kapısı: kullanıcı doğrulamadan da uygulamayı
@@ -17,6 +18,7 @@ import styles from './VerificationBanner.module.css'
 const DISMISS_KEY = 'localkarar-verify-banner-dismissed'
 
 export default function VerificationBanner() {
+  const { t } = useTranslation('common')
   const { user, updateUser } = useAuth()
   const navigate = useNavigate()
   const [gizli, setGizli] = useState(() => {
@@ -48,7 +50,7 @@ export default function VerificationBanner() {
       }
       navigate('/verify-email')
     } catch (err) {
-      setHata(err.message || 'Kod gönderilemedi.')
+      setHata(err.message || t('verificationBanner.sendError'))
     } finally {
       setCalisiyor(false)
     }
@@ -58,16 +60,16 @@ export default function VerificationBanner() {
     <div className={styles.banner} role="status">
       <MailWarning size={18} className={styles.icon} aria-hidden="true" />
       <p className={styles.text}>
-        <strong>E-posta adresin doğrulanmadı.</strong>{' '}
+        <strong>{t('verificationBanner.title')}</strong>{' '}
         <span className={styles.detail}>
-          Şifreni unutursan sıfırlama bağlantısı gönderebilmemiz için doğrulaman gerekiyor.
+          {t('verificationBanner.description')}
         </span>
         {hata && <span className={styles.error}> {hata}</span>}
       </p>
       <button type="button" className={styles.action} onClick={kodGonderVeGit} disabled={calisiyor}>
-        {calisiyor ? 'Gönderiliyor…' : 'Doğrula'}
+        {calisiyor ? t('verificationBanner.sending') : t('verificationBanner.verify')}
       </button>
-      <button type="button" className={styles.dismiss} onClick={kapat} aria-label="Bu oturum için gizle">
+      <button type="button" className={styles.dismiss} onClick={kapat} aria-label={t('verificationBanner.dismiss')}>
         <X size={16} aria-hidden="true" />
       </button>
     </div>

@@ -1,3 +1,5 @@
+import { SATICI } from '@/config/seller'
+
 /*
  * GİZLİLİK VE KVKK AYDINLATMA METNİ
  *
@@ -10,8 +12,12 @@
  *
  * Bir alıcı, ülke ya da süre değişirse ÖNCE burası güncellenir, sonra
  * src/config/legal-documents.ts içindeki `version` artırılır. Sürüm
- * artınca mevcut kullanıcılardan yeniden onay isteniyor — mekanizma
- * `missingConsents` içinde, yeni kod gerekmiyor.
+ * artınca sunucu eksikleri `missingConsents` ile hesaplar; yeniden onay
+ * ARAYÜZDE alınır: her sayfada çıkan kapatılamaz şerit
+ * (`frontend/src/components/layout/ConsentBanner.jsx`, AppLayout'ta
+ * çizilir) metni LegalModal'da açtırıp onayı kaydeder. Şerit yoksa
+ * kullanıcı sürüm artışını hiçbir yerde göremezdi — 23.08 ve 25.08
+ * artışlarında tam olarak başımıza geldi.
  *
  * AI sağlayıcısı/modeli ya da verinin ulaştığı nihai API değişirse bu
  * alıcı tablosu yeniden doğrulanmalı ve AYRI bir legal version update
@@ -38,15 +44,21 @@ export default {
       ],
       tanimlar: [
         ['Veri sorumlusu', 'Enes Buğra Aslanhan (gerçek kişi)'],
-        ['Bulunduğu yer', 'Ankara / Yenimahalle'],
+        ...(SATICI.adres ? [['Açık adres', SATICI.adres]] : [['Bulunduğu yer', SATICI.bolge]]),
+        ...(SATICI.telefon ? [['Telefon', SATICI.telefon]] : []),
         ['Başvuru adresi', 'kvkk@localkarar.com'],
         ['Uygulama', 'localkarar.com']
       ],
-      son: [
-        'Açık posta adresi bu sayfada yayımlanmamaktadır. Yazılı başvuru yapmak ' +
-        'istemeniz hâlinde adres bilgisi, yukarıdaki e-posta adresine ileteceğiniz ' +
-        'talep üzerine tarafınıza bildirilir.'
-      ]
+      /* Adres dolduğunda bu not kendiliğinden düşer. Sabit metin
+         bırakılsaydı, adres yayımlandığı gün aydınlatma metni kendi
+         kendini yalanlardı. */
+      son: SATICI.adres
+        ? []
+        : [
+          'Açık posta adresi bu sayfada yayımlanmamaktadır. Yazılı başvuru yapmak ' +
+          'istemeniz hâlinde adres bilgisi, yukarıdaki e-posta adresine ileteceğiniz ' +
+          'talep üzerine tarafınıza bildirilir.'
+        ]
     },
 
     {
@@ -317,6 +329,36 @@ export default {
         'kullanılmasına ilişkin seçenek kapatılmıştır. Yazışmalarınız model eğitiminde ' +
         'kullanılmaz.',
         'Yurt dışına kişisel veri aktarımı gerektiren hizmetlerde, 6698 sayılı Kanun\'un 9. maddesinde öngörülen aktarım şartları ve uygun güvence yöntemleri dikkate alınır. Uygulanması gereken hukuki aktarım mekanizmaları, ilgili hizmet sağlayıcının rolü ve aktarımın niteliğine göre ayrıca değerlendirilir.'
+      ]
+    },
+
+    {
+      id: 'odeme-verisi',
+      baslik: '7.1. Ödeme verisi ve ödeme kuruluşu',
+      paragraflar: [
+        'Üyelik bedelinin tahsili, Türkiye\'de yerleşik ödeme kuruluşu PayTR Ödeme ve ' +
+        'Elektronik Para Kuruluşu A.Ş. aracılığıyla yapılır. Bu bir YURT İÇİ ' +
+        'aktarımdır; yukarıdaki yurt dışı aktarım tablosuna dâhil değildir.',
+        'Kart numaranız, son kullanma tarihi ve güvenlik kodu (CVV) PayTR\'nin kendi ' +
+        'güvenli ödeme çerçevesinde girilir. Bu bilgiler LocalKarar sunucularına HİÇ ' +
+        'ULAŞMAZ ve tarafımızca saklanmaz.',
+        'Tarafımızca işlenen ödeme verileri aşağıdakilerden ibarettir.'
+      ],
+      tablo: {
+        basliklar: ['Veri', 'Amaç', 'Saklama'],
+        satirlar: [
+          ['İşlem tutarı, tarihi, sipariş numarası, işlem durumu', 'Üyeliğin başlatılması ve sürdürülmesi, uyuşmazlık hâlinde ispat', 'Yasal saklama süresi boyunca'],
+          ['Kartın maskelenmiş son haneleri', 'Kullanıcının hangi kartla ödediğini tanıyabilmesi', 'Üyelik süresince'],
+          ['Fatura kimlik bilgisi (ad soyad / unvan, TCKN veya VKN, vergi dairesi, fatura adresi)', 'Fatura düzenleme ve yasal saklama yükümlülüğü', 'Vergi mevzuatının öngördüğü süre boyunca'],
+        ]
+      },
+      son: [
+        'Fatura düzenleme yükümlülüğü gereği saklanan veriler, üyelik sona erse dahi ' +
+        'vergi mevzuatının öngördüğü süre boyunca muhafaza edilir; bu süre dolmadan ' +
+        'silinmeleri talep edilemez.',
+        '⚠️ Kart bilgisinin sunucularımıza ulaşmadığı beyanı, ödeme sayfasının PayTR ' +
+        'tarafından barındırılan çerçevede açılmasına dayanır. Bu yöntem değişirse bu ' +
+        'metin de değişir.'
       ]
     },
 

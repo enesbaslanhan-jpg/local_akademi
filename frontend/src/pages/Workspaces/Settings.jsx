@@ -5,6 +5,7 @@ import { useWorkspace } from '@/context/WorkspaceContext'
 import Button from '@/components/ui/Button'
 import { Select, Input } from '@/components/ui'
 import styles from './Settings.module.css'
+import { Trans, useTranslation } from 'react-i18next'
 
 const emptyProfile = {
   name: '',
@@ -43,6 +44,7 @@ function numberOrZero(value) {
 }
 
 export default function Settings() {
+  const { t } = useTranslation('workspace')
   const { workspaceId } = useParams()
   const { refreshActiveWorkspace } = useWorkspace()
   const [profile, setProfile] = useState(emptyProfile)
@@ -69,9 +71,9 @@ export default function Settings() {
       setYeniGonderen('')
       setYeniGonderenEtiket('')
       await gonderenleriYukle()
-      setMsg({ type: 'success', text: 'Güvenilir gönderen eklendi.' })
+      setMsg({ type: 'success', text: t('settings.senderAdded') })
     } catch (error) {
-      setMsg({ type: 'error', text: error.message || 'Gönderen eklenemedi.' })
+      setMsg({ type: 'error', text: error.message || t('settings.senderAddFailed') })
     } finally {
       setGonderenIsleniyor(false)
     }
@@ -80,14 +82,14 @@ export default function Settings() {
   async function gonderenSil(id, email) {
     /* Bu bir güvenlik ayarı: çıkarınca o adresten gelen postalar
        reddedilmeye başlar ve kullanıcı sebebini bilmeyebilir. */
-    if (!window.confirm(`${email} adresinden gelen postalar artık KABUL EDİLMEYECEK. Devam edilsin mi?`)) return
+    if (!window.confirm(t('settings.confirmSenderRemove', { email }))) return
     setGonderenIsleniyor(true)
     try {
       await api.workspace.inbox.removeSender(workspaceId, id)
       await gonderenleriYukle()
-      setMsg({ type: 'success', text: 'Gönderen çıkarıldı.' })
+      setMsg({ type: 'success', text: t('settings.senderRemoved') })
     } catch (error) {
-      setMsg({ type: 'error', text: error.message || 'Gönderen çıkarılamadı.' })
+      setMsg({ type: 'error', text: error.message || t('settings.senderRemoveFailed') })
     } finally {
       setGonderenIsleniyor(false)
     }
@@ -97,25 +99,25 @@ export default function Settings() {
     /* Adres zaten varsa bu bir YENİLEME: kullanıcıya ne olacağını
        söylemeden eskisini geçersiz kılmak sürpriz olurdu. */
     if (inbox?.acik && !window.confirm(
-      'Yeni bir adres üretilecek ve şu anki adres ÇALIŞMAYI DURDURACAK. Devam edilsin mi?'
+      t('settings.confirmInboxRenew')
     )) return
     setInboxIsleniyor(true)
     try {
       setInbox({ ...(await api.workspace.inbox.enable(workspaceId)), kanalHazir: inbox?.kanalHazir })
-      setMsg({ type: 'success', text: 'Gelen kutusu adresi hazır.' })
+      setMsg({ type: 'success', text: t('settings.inboxReady') })
     } catch (e) {
-      setMsg({ type: 'error', text: e.message || 'Adres oluşturulamadı.' })
+      setMsg({ type: 'error', text: e.message || t('settings.addressCreateFailed') })
     } finally { setInboxIsleniyor(false) }
   }
 
   async function inboxKapat() {
-    if (!window.confirm('Adres kapatılacak; bu adrese gönderilen postalar artık işlenmeyecek. Devam edilsin mi?')) return
+    if (!window.confirm(t('settings.confirmInboxClose'))) return
     setInboxIsleniyor(true)
     try {
       setInbox({ ...(await api.workspace.inbox.disable(workspaceId)), kanalHazir: inbox?.kanalHazir })
-      setMsg({ type: 'success', text: 'Gelen kutusu kapatıldı.' })
+      setMsg({ type: 'success', text: t('settings.inboxClosed') })
     } catch (e) {
-      setMsg({ type: 'error', text: e.message || 'İşlem tamamlanamadı.' })
+      setMsg({ type: 'error', text: e.message || t('settings.operationFailed') })
     } finally { setInboxIsleniyor(false) }
   }
   const [savingPreferences, setSavingPreferences] = useState(false)
@@ -155,7 +157,7 @@ export default function Settings() {
         weekStartsOn: settings.weekStartsOn
       })
     }).catch(error => {
-      setMsg({ type: 'error', text: error.message || 'İşletme bilgileri yüklenemedi.' })
+      setMsg({ type: 'error', text: error.message || t('settings.loadFailed') })
     }).finally(() => setLoading(false))
   }, [workspaceId])
 
@@ -181,9 +183,9 @@ export default function Settings() {
         debtBalance: numberOrZero(profile.debtBalance)
       })
       await refreshActiveWorkspace()
-      setMsg({ type: 'success', text: 'İşletme bilgileri kaydedildi.' })
+      setMsg({ type: 'success', text: t('settings.saved') })
     } catch (error) {
-      setMsg({ type: 'error', text: error.message || 'İşletme bilgileri kaydedilemedi.' })
+      setMsg({ type: 'error', text: error.message || t('settings.saveFailed') })
     } finally {
       setSavingProfile(false)
     }
@@ -195,9 +197,9 @@ export default function Settings() {
     setMsg(null)
     try {
       await api.workspace.settings.update(workspaceId, preferences)
-      setMsg({ type: 'success', text: 'Çalışma alanı tercihleri kaydedildi.' })
+      setMsg({ type: 'success', text: t('settings.prefsSaved') })
     } catch (error) {
-      setMsg({ type: 'error', text: error.message || 'Tercihler kaydedilemedi.' })
+      setMsg({ type: 'error', text: error.message || t('settings.prefsSaveFailed') })
     } finally {
       setSavingPreferences(false)
     }
@@ -207,7 +209,7 @@ export default function Settings() {
     setProfile(current => ({ ...current, [field]: value }))
   }
 
-  if (loading) return <div className={styles.loading}>İşletme bilgileri yükleniyor…</div>
+  if (loading) return <div className={styles.loading}>{t('settings.loading')}</div>
 
   return (
     <div className={styles.page}>
@@ -215,76 +217,76 @@ export default function Settings() {
 
       <form className={styles.card} onSubmit={saveProfile}>
         <div className={styles.heading}>
-          <h2>İşletme Profili</h2>
-          <p>Mentor önerileri ve işletme takibi bu bilgiler kullanılarak kişiselleştirilir.</p>
+          <h2>{t('settings.profileTitle')}</h2>
+          <p>{t('settings.profileDesc')}</p>
         </div>
 
         <div className={styles.grid}>
-          <label className={styles.field}>İşletme adı *
+          <label className={styles.field}>{t('settings.nameLabel')}
             <input required value={profile.name} onChange={event => setProfileField('name', event.target.value)} />
           </label>
-          <label className={styles.field}>Resmî unvan
+          <label className={styles.field}>{t('settings.legalName')}
             <input value={profile.legalName} onChange={event => setProfileField('legalName', event.target.value)} />
           </label>
           {/* e-Fatura XML'i okunduğunda faturanın YÖNÜ bununla
               belirleniyor: alıcı bu numaraysa gelen fatura, satıcı bu
               numaraysa giden fatura. Girilmezse yön tahmin edilmez,
               kullanıcıya sorulur. */}
-          <label className={styles.field}>Vergi / TC kimlik no
+          <label className={styles.field}>{t('settings.taxNumber')}
             <input
               value={profile.taxNumber}
               onChange={event => setProfileField('taxNumber', event.target.value.replace(/\D/g, ''))}
               inputMode="numeric"
               maxLength={11}
-              placeholder="10 haneli VKN ya da 11 haneli TCKN"
+              placeholder={t('settings.taxPlaceholder')}
             />
-            <small>e-Fatura yüklerken gelen/giden ayrımı bu numaradan yapılır.</small>
+            <small>{t('settings.taxHint')}</small>
           </label>
-          <label className={styles.field}>Sektör
-            <input value={profile.sector} onChange={event => setProfileField('sector', event.target.value)} placeholder="Örn. E-ticaret, tekstil" />
+          <label className={styles.field}>{t('settings.sector')}
+            <input value={profile.sector} onChange={event => setProfileField('sector', event.target.value)} placeholder={t('settings.sectorPlaceholder')} />
           </label>
-          <label className={styles.field}>Şehir
+          <label className={styles.field}>{t('settings.city')}
             <input value={profile.city} onChange={event => setProfileField('city', event.target.value)} />
           </label>
-          <label className={styles.field}>İşletme aşaması
-            <Select aria-label="İşletme aşaması" placeholder="Seçilmedi" options={[{ value: 'idea', label: 'Fikir aşaması' }, { value: 'startup', label: 'Yeni kuruldu' }, { value: 'growth', label: 'Büyüme aşaması' }, { value: 'established', label: 'Yerleşik işletme' }, { value: 'transformation', label: 'Dönüşüm aşaması' }]} value={profile.businessStage} onChange={v => setProfileField('businessStage', v)} />
+          <label className={styles.field}>{t('settings.businessStage')}
+            <Select aria-label={t('settings.businessStage')} placeholder={t('settings.stage.none')} options={[{ value: 'idea', label: t('settings.stage.idea') }, { value: 'startup', label: t('settings.stage.startup') }, { value: 'growth', label: t('settings.stage.growth') }, { value: 'established', label: t('settings.stage.established') }, { value: 'transformation', label: t('settings.stage.transformation') }]} value={profile.businessStage} onChange={v => setProfileField('businessStage', v)} />
           </label>
-          <label className={styles.field}>Çalışan sayısı
+          <label className={styles.field}>{t('settings.employeeCount')}
             <input type="number" min="0" value={profile.employeeCount} onChange={event => setProfileField('employeeCount', event.target.value)} />
           </label>
         </div>
 
-        <label className={styles.field}>Satış kanalları
-          <input value={profile.salesChannels} onChange={event => setProfileField('salesChannels', event.target.value)} placeholder="Mağaza, web sitesi, Trendyol, Instagram" />
-          <small>Birden fazla kanalı virgülle ayırın.</small>
+        <label className={styles.field}>{t('settings.salesChannels')}
+          <input value={profile.salesChannels} onChange={event => setProfileField('salesChannels', event.target.value)} placeholder={t('settings.salesChannelsPlaceholder')} />
+          <small>{t('settings.salesChannelsHint')}</small>
         </label>
-        <label className={styles.field}>Öncelikli hedef
-          <input value={profile.primaryGoal} onChange={event => setProfileField('primaryGoal', event.target.value)} placeholder="Örn. E-ticaret satışlarını artırmak" />
+        <label className={styles.field}>{t('settings.primaryGoal')}
+          <input value={profile.primaryGoal} onChange={event => setProfileField('primaryGoal', event.target.value)} placeholder={t('settings.goalPlaceholder')} />
         </label>
-        <label className={styles.field}>Temel zorluklar
-          <input value={profile.challenges} onChange={event => setProfileField('challenges', event.target.value)} placeholder="Nakit akışı, müşteri bulma, kargo maliyeti" />
-          <small>Birden fazla konuyu virgülle ayırın.</small>
+        <label className={styles.field}>{t('settings.challenges')}
+          <input value={profile.challenges} onChange={event => setProfileField('challenges', event.target.value)} placeholder={t('settings.challengesPlaceholder')} />
+          <small>{t('settings.challengesHint')}</small>
         </label>
 
-        <h3 className={styles.subheading}>Finansal özet</h3>
+        <h3 className={styles.subheading}>{t('settings.financialSummary')}</h3>
         <div className={styles.grid}>
-          <label className={styles.field}>Aylık satış
+          <label className={styles.field}>{t('settings.monthlySales')}
             <input type="number" min="0" step="0.01" value={profile.monthlySales} onChange={event => setProfileField('monthlySales', event.target.value)} />
           </label>
-          <label className={styles.field}>Aylık gider
+          <label className={styles.field}>{t('settings.monthlyExpenses')}
             <input type="number" min="0" step="0.01" value={profile.monthlyExpenses} onChange={event => setProfileField('monthlyExpenses', event.target.value)} />
           </label>
-          <label className={styles.field}>Nakit bakiyesi
+          <label className={styles.field}>{t('settings.cashBalance')}
             <input type="number" min="0" step="0.01" value={profile.cashBalance} onChange={event => setProfileField('cashBalance', event.target.value)} />
           </label>
-          <label className={styles.field}>Borç bakiyesi
+          <label className={styles.field}>{t('settings.debtBalance')}
             <input type="number" min="0" step="0.01" value={profile.debtBalance} onChange={event => setProfileField('debtBalance', event.target.value)} />
           </label>
         </div>
 
         <div className={styles.actions}>
           <Button type="submit" disabled={!profile.name.trim() || savingProfile}>
-            {savingProfile ? 'Kaydediliyor...' : 'İşletme Bilgilerini Kaydet'}
+            {savingProfile ? t('settings.saving') : t('settings.saveButton')}
           </Button>
         </div>
       </form>
@@ -297,13 +299,13 @@ export default function Settings() {
         */}
       <section className={styles.card}>
         <div className={styles.heading}>
-          <h2>e-Fatura Gelen Kutusu</h2>
-          <p>Muhasebe programınızdan faturaları doğrudan bu adrese gönderin; onay bekleyen kayıt olarak düşsün.</p>
+          <h2>{t('settings.inboxTitle')}</h2>
+          <p>{t('settings.inboxDesc')}</p>
         </div>
 
         {inbox && !inbox.kanalHazir && (
           <p className={styles.inboxUyari}>
-            Bu özellik sunucuda henüz yapılandırılmadı. Adres oluştursanız da gelen posta işlenmez.
+            {t('settings.inboxNotReady')}
           </p>
         )}
 
@@ -311,10 +313,7 @@ export default function Settings() {
           <>
             <p className={styles.inboxAdres}>{inbox.adres}</p>
             <p className={styles.inboxNot}>
-              🔴 Bu adrese yalnız iki grup gönderebilir: <strong>çalışma alanının
-              üyeleri</strong> (doğrulanmış kendi adreslerinden) ve aşağıda
-              eklediğiniz <strong>güvenilir gönderenler</strong>. Bunların
-              dışından gelen posta sessizce atılır. Adres sızarsa yenileyin.
+              🔴 <Trans t={t} i18nKey="settings.inboxNote" components={{ strong: <strong /> }} />
             </p>
 
             {/*
@@ -324,35 +323,32 @@ export default function Settings() {
               posta reddediliyor ve "otomatik düşsün" akışı çalışmıyor.
             */}
             <div className={styles.gonderenBlok}>
-              <h3>Güvenilir gönderenler</h3>
+              <h3>{t('settings.trustedSenders')}</h3>
               <p className={styles.inboxNot}>
-                Faturalarınızı kendi e-posta kutunuzdan buraya yönlendiriyorsanız,
-                faturayı <strong>gönderen</strong> adresi buraya ekleyin — yönlendirilen
-                postada gönderen siz değil, faturayı düzenleyen görünür.
-                Liste boşken yalnız üyeler gönderebilir.
+                <Trans t={t} i18nKey="settings.trustedSendersDesc" components={{ strong: <strong /> }} />
               </p>
 
               <div className={styles.gonderenForm}>
                 <Input
                   type="email"
-                  aria-label="Güvenilir gönderen e-posta adresi"
-                  placeholder="fatura@tedarikci.com"
+                  aria-label={t('settings.senderEmailLabel')}
+                  placeholder={t('settings.senderEmailPlaceholder')}
                   value={yeniGonderen}
                   onChange={e => setYeniGonderen(e.target.value)}
                 />
                 <Input
-                  aria-label="Açıklama"
-                  placeholder="Açıklama (isteğe bağlı)"
+                  aria-label={t('settings.description')}
+                  placeholder={t('settings.senderDescOptional')}
                   value={yeniGonderenEtiket}
                   onChange={e => setYeniGonderenEtiket(e.target.value)}
                 />
                 <Button type="button" onClick={gonderenEkle} disabled={gonderenIsleniyor || !yeniGonderen.trim()}>
-                  Ekle
+                  {t('settings.add')}
                 </Button>
               </div>
 
               {gonderenler.length === 0 ? (
-                <p className={styles.inboxNot}>Henüz güvenilir gönderen eklenmedi.</p>
+                <p className={styles.inboxNot}>{t('settings.noSenders')}</p>
               ) : (
                 <ul className={styles.gonderenListe}>
                   {gonderenler.map(g => (
@@ -366,7 +362,7 @@ export default function Settings() {
                         onClick={() => gonderenSil(g.id, g.email)}
                         disabled={gonderenIsleniyor}
                       >
-                        Çıkar
+                        {t('team.remove')}
                       </Button>
                     </li>
                   ))}
@@ -376,17 +372,17 @@ export default function Settings() {
 
             <div className={styles.actions}>
               <Button type="button" variant="secondary" onClick={inboxAc} disabled={inboxIsleniyor}>
-                Adresi yenile
+                {t('settings.renewAddress')}
               </Button>
               <Button type="button" variant="ghost" onClick={inboxKapat} disabled={inboxIsleniyor}>
-                Kapat
+                {t('common:buttons.close')}
               </Button>
             </div>
           </>
         ) : (
           <div className={styles.actions}>
             <Button type="button" onClick={inboxAc} disabled={inboxIsleniyor}>
-              {inboxIsleniyor ? 'Hazırlanıyor…' : 'Gelen kutusunu aç'}
+              {inboxIsleniyor ? t('settings.preparing') : t('settings.openInbox')}
             </Button>
           </div>
         )}
@@ -394,25 +390,31 @@ export default function Settings() {
 
       <form className={styles.card} onSubmit={savePreferences}>
         <div className={styles.heading}>
-          <h2>Çalışma Alanı Tercihleri</h2>
-          <p>Takvim, para birimi ve bölgesel gösterim ayarları.</p>
+          <h2>{t('settings.prefsTitle')}</h2>
+          <p>{t('settings.prefsDesc')}</p>
         </div>
         <div className={styles.grid}>
-          <label className={styles.field}>Saat dilimi
-            <Select aria-label="Saat dilimi" options={[{ value: 'Europe/Istanbul', label: 'İstanbul (GMT+3)' }, { value: 'Europe/London', label: 'Londra (GMT+0/+1)' }, { value: 'America/New_York', label: 'New York (GMT-5/-4)' }]} value={preferences.timezone} onChange={v => setPreferences(current => ({ ...current, timezone: v }))} />
+          <label className={styles.field}>{t('settings.timezone')}
+            <Select aria-label={t('settings.timezone')} options={[{ value: 'Europe/Istanbul', label: t('settings.timezoneIstanbul') }, { value: 'Europe/London', label: t('settings.timezoneLondon') }, { value: 'America/New_York', label: t('settings.timezoneNewYork') }]} value={preferences.timezone} onChange={v => setPreferences(current => ({ ...current, timezone: v }))} />
           </label>
-          <label className={styles.field}>Dil / bölge
-            <Select aria-label="Dil / bölge" options={[{ value: 'tr-TR', label: 'Türkçe (Türkiye)' }, { value: 'en-US', label: 'English (US)' }]} value={preferences.locale} onChange={v => setPreferences(current => ({ ...current, locale: v }))} />
+          {/* "Dil / bölge" DEĞİL: seçenek yalnızca tarih ve sayı
+              biçimini değiştirir; arayüz dili Türkçe kalır. English (US)
+              etiketi seçilse bile arayüzü İngilizce yapmaz — yanlış
+              vaat yerine gerçeğini yazıyoruz. Seçenek kaldırılmadı,
+              biçim ayarı gerçek bir ihtiyaç. */}
+          <label className={styles.field}>{t('settings.dateFormat')}
+            <Select aria-label={t('settings.dateFormat')} options={[{ value: 'tr-TR', label: t('settings.localeTurkishTurkey') }, { value: 'en-US', label: t('settings.localeEnglishUS') }]} value={preferences.locale} onChange={v => setPreferences(current => ({ ...current, locale: v }))} />
+            <small>{t('settings.dateFormatHint')}</small>
           </label>
-          <label className={styles.field}>Para birimi
-            <Select aria-label="Para birimi" options={[{ value: 'TRY', label: '₺ TRY' }, { value: 'USD', label: '$ USD' }, { value: 'EUR', label: '€ EUR' }, { value: 'GBP', label: '£ GBP' }]} value={preferences.defaultCurrency} onChange={v => setPreferences(current => ({ ...current, defaultCurrency: v }))} />
+          <label className={styles.field}>{t('settings.currency')}
+            <Select aria-label={t('settings.currency')} options={[{ value: 'TRY', label: '₺ TRY' }, { value: 'USD', label: '$ USD' }, { value: 'EUR', label: '€ EUR' }, { value: 'GBP', label: '£ GBP' }]} value={preferences.defaultCurrency} onChange={v => setPreferences(current => ({ ...current, defaultCurrency: v }))} />
           </label>
-          <label className={styles.field}>Hafta başlangıcı
-            <Select aria-label="Hafta başlangıcı" options={[{ value: '1', label: 'Pazartesi' }, { value: '0', label: 'Pazar' }]} value={String(preferences.weekStartsOn)} onChange={v => setPreferences(current => ({ ...current, weekStartsOn: Number(v) }))} />
+          <label className={styles.field}>{t('settings.weekStart')}
+            <Select aria-label={t('settings.weekStart')} options={[{ value: '1', label: t('settings.monday') }, { value: '0', label: t('settings.sunday') }]} value={String(preferences.weekStartsOn)} onChange={v => setPreferences(current => ({ ...current, weekStartsOn: Number(v) }))} />
           </label>
         </div>
         <div className={styles.actions}>
-          <Button type="submit" disabled={savingPreferences}>{savingPreferences ? 'Kaydediliyor...' : 'Tercihleri Kaydet'}</Button>
+          <Button type="submit" disabled={savingPreferences}>{savingPreferences ? t('settings.saving') : t('settings.savePrefs')}</Button>
         </div>
       </form>
     </div>

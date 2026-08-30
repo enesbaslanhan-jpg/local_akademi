@@ -1,17 +1,20 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/services/api'
 import { Loading } from '@/components/ui'
 import { Shield, Filter, ArrowUpDown } from 'lucide-react'
 import styles from './AdminAuditLog.module.css'
+import { getFormatLocale } from '@/utils/formatters'
 
 function formatDate(dateStr) {
   if (!dateStr) return '-'
   try {
-    return new Date(dateStr).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    return new Date(dateStr).toLocaleDateString(getFormatLocale(), { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
   } catch { return '-' }
 }
 
 export default function AdminAuditLog() {
+  const { t } = useTranslation('admin')
   const [logs, setLogs] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -42,26 +45,26 @@ export default function AdminAuditLog() {
       <div className={`flex items-center gap-2 mb-6 ${styles.header}`}>
         <Shield size={24} className={`text-indigo-600 ${styles.headerIcon}`} />
         {/* Sayfa adı üst barda yazıyor; görünür h1 yerine sr-only başlık. */}
-        <h1 className="sr-only">Denetim Kayıtları</h1>
-        <span className={styles.title}>Denetim Kayıtları</span>
-        <span className={`text-sm text-gray-500 ml-2 ${styles.count}`}>({total} kayıt)</span>
+        <h1 className="sr-only">{t('audit.heading')}</h1>
+        <span className={styles.title}>{t('audit.heading')}</span>
+        <span className={`text-sm text-gray-500 ml-2 ${styles.count}`}>({total} {t('audit.recordCount')})</span>
       </div>
 
       <div className={`flex gap-4 mb-4 items-end ${styles.filters}`}>
         <div>
-          <label className={`text-xs text-gray-500 mb-1 block ${styles.filterLabel}`}>Varlık Türü</label>
+          <label className={`text-xs text-gray-500 mb-1 block ${styles.filterLabel}`}>{t('audit.filters.entityType')}</label>
           <input
             className={`border rounded px-3 py-1.5 text-sm ${styles.filterInput}`}
-            placeholder="örn: knowledge_object"
+            placeholder={t('audit.filters.entityPlaceholder')}
             value={filters.entityType}
             onChange={e => { setFilters(f => ({ ...f, entityType: e.target.value })); setPage(1) }}
           />
         </div>
         <div>
-          <label className={`text-xs text-gray-500 mb-1 block ${styles.filterLabel}`}>İşlem</label>
+          <label className={`text-xs text-gray-500 mb-1 block ${styles.filterLabel}`}>{t('audit.filters.action')}</label>
           <input
             className={`border rounded px-3 py-1.5 text-sm ${styles.filterInput}`}
-            placeholder="örn: knowledge_object.published"
+            placeholder={t('audit.filters.actionPlaceholder')}
             value={filters.action}
             onChange={e => { setFilters(f => ({ ...f, action: e.target.value })); setPage(1) }}
           />
@@ -71,25 +74,25 @@ export default function AdminAuditLog() {
             className={`text-sm text-indigo-600 px-3 py-1.5 ${styles.clearBtn}`}
             onClick={() => { setFilters({ entityType: '', action: '' }); setPage(1) }}
           >
-            Temizle
+            {t('audit.filters.clear')}
           </button>
         )}
       </div>
 
       {loading ? (
-        <Loading text="Yükleniyor..." />
+        <Loading text={t('audit.loading')} />
       ) : (
         <>
           <div className={`overflow-x-auto ${styles.tableWrap}`}>
             <table className={`w-full text-sm border-collapse ${styles.table}`}>
               <thead>
                 <tr className="bg-gray-50 text-left">
-                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>Tarih</th>
-                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>İşlem</th>
-                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>Varlık</th>
-                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>Varlık ID</th>
-                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>Kullanıcı</th>
-                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>Detay</th>
+                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>{t('audit.table.date')}</th>
+                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>{t('audit.table.action')}</th>
+                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>{t('audit.table.entity')}</th>
+                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>{t('audit.table.entityId')}</th>
+                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>{t('audit.table.user')}</th>
+                  <th className={`px-3 py-2 border-b font-medium text-gray-600 ${styles.th}`}>{t('audit.table.detail')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -106,7 +109,7 @@ export default function AdminAuditLog() {
                   </tr>
                 ))}
                 {logs.length === 0 && (
-                  <tr><td colSpan={6} className={`px-3 py-8 text-center text-gray-400 ${styles.emptyCell}`}>Kayıt bulunamadı</td></tr>
+                  <tr><td colSpan={6} className={`px-3 py-8 text-center text-gray-400 ${styles.emptyCell}`}>{t('audit.empty')}</td></tr>
                 )}
               </tbody>
             </table>
@@ -119,17 +122,17 @@ export default function AdminAuditLog() {
                 disabled={page <= 1}
                 onClick={() => setPage(p => Math.max(1, p - 1))}
               >
-                Önceki
+                {t('audit.pagination.previous')}
               </button>
               <span className={`px-3 py-1 text-sm text-gray-600 ${styles.pageInfo}`}>
-                Sayfa {page} / {totalPages}
+                {t('audit.pagination.page')} {page} / {totalPages}
               </span>
               <button
                 className={`px-3 py-1 text-sm border rounded disabled:opacity-50 ${styles.pageBtn}`}
                 disabled={page >= totalPages}
                 onClick={() => setPage(p => p + 1)}
               >
-                Sonraki
+                {t('audit.pagination.next')}
               </button>
             </div>
           )}

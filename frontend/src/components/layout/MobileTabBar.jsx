@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { mobileTabLinks } from './Sidebar'
 import styles from './MobileTabBar.module.css'
+import { useTranslation } from 'react-i18next'
 
 /*
  * MOBİL ALT SEKME ÇUBUĞU — yalnızca <900px'te görünür.
@@ -16,6 +17,7 @@ import styles from './MobileTabBar.module.css'
  * yönetim grubu) üstteki hamburgerden açılan drawer'da kalır.
  */
 export default function MobileTabBar() {
+  const { t } = useTranslation('common')
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -28,7 +30,7 @@ export default function MobileTabBar() {
       : location.pathname === link.path || location.pathname.startsWith(link.path + '/')
 
   return (
-    <nav className={styles.tabBar} aria-label="Alt navigasyon">
+    <nav className={styles.tabBar} aria-label={t('nav.bottomNavigation')}>
       {mobileTabLinks.map(link => {
         const Icon = link.icon
         const active = isActive(link)
@@ -41,7 +43,7 @@ export default function MobileTabBar() {
             aria-current={active ? 'page' : undefined}
           >
             <Icon size={20} aria-hidden="true" />
-            <span className={styles.label}>{link.kisaEtiket || link.label}</span>
+            <span className={styles.label}>{t(link.shortLabelKey || link.i18nKey)}</span>
           </button>
         )
       })}

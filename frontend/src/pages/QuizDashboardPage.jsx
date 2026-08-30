@@ -4,6 +4,7 @@ import { api } from '@/services/api'
 import { Card, CardHeader, CardTitle, Badge, Button, Progress, Loading, EmptyState } from '@/components/ui'
 import { Award, Brain, CheckCircle, XCircle, BarChart3, ArrowRight, Clock } from 'lucide-react'
 import styles from './QuizDashboardPage.module.css'
+import { getFormatLocale } from '@/utils/formatters'
 
 export default function QuizDashboardPage() {
   const navigate = useNavigate()
@@ -181,7 +182,7 @@ export default function QuizDashboardPage() {
                       <span className={styles.historyMeta}>
                         Skor: %{h.score} &middot;
                         {h.passed ? ' Gecti' : ' Kaldi'} &middot;
-                        {new Date(h.createdAt).toLocaleDateString('tr-TR')}
+                        {new Date(h.createdAt).toLocaleDateString(getFormatLocale())}
                       </span>
                     </div>
                   </div>

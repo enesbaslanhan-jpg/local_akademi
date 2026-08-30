@@ -9,7 +9,7 @@ import type { Prisma } from '@prisma/client'
  * yazilir ve registry'e kaydedilir.
  */
 
-export type ProviderCode = 'TRENDYOL' | 'HEPSIBURADA' | 'N11' | 'SHOPIFY' | 'WOOCOMMERCE'
+export type ProviderCode = 'TRENDYOL' | 'HEPSIBURADA' | 'N11' | 'SHOPIFY' | 'AMAZON' | 'WOOCOMMERCE'
 
 export type NormalizedOrderStatus =
   | 'CREATED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED'

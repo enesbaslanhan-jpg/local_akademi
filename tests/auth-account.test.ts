@@ -55,6 +55,28 @@ describe('account management', () => {
     expect(response.statusCode).toBe(422)
   })
 
+  it('persists the interface language independently and returns it from /auth/me', async () => {
+    const invalid = await app.inject({
+      method: 'PATCH', url: '/auth/preferences',
+      headers: { authorization: `Bearer ${token}` },
+      payload: { uiLanguage: 'de' }
+    })
+    expect(invalid.statusCode).toBe(422)
+    expect(invalid.json().code).toBe('INVALID_PREFERENCE')
+
+    const saved = await app.inject({
+      method: 'PATCH', url: '/auth/preferences',
+      headers: { authorization: `Bearer ${token}` },
+      payload: { uiLanguage: 'en' }
+    })
+    expect(saved.statusCode).toBe(200)
+    expect(saved.json().uiLanguage).toBe('en')
+
+    const me = await app.inject({ method: 'GET', url: '/auth/me', headers: { authorization: `Bearer ${token}` } })
+    expect(me.statusCode).toBe(200)
+    expect(me.json().uiLanguage).toBe('en')
+  })
+
   it('validates, stores and removes a profile photo', async () => {
     const boundary = `avatar-boundary-${Date.now()}`
     const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Zr2AAAAAASUVORK5CYII=', 'base64')

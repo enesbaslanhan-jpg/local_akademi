@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import styles from './PasswordInput.module.css'
+import { useTranslation } from 'react-i18next'
 
 /*
  * Şifre alanı + göster/gizle düğmesi.
@@ -29,8 +30,9 @@ import styles from './PasswordInput.module.css'
  */
 export default function PasswordInput({ overlay = false, wrapClassName, ...inputProps }) {
   const [gorunur, setGorunur] = useState(false)
+  const { t } = useTranslation('common')
 
-  const etiket = gorunur ? 'Şifreyi gizle' : 'Şifreyi göster'
+  const etiket = gorunur ? t('ui.password.hide') : t('ui.password.show')
   const Icon = gorunur ? EyeOff : Eye
 
   const siniflar = [styles.wrap, overlay ? styles.overlay : '', wrapClassName]
