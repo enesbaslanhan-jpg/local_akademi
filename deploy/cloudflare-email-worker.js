@@ -100,22 +100,77 @@ function baytlariBase64(baytlar) {
  * Tanınmayan ek sessizce atlanıyor; sunucu zaten sıfır ekli postayı
  * işlemiyor.
  */
+/*
+ * Postadaki BÜTÜN sınırlar toplanıyor.
+ *
+ * 🔴 Önceki sürüm yalnız İLK `boundary=` değerini alıyordu. Gmail ve
+ * iCloud `multipart/mixed` içine `multipart/alternative` gömüyor; ilk
+ * değer çoğu zaman İÇ sınır oluyor ve eki taşıyan dış parça hiç
+ * ayrılamıyordu. Ölçüldü (31.08.2026): ekli üç posta arka arkaya
+ * "eksiz" sayılıp sessizce atıldı.
+ */
+function sinirlariBul(hamMetin) {
+  const sinirlar = new Set()
+  const desen = /boundary\s*=\s*"?([^";\r\n]+)"?/gi
+  let eslesme
+  while ((eslesme = desen.exec(hamMetin)) !== null) sinirlar.add(eslesme[1].trim())
+  return [...sinirlar]
+}
+
+/*
+ * Dosya adı üç ayrı yerden gelebiliyor.
+ *
+ * 🔴 `filename*=UTF-8''...` (RFC 2231) biçimini önceki regex HİÇ
+ * görmüyordu. Türkçe karakterli ya da boşluklu dosya adları tam olarak
+ * böyle kodlanıyor — yani "E-Fatura Örnek.pdf" adlı bir ek, ayrıştırıcı
+ * onu bulamadığı için yok sayılıyordu.
+ */
+function dosyaAdi(parca) {
+  const utf = parca.match(/filename\*\s*=\s*(?:UTF-8|utf-8)''([^\r\n;]+)/i)
+  if (utf) {
+    try { return decodeURIComponent(utf[1].trim()) } catch { return utf[1].trim() }
+  }
+  const duz = parca.match(/filename\s*=\s*"?([^";\r\n]+)"?/i)
+  if (duz) return duz[1].trim()
+  /* Bazı istemciler adı yalnız `content-type: application/pdf; name="..."`
+     içinde veriyor. */
+  const ad = parca.match(/\bname\s*=\s*"?([^";\r\n]+)"?/i)
+  return ad ? ad[1].trim() : null
+}
+
 function ekleriCikar(hamMetin) {
   const ekler = []
-  const sinirEslesme = hamMetin.match(/boundary="?([^"\r\n;]+)"?/i)
-  if (!sinirEslesme) return ekler
+  const sinirlar = sinirlariBul(hamMetin)
+  if (!sinirlar.length) return { ekler, parcaSayisi: 0, sinirSayisi: 0 }
 
-  const parcalar = hamMetin.split(`--${sinirEslesme[1]}`)
+  /* Her sınıra göre sırayla bölünüyor: iç içe multipart'ta tek bölme
+     yetmiyor, dış parça bölünmeden iç parçalara inilemiyor. */
+  let parcalar = [hamMetin]
+  for (const sinir of sinirlar) {
+    const yeni = []
+    for (const p of parcalar) yeni.push(...p.split(`--${sinir}`))
+    parcalar = yeni
+  }
+
   let toplam = 0
 
   for (const parca of parcalar) {
     if (ekler.length >= EN_FAZLA_EK) break
-    if (!/content-disposition:\s*attachment/i.test(parca)) continue
     if (!/content-transfer-encoding:\s*base64/i.test(parca)) continue
 
-    const ad = parca.match(/filename="?([^"\r\n;]+)"?/i)
+    /*
+     * `content-disposition: attachment` ARTIK ŞART DEĞİL.
+     *
+     * Bazı istemciler faturayı `inline` olarak işaretliyor. Asıl sinyal
+     * base64 gövde + dosya adı ikilisi. Gereksiz şey (imzadaki logo)
+     * gelirse sunucu zaten uzantı/MIME/sihirli bayt kapısında
+     * reddediyor VE sebebini günlüğe yazıyor — yani gürültü görünür
+     * kalıyor, sessiz kayıp değil. Ters yönde hata yapmak daha pahalı.
+     */
+    const adDegeri = dosyaAdi(parca)
     const tur = parca.match(/content-type:\s*([^;\r\n]+)/i)
-    if (!ad) continue
+    if (!adDegeri) continue
+    const ad = [null, adDegeri]
 
     /* Başlıklar ile gövde arasındaki boş satır. */
     const ayrac = parca.indexOf('\r\n\r\n')
@@ -133,7 +188,7 @@ function ekleriCikar(hamMetin) {
       content: govde
     })
   }
-  return ekler
+  return { ekler, parcaSayisi: parcalar.length, sinirSayisi: sinirlar.length }
 }
 
 export default {
@@ -150,6 +205,7 @@ export default {
       if (!env.INBOUND_SECRET || !env.API_URL) return
 
       const ham = await new Response(message.raw).text()
+      const cozum = ekleriCikar(ham)
 
       const yuk = {
         inboxKey: kutuAnahtari(message.to),
@@ -157,14 +213,39 @@ export default {
         subject: (message.headers.get('subject') || '').slice(0, 500),
         dkim: kimlikSonucu(message.headers, 'dkim'),
         spf: kimlikSonucu(message.headers, 'spf'),
-        ekler: ekleriCikar(ham)
+        ekler: cozum.ekler
+      }
+
+      /*
+       * 🔴 HER SONUÇ GÜNLÜĞE YAZILIYOR.
+       *
+       * Önceki sürüm eksiz postada sessizce çıkıyordu ve iletim
+       * sonucunu da hiç yazmıyordu. Sonuç: "Cloudflare Handled diyor
+       * ama sunucuda iz yok" durumu ortaya çıktı ve sebebi ancak
+       * ayrıştırıcı elle okunarak bulunabildi.
+       *
+       * Cloudflare'ın "Handled" demesi Worker'ın ÇALIŞTIĞINI söyler,
+       * bir iş YAPTIĞINI değil. Aradaki farkı yalnız bu satırlar
+       * gösteriyor.
+       */
+      const tani = {
+        kutu: yuk.inboxKey,
+        dkim: yuk.dkim,
+        spf: yuk.spf,
+        sinir: cozum.sinirSayisi,
+        parca: cozum.parcaSayisi,
+        ek: yuk.ekler.length,
+        adlar: yuk.ekler.map(e => e.filename).slice(0, 5)
       }
 
       /* Eksiz posta sunucuya HİÇ gitmiyor: işlenecek bir şey yok ve
-         gereksiz istek, hız sınırından yer yer. */
-      if (yuk.ekler.length === 0) return
+         gereksiz istek hız sınırından yer yer. Ama artık SESSİZ değil. */
+      if (yuk.ekler.length === 0) {
+        console.log('EK BULUNAMADI, sunucuya gonderilmedi', JSON.stringify(tani))
+        return
+      }
 
-      await fetch(`${env.API_URL}/inbound/email`, {
+      const yanit = await fetch(`${env.API_URL}/inbound/email`, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
@@ -172,6 +253,10 @@ export default {
         },
         body: JSON.stringify(yuk)
       })
+
+      /* Durum kodu şart: 401 (secret uyuşmuyor) ile 202 (kabul edildi)
+         arasındaki farkı başka hiçbir yerden göremiyoruz. */
+      console.log('sunucuya iletildi', JSON.stringify({ ...tani, status: yanit.status }))
     } catch (hata) {
       /* Worker'ın çökmesi de sessiz kalmalı; gönderene bilgi gitmesin.
          Cloudflare kendi günlüğüne yazıyor. */
