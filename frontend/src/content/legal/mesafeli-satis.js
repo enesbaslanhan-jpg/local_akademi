@@ -99,7 +99,13 @@ export default {
         `Sözleşmenin kurulduğu anda tahsil edilecek ilk tutar ${fiyatYaz(ilkUcretliTutar())}'dir.`,
         'Ödemeler, ödeme kuruluşu PayTR aracılığıyla kredi kartı veya banka kartı ile ' +
         'alınır. Kart bilgileri PayTR\'nin güvenli ödeme çerçevesinde girilir; Satıcı ' +
-        'sunucularına ulaşmaz ve Satıcı tarafından saklanmaz.'
+        'sunucularına ulaşmaz ve Satıcı tarafından saklanmaz.',
+        'ÜYELİK, ALICI İPTAL ETMEDİĞİ SÜRECE SEÇİLEN DÖNEMİN SONUNDA KENDİLİĞİNDEN ' +
+        'YENİLENİR ve kayıtlı karttan otomatik olarak tahsil edilir. Bu amaçla kart, ' +
+        'ödeme kuruluşu nezdinde saklanır; Alıcı buna ödeme ekranında ayrı ve açık bir ' +
+        'onayla izin verir, onay verilmeden üyelik başlatılmaz. Her tahsilattan önce ' +
+        'tarih ve tutar Alıcı\'ya bildirilir. Ayrıntı Abonelik ve Faturalandırma ' +
+        'Koşulları\'ndadır.'
       ]
     },
 
@@ -108,7 +114,7 @@ export default {
       baslik: '5. Bedel değişikliği ve kurucu üye indirimi',
       paragraflar: [
         `Alıcı, Kurucu Üye Programı kapsamında, geçerli standart bedelin ` +
-        `%${kuruculIndirimYuzdesi()} altını öder. Bu indirim oranı üyelik sürdüğü sürece ` +
+        `EN AZ %${kuruculIndirimYuzdesi()} altını öder. Bu indirim oranı üyelik sürdüğü sürece ` +
         'değişmez.',
         'İndirimin oransal olması, bedelin sabit olduğu anlamına gelmez. Standart bedel ' +
         'yükseldiğinde Alıcı\'nın ödeyeceği bedel de yükselir; ancak her zaman aynı ' +

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import StorageNotice from '@/components/ui/StorageNotice'
-import { SATICI, saticiSatirlari } from '@/config/seller'
+import { SATICI, saticiSatirlari, iletisimEpostasi } from '@/config/seller'
 import styles from './PublicFooter.module.css'
 
 /*
@@ -75,7 +75,7 @@ function KompaktAltBilgi({ t }) {
         ))}
       </nav>
       <span className={styles.kompaktSatici}>
-        {SATICI.ad} · <a href={`mailto:${SATICI.eposta}`}>{SATICI.eposta}</a>
+        {SATICI.ad} · <a href={`mailto:${iletisimEpostasi()}`}>{iletisimEpostasi()}</a>
       </span>
     </footer>
   )

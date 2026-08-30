@@ -689,7 +689,7 @@
       "beforeEmail": "KVKK kapsamındaki başvurularınızı",
       "afterEmail": "adresine iletin. Hangi bilgileri eklemeniz gerektiği",
       "link": "Aydınlatma Metni’nin başvuru bölümünde",
-      "suffix": "yazılıdır."
+      "suffix": " yazılıdır."
     },
     "form": {
       "title": "Bize yazın",
@@ -734,7 +734,7 @@
       "launchPeriod_one": "{{count}} aylık lansman dönemi",
       "launchPeriod_other": "{{count}} aylık lansman dönemi",
       "nextStandardPrice": "Sonraki standart fiyat",
-      "lockedPrice": "Kurucu üye indirimin kalıcı: standart fiyatın her zaman %{{percent}} altını ödersin.",
+      "lockedPrice": "Kurucu üye indirimin kalıcı: standart fiyatın her zaman en az %{{percent}} altını ödersin.",
       "managePayment": "Ödemeyi yönet",
       "invoices": "Faturalar",
       "cancelMembership": "Üyeliği iptal et",
@@ -753,7 +753,7 @@
       "dueToday": "Bugün ödenecek",
       "nextPayment": "Sonraki ödeme",
       "fromMonth": "{{month}}. aydan itibaren",
-      "lockedPrice": "Kurucu üye indirimin kalıcı: standart fiyat yükselse bile her zaman %{{percent}} altını ödersin.",
+      "lockedPrice": "Kurucu üye indirimin kalıcı: standart fiyat yükselse bile her zaman en az %{{percent}} altını ödersin.",
       "paymentAreaAria": "Ödeme alanı",
       "securePaymentTitle": "Güvenli ödeme alanı",
       "securePaymentDescription": "Ödeme altyapısı kurulum aşamasında. Etkinleştiğinde kart bilgilerin bu alanda, PayTR’nin güvenli formunda istenecek.",
@@ -768,7 +768,8 @@
       "distanceSale": "Mesafeli Hizmet Sözleşmesi",
       "preInfo": "Ön Bilgilendirme Formu",
       "and": "ve",
-      "withdrawalWaiver": "Hizmetin derhal ifasına başlanmasını istiyorum ve bu nedenle cayma hakkımı kaybedeceğimi biliyorum."
+      "withdrawalWaiver": "Hizmetin derhal ifasına başlanmasını istiyorum ve bu nedenle cayma hakkımı kaybedeceğimi biliyorum.",
+      "recurringConsent": "Üyeliğimin dönem sonunda kendiliğinden yenilenmesini ve kayıtlı kartımdan otomatik tahsil edilmesini kabul ediyorum. Kartım bu amaçla ödeme kuruluşunda saklanır; iptal ettiğimde yenileme durur."
     },
     "pricePerYear": "{{price}} / yıl",
     "period": {
@@ -782,7 +783,7 @@
   "pricing": {
     "eyebrow": "Kurucu Üye Programı",
     "title": "LocalKarar’ın ilk kullanıcılarından biri ol",
-    "heroDescription": "İlk ay ücretsiz, sonraki üç ay {{launchPrice}}/ay. Ardından {{founderPrice}}/ay — ve kurucu üye olarak standart fiyatın her zaman %{{percent}} altını ödersin.",
+    "heroDescription": "İlk ay ücretsiz, sonraki üç ay {{launchPrice}}/ay. Ardından {{founderPrice}}/ay — ve kurucu üye olarak standart fiyatın her zaman en az %{{percent}} altını ödersin.",
     "notStartedTitle": "Ücretlendirme henüz başlamadı.",
     "notStartedDescription": "Şu anda tüm özellikler ücretsiz kullanılabiliyor. Ücretli üyelik başlamadan önce bilgilendirileceksin.",
     "howItWorks": "Nasıl ilerliyor",
@@ -809,7 +810,7 @@
         },
         "founder": {
           "title": "Kurucu üye fiyatı",
-          "note": "Standart fiyatın her zaman %{{percent}} altı."
+          "note": "Standart fiyatın en az %{{percent}} altı."
         }
       }
     },
@@ -841,7 +842,7 @@
       },
       "increase": {
         "question": "Fiyatlar artarsa ne olacak?",
-        "answer": "Kurucu üye fiyatı dondurulmuyor, standart fiyata bağlanıyor. Standart fiyat yükselirse senin fiyatın da yükselir — ama her zaman %{{percent}} altında kalır. Yani zamdan muaf değilsin, zamdan diğer üyelere göre daha az etkileniyorsun. Her fiyat değişikliği öncesinde bilgilendirilirsin."
+        "answer": "Kurucu üye fiyatı dondurulmuyor, standart fiyata bağlanıyor. Standart fiyat yükselirse senin fiyatın da yükselir — ama her zaman en az %{{percent}} altında kalır. Yani zamdan muaf değilsin, zamdan diğer üyelere göre daha az etkileniyorsun. Her fiyat değişikliği öncesinde bilgilendirilirsin."
       },
       "yearly": {
         "question": "Aylık mı yıllık mı seçmeliyim?",
@@ -849,8 +850,9 @@
       }
     },
     "yearlyEquivalent": "Aylık {{monthly}} karşılığı · yılda {{saving}} kazanç.",
-    "discountTitle": "Kurucu üye indirimin %{{percent}} ve kalıcı.",
-    "discountDescription": "Fiyatını dondurmuyoruz — standart fiyata bağlıyoruz. {{month}}. aydan itibaren, standart fiyatımız ileride yükselse bile her zaman %{{percent}} altını ödersin. Zamlar seni diğer üyelerden daha az etkiler.",
+    "periodNote": "Seçtiğiniz dönem {{month}}. aydan itibaren geçerlidir; bugün ödenecek tutar değişmez. Üyelik, iptal edilmedikçe dönem sonunda kendiliğinden yenilenir ve kayıtlı karttan tahsil edilir.",
+    "discountTitle": "Kurucu üye indirimin en az %{{percent}} ve kalıcı.",
+    "discountDescription": "Fiyatını dondurmuyoruz — standart fiyata bağlıyoruz. {{month}}. aydan itibaren, standart fiyatımız ileride yükselse bile her zaman en az %{{percent}} altını ödersin. Tutar aşağı yuvarlandığı için gerçek indirim biraz daha yüksek olabilir. Zamlar seni diğer üyelerden daha az etkiler.",
     "benefitsTitle": "Kurucu üye olmak ne kazandırır",
     "benefits": {
       "priceLock": {

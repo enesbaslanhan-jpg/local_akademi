@@ -1,3 +1,5 @@
+import { iletisimEpostasi } from '@/config/seller'
+
 /*
  * KULLANIM KOŞULLARI
  *
@@ -45,7 +47,10 @@ export default {
       paragraflar: [
         'Bu koşullar, uygulamayı işleten Enes Buğra Aslanhan (gerçek kişi, Ankara / ' +
         'Yenimahalle) ile uygulamayı kullanan siz arasında kurulur.',
-        'İletişim: kvkk@localkarar.com'
+        /* Satış ve destek adresi tek kaynaktan; `destek@` açıldığında
+           burası da kendiliğinden değişir. KVKK başvuruları için ayrılmış
+           adres aydınlatma metninde ayrıca yazılı — ikisi bilerek farklı. */
+        `İletişim: ${iletisimEpostasi()}`
       ]
     },
 

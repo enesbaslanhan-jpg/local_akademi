@@ -108,28 +108,44 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
     type: 'on-bilgilendirme',
     title: 'Ön Bilgilendirme Formu',
     titleEn: 'Pre-Contract Information Form',
-    version: '2026-08-29',
+    /* 2026-08-30: OTOMATİK YENİLEME açıkça yazıldı (ürün sahibi
+       kararı) ve kurucu indirimi "en az %40" olarak düzeltildi —
+       499 x 0,6 = 299,4 aşağı yuvarlandığı için gerçek indirim
+       %40'ın biraz üstünde; "tam %40" demek yanlış beyandı. */
+    version: '2026-08-30',
     requiredAtSignup: false
   },
   {
     type: 'mesafeli-satis',
     title: 'Mesafeli Hizmet Sözleşmesi',
     titleEn: 'Distance Service Agreement',
-    version: '2026-08-29',
+    /* 2026-08-30: OTOMATİK YENİLEME açıkça yazıldı (ürün sahibi
+       kararı) ve kurucu indirimi "en az %40" olarak düzeltildi —
+       499 x 0,6 = 299,4 aşağı yuvarlandığı için gerçek indirim
+       %40'ın biraz üstünde; "tam %40" demek yanlış beyandı. */
+    version: '2026-08-30',
     requiredAtSignup: false
   },
   {
     type: 'teslimat-iade',
     title: 'Teslimat, İptal ve İade Koşulları',
     titleEn: 'Delivery, Cancellation and Refund Terms',
-    version: '2026-08-29',
+    /* 2026-08-30: OTOMATİK YENİLEME açıkça yazıldı (ürün sahibi
+       kararı) ve kurucu indirimi "en az %40" olarak düzeltildi —
+       499 x 0,6 = 299,4 aşağı yuvarlandığı için gerçek indirim
+       %40'ın biraz üstünde; "tam %40" demek yanlış beyandı. */
+    version: '2026-08-30',
     requiredAtSignup: false
   },
   {
     type: 'abonelik',
     title: 'Abonelik ve Faturalandırma Koşulları',
     titleEn: 'Subscription and Billing Terms',
-    version: '2026-08-29',
+    /* 2026-08-30: OTOMATİK YENİLEME açıkça yazıldı (ürün sahibi
+       kararı) ve kurucu indirimi "en az %40" olarak düzeltildi —
+       499 x 0,6 = 299,4 aşağı yuvarlandığı için gerçek indirim
+       %40'ın biraz üstünde; "tam %40" demek yanlış beyandı. */
+    version: '2026-08-30',
     requiredAtSignup: false
   }
 ]

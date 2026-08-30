@@ -22,10 +22,21 @@ import {
  * "Standart bedelin %40 altı" cümlesi, standart bedel gizliyken
  * ölçülemez bir vaattir.
  *
- * 🔴 "OTOMATİK YENİLENİR" DENMİYOR.
- * Yenilemenin otomatik mi elle mi olacağı (`renewalMode`) ödeme
- * turunda kararlaştırılacak. Olmayan bir davranışı taahhüt etmek
- * yanlış beyandır; karar verildiğinde bu bölüm ve sürüm güncellenir.
+ * ✅ OTOMATİK YENİLEME KARARI VERİLDİ (30.08.2026, ürün sahibi).
+ *
+ * Bu dosya uzun süre "otomatik yenilenir denmiyor, karar verilmedi"
+ * diyordu — ama metnin geri kalanı ("sonraki tahsilat", "tahsilat
+ * gerçekleşmezse", "iptal edilince yeni tahsilat yapılmaz") otomatiği
+ * zaten İMA EDİYORDU. Söylemeden ima etmek üç seçenek arasında en
+ * kötüsüydü: kullanıcı ne olacağını bilmiyor, metin de kendi içinde
+ * tutarsız kalıyordu.
+ *
+ * 🔴 BU BİR YETENEK BAĞIMLILIĞI TAŞIYOR.
+ * Kayıtlı kartla tekrarlayan tahsilat, PayTR'de ayrı bir yetki (kart
+ * saklama + Non-3D). Ödeme entegrasyonu yazılırken bu yetkinin
+ * gerçekten verildiği DOĞRULANMALI. Verilmezse 4. bölüm elle
+ * yenilemeye göre yeniden yazılıp sürüm artırılacak — metnin
+ * yetenekten önce yayımlanması bu riski taşıyor ve bilinçli.
  *
  * 🔴 Fiyatların hiçbiri elle yazılmadı; hepsi `config/billing.js`ten.
  */
@@ -67,7 +78,9 @@ export default {
       baslik: '2. Kurucu üye indiriminin niteliği',
       paragraflar: [
         `LocalKarar\'ın standart aylık bedeli ${fiyatYaz(STANDARD_MONTHLY_PRICE)}\'dir. ` +
-        `Kurucu üye, bu bedelin %${kuruculIndirimYuzdesi()} altını öder.`,
+        `Kurucu üye, bu bedelin EN AZ %${kuruculIndirimYuzdesi()} altını öder. ` +
+        `Tutar tam sayıya aşağı yuvarlandığı için gerçek indirim biraz daha ` +
+        `yüksek olabilir; hiçbir koşulda bu oranın altına düşmez.`,
         'İndirim ORANSALDIR ve üyelik sürdüğü sürece değişmez. Bedelin kendisi ' +
         'sabitlenmiş değildir.',
         'Bunun pratik sonucu şudur: standart bedel ileride yükselirse kurucu üyenin ' +
@@ -95,8 +108,33 @@ export default {
     },
 
     {
+      id: 'yenileme',
+      baslik: '4. Otomatik yenileme',
+      paragraflar: [
+        'Üyeliğiniz, siz iptal etmediğiniz sürece seçtiğiniz dönemin sonunda ' +
+        'KENDİLİĞİNDEN YENİLENİR ve kayıtlı ödeme yönteminizden otomatik olarak ' +
+        'tahsil edilir. Aylık dönem seçtiyseniz her ay, yıllık dönem seçtiyseniz ' +
+        'her yıl aynı gün tahsilat yapılır.',
+        'Yenilemenin yapılabilmesi için kartınız, ödeme kuruluşu PayTR nezdinde ' +
+        'saklanır. Kart numarası ve güvenlik kodu LocalKarar sunucularına ULAŞMAZ; ' +
+        'tarafımızda yalnızca kartın maskelenmiş son haneleri ve PayTR tarafından ' +
+        'verilen bir referans tutulur.',
+        'Kartınızın saklanmasına ve otomatik tahsilata, ödeme ekranında AYRI bir ' +
+        'onay kutusu işaretleyerek izin verirsiniz. Bu onayı vermezseniz üyelik ' +
+        'başlatılmaz.',
+        'Her tahsilattan önce, tahsilatın tarihi ve tutarı size uygulama içi ' +
+        'bildirim ve e-posta ile duyurulur.',
+        'İptal ettiğinizde otomatik yenileme derhal durur; ödemesi yapılmış dönemin ' +
+        'sonuna kadar erişiminiz sürer ve yeni bir tahsilat yapılmaz.',
+        'Kayıtlı kartınızı Ayarlar → Üyelik ve Faturalandırma bölümünden ' +
+        'değiştirebilir veya silebilirsiniz. Kartın silinmesi, üyeliğin dönem ' +
+        'sonunda sona ermesi anlamına gelir.'
+      ]
+    },
+
+    {
       id: 'ucretsiz',
-      baslik: '4. Ücretsiz kullanım dönemi',
+      baslik: '5. Ücretsiz kullanım dönemi',
       paragraflar: [
         `Ücretlendirme başlamadan önce ${TRIAL_DAYS} günlük ücretsiz kullanım dönemi ` +
         'tanınır. Bu dönemde kart bilgisi istenmez ve tahsilat yapılmaz.',
@@ -110,7 +148,7 @@ export default {
 
     {
       id: 'degisiklik',
-      baslik: '5. Bedel değişikliği',
+      baslik: '6. Bedel değişikliği',
       paragraflar: [
         'Bedel değişiklikleri yürürlüğe girmeden önce üyeye uygulama içi bildirim ve ' +
         'e-posta yoluyla duyurulur.',
@@ -123,7 +161,7 @@ export default {
 
     {
       id: 'iptal',
-      baslik: '6. İptal',
+      baslik: '7. İptal',
       paragraflar: [
         'Üyelik dilendiği zaman, uygulama içinden Ayarlar → Üyelik ve Faturalandırma ' +
         'bölümünden iptal edilebilir. Gerekçe bildirmek ya da tarafımızla iletişime ' +
@@ -137,7 +175,7 @@ export default {
 
     {
       id: 'fatura',
-      baslik: '7. Faturalandırma',
+      baslik: '8. Faturalandırma',
       paragraflar: [
         'Her tahsilat için fatura düzenlenir ve hesabınıza tanımlı e-posta adresine ' +
         'iletilir. Geçmiş faturalarınıza Ayarlar → Üyelik ve Faturalandırma bölümünden ' +
@@ -164,7 +202,7 @@ export default {
 
     {
       id: 'odeme-basarisiz',
-      baslik: '8. Tahsilatın gerçekleşmemesi',
+      baslik: '9. Tahsilatın gerçekleşmemesi',
       paragraflar: [
         'Tahsilat, kartın limiti, geçerlilik süresi veya bankanın reddi gibi ' +
         'sebeplerle gerçekleşmezse üyeye uygulama içi bildirim ve e-posta ile bilgi ' +
@@ -179,7 +217,7 @@ export default {
 
     {
       id: 'vergi',
-      baslik: '9. Vergiler',
+      baslik: '10. Vergiler',
       paragraflar: [
         'Belirtilen tüm bedeller Türk Lirası cinsindendir ve yürürlükteki vergiler ' +
         'dâhildir. Vergi oranlarında mevzuat kaynaklı bir değişiklik olması hâlinde, ' +

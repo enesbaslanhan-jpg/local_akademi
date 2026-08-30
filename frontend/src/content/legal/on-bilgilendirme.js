@@ -23,10 +23,9 @@ import { saticiTanimlari } from './satici-kimligi'
  * standart fiyat değiştiği gün sözleşme yanlış beyan olurdu ve bunu
  * kimse fark etmezdi.
  *
- * 🔴 "OTOMATİK YENİLENİR" DENMİYOR.
- * Yenilemenin otomatik mi elle mi olacağı henüz kararlaştırılmadı
- * (`renewalMode`, ödeme turunda netleşecek). Olmayan bir davranışı
- * taahhüt etmek yanlış beyandır.
+ * ✅ OTOMATİK YENİLEME yazılı (30.08.2026 kararı). Ayrıntısı
+ * Abonelik ve Faturalandırma Koşulları'nda; buradaki özet onunla
+ * birebir aynı kalmalı.
  *
  * ⚠️ CAYMA HAKKI bölümü, ödeme ekranındaki AYRI onay kutusuna
  * dayanıyor (ürün sahibi kararı, 29.08.2026). O kutu kaldırılırsa bu
@@ -37,11 +36,22 @@ const ucretsizAy = FOUNDER_STAGES[0].months
 const lansman = FOUNDER_STAGES.find(s => s.code === 'launch')
 
 export default {
+  /*
+   * ⚠️ Önceki hâli "ödeme adımına geçtiğinizde bu formu okuduğunuzu ve
+   * kabul ettiğinizi beyan etmiş olursunuz" diyordu.
+   *
+   * İki sorunu vardı. Birincisi zayıftı: sayfaya geçmeyi onay saymak,
+   * mevzuatın aradığı açık onay değil. İkincisi ve daha önemlisi
+   * YANLIŞTI — ödeme ekranında gerçekten AYRI onay kutuları var ve
+   * işaretlenmeden düğme açılmıyor. Metin, yaptığımızdan azını
+   * söylüyordu.
+   */
   giris:
     'Bu form, LocalKarar üyeliğini satın almadan önce bilmeniz gereken bilgileri ' +
     'içerir. Mesafeli Sözleşmeler Yönetmeliği uyarınca, sözleşme kurulmadan önce ' +
-    'size sunulur. Ödeme adımına geçtiğinizde bu formu okuduğunuzu ve kabul ' +
-    'ettiğinizi beyan etmiş olursunuz.',
+    'size sunulur. Ödeme ekranında bu formu ve Mesafeli Hizmet Sözleşmesi\'ni ' +
+    'okuduğunuza dair ayrı bir onay kutusu işaretlemeniz istenir; onay verilmeden ' +
+    'ödeme alınmaz.',
 
   bolumler: [
     {
@@ -107,7 +117,7 @@ export default {
           [
             `${nihaiFiyataGecisAyi()}. aydan itibaren`,
             fiyatYaz(kuruculUyeFiyati()),
-            `Kurucu üye bedeli — standart bedelin %${kuruculIndirimYuzdesi()} altı`
+            `Kurucu üye bedeli — standart bedelin en az %${kuruculIndirimYuzdesi()} altı`
           ]
         ]
       },
@@ -125,7 +135,9 @@ export default {
       baslik: '4. Kurucu üye indiriminin niteliği',
       paragraflar: [
         `Kurucu üye bedeli sabitlenmemiş, standart bedele BAĞLANMIŞTIR. Üyeliğiniz ` +
-        `sürdüğü sürece, geçerli standart bedelin %${kuruculIndirimYuzdesi()} altını ödersiniz.`,
+        `sürdüğü sürece, geçerli standart bedelin EN AZ %${kuruculIndirimYuzdesi()} altını ` +
+        `ödersiniz. Tutar aşağı yuvarlandığı için gerçek indirim biraz daha yüksek ` +
+        `olabilir.`,
         'Bunun anlamı şudur: standart bedel ileride yükselirse sizin bedeliniz de ' +
         'yükselir, ancak her zaman aynı oranda altında kalır. Kurucu üye, bedel ' +
         'artışlarından muaf değildir; diğer üyelere göre daha az etkilenir.',
@@ -182,6 +194,11 @@ export default {
       paragraflar: [
         'Üyelik belirsiz sürelidir ve seçtiğiniz dönem (aylık veya yıllık) boyunca ' +
         'geçerlidir.',
+        'ÜYELİĞİNİZ, İPTAL ETMEDİĞİNİZ SÜRECE DÖNEM SONUNDA KENDİLİĞİNDEN YENİLENİR ' +
+        've kayıtlı kartınızdan otomatik olarak tahsil edilir. Kartınızın ödeme ' +
+        'kuruluşu nezdinde saklanmasına ve otomatik tahsilata, ödeme ekranında ayrı ' +
+        'bir onay kutusu işaretleyerek izin verirsiniz. Her tahsilattan önce tarih ve ' +
+        'tutar size bildirilir.',
         'Üyeliğinizi dilediğiniz zaman, uygulama içinden Ayarlar → Üyelik ve ' +
         'Faturalandırma bölümünden iptal edebilirsiniz. İptal için tarafımızla ' +
         'iletişime geçmeniz veya bir gerekçe bildirmeniz gerekmez.',

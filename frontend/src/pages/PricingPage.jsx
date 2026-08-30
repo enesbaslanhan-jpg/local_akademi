@@ -252,6 +252,22 @@ export default function PricingPage() {
             <DonemSecici deger={donem} onChange={setDonem} />
           </div>
 
+          {/*
+            * Seçicinin iki şeyi söylemesi gerekiyordu, ikisi de eksikti:
+            *
+            * 1. Dönem seçimi BUGÜN ödenecek tutarı değiştirmiyor —
+            *    lansman bedeli 4 ay boyunca aylık. Seçici hemen fiyatı
+            *    değiştiriyormuş gibi duruyordu.
+            * 2. Yenileme OTOMATİK (30.08.2026 kararı). Ödeme ekranında
+            *    ayrı onay kutusu var; kullanıcı oraya varmadan da
+            *    bilmeli.
+            *
+            * ⚠️ Metin `abonelik.js` 4. bölüm ve `billing.modal.recurringConsent`
+            * ile aynı şeyi söylüyor. Üçü ayrışırsa hangisinin bağlayıcı
+            * olduğu tartışmalı hâle gelir.
+            */}
+          <p className={styles.donemNotu}>{t('pricing.periodNote', { month: gecisAyi })}</p>
+
           <ZamanCizgisi donem={donem} />
 
           {/*

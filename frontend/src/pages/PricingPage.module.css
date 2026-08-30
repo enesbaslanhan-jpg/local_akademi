@@ -402,7 +402,17 @@
 .donemSatiri {
   display: flex;
   justify-content: flex-start;
-  margin-bottom: 24px;
+  margin-bottom: 10px;
+}
+
+/* Seçicinin hemen altında, ondan görsel olarak ayrı: bu bir
+   etiket değil, seçimin ne anlama geldiğini söyleyen bir not. */
+.donemNotu {
+  margin: 0 0 24px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--auth-text-soft);
+  max-width: 62ch;
 }
 
 /* ---------- Kurucu ayrıcalıkları ---------- */

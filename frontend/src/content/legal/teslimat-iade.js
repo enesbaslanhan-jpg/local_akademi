@@ -64,7 +64,10 @@ export default {
         'İptal için tarafımızla iletişime geçmeniz, telefon etmeniz, bir form ' +
         'doldurmanız veya gerekçe bildirmeniz gerekmez. İptal, üye olmak kadar kolaydır.',
         'İptal ettiğinizde bedeli ödenmiş dönemin sonuna kadar erişiminiz sürer. Dönem ' +
-        'sonunda üyelik kendiliğinden sona erer ve yeni bir tahsilat yapılmaz.'
+        'sonunda üyelik kendiliğinden sona erer ve yeni bir tahsilat yapılmaz.',
+        'Üyelik normalde dönem sonunda kendiliğinden yenilenir ve kayıtlı kartınızdan ' +
+        'tahsil edilir; iptal ettiğiniz anda bu otomatik yenileme durur. Yenilemeyi ' +
+        'durdurmak için başka bir işlem yapmanız gerekmez.'
       ]
     },
 

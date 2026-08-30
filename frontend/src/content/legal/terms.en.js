@@ -1,7 +1,9 @@
+import { iletisimEpostasi } from '@/config/seller'
+
 export default {
   giris: 'These terms govern the mutual rights and obligations that apply when you use LocalKarar. By creating an account, you agree to these terms.',
   bolumler: [
-    { id: 'taraflar', baslik: '1. Parties', paragraflar: ['These terms are between you and Enes Buğra Aslanhan (an individual located in Yenimahalle, Ankara), who operates the application.', 'Contact: kvkk@localkarar.com'] },
+    { id: 'taraflar', baslik: '1. Parties', paragraflar: ['These terms are between you and Enes Buğra Aslanhan (an individual located in Yenimahalle, Ankara), who operates the application.', `Contact: ${iletisimEpostasi()}`] },
     { id: 'hizmet', baslik: '2. Scope of the service', paragraflar: ['LocalKarar provides courses, Calculations, step-by-step Decision Tools, business profiles and records, AI Mentor, news compiled from official sources, and community features for small businesses. Financial models are detailed flows within Calculations, not a separate service.', 'The service is provided as available. Features may change for product, security, or legal reasons.'] },
     { id: 'hesap', baslik: '3. Account and security', liste: ['Provide accurate and current account information.', 'Keep your password and devices secure and do not share your account.', 'Tell us promptly if you suspect unauthorised access.', 'You are responsible for activity carried out through your account unless the law provides otherwise.'] },
     { id: 'danismanlik-degildir', baslik: '4. The service is not professional advice', paragraflar: ['Content, calculations, Decision Tools, news summaries, and AI Mentor responses are general information and decision-support materials. They are not legal, tax, accounting, investment, medical, or other professional advice.', 'Outputs depend on the information and assumptions supplied. Verify important figures, rules, deadlines, and decisions with official sources and a qualified professional where appropriate.'] },

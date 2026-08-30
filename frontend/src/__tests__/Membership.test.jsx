@@ -161,17 +161,24 @@ describe('ödeme paneli', () => {
    * gömmek istisnanın dayanağını ortadan kaldırır — tek kutuyla
    * alınan feragat geçersiz sayılır.
    *
+   * ÜÇÜNCÜ KUTU: kart saklama ve otomatik tahsilat (30.08.2026
+   * kararı). Tekrarlayan tahsilat için kartın ödeme kuruluşunda
+   * saklanması gerekiyor; bu, sözleşmeyi okumaktan da feragatten de
+   * ayrı bir izin ve ayrı kutuda alınıyor.
+   *
    * 🦷 Bu testler tam olarak o tasarımı koruyor: kutular birleştirilir
    * ya da CTA onaylardan bağımsız hâle gelirse düşerler.
    */
-  it('iki AYRI onay kutusu var — feragat genel onaya gömülmemiş', () => {
+  it('üç AYRI onay kutusu var — hiçbiri genel onaya gömülmemiş', () => {
     sar(<MembershipModal open onClose={() => {}} />)
 
     const kutular = screen.getAllByRole('checkbox')
-    expect(kutular).toHaveLength(2)
+    expect(kutular).toHaveLength(3)
 
-    /* İkincisi yalnız feragati anlatmalı. */
+    /* İkincisi yalnız feragati, üçüncüsü yalnız otomatik tahsilatı
+       anlatmalı — metinler ayrışırsa kutular da anlamını yitirir. */
     expect(screen.getByText(/cayma hakkımı kaybedeceğimi biliyorum/i)).toBeInTheDocument()
+    expect(screen.getByText(/kayıtlı kartımdan otomatik tahsil edilmesini kabul ediyorum/i)).toBeInTheDocument()
   })
 
   it('onaylar işaretlenmeden ödeme düğmesi açılmaz', async () => {
@@ -181,7 +188,7 @@ describe('ödeme paneli', () => {
     sar(<MembershipModal open onClose={() => {}} demoBasari />)
 
     const dugme = screen.getByRole('button', { name: /öde ve üyeliği başlat/i })
-    const [sozlesme, feragat] = screen.getAllByRole('checkbox')
+    const [sozlesme, feragat, tahsilat] = screen.getAllByRole('checkbox')
 
     expect(dugme).toBeDisabled()
 
@@ -189,7 +196,10 @@ describe('ödeme paneli', () => {
     expect(dugme, 'yalnız sözleşme onayı yetmez').toBeDisabled()
 
     await kullanici.click(feragat)
-    expect(dugme, 'iki onay birden verilince açılır').toBeEnabled()
+    expect(dugme, 'sözleşme + feragat de yetmez — tahsilat izni ayrı').toBeDisabled()
+
+    await kullanici.click(tahsilat)
+    expect(dugme, 'üç onay birden verilince açılır').toBeEnabled()
   })
 
   it('ödeme paneli ticari belgelere bağlantı veriyor', () => {

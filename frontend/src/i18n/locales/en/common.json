@@ -687,7 +687,7 @@
     "privacy": {
       "title": "Requests about your personal data",
       "beforeEmail": "Send KVKK requests to",
-      "afterEmail": ". The information you need to include is listed",
+      "afterEmail": "and the information you need to include is listed",
       "link": "in the application section of the Privacy Notice",
       "suffix": "."
     },
@@ -734,7 +734,7 @@
       "launchPeriod_one": "{{count}}-month launch period",
       "launchPeriod_other": "{{count}}-month launch period",
       "nextStandardPrice": "Next standard price",
-      "lockedPrice": "Your founder discount is permanent: you always pay {{percent}}% below the standard price.",
+      "lockedPrice": "Your founder discount is permanent: you always pay at least {{percent}}% below the standard price.",
       "managePayment": "Manage payment",
       "invoices": "Invoices",
       "cancelMembership": "Cancel membership",
@@ -753,7 +753,7 @@
       "dueToday": "Due today",
       "nextPayment": "Next payment",
       "fromMonth": "From month {{month}}",
-      "lockedPrice": "Your founder discount is permanent: even if the standard price rises, you always pay {{percent}}% less.",
+      "lockedPrice": "Your founder discount is permanent: even if the standard price rises, you always pay at least {{percent}}% less.",
       "paymentAreaAria": "Payment area",
       "securePaymentTitle": "Secure payment area",
       "securePaymentDescription": "Payment setup is in progress. Once enabled, your card details will be requested here using PayTR’s secure form.",
@@ -768,7 +768,8 @@
       "distanceSale": "the Distance Service Agreement",
       "preInfo": "the Pre-Contract Information Form",
       "and": "and",
-      "withdrawalWaiver": "I want the service to begin immediately and I understand that I therefore lose my right of withdrawal."
+      "withdrawalWaiver": "I want the service to begin immediately and I understand that I therefore lose my right of withdrawal.",
+      "recurringConsent": "I agree that my membership renews automatically at the end of each period and is charged to my saved card. My card is stored with the payment provider for this purpose; renewal stops when I cancel."
     },
     "pricePerYear": "{{price}} / year",
     "period": {
@@ -782,7 +783,7 @@
   "pricing": {
     "eyebrow": "Founding Member Program",
     "title": "Be one of LocalKarar’s first users",
-    "heroDescription": "First month free, then {{launchPrice}}/month for three months. After that {{founderPrice}}/month — and as a founding member you always pay {{percent}}% below the standard price.",
+    "heroDescription": "First month free, then {{launchPrice}}/month for three months. After that {{founderPrice}}/month — and as a founding member you always pay at least {{percent}}% below the standard price.",
     "notStartedTitle": "Billing has not started yet.",
     "notStartedDescription": "All features are currently free to use. We will notify you before paid membership begins.",
     "howItWorks": "How it works",
@@ -809,7 +810,7 @@
         },
         "founder": {
           "title": "Founding member price",
-          "note": "Always {{percent}}% below the standard price."
+          "note": "At least {{percent}}% below the standard price."
         }
       }
     },
@@ -841,7 +842,7 @@
       },
       "increase": {
         "question": "What happens if prices go up?",
-        "answer": "The founder price is not frozen; it is tied to the standard price. If the standard price rises, yours rises too — but it always stays {{percent}}% below it. So you are not exempt from increases, you are simply affected less than other members. You will be notified before any price change."
+        "answer": "The founder price is not frozen; it is tied to the standard price. If the standard price rises, yours rises too — but it always stays at least {{percent}}% below it. So you are not exempt from increases, you are simply affected less than other members. You will be notified before any price change."
       },
       "yearly": {
         "question": "Should I choose monthly or yearly?",
@@ -849,8 +850,9 @@
       }
     },
     "yearlyEquivalent": "Equivalent to {{monthly}} a month · you save {{saving}} a year.",
-    "discountTitle": "Your founder discount is {{percent}}% and permanent.",
-    "discountDescription": "We do not freeze your price — we tie it to the standard price. From month {{month}} onwards, even if our standard price rises, you always pay {{percent}}% less. Increases affect you less than other members.",
+    "periodNote": "The period you choose applies from month {{month}}; the amount charged today does not change. Unless you cancel, the membership renews automatically at the end of each period and is charged to your saved card.",
+    "discountTitle": "Your founder discount is at least {{percent}}% and permanent.",
+    "discountDescription": "We do not freeze your price — we tie it to the standard price. From month {{month}} onwards, even if our standard price rises, you always pay at least {{percent}}% less. Because the amount is rounded down, the actual discount may be slightly higher. Increases affect you less than other members.",
     "benefitsTitle": "What being a founding member gives you",
     "benefits": {
       "priceLock": {

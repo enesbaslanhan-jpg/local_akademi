@@ -161,9 +161,17 @@ export default function SupportPage() {
             <strong>{t('support.privacy.title')}</strong>
             <p>
               {t('support.privacy.beforeEmail')}{' '}
-              <a href="mailto:kvkk@localkarar.com">kvkk@localkarar.com</a> adresine
+              {/* ⚠️ Buraya sabit "adresine" yazılmıştı: Türkçede çeviri
+                  metni zaten "adresine" ile başladığı için "adresine
+                  adresine" çıkıyor, İngilizcede ise arayüzün ortasında
+                  Türkçe bir kelime beliriyordu. Kelime cümlenin parçası,
+                  yeri çeviri metninin içi. */}
+              <a href="mailto:kvkk@localkarar.com">kvkk@localkarar.com</a>
               {' '}{t('support.privacy.afterEmail')}{' '}
-              <Link to="/privacy">{t('support.privacy.link')}</Link> {t('support.privacy.suffix')}
+              {/* Boşluk YOK: Türkçede son ek ayrı bir kelime ('yazılıdır.')
+                  ve boşluğu kendi metninde taşıyor; İngilizcede yalnız nokta,
+                  boşluk olsaydı 'Notice .' çıkardı. */}
+              <Link to="/privacy">{t('support.privacy.link')}</Link>{t('support.privacy.suffix')}
             </p>
           </div>
         </section>

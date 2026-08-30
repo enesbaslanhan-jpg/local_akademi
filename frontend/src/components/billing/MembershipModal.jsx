@@ -119,13 +119,14 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
   const [donem, setDonem] = useState('monthly')
   const [sozlesmeOnayi, setSozlesmeOnayi] = useState(false)
   const [caymaFeragati, setCaymaFeragati] = useState(false)
+  const [otomatikTahsilat, setOtomatikTahsilat] = useState(false)
 
   const bugunOdenecek = ilkUcretliTutar()
   const sonraki = sonrakiOdemeTarihi()
   const gecisAyi = nihaiFiyataGecisAyi()
   const yillik = donem === 'yearly'
-  /* İkisi de şart — gerekçe onay kutularının üstünde yazılı. */
-  const onaylarTam = sozlesmeOnayi && caymaFeragati
+  /* Üçü de şart — gerekçe onay kutularının üstünde yazılı. */
+  const onaylarTam = sozlesmeOnayi && caymaFeragati && otomatikTahsilat
 
   function kapat() {
     setBasarili(false)
@@ -133,6 +134,7 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
        önceki oturumun onayını devralmamalı. */
     setSozlesmeOnayi(false)
     setCaymaFeragati(false)
+    setOtomatikTahsilat(false)
     onClose?.()
   }
 
@@ -244,6 +246,31 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
               onChange={e => setCaymaFeragati(e.target.checked)}
             />
             <span>{t('billing.modal.withdrawalWaiver')}</span>
+          </label>
+
+          {/*
+            * ÜÇÜNCÜ KUTU — kart saklama ve otomatik tahsilat.
+            *
+            * Ürün sahibi 30.08.2026'da yenilemenin OTOMATİK olmasına
+            * karar verdi. Tekrarlayan tahsilat, kullanıcının kartının
+            * saklanmasını gerektiriyor; bu, sözleşmeyi okumaktan da
+            * cayma hakkından da AYRI bir izin.
+            *
+            * Üç kutuyu tek "kabul ediyorum"da birleştirmek, üçünün de
+            * dayanağını zayıflatırdı: kullanıcı neyi onayladığını
+            * ayırt edemez.
+            *
+            * 🔴 Metin, `abonelik.js` 4. bölümle birebir aynı şeyi
+            * söylemeli. PayTR kart saklama yetkisi vermezse ikisi
+            * BİRLİKTE elle yenilemeye dönecek.
+            */}
+          <label className={styles.onayKutusu}>
+            <input
+              type="checkbox"
+              checked={otomatikTahsilat}
+              onChange={e => setOtomatikTahsilat(e.target.checked)}
+            />
+            <span>{t('billing.modal.recurringConsent')}</span>
           </label>
 
           <button

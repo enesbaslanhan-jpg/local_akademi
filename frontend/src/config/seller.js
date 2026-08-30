@@ -78,11 +78,45 @@ export const SATICI = {
    */
   kimlikNo: null,
 
-  /** Şu an tek iletişim kanalı; test edilmiş ve çalışıyor. */
-  eposta: 'kvkk@localkarar.com',
+  /*
+   * KVKK başvuru adresi. Test edilmiş ve çalışıyor.
+   *
+   * ⚠️ Bu adres YALNIZ KVKK başvuruları için. Satış, iptal, iade ve
+   * destek yazışmaları buraya düşerse KVKK'nın otuz günlük yasal cevap
+   * süresi sıradan destek postasıyla aynı kutuda karışır.
+   */
+  kvkkEposta: 'kvkk@localkarar.com',
+
+  /*
+   * Satış, destek, iptal ve iade adresi.
+   *
+   * 🔴 `null` OLDUĞU SÜRECE kvkk adresi kullanılıyor (aşağıdaki
+   * `iletisimEpostasi`). Açılmamış bir adresi yayımlamak, tek kutuda
+   * karışmasından daha kötü: kullanıcı yazar, posta hiçbir yere gitmez
+   * ve o kişi cevap beklemeye devam eder.
+   *
+   * Alias açılıp bir test postası düştüğünde burayı doldur; alt bilgi,
+   * dört ticari belge ve destek sayfası aynı anda güncellenir.
+   */
+  destekEposta: null,
 
   /** Adresin açık hâli gelene kadar metinlerde geçen coğrafi kapsam. */
   bolge: 'Yenimahalle, Ankara',
+}
+
+/**
+ * Satış, destek, iptal ve iade için gösterilecek adres.
+ *
+ * Ayrı destek adresi açılana kadar KVKK adresine düşüyor — çalışmayan
+ * bir adres yayımlamaktansa tek kutuda karışması yeğ.
+ */
+export function iletisimEpostasi() {
+  return SATICI.destekEposta || SATICI.kvkkEposta
+}
+
+/** KVKK başvuruları için ayrılmış adres. */
+export function kvkkEpostasi() {
+  return SATICI.kvkkEposta
 }
 
 /**
@@ -107,6 +141,6 @@ export function saticiSatirlari() {
     { anahtar: 'ad', deger: SATICI.ad },
     { anahtar: 'adres', deger: SATICI.adres },
     { anahtar: 'telefon', deger: SATICI.telefon },
-    { anahtar: 'eposta', deger: SATICI.eposta },
+    { anahtar: 'eposta', deger: iletisimEpostasi() },
   ].filter(satir => Boolean(satir.deger))
 }
