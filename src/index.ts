@@ -21,6 +21,7 @@ import { businessTrackerRoutes } from './services/business-tracker'
 import { workspaceExportRoutes } from './services/workspace-exports'
 import { startBusinessReminderWorker } from './services/business-reminder-worker'
 import { accountNotificationRoutes, startAccountNotificationWorker } from './services/account-notifications'
+import { uyelikKapisi } from './services/membership-guard'
 import { formulaRoutes } from './services/formulas'
 import { adminRoutes } from './services/admin'
 import { supportRoutes } from './services/support'
@@ -459,6 +460,19 @@ async function build() {
       })
     }
   })
+
+  /*
+   * SALT OKUNUR MOD — bütün yazma rotalarının önünde tek kapı.
+   *
+   * Kök seviyesinde, rota kayıtlarından ÖNCE. Böylece 188 yazma
+   * rotasının hepsi otomatik korunuyor ve yarın eklenecek olan da
+   * korunuyor — rotalara tek tek koruma eklemek, birini unutmayı
+   * kaçınılmaz kılardı.
+   *
+   * ⚠️ `BILLING_STARTS_AT` null iken hiçbir şey yapmıyor; bugün sevk
+   * edilen davranış bu. Gerekçeler `membership-guard.ts` içinde.
+   */
+  server.addHook('preHandler', uyelikKapisi(server))
 
   server.register(authRoutes, { prefix: '/auth' })
   server.register(supportRoutes, { prefix: '/support' })

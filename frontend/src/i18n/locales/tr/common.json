@@ -912,7 +912,8 @@
     "unauthorizedDescription": "Bu sayfaya erişim yetkiniz bulunmuyor.",
     "backHome": "Ana Sayfaya Dön",
     "exportFailed": "Dışa aktarım başarısız",
-    "downloadFailed": "Kayıt indirilemedi"
+    "downloadFailed": "Kayıt indirilemedi",
+    "membershipExpired": "Ücretsiz kullanım süren doldu. Hesabın salt okunur modda — verilerin duruyor ve dışa aktarılabilir. Üyeliğini Ayarlar → Üyelik bölümünden başlatabilirsin."
   },
   "loading": {
     "page": "Sayfa yükleniyor…"

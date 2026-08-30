@@ -912,7 +912,8 @@
     "unauthorizedDescription": "You do not have permission to access this page.",
     "backHome": "Back to Home",
     "exportFailed": "Export failed",
-    "downloadFailed": "Record could not be downloaded"
+    "downloadFailed": "Record could not be downloaded",
+    "membershipExpired": "Your free period has ended. Your account is read-only — your data is intact and exportable. You can start your membership from Settings → Membership."
   },
   "loading": {
     "page": "Loading page…"

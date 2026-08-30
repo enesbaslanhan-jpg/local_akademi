@@ -3,6 +3,18 @@ import i18n from '@/i18n'
 const API_URL = import.meta.env.VITE_API_URL || '';
 export const RATE_LIMIT_EVENT = 'localkarar:rate-limit';
 
+/*
+ * Salt okunur mod: süresi dolmuş kullanıcı yazma denediğinde sunucu
+ * 403 + MEMBERSHIP_EXPIRED döndürüyor. Genel bir hata olarak geçmesi,
+ * kullanıcının NE YAPACAĞINI bilmemesi demekti.
+ *
+ * ⚠️ Sunucu bilerek 401 DEĞİL 403 kullanıyor: 401 aşağıdaki sessiz
+ * token yenilemesini tetikler ve başarısız olunca oturumu siler —
+ * süresi dolan kullanıcı uygulamadan atılır, ödeme yapacağı ekrana
+ * bile ulaşamazdı.
+ */
+export const MEMBERSHIP_EXPIRED_EVENT = 'localkarar:membership-expired';
+
 export const ERROR_CODES = {
   RATE_LIMIT: 'RATE_LIMIT',
   NETWORK_ERROR: 'NETWORK_ERROR',
@@ -10,6 +22,7 @@ export const ERROR_CODES = {
   STREAM_ERROR: 'STREAM_ERROR',
   NO_BODY: 'NO_BODY',
   API_ERROR: 'API_ERROR',
+  MEMBERSHIP_EXPIRED: 'MEMBERSHIP_EXPIRED',
   UNKNOWN: 'UNKNOWN'
 };
 
@@ -21,6 +34,13 @@ export function retryAfterSaniyesi(headers) {
   const dateMs = Date.parse(raw);
   if (!Number.isFinite(dateMs)) return null;
   return Math.max(0, Math.ceil((dateMs - Date.now()) / 1000));
+}
+
+function uyelikSuresiDolduBildir(mesaj) {
+  if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return;
+  window.dispatchEvent(new CustomEvent(MEMBERSHIP_EXPIRED_EVENT, {
+    detail: { code: ERROR_CODES.MEMBERSHIP_EXPIRED, mesaj }
+  }));
 }
 
 function hizSiniriniBildir(retryAfterSeconds) {
@@ -299,12 +319,17 @@ export const api = {
     if (!response.ok) {
       const data = isJson ? await response.json().catch(() => ({})) : {};
       const retryAfterSeconds = response.status === 429 ? retryAfterSaniyesi(response.headers) : null;
+      /* Salt okunur mod: sunucu 403 + makine kodu gönderiyor. Yalnız
+         durum koduna bakmak yetmez, 403 başka sebeplerle de gelir. */
+      const uyelikDoldu = response.status === 403 && data?.code === 'MEMBERSHIP_EXPIRED';
       const errorCode = response.status === 429
         ? ERROR_CODES.RATE_LIMIT
         : response.status === 401 ? ERROR_CODES.UNAUTHORIZED
+        : uyelikDoldu ? ERROR_CODES.MEMBERSHIP_EXPIRED
         : ERROR_CODES.API_ERROR;
       const error = new ApiError(errorCode, response.status, data, retryAfterSeconds);
       if (response.status === 429) hizSiniriniBildir(retryAfterSeconds);
+      if (uyelikDoldu) uyelikSuresiDolduBildir(data?.error);
       if (response.status === 401 && includeAuth && !tekrarMi && !YENILEME_DISI.some(y => path.startsWith(y))) {
         /* FormData govdesi tek kullanimlik bir akis; tekrarlanamaz. */
         const govdeTekrarlanabilir = !(typeof FormData !== 'undefined' && options.body instanceof FormData);

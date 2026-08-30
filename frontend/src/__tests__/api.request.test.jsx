@@ -194,3 +194,66 @@ describe('api.request gövdesiz isteklerde Content-Type göndermez', () => {
     }
   })
 })
+
+/*
+ * SALT OKUNUR MOD — 403 + MEMBERSHIP_EXPIRED.
+ *
+ * 🔴 Bu testlerin koruduğu asıl şey, sunucunun neden 401 DEĞİL 403
+ * kullandığı: 401 sessiz token yenilemesini tetikliyor ve başarısız
+ * olunca `oturumTokenleriniSil()` çağrılıyor. Süresi dolan kullanıcı
+ * 401 alsaydı uygulamadan ATILIRDI ve ödeme yapacağı ekrana bile
+ * ulaşamazdı.
+ */
+describe('üyelik süresi doldu yanıtı', () => {
+  function uyelikDolduYaniti() {
+    return makeResponse({
+      ok: false,
+      status: 403,
+      contentType: 'application/json',
+      body: { error: 'Ücretsiz kullanım süreniz doldu.', code: 'MEMBERSHIP_EXPIRED' }
+    })
+  }
+
+  it('kendi hata kodunu taşıyor', async () => {
+    mockFetch(uyelikDolduYaniti())
+    await expect(api.request('/workspaces/1/records', { method: 'POST' }))
+      .rejects.toMatchObject({ code: ERROR_CODES.MEMBERSHIP_EXPIRED, status: 403 })
+  })
+
+  it('🦷 OTURUMU SİLMİYOR — 403 seçmemizin bütün sebebi bu', async () => {
+    mockFetch(uyelikDolduYaniti())
+    await api.request('/workspaces/1/records', { method: 'POST' }).catch(() => {})
+
+    expect(localStorage.getItem('token'), 'kullanıcı uygulamadan atılmamalı').toBe('test-token')
+    expect(global.fetch, 'token yenileme denenmemeli').toHaveBeenCalledTimes(1)
+  })
+
+  it('kullanıcıya gösterilmek üzere olay yayıyor', async () => {
+    const dinleyici = vi.fn()
+    window.addEventListener('localkarar:membership-expired', dinleyici)
+    mockFetch(uyelikDolduYaniti())
+
+    await api.request('/workspaces/1/records', { method: 'POST' }).catch(() => {})
+
+    expect(dinleyici).toHaveBeenCalledTimes(1)
+    /* Sunucunun metni taşınıyor; ön yüzde ikinci bir metin yazılmıyor. */
+    expect(dinleyici.mock.calls[0][0].detail.mesaj).toContain('süreniz doldu')
+    window.removeEventListener('localkarar:membership-expired', dinleyici)
+  })
+
+  it('kodsuz 403 normal hata olarak geçiyor', async () => {
+    /* 403 başka sebeplerle de geliyor (yetki yok, engellenmiş kullanıcı).
+       Yalnız durum koduna bakmak, onları da üyelik uyarısına çevirirdi. */
+    const dinleyici = vi.fn()
+    window.addEventListener('localkarar:membership-expired', dinleyici)
+    mockFetch(makeResponse({
+      ok: false, status: 403, contentType: 'application/json',
+      body: { error: 'Access denied' }
+    }))
+
+    await expect(api.request('/workspaces/1/records', { method: 'POST' }))
+      .rejects.toMatchObject({ code: ERROR_CODES.API_ERROR })
+    expect(dinleyici).not.toHaveBeenCalled()
+    window.removeEventListener('localkarar:membership-expired', dinleyici)
+  })
+})

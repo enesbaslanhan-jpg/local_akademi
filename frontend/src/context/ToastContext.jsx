@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CheckCircle, AlertCircle, X } from 'lucide-react'
-import { RATE_LIMIT_EVENT, ERROR_CODES } from '@/services/api'
+import { RATE_LIMIT_EVENT, MEMBERSHIP_EXPIRED_EVENT, ERROR_CODES } from '@/services/api'
 import styles from './ToastContext.module.css'
 
 const ToastContext = createContext(null)
@@ -12,6 +12,7 @@ export function ToastProvider({ children }) {
   const { t } = useTranslation('common')
   const [toasts, setToasts] = useState([])
   const rateLimitShownUntil = useRef(0)
+  const membershipShownUntil = useRef(0)
 
   const addToast = useCallback((message, type = 'success', duration = 4000) => {
     const id = ++toastId
@@ -38,8 +39,31 @@ export function ToastProvider({ children }) {
         : t('errors.rateLimit')
       addToast(message, 'warning', 7000)
     }
+    /*
+     * Salt okunur mod uyarısı.
+     *
+     * Sunucunun gönderdiği metin KULLANILIYOR, burada ikinci bir metin
+     * yazılmıyor: aynı durumu iki yerde anlatmak kaçınılmaz olarak
+     * ayrışır ve kullanıcı iki farklı açıklama görür. Sunucu metni
+     * gelmezse yerel yedek devreye giriyor.
+     *
+     * Aynı boğma mantığı hız sınırındaki gibi: bir yazma denemesi
+     * arka arkaya birkaç istek üretebilir, kullanıcı üst üste dört
+     * bildirim görmemeli.
+     */
+    const handleMembershipExpired = (event) => {
+      const now = Date.now()
+      if (now < membershipShownUntil.current) return
+      membershipShownUntil.current = now + 8000
+      addToast(event.detail?.mesaj || t('errors.membershipExpired'), 'warning', 9000)
+    }
+
     window.addEventListener(RATE_LIMIT_EVENT, handleRateLimit)
-    return () => window.removeEventListener(RATE_LIMIT_EVENT, handleRateLimit)
+    window.addEventListener(MEMBERSHIP_EXPIRED_EVENT, handleMembershipExpired)
+    return () => {
+      window.removeEventListener(RATE_LIMIT_EVENT, handleRateLimit)
+      window.removeEventListener(MEMBERSHIP_EXPIRED_EVENT, handleMembershipExpired)
+    }
   }, [addToast, t])
 
   const toast = useMemo(() => ({
