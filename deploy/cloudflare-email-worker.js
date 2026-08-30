@@ -4,8 +4,35 @@
  * Cloudflare panelinde: localkarar.com → E-posta Yönlendirmesi →
  * Varış Çalışanları → İşçi Yarat. Bu dosyanın tamamını oraya yapıştır.
  *
- * NE YAPIYOR: `fatura-*@inbox.localkarar.com` adresine gelen postayı
- * alır, DKIM/SPF sonucunu okur, ekleri çıkarır ve uygulamaya iletir.
+ * NE YAPIYOR: çalışma alanı gelen kutusuna gelen postayı alır,
+ * DKIM/SPF sonucunu okur, ekleri çıkarır ve uygulamaya iletir.
+ *
+ * 🔴 ADRESLER ALAN ADININ KENDİSİNDE: `<isletme-slug>-<4hane>@localkarar.com`
+ * (örn. `olcum-isletmesi-a7k3@localkarar.com`).
+ *
+ * Bu dosya bir zamanlar `fatura-*@inbox.localkarar.com` diyordu ve
+ * YANLIŞTI: alt alan adı denendi, Cloudflare Email Routing alt
+ * alanlarda ÇALIŞMIYOR — yalnız alan adının kendisinde dinliyor.
+ * Sunucu da adresi `APP_PUBLIC_URL`den türetiyor
+ * (`gelenKutusuAlanAdi()`, `src/services/gelen-eposta.ts`); ikisi
+ * ayrışırsa posta hiçbir kutuya düşmez.
+ *
+ * ⚠️ BUNUN YÖNLENDİRME KURALLARINA ETKİSİ — atlanırsa insan postası
+ * kaybolur:
+ *
+ * Gelen kutuları `kvkk@` ve `destek@` ile AYNI alan adını paylaşıyor.
+ * Cloudflare özel adres kurallarını catch-all'dan ÖNCE değerlendirdiği
+ * için sıra şöyle kurulmalı:
+ *
+ *   1. Özel adresler → posta kutusuna ilet:  kvkk@, destek@
+ *   2. Catch-all     → bu Worker
+ *
+ * Catch-all'ı Worker'a bağlamak, YANLIŞ YAZILMIŞ her adresi de
+ * (`destk@`, `info@`, `admin@`) buraya düşürür. Worker o anahtara ait
+ * çalışma alanı bulamaz ve postayı SESSİZCE atar — gönderene geri
+ * sekme gitmez. Yani insanlara duyurulan her adres 1. maddeye tek tek
+ * yazılmalı; listede olmayan adrese yazan kimse cevap alamaz ve
+ * yazdığının ulaşmadığını da öğrenemez.
  *
  * NE YAPMIYOR — ve bu bilinçli:
  *   - KABUL/RED KARARINI VERMİYOR. Gönderenin üye olup olmadığını,
@@ -47,7 +74,7 @@ function kimlikSonucu(basliklar, tur) {
   return 'fail'
 }
 
-/** `fatura-abc@inbox.localkarar.com` → `fatura-abc` */
+/** `olcum-isletmesi-a7k3@localkarar.com` → `olcum-isletmesi-a7k3` */
 function kutuAnahtari(adres) {
   return String(adres || '').split('@')[0].trim().toLowerCase()
 }

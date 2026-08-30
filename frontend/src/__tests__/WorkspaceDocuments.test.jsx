@@ -169,7 +169,7 @@ describe('e-posta ile gönderme seçeneği', () => {
 
   it('kanal hazırken adres açılıp gösteriliyor', async () => {
     mocks.inboxGet.mockResolvedValue({
-      acik: true, adres: 'olcum-isletmesi-a7k3@inbox.localkarar.com', kanalHazir: true
+      acik: true, adres: 'olcum-isletmesi-a7k3@localkarar.com', kanalHazir: true
     })
     renderPage()
 
@@ -178,7 +178,7 @@ describe('e-posta ile gönderme seçeneği', () => {
     expect(screen.queryByText(/olcum-isletmesi-a7k3/)).not.toBeInTheDocument()
 
     fireEvent.click(dugme)
-    expect(await screen.findByText(/olcum-isletmesi-a7k3@inbox.localkarar.com/)).toBeInTheDocument()
+    expect(await screen.findByText(/olcum-isletmesi-a7k3@localkarar.com/)).toBeInTheDocument()
   })
 
   it('kutu açılmamışsa kullanıcı Ayarlara yönlendiriliyor', async () => {
