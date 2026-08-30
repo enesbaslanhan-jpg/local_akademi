@@ -514,12 +514,12 @@ bakıyor, gerçek şemaya değil.
 Bu yüzden her güncellemeden sonra şemaya **doğrudan** sor:
 
 ```bash
-lk exec -T postgres psql -U postgres -d localakademi -c \
+lk exec -T postgres psql -U localakademi -d localakademi -c \
   "SELECT to_regclass('public.\"AccountNotification\"') AS tablo;"
 ```
 
 ```bash
-lk exec -T postgres psql -U postgres -d localakademi -c \
+lk exec -T postgres psql -U localakademi -d localakademi -c \
   "SELECT column_name FROM information_schema.columns
    WHERE table_name='UserPreference' AND column_name='uiLanguage';"
 ```

@@ -589,7 +589,8 @@
       "terms": "Kullanım koşulları",
       "cookies": "Çerezler",
       "note": "Sorular ve KVKK başvuruları için Gizlilik metnindeki iletişim kanalını kullanabilirsin."
-    }
+    },
+    "backToApp": "LocalKarar’a dön"
   },
   "support": {
     "kicker": "Destek",
@@ -860,7 +861,9 @@
         "title": "Kurucu Üye rozeti",
         "description": "Hesabında ve toplulukta görünür. İlk kullanıcılardan biri olduğunu gösterir."
       }
-    }
+    },
+    "myMembership": "Üyelik ayarlarım",
+    "memberNote": "Ücretlendirme başladığında üyeliğini Ayarlar → Üyelik bölümünden yönetirsin."
   },
   "publicFooter": {
     "corporateAria": "Kurumsal bağlantılar",

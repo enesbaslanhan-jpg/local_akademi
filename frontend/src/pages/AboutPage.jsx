@@ -6,6 +6,7 @@ import EkranCizimi from '@/components/about/EkranCizimi'
 import AuthThemeToggle from './AuthThemeToggle'
 import styles from './AboutPage.module.css'
 import PublicFooter from '@/components/layout/PublicFooter'
+import { useGirisli } from '@/hooks/useGirisli'
 
 /*
  * Hakkında / tanıtım sayfası.
@@ -73,6 +74,7 @@ export const MODULLER = [
 
 export default function AboutPage() {
   const { t } = useTranslation('common')
+  const girisli = useGirisli()
   return (
     <div className={styles.page}>
       <AuthThemeToggle />
@@ -98,8 +100,14 @@ export default function AboutPage() {
                   pratikte bulunamıyor (ölçüldü: hiçbir public sayfadan
                   linki yoktu). */}
               <Link to="/fiyatlar" className={styles.girisLink}>{t('publicFooter.links.pricing')}</Link>
-              <Link to="/login" className={styles.girisLink}>{t('about.signIn')}</Link>
-              <Link to="/register" className={styles.kayitDugmesi}>{t('about.createAccount')}</Link>
+              {girisli ? (
+                <Link to="/app/dashboard" className={styles.kayitDugmesi}>{t('about.backToApp')}</Link>
+              ) : (
+                <>
+                  <Link to="/login" className={styles.girisLink}>{t('about.signIn')}</Link>
+                  <Link to="/register" className={styles.kayitDugmesi}>{t('about.createAccount')}</Link>
+                </>
+              )}
             </nav>
           </header>
 
@@ -110,8 +118,14 @@ export default function AboutPage() {
                 {t('about.heroText')}
               </p>
               <div className={styles.kahramanEylemler}>
-                <Link to="/register" className={styles.birincilDugme}>{t('about.freeAccount')}</Link>
-                <Link to="/login" className={styles.ikincilDugme}>{t('about.haveAccount')}</Link>
+                {girisli ? (
+                  <Link to="/app/dashboard" className={styles.birincilDugme}>{t('about.backToApp')}</Link>
+                ) : (
+                  <>
+                    <Link to="/register" className={styles.birincilDugme}>{t('about.freeAccount')}</Link>
+                    <Link to="/login" className={styles.ikincilDugme}>{t('about.haveAccount')}</Link>
+                  </>
+                )}
               </div>
             </div>
           </section>
@@ -170,7 +184,10 @@ export default function AboutPage() {
         <section className={styles.kapanis}>
           <h2>{t('about.closingTitle')}</h2>
           <p>{t('about.closingText')}</p>
-          <Link to="/register" className={styles.birincilDugme}>{t('about.createAccount')}</Link>
+          {/* Girişli kullanıcıyı kayıt formuna yollamıyoruz. */}
+          <Link to={girisli ? '/app/dashboard' : '/register'} className={styles.birincilDugme}>
+            {girisli ? t('about.backToApp') : t('about.createAccount')}
+          </Link>
         </section>
 
         {/* Kopya bağlantı listesi kaldırıldı — ortak `PublicFooter`

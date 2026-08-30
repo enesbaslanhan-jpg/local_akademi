@@ -589,7 +589,8 @@
       "terms": "Terms of use",
       "cookies": "Cookies",
       "note": "For questions and KVKK requests, use the contact channel in the Privacy Notice."
-    }
+    },
+    "backToApp": "Back to LocalKarar"
   },
   "support": {
     "kicker": "Support",
@@ -860,7 +861,9 @@
         "title": "Founding Member badge",
         "description": "Visible on your account and in the community. It shows you were one of the first."
       }
-    }
+    },
+    "myMembership": "My membership settings",
+    "memberNote": "Once billing starts, you manage your membership from Settings → Membership."
   },
   "publicFooter": {
     "corporateAria": "Company links",

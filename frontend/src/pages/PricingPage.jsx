@@ -6,6 +6,7 @@ import BrandMark from '@/components/ui/BrandMark'
 import AuthThemeToggle from './AuthThemeToggle'
 import PublicFooter from '@/components/layout/PublicFooter'
 import DonemSecici from '@/components/billing/DonemSecici'
+import { useGirisli } from '@/hooks/useGirisli'
 import {
   FOUNDER_STAGES,
   BILLING_STARTS_AT,
@@ -182,6 +183,7 @@ export default function PricingPage() {
   const dil = i18n.resolvedLanguage
   const gecisAyi = nihaiFiyataGecisAyi()
   const [donem, setDonem] = useState('monthly')
+  const girisli = useGirisli()
 
   return (
     <div className={styles.page}>
@@ -196,9 +198,17 @@ export default function PricingPage() {
               <BrandMark size={30} />
               <span className={styles.brandText}>LocalKarar</span>
             </Link>
+            {/* Giriş yapmış kullanıcıya "Giriş yap / Hesap oluştur"
+                göstermek anlamsız; onu uygulamaya geri götürüyoruz. */}
             <nav className={styles.ustEylemler}>
-              <Link to="/login" className={styles.girisLink}>{t('about.signIn')}</Link>
-              <Link to="/register" className={styles.kayitDugmesi}>{t('about.createAccount')}</Link>
+              {girisli ? (
+                <Link to="/app/dashboard" className={styles.kayitDugmesi}>{t('about.backToApp')}</Link>
+              ) : (
+                <>
+                  <Link to="/login" className={styles.girisLink}>{t('about.signIn')}</Link>
+                  <Link to="/register" className={styles.kayitDugmesi}>{t('about.createAccount')}</Link>
+                </>
+              )}
             </nav>
           </header>
 
@@ -282,12 +292,36 @@ export default function PricingPage() {
             </ul>
 
             <div className={styles.eylemKutusu}>
-              <Link to="/register" className={styles.birincilDugme}>
-                {t('pricing.startFree')}
-              </Link>
-              <span className={styles.eylemNot}>
-                {t('pricing.startNote')}
-              </span>
+              {/*
+                * 🔴 Giriş yapmış kullanıcıyı KAYIT FORMUNA yollamıyoruz.
+                *
+                * Önceki sürüm koşulsuz `/register`e gidiyordu ve
+                * Ayarlar → "Fiyatları gör" yolundan gelen kullanıcı
+                * "Ücretsiz başla"ya basınca hesap oluşturma ekranına
+                * düşüyordu — zaten hesabı olduğu hâlde.
+                *
+                * Girişliye gösterilen eylem, onun için gerçekten
+                * anlamlı olan yer: kendi üyelik durumu.
+                */}
+              {girisli ? (
+                <>
+                  <Link to="/app/settings#uyelik" className={styles.birincilDugme}>
+                    {t('pricing.myMembership')}
+                  </Link>
+                  <span className={styles.eylemNot}>
+                    {t('pricing.memberNote')}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Link to="/register" className={styles.birincilDugme}>
+                    {t('pricing.startFree')}
+                  </Link>
+                  <span className={styles.eylemNot}>
+                    {t('pricing.startNote')}
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </section>
