@@ -52,6 +52,86 @@ function resolveFirebaseCredentials(): ServiceAccountCredentials | null {
   return null
 }
 
+export interface FcmErrorDetail {
+  '@type'?: string
+  errorCode?: string
+  fieldViolations?: Array<{ field?: string; description?: string }>
+}
+
+export interface FcmErrorPayload {
+  error?: {
+    code?: number
+    status?: string
+    message?: string
+    details?: FcmErrorDetail[]
+  }
+}
+
+/**
+ * FCM HTTP v1 Hata Siniflandirici.
+ *
+ * KRITIK GUVENLIK KURALI:
+ * - Bir token yalnizca ve yalnizca sağlayıcı cevabı token'in KESINLIKLE gecersiz/silinmis
+ *   oldugunu belirttiginde silinir (UNREGISTERED vb.).
+ * - Genel INVALID_ARGUMENT (ornegin yanlis bildirim basligi, payload alan hatasi),
+ *   401/403 (sunucu kimlik/yetki hatasi), 429 (hiz siniri), 500/503 (gecici sunucu hatasi)
+ *   ve zaman asimlarinda TOKEN ASLA SILINMEZ.
+ */
+export function classifyFcmError(
+  status: number,
+  errorBody?: FcmErrorPayload
+): { invalidToken: boolean; isRetryable: boolean } {
+  if (!errorBody?.error) {
+    const isTransient = status === 429 || status >= 500
+    return { invalidToken: false, isRetryable: isTransient }
+  }
+
+  const details = errorBody.error.details || []
+  const fcmErrorDetail = details.find(
+    d => d['@type'] === 'type.googleapis.com/google.firebase.fcm.v1.FcmError'
+  )
+  const fcmErrorCode = fcmErrorDetail?.errorCode || ''
+
+  // 1. Kesin kalici token gecersizlik durumlari
+  if (fcmErrorCode === 'UNREGISTERED') {
+    return { invalidToken: true, isRetryable: false }
+  }
+
+  // 2. Token alanina ozgu gecersizlik kontrolu
+  const hasTokenFieldViolation = details.some(d =>
+    d.fieldViolations?.some(
+      fv => fv.field === 'message.token' || fv.field?.includes('token')
+    )
+  )
+
+  const messageText = (errorBody.error.message || '').toLowerCase()
+  const isTokenExplicitlyMalformed =
+    hasTokenFieldViolation ||
+    (fcmErrorCode === 'INVALID_ARGUMENT' &&
+      (messageText.includes('registration token') ||
+        messageText.includes('fcm token') ||
+        messageText.includes('token is not valid') ||
+        messageText.includes('invalid registration token')))
+
+  if (isTokenExplicitlyMalformed) {
+    return { invalidToken: true, isRetryable: false }
+  }
+
+  // 3. Genel INVALID_ARGUMENT (ornegin payload hatasi) veya DIGER durumlar: TOKEN ASLA SILINMEZ
+  const isTransient =
+    status === 429 ||
+    status === 500 ||
+    status === 503 ||
+    fcmErrorCode === 'UNAVAILABLE' ||
+    fcmErrorCode === 'INTERNAL' ||
+    fcmErrorCode === 'QUOTA_EXCEEDED'
+
+  return {
+    invalidToken: false,
+    isRetryable: isTransient
+  }
+}
+
 /**
  * Google OAuth2 Access Token yoneticisi (Harici agir kutuphaneler olmadan).
  */
@@ -127,7 +207,11 @@ export class FirebaseHttpV1Transport implements PushTransport {
 
   async send(token: string, message: PushNotificationMessage): Promise<PushSendResult> {
     if (!this.isEnabled || !this.creds || !this.tokenManager) {
-      return { success: true }
+      return {
+        success: false,
+        skipped: true,
+        error: 'Push transport is disabled (credentials absent)'
+      }
     }
 
     try {
@@ -176,27 +260,13 @@ export class FirebaseHttpV1Transport implements PushTransport {
       }
 
       const status = response.status
-      const errorBody = (await response.json().catch(() => ({}))) as {
-        error?: {
-          status?: string
-          message?: string
-          details?: Array<{ errorCode?: string }>
-        }
-      }
+      const errorBody = (await response.json().catch(() => ({}))) as FcmErrorPayload
 
-      const fcmErrorCode =
-        errorBody.error?.details?.[0]?.errorCode || errorBody.error?.status || ''
-
-      // Kalici gecersiz token durumlari
-      const isUnregistered =
-        status === 404 ||
-        fcmErrorCode === 'UNREGISTERED' ||
-        fcmErrorCode === 'NOT_FOUND' ||
-        (status === 400 && fcmErrorCode === 'INVALID_ARGUMENT')
+      const classification = classifyFcmError(status, errorBody)
 
       return {
         success: false,
-        invalidToken: isUnregistered,
+        invalidToken: classification.invalidToken,
         error: errorBody.error?.message || `FCM error HTTP ${status}`
       }
     } catch (error) {
@@ -222,30 +292,38 @@ export class FakePushTransport implements PushTransport {
   readonly name = 'fake-push'
   public isEnabled = true
   public sentMessages: SentPushRecord[] = []
-  private nextError: PushSendResult | null = null
+  private nextResult: PushSendResult | null = null
 
   failNextWithInvalidToken(error = 'Requested entity was not found.'): void {
-    this.nextError = { success: false, invalidToken: true, error }
+    this.nextResult = { success: false, invalidToken: true, error }
   }
 
   failNextWithTransientError(error = 'Service Unavailable 503'): void {
-    this.nextError = { success: false, invalidToken: false, error }
+    this.nextResult = { success: false, invalidToken: false, error }
+  }
+
+  simulateResult(result: PushSendResult): void {
+    this.nextResult = result
   }
 
   clear(): void {
     this.sentMessages = []
-    this.nextError = null
+    this.nextResult = null
   }
 
   async send(token: string, message: PushNotificationMessage): Promise<PushSendResult> {
-    if (this.nextError) {
-      const err = this.nextError
-      this.nextError = null
-      return err
+    if (this.nextResult) {
+      const res = this.nextResult
+      this.nextResult = null
+      return res
     }
 
     if (!this.isEnabled) {
-      return { success: true }
+      return {
+        success: false,
+        skipped: true,
+        error: 'Push transport is disabled (credentials absent)'
+      }
     }
 
     this.sentMessages.push({

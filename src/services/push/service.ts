@@ -49,7 +49,8 @@ export class PushService {
       attempted: 0,
       sent: 0,
       failed: 0,
-      invalidated: 0
+      invalidated: 0,
+      skipped: 0
     }
 
     try {
@@ -72,6 +73,11 @@ export class PushService {
             const result = await this.transport.send(installation.pushToken, message)
             if (result.success) {
               summary.sent += 1
+              return
+            }
+
+            if (result.skipped) {
+              summary.skipped += 1
               return
             }
 

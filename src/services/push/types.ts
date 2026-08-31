@@ -21,6 +21,7 @@ export interface PushNotificationMessage {
 
 export interface PushSendResult {
   success: boolean
+  skipped?: boolean
   error?: string
   invalidToken?: boolean
 }
@@ -30,4 +31,5 @@ export interface PushDeliverySummary {
   sent: number
   failed: number
   invalidated: number
+  skipped: number
 }

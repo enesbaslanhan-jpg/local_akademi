@@ -393,4 +393,83 @@ describe('Oturum ve Hesap Yasam Dongusu Entegrasyonu', () => {
     })
     expect(instRemaining).toBeNull()
   })
+
+  it('es zamanli (concurrent) ayni token kayitlarinda tek bir aktif kayit kalir ve 200 doner', async () => {
+    // Logout-all sonrasi taze token al
+    const loginRes = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { email: userA.email, password }
+    })
+    const freshTokenA = loginRes.json().token
+
+    const inst1 = `inst-conc-1-${Date.now()}`
+    const inst2 = `inst-conc-2-${Date.now()}`
+    const sharedToken = `token-conc-${Date.now()}`
+
+    const [res1, res2] = await Promise.all([
+      app.inject({
+        method: 'PUT',
+        url: `/devices/${inst1}`,
+        headers: { authorization: `Bearer ${freshTokenA}` },
+        payload: { pushToken: sharedToken, platform: 'android' }
+      }),
+      app.inject({
+        method: 'PUT',
+        url: `/devices/${inst2}`,
+        headers: { authorization: `Bearer ${freshTokenA}` },
+        payload: { pushToken: sharedToken, platform: 'android' }
+      })
+    ])
+
+    expect(res1.statusCode).toBe(200)
+    expect(res2.statusCode).toBe(200)
+
+    const tokenCount = await prisma.pushInstallation.count({
+      where: { pushToken: sharedToken }
+    })
+    expect(tokenCount).toBe(1)
+  })
+
+  it('User A cevrimdisi oldugu icin DELETE yapamasa bile User B ayni kurulumu alinca User A erisimini kaybeder', async () => {
+    const loginResA = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { email: userA.email, password }
+    })
+    const freshTokenA = loginResA.json().token
+
+    const instId = `inst-offline-${Date.now()}`
+    const tokenAInst = `tok-user-a-${Date.now()}`
+    const tokenBInst = `tok-user-b-${Date.now()}`
+
+    // User A cihazda oturum acmis ve kaydetmis
+    await app.inject({
+      method: 'PUT',
+      url: `/devices/${instId}`,
+      headers: { authorization: `Bearer ${freshTokenA}` },
+      payload: { pushToken: tokenAInst, platform: 'android' }
+    })
+
+    // User A cikis yapmadan/DELETE gondermeden User B ayni cihazda giris yapip PUT gonderiyor
+    const res = await app.inject({
+      method: 'PUT',
+      url: `/devices/${instId}`,
+      headers: { authorization: `Bearer ${tokenB}` },
+      payload: { pushToken: tokenBInst, platform: 'android' }
+    })
+    expect(res.statusCode).toBe(200)
+
+    const updated = await prisma.pushInstallation.findUnique({
+      where: { installationId: instId }
+    })
+    expect(updated?.userId).toBe(userB.id)
+    expect(updated?.pushToken).toBe(tokenBInst)
+
+    // User A adina bu cihaz kayitli degildir
+    const userAInstallations = await prisma.pushInstallation.findMany({
+      where: { userId: userA.id, installationId: instId }
+    })
+    expect(userAInstallations.length).toBe(0)
+  })
 })

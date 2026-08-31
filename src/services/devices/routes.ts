@@ -72,49 +72,63 @@ export async function deviceRoutes(fastify: FastifyInstance) {
       const { pushToken, platform, appVersion, locale } = bodyResult.data
       const userId = request.user.id
 
-      const installation = await sharedPrisma.$transaction(async tx => {
-        // 1. Ayni pushToken baska bir eski kurulum tarafindan tutuluyorsa, cakismayi temizle
-        await tx.pushInstallation.deleteMany({
-          where: {
-            pushToken,
-            installationId: { not: installationId }
-          }
-        })
+      const executeRegistration = async () => {
+        return sharedPrisma.$transaction(async tx => {
+          // 1. Ayni pushToken baska bir eski kurulum tarafindan tutuluyorsa, cakismayi temizle
+          await tx.pushInstallation.deleteMany({
+            where: {
+              pushToken,
+              installationId: { not: installationId }
+            }
+          })
 
-        // 2. Kurulumu upsert et (veya sahibi degismisse yeni kullaniciya devret)
-        const now = new Date()
-        return tx.pushInstallation.upsert({
-          where: { installationId },
-          update: {
-            userId,
-            platform,
-            pushToken,
-            appVersion: appVersion ?? undefined,
-            locale: locale ?? undefined,
-            enabled: true,
-            lastSeenAt: now
-          },
-          create: {
-            installationId,
-            userId,
-            platform,
-            pushToken,
-            appVersion: appVersion ?? null,
-            locale: locale ?? 'tr',
-            enabled: true,
-            lastSeenAt: now
-          },
-          select: {
-            id: true,
-            installationId: true,
-            platform: true,
-            enabled: true,
-            appVersion: true,
-            locale: true,
-            lastSeenAt: true
-          }
+          // 2. Kurulumu upsert et (veya sahibi degismisse yeni kullaniciya devret)
+          const now = new Date()
+          return tx.pushInstallation.upsert({
+            where: { installationId },
+            update: {
+              userId,
+              platform,
+              pushToken,
+              appVersion: appVersion ?? undefined,
+              locale: locale ?? undefined,
+              enabled: true,
+              lastSeenAt: now
+            },
+            create: {
+              installationId,
+              userId,
+              platform,
+              pushToken,
+              appVersion: appVersion ?? null,
+              locale: locale ?? 'tr',
+              enabled: true,
+              lastSeenAt: now
+            },
+            select: {
+              id: true,
+              installationId: true,
+              platform: true,
+              enabled: true,
+              appVersion: true,
+              locale: true,
+              lastSeenAt: true
+            }
+          })
         })
-      })
+      }
+
+      let installation
+      try {
+        installation = await executeRegistration()
+      } catch (err: any) {
+        if (err?.code === 'P2002') {
+          // Eszamanli yaris (concurrent collision) durumunda cakismayi temizleyip bir kez daha dene
+          installation = await executeRegistration()
+        } else {
+          throw err
+        }
+      }
 
       return reply.status(200).send(installation)
     }
