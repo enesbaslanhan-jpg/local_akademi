@@ -21,12 +21,30 @@ let onceki: Record<string, string | undefined>
 beforeEach(() => {
   onceki = {
     flag: process.env.AI_ALLOW_EXTERNAL_PROVIDERS,
+    provider: process.env.AI_PROVIDER,
     omniroute: process.env.OMNIROUTE_BASE_URL,
     omniKey: process.env.OMNIROUTE_API_KEY,
     nvidia: process.env.NVIDIA_API_KEY,
     openai: process.env.OPENAI_API_KEY,
     deepseek: process.env.DEEPSEEK_API_KEY
   }
+  /*
+   * 🔴 ORTAMDAN BAĞIMSIZLIK.
+   *
+   * `@prisma/client` import edilirken `.env` dosyasını
+   * `process.env`e yüklüyor (DATABASE_URL'i bulmak için). Bu test
+   * `src/` altından import yaptığı için geliştiricinin `.env`ini
+   * miras alıyordu ve sonuç MAKİNEYE GÖRE DEĞİŞİYORDU.
+   *
+   * Ölçülen arıza: `.env`e `AI_PROVIDER=omniroute` ve uzak bir
+   * `OMNIROUTE_BASE_URL` yazıldığı gün "auto seçimi" testi düştü —
+   * kod değişmediği hâlde. O güne kadar şans eseri geçiyordu.
+   *
+   * Bu yüzden test artık ikisini de KENDİSİ kuruyor.
+   */
+  delete process.env.AI_PROVIDER
+  process.env.OMNIROUTE_BASE_URL = 'http://localhost:20128/v1'
+
   /* Politika kapalı: üretimdeki varsayılan durum. */
   process.env.AI_ALLOW_EXTERNAL_PROVIDERS = 'false'
   /* Anahtarlar DOLU olsa bile reddedilmeli — asıl senaryo bu. */
@@ -39,6 +57,7 @@ beforeEach(() => {
 afterEach(() => {
   for (const [k, v] of Object.entries({
     AI_ALLOW_EXTERNAL_PROVIDERS: onceki.flag,
+    AI_PROVIDER: onceki.provider,
     OMNIROUTE_BASE_URL: onceki.omniroute,
     OMNIROUTE_API_KEY: onceki.omniKey,
     NVIDIA_API_KEY: onceki.nvidia,

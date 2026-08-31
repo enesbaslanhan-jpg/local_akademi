@@ -43,6 +43,17 @@ services:
       - OMNIROUTE_MODEL=${OMNIROUTE_MODEL:-auto/best-free}
       # Yurt dışı sağlayıcılar bilinçli olarak açılmadıkça reddedilir.
       - AI_ALLOW_EXTERNAL_PROVIDERS=${AI_ALLOW_EXTERNAL_PROVIDERS:-false}
+      # PayTR sanal POS. Ucu de tanimli degilse odeme KAPALI sayiliyor;
+      # yarim yapilandirmayla acik birakmak, ilk gercek odemede sessiz
+      # hash hatasi ve cekilmis para demekti.
+      #
+      # 🔴 PAYTR_TEST_MODE varsayilani TRUE. Uretimde bilincli olarak
+      # "false" verilmeli -- ters varsayilan, ilk dagitimda gercek para
+      # cekmek olurdu.
+      - PAYTR_MERCHANT_ID=${PAYTR_MERCHANT_ID:-}
+      - PAYTR_MERCHANT_KEY=${PAYTR_MERCHANT_KEY:-}
+      - PAYTR_MERCHANT_SALT=${PAYTR_MERCHANT_SALT:-}
+      - PAYTR_TEST_MODE=${PAYTR_TEST_MODE:-true}
       # Ters vekil arkasındaysanız ayarlayın (ör. 1). Tanımsızsa
       # X-Forwarded-For yok sayılır — hız sınırları soket adresine göre işler.
       - TRUST_PROXY=${TRUST_PROXY:-}

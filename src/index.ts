@@ -3,6 +3,7 @@ import cors from '@fastify/cors'
 import rateLimit from '@fastify/rate-limit'
 import fastifyStatic from '@fastify/static'
 import { authRoutes, registerJwtPlugin } from './services/auth'
+import { paymentRoutes } from './services/payments/routes'
 import { mailYapilandirmasiniDogrula } from './services/mailer'
 import { decisionCheckRoutes } from './services/decision-checks'
 import { courseRoutes } from './services/courses'
@@ -475,6 +476,9 @@ async function build() {
   server.addHook('preHandler', uyelikKapisi(server))
 
   server.register(authRoutes, { prefix: '/auth' })
+  /* Odeme: PayTR callback'i kimliksiz gelir ve kendi urlencoded
+     ayristiricisini EKLENTI KAPSAMINDA kaydeder. */
+  server.register(paymentRoutes, { prefix: '/payments' })
   server.register(supportRoutes, { prefix: '/support' })
   server.register(accountNotificationRoutes, { prefix: '/account/notifications' })
   server.register(courseRoutes, { prefix: '/courses' })

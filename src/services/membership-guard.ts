@@ -70,6 +70,17 @@ const MUAF_ONEKLER = [
    * niyeti belli ediyor.
    */
   '/inbound',
+
+  /*
+   * 🔴 ÖDEME. İki ayrı sebeple muaf olmak ZORUNDA:
+   *
+   * 1. PayTR callback'i kimliksiz gelir — JWT yok, `request.user` yok.
+   * 2. Daha önemlisi: süresi dolmuş kullanıcı tam olarak ödeme yapmak
+   *    için buraya geliyor. Ödeme yolunu üyelik süresine bağlamak,
+   *    kapıyı içeriden kilitleyip anahtarı dışarıda bırakmak olurdu —
+   *    kullanıcı ne öder ne de salt okunur moddan çıkabilir.
+   */
+  '/payments',
 ]
 
 /** Tam eşleşen muaf yollar (önek vermek fazla geniş olurdu). */

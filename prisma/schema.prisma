@@ -97,6 +97,7 @@ model User {
   refreshTokens             RefreshToken[]
   addedInboxSenders         BusinessInboxSender[]
   createdIntegrations       IntegrationConnection[]  @relation("IntegrationConnections")
+  subscription              Subscription?
 
   @@index([deletedAt])
 }
@@ -2258,4 +2259,93 @@ model MarketplaceProduct {
 
   @@unique([workspaceId, provider, externalId])
   @@index([workspaceId, isActive])
+}
+
+// ─── ABONELİK VE ÖDEME ──────────────────────────────────────────────
+//
+// Plan tanimlari BURADA DEGIL: `src/config/billing.ts` tek kaynak ve
+// fiyatlar oradan turetiliyor. Ikinci bir dogruluk kaynagi acmak,
+// ekranda gorunen fiyat ile tahsil edilen tutarin ayrismasi demek.
+//
+// Abonelik KULLANICI basina (urun sahibi karari): kullanici oder,
+// butun isletmelerinde kullanir.
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+enum BillingPeriod {
+  MONTHLY
+  YEARLY
+}
+
+// Yenilemenin otomatik mi elle mi oldugu. Urun sahibi 30.08.2026'da
+// OTOMATIK'e karar verdi ve yasal metinler bunu tahhut ediyor -- ama
+// kayitli kartla tekrarlayan tahsilat PayTR'de AYRI bir yetki ve
+// verildigi henuz teyit edilmedi. Alan bastan burada ki cevap
+// degistiginde goc gerekmesin.
+enum RenewalMode {
+  AUTO
+  MANUAL
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+model Subscription {
+  id                String             @id @default(uuid())
+  userId            Int                @unique
+  status            SubscriptionStatus @default(TRIALING)
+  period            BillingPeriod      @default(MONTHLY)
+  renewalMode       RenewalMode        @default(AUTO)
+  currentPeriodEnd  DateTime?
+  /// Iptal edildi ama donem sonuna kadar erisim suruyor (urun sahibi
+  /// karari: kismi iade yok, donem sonuna kadar devam).
+  cancelAtPeriodEnd Boolean            @default(false)
+  canceledAt        DateTime?
+
+  /// Kart BILGISI DEGIL, yalniz gosterim icin maskeli alanlar.
+  cardBrand         String?
+  cardLast4         String?
+  /// 🔴 Odeme kurulusunun kart referansi. DUZ METIN SAKLANMAZ --
+  /// `src/lib/crypto.ts` encryptSecret/decryptSecret (AES-256-GCM).
+  providerCardToken String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  @@index([status, currentPeriodEnd])
+}
+
+model Payment {
+  id             String        @id @default(uuid())
+  subscriptionId String
+  /// 🔴 BIZIM urettigimiz siparis numarasi; callback bununla eslesiyor.
+  /// Yalniz harf+rakam (PayTR sarti). AuditLog.actorId zorunlu oldugu
+  /// ve callback'in oturum sahibi olmadigi icin actor bu satirdan
+  /// cozuluyor -- imzali state'e gerek birakmiyor.
+  merchantOid    String        @unique
+  amount         Decimal       @db.Decimal(18, 2)
+  currency       String        @default("TRY")
+  status         PaymentStatus @default(PENDING)
+  provider       String        @default("paytr")
+  failReason     String?
+  paidAt         DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId, createdAt])
+  @@index([status])
 }
