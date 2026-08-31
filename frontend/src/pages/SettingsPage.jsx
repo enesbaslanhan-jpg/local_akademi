@@ -68,12 +68,27 @@ function initials(name = 'LK') {
  */
 export const BOLUMLER = ['profile', 'notifications', 'security', 'privacy', 'integrations', 'uyelik', 'appearance']
 
-export function acilisBolumu() {
-  const sorgu = new URLSearchParams(window.location.search).get('bolum')
+/**
+ * Bir ayarlar adresinin HANGİ BÖLÜMÜ açtığını çözer.
+ *
+ * ⚠️ `window`dan okumuyor: saf olması, adresi elde olan başka
+ * kodun da (ve testlerin) aynı kuralı çalıştırabilmesini sağlıyor.
+ * Kuralı ikinci bir yere kopyalamak, iki yorumun sessizce ayrışması
+ * demek olurdu.
+ */
+export function bolumSec(search = '', hash = '') {
+  const sorgu = new URLSearchParams(search).get('bolum')
   if (BOLUMLER.includes(sorgu)) return sorgu
-  const hash = window.location.hash.replace(/^#/, '')
-  if (BOLUMLER.includes(hash)) return hash
+  const temizHash = String(hash).replace(/^#/, '')
+  if (BOLUMLER.includes(temizHash)) return temizHash
+  /* Bölüm verilmeyen her adres profile düşüyor. Menüde hem
+     `/app/settings` hem `?bolum=profile` bulunmasının aynı yere
+     gitmesinin sebebi budur. */
   return 'profile'
+}
+
+export function acilisBolumu() {
+  return bolumSec(window.location.search, window.location.hash)
 }
 
 export default function SettingsPage() {

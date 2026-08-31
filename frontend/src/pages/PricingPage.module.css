@@ -421,6 +421,12 @@
 .birincilDugme:hover { background: var(--auth-accent-hover); }
 
 .eylemNot {
+  /* 🔴 Üst boşluk AÇIKÇA yazılıyor. Önceden hiç `margin` yoktu ve
+     sıfırlamadan gelen 0 geçerliydi: açıklama düğmeye yapışık
+     duruyordu, ürün sahibi "altındaki yazı çok yakın" dedi. Düğmenin
+     nefes alanı, ona ait bir açıklamayı ondan ayıracak kadar olmalı —
+     yoksa ikisi tek bir blok gibi okunuyor. */
+  margin: 14px 0 0;
   color: var(--auth-text-soft);
   font-size: .79rem;
   line-height: 1.5;

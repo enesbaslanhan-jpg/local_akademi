@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ArrowRight, Bell, BookOpen, Calculator, CreditCard, LogOut, Menu, MessagesSquare, Moon, Newspaper, Search, Settings, ShieldCheck, Sun, UserRound, Users } from 'lucide-react'
+import { ArrowRight, Bell, BookOpen, Calculator, CreditCard, LogOut, Menu, MessagesSquare, Moon, Newspaper, Search, ShieldCheck, Sun, UserRound, Users } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useWorkspace } from '@/context/WorkspaceContext'
 import { useTheme } from '@/context/ThemeContext'
@@ -48,6 +48,28 @@ function resolveTitle(pathname, t) {
 }
 
 const EMPTY_RESULTS = { courses: [], knowledge: [], decisionChecks: [], news: [], people: [], posts: [] }
+
+/*
+ * HESAP MENÜSÜNÜN HEDEFLERİ — dışa açık, çünkü TEST EDİLİYOR.
+ *
+ * 🔴 Ürün sahibi bu turda AYNI HATAYI İKİ KEZ yakaladı: fiyat
+ * sayfasında iki bağlantı `/fiyatlar`a gidiyordu, menüde "Profil ve
+ * işletme" ile "Ayarlar" aynı bölümü açıyordu. İkisi de kullanıcıya
+ * iki seçenek varmış gibi gösterip aynı yere götürüyordu.
+ *
+ * Menü artık bu diziden üretiliyor ve bir test her hedefin AYRI bir
+ * ayarlar bölümü açtığını doğruluyor (`bolumSec` ile — kural
+ * kopyalanmadan). Listeye aynı yere çıkan bir satır eklenirse test
+ * düşer.
+ *
+ * ⚠️ `Çıkış yap` burada DEĞİL: bir adrese gitmiyor, oturumu
+ * kapatıyor. Bu listenin sözleşmesi "gidilecek yerler".
+ */
+export const HESAP_MENUSU = [
+  { yol: '/app/settings?bolum=profile', etiket: 'settings.profileBusiness', Ikon: UserRound },
+  /* İstenen kısa yol: tek tıkla üyelik. */
+  { yol: '/app/settings?bolum=uyelik', etiket: 'settings.membership.title', Ikon: CreditCard },
+]
 
 export default function Header({ onToggleSidebar }) {
   const { t, i18n } = useTranslation(['common', 'tools'])
@@ -436,16 +458,30 @@ export default function Header({ onToggleSidebar }) {
                 <strong>{user?.name || t('nav.profile')}</strong>
                 <span>{user?.email}</span>
               </div>
-              <button type="button" role="menuitem" className={styles.hesapOge} onClick={() => gitVeKapat('/app/settings?bolum=profile')}>
-                <UserRound size={15} aria-hidden="true" /> {t('settings.profileBusiness')}
-              </button>
-              {/* İstenen kısa yol: tek tıkla üyelik. */}
-              <button type="button" role="menuitem" className={styles.hesapOge} onClick={() => gitVeKapat('/app/settings?bolum=uyelik')}>
-                <CreditCard size={15} aria-hidden="true" /> {t('settings.membership.title')}
-              </button>
-              <button type="button" role="menuitem" className={styles.hesapOge} onClick={() => gitVeKapat('/app/settings')}>
-                <Settings size={15} aria-hidden="true" /> {t('nav.settings')}
-              </button>
+              {HESAP_MENUSU.map(({ yol, etiket, Ikon }) => (
+                <button
+                  key={yol}
+                  type="button"
+                  role="menuitem"
+                  className={styles.hesapOge}
+                  onClick={() => gitVeKapat(yol)}
+                >
+                  <Ikon size={15} aria-hidden="true" /> {t(etiket)}
+                </button>
+              ))}
+              {/*
+                * 🔴 BURADA BİR "AYARLAR" SATIRI DA VARDI VE KALDIRILDI.
+                *
+                * Ürün sahibi bildirdi: "profil ve işletme ile ayarlar
+                * aynı yere gidiyor". Doğruydu — `acilisBolumu()` bölüm
+                * verilmediğinde `profile`a düşüyor, yani `/app/settings`
+                * ile `?bolum=profile` AYNI ekranı açıyordu. İki satır
+                * kullanıcıya iki seçenek varmış gibi gösterip aynı yeri
+                * açıyordu; fiyat sayfasındaki çift bağlantıyla aynı hata.
+                *
+                * Kaldırılan "Ayarlar" oldu, çünkü etiketi daha az bilgi
+                * taşıyordu ve sol menüde zaten duruyor.
+                */}
               <button type="button" role="menuitem" className={`${styles.hesapOge} ${styles.hesapCikis}`} onClick={() => { setHesapAcik(false); logout() }}>
                 <LogOut size={15} aria-hidden="true" /> {t('nav.logout')}
               </button>
