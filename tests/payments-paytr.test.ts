@@ -302,7 +302,7 @@ describe('callback rotası', () => {
       payload: urlencoded({ merchant_oid: 'ABC123', status: 'success', total_amount: '1', hash: 'x' }),
     })
 
-    expect(yanit.statusCode).toBe(503)
+    expect(yanit.statusCode).toBe(424)
   })
 })
 
@@ -398,7 +398,7 @@ describe('satın alma başlatma', () => {
     delete process.env.PAYTR_MERCHANT_KEY
     const { app } = await checkoutSunucusu()
     const yanit = await app.inject({ method: 'POST', url: '/payments/checkout', payload: TAM_ONAY })
-    expect(yanit.statusCode).toBe(503)
+    expect(yanit.statusCode).toBe(424)
   })
 })
 
@@ -470,7 +470,7 @@ describe('test kipi kapısı', () => {
     const { app, p } = await kur('admin', true, basarisiz)
     const yanit = await app.inject({ method: 'POST', url: '/payments/checkout', payload: TAM })
 
-    expect(yanit.statusCode).toBe(502)
+    expect(yanit.statusCode).toBe(424)
     expect(yanit.json().code).toBe('PAYMENT_INIT_FAILED')
     /* Sipariş satırı SİLİNMİYOR: PayTR isteği almış olabilir ve
        callback gelebilir. */
@@ -502,5 +502,27 @@ describe('CSP ödeme çerçevesi', () => {
     const satir = kaynak.split('\n').find(l => l.includes('frame-src')) ?? ''
     expect(satir).not.toMatch(/frame-src[^"']*\*/)
     expect(satir).not.toMatch(/frame-src\s+[^"']*\bhttps:(?!\/\/)/)
+  })
+})
+
+/*
+ * 🔴 CLOUDFLARE 5xx'İ MASKELİYOR.
+ *
+ * 31.08.2026'da canlıda yaşandı: PayTR imzayı reddediyordu, sunucu
+ * doğru JSON'u üretiyordu, ama tarayıcıya Cloudflare'ın "Bad gateway"
+ * HTML'i ulaşıyordu. Sebep ancak sunucu günlüğünden görülebildi.
+ *
+ * 🦷 Bu test hata yollarının 5xx'e geri dönmesini engelliyor. Kod
+ * 502/503'e çevrilirse düşer.
+ */
+describe('ödeme hata kodları Cloudflare tarafından maskelenmiyor', () => {
+  const kaynak = readFileSync(new URL('../src/services/payments/routes.ts', import.meta.url), 'utf8')
+
+  it('checkout ve callback 502/503 DÖNMÜYOR', () => {
+    expect(kaynak).not.toMatch(/status\(50[23]\)/)
+  })
+
+  it('hata yolları 424 kullanıyor', () => {
+    expect(kaynak).toContain('status(424)')
   })
 })

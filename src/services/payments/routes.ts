@@ -123,7 +123,19 @@ export async function paymentRoutes(
     config: { rateLimit: { max: 20, timeWindow: '1 hour' } },
   }, async (request, reply) => {
     const cfg = paytrYapilandirmasi()
-    if (!cfg) return reply.status(503).send({ error: 'Ödeme altyapısı etkin değil.', code: 'PAYMENT_DISABLED' })
+    /*
+     * 🔴 4xx KULLANILIYOR, 5xx DEĞİL — Cloudflare sebebiyle.
+     *
+     * Cloudflare origin'den gelen 502/503'ü KENDİ hata sayfasıyla
+     * değiştiriyor. 31.08.2026'da bunu bizzat yaşadık: PayTR imzayı
+     * reddediyordu, sunucu doğru cevabı üretiyordu, ama tarayıcıya
+     * Cloudflare'ın "Bad gateway" HTML'i ulaşıyordu. Gerçek sebep
+     * yalnız sunucu günlüğünden görülebildi.
+     *
+     * 424 (Failed Dependency) semantik olarak da doğru: istek
+     * geçerli, bağımlı olduğumuz servis kullanılamıyor.
+     */
+    if (!cfg) return reply.status(424).send({ error: 'Ödeme altyapısı etkin değil.', code: 'PAYMENT_DISABLED' })
 
     /*
      * 🔴 ÜCRETLENDİRME KAPALIYKEN SATIN ALMA YOK — TEK İSTİSNAYLA.
@@ -226,7 +238,9 @@ export async function paymentRoutes(
          ne olduğunu söyleyen tek yer; yazmamak bu oturumda iki kez
          saatlerce süren teşhise yol açtı. */
       request.log.error({ merchantOid, sebep: sonuc.sebep }, 'paytr token alinamadi')
-      return reply.status(502).send({
+      /* 502 DEĞİL: Cloudflare onu kendi sayfasıyla değiştirir ve
+         kullanıcı "Bad gateway" görür. Bkz. yukarıdaki not. */
+      return reply.status(424).send({
         error: 'Ödeme başlatılamadı. Lütfen tekrar deneyin.',
         code: 'PAYMENT_INIT_FAILED',
       })
@@ -293,7 +307,9 @@ export async function paymentRoutes(
     const cfg = paytrYapilandirmasi()
     /* Yapılandırma yoksa ödeme kapalı; sessizce OK dönmek yerine
        açıkça reddediliyor — PayTR'nin bu ortama istek atmaması gerekir. */
-    if (!cfg) return reply.status(503).type('text/plain').send('PAYMENT_DISABLED')
+    /* Burada da 4xx: Cloudflare 503'ü değiştirirse PayTR bizim
+       gövdemizi değil onun HTML'ini görür ve sebebi anlayamaz. */
+    if (!cfg) return reply.status(424).type('text/plain').send('PAYMENT_DISABLED')
 
     const govde = (request.body ?? {}) as Record<string, string>
 

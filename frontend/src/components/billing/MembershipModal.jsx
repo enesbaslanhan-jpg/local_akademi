@@ -4,16 +4,12 @@ import { Percent, ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import Modal from '@/components/ui/Modal'
 import { api } from '@/services/api'
-import DonemSecici from './DonemSecici'
 import {
   BILLING_STARTS_AT,
-  YEARLY_FREE_MONTHS,
   ilkUcretliTutar,
   kuruculUyeFiyati,
   kuruculIndirimYuzdesi,
   nihaiFiyataGecisAyi,
-  yillikTutar,
-  yillikKazanc,
   fiyatYaz,
 } from '@/config/billing'
 import styles from './MembershipModal.module.css'
@@ -32,11 +28,11 @@ import styles from './MembershipModal.module.css'
  * fiyatı görmüş olmalı. Mesafeli sözleşme mevzuatı da ön bilgilendirmeyi
  * sözleşme kurulmadan ÖNCE şart koşuyor.
  *
- * 🔴 DÖNEM SEÇİMİ BUGÜNKÜ TAHSİLATI DEĞİŞTİRMEZ.
- * Aylık/yıllık seçimi NİHAİ aşamadan itibaren geçerli. Bugün ödenen
- * tutar lansman dönemi ücreti ve o aylık. Seçime göre bugünkü tutarı
- * değiştirmek, kullanıcının henüz girmediği bir dönemin parasını peşin
- * almak olurdu — özette de böyle yazılı.
+ * 🔴 DÖNEM SEÇİMİ YOK (31.08.2026).
+ * Kampanya boyunca tahsilat aylık ve lansman bedeli üzerinden; dönem
+ * seçimi ancak nihai aşamada anlam kazanıyor. Ödeme anında sormak,
+ * bugün ödenecek tutarı değiştirmeyen bir soru sormaktı. Gerekçenin
+ * tamamı fiyat sayfasındaki `ZamanCizgisi` yorumunda.
  *
  * ✅ PAYTR ÇERÇEVESİ BAĞLANDI (31.08.2026).
  * Onaylar tamamlanıp düğmeye basıldığında `/payments/checkout`
@@ -126,7 +122,18 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
   const { t, i18n } = useTranslation('common')
   const dil = i18n.resolvedLanguage
   const [basarili, setBasarili] = useState(false)
-  const [donem, setDonem] = useState('monthly')
+  /*
+   * 🔴 DÖNEM SEÇİMİ KAMPANYA BOYUNCA YOK (ürün sahibi kararı,
+   * 31.08.2026) — fiyat sayfasındaki gerekçenin aynısı.
+   *
+   * Bugün tahsil edilen tutar lansman bedeli ve AYLIK; dönem seçimi
+   * ancak 5. aydan itibaren anlam kazanıyor. Ödeme anında sormak,
+   * kullanıcıya bugün ödeyeceğini değiştirmeyen bir soru sormaktı.
+   *
+   * Sabit `monthly`: sunucu `period` alanını bekliyor ve abonelik
+   * öyle başlıyor. Kampanya bitince Ayarlar'dan değiştirilebilecek.
+   */
+  const donem = 'monthly'
   const [sozlesmeOnayi, setSozlesmeOnayi] = useState(false)
   const [caymaFeragati, setCaymaFeragati] = useState(false)
   const [otomatikTahsilat, setOtomatikTahsilat] = useState(false)
@@ -145,7 +152,6 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
   const bugunOdenecek = ilkUcretliTutar()
   const sonraki = sonrakiOdemeTarihi()
   const gecisAyi = nihaiFiyataGecisAyi()
-  const yillik = donem === 'yearly'
   /* Üçü de şart — gerekçe onay kutularının üstünde yazılı. */
   const onaylarTam = sozlesmeOnayi && caymaFeragati && otomatikTahsilat
 
@@ -204,12 +210,6 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
         <BasariDurumu onKapat={kapat} />
       ) : (
         <div className={styles.govde}>
-          {/* ---------- Dönem seçimi ---------- */}
-          <div className={styles.donemAlani}>
-            <span className={styles.donemEtiket}>{t('billing.modal.periodLabel')}</span>
-            <DonemSecici deger={donem} onChange={setDonem} variant="app" />
-          </div>
-
           {/* ---------- Özet: ödemeden ÖNCE ---------- */}
           <section className={styles.ozet} aria-label={t('billing.modal.summaryAria')}>
             <OzetSatiri
@@ -223,22 +223,9 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
             />
             <OzetSatiri
               etiket={t('billing.modal.fromMonth', { month: gecisAyi })}
-              deger={
-                yillik
-                  ? t('billing.pricePerYear', { price: fiyatYaz(yillikTutar(), dil) })
-                  : t('billing.pricePerMonth', { price: fiyatYaz(kuruculUyeFiyati(), dil) })
-              }
+              deger={t('billing.pricePerMonth', { price: fiyatYaz(kuruculUyeFiyati(), dil) })}
             />
           </section>
-
-          {yillik && (
-            <p className={styles.yillikNot}>
-              {t('billing.modal.yearlyNote', {
-                count: YEARLY_FREE_MONTHS,
-                saving: fiyatYaz(yillikKazanc(), dil),
-              })}
-            </p>
-          )}
 
           {/* ⚠️ "Fiyatın kilitli" DEMİYOR: kurucu indirimi oransal,
               fiyat standart fiyatla birlikte hareket ediyor. Abonelik

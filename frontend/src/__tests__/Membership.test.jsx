@@ -122,27 +122,32 @@ describe('kurucu üye rozeti', () => {
 })
 
 describe('ödeme paneli', () => {
-  it('dönem değişince NİHAİ tutar değişir, bugünkü tahsilat değişmez', async () => {
-    const kullanici = userEvent.setup()
+  /*
+   * 🔴 KAMPANYA BOYUNCA DÖNEM SEÇİMİ YOK (ürün sahibi kararı,
+   * 31.08.2026).
+   *
+   * Önceki sürümde panelde aylık/yıllık seçici vardı ve bu test onu
+   * koruyordu. Sorun şuydu: yıllık tutar (₺2.990) kampanyadan SONRA,
+   * 5. ayda başlıyordu; kampanyanın içinde gösterilince aylıkla
+   * karşılaştırılamıyordu. Ölçüldü: aylık seçen ilk 12 ayda ₺2.839,
+   * yıllık seçen ₺3.437 ödüyordu — çünkü yıllık 16. aya kadar
+   * kapsıyordu. Ürün sahibi haklı olarak "rakamlar yanlış" dedi.
+   *
+   * 🦷 Bu test artık seçicinin GERİ GELMEMESİNİ koruyor.
+   */
+  it('dönem seçici GÖSTERİLMİYOR ve tutarlar aylık', () => {
     sar(<MembershipModal open onClose={() => {}} />)
 
-    const bugunSatiri = screen.getByText(/bugün ödenecek/i).parentElement
-    const bugunOnce = bugunSatiri.textContent
+    expect(screen.queryByRole('radio', { name: /yıllık/i })).toBeNull()
+    expect(screen.queryByRole('radio', { name: /aylık/i })).toBeNull()
 
-    expect(screen.getByText(new RegExp(kuruculUyeFiyati().toLocaleString('tr-TR')))).toBeInTheDocument()
-
-    await kullanici.click(screen.getByRole('radio', { name: /yıllık/i }))
-
-    /* Nihai tutar yıllığa döner... */
+    /* Yıllık tutar panelde hiç geçmemeli. */
     expect(
-      screen.getByText(new RegExp(yillikTutar().toLocaleString('tr-TR').replace('.', '\\.'))),
-    ).toBeInTheDocument()
+      screen.queryByText(new RegExp(yillikTutar().toLocaleString('tr-TR').replace('.', '\.'))),
+    ).toBeNull()
 
-    /* ...ama bugün ödenecek tutar AYNI kalır. Dönem seçimi 5. aydan
-       itibaren geçerli; bugünkü tahsilat lansman ayının ücreti.
-       Değişseydi kullanıcıdan henüz girmediği bir dönemin parası
-       peşin alınmış olurdu. */
-    expect(bugunSatiri.textContent).toBe(bugunOnce)
+    /* Nihai aşama aylık fiyatla anlatılıyor. */
+    expect(screen.getByText(new RegExp(kuruculUyeFiyati().toLocaleString('tr-TR')))).toBeInTheDocument()
   })
 
   it('ücretlendirme başlamadan sebebi panelde yazılı', () => {

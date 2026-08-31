@@ -5,16 +5,14 @@ import { useTranslation } from 'react-i18next'
 import BrandMark from '@/components/ui/BrandMark'
 import AuthThemeToggle from './AuthThemeToggle'
 import PublicFooter from '@/components/layout/PublicFooter'
-import DonemSecici from '@/components/billing/DonemSecici'
 import { useGirisli } from '@/hooks/useGirisli'
 import {
   FOUNDER_STAGES,
   BILLING_STARTS_AT,
+  ilkUcretliTutar,
   kuruculUyeFiyati,
   kuruculIndirimYuzdesi,
   nihaiFiyataGecisAyi,
-  yillikTutar,
-  yillikAylikKarsiligi,
   yillikKazanc,
   fiyatYaz,
 } from '@/config/billing'
@@ -131,25 +129,35 @@ function sureYaz(asama, t) {
   return t('pricing.timeline.months', { count: asama.months })
 }
 
-function ZamanCizgisi({ donem }) {
+/*
+ * KAMPANYA ZAMAN ÇİZGİSİ — tek hikâye.
+ *
+ * 🔴 DÖNEM SEÇİCİ BİLEREK YOK (ürün sahibi kararı, 31.08.2026).
+ *
+ * Yıllık seçenek kampanyanın İÇİNDE gösteriliyor ama kampanyadan
+ * SONRA, 5. ayda başlıyordu. Sonuç karşılaştırılamaz bir tabloydu:
+ * aylık seçen ilk 12 ayda 2.839 TL, yıllık seçen 3.437 TL ödüyordu —
+ * çünkü yıllık 16. aya kadar kapsıyordu. Ziyaretçinin bunu kafasında
+ * kurması beklenemezdi.
+ *
+ * Yıllık seçenek YOK OLMADI: kampanya bitince Ayarlar'da belirecek.
+ * `yillikTutar()` ve `yillikKazanc()` yasal metinlerde ve SSS'te
+ * kullanılmaya devam ediyor.
+ */
+function ZamanCizgisi() {
   const { t, i18n } = useTranslation('common')
   const dil = i18n.resolvedLanguage
   const ref = useRef(null)
   const gizli = useKaydirincaBelir(ref)
-
-  const yillik = donem === 'yearly'
 
   return (
     <ol className={`${styles.cizgi} ${gizli ? styles.cizgiGizli : ''}`} ref={ref}>
       {FOUNDER_STAGES.map((asama, i) => {
         const sonAsama = asama.months === null
 
-        /* Yalnız NİHAİ aşama döneme göre değişir: ücretsiz ay ve
-           lansman dönemi her iki seçenekte de aynı. */
-        let fiyat
-        if (asama.monthlyPrice === 0) fiyat = t('pricing.free')
-        else if (sonAsama && yillik) fiyat = t('billing.pricePerYear', { price: fiyatYaz(yillikTutar(), dil) })
-        else fiyat = t('billing.pricePerMonth', { price: fiyatYaz(asama.monthlyPrice, dil) })
+        const fiyat = asama.monthlyPrice === 0
+          ? t('pricing.free')
+          : t('billing.pricePerMonth', { price: fiyatYaz(asama.monthlyPrice, dil) })
 
         return (
           <li
@@ -163,12 +171,7 @@ function ZamanCizgisi({ donem }) {
               <strong className={styles.asamaFiyat}>{fiyat}</strong>
               <span className={styles.asamaBaslik}>{t(`pricing.timeline.stages.${asama.code}.title`)}</span>
               <span className={styles.asamaNot}>
-                {sonAsama && yillik
-                  ? t('pricing.yearlyEquivalent', {
-                      monthly: fiyatYaz(yillikAylikKarsiligi(), dil),
-                      saving: fiyatYaz(yillikKazanc(), dil),
-                    })
-                  : t(`pricing.timeline.stages.${asama.code}.note`, { percent: kuruculIndirimYuzdesi() })}
+                {t(`pricing.timeline.stages.${asama.code}.note`, { percent: kuruculIndirimYuzdesi() })}
               </span>
             </div>
           </li>
@@ -182,7 +185,6 @@ export default function PricingPage() {
   const { t, i18n } = useTranslation('common')
   const dil = i18n.resolvedLanguage
   const gecisAyi = nihaiFiyataGecisAyi()
-  const [donem, setDonem] = useState('monthly')
   const girisli = useGirisli()
 
   return (
@@ -245,30 +247,16 @@ export default function PricingPage() {
             <span className={styles.rozet}>{t('billing.founderMember')}</span>
           </div>
 
-          {/* Seçim zaman çizgisinin ÜSTÜNDE: kullanıcı önce dönemi
-              seçsin, sonra o dönemin rakamlarını görsün. Altına
-              koymak, değişen sayının nereden geldiğini gizlerdi. */}
-          <div className={styles.donemSatiri}>
-            <DonemSecici deger={donem} onChange={setDonem} />
-          </div>
-
           {/*
-            * Seçicinin iki şeyi söylemesi gerekiyordu, ikisi de eksikti:
+            * Kampanya, dönem seçimi OLMADAN anlatılıyor — gerekçe
+            * `ZamanCizgisi`in üstünde yazılı.
             *
-            * 1. Dönem seçimi BUGÜN ödenecek tutarı değiştirmiyor —
-            *    lansman bedeli 4 ay boyunca aylık. Seçici hemen fiyatı
-            *    değiştiriyormuş gibi duruyordu.
-            * 2. Yenileme OTOMATİK (30.08.2026 kararı). Ödeme ekranında
-            *    ayrı onay kutusu var; kullanıcı oraya varmadan da
-            *    bilmeli.
-            *
-            * ⚠️ Metin `abonelik.js` 4. bölüm ve `billing.modal.recurringConsent`
-            * ile aynı şeyi söylüyor. Üçü ayrışırsa hangisinin bağlayıcı
-            * olduğu tartışmalı hâle gelir.
+            * ⚠️ Otomatik yenileme bilgisi kaybolmadı: SSS'teki
+            * "Aylık mı yıllık mı" sorusu ve ödeme ekranındaki üçüncü
+            * onay kutusu taşıyor. Üçü (burası, `abonelik.js` 4. bölüm,
+            * `billing.modal.recurringConsent`) aynı şeyi söylemeli.
             */}
-          <p className={styles.donemNotu}>{t('pricing.periodNote', { month: gecisAyi })}</p>
-
-          <ZamanCizgisi donem={donem} />
+          <ZamanCizgisi />
 
           {/*
             * FİYAT AVANTAJI — oransal ve kalıcı.
@@ -302,8 +290,23 @@ export default function PricingPage() {
 
           <div className={styles.teklifAlt}>
             <ul className={styles.dahilListe}>
+              {/*
+                * 🔴 Her madde NE İŞE YARADIĞINI söylüyor.
+                *
+                * Önceki sürüm yalnız modül ADINI sayıyordu
+                * ("Topluluk", "Kurslar ve pratik içerik"); ürün sahibi
+                * haklı olarak "neye yaradığını anlatmıyor" dedi.
+                * Açıklamalar `AboutPage`teki gerçek modül
+                * anlatımlarından türetildi — uydurulmadı.
+                */}
               {DAHIL.map(madde => (
-                <li key={madde}><Check size={15} aria-hidden="true" /> {t(`pricing.included.${madde}`)}</li>
+                <li key={madde}>
+                  <Check size={15} aria-hidden="true" />
+                  <div>
+                    <strong>{t(`pricing.included.${madde}.title`)}</strong>
+                    <span>{t(`pricing.included.${madde}.description`)}</span>
+                  </div>
+                </li>
               ))}
             </ul>
 
@@ -371,7 +374,11 @@ export default function PricingPage() {
 
           <details>
             <summary>{t('pricing.faq.yearly.question')}</summary>
-            <p>{t('pricing.faq.yearly.answer', { saving: fiyatYaz(yillikKazanc(), dil) })}</p>
+            <p>{t('pricing.faq.yearly.answer', {
+                saving: fiyatYaz(yillikKazanc(), dil),
+                launch: fiyatYaz(ilkUcretliTutar(), dil),
+                monthly: fiyatYaz(kuruculUyeFiyati(), dil),
+              })}</p>
           </details>
 
           <details>

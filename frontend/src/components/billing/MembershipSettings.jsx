@@ -56,6 +56,19 @@ export default function MembershipSettings({ membership }) {
   if (durum === 'billing_not_started') {
     return (
       <div className={styles.govde}>
+        {/*
+          * 🔴 BU BÖLÜM BİR ÇIKMAZDI.
+          *
+          * Önceki hâli iki satır durum + tek bir "Fiyatları görüntüle"
+          * bağlantısından ibaretti. Fiyat sayfası da girişli kullanıcıyı
+          * buraya ("Üyeliğim") yolluyordu; yani kullanıcı Fiyatlar ↔
+          * Ayarlar arasında dönüp duruyor ve hiçbir yeni bilgi
+          * almıyordu. Ürün sahibi bunu bildirdi.
+          *
+          * Yeni hâli üç soruyu KAPATIYOR: bugün ne oluyor, sırada ne
+          * var, ne zaman haber verilecek. Fiyat bağlantısı kaldı ama
+          * artık tek eylem değil, ayrıntıya giden ikincil bir yol.
+          */}
         <dl className={styles.liste}>
           <Satir etiket={t('billing.settings.membershipStatus')} deger={t('billing.settings.freeUse')} />
           <Satir
@@ -69,7 +82,31 @@ export default function MembershipSettings({ membership }) {
           {t('billing.settings.freeNotice', { count: FOUNDER_STAGES[0].months })}
         </p>
 
-        <Link to="/fiyatlar" className={styles.ikincilDugme}>
+        {/* Sırada ne var — aşamalar ve fiyatlar config'ten okunuyor;
+            elle yazılan sayı YOK, standart fiyat değişince burası da
+            kendiliğinden düzeliyor. */}
+        <div className={styles.planOnizleme}>
+          <span className={styles.planBaslik}>{t('billing.settings.whenItStarts')}</span>
+          <ol className={styles.planListe}>
+            {FOUNDER_STAGES.map(asama => (
+              <li key={asama.code}>
+                <strong>
+                  {asama.monthlyPrice === 0
+                    ? t('billing.settings.freeStage')
+                    : t('billing.pricePerMonth', { price: fiyatYaz(asama.monthlyPrice, locale) })}
+                </strong>
+                <span>{t(`billing.settings.stage.${asama.code}`, { count: asama.months ?? 0 })}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        {/* Kapanış: kullanıcı ne zaman haber alacağını biliyor ve
+            bekleyecek bir şey kalmıyor. Bu taahhüt boş değil —
+            `AccountNotification` altyapısı ve e-posta şablonları yazılı. */}
+        <p className={styles.not}>{t('billing.settings.notifyPromise')}</p>
+
+        <Link to="/fiyatlar" className={styles.metinBaglantisi}>
           {t('billing.settings.viewPrices')}
         </Link>
       </div>

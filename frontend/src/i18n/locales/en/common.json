@@ -741,7 +741,15 @@
       "billingPeriod": "Billing period",
       "periodMonthly": "Monthly",
       "periodYearly": "Yearly",
-      "actionsPending": "Viewing invoices and cancelling will become available once the payment system is live."
+      "actionsPending": "Viewing invoices and cancelling will become available once the payment system is live.",
+      "whenItStarts": "When billing starts",
+      "freeStage": "Free",
+      "stage": {
+        "free": "First {{count}} month — no card details required",
+        "launch": "Next {{count}} months — launch period, for founding members",
+        "founder": "After that — at least 40% below the standard price"
+      },
+      "notifyPromise": "We will tell you before billing starts, both with an in-app notification and by email. Until then there is nothing to do: no card details are requested and no charge is made."
     },
     "modal": {
       "successTitle": "Your membership is active",
@@ -829,13 +837,34 @@
       }
     },
     "included": {
-      "decisionTools": "Decision Tools — check the figures before deciding",
-      "businessTracking": "Business Tracking — checks, notes, invoices, and collections in one place",
-      "calculations": "Calculations and financial models",
-      "mentor": "AI Mentor — talk using your own business data",
-      "courses": "Courses and practical content",
-      "integrations": "Marketplace integrations (Trendyol, Hepsiburada, N11, Shopify)",
-      "community": "Community"
+      "decisionTools": {
+        "title": "Decision Tools",
+        "description": "Walks you through questions like \"should I raise prices\" or \"is this product actually profitable\" step by step, using your own numbers."
+      },
+      "businessTracking": {
+        "title": "Business Tracking",
+        "description": "Cheques, notes, invoices and collections in one place. Upload an invoice and it reads the amounts and proposes a record — nothing is saved until you approve."
+      },
+      "calculations": {
+        "title": "Calculations",
+        "description": "Break-even, margin and cash flow with ready templates. Enter the numbers and read the result instead of memorising formulas."
+      },
+      "mentor": {
+        "title": "AI Mentor",
+        "description": "Ask where you are stuck. It answers from the course material and, if you set one up, your own business figures — and shows its source."
+      },
+      "courses": {
+        "title": "Courses",
+        "description": "Short, practical lessons. Each section explains one concept and links it to the tool that calculates it."
+      },
+      "integrations": {
+        "title": "Marketplace connection",
+        "description": "Connect your Trendyol, Hepsiburada, N11 or Shopify store; your orders and products come into the app and tracking runs from one place."
+      },
+      "community": {
+        "title": "Community",
+        "description": "Experience from people running similar businesses. Posts appear immediately; you can reply, like and quote."
+      }
     },
     "faq": {
       "affordable": {
@@ -859,12 +888,10 @@
         "answer": "The founder price is not frozen; it is tied to the standard price. If the standard price rises, yours rises too — but it always stays at least {{percent}}% below it. So you are not exempt from increases, you are simply affected less than other members. You will be notified before any price change."
       },
       "yearly": {
-        "question": "Should I choose monthly or yearly?",
-        "answer": "With yearly billing you pay for 10 months instead of 12, saving {{saving}} a year. Monthly billing gives you flexibility and you can leave whenever you like. You choose at checkout and can change it later."
+        "question": "Will I be billed monthly or yearly?",
+        "answer": "During the campaign billing is monthly: the first month is free, the next three are {{launch}}, then {{monthly}}. The yearly option opens under Settings → Membership once the campaign ends; on yearly you pay for 10 months instead of 12 and save {{saving}} a year."
       }
     },
-    "yearlyEquivalent": "Equivalent to {{monthly}} a month · you save {{saving}} a year.",
-    "periodNote": "The period you choose applies from month {{month}}; the amount charged today does not change. Unless you cancel, the membership renews automatically at the end of each period and is charged to your saved card.",
     "discountTitle": "Your founder discount is at least {{percent}}% and permanent.",
     "discountDescription": "We do not freeze your price — we tie it to the standard price. From month {{month}} onwards, even if our standard price rises, you always pay at least {{percent}}% less. Because the amount is rounded down, the actual discount may be slightly higher. Increases affect you less than other members.",
     "benefitsTitle": "What being a founding member gives you",

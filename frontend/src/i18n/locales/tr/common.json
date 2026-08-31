@@ -741,7 +741,15 @@
       "billingPeriod": "Tahsilat dönemi",
       "periodMonthly": "Aylık",
       "periodYearly": "Yıllık",
-      "actionsPending": "Fatura görüntüleme ve iptal, ödeme altyapısı etkinleştiğinde kullanılabilir olacak."
+      "actionsPending": "Fatura görüntüleme ve iptal, ödeme altyapısı etkinleştiğinde kullanılabilir olacak.",
+      "whenItStarts": "Ücretlendirme başladığında",
+      "freeStage": "Ücretsiz",
+      "stage": {
+        "free": "İlk {{count}} ay — kart bilgisi istemiyoruz",
+        "launch": "Sonraki {{count}} ay — lansman dönemi, kurucu üyelere özel",
+        "founder": "Sonrasında — standart fiyatın en az %40 altı"
+      },
+      "notifyPromise": "Ücretlendirme başlamadan önce hem uygulama içi bildirimle hem e-posta ile haber vereceğiz. O güne kadar bir şey yapmana gerek yok; hiçbir kart bilgisi istenmiyor ve hiçbir tahsilat yapılmıyor."
     },
     "modal": {
       "successTitle": "Üyeliğin aktif",
@@ -829,13 +837,34 @@
       }
     },
     "included": {
-      "decisionTools": "Karar Araçları — kararı vermeden önce rakamlara bak",
-      "businessTracking": "İşletme Takibi — çek, senet, fatura, tahsilat tek yerde",
-      "calculations": "Hesaplamalar ve finansal modeller",
-      "mentor": "AI Mentor — kendi işletme verinle konuşur",
-      "courses": "Kurslar ve pratik içerik",
-      "integrations": "Pazaryeri entegrasyonları (Trendyol, Hepsiburada, N11, Shopify)",
-      "community": "Topluluk"
+      "decisionTools": {
+        "title": "Karar Araçları",
+        "description": "\"Zam yapmalı mıyım\", \"bu ürün gerçekten kârlı mı\" gibi soruları adım adım yürütür. Kendi rakamlarını girersin, sonunda gerekçesiyle bir sonuç çıkar."
+      },
+      "businessTracking": {
+        "title": "İşletme Takibi",
+        "description": "Çek, senet, fatura ve tahsilat tek yerde. Fatura yüklediğinde içindeki tutarları okuyup kayıt önerir — sen onaylamadan hiçbir şey yazılmaz."
+      },
+      "calculations": {
+        "title": "Hesaplamalar",
+        "description": "Başa baş noktası, kâr marjı, nakit akışı gibi hesaplar hazır şablonlarla. Formülü ezberlemek yerine rakamı girip sonucu okursun."
+      },
+      "mentor": {
+        "title": "AI Mentor",
+        "description": "Takıldığın yeri sorarsın. Kurs içeriğine ve kurduysan kendi işletme rakamlarına bakarak cevap verir, dayandığı kaynağı da gösterir."
+      },
+      "courses": {
+        "title": "Kurslar",
+        "description": "Kısa ve uygulamalı anlatımlar. Her bölüm bir kavramı açıklayıp onu hesaplayabileceğin araca bağlar."
+      },
+      "integrations": {
+        "title": "Pazaryeri bağlantısı",
+        "description": "Trendyol, Hepsiburada, N11 ve Shopify mağazanı bağlarsın; siparişlerin ve ürünlerin uygulamaya gelir, takip tek yerden yürür."
+      },
+      "community": {
+        "title": "Topluluk",
+        "description": "Benzer işletmeleri yürüten insanların deneyimleri. Yazdığın anda yayımlanır; yanıtlayabilir, beğenebilir, alıntılayabilirsin."
+      }
     },
     "faq": {
       "affordable": {
@@ -859,12 +888,10 @@
         "answer": "Kurucu üye fiyatı dondurulmuyor, standart fiyata bağlanıyor. Standart fiyat yükselirse senin fiyatın da yükselir — ama her zaman en az %{{percent}} altında kalır. Yani zamdan muaf değilsin, zamdan diğer üyelere göre daha az etkileniyorsun. Her fiyat değişikliği öncesinde bilgilendirilirsin."
       },
       "yearly": {
-        "question": "Aylık mı yıllık mı seçmeliyim?",
-        "answer": "Yıllık ödemede 12 ay yerine 10 ay ödersin; yılda {{saving}} kazanırsın. Aylık ödeme ise esneklik verir, istediğin zaman bırakabilirsin. Seçimini ödeme sırasında yaparsın ve sonradan değiştirebilirsin."
+        "question": "Aylık mı yıllık mı ödeyeceğim?",
+        "answer": "Kampanya boyunca tahsilat aylık: ilk ay ücretsiz, sonraki üç ay {{launch}}, ardından {{monthly}}. Yıllık ödeme seçeneği kampanya bittiğinde Ayarlar → Üyelik bölümünde açılır; yıllıkta 12 ay yerine 10 ay ödersin ve yılda {{saving}} kazanırsın."
       }
     },
-    "yearlyEquivalent": "Aylık {{monthly}} karşılığı · yılda {{saving}} kazanç.",
-    "periodNote": "Seçtiğiniz dönem {{month}}. aydan itibaren geçerlidir; bugün ödenecek tutar değişmez. Üyelik, iptal edilmedikçe dönem sonunda kendiliğinden yenilenir ve kayıtlı karttan tahsil edilir.",
     "discountTitle": "Kurucu üye indirimin en az %{{percent}} ve kalıcı.",
     "discountDescription": "Fiyatını dondurmuyoruz — standart fiyata bağlıyoruz. {{month}}. aydan itibaren, standart fiyatımız ileride yükselse bile her zaman en az %{{percent}} altını ödersin. Tutar aşağı yuvarlandığı için gerçek indirim biraz daha yüksek olabilir. Zamlar seni diğer üyelerden daha az etkiler.",
     "benefitsTitle": "Kurucu üye olmak ne kazandırır",

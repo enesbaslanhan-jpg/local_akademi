@@ -351,7 +351,9 @@
 .dahilListe {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  /* Maddeler artık başlık + açıklama taşıyor; 9px aralık onları
+     birbirine yapıştırıyordu. */
+  gap: 15px;
   margin: 0;
   padding: 0;
   min-width: 0;
@@ -367,7 +369,20 @@
   line-height: 1.5;
 }
 
-.dahilListe svg { flex: 0 0 auto; margin-top: 3px; color: var(--auth-ok); }
+.dahilListe svg { flex: 0 0 auto; margin-top: 4px; color: var(--auth-ok); }
+
+/* Başlık ile açıklama alt alta; `ayricalikListe` ile aynı hiyerarşi. */
+.dahilListe li > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dahilListe strong {
+  color: var(--auth-text);
+  font-weight: 600;
+}
 
 .eylemKutusu {
   display: flex;
