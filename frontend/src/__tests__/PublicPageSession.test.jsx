@@ -64,7 +64,19 @@ describe('fiyat sayfası', () => {
   it('GİRİŞLİ: bunun yerine kendi üyelik ayarlarına götürür', () => {
     oturum.girisli = true
     sar(<PricingPage />)
-    expect(hedefler()).toContain('/app/settings#uyelik')
+
+    /*
+     * ⚠️ Biçime DEĞİL hedefe bakılıyor.
+     *
+     * Depoda iki gelenek yan yana yaşıyor: `?bolum=uyelik` ve
+     * `#uyelik`. İkisi de `acilisBolumu()` tarafından okunuyor
+     * (SettingsBolum testleri bunu ayrıca koruyor). Testi tek bir
+     * yazıma çakmak, çalışan bir bağlantı yüzünden düşen bir teste
+     * yol açardı — korunması gereken şey kullanıcının ÜYELİK
+     * bölümüne varması.
+     */
+    const uyelige = hedefler().filter(h => /\/app\/settings[?#].*uyelik/.test(h))
+    expect(uyelige.length, 'üyelik bölümüne giden bir bağlantı olmalı').toBeGreaterThan(0)
   })
 })
 

@@ -106,9 +106,37 @@ export default function MembershipSettings({ membership }) {
             `AccountNotification` altyapısı ve e-posta şablonları yazılı. */}
         <p className={styles.not}>{t('billing.settings.notifyPromise')}</p>
 
+        {/*
+          * 🔴 ÖDEME GİRİŞ NOKTASI.
+          *
+          * Ürün sahibi "üye ol senaryosunu nerden başlatacağım, ben
+          * çözemedim" dedi ve haklıydı: arayüzde o düğme HİÇ YOKTU.
+          * Test ödemesi tarayıcı konsolundan `/payments/checkout`
+          * çağrılarak yapılmıştı.
+          *
+          * `testCheckout` sunucudan geliyor ve `/checkout`taki kapının
+          * AYNISINI taşıyor (test kipi + admin). Ön yüzde tahmin
+          * etseydik, çalışmayacak bir düğme gösterirdik.
+          *
+          * Ücretlendirme açıldığında bu dal zaten çalışmaz;
+          * `billing_not_started` olmayan durumlar aşağıdaki gerçek
+          * üyelik ekranını gösteriyor.
+          */}
+        {membership?.testCheckout && (
+          <div className={styles.testKutusu}>
+            <span className={styles.testEtiket}>{t('billing.settings.testModeLabel')}</span>
+            <p>{t('billing.settings.testModeNote')}</p>
+            <button type="button" className={styles.ikincilDugme} onClick={() => setOdemeAcik(true)}>
+              <CreditCard size={15} aria-hidden="true" /> {t('billing.settings.testCheckout')}
+            </button>
+          </div>
+        )}
+
         <Link to="/fiyatlar" className={styles.metinBaglantisi}>
           {t('billing.settings.viewPrices')}
         </Link>
+
+        <MembershipModal open={odemeAcik} onClose={() => setOdemeAcik(false)} />
       </div>
     )
   }

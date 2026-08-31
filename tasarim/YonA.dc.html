@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; font-family: Manrope, 'Segoe UI', system-ui, -apple-system, sans-serif; background: #EDEEF0; color: #191C1E; }
+    a { color: #0D556F; } a:hover { color: #14607C; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<!--
+  YÖN A — "Tek soru, tek cevap"
+
+  Eksen: SADELİK. Sayfa tek bir şey soruyor ve tek bir eylem sunuyor.
+  Zaman çizgisi, ayrıcalıklar ve SSS aşağı iniyor; ilk ekranda yalnız
+  teklif ve düğme var.
+-->
+<div style="min-height: 900px; display: flex; flex-direction: column; background: #EDEEF0">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 44px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <svg width="26" height="26" viewBox="0 0 40 40" fill="none">
+        <rect width="40" height="40" rx="11" fill="#1B4A5C"/>
+        <path d="M28.5 12.5a11 11 0 1 0 0 15" stroke="#F4FAFC" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M20 11.5 24.5 20 20 28.5 15.5 20Z" fill="#E0A455"/>
+      </svg>
+      <span style="font-size: 15.5px; font-weight: 750">LocalKarar</span>
+    </div>
+    <a href="#" style="font-size: 13px; font-weight: 600">Giriş yap</a>
+  </div>
+
+  <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 20px 44px 60px">
+    <div style="width: 100%; max-width: 560px; text-align: center">
+
+      <span style="display: inline-block; padding: 5px 13px; border: 1px solid rgba(24,62,69,.2); border-radius: 999px; color: #0D556F; font-size: 10.5px; font-weight: 750; letter-spacing: .09em; text-transform: uppercase">Kurucu Üye Programı</span>
+
+      <h1 style="margin: 20px 0 14px; font-size: 40px; line-height: 1.12; font-weight: 800; letter-spacing: -1.2px; text-wrap: pretty">İlk ayın bizden</h1>
+      <p style="margin: 0 auto 34px; max-width: 420px; color: #515B60; font-size: 16px; line-height: 1.6">Kart bilgisi istemiyoruz. Beğenmezsen tek tıkla bırakırsın — hiçbir şey ödemeden.</p>
+
+      <div style="padding: 32px 30px; border: 1px solid rgba(255,255,255,.7); border-radius: 20px; background: rgba(251,252,253,.9); box-shadow: 0 24px 52px -22px rgba(20,20,19,.28), 0 2px 6px rgba(20,20,19,.06)">
+        <div style="display: flex; align-items: baseline; justify-content: center; gap: 8px">
+          <strong style="font-size: 56px; font-weight: 800; letter-spacing: -2px; line-height: 1">₺0</strong>
+          <span style="color: #515B60; font-size: 16px; font-weight: 600">/ ilk ay</span>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin: 16px 0 26px; color: #515B60; font-size: 13.5px">
+          <span>sonra ₺149/ay</span>
+          <span style="width: 4px; height: 4px; border-radius: 999px; background: rgba(24,62,69,.3)"></span>
+          <span>5. aydan ₺299/ay</span>
+        </div>
+
+        <button style="width: 100%; min-height: 52px; border: 0; border-radius: 12px; background: #0D556F; color: #FFFFFF; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer">Ücretsiz başla</button>
+        <p style="margin: 12px 0 0; color: #515B60; font-size: 12.5px">30 saniyede hesap açılır. Kredi kartı gerekmez.</p>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: center; gap: 22px; margin-top: 26px; flex-wrap: wrap">
+        <sc-for list="{{guvenceler}}" as="g" hint-placeholder-count="3">
+          <div style="display: flex; align-items: center; gap: 7px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E8E5A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            <span style="color: #515B60; font-size: 12.5px; font-weight: 600">{{g}}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 44px; color: #515B60; font-size: 12.5px">
+        <span>Ayrıntılar aşağıda</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#515B60" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":1100,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      guvenceler: ['Kart bilgisi istemiyoruz', 'İstediğin an bırak', 'Verilerin senin'],
+    }
+  }
+}
+</script>
+</body>
+</html>

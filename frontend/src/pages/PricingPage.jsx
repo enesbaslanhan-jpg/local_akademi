@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Check, Percent, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowRight, Check, Percent, ShieldCheck, Sparkles } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import BrandMark from '@/components/ui/BrandMark'
 import AuthThemeToggle from './AuthThemeToggle'
@@ -10,6 +10,8 @@ import {
   FOUNDER_STAGES,
   BILLING_STARTS_AT,
   ilkUcretliTutar,
+  ilkYilDokumu,
+  ilkYilToplami,
   kuruculUyeFiyati,
   kuruculIndirimYuzdesi,
   nihaiFiyataGecisAyi,
@@ -241,55 +243,110 @@ export default function PricingPage() {
           </p>
         )}
 
-        <section className={styles.teklif} aria-labelledby="teklif-baslik">
-          <div className={styles.teklifBaslikSatiri}>
-            <h2 id="teklif-baslik">{t('pricing.howItWorks')}</h2>
-            <span className={styles.rozet}>{t('billing.founderMember')}</span>
-          </div>
+        {/*
+          * İKİ SÜTUN: solda teklif, sağda EYLEM.
+          *
+          * 🔴 Ürün sahibi "üye ol sayfasına nerden erişiliyor, ben
+          * çözemedim" dedi ve haklıydı: eylem, uzun bir kartın en
+          * altında, ayrıcalıklar ve dahil listesinin ardında
+          * kalıyordu. Artık kendi kartında, sayfanın ilk ekranında
+          * ve fiyatla birlikte duruyor.
+          */}
+        <div className={styles.teklifIzgara}>
 
-          {/*
-            * Kampanya, dönem seçimi OLMADAN anlatılıyor — gerekçe
-            * `ZamanCizgisi`in üstünde yazılı.
-            *
-            * ⚠️ Otomatik yenileme bilgisi kaybolmadı: SSS'teki
-            * "Aylık mı yıllık mı" sorusu ve ödeme ekranındaki üçüncü
-            * onay kutusu taşıyor. Üçü (burası, `abonelik.js` 4. bölüm,
-            * `billing.modal.recurringConsent`) aynı şeyi söylemeli.
-            */}
-          <ZamanCizgisi />
+          <section className={styles.teklif} aria-labelledby="teklif-baslik">
+            <div className={styles.teklifBaslikSatiri}>
+              <h2 id="teklif-baslik">{t('pricing.howItWorks')}</h2>
+              <span className={styles.rozet}>{t('billing.founderMember')}</span>
+            </div>
 
-          {/*
-            * FİYAT AVANTAJI — oransal ve kalıcı.
-            * ⚠️ "Fiyatın hiç değişmez" DEMİYOR. Ürün sahibi kararı
-            * (28.08.2026) fiyatı dondurmak değil, standart fiyata
-            * oranla bağlamak. Metin bunu aynen söylemeli; abonelik
-            * sözleşmesindeki ifadeyle birebir örtüşmesi gerekiyor.
-            */}
-          <div className={styles.kilit}>
-            <Percent size={17} aria-hidden="true" />
-            <p>
-              <strong>{t('pricing.discountTitle', { percent: kuruculIndirimYuzdesi() })}</strong>{' '}
-              {t('pricing.discountDescription', { month: gecisAyi, percent: kuruculIndirimYuzdesi() })}
-            </p>
-          </div>
+            {/*
+              * Kampanya, dönem seçimi OLMADAN anlatılıyor — gerekçe
+              * `ZamanCizgisi`in üstünde yazılı.
+              *
+              * ⚠️ Otomatik yenileme bilgisi kaybolmadı: SSS'teki
+              * "Aylık mı yıllık mı" sorusu ve ödeme ekranındaki üçüncü
+              * onay kutusu taşıyor. Üçü (burası, `abonelik.js` 4. bölüm,
+              * `billing.modal.recurringConsent`) aynı şeyi söylemeli.
+              */}
+            <ZamanCizgisi />
 
-          <div className={styles.ayricaliklar}>
-            <h3 className={styles.ayricalikBaslik}>
-              <Sparkles size={16} aria-hidden="true" />
-              {t('pricing.benefitsTitle')}
-            </h3>
-            <ul className={styles.ayricalikListe}>
-              {AYRICALIKLAR.map(kod => (
-                <li key={kod}>
-                  <strong>{t(`pricing.benefits.${kod}.title`)}</strong>
-                  <span>{t(`pricing.benefits.${kod}.description`)}</span>
-                </li>
+            {/*
+              * İLK 12 AYIN DÖKÜMÜ.
+              *
+              * 🔴 Ürün sahibinin "rakamlar yanlış" dediği şey aritmetik
+              * değil KARŞILAŞTIRILAMAZLIKTI: aşamalar tek tek yazılıyken
+              * bile "bir yılda ne ödeyeceğim" sorusu cevapsız kalıyordu.
+              *
+              * Alt kalemler toplamla birlikte veriliyor ki ziyaretçi
+              * doğrulayabilsin; toplamı tek başına yazmak, ona güvenmek
+              * zorunda bırakmaktı.
+              *
+              * ⚠️ Standart fiyat (`STANDARD_MONTHLY_PRICE`) ve ona göre
+              * kazanç BİLEREK YOK. Onu yayımlamak bir fiyat politikası
+              * kararıdır ve kurucu indirimini ORANSAL anlatan yasal
+              * metinlerle ayrıca hizalanması gerekir.
+              */}
+            <div className={styles.dokum}>
+              <div className={styles.dokumBaslik}>{t('pricing.breakdownTitle')}</div>
+              {ilkYilDokumu().map(kalem => (
+                <div key={kalem.kod} className={styles.dokumSatir}>
+                  <span>{t(`pricing.breakdown.${kalem.kod}`, { count: kalem.ay, price: fiyatYaz(kalem.aylik, dil) })}</span>
+                  <span>{fiyatYaz(kalem.tutar, dil)}</span>
+                </div>
               ))}
-            </ul>
-          </div>
+              <div className={styles.dokumToplam}>
+                <strong>{t('pricing.breakdownTotal')}</strong>
+                <strong>{fiyatYaz(ilkYilToplami(), dil)}</strong>
+              </div>
+            </div>
 
-          <div className={styles.teklifAlt}>
-            <ul className={styles.dahilListe}>
+            {/*
+              * FİYAT AVANTAJI — oransal ve kalıcı.
+              * ⚠️ "Fiyatın hiç değişmez" DEMİYOR. Ürün sahibi kararı
+              * (28.08.2026) fiyatı dondurmak değil, standart fiyata
+              * oranla bağlamak. Metin bunu aynen söylemeli; abonelik
+              * sözleşmesindeki ifadeyle birebir örtüşmesi gerekiyor.
+              */}
+            <div className={styles.kilit}>
+              <Percent size={17} aria-hidden="true" />
+              <p>
+                <strong>{t('pricing.discountTitle', { percent: kuruculIndirimYuzdesi() })}</strong>{' '}
+                {t('pricing.discountDescription', { month: gecisAyi, percent: kuruculIndirimYuzdesi() })}
+              </p>
+            </div>
+          </section>
+
+          {/* EYLEM KARTI — "nerden başlatacağım" sorusunun cevabı. */}
+          <aside className={styles.eylemKarti} aria-labelledby="eylem-baslik">
+            <div className={styles.eylemUst}>
+              <span className={styles.eylemEtiket} id="eylem-baslik">{t('pricing.dueTodayLabel')}</span>
+              <div className={styles.eylemFiyat}>
+                <strong>{fiyatYaz(0, dil)}</strong>
+                <span>{t('pricing.dueTodayUnit')}</span>
+              </div>
+              <p className={styles.eylemAciklama}>
+                {t('pricing.dueTodayNote', { price: fiyatYaz(ilkUcretliTutar(), dil) })}
+              </p>
+
+              {girisli ? (
+                <Link to="/app/settings?bolum=uyelik" className={styles.eylemDugmesi}>
+                  {t('pricing.myMembership')}
+                  <ArrowRight size={17} aria-hidden="true" />
+                </Link>
+              ) : (
+                <Link to="/register" className={styles.eylemDugmesi}>
+                  {t('pricing.startFree')}
+                  <ArrowRight size={17} aria-hidden="true" />
+                </Link>
+              )}
+              <p className={styles.eylemNot}>
+                {girisli ? t('pricing.memberNote') : t('pricing.startNote')}
+              </p>
+            </div>
+
+            <div className={styles.eylemAlt}>
+              <span className={styles.dahilBaslik}>{t('pricing.includedTitle')}</span>
               {/*
                 * 🔴 Her madde NE İŞE YARADIĞINI söylüyor.
                 *
@@ -299,50 +356,36 @@ export default function PricingPage() {
                 * Açıklamalar `AboutPage`teki gerçek modül
                 * anlatımlarından türetildi — uydurulmadı.
                 */}
-              {DAHIL.map(madde => (
-                <li key={madde}>
-                  <Check size={15} aria-hidden="true" />
-                  <div>
-                    <strong>{t(`pricing.included.${madde}.title`)}</strong>
-                    <span>{t(`pricing.included.${madde}.description`)}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            <div className={styles.eylemKutusu}>
-              {/*
-                * 🔴 Giriş yapmış kullanıcıyı KAYIT FORMUNA yollamıyoruz.
-                *
-                * Önceki sürüm koşulsuz `/register`e gidiyordu ve
-                * Ayarlar → "Fiyatları gör" yolundan gelen kullanıcı
-                * "Ücretsiz başla"ya basınca hesap oluşturma ekranına
-                * düşüyordu — zaten hesabı olduğu hâlde.
-                *
-                * Girişliye gösterilen eylem, onun için gerçekten
-                * anlamlı olan yer: kendi üyelik durumu.
-                */}
-              {girisli ? (
-                <>
-                  <Link to="/app/settings#uyelik" className={styles.birincilDugme}>
-                    {t('pricing.myMembership')}
-                  </Link>
-                  <span className={styles.eylemNot}>
-                    {t('pricing.memberNote')}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <Link to="/register" className={styles.birincilDugme}>
-                    {t('pricing.startFree')}
-                  </Link>
-                  <span className={styles.eylemNot}>
-                    {t('pricing.startNote')}
-                  </span>
-                </>
-              )}
+              <ul className={styles.dahilListe}>
+                {DAHIL.map(madde => (
+                  <li key={madde}>
+                    <Check size={15} aria-hidden="true" />
+                    <div>
+                      <strong>{t(`pricing.included.${madde}.title`)}</strong>
+                      <span>{t(`pricing.included.${madde}.description`)}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
-          </div>
+          </aside>
+        </div>
+
+        {/* Kurucu üyeliğin fiyat DIŞINDAKİ karşılıkları — teklifin
+            altında, kendi bölümünde. */}
+        <section className={styles.ayricaliklar} aria-labelledby="ayricalik-baslik">
+          <h2 id="ayricalik-baslik" className={styles.ayricalikBaslik}>
+            <Sparkles size={16} aria-hidden="true" />
+            {t('pricing.benefitsTitle')}
+          </h2>
+          <ul className={styles.ayricalikListe}>
+            {AYRICALIKLAR.map(kod => (
+              <li key={kod}>
+                <strong>{t(`pricing.benefits.${kod}.title`)}</strong>
+                <span>{t(`pricing.benefits.${kod}.description`)}</span>
+              </li>
+            ))}
+          </ul>
         </section>
 
         <section className={styles.guvence}>

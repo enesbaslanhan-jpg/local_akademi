@@ -749,7 +749,10 @@
         "launch": "Sonraki {{count}} ay — lansman dönemi, kurucu üyelere özel",
         "founder": "Sonrasında — standart fiyatın en az %40 altı"
       },
-      "notifyPromise": "Ücretlendirme başlamadan önce hem uygulama içi bildirimle hem e-posta ile haber vereceğiz. O güne kadar bir şey yapmana gerek yok; hiçbir kart bilgisi istenmiyor ve hiçbir tahsilat yapılmıyor."
+      "notifyPromise": "Ücretlendirme başlamadan önce hem uygulama içi bildirimle hem e-posta ile haber vereceğiz. O güne kadar bir şey yapmana gerek yok; hiçbir kart bilgisi istenmiyor ve hiçbir tahsilat yapılmıyor.",
+      "testModeLabel": "Test kipi",
+      "testModeNote": "PayTR test kipinde ve yönetici olduğun için ödeme akışını gerçek para çekilmeden deneyebilirsin. Bu kutuyu yalnız yöneticiler görür.",
+      "testCheckout": "Ödeme akışını dene"
     },
     "modal": {
       "successTitle": "Üyeliğin aktif",
@@ -906,7 +909,18 @@
       }
     },
     "myMembership": "Üyelik ayarlarım",
-    "memberNote": "Ücretlendirme başladığında üyeliğini Ayarlar → Üyelik bölümünden yönetirsin."
+    "memberNote": "Ücretlendirme başladığında üyeliğini Ayarlar → Üyelik bölümünden yönetirsin.",
+    "breakdownTitle": "İlk 12 ayın dökümü",
+    "breakdownTotal": "İlk 12 ayın toplamı",
+    "breakdown": {
+      "free": "{{count}}. ay — ücretsiz",
+      "launch": "Sonraki {{count}} ay — {{price}}/ay",
+      "founder": "Kalan {{count}} ay — {{price}}/ay"
+    },
+    "dueTodayLabel": "Bugün ödeyeceğin",
+    "dueTodayUnit": "ilk ay",
+    "dueTodayNote": "Kart bilgisi istemiyoruz. İlk tahsilat 2. ayın başında {{price}} olarak yapılacak.",
+    "includedTitle": "Üyelikle neler geliyor"
   },
   "publicFooter": {
     "corporateAria": "Kurumsal bağlantılar",

@@ -591,3 +591,145 @@
   .teklif { padding: 22px 18px; }
   .duyuru { margin-bottom: 20px; }
 }
+
+/* ---------- Teklif ızgarası: solda plan, sağda EYLEM ---------- */
+
+/*
+ * 🔴 Ürün sahibi "üye ol sayfasına nerden erişiliyor, ben çözemedim"
+ * dedi. Sebebi ölçüldü: eylem, uzun bir kartın en altında —
+ * ayrıcalıklar ve dahil listesinin ardında — kalıyordu. Artık kendi
+ * kartında ve fiyatla birlikte, ilk ekranda.
+ */
+.teklifIzgara {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .teklifIzgara { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------- İlk 12 ayın dökümü ---------- */
+
+.dokum {
+  margin-top: 20px;
+  border: 1px solid var(--auth-divider);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.dokumBaslik {
+  padding: 11px 16px;
+  background: var(--auth-hint-bg);
+  color: var(--auth-label);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.dokumSatir,
+.dokumToplam {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--auth-divider);
+  font-size: .83rem;
+}
+
+.dokumSatir span:first-child { color: var(--auth-text-soft); }
+.dokumSatir span:last-child { color: var(--auth-label); font-weight: 650; }
+
+.dokumToplam {
+  padding: 13px 16px;
+  background: color-mix(in srgb, var(--auth-accent) 6%, transparent);
+}
+
+.dokumToplam strong:last-child { font-size: 1.15rem; letter-spacing: -.4px; }
+
+/* ---------- Eylem kartı ---------- */
+
+.eylemKarti {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--auth-card-border);
+  border-radius: 18px;
+  background: var(--auth-card);
+  box-shadow: var(--auth-card-shadow);
+  overflow: hidden;
+}
+
+.eylemUst { padding: 24px 24px 20px; }
+
+.eylemEtiket {
+  display: block;
+  color: var(--auth-text-soft);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.eylemFiyat {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 8px 0 4px;
+}
+
+.eylemFiyat strong { font-size: 2.5rem; font-weight: 800; letter-spacing: -1.2px; }
+.eylemFiyat span { color: var(--auth-text-soft); font-size: .88rem; font-weight: 600; }
+
+.eylemAciklama {
+  margin: 0 0 20px;
+  color: var(--auth-text-soft);
+  font-size: .82rem;
+  line-height: 1.55;
+}
+
+.eylemDugmesi {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 13px 20px;
+  border-radius: 11px;
+  background: var(--auth-accent);
+  color: var(--auth-on-accent);
+  font-size: .94rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.eylemDugmesi:hover { background: var(--auth-accent-hover); }
+.eylemDugmesi:focus-visible { outline: 3px solid var(--auth-focus-ring); outline-offset: 2px; }
+
+.eylemAlt {
+  padding: 20px 24px 24px;
+  border-top: 1px solid var(--auth-divider);
+  background: color-mix(in srgb, var(--auth-page) 50%, transparent);
+}
+
+.dahilBaslik {
+  display: block;
+  margin-bottom: 13px;
+  color: var(--auth-text);
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+/*
+ * Rozet ve kısa etiketler SATIRA BÖLÜNMÜYOR.
+ *
+ * Tasarım tuvalinde ölçüldü: "KURUCU ÜYE PROGRAMI" ve "KURUCU ÜYE"
+ * hap biçimli rozetlerin içinde iki satıra kırılıyor ve rozet
+ * şişiyordu.
+ */
+.eyebrow,
+.rozet { white-space: nowrap; }

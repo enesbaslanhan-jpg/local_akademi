@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useWorkspace } from '@/context/WorkspaceContext'
 import { useTheme } from '@/context/ThemeContext'
 import { api } from '@/services/api'
+import FounderBadge from '@/components/billing/FounderBadge'
 import { CALCULATION_DEFINITIONS } from '@/data/calculationCatalog'
 import styles from './Header.module.css'
 import { useTranslation } from 'react-i18next'
@@ -343,6 +344,22 @@ export default function Header({ onToggleSidebar }) {
         >
           {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
         </button>
+        {/*
+          * KURUCU ÜYE ROZETİ — sağ üstte, küçük (ürün sahibi kararı,
+          * 31.08.2026: "ana sayfada üye olunca bir rozet belirsin,
+          * sağ üstte küçük bir şey olabilir").
+          *
+          * 🔴 `membership.founder` false iken HİÇ ÇİZİLMİYOR ve bu
+          * ücretlendirme kapalıyken herkes için false. Yani bugün
+          * kimse görmüyor — rozet ancak gerçekten kurucu üye olan
+          * birini ayırt ettiğinde anlam taşır.
+          *
+          * Kendi bileşenini kullanıyor: `FounderBadge` zaten Ana
+          * Sayfa ve kenar çubuğunda çiziliyor, ikinci bir uygulama
+          * yazmıyoruz.
+          */}
+        <FounderBadge className={styles.ustRozet} />
+
         {/*
           * Zil artık TOPLULUK bildirimlerine gidiyor.
           *

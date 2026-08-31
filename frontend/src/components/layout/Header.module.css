@@ -327,3 +327,21 @@
 /* Rozet mutlak konumlu; çapası bu düğme. `position` verilmezse rozet
    sayfanın köşesine kaçar. */
 .iconBtn { position: relative; }
+
+/*
+ * Kurucu üye rozeti — sağ üstte, küçük.
+ *
+ * Ürün sahibi "sağ üstte küçük bir şey olabilir" dedi; zil ve tema
+ * düğmesiyle aynı satırda ama onlardan daha sessiz duruyor.
+ *
+ * Dar ekranda gizleniyor: 375px'te zil, tema ve avatar zaten sıkışık
+ * ve rozet bilgi değil NİŞAN — kaybolması bir işlevi engellemiyor.
+ */
+.ustRozet {
+  flex: 0 0 auto;
+  margin-right: 2px;
+}
+
+@media (max-width: 640px) {
+  .ustRozet { display: none; }
+}

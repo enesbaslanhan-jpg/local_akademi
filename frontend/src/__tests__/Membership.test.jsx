@@ -226,3 +226,54 @@ describe('ödeme paneli', () => {
     expect(hedefler).toContain('/terms')
   })
 })
+
+/*
+ * ÖDEME GİRİŞ NOKTASI.
+ *
+ * 🔴 ÖLÇÜLEN EKSİK (ürün sahibi, 31.08.2026): "üye ol senaryosunu
+ * nerden başlatacağım, fiyatlarda yok, üyelik ve faturalandırmada da
+ * yok, ben çözemedim."
+ *
+ * Haklıydı — arayüzde o düğme HİÇ YOKTU. Test ödemesi tarayıcı
+ * konsolundan `/payments/checkout` çağrılarak yapılmıştı.
+ *
+ * `membership.testCheckout` sunucudan geliyor ve `/checkout`taki
+ * kapının aynısını taşıyor (PayTR test kipi + admin). Ön yüzde tahmin
+ * etseydik çalışmayacak bir düğme gösterirdik.
+ *
+ * 🦷 Bu testler iki yönü de koruyor: yöneticiye görünüyor, normal
+ * kullanıcıya GÖRÜNMÜYOR. İkincisi olmadan bu bir üretim deliği olurdu.
+ */
+describe('ödeme giriş noktası', () => {
+  const denemeMetni = /ödeme akışını dene/i
+
+  it('🦷 testCheckout DOĞRUYKEN deneme düğmesi görünüyor', () => {
+    sar(<MembershipSettings membership={{ state: 'billing_not_started', testCheckout: true }} />)
+    expect(screen.getByRole('button', { name: denemeMetni })).toBeInTheDocument()
+  })
+
+  it('🦷 testCheckout YOKKEN düğme HİÇ çizilmiyor', () => {
+    /* Normal kullanıcının gördüğü hâl: sunucu bayrağı göndermiyor. */
+    sar(<MembershipSettings membership={{ state: 'billing_not_started' }} />)
+    expect(screen.queryByRole('button', { name: denemeMetni })).toBeNull()
+  })
+
+  it('düğme ödeme panelini AÇIYOR', async () => {
+    const kullanici = userEvent.setup()
+    sar(<MembershipSettings membership={{ state: 'billing_not_started', testCheckout: true }} />)
+
+    await kullanici.click(screen.getByRole('button', { name: denemeMetni }))
+
+    /* Panelin açıldığının kanıtı: üç onay kutusu ekranda. */
+    expect(screen.getAllByRole('checkbox')).toHaveLength(3)
+  })
+
+  it('ücretlendirme kapalıyken bölüm ÇIKMAZ değil — sırada ne var yazılı', () => {
+    sar(<MembershipSettings membership={{ state: 'billing_not_started' }} />)
+
+    /* Eski hâli iki satır + tek bağlantıydı; kullanıcı Fiyatlar ↔
+       Ayarlar arasında dönüp duruyordu. */
+    expect(screen.getByText(/ücretlendirme başladığında/i)).toBeInTheDocument()
+    expect(screen.getByText(/haber vereceğiz/i)).toBeInTheDocument()
+  })
+})

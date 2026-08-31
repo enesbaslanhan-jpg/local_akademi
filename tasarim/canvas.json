@@ -1,0 +1,81 @@
+{
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "Akış"
+    },
+    {
+      "id": "page-2",
+      "name": "Yönler"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1320,
+      "page": "page-1",
+      "title": "Fiyatlar + ödeme paneli",
+      "is_interactive": true
+    },
+    {
+      "file": "Uyelik.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 940,
+      "h": 900,
+      "page": "page-1",
+      "title": "Ayarlar → Üyelik"
+    },
+    {
+      "file": "YonA.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1100,
+      "h": 900,
+      "page": "page-2",
+      "title": "Yön A — Tek soru, tek cevap"
+    },
+    {
+      "file": "YonB.dc.html",
+      "x": 1220,
+      "y": 0,
+      "w": 1100,
+      "h": 900,
+      "page": "page-2",
+      "title": "Yön B — Ne ödeyeceğimi göster"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "akis-not",
+      "x": 0,
+      "y": -150,
+      "w": 620,
+      "page": "page-1",
+      "text": "ANA TESLİM — mevcut görsel dil, yeni kurgu.\n\nSoldaki ekran TIKLANABİLİR: sağdaki eylem kartındaki düğmeye bas, ödeme paneli açılır. Üç onayı işaretlemeden ödeme düğmesi aktifleşmiyor — koddaki kural bu.\n\nDeğişen şey renk değil SIRA: \"bugün ne ödeyeceğim\" ve eylem, sayfanın en görünür yerinde.\n\n✅ B yönünden alınan: teklif kartının altındaki \"ilk 12 ayın dökümü\" ve toplam. Standart fiyat karşılaştırması ALINMADI — onu yazmak bir fiyat politikası kararı olurdu."
+    },
+    {
+      "id": "uyelik-not",
+      "x": 1560,
+      "y": -150,
+      "w": 560,
+      "page": "page-1",
+      "text": "AYARLAR → ÜYELİK\n\nÜstteki \"Durum\" tweak'ini değiştir: kapalı / deneme / aktif. Üç durumda da bölüm ne söylüyor, gör.\n\nEski hâli iki satır ve tek bağlantıydı; buradaki her durumda bir EYLEM taşıyor ve \"sırada ne var\" yazılı."
+    },
+    {
+      "id": "yon-not",
+      "x": 0,
+      "y": -170,
+      "w": 640,
+      "page": "page-2",
+      "text": "İKİ ALTERNATİF YÖN — ana teslimin yerine değil, YANINA.\n\nA: sadelik ekseni. Sayfa tek şey soruyor, tek eylem sunuyor; ayrıntılar aşağı iniyor. Riski: kurucu üye hikâyesi ve ayrıcalıklar geri planda kalıyor.\n\nB: şeffaflık ekseni. \"Rakamlar karşılaştırılamıyor\" şikâyetini tersine çeviriyor — ilk 12 ay ay ay ve toplam yazılı. Riski: yoğun; ilk bakışta ürünü değil tabloyu gösteriyor.\n\n⚠️ B'deki ₺5.988 karşılaştırması standart fiyat ₺499 üzerinden hesaplandı. Bunu yayımlamak, standart fiyatı ilan etmek demek — bugün fiyat sayfasında bilerek yazmıyoruz."
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "page-1"
+  }
+}

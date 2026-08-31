@@ -1,0 +1,175 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; font-family: Manrope, 'Segoe UI', system-ui, -apple-system, sans-serif; background: #E1E2E5; color: #191C1E; }
+    a { color: #0D556F; text-decoration: none; }
+    a:hover { color: #306D88; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="min-height: 900px; padding: 26px 30px; background: #E1E2E5">
+  <div style="max-width: 880px; margin: 0 auto">
+
+    <div style="margin-bottom: 20px">
+      <span style="color: #515B60; font-size: 10px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase">Hesap Merkezi</span>
+      <h1 style="margin: 5px 0 4px; font-size: 24px; font-weight: 780; letter-spacing: -.5px">Üyelik ve Faturalandırma</h1>
+      <p style="margin: 0; color: #515B60; font-size: 13px">Planını, ücretini ve sonraki ödeme tarihini görürsün.</p>
+    </div>
+
+    <!-- DURUM KARTI -->
+    <div style="margin-bottom: 16px; border: 1px solid rgba(24,62,69,.14); border-radius: 12px; background: #F8F9FC; overflow: hidden">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 22px">
+        <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+          <span style="color: #515B60; font-size: 10px; font-weight: 750; letter-spacing: .09em; text-transform: uppercase">Üyelik durumu</span>
+          <div style="display: flex; align-items: center; gap: 9px">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 999px; background: {{durumRengi}}"></span>
+            <strong style="font-size: 20px; font-weight: 780; letter-spacing: -.3px">{{durumBaslik}}</strong>
+          </div>
+          <span style="color: #515B60; font-size: 13px; line-height: 1.5">{{durumAlt}}</span>
+        </div>
+        <sc-if value="{{rozetVar}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; align-items: center; gap: 8px; flex: 0 0 auto; padding: 9px 14px; border-radius: 999px; background: rgba(13,85,111,.1)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D556F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.6 6.3 6.8.5-5.2 4.4 1.6 6.6L12 16.3 6.2 19.8l1.6-6.6L2.6 8.8l6.8-.5Z"/></svg>
+            <span style="color: #0D556F; font-size: 11.5px; font-weight: 750">Kurucu Üye</span>
+          </div>
+        </sc-if>
+      </div>
+
+      <!-- BUGÜN / SONRAKİ — iki sütun -->
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; border-top: 1px solid rgba(24,62,69,.14); background: rgba(24,62,69,.14)">
+        <div style="padding: 16px 22px; background: #F8F9FC">
+          <span style="display: block; margin-bottom: 5px; color: #515B60; font-size: 10px; font-weight: 750; letter-spacing: .09em; text-transform: uppercase">{{solEtiket}}</span>
+          <strong style="font-size: 21px; font-weight: 780; letter-spacing: -.4px">{{solDeger}}</strong>
+        </div>
+        <div style="padding: 16px 22px; background: #F8F9FC">
+          <span style="display: block; margin-bottom: 5px; color: #515B60; font-size: 10px; font-weight: 750; letter-spacing: .09em; text-transform: uppercase">{{sagEtiket}}</span>
+          <strong style="font-size: 21px; font-weight: 780; letter-spacing: -.4px">{{sagDeger}}</strong>
+        </div>
+      </div>
+
+      <!-- EYLEM -->
+      <div style="display: flex; align-items: center; gap: 11px; padding: 18px 22px; border-top: 1px solid rgba(24,62,69,.14); background: rgba(237,238,240,.55)">
+        <button onClick="{{birincilEylem}}" style="display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 11px 20px; border: 0; border-radius: 8px; background: #0D556F; color: #FFFFFF; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer">
+          {{birincilMetin}}
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+        <sc-if value="{{ikincilVar}}" hint-placeholder-val="{{ true }}">
+          <button style="min-height: 44px; padding: 11px 18px; border: 1px solid rgba(24,62,69,.18); border-radius: 8px; background: #F8F9FC; color: #191C1E; font: inherit; font-size: 13.5px; font-weight: 650; cursor: pointer">Ödeme yöntemini yönet</button>
+        </sc-if>
+      </div>
+    </div>
+
+    <!-- SIRADA NE VAR -->
+    <div style="margin-bottom: 16px; padding: 22px; border: 1px solid rgba(24,62,69,.14); border-radius: 12px; background: #F8F9FC">
+      <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 16px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0D556F" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <strong style="font-size: 15px; font-weight: 720">{{planBaslik}}</strong>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0">
+        <sc-for list="{{asamalar}}" as="a" hint-placeholder-count="3">
+          <div style="display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid rgba(24,62,69,.1)">
+            <strong style="font-size: 15px; font-weight: 750; color: {{a.renk}}">{{a.fiyat}}</strong>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <span style="font-size: 13px; font-weight: 650">{{a.baslik}}</span>
+              <span style="color: #515B60; font-size: 12.5px; line-height: 1.45">{{a.not}}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin: 16px 0 0; color: #515B60; font-size: 12.5px; line-height: 1.55">{{planNotu}}</p>
+    </div>
+
+    <!-- FATURA / İPTAL -->
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+      <div style="padding: 18px 20px; border: 1px solid rgba(24,62,69,.14); border-radius: 12px; background: #F8F9FC">
+        <strong style="display: block; margin-bottom: 5px; font-size: 13.5px; font-weight: 720">Faturalarım</strong>
+        <p style="margin: 0 0 13px; color: #515B60; font-size: 12.5px; line-height: 1.5">{{faturaNotu}}</p>
+        <button style="min-height: 38px; padding: 9px 15px; border: 1px solid rgba(24,62,69,.18); border-radius: 8px; background: #FFFFFF; color: {{faturaYazi}}; font: inherit; font-size: 12.5px; font-weight: 650; cursor: {{faturaImlec}}; opacity: {{faturaOpaklik}}">Faturaları görüntüle</button>
+      </div>
+      <div style="padding: 18px 20px; border: 1px solid rgba(24,62,69,.14); border-radius: 12px; background: #F8F9FC">
+        <strong style="display: block; margin-bottom: 5px; font-size: 13.5px; font-weight: 720">Üyeliği iptal et</strong>
+        <p style="margin: 0 0 13px; color: #515B60; font-size: 12.5px; line-height: 1.5">Ödemesi yapılmış dönemin sonuna kadar erişimin sürer. Gerekçe sormuyoruz.</p>
+        <button style="min-height: 38px; padding: 9px 15px; border: 1px solid rgba(186,26,26,.3); border-radius: 8px; background: #FFFFFF; color: {{iptalYazi}}; font: inherit; font-size: 12.5px; font-weight: 650; cursor: {{faturaImlec}}; opacity: {{faturaOpaklik}}">Üyeliği iptal et</button>
+      </div>
+    </div>
+
+    <a href="#" style="display: inline-block; margin-top: 18px; font-size: 12.5px; font-weight: 600; text-decoration: underline">Fiyatlandırmanın tamamını gör</a>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"durum":{"editor":"enum","default":"kapali","options":["kapali","deneme","aktif"],"section":"Durum"},"$preview":{"width":940,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const durum = this.props.durum ?? 'kapali'
+    const kapali = durum === 'kapali'
+    const aktif = durum === 'aktif'
+
+    const asamalar = [
+      { fiyat: 'Ücretsiz', baslik: 'İlk 1 ay', not: 'Kart bilgisi istemiyoruz.', renk: '#1E8E5A' },
+      { fiyat: '₺149 / ay', baslik: 'Sonraki 3 ay', not: 'Lansman dönemi, kurucu üyelere özel.', renk: '#191C1E' },
+      { fiyat: '₺299 / ay', baslik: 'Sonrasında', not: 'Standart fiyatın en az %40 altı.', renk: '#191C1E' },
+    ]
+
+    const metin = {
+      kapali: {
+        durumBaslik: 'Ücretsiz kullanım',
+        durumAlt: 'Ücretlendirme henüz başlamadı; hiçbir tahsilat yapılmıyor.',
+        durumRengi: '#1E8E5A',
+        solEtiket: 'Bugün ödediğin', solDeger: '₺0',
+        sagEtiket: 'Sonraki tahsilat', sagDeger: 'Yok',
+        birincilMetin: 'Fiyatlandırmayı incele',
+        planBaslik: 'Ücretlendirme başladığında',
+        planNotu: 'Başlamadan önce hem uygulama içi bildirimle hem e-postayla haber vereceğiz. O güne kadar yapman gereken bir şey yok.',
+        faturaNotu: 'Henüz bir tahsilat yapılmadı.',
+        rozetVar: false, ikincilVar: false,
+      },
+      deneme: {
+        durumBaslik: 'Deneme sürüyor',
+        durumAlt: 'Ücretsiz ayının bitmesine 12 gün kaldı.',
+        durumRengi: '#0D556F',
+        solEtiket: 'Bugün ödediğin', solDeger: '₺0',
+        sagEtiket: 'İlk tahsilat', sagDeger: '12 Eyl · ₺149',
+        birincilMetin: 'Üyeliği başlat',
+        planBaslik: 'Bundan sonra',
+        planNotu: 'Deneme bitince üyeliği başlatmazsan hesabın salt okunur moda geçer: verilerin durur ve dışa aktarılabilir kalır.',
+        faturaNotu: 'Henüz bir tahsilat yapılmadı.',
+        rozetVar: false, ikincilVar: false,
+      },
+      aktif: {
+        durumBaslik: 'Üyeliğin aktif',
+        durumAlt: 'Lansman dönemi — kurucu üye fiyatıyla devam ediyorsun.',
+        durumRengi: '#1E8E5A',
+        solEtiket: 'Aylık ücretin', solDeger: '₺149',
+        sagEtiket: 'Sonraki tahsilat', sagDeger: '1 Eki · ₺149',
+        birincilMetin: 'Ödeme yöntemini değiştir',
+        planBaslik: 'Fiyatın nasıl ilerliyor',
+        planNotu: 'Kurucu üye indirimin oransal: standart fiyat yükselse de her zaman en az %40 altını ödersin.',
+        faturaNotu: 'Geçmiş tahsilatlarını indirebilirsin.',
+        rozetVar: true, ikincilVar: true,
+      },
+    }[durum]
+
+    return {
+      ...metin,
+      asamalar,
+      birincilEylem: () => {},
+      faturaYazi: aktif ? '#191C1E' : '#9AA3A7',
+      faturaImlec: aktif ? 'pointer' : 'not-allowed',
+      faturaOpaklik: aktif ? '1' : '.55',
+      iptalYazi: aktif ? '#BA1A1A' : '#9AA3A7',
+    }
+  }
+}
+</script>
+</body>
+</html>

@@ -13,6 +13,7 @@ import { isAbsolute, join, relative, resolve } from 'node:path'
 import { detectFileType, FileValidationError, validateImageFile } from './documentSecurity.js'
 import { generateNumericCode, generateRawToken, hashToken, safeEqual } from '../lib/tokens.js'
 import { hesaplaUyelikDurumu } from '../config/billing.js'
+import { paytrYapilandirmasi } from './payments/paytr.js'
 import { LEGAL_DOCUMENTS, missingConsents, requiredDocuments } from '../config/legal-documents.js'
 import { contentLanguage } from '../lib/content-language.js'
 import { sendMail } from './mailer.js'
@@ -128,6 +129,20 @@ function issueToken(
   )
 }
 
+/*
+ * Ödeme akışını BUGÜN deneyebilecek mi?
+ *
+ * 🔴 Bu bayrak `/payments/checkout`taki kapının AYNISINI hesaplıyor:
+ * PayTR test kipi açık VE kullanıcı admin. Ayrışırlarsa ön yüz
+ * çalışmayacak bir düğme gösterir ve kullanıcı 409 alır.
+ *
+ * Ücretlendirme açıldığında bu bayrak anlamını yitirir: o zaman
+ * düğmeyi `membership.state` belirler.
+ */
+function testOdemesiYapabilir(rol: string): boolean {
+  return rol === 'admin' && paytrYapilandirmasi()?.testMode === true
+}
+
 export async function authRoutes(fastify: FastifyInstance) {
   const avatarDirectory = join(process.cwd(), 'uploads', 'avatars')
   /* Sinir EN BUYUK yuklemeye gore; avatar kendi siniriyla ayrica
@@ -205,7 +220,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     return {
       token,
       refreshToken: yenileme.rawToken,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName), emailVerified: !!user.emailVerifiedAt, membership: hesaplaUyelikDurumu(user.createdAt) }
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName), emailVerified: !!user.emailVerifiedAt, membership: { ...hesaplaUyelikDurumu(user.createdAt), testCheckout: testOdemesiYapabilir(user.role) } }
     }
   })
 
@@ -243,7 +258,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     return {
       token,
       refreshToken: yenileme.rawToken,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName), emailVerified: !!user.emailVerifiedAt, uiLanguage: preference?.uiLanguage || 'tr', membership: hesaplaUyelikDurumu(user.createdAt) }
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName), emailVerified: !!user.emailVerifiedAt, uiLanguage: preference?.uiLanguage || 'tr', membership: { ...hesaplaUyelikDurumu(user.createdAt), testCheckout: testOdemesiYapabilir(user.role) } }
     }
   })
 

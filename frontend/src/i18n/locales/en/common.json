@@ -749,7 +749,10 @@
         "launch": "Next {{count}} months — launch period, for founding members",
         "founder": "After that — at least 40% below the standard price"
       },
-      "notifyPromise": "We will tell you before billing starts, both with an in-app notification and by email. Until then there is nothing to do: no card details are requested and no charge is made."
+      "notifyPromise": "We will tell you before billing starts, both with an in-app notification and by email. Until then there is nothing to do: no card details are requested and no charge is made.",
+      "testModeLabel": "Test mode",
+      "testModeNote": "PayTR is in test mode and you are an administrator, so you can run the payment flow without any real charge. Only administrators see this box.",
+      "testCheckout": "Try the payment flow"
     },
     "modal": {
       "successTitle": "Your membership is active",
@@ -906,7 +909,18 @@
       }
     },
     "myMembership": "My membership settings",
-    "memberNote": "Once billing starts, you manage your membership from Settings → Membership."
+    "memberNote": "Once billing starts, you manage your membership from Settings → Membership.",
+    "breakdownTitle": "Your first 12 months",
+    "breakdownTotal": "Total for the first 12 months",
+    "breakdown": {
+      "free": "Month {{count}} — free",
+      "launch": "Next {{count}} months — {{price}}/mo",
+      "founder": "Remaining {{count}} months — {{price}}/mo"
+    },
+    "dueTodayLabel": "Due today",
+    "dueTodayUnit": "first month",
+    "dueTodayNote": "No card details required. The first charge is {{price}} at the start of month 2.",
+    "includedTitle": "What's included"
   },
   "publicFooter": {
     "corporateAria": "Company links",

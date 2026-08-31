@@ -166,6 +166,41 @@ export const FOUNDER_STAGES: readonly FounderStage[] = [
   { code: 'founder', monthlyPrice: kuruculUyeFiyati(), months: null },
 ]
 
+/**
+ * İlk 12 ayın kalem kalem dökümü.
+ *
+ * 🔴 SAYILAR ELLE YAZILMIYOR — aşamalardan türetiliyor.
+ *
+ * Ürün sahibinin "rakamlar yanlış" dediği şey aritmetik değil,
+ * KARŞILAŞTIRILAMAZLIKTI: aşamalar tek tek yazılıyken bile ziyaretçi
+ * "bir yılda ne ödeyeceğim" sorusunu kafasında toplayamıyordu.
+ *
+ * Son aşamanın `months` alanı `null` (süresiz); ilk yıl için kalan
+ * ayları o dolduruyor.
+ */
+export interface YilKalemi {
+  kod: string
+  ay: number
+  aylik: number
+  tutar: number
+}
+
+export function ilkYilDokumu(asamalar: readonly FounderStage[] = FOUNDER_STAGES): YilKalemi[] {
+  const kalemler: YilKalemi[] = []
+  let kalan = 12
+  for (const asama of asamalar) {
+    if (kalan <= 0) break
+    const ay = asama.months === null ? kalan : Math.min(asama.months, kalan)
+    kalemler.push({ kod: asama.code, ay, aylik: asama.monthlyPrice, tutar: ay * asama.monthlyPrice })
+    kalan -= ay
+  }
+  return kalemler
+}
+
+export function ilkYilToplami(asamalar: readonly FounderStage[] = FOUNDER_STAGES): number {
+  return ilkYilDokumu(asamalar).reduce((toplam, k) => toplam + k.tutar, 0)
+}
+
 /** İlk ücretli aşamanın aylık tutarı — ödeme panelinde "bugün ödenecek". */
 export const ilkUcretliTutar = (): number =>
   FOUNDER_STAGES.find(s => s.monthlyPrice > 0)?.monthlyPrice ?? 0

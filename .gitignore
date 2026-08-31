@@ -20,3 +20,7 @@ deploy/certs/
 # Calisma artiklari (smoke betikleri, gecici ciktilar).
 # `git add -A` ile commit e girmesinler.
 tmp/
+
+# Tasarim tuvalinin uretilmis hali (~2.4 MB). Kaynak tasarim/*.dc.html
+# ve canvas.json depoda; tuval onlardan yeniden uretiliyor.
+tasarim/*.html

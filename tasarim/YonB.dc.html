@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; font-family: Manrope, 'Segoe UI', system-ui, -apple-system, sans-serif; background: #EDEEF0; color: #191C1E; }
+    a { color: #0D556F; } a:hover { color: #14607C; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<!--
+  YÖN B — "Ne ödeyeceğimi tam olarak göster"
+
+  Eksen: ŞEFFAFLIK. Ürün sahibinin asıl şikâyeti "rakamlar
+  karşılaştırılamıyor"du. Bu yön onu tersine çeviriyor: ilk 12 ayın
+  ay ay dökümü ve toplam maliyet açıkça yazılı. Yoğun ama hiçbir şey
+  gizli değil.
+-->
+<div style="min-height: 900px; padding: 34px 44px 56px; background: #EDEEF0">
+  <div style="max-width: 940px; margin: 0 auto">
+
+    <h1 style="margin: 0 0 8px; font-size: 32px; font-weight: 800; letter-spacing: -.8px">İlk yılın tam olarak ne kadar</h1>
+    <p style="margin: 0 0 26px; color: #515B60; font-size: 15px; line-height: 1.6; max-width: 560px">Gizli ücret yok, sürpriz yok. Aşağıda 12 ayın tamamı ay ay yazılı.</p>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start">
+
+      <!-- Ay ay döküm -->
+      <div style="border: 1px solid rgba(24,62,69,.15); border-radius: 16px; background: rgba(251,252,253,.9); overflow: hidden">
+        <div style="display: grid; grid-template-columns: 78px minmax(0, 1fr) 96px; gap: 14px; padding: 12px 20px; border-bottom: 1px solid rgba(24,62,69,.13); background: rgba(216,221,224,.5)">
+          <span style="color: #515B60; font-size: 10px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase">Ay</span>
+          <span style="color: #515B60; font-size: 10px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase">Dönem</span>
+          <span style="color: #515B60; font-size: 10px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; text-align: right">Tutar</span>
+        </div>
+
+        <sc-for list="{{aylar}}" as="ay" hint-placeholder-count="6">
+          <div style="display: grid; grid-template-columns: 78px minmax(0, 1fr) 96px; gap: 14px; align-items: center; padding: 11px 20px; border-bottom: 1px solid rgba(24,62,69,.08); background: {{ay.zemin}}">
+            <span style="color: #515B60; font-size: 13px; font-weight: 600">{{ay.no}}</span>
+            <span style="font-size: 13px; font-weight: 600; color: {{ay.yazi}}">{{ay.donem}}</span>
+            <strong style="font-size: 14px; font-weight: 750; text-align: right; color: {{ay.yazi}}">{{ay.tutar}}</strong>
+          </div>
+        </sc-for>
+
+        <div style="display: grid; grid-template-columns: 78px minmax(0, 1fr) 96px; gap: 14px; align-items: center; padding: 16px 20px; background: rgba(13,85,111,.06)">
+          <span></span>
+          <strong style="font-size: 14px; font-weight: 750">İlk 12 ayın toplamı</strong>
+          <strong style="font-size: 18px; font-weight: 800; text-align: right; letter-spacing: -.4px">₺2.839</strong>
+        </div>
+      </div>
+
+      <!-- Karşılaştırma -->
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <div style="padding: 20px; border: 1px solid rgba(24,62,69,.15); border-radius: 16px; background: rgba(251,252,253,.9)">
+          <span style="display: block; margin-bottom: 12px; color: #515B60; font-size: 10px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase">Kurucu üye olmasan</span>
+          <div style="display: flex; align-items: baseline; gap: 7px; margin-bottom: 6px">
+            <strong style="font-size: 26px; font-weight: 800; letter-spacing: -.6px; color: #515B60">₺5.988</strong>
+          </div>
+          <p style="margin: 0 0 14px; color: #515B60; font-size: 12.5px; line-height: 1.5">Standart fiyat ₺499/ay üzerinden 12 ay.</p>
+          <div style="padding: 12px 14px; border-radius: 10px; background: rgba(30,142,90,.1)">
+            <span style="display: block; color: #1E8E5A; font-size: 11px; font-weight: 750; letter-spacing: .05em; text-transform: uppercase">İlk yıl kazancın</span>
+            <strong style="font-size: 22px; font-weight: 800; color: #1E8E5A; letter-spacing: -.5px">₺3.149</strong>
+          </div>
+        </div>
+
+        <div style="padding: 20px; border: 1px solid rgba(255,255,255,.7); border-radius: 16px; background: rgba(251,252,253,.95); box-shadow: 0 24px 52px -22px rgba(20,20,19,.28)">
+          <button style="width: 100%; min-height: 48px; border: 0; border-radius: 11px; background: #0D556F; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer">Ücretsiz başla</button>
+          <p style="margin: 11px 0 0; color: #515B60; font-size: 12px; line-height: 1.5; text-align: center">İlk ay ücretsiz. Kart bilgisi istemiyoruz.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":1100,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const satir = (no, donem, tutar, vurgu) => ({
+      no, donem, tutar,
+      zemin: vurgu ? 'rgba(30,142,90,.06)' : 'transparent',
+      yazi: vurgu ? '#1E8E5A' : '#191C1E',
+    })
+    return {
+      aylar: [
+        satir('1. ay', 'Ücretsiz deneme', '₺0', true),
+        satir('2–4. ay', 'Lansman dönemi', '₺149 / ay', false),
+        satir('5–12. ay', 'Kurucu üye fiyatı', '₺299 / ay', false),
+      ],
+    }
+  }
+}
+</script>
+</body>
+</html>
