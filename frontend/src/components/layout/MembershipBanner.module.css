@@ -1,0 +1,100 @@
+/*
+ * Renkler tamamen token'lardan geliyor — `--warning` ve `--danger`
+ * hem açık hem koyu temada tanımlı, bu yüzden şerit tema değişince
+ * kendiliğinden uyar. `VerificationBanner` ile aynı gerekçe ve aynı
+ * ölçüler: iki şerit üst üste gelebiliyor, farklı yükseklikte
+ * olmaları kabuğu düzensiz gösterirdi.
+ */
+
+.serit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 0 0 16px;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: .875rem;
+  line-height: 1.45;
+}
+
+/* Deneme bitmek üzere — hatırlatma, alarm değil. */
+.uyari {
+  border: 1px solid color-mix(in srgb, var(--warning) 42%, transparent);
+  background: color-mix(in srgb, var(--warning) 12%, var(--surface-panel));
+}
+
+.uyari .ikon { color: var(--warning); }
+
+/*
+ * Süre doldu — kullanıcı ARTIK YAZAMIYOR. Bu şerit onun tek
+ * açıklaması, o yüzden uyarıdan daha belirgin ve kapatılamaz.
+ */
+.doldu {
+  border: 1px solid color-mix(in srgb, var(--danger) 42%, transparent);
+  background: color-mix(in srgb, var(--danger) 12%, var(--surface-panel));
+}
+
+.doldu .ikon { color: var(--danger); }
+
+.ikon {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.metin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  flex: 1;
+  margin: 0;
+  min-width: 0;
+}
+
+.metin strong { font-weight: 700; }
+.metin span { color: var(--text-secondary, var(--text-light)); }
+
+.eylem {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--primary);
+  color: var(--on-primary, #fff);
+  font-family: var(--font-family);
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.eylem:hover { opacity: .9; }
+
+.kapat {
+  flex-shrink: 0;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary, var(--text-light));
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.kapat:hover { color: var(--text); }
+
+.eylem:focus-visible,
+.kapat:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@media (max-width: 620px) {
+  .serit { flex-wrap: wrap; }
+  .metin { flex-basis: 100%; order: 2; }
+  .eylem { order: 3; }
+}

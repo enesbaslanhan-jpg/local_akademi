@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ArrowRight, Bell, BookOpen, Calculator, Menu, MessagesSquare, Moon, Newspaper, Search, ShieldCheck, Sun, Users } from 'lucide-react'
+import { ArrowRight, Bell, BookOpen, Calculator, CreditCard, LogOut, Menu, MessagesSquare, Moon, Newspaper, Search, Settings, ShieldCheck, Sun, UserRound, Users } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useWorkspace } from '@/context/WorkspaceContext'
 import { useTheme } from '@/context/ThemeContext'
@@ -52,7 +52,7 @@ const EMPTY_RESULTS = { courses: [], knowledge: [], decisionChecks: [], news: []
 export default function Header({ onToggleSidebar }) {
   const { t, i18n } = useTranslation(['common', 'tools'])
   const { formatLocale } = useLocalization()
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const { activeWorkspaceId } = useWorkspace()
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
@@ -118,6 +118,16 @@ export default function Header({ onToggleSidebar }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const searchRef = useRef(null)
+  const [hesapAcik, setHesapAcik] = useState(false)
+  const hesapRef = useRef(null)
+
+  /* Menüden bir yere gidildiğinde menü KAPANMALI: açık kalırsa yeni
+     sayfanın üstünde asılı durur ve kullanıcı iki kez kapatmak zorunda
+     kalır. */
+  const gitVeKapat = yol => {
+    setHesapAcik(false)
+    navigate(yol)
+  }
 
   const term = query.trim()
 
@@ -163,6 +173,25 @@ export default function Header({ onToggleSidebar }) {
     }, 250)
     return () => clearTimeout(timer)
   }, [term])
+
+  /* Hesap menüsü — arama panelinin kapanma deseninin aynısı: dışarı
+     tıklama ve Escape. İki ayrı desen kullanmak, birinin klavyeyle
+     kapanıp diğerinin kapanmaması demek olurdu. */
+  useEffect(() => {
+    if (!hesapAcik) return undefined
+    const disariTiklama = event => {
+      if (hesapRef.current && !hesapRef.current.contains(event.target)) setHesapAcik(false)
+    }
+    const tusla = event => {
+      if (event.key === 'Escape') setHesapAcik(false)
+    }
+    document.addEventListener('pointerdown', disariTiklama)
+    document.addEventListener('keydown', tusla)
+    return () => {
+      document.removeEventListener('pointerdown', disariTiklama)
+      document.removeEventListener('keydown', tusla)
+    }
+  }, [hesapAcik])
 
   useEffect(() => {
     if (!open) return undefined
@@ -377,13 +406,52 @@ export default function Header({ onToggleSidebar }) {
           <Bell size={17} />
           {okunmamis > 0 && <span className={styles.bildirimRozeti}>{okunmamis > 9 ? '9+' : okunmamis}</span>}
         </button>
-        <button
-          type="button"
-          className={styles.avatar}
-          title={t('accessibility.openProfile', { name: user?.name || user?.email || t('nav.profile') })}
-          aria-label={t('accessibility.openAccountSettings')}
-          onClick={() => navigate('/app/settings#hesap')}
-        >{user?.avatarUrl ? <img src={user.avatarUrl} alt="" /> : initials}</button>
+        {/*
+          * HESAP MENÜSÜ.
+          *
+          * 🔴 Ürün sahibi: "bu sayfaya erişmek çok zor, taa ayarlara
+          * gideceğim sonra üyeliğe gireceğim, bu böyle mi olmalı".
+          * Değildi: üyelik ekranı üç tık uzaktaydı ve hiçbir kısa yolu
+          * yoktu.
+          *
+          * ⚠️ Avatar ÖNCEDEN `/app/settings#hesap`e gidiyordu ve
+          * "hesap" `BOLUMLER` listesinde YOK — `acilisBolumu()` onu
+          * tanımayıp sessizce profile düşürüyordu. Yani düğme yıllardır
+          * yanlış adrese gidiyordu; menü bunu da düzeltiyor.
+          */}
+        <div className={styles.hesapSarmal} ref={hesapRef}>
+          <button
+            type="button"
+            className={styles.avatar}
+            title={t('accessibility.openProfile', { name: user?.name || user?.email || t('nav.profile') })}
+            aria-label={t('accessibility.openAccountMenu')}
+            aria-haspopup="menu"
+            aria-expanded={hesapAcik}
+            onClick={() => setHesapAcik(a => !a)}
+          >{user?.avatarUrl ? <img src={user.avatarUrl} alt="" /> : initials}</button>
+
+          {hesapAcik && (
+            <div className={styles.hesapMenu} role="menu">
+              <div className={styles.hesapBasi}>
+                <strong>{user?.name || t('nav.profile')}</strong>
+                <span>{user?.email}</span>
+              </div>
+              <button type="button" role="menuitem" className={styles.hesapOge} onClick={() => gitVeKapat('/app/settings?bolum=profile')}>
+                <UserRound size={15} aria-hidden="true" /> {t('settings.profileBusiness')}
+              </button>
+              {/* İstenen kısa yol: tek tıkla üyelik. */}
+              <button type="button" role="menuitem" className={styles.hesapOge} onClick={() => gitVeKapat('/app/settings?bolum=uyelik')}>
+                <CreditCard size={15} aria-hidden="true" /> {t('settings.membership.title')}
+              </button>
+              <button type="button" role="menuitem" className={styles.hesapOge} onClick={() => gitVeKapat('/app/settings')}>
+                <Settings size={15} aria-hidden="true" /> {t('nav.settings')}
+              </button>
+              <button type="button" role="menuitem" className={`${styles.hesapOge} ${styles.hesapCikis}`} onClick={() => { setHesapAcik(false); logout() }}>
+                <LogOut size={15} aria-hidden="true" /> {t('nav.logout')}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   )

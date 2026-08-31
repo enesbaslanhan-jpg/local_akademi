@@ -461,3 +461,7 @@
   .mktStats { grid-auto-flow: row; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
   .mktStats > div + div { padding-left: 0; border-left: 0; }
 }
+
+/* Üyelik şeridi ile altındaki panel ızgarası arasındaki boşluk.
+   `.page` flex değil, çocuklar kendi payını taşıyor. */
+.uyelikSerit { margin-bottom: var(--gap-panel); }

@@ -93,13 +93,18 @@ export async function uyelikBildirimleriniUret(
      uyarısı göndermek anlamsız ve rahatsız edici olurdu. */
   const kullanicilar = await prisma.user.findMany({
     where: { deletedAt: null },
-    select: { id: true, email: true, name: true, createdAt: true },
+    /* 🔴 Abonelik de okunuyor: ödemesi geçerli bir kullanıcıya
+       "denemen bitiyor" uyarısı göndermek yanlış olurdu. */
+    select: {
+      id: true, email: true, name: true, createdAt: true,
+      subscription: { select: { status: true, currentPeriodEnd: true } },
+    },
   })
 
   let uretilen = 0
 
   for (const kullanici of kullanicilar) {
-    const durum = hesaplaUyelikDurumu(kullanici.createdAt, simdi)
+    const durum = hesaplaUyelikDurumu(kullanici.createdAt, simdi, undefined, kullanici.subscription)
 
     if (durum.state === 'trial' && durum.showBanner && durum.trialDaysLeft !== null) {
       /* Eşiğe girdiği ANDA bir kez, son gün bir kez daha. İkisinin

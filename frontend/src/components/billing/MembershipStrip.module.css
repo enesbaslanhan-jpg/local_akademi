@@ -1,0 +1,90 @@
+/* Ana sayfa üyelik şeridi. Uygulama kabuğu içinde: genel tema
+   token'ları (`--auth-*` değil). */
+
+.serit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 10px);
+  background: var(--surface-panel);
+  min-width: 0;
+}
+
+/*
+ * TONU YALNIZ NOKTA TAŞIYOR.
+ *
+ * İlk sürümde sol kenarda 3px'lik renkli bir şerit de vardı. İki
+ * sebeple kaldırıldı: noktanın tekrarıydı (aynı bilgi iki kez), ve
+ * kalın renkli yan şerit kartı bir uyarı kutusuna benzetiyordu —
+ * oysa bu bir bildirim değil, sakin bir durum satırı.
+ *
+ * ⚠️ Renk zaten tek başına taşıyıcı değil: noktanın yanında her
+ * zaman yazılı başlık var, o yüzden nokta `aria-hidden`.
+ */
+.nokta {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full, 999px);
+  background: currentColor;
+}
+
+/* Nokta rengi sol kenarla aynı kaynaktan. */
+.ton_sakin .nokta { background: var(--text-muted, var(--text-light)); }
+.ton_bilgi .nokta { background: var(--primary); }
+.ton_iyi .nokta { background: var(--success, var(--primary)); }
+.ton_uyari .nokta { background: var(--warning, var(--danger)); }
+
+.metin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.baslik {
+  color: var(--text);
+  font-size: .88rem;
+  font-weight: 700;
+}
+
+.alt {
+  color: var(--text-light);
+  font-size: .81rem;
+  line-height: 1.5;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.baglanti {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+  font-size: .81rem;
+  font-weight: 650;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.baglanti:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.baglanti:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 5px;
+}
+
+@media (max-width: 560px) {
+  .serit { align-items: flex-start; flex-wrap: wrap; gap: 8px 10px; }
+  /* Noktanın hizasında kalsın diye küçük bir girinti — ama TAM
+     GENİŞLİK DEĞİL: tam genişlik bir bağlantı, düğme gibi okunuyor
+     ve tıklanınca sayfa değiştirdiği için beklentiyi bozuyordu. */
+  .baglanti { margin-left: 18px; }
+  .nokta { margin-top: 6px; }
+}

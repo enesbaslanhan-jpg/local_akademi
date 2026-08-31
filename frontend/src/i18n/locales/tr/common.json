@@ -104,7 +104,8 @@
     "unreadNotifications_other": "Bildirimler — {{count}} okunmamış",
     "openNotifications": "Bildirimleri aç",
     "openProfile": "{{name}} profilini aç",
-    "openAccountSettings": "Profil ve hesap ayarlarını aç"
+    "openAccountSettings": "Profil ve hesap ayarlarını aç",
+    "openAccountMenu": "Hesap menüsünü aç"
   },
   "search": {
     "placeholder": "Kurs, karar aracı, hesaplama ara…",
@@ -803,6 +804,56 @@
       "yearly": "Yıllık",
       "freeMonths_one": "{{count}} ay hediye",
       "freeMonths_other": "{{count}} ay hediye"
+    },
+    "durum": {
+      "notStarted": {
+        "alt": "Ücretlendirme henüz başlamadı; hiçbir tahsilat yapılmıyor."
+      },
+      "trial": {
+        "baslik": "Deneme sürüyor",
+        "alt_one": "Ücretsiz ayının bitmesine {{count}} gün kaldı.",
+        "alt_other": "Ücretsiz ayının bitmesine {{count}} gün kaldı."
+      },
+      "active": {
+        "baslik": "Üyeliğin aktif",
+        "alt": "Lansman dönemi — kurucu üye fiyatıyla devam ediyorsun."
+      },
+      "expired": {
+        "baslik": "Deneme süren doldu",
+        "alt": "Hesabın salt okunur modda: verilerin duruyor ve dışa aktarılabilir."
+      },
+      "olcu": {
+        "bugunOdedigin": "Bugün ödediğin",
+        "aylikUcretin": "Aylık ücretin",
+        "sonrakiTahsilat": "Sonraki tahsilat",
+        "ilkTahsilat": "İlk tahsilat",
+        "erisimIcin": "Erişimini açmak için",
+        "yok": "Yok"
+      },
+      "eylem": {
+        "uyeligiBaslat": "Üyeliği başlat",
+        "fiyatlariIncele": "Fiyatlandırmayı incele",
+        "faturalariGor": "Faturaları görüntüle",
+        "fiyatlandirmaninTamami": "Fiyatlandırmanın tamamını gör"
+      },
+      "plan": {
+        "bundanSonra": "Bundan sonra",
+        "fiyatNasil": "Fiyatın nasıl ilerliyor",
+        "denemeNotu": "Deneme bitince üyeliği başlatmazsan hesabın salt okunur moda geçer: verilerin durur ve dışa aktarılabilir kalır.",
+        "suresiDolduNotu": "Üyeliği başlattığın anda hesabın kaldığı yerden açılır; hiçbir verin silinmedi."
+      },
+      "fatura": {
+        "henuzYok": "Henüz bir tahsilat yapılmadı.",
+        "indirebilirsin": "Geçmiş tahsilatlarını indirebilirsin."
+      },
+      "iptalNotu": "Ödemesi yapılmış dönemin sonuna kadar erişimin sürer. Gerekçe sormuyoruz."
+    },
+    "serit": {
+      "yonet": "Üyeliği yönet",
+      "bolumAdi": "Üyelik durumu",
+      "doluAciklama": "Verilerin duruyor ve dışa aktarılabilir; yeni kayıt eklemek için üyeliğini başlat.",
+      "uyariAciklama": "Kesintisiz devam etmek için üyeliğini şimdi başlatabilirsin.",
+      "kapat": "Hatırlatmayı kapat"
     }
   },
   "pricing": {

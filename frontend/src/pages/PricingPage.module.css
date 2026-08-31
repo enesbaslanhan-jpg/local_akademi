@@ -88,9 +88,20 @@
 
 .kayitDugmesi:hover { background: var(--auth-accent-hover); }
 
+/*
+ * 🔴 BURADA `max-width: 34ch` VARDI VE ÖLÇÜLDÜ: 270px yapıyordu.
+ *
+ * `ch` ögenin KENDİ yazı boyuna göre ölçülüyor; bu kapsayıcı gövde
+ * boyunu (16px) miras aldığı için 34ch ≈ 270px oluyordu. Oysa
+ * niyet başlığın satır uzunluğunu sınırlamaktı ve başlık 48px.
+ * Sonuç: 952px'lik alanda 270px'lik bir başlık, sağında 682px
+ * boşluk ve dört satıra bölünmüş bir cümle. Ürün sahibi "sağ taraf
+ * çok boş durmuyor mu" derken bunu görüyordu.
+ *
+ * Ölçü artık başlığın KENDİSİNDE, kendi yazı boyuna göre.
+ */
 .kahraman {
   margin-top: 52px;
-  max-width: 34ch;
 }
 
 .eyebrow {
@@ -108,6 +119,10 @@
 
 .kahraman h1 {
   margin: 0;
+  /* Satır uzunluğu başlığın kendi boyuna göre: iki satırlık bir
+     manşet. `ch` burada doğru çalışıyor çünkü ölçü, ölçtüğü metnin
+     üstünde. */
+  max-width: 19ch;
   color: #F4FAFC;
   font-size: clamp(2rem, 4.6vw, 3rem);
   font-weight: 820;

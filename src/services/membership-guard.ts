@@ -184,13 +184,24 @@ export function uyelikKapisi(
      */
     const kullanici = await prisma.user.findUnique({
       where: { id: icerik.id as number },
-      select: { createdAt: true },
+      /* Abonelik AYNI sorguda okunuyor: bu kanca her yazma
+         isteğinde çalışıyor, ikinci bir gidiş-geliş eklemek
+         gereksizdi. `User.subscription` zaten bire-bir ilişki. */
+      select: {
+        createdAt: true,
+        subscription: { select: { status: true, currentPeriodEnd: true } },
+      },
     })
     /* Kullanıcı yoksa karar bize ait değil; rotanın kimlik doğrulaması
        zaten 401 verecek. */
     if (!kullanici) return
 
-    const durum = hesaplaUyelikDurumu(kullanici.createdAt, new Date(), ucretlendirmeBaslangici)
+    const durum = hesaplaUyelikDurumu(
+      kullanici.createdAt,
+      new Date(),
+      ucretlendirmeBaslangici,
+      kullanici.subscription,
+    )
     if (durum.state !== 'expired') return
 
     return reply.status(403).send({

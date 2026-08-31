@@ -1,45 +1,49 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { CreditCard, FileText, Percent } from 'lucide-react'
+import { ArrowRight, Clock, CreditCard, Sparkles } from 'lucide-react'
 import MembershipModal from './MembershipModal'
-import {
-  FOUNDER_STAGES,
-  kuruculUyeFiyati,
-  kuruculIndirimYuzdesi,
-  fiyatYaz,
-} from '@/config/billing'
+import { uyelikSunumu } from './uyelik-sunumu'
+import { FOUNDER_STAGES, kuruculIndirimYuzdesi, fiyatYaz } from '@/config/billing'
 import styles from './MembershipSettings.module.css'
 
 /*
  * AYARLAR → ÜYELİK VE FATURALANDIRMA.
  *
- * İki farklı hâli var ve ikisi de aynı bileşende:
+ * 🔴 ÖNCEDEN İKİ AYRI DAL VARDI ve ürün sahibi haklı olarak "bu sayfa
+ * aynı" dedi. `billing_not_started` dalı düz bir tanım listesiydi;
+ * `active` dalı bambaşka bir düzendi. Aynı ekranın iki iskeleti
+ * olduğu için onaylanan tasarım (tasarim/Uyelik.dc.html) hiçbirine
+ * uymuyordu ve uygulanamamıştı.
  *
- *   1. Ücretlendirme başlamadı (`BILLING_STARTS_AT === null`) — bugünkü
- *      durum. Kullanıcıya dürüstçe "henüz ücret alınmıyor" denir.
- *   2. Üyelik aktif — plan, ücret, dönem ve sonraki tahsilat gösterilir.
+ * Şimdi TEK DÜZEN var, durum yalnız içeriği değiştiriyor:
  *
- * İki ayrı bileşen yazmak, ücretlendirme açıldığında birinin
- * güncellenip diğerinin unutulmasına yol açardı.
+ *   [ durum kartı: nokta + başlık + alt metin + kurucu rozeti ]
+ *   [ bugün ödediğin | sonraki tahsilat ]
+ *   [ birincil eylem ]
+ *   [ sırada ne var — aşamalar ]
+ *   [ faturalarım | üyeliği iptal et ]
+ *   fiyatlandırmanın tamamı →
+ *
+ * Metinlerin hangi durumda ne diyeceği burada DEĞİL `uyelik-sunumu.js`
+ * içinde; Ana Sayfa şeridi de aynı dosyadan okuyor ki iki ekran
+ * birbirinden ayrışmasın.
  *
  * 🔴 "ÜYELİĞİ İPTAL ET" SAKLANMIYOR (ürün sahibi kararı, 27.08.2026).
- * İptali menü altına gömmek ya da destekle görüşmeye zorlamak karanlık
- * desendir; abonelik mevzuatı da iptalin en az üyelik kadar kolay
- * olmasını bekliyor.
+ * İptali menü altına gömmek karanlık desendir; abonelik mevzuatı da
+ * iptalin en az üyelik kadar kolay olmasını bekliyor.
  *
  * ⚠️ Ama bugün iptal ve fatura uçları YOK. Düğmeleri tıklanabilir
- * bırakıp hiçbir şey yaptırmamak, olmayan bir düğmeden daha kötüdür:
- * kullanıcı iptal ettiğini sanır. Bu yüzden ikisi de DEVRE DIŞI ve
- * SEBEBİNİ SÖYLEYEN bir not taşıyor. Gizlemiyoruz — gizlemek yukarıdaki
- * kararı bozardı.
+ * bırakıp hiçbir şey yaptırmamak, olmayan düğmeden kötüdür: kullanıcı
+ * iptal ettiğini sanır. İkisi de devre dışı ve SEBEBİNİ SÖYLEYEN bir
+ * not taşıyor. Gizlemiyoruz — gizlemek yukarıdaki kararı bozardı.
  */
 
-function Satir({ etiket, deger, ikincil }) {
+function Olcu({ etiket, deger }) {
   return (
-    <div className={styles.satir}>
-      <dt className={styles.etiket}>{etiket}</dt>
-      <dd className={`${styles.deger} ${ikincil ? styles.degerIkincil : ''}`}>{deger}</dd>
+    <div className={styles.olcu}>
+      <span className={styles.olcuEtiket}>{etiket}</span>
+      <strong className={styles.olcuDeger}>{deger}</strong>
     </div>
   )
 }
@@ -49,158 +53,156 @@ export default function MembershipSettings({ membership }) {
   const locale = i18n.resolvedLanguage || i18n.language
   const [odemeAcik, setOdemeAcik] = useState(false)
 
-  const lansman = FOUNDER_STAGES.find(s => s.code === 'launch')
-  const durum = membership?.state ?? 'billing_not_started'
+  const s = uyelikSunumu(membership, { locale })
 
-  /* ---------- Ücretlendirme henüz başlamadı ---------- */
-  if (durum === 'billing_not_started') {
-    return (
-      <div className={styles.govde}>
-        {/*
-          * 🔴 BU BÖLÜM BİR ÇIKMAZDI.
-          *
-          * Önceki hâli iki satır durum + tek bir "Fiyatları görüntüle"
-          * bağlantısından ibaretti. Fiyat sayfası da girişli kullanıcıyı
-          * buraya ("Üyeliğim") yolluyordu; yani kullanıcı Fiyatlar ↔
-          * Ayarlar arasında dönüp duruyor ve hiçbir yeni bilgi
-          * almıyordu. Ürün sahibi bunu bildirdi.
-          *
-          * Yeni hâli üç soruyu KAPATIYOR: bugün ne oluyor, sırada ne
-          * var, ne zaman haber verilecek. Fiyat bağlantısı kaldı ama
-          * artık tek eylem değil, ayrıntıya giden ikincil bir yol.
-          */}
-        <dl className={styles.liste}>
-          <Satir etiket={t('billing.settings.membershipStatus')} deger={t('billing.settings.freeUse')} />
-          <Satir
-            etiket={t('billing.settings.billing')}
-            deger={t('billing.settings.notStarted')}
-            ikincil
-          />
-        </dl>
-
-        <p className={styles.not}>
-          {t('billing.settings.freeNotice', { count: FOUNDER_STAGES[0].months })}
-        </p>
-
-        {/* Sırada ne var — aşamalar ve fiyatlar config'ten okunuyor;
-            elle yazılan sayı YOK, standart fiyat değişince burası da
-            kendiliğinden düzeliyor. */}
-        <div className={styles.planOnizleme}>
-          <span className={styles.planBaslik}>{t('billing.settings.whenItStarts')}</span>
-          <ol className={styles.planListe}>
-            {FOUNDER_STAGES.map(asama => (
-              <li key={asama.code}>
-                <strong>
-                  {asama.monthlyPrice === 0
-                    ? t('billing.settings.freeStage')
-                    : t('billing.pricePerMonth', { price: fiyatYaz(asama.monthlyPrice, locale) })}
-                </strong>
-                <span>{t(`billing.settings.stage.${asama.code}`, { count: asama.months ?? 0 })}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
-
-        {/* Kapanış: kullanıcı ne zaman haber alacağını biliyor ve
-            bekleyecek bir şey kalmıyor. Bu taahhüt boş değil —
-            `AccountNotification` altyapısı ve e-posta şablonları yazılı. */}
-        <p className={styles.not}>{t('billing.settings.notifyPromise')}</p>
-
-        {/*
-          * 🔴 ÖDEME GİRİŞ NOKTASI.
-          *
-          * Ürün sahibi "üye ol senaryosunu nerden başlatacağım, ben
-          * çözemedim" dedi ve haklıydı: arayüzde o düğme HİÇ YOKTU.
-          * Test ödemesi tarayıcı konsolundan `/payments/checkout`
-          * çağrılarak yapılmıştı.
-          *
-          * `testCheckout` sunucudan geliyor ve `/checkout`taki kapının
-          * AYNISINI taşıyor (test kipi + admin). Ön yüzde tahmin
-          * etseydik, çalışmayacak bir düğme gösterirdik.
-          *
-          * Ücretlendirme açıldığında bu dal zaten çalışmaz;
-          * `billing_not_started` olmayan durumlar aşağıdaki gerçek
-          * üyelik ekranını gösteriyor.
-          */}
-        {membership?.testCheckout && (
-          <div className={styles.testKutusu}>
-            <span className={styles.testEtiket}>{t('billing.settings.testModeLabel')}</span>
-            <p>{t('billing.settings.testModeNote')}</p>
-            <button type="button" className={styles.ikincilDugme} onClick={() => setOdemeAcik(true)}>
-              <CreditCard size={15} aria-hidden="true" /> {t('billing.settings.testCheckout')}
-            </button>
-          </div>
-        )}
-
-        <Link to="/fiyatlar" className={styles.metinBaglantisi}>
-          {t('billing.settings.viewPrices')}
-        </Link>
-
-        <MembershipModal open={odemeAcik} onClose={() => setOdemeAcik(false)} />
-      </div>
-    )
-  }
-
-  /* ---------- Üyelik aktif / deneme / süresi dolmuş ---------- */
-  const aktif = durum === 'active'
-  const donem = membership?.renewalPeriod === 'yearly' ? 'periodYearly' : 'periodMonthly'
+  /* Birincil eylem iki yere gidebiliyor: ödeme paneli ya da fiyat
+     sayfası. Ücretlendirme kapalıyken ödeme paneli açılamaz, o yüzden
+     düğme değil bağlantı çiziliyor — tıklanınca hiçbir şey olmayan
+     düğme bırakmamak için. */
+  const odemeyeGider = s.birincil.hedef === 'odeme'
 
   return (
     <div className={styles.govde}>
-      <dl className={styles.liste}>
-        <Satir etiket={t('billing.settings.plan')} deger={t('billing.founderMember')} />
-        <Satir
-          etiket={t('billing.settings.status')}
-          deger={
-            <span className={aktif ? styles.rozetAktif : styles.rozetUyari}>
-              {durum === 'active' && t('billing.settings.active')}
-              {durum === 'trial' && t('billing.settings.trialDaysLeft', { count: membership.trialDaysLeft })}
-              {durum === 'expired' && t('billing.settings.expired')}
+      <section className={styles.durumKarti}>
+        <header className={styles.durumBasi}>
+          <div className={styles.durumMetni}>
+            <span className={styles.ustEtiket}>{t('billing.settings.membershipStatus')}</span>
+            <div className={styles.durumSatiri}>
+              <span className={`${styles.nokta} ${styles[`ton_${s.ton}`]}`} aria-hidden="true" />
+              <strong className={styles.durumBaslik}>{t(s.baslik.anahtar, s.baslik.degerler)}</strong>
+            </div>
+            <span className={styles.durumAlt}>{t(s.alt.anahtar, s.alt.degerler)}</span>
+          </div>
+
+          {/* Kurucu rozeti yalnız sunucu `founder: true` derse. Kararı
+              arayüz vermiyor — aynı mantığı iki yerde tutmak ayrışır. */}
+          {s.rozetVar && (
+            <span className={styles.kurucuRozeti}>
+              <Sparkles size={14} aria-hidden="true" />
+              {t('billing.founderMember')}
             </span>
-          }
-        />
-        <Satir
-          etiket={t('billing.settings.currentPrice')}
-          deger={t('billing.perMonth', { price: fiyatYaz(lansman.monthlyPrice, locale) })}
-        />
-        <Satir
-          etiket={t('billing.settings.billingPeriod')}
-          deger={t(`billing.settings.${donem}`)}
-          ikincil
-        />
-        <Satir
-          etiket={t('billing.settings.pricePeriod')}
-          deger={t('billing.settings.launchPeriod', { count: lansman.months })}
-          ikincil
-        />
-        <Satir
-          etiket={t('billing.settings.nextStandardPrice')}
-          deger={t('billing.perMonth', { price: fiyatYaz(kuruculUyeFiyati(), locale) })}
-          ikincil
-        />
-      </dl>
+          )}
+        </header>
 
-      {/* İndirim ORANSAL: "fiyatın kilitli" demiyor, çünkü değil. */}
-      <p className={styles.kilit}>
-        <Percent size={14} aria-hidden="true" />
-        {t('billing.settings.lockedPrice', { percent: kuruculIndirimYuzdesi() })}
-      </p>
+        {/* İki ölçü: "bugün ne ödüyorum" ve "sırada ne var". Ürün
+            sahibinin ekranda ilk aradığı iki sayı bunlar. */}
+        <div className={styles.olculer}>
+          <Olcu etiket={t(s.sol.etiket)} deger={s.sol.deger ?? t(s.sol.degerAnahtar)} />
+          <Olcu etiket={t(s.sag.etiket)} deger={s.sag.deger ?? t(s.sag.degerAnahtar)} />
+        </div>
 
-      <div className={styles.eylemler}>
-        <button type="button" className={styles.ikincilDugme} onClick={() => setOdemeAcik(true)}>
-          <CreditCard size={15} aria-hidden="true" /> {t('billing.settings.managePayment')}
-        </button>
-        <button type="button" className={styles.ikincilDugme} disabled>
-          <FileText size={15} aria-hidden="true" /> {t('billing.settings.invoices')}
-        </button>
-        {/* İptal görünür ve erişilebilir — saklanmıyor. Bugün devre
-            dışı olmasının sebebi aşağıdaki notta yazılı. */}
-        <button type="button" className={styles.iptalDugmesi} disabled>
-          {t('billing.settings.cancelMembership')}
-        </button>
-      </div>
+        <footer className={styles.eylemAlani}>
+          {odemeyeGider ? (
+            <button type="button" className={styles.birincilDugme} onClick={() => setOdemeAcik(true)}>
+              {t(s.birincil.anahtar)} <ArrowRight size={15} aria-hidden="true" />
+            </button>
+          ) : (
+            <Link to="/fiyatlar" className={styles.birincilDugme}>
+              {t(s.birincil.anahtar)} <ArrowRight size={15} aria-hidden="true" />
+            </Link>
+          )}
 
-      <p className={styles.not}>{t('billing.settings.actionsPending')}</p>
+          {s.uyelikVar && s.birincil.anahtar !== 'billing.settings.managePayment' && (
+            <button type="button" className={styles.ikincilDugme} onClick={() => setOdemeAcik(true)}>
+              <CreditCard size={15} aria-hidden="true" /> {t('billing.settings.managePayment')}
+            </button>
+          )}
+        </footer>
+      </section>
+
+      {/* ---------- Sırada ne var ---------- */}
+      <section className={styles.planKarti}>
+        <div className={styles.planBasi}>
+          <Clock size={16} aria-hidden="true" />
+          <strong>{t(s.planBaslik)}</strong>
+        </div>
+        <ol className={styles.planListe}>
+          {FOUNDER_STAGES.map(asama => (
+            <li key={asama.code}>
+              <strong className={asama.monthlyPrice === 0 ? styles.bedava : ''}>
+                {asama.monthlyPrice === 0
+                  ? t('billing.settings.freeStage')
+                  : t('billing.pricePerMonth', { price: fiyatYaz(asama.monthlyPrice, locale) })}
+              </strong>
+              <span>{t(`billing.settings.stage.${asama.code}`, { count: asama.months ?? 0 })}</span>
+            </li>
+          ))}
+        </ol>
+        <p className={styles.planNotu}>
+          {t(s.planNotu, { count: FOUNDER_STAGES[0].months ?? 0, percent: kuruculIndirimYuzdesi() })}
+        </p>
+      </section>
+
+      {/* ---------- Fatura ve iptal ----------
+
+          Ücretlendirme hiç başlamamışken bu iki kart ÇİZİLMİYOR:
+          iptal edilecek üyelik ve görüntülenecek fatura yok.
+
+          ⚠️ Üyelik varken de düğmeler DEVRE DIŞI ve bu `disabled`
+          bir duruma bağlı değil — uçlar henüz yok. Aktif üyede
+          etkinleştirmek, tıklanınca hiçbir şey yapmayan bir "iptal
+          et" düğmesi bırakmak olurdu: kullanıcı iptal ettiğini sanar.
+          Sebep altındaki notta yazılı, düğmeler gizlenmiyor. */}
+      {s.uyelikVar && (
+        <>
+          <div className={styles.altKartlar}>
+            <section className={styles.altKart}>
+              <strong>{t('billing.settings.invoices')}</strong>
+              <p>{t(s.faturaNotu)}</p>
+              <button type="button" className={styles.ikincilDugme} disabled>
+                {t('billing.durum.eylem.faturalariGor')}
+              </button>
+            </section>
+
+            <section className={styles.altKart}>
+              <strong>{t('billing.settings.cancelMembership')}</strong>
+              <p>{t('billing.durum.iptalNotu')}</p>
+              <button type="button" className={styles.iptalDugmesi} disabled>
+                {t('billing.settings.cancelMembership')}
+              </button>
+            </section>
+          </div>
+
+          <p className={styles.not}>{t('billing.settings.actionsPending')}</p>
+        </>
+      )}
+
+      {/*
+        * 🔴 ÖDEME GİRİŞ NOKTASI (yönetici, test kipi).
+        *
+        * Ürün sahibi "üye ol senaryosunu nerden başlatacağım" dedi ve
+        * haklıydı: arayüzde o düğme HİÇ YOKTU; test ödemesi tarayıcı
+        * konsolundan yapılmıştı.
+        *
+        * `testCheckout` sunucudan geliyor ve `/checkout`taki kapının
+        * AYNISINI taşıyor (test kipi + admin). Ön yüzde tahmin
+        * etseydik çalışmayacak bir düğme gösterirdik.
+        */}
+      {membership?.testCheckout && (
+        <div className={styles.testKutusu}>
+          <span className={styles.testEtiket}>{t('billing.settings.testModeLabel')}</span>
+          <p>{t('billing.settings.testModeNote')}</p>
+          <button type="button" className={styles.ikincilDugme} onClick={() => setOdemeAcik(true)}>
+            <CreditCard size={15} aria-hidden="true" /> {t('billing.settings.testCheckout')}
+          </button>
+        </div>
+      )}
+
+      {/*
+        * 🔴 BİRİNCİL EYLEM ZATEN /fiyatlar'a GİDİYORSA BU BAĞLANTI YOK.
+        *
+        * Ürün sahibi bildirdi: "fiyatlandırmanın tamamını gör ve
+        * fiyatlandırmayı incele aynı yere gidiyor". Doğruydu —
+        * ücretlendirme başlamamışken ekranda aynı hedefe iki ayrı
+        * çağrı vardı. İkisi de bir şey vaat ediyor ama farklı bir
+        * yere götürmüyor; bu, kullanıcıya iki seçenek varmış gibi
+        * gösterip aynı sayfayı açmak demek.
+        */}
+      {!odemeyeGider ? null : (
+        <Link to="/fiyatlar" className={styles.metinBaglantisi}>
+          {t('billing.durum.eylem.fiyatlandirmaninTamami')}
+        </Link>
+      )}
 
       <MembershipModal open={odemeAcik} onClose={() => setOdemeAcik(false)} />
     </div>

@@ -8,6 +8,7 @@ import MentorLauncher from '../mentor/MentorLauncher'
 import MentorPanel from '../mentor/MentorPanel'
 import VerificationBanner from './VerificationBanner'
 import ConsentBanner from './ConsentBanner'
+import MembershipBanner from './MembershipBanner'
 import WelcomeTour from './WelcomeTour'
 import styles from './AppLayout.module.css'
 
@@ -64,6 +65,11 @@ export default function AppLayout() {
                 Doğrulama hatırlatması onun altında. */}
             <ConsentBanner />
             <VerificationBanner />
+            {/* Üyelik şeridi en sonda: yasal onay ve e-posta doğrulama
+                daha acil ve ikisi de tek seferlik işler. Süre dolduğunda
+                bu şerit kapatılamaz — kullanıcının yazamamasının tek
+                açıklaması o. */}
+            <MembershipBanner />
             {/* key={pathname}: route değiştiğinde ortak fadeSlideUp ile yeniden görünür,
                 içerik/route/iş mantığı değişmez, sadece giriş animasyonu tetiklenir. */}
             <div key={location.pathname} className={`${styles.pageTransition} ${styles.pageTransitionAnim}`}>

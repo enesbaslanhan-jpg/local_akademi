@@ -255,6 +255,25 @@ export interface MembershipStatus {
    * herkes "kurucu üye" olamaz, rozet o zaman hiçbir şey ayırt etmez.
    */
   founder: boolean
+  /**
+   * Ödenmiş dönemin bittiği an (ISO) — yalnız `active` iken dolu.
+   *
+   * ⚠️ Arayüz "sonraki tahsilat" gününü BURADAN okuyor. Alan boşsa
+   * tarih yerine tire yazılır; uydurulmaz.
+   */
+  currentPeriodEnd: string | null
+}
+
+/**
+ * `hesaplaUyelikDurumu`nun ihtiyaç duyduğu abonelik alanları.
+ *
+ * ⚠️ Prisma tipini almıyoruz bilerek: bu dosya `@prisma/client`
+ * bağımlılığı taşımıyor ve taşımamalı — testlerin veritabanı
+ * kurmadan senaryo kurabilmesi buna bağlı.
+ */
+export interface AbonelikOzeti {
+  status: string
+  currentPeriodEnd: Date | string | null
 }
 
 const GUN_MS = 24 * 60 * 60 * 1000
@@ -274,8 +293,44 @@ export function hesaplaUyelikDurumu(
      fonksiyon böylece saf kalıyor ve test modül mock'lamadan
      senaryo kurabiliyor. İlk sürümde sabit doğrudan okunuyordu ve
      test edilemiyordu. */
-  ucretlendirmeBaslangici: string | null = BILLING_STARTS_AT
+  ucretlendirmeBaslangici: string | null = BILLING_STARTS_AT,
+  /*
+   * 🔴 ÖDEME KAYDI. Bu parametre olmadan ÖDEME YAPMAK ÜYELİĞİ AÇMIYORDU.
+   *
+   * Ölçülen arıza (31.08.2026): PayTR callback'i `Subscription.status`
+   * alanını ACTIVE yapıyor ama bu fonksiyon yalnız `createdAt`e
+   * bakıyordu ve o satırı okuyan kimse yoktu. Sonuç: kullanıcı öder,
+   * para geçer, 30 gün dolunca yine `expired` olur ve salt okunur moda
+   * düşerdi. Fonksiyonun kendi yorumu bunu zaten söylüyordu — "tablo
+   * gelince burada `active` de dönecek"; tablo geldi, fonksiyon
+   * güncellenmemişti.
+   *
+   * Son parametre ve varsayılanı `null`: mevcut çağrılar bozulmuyor,
+   * fonksiyon saf kalıyor ve test veritabanı olmadan senaryo kurabiliyor.
+   */
+  abonelik: AbonelikOzeti | null = null
 ): MembershipStatus {
+  /*
+   * ÖDENMİŞ ÜYELİK HER ŞEYDEN ÖNCE GELİR.
+   *
+   * Ücretlendirme anahtarından da önce bakılıyor: parası alınmış bir
+   * kullanıcıyı, genel anahtar kapalı diye "ücretsiz kullanım"da
+   * göstermek yanlış olurdu. Aldığımız parayı ekranda inkâr edemeyiz.
+   */
+  const donemSonu = abonelik?.currentPeriodEnd ? new Date(abonelik.currentPeriodEnd) : null
+  const donemGecerli = donemSonu !== null && !Number.isNaN(donemSonu.getTime()) && donemSonu > simdi
+
+  if (abonelik?.status === 'ACTIVE' && donemGecerli) {
+    return {
+      state: 'active',
+      trialEndsAt: null,
+      trialDaysLeft: null,
+      showBanner: false,
+      founder: true,
+      currentPeriodEnd: donemSonu.toISOString(),
+    }
+  }
+
   if (!ucretlendirmeBaslangici) {
     return {
       state: 'billing_not_started',
@@ -283,6 +338,7 @@ export function hesaplaUyelikDurumu(
       trialDaysLeft: null,
       showBanner: false,
       founder: false,
+      currentPeriodEnd: null,
     }
   }
 
@@ -297,15 +353,18 @@ export function hesaplaUyelikDurumu(
       trialDaysLeft: kalanGun,
       showBanner: kalanGun <= TRIAL_WARNING_DAYS,
       founder: true,
+      currentPeriodEnd: null,
     }
   }
 
-  /* Ödeme kaydı henüz yok; tablo gelince burada `active` de dönecek. */
+  /* Deneme bitti ve geçerli bir ödeme yok (varsa yukarıda `active`
+     dönmüştük) → salt okunur. */
   return {
     state: 'expired',
     trialEndsAt: bitis.toISOString(),
     trialDaysLeft: 0,
     showBanner: true,
     founder: false,
+    currentPeriodEnd: null,
   }
 }

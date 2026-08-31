@@ -88,8 +88,13 @@ describe('ayarlar → üyelik', () => {
     sar(<MembershipSettings membership={{ state: 'active', renewalPeriod: 'monthly' }} />)
 
     /* Metin yüzdeyi taşımalı. "Fiyatın hiç değişmez" demek, 28.08.2026
-       kararından sonra yanlış beyan olurdu. */
-    expect(screen.getByText(new RegExp(`%${kuruculIndirimYuzdesi()}`))).toBeInTheDocument()
+       kararından sonra yanlış beyan olurdu.
+
+       ⚠️ `getAllByText`: ekran tek düzene indirilince (31.08.2026)
+       oran İKİ yerde geçer oldu — aşama listesindeki nihai aşama ve
+       altındaki oransal not. `getByText` "birden çok eşleşme" diye
+       düşüyordu; korunan şey sayı değil, oranın YAZILI OLMASI. */
+    expect(screen.getAllByText(new RegExp(`%${kuruculIndirimYuzdesi()}`)).length).toBeGreaterThan(0)
   })
 
   it('iptal düğmesi GÖRÜNÜR — saklanmıyor', () => {

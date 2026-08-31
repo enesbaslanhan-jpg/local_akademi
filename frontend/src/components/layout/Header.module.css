@@ -345,3 +345,85 @@
 @media (max-width: 640px) {
   .ustRozet { display: none; }
 }
+
+/* ---------- Hesap menüsü ---------- */
+
+/*
+ * Avatarın altındaki hesap menüsü. Üyelik ekranına kısa yol buradan
+ * (ürün sahibi kararı): "taa ayarlara gideceğim sonra üyeliğe
+ * gireceğim" üç adımdı, artık bir tık.
+ */
+.hesapSarmal { position: relative; display: flex; }
+
+.hesapMenu {
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  min-width: 232px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-panel);
+  box-shadow: 0 18px 44px -20px rgba(0, 0, 0, .45);
+}
+
+.hesapBasi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 5px;
+  min-width: 0;
+}
+
+.hesapBasi strong { color: var(--text); font-size: .86rem; font-weight: 700; }
+
+.hesapBasi span {
+  color: var(--text-light);
+  font-size: .76rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hesapOge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-family);
+  font-size: .84rem;
+  font-weight: 550;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hesapOge svg { flex: 0 0 auto; color: var(--text-light); }
+
+.hesapOge:hover { background: var(--surface-sunken); }
+
+.hesapOge:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+/* Çıkış ayrılıyor: yıkıcı olmasa da geri dönüşü kullanıcıya iş
+   çıkaran tek madde, yanlışlıkla basılmasın. */
+.hesapCikis {
+  margin-top: 5px;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 8px 8px;
+  padding-top: 12px;
+  color: var(--danger);
+}
+
+.hesapCikis svg { color: var(--danger); }

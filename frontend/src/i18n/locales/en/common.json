@@ -104,7 +104,8 @@
     "unreadNotifications_other": "Notifications — {{count}} unread",
     "openNotifications": "Open notifications",
     "openProfile": "Open {{name}} profile",
-    "openAccountSettings": "Open profile and account settings"
+    "openAccountSettings": "Open profile and account settings",
+    "openAccountMenu": "Open account menu"
   },
   "search": {
     "placeholder": "Search courses, decision tools, calculations…",
@@ -803,6 +804,56 @@
       "yearly": "Yearly",
       "freeMonths_one": "{{count}} month free",
       "freeMonths_other": "{{count}} months free"
+    },
+    "durum": {
+      "notStarted": {
+        "alt": "Billing has not started yet; no charges are being made."
+      },
+      "trial": {
+        "baslik": "Trial in progress",
+        "alt_one": "{{count}} day left in your free month.",
+        "alt_other": "{{count}} days left in your free month."
+      },
+      "active": {
+        "baslik": "Your membership is active",
+        "alt": "Launch period — you are continuing at the founder member price."
+      },
+      "expired": {
+        "baslik": "Your trial has ended",
+        "alt": "Your account is read-only: your data is intact and can be exported."
+      },
+      "olcu": {
+        "bugunOdedigin": "You pay today",
+        "aylikUcretin": "Your monthly fee",
+        "sonrakiTahsilat": "Next charge",
+        "ilkTahsilat": "First charge",
+        "erisimIcin": "To restore access",
+        "yok": "None"
+      },
+      "eylem": {
+        "uyeligiBaslat": "Start membership",
+        "fiyatlariIncele": "Review pricing",
+        "faturalariGor": "View invoices",
+        "fiyatlandirmaninTamami": "See full pricing"
+      },
+      "plan": {
+        "bundanSonra": "What happens next",
+        "fiyatNasil": "How your price develops",
+        "denemeNotu": "If you do not start a membership when the trial ends, your account switches to read-only: your data stays and remains exportable.",
+        "suresiDolduNotu": "The moment you start a membership your account reopens where you left off; none of your data was deleted."
+      },
+      "fatura": {
+        "henuzYok": "No charge has been made yet.",
+        "indirebilirsin": "You can download your past charges."
+      },
+      "iptalNotu": "Your access continues until the end of the period you paid for. We do not ask for a reason."
+    },
+    "serit": {
+      "yonet": "Manage membership",
+      "bolumAdi": "Membership status",
+      "doluAciklama": "Your data is intact and exportable; start your membership to add new records.",
+      "uyariAciklama": "You can start your membership now to continue without interruption.",
+      "kapat": "Dismiss reminder"
     }
   },
   "pricing": {

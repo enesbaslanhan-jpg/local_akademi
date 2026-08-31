@@ -220,7 +220,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     return {
       token,
       refreshToken: yenileme.rawToken,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName), emailVerified: !!user.emailVerifiedAt, membership: { ...hesaplaUyelikDurumu(user.createdAt), testCheckout: testOdemesiYapabilir(user.role) } }
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName), emailVerified: !!user.emailVerifiedAt, /* Yeni kaydın aboneliği olamaz; fazladan sorgu atmıyoruz. */ membership: { ...hesaplaUyelikDurumu(user.createdAt), testCheckout: testOdemesiYapabilir(user.role) } }
     }
   })
 
@@ -233,7 +233,10 @@ export async function authRoutes(fastify: FastifyInstance) {
     }
     const { email, password } = parsed.data
 
-    const user = await prisma.user.findUnique({ where: { email } })
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { subscription: { select: { status: true, currentPeriodEnd: true } } },
+    })
     if (user?.deletedAt) {
       return reply.status(401).send({ error: 'Invalid credentials' })
     }
@@ -258,7 +261,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     return {
       token,
       refreshToken: yenileme.rawToken,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName), emailVerified: !!user.emailVerifiedAt, uiLanguage: preference?.uiLanguage || 'tr', membership: { ...hesaplaUyelikDurumu(user.createdAt), testCheckout: testOdemesiYapabilir(user.role) } }
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName), emailVerified: !!user.emailVerifiedAt, uiLanguage: preference?.uiLanguage || 'tr', membership: { ...hesaplaUyelikDurumu(user.createdAt, new Date(), undefined, user.subscription), testCheckout: testOdemesiYapabilir(user.role) } }
     }
   })
 
@@ -266,7 +269,10 @@ export async function authRoutes(fastify: FastifyInstance) {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
     const user = request.user
-    const found = await prisma.user.findUnique({ where: { id: user.id } })
+    const found = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: { subscription: { select: { status: true, currentPeriodEnd: true } } },
+    })
     if (!found || found.deletedAt) {
       return reply.status(404).send({ error: 'User not found' })
     }
@@ -285,10 +291,11 @@ export async function authRoutes(fastify: FastifyInstance) {
       onboardingCompleted: pref?.onboardingCompleted ?? false,
       uiLanguage: pref?.uiLanguage || 'tr',
       emailVerified: !!found.emailVerifiedAt,
-      /* Üyelik durumu SAKLANMIYOR, her istekte türetiliyor. Abonelik
-         tablosu geldiğinde bu çağrı ödeme kaydını da okuyacak; arayüz
-         sözleşmesi (alan adları) değişmeyecek. */
-      membership: hesaplaUyelikDurumu(found.createdAt)
+      /* Üyelik durumu SAKLANMIYOR, her istekte türetiliyor — ödeme
+         kaydı dahil. Saklasaydık, callback aboneliği aktive ettiğinde
+         kullanıcının kaydı bayat kalır ve ödediği hâlde salt okunur
+         modda görünürdü. */
+      membership: hesaplaUyelikDurumu(found.createdAt, new Date(), undefined, found.subscription)
     }
   })
 

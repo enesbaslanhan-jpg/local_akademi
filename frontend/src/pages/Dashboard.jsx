@@ -6,6 +6,7 @@ import {
   Card, Button, Progress, DarkPanel, Modal, PageHead
 } from '@/components/ui'
 import FounderBadge from '@/components/billing/FounderBadge'
+import MembershipStrip from '@/components/billing/MembershipStrip'
 import DecisionReceipt from '@/components/decision-checks/DecisionReceipt'
 import {
   BookOpen, ChevronRight, ArrowRight, AlertCircle,
@@ -289,6 +290,13 @@ export default function Dashboard() {
           </>
         )}
       />
+
+      {/* Üyelik durumu ana sayfada, en üstte. Ürün sahibi "üyelik aktif
+          diyelim tamam ama ben bunu nerde göreceğim" dedi; cevabı bugüne
+          kadar "hiçbir yerde" idi. Şerit HER durumda çiziliyor,
+          `billing_not_started` dahil — sessiz kalsaydı bugünkü tek
+          gerçek durumda yine hiçbir şey görünmezdi. */}
+      <MembershipStrip className={styles.uyelikSerit} />
 
       <div className={styles.workspaceGrid}>
         {/* data-tour: karsilama turunun tutundugu nokta (WelcomeTour.jsx) */}
