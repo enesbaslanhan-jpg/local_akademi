@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom'
 import { Percent, ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import Modal from '@/components/ui/Modal'
+import { api } from '@/services/api'
 import DonemSecici from './DonemSecici'
 import {
+  BILLING_STARTS_AT,
   YEARLY_FREE_MONTHS,
   ilkUcretliTutar,
   kuruculUyeFiyati,
@@ -36,12 +38,20 @@ import styles from './MembershipModal.module.css'
  * değiştirmek, kullanıcının henüz girmediği bir dönemin parasını peşin
  * almak olurdu — özette de böyle yazılı.
  *
- * 🔴 PAYTR ALANI HENÜZ BOŞ.
- * Entegrasyon biçimi iFrame olarak seçildi: kart alanları PayTR'nin
- * kendi çerçevesinde açılacak, veri bizim sunucumuza hiç ulaşmayacak.
- * Merchant bilgileri gelene kadar buraya ne olduğunu SÖYLEYEN bir yer
- * tutucu konuyor — sahte bir kart formu çizmek, çalışıyormuş izlenimi
- * verirdi.
+ * ✅ PAYTR ÇERÇEVESİ BAĞLANDI (31.08.2026).
+ * Onaylar tamamlanıp düğmeye basıldığında `/payments/checkout`
+ * çağrılıyor; dönen token ile PayTR'nin kart formu bu panelin İÇİNDE
+ * açılıyor. Kullanıcı siteden çıkmıyor, kart numarası ve CVV bizim
+ * sunucularımıza hiç ulaşmıyor — gizlilik metnindeki "kart bilgisi
+ * saklamıyoruz" cümlesinin ve PCI-DSS kapsamı dışında kalmamızın
+ * dayanağı bu.
+ *
+ * 🔴 İKİ BAĞIMLILIK, ikisi de sessizce kırılabilir:
+ *   1. CSP'de `frame-src https://www.paytr.com` olmalı; yoksa çerçeve
+ *      yüklenmez ve ekranda boş bir kutu kalır.
+ *   2. Aktivasyon BURADA olmaz. Ödeme bitince PayTR sunucu-sunucu
+ *      callback'i çağırıyor; bu panelin gördüğü şey yalnız formun
+ *      kendisi.
  */
 
 /* Tarih biçimi tek yerde: özet ile başarı kartı aynı biçimi kullanmalı,
@@ -120,6 +130,17 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
   const [sozlesmeOnayi, setSozlesmeOnayi] = useState(false)
   const [caymaFeragati, setCaymaFeragati] = useState(false)
   const [otomatikTahsilat, setOtomatikTahsilat] = useState(false)
+  /*
+   * ÖDEME ÇERÇEVESİ.
+   *
+   * Dolu olduğunda PayTR'nin kart formu panelin İÇİNDE açılıyor;
+   * kullanıcı localkarar.com'dan çıkmıyor ve kart numarası/CVV
+   * sunucularımıza hiç değmiyor. Gizlilik metnindeki "kart bilgisi
+   * saklamıyoruz" cümlesinin dayanağı bu biçim.
+   */
+  const [cerceveAdresi, setCerceveAdresi] = useState(null)
+  const [yukleniyor, setYukleniyor] = useState(false)
+  const [hata, setHata] = useState(null)
 
   const bugunOdenecek = ilkUcretliTutar()
   const sonraki = sonrakiOdemeTarihi()
@@ -128,7 +149,27 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
   /* Üçü de şart — gerekçe onay kutularının üstünde yazılı. */
   const onaylarTam = sozlesmeOnayi && caymaFeragati && otomatikTahsilat
 
+  async function odemeBaslat() {
+    setYukleniyor(true)
+    setHata(null)
+    try {
+      const sonuc = await api.payments.checkout({
+        period: donem, sozlesmeOnayi, caymaFeragati, otomatikTahsilat,
+      })
+      /* Token gelmeden çerçeve AÇILMIYOR: boş bir iframe, kullanıcıya
+         "bir şeyler oldu ama ne" hissi verir. */
+      if (sonuc?.iframeUrl) setCerceveAdresi(sonuc.iframeUrl)
+      else setHata(t('billing.modal.initFailed'))
+    } catch (e) {
+      setHata(e?.message || t('billing.modal.initFailed'))
+    } finally {
+      setYukleniyor(false)
+    }
+  }
+
   function kapat() {
+    setCerceveAdresi(null)
+    setHata(null)
     setBasarili(false)
     /* Onaylar sıfırlanıyor: panel yeniden açıldığında kullanıcı
        önceki oturumun onayını devralmamalı. */
@@ -140,7 +181,26 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
 
   return (
     <Modal open={open} onClose={kapat} size="md" title={basarili ? undefined : t('billing.modal.title')}>
-      {basarili ? (
+      {cerceveAdresi ? (
+        /*
+         * PayTR ödeme çerçevesi.
+         *
+         * 🔴 CSP'de `frame-src https://www.paytr.com` olmadan bu
+         * iframe YÜKLENMEZ ve ekranda boş bir kutu kalır; sebep yalnız
+         * tarayıcı konsolunda görünür, sunucu günlüğünde hiç iz olmaz.
+         *
+         * Sonuç ekranı BURADA değil: ödeme bitince PayTR kendi
+         * `merchant_ok_url`ine yönlendiriyor ve aktivasyon yalnız
+         * sunucu-sunucu callback'te oluyor.
+         */
+        <div className={styles.cerceveKabi}>
+          <iframe
+            src={cerceveAdresi}
+            title={t('billing.modal.frameTitle')}
+            className={styles.odemeCercevesi}
+          />
+        </div>
+      ) : basarili ? (
         <BasariDurumu onKapat={kapat} />
       ) : (
         <div className={styles.govde}>
@@ -276,16 +336,31 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
           <button
             type="button"
             className={styles.birincilDugme}
-            /* Ödeme akışı yokken düğme çalışmaz. `demoBasari` yalnız
-               geliştirme sırasında başarı durumunu görmek için.
-               Onaylar da şart: ikisi olmadan sözleşme kurulamaz. */
-            disabled={!demoBasari || !onaylarTam}
-            onClick={() => demoBasari && onaylarTam && setBasarili(true)}
+            /* Onaylar şart: üçü olmadan sözleşme kurulamaz. `demoBasari`
+               geliştirmede başarı ekranını görmek için kısa yol. */
+            disabled={!onaylarTam || yukleniyor}
+            onClick={() => {
+              if (!onaylarTam) return
+              if (demoBasari) setBasarili(true)
+              else odemeBaslat()
+            }}
           >
-            {t('billing.modal.payAndStart', { price: fiyatYaz(bugunOdenecek, dil) })}
+            {yukleniyor
+              ? t('billing.modal.preparing')
+              : t('billing.modal.payAndStart', { price: fiyatYaz(bugunOdenecek, dil) })}
           </button>
 
-          {!demoBasari && (
+          {hata && <p className={styles.hataNot}>{hata}</p>}
+
+          {/*
+            * Ücretlendirme henüz başlamadıysa sebebi YAZILI kalıyor.
+            *
+            * Düğme bilerek devre dışı DEĞİL: gerçek kapı sunucuda
+            * (`/payments/checkout` 409 döner) ve devre dışı bir düğme
+            * güvenlik sınırı sayılmaz. Ama kullanıcıyı hataya
+            * tıklatmak yerine sebebi önden söylemek doğrusu.
+            */}
+          {!BILLING_STARTS_AT && (
             <p className={styles.pasifNot}>
               {t('billing.modal.billingNotStarted')}
             </p>

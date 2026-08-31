@@ -350,7 +350,30 @@ async function build() {
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
-    "frame-ancestors 'none'"
+    "frame-ancestors 'none'",
+    /*
+     * 🔴 PAYTR ÖDEME FORMU.
+     *
+     * Kart formu PayTR'nin iframe'i olarak ödeme panelimizin İÇİNDE
+     * açılıyor; kullanıcı siteden çıkmıyor ve kart numarası/CVV
+     * sunucularımıza hiç değmiyor. Gizlilik metnindeki "kart bilgisi
+     * saklamıyoruz" cümlesinin ve PCI-DSS kapsamı dışında kalmamızın
+     * dayanağı bu.
+     *
+     * Bu satır olmadan `frame-src` yok sayılıp `default-src 'self'`e
+     * düşülüyordu: form YÜKLENMİYOR, ekranda boş bir kutu kalıyor ve
+     * sebep yalnız tarayıcı konsolunda görünüyor. Sunucu günlüğünde
+     * hiçbir iz olmuyor.
+     *
+     * ⚠️ JOKER KULLANILMIYOR. `*` ya da `https:` yazmak, herhangi bir
+     * siteyi uygulamanın içine gömülebilir hâle getirirdi. Tek alan
+     * adı; ödeme sağlayıcısı değişirse burası da değişmeli.
+     *
+     * ⚠️ 3D Secure banka sayfaları PayTR'nin çerçevesinin İÇİNDE
+     * açılıyor, yani onları bizim değil PayTR'nin sayfası yönetiyor.
+     * Yine de tarayıcıda doğrulanacak.
+     */
+    "frame-src 'self' https://www.paytr.com"
   ].join('; ')
 
   server.addHook('onSend', async (_request, reply, payload) => {

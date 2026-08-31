@@ -656,6 +656,28 @@ export const api = {
     async bildirimleriOkundu() { return api.request('/account/notifications/read', { method: 'POST' }); },
   },
 
+  payments: {
+    /*
+     * Satin alma baslatir: onaylari kaydeder, siparis olusturur ve
+     * PayTR iFrame token'i doner.
+     *
+     * 🔴 Uc onay da AYRI gonderiliyor. Sunucu ucunu de ayri ayri
+     * ariyor; tek bayraga indirmek, cayma feragatinin ve otomatik
+     * tahsilat izninin dayanagini ortadan kaldirirdi.
+     */
+    async checkout({ period, sozlesmeOnayi, caymaFeragati, otomatikTahsilat }) {
+      return api.request('/payments/checkout', {
+        method: 'POST',
+        body: JSON.stringify({ period, sozlesmeOnayi, caymaFeragati, otomatikTahsilat }),
+      });
+    },
+    /* Donus sayfasi durumu SORAR, karar VERMEZ: aktivasyon yalnizca
+       callback'te olur (bkz. OdemeSonucPage). */
+    async durum(merchantOid) {
+      return api.request(`/payments/${encodeURIComponent(merchantOid)}/status`);
+    },
+  },
+
   community: {
     async list(type = '') {
       return api.request(`/community${type ? `?type=${encodeURIComponent(type)}` : ''}`);

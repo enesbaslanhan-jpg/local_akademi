@@ -145,10 +145,20 @@ describe('ödeme paneli', () => {
     expect(bugunSatiri.textContent).toBe(bugunOnce)
   })
 
-  it('ödeme akışı yokken öde düğmesi çalışmaz ve sebebi yazılıdır', () => {
+  it('ücretlendirme başlamadan sebebi panelde yazılı', () => {
     sar(<MembershipModal open onClose={() => {}} />)
 
-    expect(screen.getByRole('button', { name: /öde ve üyeliği başlat/i })).toBeDisabled()
+    /*
+     * Not GÖRÜNÜR kalıyor: kullanıcıyı hataya tıklatmak yerine sebebi
+     * önden söylemek doğrusu.
+     *
+     * ⚠️ Düğmenin devre dışı olduğu ARTIK SINANMIYOR ve bu bilinçli.
+     * Gerçek kapı sunucuda: `/payments/checkout` ücretlendirme
+     * kapalıyken 409 döner (`payments-paytr.test.ts`, "test kipi
+     * kapısı"). Devre dışı bir düğme güvenlik sınırı değildir —
+     * istemci kodu değiştirilebilir. Burada sınanan şey KULLANICIYA
+     * NE SÖYLENDİĞİ.
+     */
     expect(screen.getByText(/ödeme alınmıyor/i)).toBeInTheDocument()
   })
 

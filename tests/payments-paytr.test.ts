@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import Fastify from 'fastify'
 import { createHmac } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { paymentRoutes } from '../src/services/payments/routes.js'
 import {
   callbackHashDogrula,
@@ -319,18 +320,29 @@ describe('satın alma başlatma', () => {
    *   Bir tarih verildiğinde ücretlendirme AÇIKMIŞ gibi kurulur ve
    *   arkadaki onay kapısı gerçekten çalıştırılabilir.
    */
-  async function checkoutSunucusu(ucretlendirmeBaslangici: string | null = null) {
+  /** Token çağrısını taklit eder — testler gerçek PayTR'ye çıkmamalı. */
+  function sahteFetch(sonuc: Record<string, unknown> = { status: 'success', token: 'TOKEN123' }) {
+    return vi.fn(async () => new Response(JSON.stringify(sonuc), {
+      status: 200, headers: { 'content-type': 'application/json' },
+    })) as unknown as typeof fetch
+  }
+
+  async function checkoutSunucusu(
+    ucretlendirmeBaslangici: string | null = null,
+    rol = 'learner',
+    fetchIslevi: typeof fetch = sahteFetch(),
+  ) {
     const app = Fastify()
     /* `authenticate` gerçek JWT eklentisi yerine sahtelendi: sınanan
        şey yetkilendirme değil, onay ve ücretlendirme kapıları. */
-    app.decorate('authenticate', async (istek: any) => { istek.user = { id: 7 } })
+    app.decorate('authenticate', async (istek: any) => { istek.user = { id: 7, role: rol } })
     const { prisma } = sahtePrisma()
     const p = prisma as any
     p.user = { findUnique: vi.fn(async () => ({ id: 7, email: 'a@b.com', name: 'X' })) }
     p.userConsent = { createMany: vi.fn(async () => ({ count: 6 })) }
     p.subscription.upsert = vi.fn(async () => ({ id: 'abonelik-1' }))
     p.payment.create = vi.fn(async () => ({}))
-    await app.register(paymentRoutes, { prefix: '/payments', prisma, ucretlendirmeBaslangici })
+    await app.register(paymentRoutes, { prefix: '/payments', prisma, ucretlendirmeBaslangici, fetchIslevi })
     return { app, p }
   }
 
@@ -387,5 +399,108 @@ describe('satın alma başlatma', () => {
     const { app } = await checkoutSunucusu()
     const yanit = await app.inject({ method: 'POST', url: '/payments/checkout', payload: TAM_ONAY })
     expect(yanit.statusCode).toBe(503)
+  })
+})
+
+/*
+ * TEST KİPİ KAPISI.
+ *
+ * Ödeme akışının uçtan uca denenmesi gerekiyor, ama bunun için
+ * `BILLING_STARTS_AT`i açmak doğrulanmamış bir ödeme ekranını BÜTÜN
+ * kullanıcılara göstermek olurdu. Çözüm: test kipi VE admin.
+ *
+ * 🦷 Aşağıdaki üç test o kapının gerçekten kapı olduğunu koruyor.
+ * İkincisi ve üçüncüsü olmadan "test için açtık" diye üretimde bir
+ * delik bırakılmış olurdu.
+ */
+describe('test kipi kapısı', () => {
+  function sahteFetch2() {
+    return vi.fn(async () => new Response(JSON.stringify({ status: 'success', token: 'TOKEN123' }), {
+      status: 200, headers: { 'content-type': 'application/json' },
+    })) as unknown as typeof fetch
+  }
+
+  async function kur(rol: string, testKipi: boolean, fetchIslevi: typeof fetch = sahteFetch2()) {
+    if (testKipi) process.env.PAYTR_TEST_MODE = 'true'
+    else process.env.PAYTR_TEST_MODE = 'false'
+    const app = Fastify()
+    app.decorate('authenticate', async (istek: any) => { istek.user = { id: 7, role: rol } })
+    const { prisma } = sahtePrisma()
+    const p = prisma as any
+    p.user = { findUnique: vi.fn(async () => ({ id: 7, email: 'a@b.com', name: 'X' })) }
+    p.userConsent = { createMany: vi.fn(async () => ({ count: 6 })) }
+    p.subscription.upsert = vi.fn(async () => ({ id: 'abonelik-1' }))
+    p.payment.create = vi.fn(async () => ({}))
+    /* Ücretlendirme KAPALI — bugünkü üretim hâli. */
+    await app.register(paymentRoutes, { prefix: '/payments', prisma, ucretlendirmeBaslangici: null, fetchIslevi })
+    return { app, p }
+  }
+
+  const TAM = { period: 'monthly', sozlesmeOnayi: true, caymaFeragati: true, otomatikTahsilat: true }
+
+  it('test kipi + admin GEÇER', async () => {
+    const { app, p } = await kur('admin', true)
+    const yanit = await app.inject({ method: 'POST', url: '/payments/checkout', payload: TAM })
+    expect(yanit.statusCode).toBe(201)
+    expect(yanit.json().iframeToken).toBe('TOKEN123')
+    expect(yanit.json().iframeUrl).toContain('paytr.com/odeme/guvenli/')
+    expect(p.payment.create).toHaveBeenCalledTimes(1)
+  })
+
+  it('🦷 test kipi + NORMAL kullanıcı 409 alır', async () => {
+    const { app, p } = await kur('learner', true)
+    const yanit = await app.inject({ method: 'POST', url: '/payments/checkout', payload: TAM })
+    expect(yanit.statusCode, 'test kipi herkese kapı açmamalı').toBe(409)
+    expect(p.payment.create).not.toHaveBeenCalled()
+  })
+
+  it('🦷 test kipi KAPALI + admin de 409 alır', async () => {
+    const { app, p } = await kur('admin', false)
+    const yanit = await app.inject({ method: 'POST', url: '/payments/checkout', payload: TAM })
+    expect(yanit.statusCode, 'canlı kipte admin gerçek para çekmemeli').toBe(409)
+    expect(p.payment.create).not.toHaveBeenCalled()
+  })
+
+  it('token alınamazsa 502 döner ve sipariş PENDING kalır', async () => {
+    const basarisiz = vi.fn(async () => new Response(
+      JSON.stringify({ status: 'failed', reason: 'invalid merchant_id' }),
+      { status: 200, headers: { 'content-type': 'application/json' } }
+    )) as unknown as typeof fetch
+
+    const { app, p } = await kur('admin', true, basarisiz)
+    const yanit = await app.inject({ method: 'POST', url: '/payments/checkout', payload: TAM })
+
+    expect(yanit.statusCode).toBe(502)
+    expect(yanit.json().code).toBe('PAYMENT_INIT_FAILED')
+    /* Sipariş satırı SİLİNMİYOR: PayTR isteği almış olabilir ve
+       callback gelebilir. */
+    expect(p.payment.create).toHaveBeenCalledTimes(1)
+  })
+})
+
+/*
+ * CSP — ÖDEME ÇERÇEVESİNE İZİN.
+ *
+ * 🔴 Bu tek satır silinirse ödeme ekranı sessizce çalışmaz: PayTR'nin
+ * kart formu yüklenmez, kullanıcı boş bir kutu görür, sunucu
+ * günlüğünde HİÇBİR iz kalmaz ve sebep yalnız tarayıcı konsolunda
+ * görünür.
+ *
+ * Kaynak dosya doğrudan okunuyor — CSP bir dize sabiti ve sunucuyu
+ * ayağa kaldırmadan sınanabiliyor.
+ */
+describe('CSP ödeme çerçevesi', () => {
+  const kaynak = readFileSync(new URL('../src/index.ts', import.meta.url), 'utf8')
+
+  it('frame-src PayTR alan adına izin veriyor', () => {
+    expect(kaynak).toContain("frame-src 'self' https://www.paytr.com")
+  })
+
+  it('🦷 frame-src JOKER içermiyor', () => {
+    /* `frame-src *` ya da `https:` yazmak, herhangi bir siteyi
+       uygulamanın içine gömülebilir hâle getirirdi. */
+    const satir = kaynak.split('\n').find(l => l.includes('frame-src')) ?? ''
+    expect(satir).not.toMatch(/frame-src[^"']*\*/)
+    expect(satir).not.toMatch(/frame-src\s+[^"']*\bhttps:(?!\/\/)/)
   })
 })

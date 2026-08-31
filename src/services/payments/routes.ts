@@ -7,7 +7,7 @@ import { bildirimYaz } from '../account-notifications'
 import { randomUUID } from 'node:crypto'
 import { BILLING_CURRENCY, BILLING_STARTS_AT, ilkUcretliTutar } from '../../config/billing'
 import { LEGAL_DOCUMENTS } from '../../config/legal-documents'
-import { callbackHashDogrula, paytrYapilandirmasi, siparisNumarasiUret } from './paytr'
+import { callbackHashDogrula, iframeTokenAl, odemeCercevesiAdresi, paytrYapilandirmasi, siparisNumarasiUret } from './paytr'
 
 /*
  * ÖDEME ROTALARI — PayTR callback'i
@@ -75,9 +75,11 @@ const OTOMATIK_TAHSILAT = 'otomatik-tahsilat-izni'
 
 export async function paymentRoutes(
   fastify: FastifyInstance,
-  opts?: { prisma?: PrismaClient; ucretlendirmeBaslangici?: string | null }
+  opts?: { prisma?: PrismaClient; ucretlendirmeBaslangici?: string | null; fetchIslevi?: typeof fetch }
 ) {
   const prisma = opts?.prisma ?? sharedPrisma
+  /* Ağ çağrısı enjekte edilebilir: testler gerçek PayTR'ye çıkmamalı. */
+  const fetchIslevi = opts?.fetchIslevi ?? fetch
 
   /*
    * Ücretlendirme anahtarı SON PARAMETRE, varsayılanı yapılandırma.
@@ -124,13 +126,23 @@ export async function paymentRoutes(
     if (!cfg) return reply.status(503).send({ error: 'Ödeme altyapısı etkin değil.', code: 'PAYMENT_DISABLED' })
 
     /*
-     * 🔴 ÜCRETLENDİRME KAPALIYKEN SATIN ALMA YOK.
+     * 🔴 ÜCRETLENDİRME KAPALIYKEN SATIN ALMA YOK — TEK İSTİSNAYLA.
      *
      * `BILLING_STARTS_AT` null iken hiçbir kullanıcı ödeme ekranı
      * görmüyor; buraya bir istek gelirse ya hata ya kötü niyet demek.
      * Ön yüzün gizlemesine güvenmek yeterli değil — kapı sunucuda.
+     *
+     * İSTİSNA: PayTR test kipi AÇIK ve kullanıcı ADMIN ise geçiliyor.
+     * Gerekçe: ödeme akışının uçtan uca denenmesi gerekiyor, ama bunun
+     * için `BILLING_STARTS_AT`i açmak, doğrulanmamış bir ödeme ekranını
+     * BÜTÜN kullanıcılara göstermek olurdu.
+     *
+     * ⚠️ İki şart BİRLİKTE aranıyor. Yalnız test kipine bakmak üretimde
+     * herkese kapı açardı; yalnız admin'e bakmak, canlı kipte gerçek
+     * para çekilmesine yol açardı.
      */
-    if (!ucretlendirmeBaslangici) {
+    const testKipiDenemesi = cfg.testMode && (request as any).user?.role === 'admin'
+    if (!ucretlendirmeBaslangici && !testKipiDenemesi) {
       return reply.status(409).send({ error: 'Ücretlendirme henüz başlamadı.', code: 'BILLING_NOT_STARTED' })
     }
 
@@ -189,23 +201,83 @@ export async function paymentRoutes(
       data: { subscriptionId: abonelik.id, merchantOid, amount: tutar, currency: BILLING_CURRENCY },
     })
 
-    /*
-     * ⚠️ PayTR token isteği HENÜZ ATILMIYOR.
-     *
-     * Gerçek merchant bilgileriyle uçtan uca denenmeden dış çağrı
-     * yazmak, doğrulanmamış kod demek. Bu uç şu an sipariş kaydını ve
-     * onayları üretiyor; iFrame token çağrısı, PayTR panelinden
-     * anahtarlar alınıp test kipinde ilk istek atıldığında eklenecek.
-     */
+    const taban = process.env.APP_PUBLIC_URL || 'https://localkarar.com'
+    const sonuc = await iframeTokenAl(cfg, {
+      merchantOid,
+      email: kullanici.email,
+      tutar,
+      /* Gerçek istemci IP'si: `trustProxy` açık olduğu için Fastify
+         bunu X-Forwarded-For'dan doğru çözüyor. PayTR hash'i bu değeri
+         içeriyor, yani yanlışsa token isteği reddedilir. */
+      kullaniciIp: request.ip,
+      urunAdi: 'LocalKarar Uyelik',
+      basariliUrl: `${taban}/app/odeme/basarili?siparis=${merchantOid}`,
+      basarisizUrl: `${taban}/app/odeme/basarisiz?siparis=${merchantOid}`,
+      kullaniciAdi: kullanici.name || 'LocalKarar Uyesi',
+      /* Fatura kimlik formu henüz yok (sonraki tur); PayTR bu alanları
+         zorunlu tuttuğu için yer tutucu geçiliyor. Form geldiğinde
+         gerçek değerler buraya bağlanacak. */
+      kullaniciAdres: 'Belirtilmedi',
+      kullaniciTelefon: 'Belirtilmedi',
+    }, fetchIslevi)
+
+    if (!sonuc.ok) {
+      /* 🔴 SEBEP GÜNLÜĞE YAZILIYOR. PayTR'nin `reason` alanı sorunun
+         ne olduğunu söyleyen tek yer; yazmamak bu oturumda iki kez
+         saatlerce süren teşhise yol açtı. */
+      request.log.error({ merchantOid, sebep: sonuc.sebep }, 'paytr token alinamadi')
+      return reply.status(502).send({
+        error: 'Ödeme başlatılamadı. Lütfen tekrar deneyin.',
+        code: 'PAYMENT_INIT_FAILED',
+      })
+    }
+
     return reply.status(201).send({
       merchantOid,
       amount: tutar,
       currency: BILLING_CURRENCY,
       period: donem,
-      /* İstemci bunu görünce "ödeme altyapısı hazırlanıyor" gösterecek;
-         token gelmeden iframe açılmamalı. */
-      iframeToken: null,
+      iframeToken: sonuc.token,
+      iframeUrl: odemeCercevesiAdresi(sonuc.token),
     })
+  })
+
+  /*
+   * SİPARİŞ DURUMU — dönüş sayfasının okuduğu tek kaynak.
+   *
+   * 🔴 BU UÇ HİÇBİR ŞEY DEĞİŞTİRMEZ, yalnız okur. Aktivasyon
+   * yalnızca callback'te olur. Dönüş sayfası kullanıcının
+   * tarayıcısından geliyor ve adres çubuğuna elle yazılabilir; ona
+   * karar verdirmek, ödemeden abonelik açtırmak demek olurdu.
+   *
+   * ⚠️ Sahiplik kontrolü şart: sipariş numarası tahmin edilebilir
+   * olmasa da, başkasının ödemesinin durumu okunamamalı.
+   */
+  fastify.get('/:merchantOid/status', async (request, reply) => {
+    const { merchantOid } = request.params as { merchantOid: string }
+    const userId = (request as any).user?.id as number
+
+    const odeme = await prisma.payment.findUnique({
+      where: { merchantOid },
+      select: {
+        status: true, amount: true, currency: true, paidAt: true,
+        subscription: { select: { userId: true, status: true } },
+      },
+    })
+
+    /* Başkasının siparişi de yokmuş gibi 404: varlığını doğrulamak
+       sipariş numarası denemeyi anlamlı kılardı. */
+    if (!odeme || odeme.subscription.userId !== userId) {
+      return reply.status(404).send({ error: 'Sipariş bulunamadı.' })
+    }
+
+    return {
+      status: odeme.status,
+      amount: Number(odeme.amount),
+      currency: odeme.currency,
+      paidAt: odeme.paidAt,
+      subscriptionStatus: odeme.subscription.status,
+    }
   })
 
   fastify.post('/paytr/callback', {

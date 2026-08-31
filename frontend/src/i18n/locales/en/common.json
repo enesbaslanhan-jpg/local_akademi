@@ -769,9 +769,23 @@
       "preInfo": "the Pre-Contract Information Form",
       "and": "and",
       "withdrawalWaiver": "I want the service to begin immediately and I understand that I therefore lose my right of withdrawal.",
+      "preparing": "Preparing payment…",
+      "initFailed": "Payment could not be started. Please try again.",
+      "frameTitle": "Secure payment form",
       "recurringConsent": "I agree that my membership renews automatically at the end of each period and is charged to my saved card. My card is stored with the payment provider for this purpose; renewal stops when I cancel."
     },
     "pricePerYear": "{{price}} / year",
+    "result": {
+      "verifyingTitle": "Verifying your payment",
+      "verifyingBody": "We are waiting for confirmation from your bank. This can take a few seconds; please do not close the page.",
+      "successTitle": "Payment received",
+      "successBody": "Your membership is active. The receipt has been sent by email.",
+      "pendingTitle": "Payment not confirmed yet",
+      "pendingBody": "No confirmation has arrived from your bank. If the amount was charged, your membership will open shortly; if it does not, please contact us.",
+      "failedTitle": "Payment could not be taken",
+      "failedBody": "The charge to your card did not go through. You can try again from Settings → Membership.",
+      "backToMembership": "Back to membership settings"
+    },
     "period": {
       "aria": "Billing period",
       "monthly": "Monthly",

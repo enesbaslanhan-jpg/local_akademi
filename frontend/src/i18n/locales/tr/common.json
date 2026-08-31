@@ -769,9 +769,23 @@
       "preInfo": "Ön Bilgilendirme Formu",
       "and": "ve",
       "withdrawalWaiver": "Hizmetin derhal ifasına başlanmasını istiyorum ve bu nedenle cayma hakkımı kaybedeceğimi biliyorum.",
+      "preparing": "Ödeme hazırlanıyor…",
+      "initFailed": "Ödeme başlatılamadı. Lütfen tekrar deneyin.",
+      "frameTitle": "Güvenli ödeme formu",
       "recurringConsent": "Üyeliğimin dönem sonunda kendiliğinden yenilenmesini ve kayıtlı kartımdan otomatik tahsil edilmesini kabul ediyorum. Kartım bu amaçla ödeme kuruluşunda saklanır; iptal ettiğimde yenileme durur."
     },
     "pricePerYear": "{{price}} / yıl",
+    "result": {
+      "verifyingTitle": "Ödemeniz doğrulanıyor",
+      "verifyingBody": "Bankanızdan gelen onayı bekliyoruz. Bu birkaç saniye sürebilir; sayfayı kapatmayın.",
+      "successTitle": "Ödemeniz alındı",
+      "successBody": "Üyeliğiniz etkinleştirildi. Makbuzunuz e-posta ile gönderildi.",
+      "pendingTitle": "Ödeme henüz doğrulanmadı",
+      "pendingBody": "Bankanızdan onay gelmedi. Tutar kartınızdan çekildiyse kısa süre içinde üyeliğiniz açılır; açılmazsa bize yazın.",
+      "failedTitle": "Ödeme alınamadı",
+      "failedBody": "Kartınızdan tahsilat yapılamadı. Ayarlar → Üyelik bölümünden tekrar deneyebilirsiniz.",
+      "backToMembership": "Üyelik ayarlarına dön"
+    },
     "period": {
       "aria": "Tahsilat dönemi",
       "monthly": "Aylık",

@@ -1,0 +1,52 @@
+/*
+ * Ödeme sonucu sayfası.
+ *
+ * Uygulama kabuğunun içinde açılıyor, o yüzden genel `--surface-*` /
+ * `--text` token'ları kullanılıyor — herkese açık sayfalardaki
+ * `--auth-*` paleti DEĞİL. İkisini karıştırmak daha önce koyu modda
+ * beyaz-üstüne-beyaz metne yol açtı.
+ */
+
+.sayfa {
+  display: flex;
+  justify-content: center;
+  padding: 48px 20px;
+}
+
+.kart {
+  width: 100%;
+  max-width: 520px;
+  padding: 32px;
+  text-align: center;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 14px);
+  box-shadow: var(--shadow-card);
+}
+
+.baslik {
+  margin: 0 0 10px;
+  font-size: 21px;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.metin {
+  margin: 0 0 24px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-muted, var(--text));
+}
+
+.dugme {
+  display: inline-block;
+  padding: 11px 20px;
+  border-radius: var(--radius-md, 10px);
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.dugme:hover { filter: brightness(1.05); }

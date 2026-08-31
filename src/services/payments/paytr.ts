@@ -112,6 +112,88 @@ export function tokenImzala(cfg: PaytrConfig, istek: TokenIstegi): string {
     .digest('base64')
 }
 
+const TOKEN_UCU = 'https://www.paytr.com/odeme/api/get-token'
+const TOKEN_ZAMAN_ASIMI_MS = 20_000
+
+/** iFrame'in yükleneceği adres. Token dışında bir şey taşımıyor. */
+export function odemeCercevesiAdresi(token: string): string {
+  return `https://www.paytr.com/odeme/guvenli/${encodeURIComponent(token)}`
+}
+
+export type TokenSonucu =
+  | { ok: true; token: string }
+  | { ok: false; sebep: string }
+
+/*
+ * iFrame token'ı alınıyor.
+ *
+ * 🔴 BAŞARISIZLIK SEBEBİ MUTLAKA DÖNDÜRÜLÜYOR.
+ *
+ * PayTR hata durumunda `{status:'failed', reason:'...'}` veriyor ve o
+ * `reason` sorunun ne olduğunu söyleyen TEK yer. Bu oturumda aynı ders
+ * iki kez alındı: AI ağ geçidi yalnız `PROVIDER_ERROR` yazıyordu ve
+ * durum kodu (403 tier_not_allowed) kayboluyordu; Cloudflare "Handled"
+ * diyordu ama Worker hiçbir şey yapmıyordu. İkisinde de bilgi elde
+ * VARDI, yazılmadığı için teşhis saatler sürdü.
+ */
+export async function iframeTokenAl(
+  cfg: PaytrConfig,
+  istek: TokenIstegi,
+  fetchIslevi: typeof fetch = fetch,
+): Promise<TokenSonucu> {
+  const govde = new URLSearchParams({
+    merchant_id: cfg.merchantId,
+    user_ip: istek.kullaniciIp,
+    merchant_oid: istek.merchantOid,
+    email: istek.email,
+    payment_amount: String(kurusaCevir(istek.tutar)),
+    user_basket: sepetKodla(istek.urunAdi, istek.tutar),
+    /* Taksit kapalı: abonelikte taksit anlamsız ve taksit komisyonları
+       (3 taksit %7.98…) fiyat sayfasındaki tutarları yalan yapardı. */
+    no_installment: istek.taksitYok === false ? '0' : '1',
+    max_installment: '0',
+    currency: 'TL',
+    test_mode: cfg.testMode ? '1' : '0',
+    paytr_token: tokenImzala(cfg, istek),
+    merchant_ok_url: istek.basariliUrl,
+    merchant_fail_url: istek.basarisizUrl,
+    user_name: istek.kullaniciAdi,
+    user_address: istek.kullaniciAdres,
+    user_phone: istek.kullaniciTelefon,
+    debug_on: cfg.testMode ? '1' : '0',
+    lang: 'tr',
+  })
+
+  let yanit: Response
+  try {
+    yanit = await fetchIslevi(TOKEN_UCU, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: govde.toString(),
+      signal: AbortSignal.timeout(TOKEN_ZAMAN_ASIMI_MS),
+    })
+  } catch (hata) {
+    /* Ağ hatası ya da zaman aşımı. `Payment` satırı PENDING kalıyor —
+       silmiyoruz, çünkü PayTR isteği almış ve callback gelebilir. */
+    return { ok: false, sebep: `AG_HATASI: ${(hata as Error)?.message ?? 'bilinmiyor'}` }
+  }
+
+  if (!yanit.ok) return { ok: false, sebep: `HTTP_${yanit.status}` }
+
+  let cozulen: { status?: string; token?: string; reason?: string }
+  try {
+    cozulen = await yanit.json() as typeof cozulen
+  } catch {
+    return { ok: false, sebep: 'YANIT_JSON_DEGIL' }
+  }
+
+  if (cozulen.status !== 'success' || !cozulen.token) {
+    return { ok: false, sebep: String(cozulen.reason ?? 'SEBEP_BILDIRILMEDI').slice(0, 300) }
+  }
+
+  return { ok: true, token: cozulen.token }
+}
+
 /*
  * CALLBACK HASH DOĞRULAMASI.
  *

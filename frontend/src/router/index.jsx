@@ -15,6 +15,7 @@ const AboutPage = lazy(() => import('@/pages/AboutPage'))
 const PricingPage = lazy(() => import('@/pages/PricingPage'))
 /* Kayıt sonrası karşılama — yalnız kayıttan yönlendiriliyor. */
 const WelcomePage = lazy(() => import('@/pages/WelcomePage'))
+const OdemeSonucPage = lazy(() => import('@/pages/OdemeSonucPage'))
 const InvitationPage = lazy(() => import('@/pages/InvitationPage'))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const OnboardingPage = lazy(() => import('@/pages/OnboardingPage'))
@@ -137,6 +138,11 @@ export default function AppRoutes() {
             <Route index element={<Navigate to="/app/dashboard" replace />} />
             <Route path="dashboard" element={<SuspenseWrapper><Dashboard /></SuspenseWrapper>} />
             <Route path="hosgeldin" element={<SuspenseWrapper><WelcomePage /></SuspenseWrapper>} />
+            {/* Ödeme dönüş sayfaları. PayTR bu adreslere ÇERÇEVE
+                İÇİNDEN yönlendiriyor; sayfa ilk iş olarak üst pencereye
+                çıkıyor. Aktivasyon burada DEĞİL, callback'te. */}
+            <Route path="odeme/basarili" element={<SuspenseWrapper><OdemeSonucPage basarili /></SuspenseWrapper>} />
+            <Route path="odeme/basarisiz" element={<SuspenseWrapper><OdemeSonucPage basarili={false} /></SuspenseWrapper>} />
             <Route path="onboarding" element={<SuspenseWrapper><OnboardingPage /></SuspenseWrapper>} />
             <Route path="assessment" element={<SuspenseWrapper><AssessmentPage /></SuspenseWrapper>} />
             <Route path="knowledge" element={<SuspenseWrapper><KnowledgePage /></SuspenseWrapper>} />
