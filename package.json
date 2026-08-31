@@ -101,7 +101,8 @@
     "ops:backup:verify": "node dist/ops/verify-backup-restore.js",
     "ops:logs:rotate": "node dist/ops/rotate-operational-logs.js",
     "sql:scan": "node scripts/raw-sql-scan.js",
-    "i18n:check": "node scripts/check-i18n.mjs"
+    "i18n:check": "node scripts/check-i18n.mjs",
+    "logo:uret": "node scripts/logo-uret.mjs"
   },
   "dependencies": {
     "@fastify/cors": "^10.1.0",
@@ -126,6 +127,7 @@
   },
   "devDependencies": {
     "@napi-rs/canvas": "^0.1.80",
+    "@resvg/resvg-js": "^2.6.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.14.0",
     "@types/pdfkit": "^0.17.6",

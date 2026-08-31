@@ -47,6 +47,35 @@ function initials(name = 'LK') {
   return name.split(' ').filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase()
 }
 
+/*
+ * AÇILIŞ BÖLÜMÜ — hem "?bolum=" hem "#bolum" destekleniyor.
+ *
+ * 🔴 ÖLÇÜLMÜŞ ARIZA (31.08.2026, ürün sahibi bildirdi): kod yalnız
+ * SORGU parametresini okuyordu ve izin listesinde 'uyelik' YOKTU.
+ * Sonuç: "/app/settings#uyelik" her seferinde 'profile' bölümünü
+ * açıyordu — kullanıcı üyelik yerine "Profil ve işletme" görüyordu.
+ *
+ * Etkilenen dört yer vardı, dördü de kullanıcıyı yanlış bölüme
+ * götürüyordu:
+ *   - Fiyatlar sayfasındaki "Üyeliğim" düğmesi
+ *   - Ödeme sonucu sayfasındaki "Üyelik ayarlarına dön"
+ *   - AccountNotification varsayılan bağlantısı ("Ödemeniz alındı")
+ *   - Ödeme e-postası şablonundaki bağlantı (mail-templates.ts)
+ *
+ * İki gelenek de yaşıyor — "?bolum=integrations" dört yerde
+ * kullanılıyor ve çalışıyor. Bu yüzden biri diğerine çevrilmedi;
+ * ikisi birden okunuyor ve sorgu önceliği koruyor.
+ */
+export const BOLUMLER = ['profile', 'notifications', 'security', 'privacy', 'integrations', 'uyelik', 'appearance']
+
+export function acilisBolumu() {
+  const sorgu = new URLSearchParams(window.location.search).get('bolum')
+  if (BOLUMLER.includes(sorgu)) return sorgu
+  const hash = window.location.hash.replace(/^#/, '')
+  if (BOLUMLER.includes(hash)) return hash
+  return 'profile'
+}
+
 export default function SettingsPage() {
   const { t } = useTranslation('common')
   const { uiLanguage, formatLocale, setUiLanguage, setFormatLocale } = useLocalization()
@@ -75,10 +104,7 @@ export default function SettingsPage() {
   const [profileSaving, setProfileSaving] = useState(false)
   const [profileMsg, setProfileMsg] = useState(null)
   const [systemInfo, setSystemInfo] = useState(null)
-  const [activeSection, setActiveSection] = useState(() => {
-    const bolum = new URLSearchParams(window.location.search).get('bolum')
-    return ['profile', 'notifications', 'security', 'privacy', 'integrations'].includes(bolum) ? bolum : 'profile'
-  })
+  const [activeSection, setActiveSection] = useState(() => acilisBolumu())
   const [avatarSaving, setAvatarSaving] = useState(false)
   const [avatarMsg, setAvatarMsg] = useState(null)
   const [avatarBuyuk, setAvatarBuyuk] = useState(false)
