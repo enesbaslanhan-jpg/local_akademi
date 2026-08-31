@@ -49,6 +49,7 @@ import { financialModelRoutes } from './services/financial-models/routes'
 import { feedRoutes } from './routes/feed.js'
 import { learningProgressRoutes } from './routes/learning-progress.js'
 import { newsRoutes } from './services/news/routes.js'
+import { deviceRoutes } from './services/devices/index.js'
 import { startNewsWorker } from './services/news/worker.js'
 import { ensureFinancialModelCatalog } from './services/financial-models/catalog'
 import { deleteExpiredReviewerTelemetry } from './services/ai-reviewer'
@@ -499,6 +500,7 @@ async function build() {
   server.addHook('preHandler', uyelikKapisi(server))
 
   server.register(authRoutes, { prefix: '/auth' })
+  server.register(deviceRoutes, { prefix: '/devices' })
   /* Odeme: PayTR callback'i kimliksiz gelir ve kendi urlencoded
      ayristiricisini EKLENTI KAPSAMINDA kaydeder. */
   server.register(paymentRoutes, { prefix: '/payments' })

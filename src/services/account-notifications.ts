@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import type { PrismaClient } from '@prisma/client'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
+import { pushService } from './push/index.js'
 import {
   BILLING_STARTS_AT,
   TRIAL_WARNING_DAYS,
@@ -67,6 +68,16 @@ export async function bildirimYaz(
         dedupeKey: girdi.dedupeKey ?? null,
       },
     })
+
+    // Kritik hesap ve faturalama olaylari icin anlik push bildirimi
+    if (['payment_failed', 'trial_ending', 'membership_cancelled'].includes(girdi.type)) {
+      await pushService.sendToUser(girdi.userId, {
+        title: girdi.title,
+        body: girdi.body,
+        data: { target: 'account' }
+      }).catch(() => {})
+    }
+
     return true
   } catch (error) {
     /* P2002 = benzersiz kısıt ihlali: bu olay zaten yazılmış. Hata

@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma.js'
+import { pushService } from './push/index.js'
 
 /*
  * TOPLULUK BİLDİRİMLERİ — tek kaynak.
@@ -52,6 +53,27 @@ export async function bildirimYaz(
     await prisma.communityNotification.create({
       data: { userId: alanKullaniciId, actorId: aktorId, type: tur, ...ekler },
     })
+
+    // Anlik Bildirim (Push) Iletimi
+    if (tur === 'message' && ekler.threadId) {
+      await pushService.sendToUser(alanKullaniciId, {
+        title: 'LocalKarar',
+        body: 'Yeni bir mesajınız var',
+        data: { target: 'community_thread', threadId: ekler.threadId }
+      })
+    } else if (tur === 'thread_invite' && ekler.threadId) {
+      await pushService.sendToUser(alanKullaniciId, {
+        title: 'LocalKarar',
+        body: 'Bir sohbete davet edildiniz',
+        data: { target: 'community_thread', threadId: ekler.threadId }
+      })
+    } else if (tur === 'reply' && ekler.postId) {
+      await pushService.sendToUser(alanKullaniciId, {
+        title: 'LocalKarar',
+        body: 'Gönderinize yeni bir yanıt geldi',
+        data: { target: 'community_post', postId: ekler.postId }
+      })
+    }
   } catch {
     /* Sessiz — yukarıdaki 2. maddeye bakınız. */
   }

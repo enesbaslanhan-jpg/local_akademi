@@ -644,6 +644,11 @@ export async function authRoutes(fastify: FastifyInstance) {
       actorName: updated.name
     }).catch(() => {})
 
+    /* Tum cihazlardan cikildigi icin kullanicinin push bildirim kayitlari da silinir */
+    await prisma.pushInstallation.deleteMany({
+      where: { userId: updated.id }
+    }).catch(() => {})
+
     /* `tokenVersion` arttığı için çağıranın elindeki yenileme tokeni de
        geçersiz oldu; tazesi veriliyor. Verilmeseydi kullanıcı kendi
        cihazından da düşerdi — iki uç noktanın da amacı bu değil. */

@@ -1,5 +1,6 @@
 import type { Prisma, PrismaClient } from '@prisma/client'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
+import { pushService } from './push/index.js'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -137,6 +138,22 @@ export async function processDueBusinessReminders(
       })
       sent += 1
     })
+
+    // Transaction tamamlandiktan sonra asenkron ve yalitilmis push iletimi
+    await pushService.sendToUser(reminder.recipientId, {
+      title: 'Yaklaşan işletme kaydı',
+      body: bildirimGovdesi(
+        reminder.record,
+        reminder.record.dueAt
+          ? reminder.record.dueAt.toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' })
+          : 'belirlenen tarih'
+      ),
+      data: {
+        target: 'workspace_record',
+        workspaceId: reminder.workspaceId,
+        recordId: reminder.recordId
+      }
+    }).catch(() => {})
   }
   return { processed: due.length, sent }
 }

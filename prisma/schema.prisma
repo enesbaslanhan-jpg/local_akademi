@@ -95,6 +95,7 @@ model User {
   emailVerificationCodes    EmailVerificationCode[]
   consents                  UserConsent[]
   refreshTokens             RefreshToken[]
+  pushInstallations         PushInstallation[]
   addedInboxSenders         BusinessInboxSender[]
   createdIntegrations       IntegrationConnection[]  @relation("IntegrationConnections")
   subscription              Subscription?
@@ -2031,6 +2032,28 @@ model RefreshToken {
   @@index([familyId])
   @@index([expiresAt])
 }
+
+/// Mobil cihaz anlik bildirim (push) kurulumlari.
+/// installationId: mobil kurulumun urettigi tekil belirtec.
+/// pushToken: FCM HTTP v1 cihaz belirteci.
+model PushInstallation {
+  id             String   @id @default(uuid())
+  installationId String   @unique
+  userId         Int
+  platform       String
+  pushToken      String   @unique
+  appVersion     String?
+  locale         String?  @default("tr")
+  enabled        Boolean  @default(true)
+  lastSeenAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
 
 // ==========================================
 // PAZARYERI ENTEGRASYONLARI (provider-bagimsiz)
