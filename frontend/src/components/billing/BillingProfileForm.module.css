@@ -1,0 +1,192 @@
+/*
+ * Fatura kimlik formu — ödeme panelinin içinde açılıyor, yani
+ * uygulama kabuğunun içinde. Genel tema token'ları kullanılıyor
+ * (`--text`, `--surface-*`), public sayfaların `--auth-*` paleti
+ * DEĞİL. `MembershipModal.module.css` ile aynı gerekçe.
+ */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.giris {
+  margin: 0;
+  color: var(--text-light);
+  font-size: .84rem;
+  line-height: 1.55;
+}
+
+/* ---------- Bireysel / Kurumsal ---------- */
+
+.tipSecim {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.tipSecim legend {
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+.tipSecenek,
+.tipSecili {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tipSecili {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.tipSecim input { accent-color: var(--primary); }
+
+/* ---------- Alanlar ---------- */
+
+.alan {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.etiket {
+  color: var(--text-light);
+  font-size: .78rem;
+  font-weight: 650;
+}
+
+.girdi,
+.girdiHatali {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-panel);
+  color: var(--text);
+  font-family: var(--font-family);
+  font-size: .88rem;
+}
+
+.girdi:focus-visible,
+.girdiHatali:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+/*
+ * Hatalı alan: kenarlık RENGİ tek başına taşıyıcı değil — altında
+ * her zaman yazılı bir sebep var ve `aria-invalid` işaretli. Renk
+ * körlüğünde bilgi kaybolmuyor.
+ */
+.girdiHatali { border-color: var(--danger); }
+
+.hata {
+  color: var(--danger);
+  font-size: .76rem;
+  line-height: 1.45;
+}
+
+.ipucu {
+  color: var(--text-light);
+  font-size: .74rem;
+  line-height: 1.45;
+}
+
+.ikili {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.genelHata {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--danger) 42%, transparent);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--danger) 10%, var(--surface-panel));
+  color: var(--text);
+  font-size: .82rem;
+  line-height: 1.5;
+}
+
+/* ---------- Eylemler ---------- */
+
+.eylemler {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 2px;
+}
+
+.birincil {
+  min-height: 44px;
+  padding: 11px 20px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--primary);
+  color: var(--on-primary, #fff);
+  font-family: var(--font-family);
+  font-size: .87rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.birincil:hover:not(:disabled) { opacity: .92; }
+
+.birincil:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.ikincil {
+  min-height: 44px;
+  padding: 11px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-family);
+  font-size: .87rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ikincil:hover { border-color: var(--primary); }
+
+.birincil:focus-visible,
+.ikincil:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* KVKK notu: hangi verinin neden istendiği formun içinde yazılı. */
+.kvkk {
+  margin: 0;
+  color: var(--text-light);
+  font-size: .74rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 520px) {
+  .ikili { grid-template-columns: minmax(0, 1fr); }
+  .eylemler > * { width: 100%; }
+}

@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Percent, ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import Modal from '@/components/ui/Modal'
 import { api } from '@/services/api'
+import BillingProfileForm from './BillingProfileForm'
+import LegalModal from '@/components/legal/LegalModal'
 import {
   BILLING_STARTS_AT,
   ilkUcretliTutar,
@@ -146,8 +148,45 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
    * saklamıyoruz" cümlesinin dayanağı bu biçim.
    */
   const [cerceveAdresi, setCerceveAdresi] = useState(null)
+  /*
+   * FATURA KİMLİĞİ — ödemeden önceki adım (ürün sahibi kararı).
+   *
+   * `undefined` = henüz sorulmadı, `null` = kaydı yok, nesne = var.
+   * Üç hâl ayrı: yükleniyorken "fatura bilgisi eksik" demek, henüz
+   * bilmediğimiz bir şeyi iddia etmek olurdu.
+   */
+  const [faturaKimligi, setFaturaKimligi] = useState(undefined)
+  const [formAcik, setFormAcik] = useState(false)
+  /*
+   * 🔴 YASAL METİNLER PANELİN İÇİNDE AÇILIYOR.
+   *
+   * Önceden `target="_blank"` bağlantılardı ve ürün sahibi bildirdi:
+   * "metinleri okuyup geri dönünce sayfa gidiyor, içinde açılması
+   * gerek değil mi". Haklıydı — ve deponun bu soruna verdiği cevap
+   * ZATEN VARDI: `LegalModal`, kayıt formu için tam bu gerekçeyle
+   * yazılmış ("aynı sekmede gidilseydi formda yazılanlar kaybolurdu")
+   * ve üç yerde kullanılıyor. Ödeme paneli tek istisnaydı.
+   *
+   * Onaylar panelin durumunda; metni okumak için paneli terk etmek,
+   * işaretlenmiş üç kutuyu da kaybetmek demekti.
+   */
+  const [okunanBelge, setOkunanBelge] = useState(null)
   const [yukleniyor, setYukleniyor] = useState(false)
   const [hata, setHata] = useState(null)
+
+  /* Panel açılınca bir kez okunuyor. Kapalıyken istek atmak,
+     kullanıcının hiç açmadığı bir panel için sunucuyu meşgul etmek
+     olurdu. */
+  useEffect(() => {
+    if (!open) return undefined
+    let gecerli = true
+    api.payments.faturaKimligiOku()
+      .then(y => { if (gecerli) setFaturaKimligi(y?.faturaKimligi ?? null) })
+      /* Okunamazsa akış DURMUYOR: kullanıcı formu doldurur, sunucu
+         zaten son sözü söylüyor. */
+      .catch(() => { if (gecerli) setFaturaKimligi(null) })
+    return () => { gecerli = false }
+  }, [open])
 
   const bugunOdenecek = ilkUcretliTutar()
   const sonraki = sonrakiOdemeTarihi()
@@ -156,6 +195,15 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
   const onaylarTam = sozlesmeOnayi && caymaFeragati && otomatikTahsilat
 
   async function odemeBaslat() {
+    /*
+     * 🔴 Fatura bilgisi yoksa ÖNCE form.
+     *
+     * Sunucu da aynı kapıyı taşıyor (422 BILLING_PROFILE_REQUIRED);
+     * buradaki kontrol yalnız kullanıcıya anlaşılır bir adım
+     * göstermek için. Ön yüzün sırasına güvenmek kapı olmazdı.
+     */
+    if (!faturaKimligi) { setFormAcik(true); return }
+
     setYukleniyor(true)
     setHata(null)
     try {
@@ -173,7 +221,32 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
     }
   }
 
+  /*
+   * ⚠️ `odemeBaslat` fatura kimliğine BAKIYOR, bu ise bakmıyor.
+   *
+   * Form kaydedildiği anda `faturaKimligi` durumu henüz React
+   * tarafından yazılmamış olabiliyor; `odemeBaslat` çağrılsaydı
+   * kimliği yok sanıp formu tekrar açardı — kullanıcı kaydettiği
+   * formu yeniden görürdü.
+   */
+  async function odemeBaslatKimlikle() {
+    setYukleniyor(true)
+    setHata(null)
+    try {
+      const sonuc = await api.payments.checkout({
+        period: donem, sozlesmeOnayi, caymaFeragati, otomatikTahsilat,
+      })
+      if (sonuc?.iframeUrl) setCerceveAdresi(sonuc.iframeUrl)
+      else setHata(t('billing.modal.initFailed'))
+    } catch (e) {
+      setHata(e?.apiMessage || e?.message || t('billing.modal.initFailed'))
+    } finally {
+      setYukleniyor(false)
+    }
+  }
+
   function kapat() {
+    setFormAcik(false)
     setCerceveAdresi(null)
     setHata(null)
     setBasarili(false)
@@ -185,9 +258,34 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
     onClose?.()
   }
 
+  /*
+   * PANEL `lg` (720px), `md` (560px) DEĞİL.
+     *
+     * Ölçüldü: 560px'te gövde 900px'lik ekranda 826px yer istiyordu
+     * ve 137px kaydırma bırakıyordu. Ürün sahibi "neden aşağı yukarı
+     * indirilebilir, tek sayfa olsa daha iyi değil mi" dedi. Onay
+     * metinleri hukuken kısaltılamaz; kazanılacak yer GENİŞLİKTEN
+   * geliyor — aynı cümleler daha az satıra sığıyor.
+   */
   return (
-    <Modal open={open} onClose={kapat} size="md" title={basarili ? undefined : t('billing.modal.title')}>
-      {cerceveAdresi ? (
+    <>
+    <Modal open={open} onClose={kapat} size="lg" title={basarili ? undefined : t('billing.modal.title')}>
+      {formAcik ? (
+        /*
+         * Fatura kimlik adımı. Kaydedilir kaydedilmez ödeme
+         * başlıyor: kullanıcı "Öde ve üyeliği başlat"a bastı, araya
+         * ikinci bir onay koymak akışı gereksiz uzatırdı.
+         */
+        <BillingProfileForm
+          baslangic={faturaKimligi ?? undefined}
+          onVazgec={() => setFormAcik(false)}
+          onKaydedildi={async kimlik => {
+            setFaturaKimligi(kimlik)
+            setFormAcik(false)
+            await odemeBaslatKimlikle()
+          }}
+        />
+      ) : cerceveAdresi ? (
         /*
          * PayTR ödeme çerçevesi.
          *
@@ -209,7 +307,23 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
       ) : basarili ? (
         <BasariDurumu onKapat={kapat} />
       ) : (
-        <div className={styles.govde}>
+        /*
+         * 🔴 İKİ SÜTUN — panel KAYDIRILMASIN diye.
+         *
+         * Ürün sahibi iki kez bildirdi: "neden aşağı yukarı
+         * indirilebilir, tek sayfa olsa daha iyi değil mi" ve sonra
+         * "kaymayacak bir tasarımla devam edebilirsin".
+         *
+         * Tek sütunda içerik 727px istiyordu ve panelin gövdesine
+         * sığmıyordu. Onay metinleri hukuken kısaltılamaz, yani
+         * yükseklik metinden kazanılamazdı — kurgudan kazanıldı:
+         * solda "ne ödeyeceğim", sağda "onaylıyorum ve ödüyorum".
+         * Fiyat sayfasındaki onaylanmış düzenin aynı mantığı.
+         *
+         * Dar ekranda tek sütuna iniyor ve orada kaydırma normal.
+         */
+        <div className={styles.izgara}>
+          <div className={styles.sutun}>
           {/* ---------- Özet: ödemeden ÖNCE ---------- */}
           <section className={styles.ozet} aria-label={t('billing.modal.summaryAria')}>
             <OzetSatiri
@@ -235,24 +349,25 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
             <span>{t('billing.modal.lockedPrice', { percent: kuruculIndirimYuzdesi() })}</span>
           </div>
 
-          {/* ---------- PayTR alanı ---------- */}
-          <section className={styles.odemeAlani} aria-label={t('billing.modal.paymentAreaAria')}>
-            {/*
-              * Buraya PayTR iFrame gelecek. Yer tutucu bilerek "kart
-              * formu gibi" görünmüyor: sahte alanlar çizmek, çalışan bir
-              * ödeme varmış izlenimi verirdi.
-              */}
-            <div className={styles.yerTutucu}>
-              <ShieldCheck size={22} aria-hidden="true" />
-              <p className={styles.yerTutucuBaslik}>{t('billing.modal.securePaymentTitle')}</p>
-              <p className={styles.yerTutucuNot}>{t('billing.modal.securePaymentDescription')}</p>
-            </div>
+          {/*
+            * 🔴 "GÜVENLİ ÖDEME ALANI" YER TUTUCUSU KALDIRILDI.
+            *
+            * Kesikli çerçeveli, 30px dolgulu boş bir kutuydu ve tek
+            * başına 208px yer kaplıyordu — panelin kaymasının en büyük
+            * tek sebebi. Söylediği iki şey de başka yerde zaten yazılı:
+            * kartın PayTR'de işlendiği aşağıdaki güvenlik notunda,
+            * ücretlendirmenin başlamadığı ise panelin altındaki notta.
+            *
+            * Ödeme açıldığında bu alan zaten kullanılmıyordu: token
+            * gelince PANELİN TAMAMI iframe'e dönüşüyor.
+            */}
+          <p className={styles.guvenlikNot}>
+            <ShieldCheck size={14} aria-hidden="true" />
+            {t('billing.modal.securityNote')}
+          </p>
+          </div>
 
-            <p className={styles.guvenlikNot}>
-              <ShieldCheck size={14} aria-hidden="true" />
-              {t('billing.modal.securityNote')}
-            </p>
-          </section>
+          <div className={styles.sutun}>
 
           {/* ---------- Onaylar ----------
             *
@@ -277,11 +392,11 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
             />
             <span>
               {t('billing.modal.consentBefore')}{' '}
-              <Link to="/mesafeli-satis" target="_blank" rel="noreferrer">{t('billing.modal.distanceSale')}</Link>
+              <button type="button" className={styles.belgeBaglantisi} onClick={() => setOkunanBelge('mesafeli-satis')}>{t('billing.modal.distanceSale')}</button>
               {', '}
-              <Link to="/on-bilgilendirme" target="_blank" rel="noreferrer">{t('billing.modal.preInfo')}</Link>{' '}
+              <button type="button" className={styles.belgeBaglantisi} onClick={() => setOkunanBelge('on-bilgilendirme')}>{t('billing.modal.preInfo')}</button>{' '}
               {t('billing.modal.and')}{' '}
-              <Link to="/terms" target="_blank" rel="noreferrer">{t('billing.modal.terms')}</Link>
+              <button type="button" className={styles.belgeBaglantisi} onClick={() => setOkunanBelge('terms')}>{t('billing.modal.terms')}</button>
               {t('billing.modal.consentAfter')}
             </span>
           </label>
@@ -352,8 +467,25 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
               {t('billing.modal.billingNotStarted')}
             </p>
           )}
+          </div>
         </div>
       )}
     </Modal>
+
+    {/*
+      * ⚠️ KARDEŞ, iç içe DEĞİL. `Modal` portal kullanmıyor; yasal
+      * metin penceresini ödeme panelinin gövdesinin içine koymak onu
+      * panelin kaydırma alanına hapsederdi.
+      *
+      * Metni ayrı bir bileşen yazarak değil `LegalModal` ile
+      * gösteriyoruz: çizim `LegalPage`in kendi bileşeninden geliyor,
+      * yani metinler her güncellendiğinde iki yerin ayrışma riski yok.
+      */}
+    <LegalModal
+      type={okunanBelge}
+      open={Boolean(okunanBelge)}
+      onClose={() => setOkunanBelge(null)}
+    />
+    </>
   )
 }

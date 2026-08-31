@@ -7,10 +7,55 @@
  * uygulamayla farklı bir yüzeye ait görünmesine yol açardı.
  */
 
+/*
+ * Dikey aralık 18 → 13px.
+ *
+ * Ürün sahibi "neden aşağı yukarı indirilebilir, tek sayfa olsa daha
+ * iyi değil mi" dedi. Ölçüldü: panel sekiz bloktan oluşuyor, yani
+ * her 1px aralık 7px yükseklik demek. Genişletme (560 → 720px)
+ * taşmayı 137px'ten 38px'e indirdi; kalanı bu kapatıyor.
+ *
+ * ⚠️ Onay metinleri KISALTILMADI ve kısaltılamaz — hukuken gerekli
+ * olan cümleler. Kazanılan yer yalnız boşluktan ve satır sarmasından
+ * geliyor.
+ */
+/*
+ * İKİ SÜTUN — panel kaydırılmasın diye.
+ *
+ * Ölçüldü: tek sütunda içerik 727px istiyordu ve gövdeye sığmıyordu.
+ * Onay metinleri hukuken kısaltılamaz, yani yükseklik metinden
+ * kazanılamazdı. Solda "ne ödeyeceğim", sağda "onaylıyorum ve
+ * ödüyorum" — fiyat sayfasındaki onaylanmış düzenin aynı mantığı.
+ *
+ * `align-items: start`: sütunlar birbirinin boyuna uzamıyor, kısa
+ * olan kendi yüksekliğinde kalıyor.
+ */
+.izgara {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+
+.sutun {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  min-width: 0;
+}
+
+/*
+ * Dar ekranda tek sütun. Orada kaydırma normal ve kaçınılmaz —
+ * korunması gereken şey masaüstünde tek ekrana sığması.
+ */
+@media (max-width: 640px) {
+  .izgara { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+}
+
 .govde {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 13px;
 }
 
 /* ---------- Dönem seçimi ---------- */
@@ -109,40 +154,14 @@
 
 /* ---------- Ödeme alanı ---------- */
 
-.odemeAlani {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.yerTutucu {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 7px;
-  padding: 30px 20px;
-  border: 1px dashed var(--border);
-  border-radius: 13px;
-  background: var(--surface-sunken);
-  text-align: center;
-}
-
-.yerTutucu svg { color: var(--text-light); }
-
-.yerTutucuBaslik {
-  margin: 0;
-  color: var(--text);
-  font-size: .9rem;
-  font-weight: 700;
-}
-
-.yerTutucuNot {
-  margin: 0;
-  max-width: 38ch;
-  color: var(--text-light);
-  font-size: .81rem;
-  line-height: 1.55;
-}
+/*
+ * 🔴 `.yerTutucu` ve `.odemeAlani` KALDIRILDI.
+ *
+ * Kesikli çerçeveli, 30px dolgulu boş bir kutuydu ve 208px yer
+ * kaplıyordu — panelin kaymasının en büyük tek sebebi. Ödeme
+ * açıldığında zaten kullanılmıyordu: token gelince panelin tamamı
+ * iframe'e dönüşüyor.
+ */
 
 .guvenlikNot {
   display: flex;
@@ -296,7 +315,6 @@
 
 @media (max-width: 480px) {
   .ozetSatirVurgulu .ozetDeger { font-size: 1.35rem; }
-  .yerTutucu { padding: 24px 14px; }
 }
 
 /* Onay kutuları.

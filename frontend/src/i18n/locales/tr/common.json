@@ -766,9 +766,6 @@
       "nextPayment": "Sonraki ödeme",
       "fromMonth": "{{month}}. aydan itibaren",
       "lockedPrice": "Kurucu üye indirimin kalıcı: standart fiyat yükselse bile her zaman en az %{{percent}} altını ödersin.",
-      "paymentAreaAria": "Ödeme alanı",
-      "securePaymentTitle": "Güvenli ödeme alanı",
-      "securePaymentDescription": "Ödeme altyapısı kurulum aşamasında. Etkinleştiğinde kart bilgilerin bu alanda, PayTR’nin güvenli formunda istenecek.",
       "securityNote": "Kart bilgilerin PayTR tarafından işlenir, LocalKarar sunucularına ulaşmaz ve tarafımızca saklanmaz.",
       "consentBefore": "Okudum ve kabul ediyorum:",
       "terms": "Kullanım Koşulları",
@@ -854,6 +851,33 @@
       "doluAciklama": "Verilerin duruyor ve dışa aktarılabilir; yeni kayıt eklemek için üyeliğini başlat.",
       "uyariAciklama": "Kesintisiz devam etmek için üyeliğini şimdi başlatabilirsin.",
       "kapat": "Hatırlatmayı kapat"
+    },
+    "fatura": {
+      "aciklama": "Faturan bu bilgilere göre düzenlenecek. Bir kez giriyorsun; sonraki ödemelerde tekrar sorulmuyor.",
+      "tip": "Fatura tipi",
+      "tipler": {
+        "INDIVIDUAL": "Bireysel",
+        "CORPORATE": "Kurumsal"
+      },
+      "unvanBireysel": "Ad ve soyad",
+      "unvanKurumsal": "Ticari unvan",
+      "tckn": "T.C. Kimlik Numarası",
+      "tcknIpucu": "İsteğe bağlı. Boş bırakırsan fatura nihai tüketici adına düzenlenir.",
+      "vkn": "Vergi kimlik numarası",
+      "vergiDairesi": "Vergi dairesi",
+      "telefon": "Telefon",
+      "adres": "Adres",
+      "il": "İl",
+      "ilce": "İlçe",
+      "kaydetVeDevam": "Kaydet ve ödemeye geç",
+      "kaydediliyor": "Kaydediliyor…",
+      "vazgec": "Geri",
+      "kaydedilemedi": "Fatura bilgileri kaydedilemedi. Lütfen tekrar dene.",
+      "kvkkNotu": "Bu bilgiler yalnızca fatura düzenlemek için kullanılıyor ve hiçbir yerde yayımlanmıyor.",
+      "hata": {
+        "zorunlu": "Bu alan zorunlu.",
+        "gecersiz": "Girilen değer geçerli görünmüyor."
+      }
     }
   },
   "pricing": {

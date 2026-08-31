@@ -98,6 +98,7 @@ model User {
   addedInboxSenders         BusinessInboxSender[]
   createdIntegrations       IntegrationConnection[]  @relation("IntegrationConnections")
   subscription              Subscription?
+  billingProfile            BillingProfile?
 
   @@index([deletedAt])
 }
@@ -2297,6 +2298,46 @@ enum PaymentStatus {
   PENDING
   SUCCEEDED
   FAILED
+}
+
+enum BillingProfileType {
+  INDIVIDUAL
+  CORPORATE
+}
+
+/// FATURA KIMLIK BILGISI.
+///
+/// 🔴 Odeme calisiyordu ama fatura kesilebilecek hicbir bilgi
+/// toplanmiyordu: PayTR token'ina `user_address` ve `user_phone`
+/// olarak "Belirtilmedi" gidiyordu.
+///
+/// 🔴 KVKK -- yalniz faturanin gerektirdigi alanlar. TCKN ISTEGE
+/// BAGLI (urun sahibi karari, 31.08.2026); bos birakilirsa fatura
+/// nihai tuketici olarak duzenlenir. TCKN ve VKN hicbir herkese acik
+/// yanitta, gunlukte ya da hata mesajinda gecmez.
+///
+/// ⚠️ Abonelik basina DEGIL kullanici basina: abonelik iptal edilip
+/// yeniden baslatildiginda fatura bilgisi tekrar sorulmamali.
+model BillingProfile {
+  id        String             @id @default(uuid())
+  userId    Int                @unique
+  type      BillingProfileType @default(INDIVIDUAL)
+  /// Bireyselde ad soyad, kurumsalda ticari unvan.
+  title     String
+  /// Bireysel ve istege bagli. Kurumsalda her zaman null.
+  tckn      String?
+  /// Kurumsalda zorunlu.
+  vkn       String?
+  taxOffice String?
+  phone     String
+  address   String
+  city      String
+  district  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Subscription {

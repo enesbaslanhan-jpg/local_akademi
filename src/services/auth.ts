@@ -294,8 +294,18 @@ export async function authRoutes(fastify: FastifyInstance) {
       /* Üyelik durumu SAKLANMIYOR, her istekte türetiliyor — ödeme
          kaydı dahil. Saklasaydık, callback aboneliği aktive ettiğinde
          kullanıcının kaydı bayat kalır ve ödediği hâlde salt okunur
-         modda görünürdü. */
-      membership: hesaplaUyelikDurumu(found.createdAt, new Date(), undefined, found.subscription)
+         modda görünürdü.
+
+         🔴 `testCheckout` BURADA DA OLMAK ZORUNDA ve önceden yoktu.
+         Giriş ve kayıt yanıtları gönderiyordu ama `/me` göndermiyordu;
+         arayüz oturumu her sayfa yüklemesinde `/me`den tazelediği
+         için yönetici test kutusu SAYFA YENİLENİR YENİLENMEZ
+         kayboluyordu. Yani düğme yalnız girişten hemen sonraki
+         ekranda vardı. */
+      membership: {
+        ...hesaplaUyelikDurumu(found.createdAt, new Date(), undefined, found.subscription),
+        testCheckout: testOdemesiYapabilir(found.role),
+      }
     }
   })
 

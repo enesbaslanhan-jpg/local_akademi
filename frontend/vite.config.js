@@ -90,7 +90,20 @@ export default defineConfig({
       '/financial-cases': backendProxy,
       /* Pazaryeri entegrasyonlari (Trendyol vb.) */
       '/integrations': backendProxy,
-      '/marketplace': backendProxy
+      '/marketplace': backendProxy,
+      /*
+       * 🔴 ÖDEME. Bu satır YOKTU ve sonucu ölçüldü (31.08.2026):
+       * ödeme akışının tamamı geliştirmede sessizce çalışmıyordu.
+       *
+       * POST/PUT istekleri 404, GET istekleri ise Vite'ın SPA
+       * yedeğine düşüp 200 ile HTML dönüyordu — yani "başarılı" bir
+       * yanıt gibi görünüp JSON olmadığı için ayrı bir yerde
+       * patlıyordu. Üretimde Caddy her şeyi arka uca ilettiği için
+       * canlıda sorun görünmüyor; eksik yalnız burada.
+       *
+       * Yukarıdaki `/support` yorumunun anlattığı tuzağın aynısı.
+       */
+      '/payments': backendProxy
     }
   }
 })

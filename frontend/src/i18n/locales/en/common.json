@@ -766,9 +766,6 @@
       "nextPayment": "Next payment",
       "fromMonth": "From month {{month}}",
       "lockedPrice": "Your founder discount is permanent: even if the standard price rises, you always pay at least {{percent}}% less.",
-      "paymentAreaAria": "Payment area",
-      "securePaymentTitle": "Secure payment area",
-      "securePaymentDescription": "Payment setup is in progress. Once enabled, your card details will be requested here using PayTR’s secure form.",
       "securityNote": "PayTR processes your card details. They never reach LocalKarar servers and are not stored by us.",
       "consentBefore": "I have read and accept:",
       "terms": "the Terms of Use",
@@ -854,6 +851,33 @@
       "doluAciklama": "Your data is intact and exportable; start your membership to add new records.",
       "uyariAciklama": "You can start your membership now to continue without interruption.",
       "kapat": "Dismiss reminder"
+    },
+    "fatura": {
+      "aciklama": "Your invoice will be issued using these details. You enter them once; later payments will not ask again.",
+      "tip": "Invoice type",
+      "tipler": {
+        "INDIVIDUAL": "Individual",
+        "CORPORATE": "Company"
+      },
+      "unvanBireysel": "Full name",
+      "unvanKurumsal": "Company name",
+      "tckn": "Turkish ID number",
+      "tcknIpucu": "Optional. If you leave it empty, the invoice is issued to an end consumer.",
+      "vkn": "Tax identification number",
+      "vergiDairesi": "Tax office",
+      "telefon": "Phone",
+      "adres": "Address",
+      "il": "Province",
+      "ilce": "District",
+      "kaydetVeDevam": "Save and continue to payment",
+      "kaydediliyor": "Saving…",
+      "vazgec": "Back",
+      "kaydedilemedi": "Your invoice details could not be saved. Please try again.",
+      "kvkkNotu": "These details are used only to issue your invoice and are never published anywhere.",
+      "hata": {
+        "zorunlu": "This field is required.",
+        "gecersiz": "This value does not look valid."
+      }
     }
   },
   "pricing": {

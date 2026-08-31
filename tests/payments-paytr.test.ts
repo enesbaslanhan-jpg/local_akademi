@@ -40,6 +40,26 @@ function gecerliHash(merchantOid: string, status: string, tutar: string): string
     .digest('base64')
 }
 
+/*
+ * Dolu bir fatura kimliği — checkout'un varsayılan hâli.
+ *
+ * Modül kapsamında, çünkü hem paylaşılan sahte prisma hem de test
+ * beklentileri (PayTR'ye giden adres ve telefon) aynı değerleri
+ * okuyor.
+ */
+const FATURA_KIMLIGI = {
+  userId: 7,
+  type: 'INDIVIDUAL' as const,
+  title: 'Ayşe Yılmaz',
+  tckn: null,
+  vkn: null,
+  taxOffice: null,
+  phone: '5321112233',
+  address: 'Atatürk Caddesi No 12',
+  city: 'İstanbul',
+  district: 'Kadıköy',
+}
+
 /** Tek bir ödeme satırı tutan, durumu gerçekten değişen sahte prisma. */
 function sahtePrisma(baslangicDurumu: 'PENDING' | 'SUCCEEDED' = 'PENDING') {
   const durum = { deger: baslangicDurumu }
@@ -70,6 +90,18 @@ function sahtePrisma(baslangicDurumu: 'PENDING' | 'SUCCEEDED' = 'PENDING') {
       create: vi.fn(async () => { cagrilar.bildirim++; return {} }),
     },
     auditLog: { create: vi.fn(async () => ({})) },
+    /*
+     * Fatura kimliği varsayılan olarak DOLU.
+     *
+     * ⚠️ Boş bırakmak, bu dosyadaki bütün checkout testlerini
+     * 422 BILLING_PROFILE_REQUIRED'a düşürür ve onların neyi
+     * koruduğunu yitirirdi. Kapının kendisi kendi testinde
+     * `null` geçilerek sınanıyor.
+     */
+    billingProfile: {
+      findUnique: vi.fn(async () => FATURA_KIMLIGI),
+      upsert: vi.fn(async () => ({})),
+    },
   }
   return { prisma: prisma as never, cagrilar, durum }
 }
@@ -331,6 +363,7 @@ describe('satın alma başlatma', () => {
     ucretlendirmeBaslangici: string | null = null,
     rol = 'learner',
     fetchIslevi: typeof fetch = sahteFetch(),
+    faturaKimligi: unknown = FATURA_KIMLIGI,
   ) {
     const app = Fastify()
     /* `authenticate` gerçek JWT eklentisi yerine sahtelendi: sınanan
@@ -342,6 +375,10 @@ describe('satın alma başlatma', () => {
     p.userConsent = { createMany: vi.fn(async () => ({ count: 6 })) }
     p.subscription.upsert = vi.fn(async () => ({ id: 'abonelik-1' }))
     p.payment.create = vi.fn(async () => ({}))
+    p.billingProfile = {
+      findUnique: vi.fn(async () => faturaKimligi),
+      upsert: vi.fn(async () => ({})),
+    }
     await app.register(paymentRoutes, { prefix: '/payments', prisma, ucretlendirmeBaslangici, fetchIslevi })
     return { app, p }
   }
@@ -524,5 +561,155 @@ describe('ödeme hata kodları Cloudflare tarafından maskelenmiyor', () => {
 
   it('hata yolları 424 kullanıyor', () => {
     expect(kaynak).toContain('status(424)')
+  })
+})
+
+/*
+ * FATURA KİMLİK BİLGİSİ — SUNUCU KAPISI.
+ *
+ * 🔴 ÖLÇÜLEN EKSİK: ödeme çalışıyordu ama fatura kesilebilecek hiçbir
+ * bilgi toplanmıyordu. PayTR token'ına `user_address` ve `user_phone`
+ * olarak "Belirtilmedi" gidiyordu.
+ *
+ * Ürün sahibi formu ödeme panelinin İÇİNE koymayı seçti, ama bu
+ * testlerin konusu ön yüzün sırası DEĞİL: `/checkout` doğrudan da
+ * çağrılabilir. Kapı sunucuda değilse, ön yüzü atlayan bir istek yine
+ * fatura kesilemeyen bir tahsilat başlatır.
+ */
+/*
+ * FATURA KİMLİK BİLGİSİ — SUNUCU KAPISI.
+ *
+ * 🔴 ÖLÇÜLEN EKSİK: ödeme çalışıyordu ama fatura kesilebilecek hiçbir
+ * bilgi toplanmıyordu. PayTR token'ına `user_address` ve `user_phone`
+ * olarak "Belirtilmedi" gidiyordu.
+ *
+ * Ürün sahibi formu ödeme panelinin İÇİNE koymayı seçti, ama bu
+ * testlerin konusu ön yüzün sırası DEĞİL: `/checkout` doğrudan da
+ * çağrılabilir. Kapı sunucuda değilse, ön yüzü atlayan bir istek yine
+ * fatura kesilemeyen bir tahsilat başlatır.
+ */
+describe('fatura kimliği', () => {
+  const TAM = { period: 'monthly', sozlesmeOnayi: true, caymaFeragati: true, otomatikTahsilat: true }
+
+  function basariliFetch() {
+    return vi.fn(async () => new Response(JSON.stringify({ status: 'success', token: 'TOKEN123' }), {
+      status: 200, headers: { 'content-type': 'application/json' },
+    })) as unknown as typeof fetch
+  }
+
+  async function kur(faturaKimligi: unknown = FATURA_KIMLIGI, fetchIslevi: typeof fetch = basariliFetch()) {
+    process.env.PAYTR_TEST_MODE = 'true'
+    const app = Fastify()
+    app.decorate('authenticate', async (istek: any) => { istek.user = { id: 7, role: 'learner' } })
+    const { prisma } = sahtePrisma()
+    const p = prisma as any
+    p.user = { findUnique: vi.fn(async () => ({ id: 7, email: 'a@b.com', name: 'X' })) }
+    p.userConsent = { createMany: vi.fn(async () => ({ count: 6 })) }
+    p.subscription.upsert = vi.fn(async () => ({ id: 'abonelik-1' }))
+    p.payment.create = vi.fn(async () => ({}))
+    p.billingProfile.findUnique = vi.fn(async () => faturaKimligi)
+    await app.register(paymentRoutes, {
+      prefix: '/payments', prisma, ucretlendirmeBaslangici: '2026-01-01', fetchIslevi,
+    })
+    return { app, p }
+  }
+
+  it('🦷 fatura bilgisi YOKKEN satın alma REDDEDİLİYOR', async () => {
+    /* Ön yüzü atlayıp doğrudan çağıran istek. */
+    const { app, p } = await kur(null)
+    const yanit = await app.inject({ method: 'POST', url: '/payments/checkout', payload: TAM })
+
+    expect(yanit.statusCode).toBe(422)
+    expect(yanit.json().code).toBe('BILLING_PROFILE_REQUIRED')
+    expect(p.payment.create, 'fatura bilgisi yokken sipariş oluşmamalı').not.toHaveBeenCalled()
+  })
+
+  it('🔴 PayTR"ye "Belirtilmedi" DEĞİL gerçek adres ve telefon gidiyor', async () => {
+    const govdeler: string[] = []
+    const izleyen = (async (_url: string, secenek: any) => {
+      govdeler.push(String(secenek?.body ?? ''))
+      return new Response(JSON.stringify({ status: 'success', token: 'TOKEN123' }), {
+        status: 200, headers: { 'content-type': 'application/json' },
+      })
+    }) as unknown as typeof fetch
+
+    const { app } = await kur(FATURA_KIMLIGI, izleyen)
+    const yanit = await app.inject({ method: 'POST', url: '/payments/checkout', payload: TAM })
+
+    expect(yanit.statusCode).toBe(201)
+    /* urlencoded gövdede boşluk `+` olarak kodlanıyor; okunur hâle
+       getirmeden `İstanbul` ve adres aramak hep başarısız olurdu. */
+    const govde = decodeURIComponent(govdeler[0].split('+').join(' '))
+
+    expect(govde, 'yer tutucu kalmamalı').not.toContain('Belirtilmedi')
+    expect(govde).toContain('5321112233')
+    /* Adres tek satırda: adres, ilçe, il. */
+    expect(govde).toContain('Atatürk Caddesi No 12, Kadıköy, İstanbul')
+    /* Ad hesap adından DEĞİL fatura kimliğinden geliyor: fatura kime
+       kesilecekse PayTR'ye giden ad da o olmalı. Kurumsalda bu,
+       kişinin adı değil ticari unvan. */
+    expect(govde).toContain('Ayşe Yılmaz')
+  })
+
+  it('kayıt yokken 404 DEĞİL, boş dönüyor', async () => {
+    /* "Henüz doldurmadın" bir hata değil, formun ilk hâli. 404
+       dönmek arayüzü hata gösterip formu gizlemeye iterdi. */
+    const { app } = await kur(null)
+    const yanit = await app.inject({ method: 'GET', url: '/payments/fatura-kimligi' })
+
+    expect(yanit.statusCode).toBe(200)
+    expect(yanit.json().faturaKimligi).toBeNull()
+  })
+
+  it('geçersiz gövde ALAN ALAN hata dönüyor', async () => {
+    const { app } = await kur()
+    const yanit = await app.inject({
+      method: 'PUT',
+      url: '/payments/fatura-kimligi',
+      payload: { tip: 'INDIVIDUAL', unvan: 'A' },
+    })
+
+    expect(yanit.statusCode).toBe(422)
+    expect(yanit.json().code).toBe('BILLING_PROFILE_INVALID')
+    /* Tek bir "form hatalı" mesajı hangi kutunun düzeltileceğini
+       söylemez. */
+    expect(Object.keys(yanit.json().hatalar)).toContain('adres')
+  })
+
+  it('🔴 hata yanıtı gönderilen KİMLİK NUMARASINI yankılamıyor', async () => {
+    /* Yankılamak, o değerin proxy günlüklerine ve hata izlemesine
+       düşmesi demek olurdu. */
+    const { app } = await kur()
+    const yanit = await app.inject({
+      method: 'PUT',
+      url: '/payments/fatura-kimligi',
+      payload: { tip: 'INDIVIDUAL', unvan: 'A', tckn: '12345678901' },
+    })
+
+    expect(yanit.body).not.toContain('12345678901')
+  })
+
+  it('geçerli kurumsal gövde kaydediliyor', async () => {
+    const { app, p } = await kur()
+    const yanit = await app.inject({
+      method: 'PUT',
+      url: '/payments/fatura-kimligi',
+      payload: {
+        tip: 'CORPORATE',
+        unvan: 'Örnek Ticaret Limited Şirketi',
+        vkn: '1234567890',
+        vergiDairesi: 'Kadıköy',
+        telefon: '0532 111 22 33',
+        adres: 'Atatürk Caddesi No 12',
+        il: 'İstanbul',
+        ilce: 'Kadıköy',
+      },
+    })
+
+    expect(yanit.statusCode).toBe(200)
+    expect(p.billingProfile.upsert).toHaveBeenCalledTimes(1)
+    const yazilan = p.billingProfile.upsert.mock.calls[0][0].update
+    expect(yazilan.vkn).toBe('1234567890')
+    expect(yazilan.phone, '+90 ve baştaki 0 atılmalı').toBe('5321112233')
   })
 })

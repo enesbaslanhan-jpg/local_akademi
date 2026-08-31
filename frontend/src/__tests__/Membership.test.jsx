@@ -222,13 +222,32 @@ describe('ödeme paneli', () => {
     expect(dugme, 'üç onay birden verilince açılır').toBeEnabled()
   })
 
-  it('ödeme paneli ticari belgelere bağlantı veriyor', () => {
+  /*
+   * 🔴 BELGELER PANELDEN ÇIKMADAN OKUNUYOR (31.08.2026).
+   *
+   * Önceden `target="_blank"` bağlantılardı ve ürün sahibi bildirdi:
+   * "metinleri okuyup geri dönünce sayfa gidiyor, içinde açılması
+   * gerek değil mi". Onaylar panelin durumunda; metni okumak için
+   * paneli terk etmek, işaretlenmiş üç kutuyu kaybetmekti.
+   *
+   * Test artık ADRES değil ERİŞİM sınıyor: belgeye ulaşan bir eylem
+   * var mı, ve metin PANELİN İÇİNDE mi açılıyor. Adrese çakılı bir
+   * test, doğru çalışan bu akış yüzünden düşerdi.
+   */
+  it('ödeme paneli ticari belgelere erişim veriyor', async () => {
+    const kullanici = userEvent.setup()
     sar(<MembershipModal open onClose={() => {}} />)
 
-    const hedefler = screen.getAllByRole('link').map(a => a.getAttribute('href'))
-    expect(hedefler).toContain('/mesafeli-satis')
-    expect(hedefler).toContain('/on-bilgilendirme')
-    expect(hedefler).toContain('/terms')
+    for (const ad of [/mesafeli hizmet/i, /ön bilgilendirme/i, /kullanım koşulları/i]) {
+      expect(screen.getByRole('button', { name: ad }), `${ad} erişilebilir olmalı`).toBeInTheDocument()
+    }
+
+    await kullanici.click(screen.getByRole('button', { name: /mesafeli hizmet/i }))
+
+    /* 🦷 Metin panelden ÇIKMADAN açılmalı: ödeme paneli hâlâ ekranda. */
+    expect(screen.getByText(/öde ve üyeliği başlat/i)).toBeInTheDocument()
+    expect(screen.queryAllByRole('link').map(a => a.getAttribute('href')))
+      .not.toContain('/mesafeli-satis')
   })
 })
 
@@ -280,5 +299,78 @@ describe('ödeme giriş noktası', () => {
        Ayarlar arasında dönüp duruyordu. */
     expect(screen.getByText(/ücretlendirme başladığında/i)).toBeInTheDocument()
     expect(screen.getByText(/haber vereceğiz/i)).toBeInTheDocument()
+  })
+})
+
+/*
+ * ÜST ÜSTE PENCERELER — ESCAPE YALNIZ EN ÜSTTEKİNİ KAPATIR.
+ *
+ * 🔴 ÖLÇÜLEN ARIZA (31.08.2026). Her `Modal` Escape dinleyicisini
+ * `document`e bağlıyordu. Ödeme panelinin üstünde yasal metin
+ * açıkken tek bir Escape İKİSİNİ BİRDEN kapatıyordu: kullanıcı
+ * metni kapatmak isterken işaretlediği üç onayı da kaybediyordu.
+ *
+ * Bu, ürün sahibinin "metinleri okuyup geri dönünce sayfa gidiyor"
+ * şikâyetinin metni panelin içine aldıktan sonraki hâli olurdu —
+ * yani sorunu çözerken yerine yenisini koymak.
+ */
+describe('yasal metin panelin içinde', () => {
+  it('🦷 Escape ÜSTTEKİ metni kapatır, ödeme panelini AYAKTA bırakır', async () => {
+    const kullanici = userEvent.setup()
+    sar(<MembershipModal open onClose={() => {}} />)
+
+    /* Onaylar işaretleniyor: kaybolup kaybolmadıkları ölçülecek. */
+    for (const kutu of screen.getAllByRole('checkbox')) await kullanici.click(kutu)
+
+    await kullanici.click(screen.getByRole('button', { name: /mesafeli hizmet/i }))
+    expect(screen.getAllByRole('dialog')).toHaveLength(2)
+
+    await kullanici.keyboard('{Escape}')
+
+    const kalan = screen.getAllByRole('dialog')
+    expect(kalan, 'yalnız üstteki kapanmalı').toHaveLength(1)
+    /* 🔴 Asıl korunan şey bu: onaylar duruyor. */
+    for (const kutu of screen.getAllByRole('checkbox')) expect(kutu).toBeChecked()
+  })
+})
+
+/*
+ * 🔴 PENCERE KAPANINCA SAYFA YENİDEN KAYDIRILABİLMELİ.
+ *
+ * ÖLÇÜLEN ARIZA (01.09.2026) ve ürün sahibi yakaladı: "sayfalar
+ * aşağı yukarı oynamıyor". Hiçbir pencere açık olmadığı hâlde
+ * `body.style.overflow` `hidden` takılı kalıyordu.
+ *
+ * Sebep: her `Modal` açılıştaki `overflow` değerini KENDİ içinde
+ * saklıyordu. Tek pencere varken bu hep `''` oluyor ve sorun
+ * görünmüyordu. Yasal metin ödeme panelinin YANINA konunca iki
+ * pencere birden açılabilir hâle geldi; araya bir yeniden çizim
+ * girdiğinde React önce bütün temizlikleri sonra bütün etkileri
+ * çalıştırdığı için, dıştaki pencere içtekinin bıraktığı `hidden`ı
+ * yakalıyor ve kapanırken geri yazıyordu.
+ *
+ * 🦷 Bu test tam o sırayı kuruyor: iki pencere aç, üsttekini kapat,
+ * alttakini kapat, sayfanın serbest kaldığını doğrula.
+ */
+describe('pencere kapanınca sayfa kaydırması', () => {
+  it('🦷 iki pencere açılıp kapandıktan sonra body serbest kalıyor', async () => {
+    const kullanici = userEvent.setup()
+    const baslangic = document.body.style.overflow
+
+    const { unmount } = sar(<MembershipModal open onClose={() => {}} />)
+
+    expect(document.body.style.overflow, 'panel açıkken kilitli').toBe('hidden')
+
+    await kullanici.click(screen.getByRole('button', { name: /mesafeli hizmet/i }))
+    expect(document.body.style.overflow, 'iki pencere açıkken kilitli').toBe('hidden')
+
+    await kullanici.keyboard('{Escape}')
+    /* Alttaki panel HÂLÂ açık: kilit sürmeli, yoksa sayfa panelin
+       arkasından kaydırılırdı. */
+    expect(document.body.style.overflow, 'panel duruyorken kilit sürmeli').toBe('hidden')
+
+    unmount()
+
+    expect(document.body.style.overflow, 'hiçbir pencere yokken serbest').toBe(baslangic)
   })
 })

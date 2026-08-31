@@ -8,6 +8,7 @@ import { randomUUID } from 'node:crypto'
 import { BILLING_CURRENCY, BILLING_STARTS_AT, ilkUcretliTutar } from '../../config/billing'
 import { LEGAL_DOCUMENTS } from '../../config/legal-documents'
 import { callbackHashDogrula, iframeTokenAl, odemeCercevesiAdresi, paytrYapilandirmasi, siparisNumarasiUret } from './paytr'
+import { faturaKimligiDogrula, paytrAdresi } from './fatura-kimlik'
 
 /*
  * ÖDEME ROTALARI — PayTR callback'i
@@ -112,6 +113,95 @@ export async function paymentRoutes(
   })
 
   /*
+   * FATURA KİMLİK BİLGİSİ — okuma ve yazma.
+   *
+   * 🔴 Bu uç OLMADAN ödeme çalışıyordu ama fatura kesilemiyordu:
+   * PayTR token'ına `user_address` ve `user_phone` olarak
+   * "Belirtilmedi" gidiyordu.
+   *
+   * Kullanıcı BAŞINA saklanıyor (abonelik başına değil): abonelik
+   * iptal edilip yeniden başlatıldığında bilgi tekrar sorulmasın.
+   */
+  fastify.get('/fatura-kimligi', async (request, reply) => {
+    const userId = (request as any).user?.id as number
+    const kayit = await prisma.billingProfile.findUnique({ where: { userId } })
+
+    /* Kayıt yoksa 404 DEĞİL: "henüz doldurmadın" bir hata değil,
+       formun ilk hâli. 404 dönmek arayüzü hata gösterip formu
+       gizlemeye iterdi. */
+    if (!kayit) return reply.send({ faturaKimligi: null })
+
+    return reply.send({
+      faturaKimligi: {
+        tip: kayit.type,
+        unvan: kayit.title,
+        tckn: kayit.tckn,
+        vkn: kayit.vkn,
+        vergiDairesi: kayit.taxOffice,
+        telefon: kayit.phone,
+        adres: kayit.address,
+        il: kayit.city,
+        ilce: kayit.district,
+      },
+    })
+  })
+
+  fastify.put('/fatura-kimligi', {
+    config: { rateLimit: { max: 30, timeWindow: '1 hour' } },
+  }, async (request, reply) => {
+    const userId = (request as any).user?.id as number
+    const sonuc = faturaKimligiDogrula((request.body ?? {}) as Record<string, unknown>)
+
+    if (!sonuc.ok) {
+      /*
+       * ⚠️ Hatalar ALAN ALAN dönüyor. Tek bir "form hatalı" mesajı,
+       * kullanıcıya hangi kutuyu düzelteceğini söylemez.
+       *
+       * 🔴 Gövde yanıtta YANKILANMIYOR: gönderilen TCKN/VKN'yi geri
+       * yazmak, o değerin proxy günlüklerine ve hata izlemesine
+       * düşmesi demek olurdu.
+       */
+      return reply.status(422).send({
+        error: 'Fatura bilgileri eksik veya hatalı.',
+        code: 'BILLING_PROFILE_INVALID',
+        hatalar: sonuc.hatalar,
+      })
+    }
+
+    const d = sonuc.deger!
+    const alanlar = {
+      type: d.tip,
+      title: d.unvan,
+      tckn: d.tckn,
+      vkn: d.vkn,
+      taxOffice: d.vergiDairesi,
+      phone: d.telefon,
+      address: d.adres,
+      city: d.il,
+      district: d.ilce,
+    }
+
+    await prisma.billingProfile.upsert({
+      where: { userId },
+      create: { userId, ...alanlar },
+      update: alanlar,
+    })
+
+    /* 🔴 Denetim kaydına DEĞERLER yazılmıyor, yalnız olayın kendisi.
+       Kimlik numarasını denetim kaydına düşürmek, onu okuma yetkisi
+       olan herkese açmak olurdu. */
+    await createAuditLog({
+      action: 'billing_profile.updated',
+      entityType: 'billing_profile',
+      entityId: userId,
+      actorId: userId,
+      metadata: { provider: 'paytr' },
+    }, prisma)
+
+    return reply.send({ ok: true })
+  })
+
+  /*
    * SATIN ALMA BAŞLATMA.
    *
    * 🔴 ONAYLAR ÖDEMEDEN ÖNCE YAZILIYOR. Sonra yazmak iki şeyi birden
@@ -180,6 +270,22 @@ export async function paymentRoutes(
     })
     if (!kullanici) return reply.status(404).send({ error: 'Kullanıcı bulunamadı.' })
 
+    /*
+     * 🔴 FATURA BİLGİSİ OLMADAN ÖDEME BAŞLAMAZ.
+     *
+     * Ön yüz formu ödemeden önceki adım olarak gösteriyor, ama kapı
+     * BURADA: `/checkout` doğrudan da çağrılabilir ve o zaman yine
+     * fatura kesilemeyen bir tahsilat yapılırdı. Ön yüzün sırasına
+     * güvenmek, kapıyı olmayan bir yere koymak olurdu.
+     */
+    const faturaKimligi = await prisma.billingProfile.findUnique({ where: { userId } })
+    if (!faturaKimligi) {
+      return reply.status(422).send({
+        error: 'Fatura bilgileri eksik.',
+        code: 'BILLING_PROFILE_REQUIRED',
+      })
+    }
+
     /* Onaylar — sürümler `LEGAL_DOCUMENTS`ten okunuyor; elle yazmak
        metin sürümü artınca sessizce eski sürümü kaydetmek olurdu. */
     const bugununSurumu = (tip: string) =>
@@ -225,12 +331,22 @@ export async function paymentRoutes(
       urunAdi: 'LocalKarar Uyelik',
       basariliUrl: `${taban}/app/odeme/basarili?siparis=${merchantOid}`,
       basarisizUrl: `${taban}/app/odeme/basarisiz?siparis=${merchantOid}`,
-      kullaniciAdi: kullanici.name || 'LocalKarar Uyesi',
-      /* Fatura kimlik formu henüz yok (sonraki tur); PayTR bu alanları
-         zorunlu tuttuğu için yer tutucu geçiliyor. Form geldiğinde
-         gerçek değerler buraya bağlanacak. */
-      kullaniciAdres: 'Belirtilmedi',
-      kullaniciTelefon: 'Belirtilmedi',
+      /* Fatura kimliğinden geliyor — hesap adından DEĞİL. Fatura
+         kime kesilecekse PayTR'ye giden ad da o olmalı; kurumsalda
+         bu, kişinin adı değil ticari unvan. */
+      kullaniciAdi: faturaKimligi.title,
+      kullaniciAdres: paytrAdresi({
+        tip: faturaKimligi.type,
+        unvan: faturaKimligi.title,
+        tckn: faturaKimligi.tckn,
+        vkn: faturaKimligi.vkn,
+        vergiDairesi: faturaKimligi.taxOffice,
+        telefon: faturaKimligi.phone,
+        adres: faturaKimligi.address,
+        il: faturaKimligi.city,
+        ilce: faturaKimligi.district,
+      }),
+      kullaniciTelefon: faturaKimligi.phone,
     }, fetchIslevi)
 
     if (!sonuc.ok) {

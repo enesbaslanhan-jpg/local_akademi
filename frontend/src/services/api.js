@@ -671,6 +671,26 @@ export const api = {
         body: JSON.stringify({ period, sozlesmeOnayi, caymaFeragati, otomatikTahsilat }),
       });
     },
+    /*
+     * FATURA KIMLIK BILGISI.
+     *
+     * 🔴 Kayit yoksa sunucu 404 DEGIL `{ faturaKimligi: null }` doner.
+     * "Henuz doldurmadin" bir hata degil, formun ilk hali.
+     */
+    async faturaKimligiOku() {
+      return api.request('/payments/fatura-kimligi');
+    },
+    /*
+     * 422 donerse yanit `hatalar` alaninda ALAN ALAN hata tasiyor;
+     * cagiran onu kutularin altina yaziyor. Tek bir "form hatali"
+     * mesaji hangi kutunun duzeltilecegini soylemez.
+     */
+    async faturaKimligiYaz(alanlar) {
+      return api.request('/payments/fatura-kimligi', {
+        method: 'PUT',
+        body: JSON.stringify(alanlar),
+      });
+    },
     /* Donus sayfasi durumu SORAR, karar VERMEZ: aktivasyon yalnizca
        callback'te olur (bkz. OdemeSonucPage). */
     async durum(merchantOid) {
