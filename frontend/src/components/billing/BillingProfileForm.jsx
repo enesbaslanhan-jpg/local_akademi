@@ -111,111 +111,132 @@ export default function BillingProfileForm({ baslangic, onKaydedildi, onVazgec }
     }
   }
 
+  /*
+   * 🔴 İKİ SÜTUN — form kaymasın diye.
+   *
+   * Ürün sahibi ödeme paneli için "kaymayacak bir tasarım" istemişti
+   * ve form ayrı bir görünüm olduğu için ilk turda tek sütun kalmıştı;
+   * o da kayıyordu. Satır satır kırpmak yetmedi (aralık daralttım,
+   * alanları çiftledim — hâlâ kayıyordu), çünkü sorun boşlukta değil
+   * SATIR SAYISINDAYDI: sekiz blok alt alta duruyordu.
+   *
+   * Bölme, alanların doğal gruplarını izliyor: solda KİM (fatura tipi,
+   * unvan, kimlik/vergi bilgisi), sağda NEREDE ve NASIL ULAŞILIR
+   * (telefon, adres, il, ilçe). Her iki tipte de en fazla dört satır.
+   *
+   * Dar ekranda tek sütuna iniyor; orada kaydırma normal.
+   */
   return (
     <form className={styles.form} onSubmit={kaydet} noValidate>
       <p className={styles.giris}>{t('billing.fatura.aciklama')}</p>
 
-      <fieldset className={styles.tipSecim}>
-        <legend className={styles.etiket}>{t('billing.fatura.tip')}</legend>
-        {['INDIVIDUAL', 'CORPORATE'].map(tip => (
-          <label key={tip} className={d.tip === tip ? styles.tipSecili : styles.tipSecenek}>
-            <input
-              type="radio"
-              name="tip"
-              value={tip}
-              checked={d.tip === tip}
-              onChange={() => degis('tip', tip)}
+      <div className={styles.izgara}>
+        <div className={styles.sutun}>
+          <fieldset className={styles.tipSecim}>
+            <legend className={styles.etiket}>{t('billing.fatura.tip')}</legend>
+            {['INDIVIDUAL', 'CORPORATE'].map(tip => (
+              <label key={tip} className={d.tip === tip ? styles.tipSecili : styles.tipSecenek}>
+                <input
+                  type="radio"
+                  name="tip"
+                  value={tip}
+                  checked={d.tip === tip}
+                  onChange={() => degis('tip', tip)}
+                />
+                {t(`billing.fatura.tipler.${tip}`)}
+              </label>
+            ))}
+          </fieldset>
+
+          <Alan
+            ad="unvan"
+            etiket={kurumsal ? t('billing.fatura.unvanKurumsal') : t('billing.fatura.unvanBireysel')}
+            deger={d.unvan}
+            onDegis={degis}
+            hata={hatalar.unvan}
+            autoComplete={kurumsal ? 'organization' : 'name'}
+            maxLength={140}
+          />
+
+          {kurumsal ? (
+            <>
+              <Alan
+                ad="vkn"
+                etiket={t('billing.fatura.vkn')}
+                deger={d.vkn}
+                onDegis={degis}
+                hata={hatalar.vkn}
+                inputMode="numeric"
+                maxLength={10}
+              />
+              <Alan
+                ad="vergiDairesi"
+                etiket={t('billing.fatura.vergiDairesi')}
+                deger={d.vergiDairesi}
+                onDegis={degis}
+                hata={hatalar.vergiDairesi}
+                maxLength={80}
+              />
+            </>
+          ) : (
+            <Alan
+              ad="tckn"
+              etiket={t('billing.fatura.tckn')}
+              deger={d.tckn}
+              onDegis={degis}
+              hata={hatalar.tckn}
+              /* İsteğe bağlı olduğu ALANIN ALTINDA yazılı. Yıldızsız
+                 bırakıp susmak, kullanıcıya zorunlu sandırırdı. */
+              ipucu={t('billing.fatura.tcknIpucu')}
+              inputMode="numeric"
+              maxLength={11}
             />
-            {t(`billing.fatura.tipler.${tip}`)}
-          </label>
-        ))}
-      </fieldset>
-
-      <Alan
-        ad="unvan"
-        etiket={kurumsal ? t('billing.fatura.unvanKurumsal') : t('billing.fatura.unvanBireysel')}
-        deger={d.unvan}
-        onDegis={degis}
-        hata={hatalar.unvan}
-        autoComplete={kurumsal ? 'organization' : 'name'}
-        maxLength={140}
-      />
-
-      {kurumsal ? (
-        <div className={styles.ikili}>
-          <Alan
-            ad="vkn"
-            etiket={t('billing.fatura.vkn')}
-            deger={d.vkn}
-            onDegis={degis}
-            hata={hatalar.vkn}
-            inputMode="numeric"
-            maxLength={10}
-          />
-          <Alan
-            ad="vergiDairesi"
-            etiket={t('billing.fatura.vergiDairesi')}
-            deger={d.vergiDairesi}
-            onDegis={degis}
-            hata={hatalar.vergiDairesi}
-            maxLength={80}
-          />
+          )}
         </div>
-      ) : (
-        <Alan
-          ad="tckn"
-          etiket={t('billing.fatura.tckn')}
-          deger={d.tckn}
-          onDegis={degis}
-          hata={hatalar.tckn}
-          /* İsteğe bağlı olduğu ALANIN ALTINDA yazılı. Yıldızsız
-             bırakıp susmak, kullanıcıya zorunlu sandırırdı. */
-          ipucu={t('billing.fatura.tcknIpucu')}
-          inputMode="numeric"
-          maxLength={11}
-        />
-      )}
 
-      <Alan
-        ad="telefon"
-        etiket={t('billing.fatura.telefon')}
-        deger={d.telefon}
-        onDegis={degis}
-        hata={hatalar.telefon}
-        type="tel"
-        autoComplete="tel"
-        placeholder="05XX XXX XX XX"
-      />
+        <div className={styles.sutun}>
+          <Alan
+            ad="telefon"
+            etiket={t('billing.fatura.telefon')}
+            deger={d.telefon}
+            onDegis={degis}
+            hata={hatalar.telefon}
+            type="tel"
+            autoComplete="tel"
+            placeholder="05XX XXX XX XX"
+          />
 
-      <Alan
-        ad="adres"
-        etiket={t('billing.fatura.adres')}
-        deger={d.adres}
-        onDegis={degis}
-        hata={hatalar.adres}
-        autoComplete="street-address"
-        maxLength={400}
-      />
+          <Alan
+            ad="adres"
+            etiket={t('billing.fatura.adres')}
+            deger={d.adres}
+            onDegis={degis}
+            hata={hatalar.adres}
+            autoComplete="street-address"
+            maxLength={400}
+          />
 
-      <div className={styles.ikili}>
-        <Alan
-          ad="il"
-          etiket={t('billing.fatura.il')}
-          deger={d.il}
-          onDegis={degis}
-          hata={hatalar.il}
-          autoComplete="address-level1"
-          maxLength={80}
-        />
-        <Alan
-          ad="ilce"
-          etiket={t('billing.fatura.ilce')}
-          deger={d.ilce}
-          onDegis={degis}
-          hata={hatalar.ilce}
-          autoComplete="address-level2"
-          maxLength={80}
-        />
+          <div className={styles.ikili}>
+            <Alan
+              ad="il"
+              etiket={t('billing.fatura.il')}
+              deger={d.il}
+              onDegis={degis}
+              hata={hatalar.il}
+              autoComplete="address-level1"
+              maxLength={80}
+            />
+            <Alan
+              ad="ilce"
+              etiket={t('billing.fatura.ilce')}
+              deger={d.ilce}
+              onDegis={degis}
+              hata={hatalar.ilce}
+              autoComplete="address-level2"
+              maxLength={80}
+            />
+          </div>
+        </div>
       </div>
 
       {genelHata && <p className={styles.genelHata} role="alert">{genelHata}</p>}

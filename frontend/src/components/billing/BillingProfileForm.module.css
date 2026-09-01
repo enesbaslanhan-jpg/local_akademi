@@ -5,10 +5,18 @@
  * DEĞİL. `MembershipModal.module.css` ile aynı gerekçe.
  */
 
+/*
+ * Dikey aralık 14 → 11px ve alanlar çiftlendi (bkz. jsx).
+ *
+ * Ürün sahibi ödeme paneli için "kaymayacak bir tasarım" istemişti;
+ * form ayrı bir görünüm olduğu için ilk turda tek sütun kalmış ve o
+ * da kayıyordu. Aralık, ödeme panelinin (13px) hemen altında:
+ * formda daha çok blok var.
+ */
 .form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 11px;
   min-width: 0;
 }
 
@@ -56,6 +64,35 @@
 }
 
 .tipSecim input { accent-color: var(--primary); }
+
+/* ---------- İki sütun ---------- */
+
+/*
+ * Solda KİM (fatura tipi, unvan, kimlik/vergi), sağda NEREDE ve NASIL
+ * ULAŞILIR (telefon, adres, il, ilçe). Her iki fatura tipinde de en
+ * fazla dört satır — tek sütunda sekiz bloktu ve panel kayıyordu.
+ *
+ * align-items: start — sütunlar birbirinin boyuna uzamıyor; kısa
+ * olan kendi yüksekliğinde kalıyor.
+ */
+.izgara {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.sutun {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  min-width: 0;
+}
+
+/* Dar ekranda tek sütun; orada kaydırma normal ve kaçınılmaz. */
+@media (max-width: 640px) {
+  .izgara { grid-template-columns: minmax(0, 1fr); gap: 11px; }
+}
 
 /* ---------- Alanlar ---------- */
 
