@@ -57,17 +57,18 @@ export default {
 
     {
       id: 'iptal',
-      baslik: '3. Üyeliğin iptali',
+      baslik: '3. Üyeliğin sona ermesi',
       paragraflar: [
-        'Üyeliğinizi dilediğiniz zaman, uygulama içinden Ayarlar → Üyelik ve ' +
-        'Faturalandırma bölümünden iptal edebilirsiniz.',
-        'İptal için tarafımızla iletişime geçmeniz, telefon etmeniz, bir form ' +
-        'doldurmanız veya gerekçe bildirmeniz gerekmez. İptal, üye olmak kadar kolaydır.',
-        'İptal ettiğinizde bedeli ödenmiş dönemin sonuna kadar erişiminiz sürer. Dönem ' +
-        'sonunda üyelik kendiliğinden sona erer ve yeni bir tahsilat yapılmaz.',
-        'Üyelik normalde dönem sonunda kendiliğinden yenilenir ve kayıtlı kartınızdan ' +
-        'tahsil edilir; iptal ettiğiniz anda bu otomatik yenileme durur. Yenilemeyi ' +
-        'durdurmak için başka bir işlem yapmanız gerekmez.'
+        'Üyeliğiniz, bedelini ödediğiniz dönemin sonunda sona erer. Otomatik yenileme ' +
+        'yoktur ve kartınız saklanmaz; sizin başlatmadığınız bir tahsilat yapılmaz.',
+        'Bu nedenle üyeliği bitirmek için tarafımızla iletişime geçmeniz, telefon ' +
+        'etmeniz, bir form doldurmanız veya gerekçe bildirmeniz gerekmez. Ödeme ' +
+        'yapmadığınızda üyelik kendiliğinden biter.',
+        'Bedeli ödenmiş dönemin sonuna kadar erişiminiz sürer. Sonrasında hesabınız ' +
+        'salt okunur moda geçer: verileriniz silinmez, görüntülenebilir ve dışa ' +
+        'aktarılabilir hâlde kalır.',
+        'Üyeliğinizi sürdürmek isterseniz Ayarlar → Üyelik ve Faturalandırma ' +
+        'bölümünden yeni dönemin bedelini dilediğiniz zaman ödeyebilirsiniz.'
       ]
     },
 

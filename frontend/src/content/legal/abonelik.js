@@ -22,21 +22,29 @@ import {
  * "Standart bedelin %40 altı" cümlesi, standart bedel gizliyken
  * ölçülemez bir vaattir.
  *
- * ✅ OTOMATİK YENİLEME KARARI VERİLDİ (30.08.2026, ürün sahibi).
+ * 🔴 OTOMATİK YENİLEMEDEN VAZGEÇİLDİ (01.09.2026, ürün sahibi).
  *
- * Bu dosya uzun süre "otomatik yenilenir denmiyor, karar verilmedi"
- * diyordu — ama metnin geri kalanı ("sonraki tahsilat", "tahsilat
- * gerçekleşmezse", "iptal edilince yeni tahsilat yapılmaz") otomatiği
- * zaten İMA EDİYORDU. Söylemeden ima etmek üç seçenek arasında en
- * kötüsüydü: kullanıcı ne olacağını bilmiyor, metin de kendi içinde
- * tutarsız kalıyordu.
+ * 30.08.2026'da otomatik yenileme kararı verilmişti ve bu dosyanın 4.
+ * bölümü ona göre yazılmıştı. O gün buraya şu uyarı da yazılmıştı:
  *
- * 🔴 BU BİR YETENEK BAĞIMLILIĞI TAŞIYOR.
- * Kayıtlı kartla tekrarlayan tahsilat, PayTR'de ayrı bir yetki (kart
- * saklama + Non-3D). Ödeme entegrasyonu yazılırken bu yetkinin
- * gerçekten verildiği DOĞRULANMALI. Verilmezse 4. bölüm elle
- * yenilemeye göre yeniden yazılıp sürüm artırılacak — metnin
- * yetenekten önce yayımlanması bu riski taşıyor ve bilinçli.
+ *   "Kayıtlı kartla tekrarlayan tahsilat, PayTR'de ayrı bir yetki.
+ *    Verilmezse 4. bölüm elle yenilemeye göre yeniden yazılıp sürüm
+ *    artırılacak — metnin yetenekten önce yayımlanması bu riski
+ *    taşıyor ve bilinçli."
+ *
+ * Risk gerçekleşti. PayTR'nin cevabı (01.09.2026): kayıtlı karttan
+ * tahsilat YALNIZ Direkt API + Non3D ile mümkün. O yol kart numarasını
+ * ve CVV'yi bizim sunucumuzdan geçirir; PCI-DSS kapsamı SAQ A'dan SAQ
+ * D'ye çıkar ve Non3D ile ters ibraz sorumluluğu satıcıya geçer.
+ * Gerçek kişi satıcı için bu yük kabul edilmedi.
+ *
+ * Sonuç: kart HİÇ saklanmıyor, tekrarlayan tahsilat YOK, kullanıcı her
+ * dönemi kendi başlatıyor. Dönem sonu davranışı zaten yazılıydı
+ * (salt okunur mod + kapatılamaz şerit), yani vaadin geri çekilmesi
+ * kullanıcıyı ortada bırakmıyor.
+ *
+ * ⚠️ Bu vaat DÖRT metne dağılmış durumda ve elle takip edilemez;
+ * `tests/yasal-metin-tutarliligi.test.ts` dördünü birden tarıyor.
  *
  * 🔴 Fiyatların hiçbiri elle yazılmadı; hepsi `config/billing.js`ten.
  */
@@ -109,26 +117,24 @@ export default {
 
     {
       id: 'yenileme',
-      baslik: '4. Otomatik yenileme',
+      baslik: '4. Dönem sonu ve yenileme',
       paragraflar: [
-        'Üyeliğiniz, siz iptal etmediğiniz sürece seçtiğiniz dönemin sonunda ' +
-        'KENDİLİĞİNDEN YENİLENİR ve kayıtlı ödeme yönteminizden otomatik olarak ' +
-        'tahsil edilir. Aylık dönem seçtiyseniz her ay, yıllık dönem seçtiyseniz ' +
-        'her yıl aynı gün tahsilat yapılır.',
-        'Yenilemenin yapılabilmesi için kartınız, ödeme kuruluşu PayTR nezdinde ' +
-        'saklanır. Kart numarası ve güvenlik kodu LocalKarar sunucularına ULAŞMAZ; ' +
-        'tarafımızda yalnızca kartın maskelenmiş son haneleri ve PayTR tarafından ' +
-        'verilen bir referans tutulur.',
-        'Kartınızın saklanmasına ve otomatik tahsilata, ödeme ekranında AYRI bir ' +
-        'onay kutusu işaretleyerek izin verirsiniz. Bu onayı vermezseniz üyelik ' +
-        'başlatılmaz.',
-        'Her tahsilattan önce, tahsilatın tarihi ve tutarı size uygulama içi ' +
-        'bildirim ve e-posta ile duyurulur.',
-        'İptal ettiğinizde otomatik yenileme derhal durur; ödemesi yapılmış dönemin ' +
-        'sonuna kadar erişiminiz sürer ve yeni bir tahsilat yapılmaz.',
-        'Kayıtlı kartınızı Ayarlar → Üyelik ve Faturalandırma bölümünden ' +
-        'değiştirebilir veya silebilirsiniz. Kartın silinmesi, üyeliğin dönem ' +
-        'sonunda sona ermesi anlamına gelir.'
+        'ÜYELİĞİNİZ DÖNEM SONUNDA SONA ERER. Otomatik yenileme yoktur; sizden ' +
+        'habersiz hiçbir tahsilat yapılmaz.',
+        'Kartınız saklanmaz. LocalKarar ne kart numaranızı ne de ödeme kuruluşunun ' +
+        'verdiği bir kart referansını tutar; ödeme bilgileriniz her ödemede yeniden ' +
+        'PayTR\'nin güvenli ödeme ekranına girilir. Bu nedenle sizin başlatmadığınız ' +
+        'bir tahsilat teknik olarak mümkün değildir.',
+        'Dönem bitmeden önce, bitiş tarihini uygulama içi bildirim ve e-posta ile ' +
+        'size hatırlatırız.',
+        'Üyeliğinizi sürdürmek isterseniz, Ayarlar → Üyelik ve Faturalandırma ' +
+        'bölümünden yeni dönemin bedelini kendiniz ödersiniz. Ödeme yapmanız için ' +
+        'geçerli bir süre sınırı yoktur; dilediğiniz zaman devam edebilirsiniz.',
+        'Ödeme yapmadığınızda hesabınız salt okunur moda geçer: verileriniz SİLİNMEZ, ' +
+        'görüntülenebilir ve dışa aktarılabilir hâlde kalır; yalnızca yeni kayıt ' +
+        'oluşturamaz ve mevcut kayıtlarınızı değiştiremezsiniz.',
+        'Üyeliği bitirmek için ayrıca bir işlem yapmanız gerekmez. Ödeme yapmadığınız ' +
+        'takdirde üyelik dönem sonunda sona erer.'
       ]
     },
 

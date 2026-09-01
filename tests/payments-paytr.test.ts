@@ -3,6 +3,7 @@ import Fastify from 'fastify'
 import { createHmac } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { paymentRoutes } from '../src/services/payments/routes.js'
+import { LEGAL_DOCUMENTS } from '../src/config/legal-documents.js'
 import {
   callbackHashDogrula,
   kurusaCevir,
@@ -383,7 +384,7 @@ describe('satın alma başlatma', () => {
     return { app, p }
   }
 
-  const TAM_ONAY = { period: 'monthly', sozlesmeOnayi: true, caymaFeragati: true, otomatikTahsilat: true }
+  const TAM_ONAY = { period: 'monthly', sozlesmeOnayi: true, caymaFeragati: true }
 
   it('🔴 ücretlendirme kapalıyken satın alma REDDEDİLİYOR', async () => {
     const { app, p } = await checkoutSunucusu()
@@ -395,13 +396,13 @@ describe('satın alma başlatma', () => {
     expect(p.userConsent.createMany, 'kapalıyken onay yazılmamalı').not.toHaveBeenCalled()
   })
 
-  it('🦷 ücretlendirme AÇIKKEN üç onaydan biri eksikse reddediliyor', async () => {
+  it('🦷 ücretlendirme AÇIKKEN iki onaydan biri eksikse reddediliyor', async () => {
     /* Ücretlendirme açılmış gibi kuruluyor; kapalıyken ilk kapı her
        isteği 409 ile döndürdüğü için onay kapısına hiç sıra gelmez ve
        test hiçbir şeyi korumazdı. */
     const { app, p } = await checkoutSunucusu('2026-01-01')
 
-    for (const eksik of ['sozlesmeOnayi', 'caymaFeragati', 'otomatikTahsilat']) {
+    for (const eksik of ['sozlesmeOnayi', 'caymaFeragati']) {
       const yuk: Record<string, unknown> = { ...TAM_ONAY }
       yuk[eksik] = false
       const yanit = await app.inject({ method: 'POST', url: '/payments/checkout', payload: yuk })
@@ -419,16 +420,53 @@ describe('satın alma başlatma', () => {
     expect(yanit.statusCode).toBe(201)
     expect(p.payment.create).toHaveBeenCalledTimes(1)
 
-    /* 🔴 Onaylar ödemeden ÖNCE ve ALTI kalem: dört ticari belge, cayma
-       feragati ve otomatik tahsilat izni. */
+    /*
+     * 🔴 Onaylar ödemeden ÖNCE ve BEŞ kalem: dört ticari belge ve
+     * cayma feragati.
+     *
+     * Altıncı kalem `otomatik-tahsilat-izni` idi ve 01.09.2026'da
+     * kaldırıldı: otomatik yenilemeden vazgeçildi, kart saklanmıyor.
+     * Yapılmayacak bir işlem için izin toplamak KVKK veri
+     * minimizasyonuna aykırı olurdu.
+     */
     const yazilan = p.userConsent.createMany.mock.calls[0][0].data
-    expect(yazilan).toHaveLength(6)
+    expect(yazilan).toHaveLength(5)
     expect(yazilan.map((o: any) => o.documentType)).toEqual(
       expect.arrayContaining(['mesafeli-satis', 'on-bilgilendirme', 'teslimat-iade',
-        'abonelik', 'cayma-feragati', 'otomatik-tahsilat-izni'])
+        'abonelik', 'cayma-feragati'])
     )
-    /* Sürüm elle yazılmıyor, LEGAL_DOCUMENTS'ten okunuyor. */
-    for (const o of yazilan) expect(o.version).not.toBe('bilinmiyor')
+    /* 🦷 Kaldırılan izin GERİ GELMEMELİ: kart saklamıyoruz. */
+    expect(yazilan.map((o: any) => o.documentType)).not.toContain('otomatik-tahsilat-izni')
+    /*
+     * 🔴 SÜRÜM `LEGAL_DOCUMENTS`TEN OKUNMALI, ELLE YAZILMAMALI.
+     *
+     * Neden önemli: bu dört belge `requiredAtSignup: false` olduğu
+     * için sürümleri arttığında onay şeridi ÇIKMAZ (`missingConsents`
+     * yalnız kayıt-zorunlu belgelere bakıyor). Yani sürüm artışının
+     * kayda geçmesinin TEK yolu, satın alma anında güncel sürümün
+     * yazılması. 01.09.2026'da dördü birden arttı.
+     *
+     * ⚠️ BU TEST "SÜRÜM ARTTI MI" DİYE SORMUYOR ve soramaz: iki taraf
+     * da aynı kaynağı okuyor, o yüzden sürümü değiştirmek ikisini
+     * birden değiştirir. Sürüm artışı editoryal bir karar, kod
+     * sözleşmesi değil.
+     *
+     * Yakaladığı şey: rotaya elle yazılmış bir sürüm ya da
+     * `'bilinmiyor'` yedeğine düşmüş bir kayıt. Diş kontrolü
+     * `bugununSurumu` yerine sabit bir tarih yazılarak yapıldı ve
+     * test düştü.
+     */
+    const guncelSurum = (tip: string) =>
+      LEGAL_DOCUMENTS.find(d => d.type === tip)?.version
+
+    for (const o of yazilan) {
+      expect(o.version, `${o.documentType} sürümü boş`).toBeTruthy()
+      expect(o.version).not.toBe('bilinmiyor')
+      /* Cayma feragati yasal belge değil; sürümünü `abonelik`ten
+         alıyor (routes.ts). */
+      const beklenen = guncelSurum(o.documentType) ?? guncelSurum('abonelik')
+      expect(o.version, `${o.documentType} güncel sürümü yazmalı`).toBe(beklenen)
+    }
   })
 
   it('yapılandırma yokken satın alma kapalı', async () => {
@@ -473,7 +511,7 @@ describe('test kipi kapısı', () => {
     return { app, p }
   }
 
-  const TAM = { period: 'monthly', sozlesmeOnayi: true, caymaFeragati: true, otomatikTahsilat: true }
+  const TAM = { period: 'monthly', sozlesmeOnayi: true, caymaFeragati: true }
 
   it('test kipi + admin GEÇER', async () => {
     const { app, p } = await kur('admin', true)
@@ -589,7 +627,7 @@ describe('ödeme hata kodları Cloudflare tarafından maskelenmiyor', () => {
  * fatura kesilemeyen bir tahsilat başlatır.
  */
 describe('fatura kimliği', () => {
-  const TAM = { period: 'monthly', sozlesmeOnayi: true, caymaFeragati: true, otomatikTahsilat: true }
+  const TAM = { period: 'monthly', sozlesmeOnayi: true, caymaFeragati: true }
 
   function basariliFetch() {
     return vi.fn(async () => new Response(JSON.stringify({ status: 'success', token: 'TOKEN123' }), {

@@ -100,12 +100,11 @@ export default {
         'Ödemeler, ödeme kuruluşu PayTR aracılığıyla kredi kartı veya banka kartı ile ' +
         'alınır. Kart bilgileri PayTR\'nin güvenli ödeme çerçevesinde girilir; Satıcı ' +
         'sunucularına ulaşmaz ve Satıcı tarafından saklanmaz.',
-        'ÜYELİK, ALICI İPTAL ETMEDİĞİ SÜRECE SEÇİLEN DÖNEMİN SONUNDA KENDİLİĞİNDEN ' +
-        'YENİLENİR ve kayıtlı karttan otomatik olarak tahsil edilir. Bu amaçla kart, ' +
-        'ödeme kuruluşu nezdinde saklanır; Alıcı buna ödeme ekranında ayrı ve açık bir ' +
-        'onayla izin verir, onay verilmeden üyelik başlatılmaz. Her tahsilattan önce ' +
-        'tarih ve tutar Alıcı\'ya bildirilir. Ayrıntı Abonelik ve Faturalandırma ' +
-        'Koşulları\'ndadır.'
+        'ÜYELİK, SEÇİLEN DÖNEMİN SONUNDA SONA ERER. Otomatik yenileme yoktur ve ' +
+        'Alıcı\'nın kartı saklanmaz; Satıcı, Alıcı\'nın başlatmadığı hiçbir tahsilat ' +
+        'yapamaz. Alıcı üyeliğini sürdürmek isterse yeni dönemin bedelini kendisi ' +
+        'öder. Dönemin bitiş tarihi, bitmeden önce Alıcı\'ya bildirilir. Ayrıntı ' +
+        'Abonelik ve Faturalandırma Koşulları\'ndadır.'
       ]
     },
 

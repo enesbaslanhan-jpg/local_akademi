@@ -181,24 +181,32 @@ describe('ödeme paneli', () => {
    * gömmek istisnanın dayanağını ortadan kaldırır — tek kutuyla
    * alınan feragat geçersiz sayılır.
    *
-   * ÜÇÜNCÜ KUTU: kart saklama ve otomatik tahsilat (30.08.2026
-   * kararı). Tekrarlayan tahsilat için kartın ödeme kuruluşunda
-   * saklanması gerekiyor; bu, sözleşmeyi okumaktan da feragatten de
-   * ayrı bir izin ve ayrı kutuda alınıyor.
+   * 🔴 ÜÇÜNCÜ KUTU KALDIRILDI (01.09.2026). Kart saklama ve otomatik
+   * tahsilat izni istiyordu; PayTR'nin cevabı üzerine otomatik
+   * yenilemeden vazgeçildi ve kart artık hiç saklanmıyor. Yapmadığımız
+   * bir işlem için izin toplamak KVKK veri minimizasyonuna aykırı.
    *
    * 🦷 Bu testler tam olarak o tasarımı koruyor: kutular birleştirilir
    * ya da CTA onaylardan bağımsız hâle gelirse düşerler.
    */
-  it('üç AYRI onay kutusu var — hiçbiri genel onaya gömülmemiş', () => {
+  it('İKİ AYRI onay kutusu var — feragat genel onaya gömülmemiş', () => {
     sar(<MembershipModal open onClose={() => {}} />)
 
-    const kutular = screen.getAllByRole('checkbox')
-    expect(kutular).toHaveLength(3)
+    expect(screen.getAllByRole('checkbox')).toHaveLength(2)
 
-    /* İkincisi yalnız feragati, üçüncüsü yalnız otomatik tahsilatı
-       anlatmalı — metinler ayrışırsa kutular da anlamını yitirir. */
+    /* İkincisi YALNIZ feragati anlatmalı — metinler ayrışırsa kutular
+       da anlamını yitirir. */
     expect(screen.getByText(/cayma hakkımı kaybedeceğimi biliyorum/i)).toBeInTheDocument()
-    expect(screen.getByText(/kayıtlı kartımdan otomatik tahsil edilmesini kabul ediyorum/i)).toBeInTheDocument()
+  })
+
+  it('🦷 kart saklama izni İSTENMİYOR', () => {
+    /* Kart saklanmıyor; bu izni sormak kullanıcıya yapmadığımız bir
+       şeyi onaylatmak olurdu. Yasal metinler de "kartınız saklanmaz"
+       diyor (tests/yasal-metin-tutarliligi.test.ts). */
+    sar(<MembershipModal open onClose={() => {}} />)
+
+    expect(screen.queryByText(/kayıtlı kart/i)).toBeNull()
+    expect(screen.queryByText(/otomatik tahsil/i)).toBeNull()
   })
 
   it('onaylar işaretlenmeden ödeme düğmesi açılmaz', async () => {
@@ -208,18 +216,15 @@ describe('ödeme paneli', () => {
     sar(<MembershipModal open onClose={() => {}} demoBasari />)
 
     const dugme = screen.getByRole('button', { name: /öde ve üyeliği başlat/i })
-    const [sozlesme, feragat, tahsilat] = screen.getAllByRole('checkbox')
+    const [sozlesme, feragat] = screen.getAllByRole('checkbox')
 
     expect(dugme).toBeDisabled()
 
     await kullanici.click(sozlesme)
-    expect(dugme, 'yalnız sözleşme onayı yetmez').toBeDisabled()
+    expect(dugme, 'yalnız sözleşme onayı yetmez — feragat ayrı').toBeDisabled()
 
     await kullanici.click(feragat)
-    expect(dugme, 'sözleşme + feragat de yetmez — tahsilat izni ayrı').toBeDisabled()
-
-    await kullanici.click(tahsilat)
-    expect(dugme, 'üç onay birden verilince açılır').toBeEnabled()
+    expect(dugme, 'iki onay birden verilince açılır').toBeEnabled()
   })
 
   /*
@@ -289,7 +294,7 @@ describe('ödeme giriş noktası', () => {
     await kullanici.click(screen.getByRole('button', { name: denemeMetni }))
 
     /* Panelin açıldığının kanıtı: üç onay kutusu ekranda. */
-    expect(screen.getAllByRole('checkbox')).toHaveLength(3)
+    expect(screen.getAllByRole('checkbox')).toHaveLength(2)
   })
 
   it('ücretlendirme kapalıyken bölüm ÇIKMAZ değil — sırada ne var yazılı', () => {

@@ -112,7 +112,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
        kararı) ve kurucu indirimi "en az %40" olarak düzeltildi —
        499 x 0,6 = 299,4 aşağı yuvarlandığı için gerçek indirim
        %40'ın biraz üstünde; "tam %40" demek yanlış beyandı. */
-    version: '2026-08-30',
+    version: '2026-09-01',
     requiredAtSignup: false
   },
   {
@@ -123,7 +123,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
        kararı) ve kurucu indirimi "en az %40" olarak düzeltildi —
        499 x 0,6 = 299,4 aşağı yuvarlandığı için gerçek indirim
        %40'ın biraz üstünde; "tam %40" demek yanlış beyandı. */
-    version: '2026-08-30',
+    version: '2026-09-01',
     requiredAtSignup: false
   },
   {
@@ -134,7 +134,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
        kararı) ve kurucu indirimi "en az %40" olarak düzeltildi —
        499 x 0,6 = 299,4 aşağı yuvarlandığı için gerçek indirim
        %40'ın biraz üstünde; "tam %40" demek yanlış beyandı. */
-    version: '2026-08-30',
+    version: '2026-09-01',
     requiredAtSignup: false
   },
   {
@@ -145,7 +145,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
        kararı) ve kurucu indirimi "en az %40" olarak düzeltildi —
        499 x 0,6 = 299,4 aşağı yuvarlandığı için gerçek indirim
        %40'ın biraz üstünde; "tam %40" demek yanlış beyandı. */
-    version: '2026-08-30',
+    version: '2026-09-01',
     requiredAtSignup: false
   }
 ]

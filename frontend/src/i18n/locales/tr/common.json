@@ -780,8 +780,7 @@
       "withdrawalWaiver": "Hizmetin derhal ifasına başlanmasını istiyorum ve bu nedenle cayma hakkımı kaybedeceğimi biliyorum.",
       "preparing": "Ödeme hazırlanıyor…",
       "initFailed": "Ödeme başlatılamadı. Lütfen tekrar deneyin.",
-      "frameTitle": "Güvenli ödeme formu",
-      "recurringConsent": "Üyeliğimin dönem sonunda kendiliğinden yenilenmesini ve kayıtlı kartımdan otomatik tahsil edilmesini kabul ediyorum. Kartım bu amaçla ödeme kuruluşunda saklanır; iptal ettiğimde yenileme durur."
+      "frameTitle": "Güvenli ödeme formu"
     },
     "pricePerYear": "{{price}} / yıl",
     "result": {

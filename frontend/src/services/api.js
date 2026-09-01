@@ -661,14 +661,18 @@ export const api = {
      * Satin alma baslatir: onaylari kaydeder, siparis olusturur ve
      * PayTR iFrame token'i doner.
      *
-     * 🔴 Uc onay da AYRI gonderiliyor. Sunucu ucunu de ayri ayri
-     * ariyor; tek bayraga indirmek, cayma feragatinin ve otomatik
-     * tahsilat izninin dayanagini ortadan kaldirirdi.
+     * 🔴 IKI onay da AYRI gonderiliyor. Sunucu ikisini de ayri ayri
+     * ariyor; tek bayraga indirmek cayma feragatinin dayanagini
+     * ortadan kaldirirdi.
+     *
+     * ⚠️ Ucuncu bir onay (otomatik tahsilat) vardi ve 01.09.2026'da
+     * KALDIRILDI: PayTR'nin cevabi uzerine otomatik yenilemeden
+     * vazgecildi, kart artik hic saklanmiyor.
      */
-    async checkout({ period, sozlesmeOnayi, caymaFeragati, otomatikTahsilat }) {
+    async checkout({ period, sozlesmeOnayi, caymaFeragati }) {
       return api.request('/payments/checkout', {
         method: 'POST',
-        body: JSON.stringify({ period, sozlesmeOnayi, caymaFeragati, otomatikTahsilat }),
+        body: JSON.stringify({ period, sozlesmeOnayi, caymaFeragati }),
       });
     },
     /*

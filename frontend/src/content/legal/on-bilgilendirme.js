@@ -194,16 +194,17 @@ export default {
       paragraflar: [
         'Üyelik belirsiz sürelidir ve seçtiğiniz dönem (aylık veya yıllık) boyunca ' +
         'geçerlidir.',
-        'ÜYELİĞİNİZ, İPTAL ETMEDİĞİNİZ SÜRECE DÖNEM SONUNDA KENDİLİĞİNDEN YENİLENİR ' +
-        've kayıtlı kartınızdan otomatik olarak tahsil edilir. Kartınızın ödeme ' +
-        'kuruluşu nezdinde saklanmasına ve otomatik tahsilata, ödeme ekranında ayrı ' +
-        'bir onay kutusu işaretleyerek izin verirsiniz. Her tahsilattan önce tarih ve ' +
-        'tutar size bildirilir.',
-        'Üyeliğinizi dilediğiniz zaman, uygulama içinden Ayarlar → Üyelik ve ' +
-        'Faturalandırma bölümünden iptal edebilirsiniz. İptal için tarafımızla ' +
-        'iletişime geçmeniz veya bir gerekçe bildirmeniz gerekmez.',
-        'İptal ettiğinizde, bedeli ödenmiş dönemin sonuna kadar erişiminiz sürer; ' +
-        'dönem sonunda üyelik kendiliğinden sona erer.'
+        'ÜYELİĞİNİZ DÖNEM SONUNDA SONA ERER. Otomatik yenileme yoktur ve kartınız ' +
+        'saklanmaz; sizin başlatmadığınız bir tahsilat yapılmaz. Dönemin bitiş ' +
+        'tarihi, bitmeden önce size bildirilir.',
+        'Üyeliğinizi sürdürmek isterseniz, Ayarlar → Üyelik ve Faturalandırma ' +
+        'bölümünden yeni dönemin bedelini kendiniz ödersiniz.',
+        'Üyeliği bitirmek için ayrıca bir işlem yapmanız, tarafımızla iletişime ' +
+        'geçmeniz veya gerekçe bildirmeniz gerekmez; ödeme yapmadığınızda üyelik ' +
+        'dönem sonunda sona erer.',
+        'Bedeli ödenmiş dönemin sonuna kadar erişiminiz sürer. Sonrasında hesabınız ' +
+        'salt okunur moda geçer; verileriniz silinmez, görüntülenebilir ve dışa ' +
+        'aktarılabilir hâlde kalır.'
       ]
     },
 

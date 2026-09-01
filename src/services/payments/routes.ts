@@ -72,7 +72,16 @@ const SATIN_ALMA_BELGELERI = [
  * serbest `String` olduğu için göç gerekmiyor.
  */
 const CAYMA_FERAGATI = 'cayma-feragati'
-const OTOMATIK_TAHSILAT = 'otomatik-tahsilat-izni'
+/*
+ * ⚠️ `OTOMATIK_TAHSILAT` KALDIRILDI (01.09.2026).
+ *
+ * PayTR'nin cevabı: kayıtlı karttan tahsilat yalnız Direkt API +
+ * Non3D ile mümkün ve o yol kart verisini bizim sunucumuzdan geçirir.
+ * Ürün sahibi otomatik yenilemeden vazgeçti; kart saklanmıyor.
+ *
+ * Yapılmayacak bir işlem için izin toplamak KVKK veri
+ * minimizasyonuna aykırı olurdu — onay sayısı ALTIDAN BEŞE indi.
+ */
 
 export async function paymentRoutes(
   fastify: FastifyInstance,
@@ -254,12 +263,12 @@ export async function paymentRoutes(
     /*
      * Üç onayın da açıkça verilmiş olması ŞART.
      *
-     * Ödeme ekranındaki üç kutu ile birebir aynı: sözleşmeler, cayma
-     * feragati, otomatik tahsilat izni. İkisini tek kutuya sıkıştırmak
-     * istisnanın dayanağını ortadan kaldırdığı için ayrılar; burada da
-     * ayrı ayrı aranıyorlar.
+     * Ödeme ekranındaki iki kutu ile birebir aynı: sözleşmeler ve
+     * cayma feragati. İkisini tek kutuya sıkıştırmak istisnanın
+     * dayanağını ortadan kaldırdığı için ayrılar; burada da ayrı ayrı
+     * aranıyorlar.
      */
-    if (govde.sozlesmeOnayi !== true || govde.caymaFeragati !== true || govde.otomatikTahsilat !== true) {
+    if (govde.sozlesmeOnayi !== true || govde.caymaFeragati !== true) {
       return reply.status(422).send({ error: 'Onaylar eksik.', code: 'CONSENTS_REQUIRED' })
     }
 
@@ -294,7 +303,6 @@ export async function paymentRoutes(
     const onaylar = [
       ...SATIN_ALMA_BELGELERI.map(tip => ({ documentType: tip, version: bugununSurumu(tip) })),
       { documentType: CAYMA_FERAGATI, version: bugununSurumu('mesafeli-satis') },
-      { documentType: OTOMATIK_TAHSILAT, version: bugununSurumu('abonelik') },
     ]
 
     await prisma.userConsent.createMany({

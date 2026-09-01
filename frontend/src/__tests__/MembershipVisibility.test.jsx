@@ -242,7 +242,10 @@ describe('kabuk üyelik şeridi', () => {
 
     await kullanici.click(screen.getByRole('button', { name: /üyeliği başlat/i }))
 
-    /* Panelin açıldığının kanıtı: üç onay kutusu ekranda. */
-    expect(screen.getAllByRole('checkbox')).toHaveLength(3)
+    /* Panelin açıldığının kanıtı: onay kutuları ekranda.
+
+       ⚠️ İKİ kutu — üçüncüsü (kart saklama izni) 01.09.2026'da
+       kaldırıldı, otomatik yenilemeden vazgeçildiği için. */
+    expect(screen.getAllByRole('checkbox')).toHaveLength(2)
   })
 })

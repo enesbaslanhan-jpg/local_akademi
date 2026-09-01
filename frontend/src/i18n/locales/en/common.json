@@ -780,8 +780,7 @@
       "withdrawalWaiver": "I want the service to begin immediately and I understand that I therefore lose my right of withdrawal.",
       "preparing": "Preparing payment…",
       "initFailed": "Payment could not be started. Please try again.",
-      "frameTitle": "Secure payment form",
-      "recurringConsent": "I agree that my membership renews automatically at the end of each period and is charged to my saved card. My card is stored with the payment provider for this purpose; renewal stops when I cancel."
+      "frameTitle": "Secure payment form"
     },
     "pricePerYear": "{{price}} / year",
     "result": {

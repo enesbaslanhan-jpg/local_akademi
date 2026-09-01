@@ -2345,18 +2345,32 @@ model Subscription {
   userId            Int                @unique
   status            SubscriptionStatus @default(TRIALING)
   period            BillingPeriod      @default(MONTHLY)
-  renewalMode       RenewalMode        @default(AUTO)
+  /// 🔴 VARSAYILAN MANUAL (01.09.2026). Otomatik yenilemeden
+  /// vazgecildi: PayTR'de kayitli karttan tahsilat yalniz Direkt API
+  /// + Non3D ile mumkun ve o yol kart verisini bizim sunucumuzdan
+  /// gecirir. AUTO degeri enum'da KALIYOR -- yetki ileride alinirsa
+  /// goc gerekmesin diye baslangictan beri oyle tasarlandi.
+  renewalMode       RenewalMode        @default(MANUAL)
   currentPeriodEnd  DateTime?
   /// Iptal edildi ama donem sonuna kadar erisim suruyor (urun sahibi
   /// karari: kismi iade yok, donem sonuna kadar devam).
   cancelAtPeriodEnd Boolean            @default(false)
   canceledAt        DateTime?
 
-  /// Kart BILGISI DEGIL, yalniz gosterim icin maskeli alanlar.
+  /// ⚠️ ASAGIDAKI UC ALAN BUGUN KULLANILMIYOR ve doldurulmuyor.
+  ///
+  /// Otomatik yenilemeden vazgecildigi icin (01.09.2026) kart HIC
+  /// saklanmiyor; yasal metinler de "kartiniz saklanmaz" diyor.
+  /// Sutunlar dusurulmedi cunku yikici bir goc gerektirir ve hicbir
+  /// sey kazandirmaz; yetki ileride alinirsa hazir duruyorlar.
+  ///
+  /// 🔴 BURAYA VERI YAZILMAYA BASLANIRSA yasal metinler ayni anda
+  /// guncellenmek ZORUNDA -- tests/yasal-metin-tutarliligi.test.ts
+  /// dort metni birden tariyor.
   cardBrand         String?
   cardLast4         String?
-  /// 🔴 Odeme kurulusunun kart referansi. DUZ METIN SAKLANMAZ --
-  /// `src/lib/crypto.ts` encryptSecret/decryptSecret (AES-256-GCM).
+  /// Odeme kurulusunun kart referansi. Kullanilirsa DUZ METIN
+  /// SAKLANMAZ -- `src/lib/crypto.ts` encryptSecret/decryptSecret.
   providerCardToken String?
 
   createdAt DateTime @default(now())

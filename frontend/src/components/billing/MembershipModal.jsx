@@ -138,7 +138,6 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
   const donem = 'monthly'
   const [sozlesmeOnayi, setSozlesmeOnayi] = useState(false)
   const [caymaFeragati, setCaymaFeragati] = useState(false)
-  const [otomatikTahsilat, setOtomatikTahsilat] = useState(false)
   /*
    * ÖDEME ÇERÇEVESİ.
    *
@@ -192,7 +191,7 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
   const sonraki = sonrakiOdemeTarihi()
   const gecisAyi = nihaiFiyataGecisAyi()
   /* Üçü de şart — gerekçe onay kutularının üstünde yazılı. */
-  const onaylarTam = sozlesmeOnayi && caymaFeragati && otomatikTahsilat
+  const onaylarTam = sozlesmeOnayi && caymaFeragati
 
   async function odemeBaslat() {
     /*
@@ -208,7 +207,7 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
     setHata(null)
     try {
       const sonuc = await api.payments.checkout({
-        period: donem, sozlesmeOnayi, caymaFeragati, otomatikTahsilat,
+        period: donem, sozlesmeOnayi, caymaFeragati,
       })
       /* Token gelmeden çerçeve AÇILMIYOR: boş bir iframe, kullanıcıya
          "bir şeyler oldu ama ne" hissi verir. */
@@ -234,7 +233,7 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
     setHata(null)
     try {
       const sonuc = await api.payments.checkout({
-        period: donem, sozlesmeOnayi, caymaFeragati, otomatikTahsilat,
+        period: donem, sozlesmeOnayi, caymaFeragati,
       })
       if (sonuc?.iframeUrl) setCerceveAdresi(sonuc.iframeUrl)
       else setHata(t('billing.modal.initFailed'))
@@ -254,7 +253,6 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
        önceki oturumun onayını devralmamalı. */
     setSozlesmeOnayi(false)
     setCaymaFeragati(false)
-    setOtomatikTahsilat(false)
     onClose?.()
   }
 
@@ -411,34 +409,24 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
           </label>
 
           {/*
-            * ÜÇÜNCÜ KUTU — kart saklama ve otomatik tahsilat.
+            * 🔴 ÜÇÜNCÜ KUTU KALDIRILDI (01.09.2026).
             *
-            * Ürün sahibi 30.08.2026'da yenilemenin OTOMATİK olmasına
-            * karar verdi. Tekrarlayan tahsilat, kullanıcının kartının
-            * saklanmasını gerektiriyor; bu, sözleşmeyi okumaktan da
-            * cayma hakkından da AYRI bir izin.
+            * Burada kart saklama ve otomatik tahsilat izni isteniyordu.
+            * PayTR'nin cevabı üzerine otomatik yenilemeden vazgeçildi;
+            * kart hiç saklanmıyor, tekrarlayan tahsilat yapılmıyor.
             *
-            * Üç kutuyu tek "kabul ediyorum"da birleştirmek, üçünün de
-            * dayanağını zayıflatırdı: kullanıcı neyi onayladığını
-            * ayırt edemez.
+            * Verilmeyecek bir yetki için izin istemek KVKK veri
+            * minimizasyonuna aykırı: kullanıcıya yapmadığımız bir şeyi
+            * onaylatmış olurduk.
             *
-            * 🔴 Metin, `abonelik.js` 4. bölümle birebir aynı şeyi
-            * söylemeli. PayTR kart saklama yetkisi vermezse ikisi
-            * BİRLİKTE elle yenilemeye dönecek.
+            * ⚠️ CAYMA FERAGATİ KUTUSU YERİNDE KALIYOR — o ayrı bir
+            * yükümlülük (Mesafeli Sözleşmeler Yönetmeliği) ve bu
+            * kararla ilgisi yok.
             */}
-          <label className={styles.onayKutusu}>
-            <input
-              type="checkbox"
-              checked={otomatikTahsilat}
-              onChange={e => setOtomatikTahsilat(e.target.checked)}
-            />
-            <span>{t('billing.modal.recurringConsent')}</span>
-          </label>
-
           <button
             type="button"
             className={styles.birincilDugme}
-            /* Onaylar şart: üçü olmadan sözleşme kurulamaz. `demoBasari`
+            /* Onaylar şart: ikisi olmadan sözleşme kurulamaz. `demoBasari`
                geliştirmede başarı ekranını görmek için kısa yol. */
             disabled={!onaylarTam || yukleniyor}
             onClick={() => {
