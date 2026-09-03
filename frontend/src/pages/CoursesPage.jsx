@@ -12,29 +12,8 @@ import { useTranslation } from 'react-i18next'
 import { useLocalization } from '@/context/LocalizationContext'
 
 const PAGE_SIZE = 6
-const DOMAIN_KEYS = {
-  'Temel Finans': 'basicFinance',
-  'Maliyet ve Fiyatlandırma': 'costPricing',
-  'E-Ticaret': 'ecommerce',
-  'Girişimcilik': 'entrepreneurship',
-  'Dijital Ekonomi': 'digitalEconomy',
-  'Finansman ve Yatırım': 'financeInvestment',
-}
 
-/* Öğrenme yolu adımları backend'de alan/konu tabanlıdır (kurs değil):
-   { step, domain, title, description, koCodes, estimatedDays, status }.
-   Ana Sayfa ile aynı çözümleme kullanılır. */
-function parseSteps(pathData) {
-  if (!pathData) return []
-  if (Array.isArray(pathData)) return pathData
-  if (Array.isArray(pathData.steps)) return pathData.steps
-  if (Array.isArray(pathData.modules)) return pathData.modules
-  return []
-}
 
-function isStepDone(step) {
-  return Boolean(step?.completed || step?.status === 'completed')
-}
 
 /* Kategori listesi katalogun tamamından toplanır. Backend'de kategori
    endpoint'i yok ve kurs listesi sayfalı döndüğü için, izin verilen en büyük
@@ -92,7 +71,6 @@ export default function CoursesPage({ initialTab = 'all' }) {
 
   // "Devam ettiğin kurslar" ve toplam ilerleme gerçek kayıt verisinden gelir.
   const [enrollments, setEnrollments] = useState([])
-  const [learningPath, setLearningPath] = useState(null)
   // Katalogun TAMAMINDAN toplanan kategoriler (yalnızca filtre menüsünü ve
   // "N alanda" sayısını besler). Bir kez toplanır, sayfa/filtre değişiminde
   // yeniden çekilmez.
@@ -116,9 +94,7 @@ export default function CoursesPage({ initialTab = 'all' }) {
     api.dashboard.getSummary()
       .then(data => {
         if (!mountedRef.current) return
-        setLearningPath(data?.currentLearningPath || null)
       })
-      .catch(() => { if (mountedRef.current) setLearningPath(null) })
 
     api.enrollments.getMy()
       .then(data => {
@@ -188,12 +164,6 @@ export default function CoursesPage({ initialTab = 'all' }) {
     : null
 
   /* ---- Öğrenme yolu ---- */
-  const pathSteps = learningPath ? parseSteps(learningPath.pathData) : []
-  const doneSteps = pathSteps.filter(isStepDone).length
-  const pathPercent = pathSteps.length > 0 ? Math.round((doneSteps / pathSteps.length) * 100) : 0
-  const nextStepIndex = pathSteps.findIndex(s => !isStepDone(s))
-  const totalDays = pathSteps.reduce((sum, s) => sum + (Number(s.estimatedDays) || 0), 0)
-  const showPath = Boolean(learningPath && pathSteps.length > 0)
 
   function renderCourseCard(course) {
     return (
@@ -336,13 +306,13 @@ export default function CoursesPage({ initialTab = 'all' }) {
       <Card raised className={styles.activePath}>
         <span className={styles.courseCover} aria-hidden="true"><BookOpen size={28} /><b>LK</b></span>
         <span className={styles.activeCopy}>
-          <small>{activeCourse ? t('learning:courses.eyebrowActive') : showPath ? t('learning:courses.eyebrowActivePath') : t('learning:courses.eyebrowCatalog')}</small>
-          <h2>{activeCourse?.courseTitle || learningPath?.title || t('learning:courses.defaultHeadline')}</h2>
-          <p>{activeCourse ? t('learning:courses.activeCourseLine', { count: activeCourse.courseLessonCount || 0 }) : showPath ? t('learning:courses.activePathLine', { count: pathSteps.length }) : t('learning:courses.catalogLine', { count: total || 0 })}</p>
-          <span className={styles.activeProgress}><Progress value={activeCourse?.progress ?? pathPercent} size="md" variant="primary" /><em>%{activeCourse?.progress ?? pathPercent}</em></span>
+          <small>{activeCourse ? t('learning:courses.eyebrowActive') : t('learning:courses.eyebrowCatalog')}</small>
+          <h2>{activeCourse?.courseTitle || t('learning:courses.defaultHeadline')}</h2>
+          <p>{activeCourse ? t('learning:courses.activeCourseLine', { count: activeCourse.courseLessonCount || 0 }) : t('learning:courses.catalogLine', { count: total || 0 })}</p>
+          <span className={styles.activeProgress}><Progress value={activeCourse?.progress ?? 0} size="md" variant="primary" /><em>%{activeCourse?.progress ?? 0}</em></span>
         </span>
-        <Button onClick={() => activeCourse ? navigate(`/app/courses/${activeCourse.courseId}/learn`) : showPath ? navigate('/app/learning-path') : listTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
-          {activeCourse || showPath ? t('learning:courses.continueLessonCta') : t('learning:courses.exploreCatalogCta')} <ArrowRight size={15} />
+        <Button onClick={() => activeCourse ? navigate(`/app/courses/${activeCourse.courseId}/learn`) : listTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+          {activeCourse ? t('learning:courses.continueLessonCta') : t('learning:courses.exploreCatalogCta')} <ArrowRight size={15} />
         </Button>
       </Card>
 
@@ -365,16 +335,6 @@ export default function CoursesPage({ initialTab = 'all' }) {
           {totalPages > 1 && <div className={styles.compactPagination}><button disabled={page <= 1} onClick={() => goToPage(page - 1)}>{t('learning:courses.prevPage')}</button><span>{page} / {totalPages}</span><button disabled={page >= totalPages} onClick={() => goToPage(page + 1)}>{t('learning:courses.nextPage')}</button></div>}
         </Card>
 
-        <Card className={styles.competencyPanel}>
-          <h2>{t('learning:courses.competencyTitle')}</h2>
-          {showPath ? pathSteps.slice(0, 6).map((step, index) => {
-            const done = isStepDone(step)
-            const next = index === nextStepIndex
-            const domain = step.title || step.domain
-            const domainKey = DOMAIN_KEYS[domain]
-            return <div className={styles.competencyRow} key={step.step ?? index}><span className={`${styles.competencyDot} ${done ? styles.dotDone : next ? styles.dotNext : ''}`} /><span><strong>{domainKey ? t(`learning:courses.domains.${domainKey}`) : domain}</strong><small>{done ? t('learning:courses.stepDone') : next ? t('learning:courses.stepInProgress') : t('learning:courses.stepReady')}</small></span></div>
-          }) : <p className={styles.emptyCompetency}>{t('learning:courses.competencyEmpty')}</p>}
-        </Card>
       </div>
     </div>
   )

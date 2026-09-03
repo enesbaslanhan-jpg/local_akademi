@@ -11,29 +11,34 @@ afterEach(() => {
   cleanup()
 })
 
+/*
+ * ATIF ROZETİ ARTIK BAĞLANTI DEĞİL.
+ *
+ * Bilgi Kütüphanesi ve Bilgi Nesnesi detayı kaldırıldı (03.09.2026,
+ * ürün sahibi kararı); `/app/knowledge/:code` rotası artık yok.
+ *
+ * Bu testler kararın yanlışlıkla geri alınmasını engelliyor: biri
+ * rozeti tekrar `<Link>` yaparsa, kullanıcıyı var olmayan bir sayfaya
+ * göndereceği için test düşer.
+ */
 describe('CitationBadge', () => {
-  it('renders as a link to Knowledge Object detail when code is provided', () => {
+  it('kod verilse bile bağlantı üretmez', () => {
     renderWithRouter(<CitationBadge id={1} title="Şirket Kurulumu" code="KO-SIRKET" sourceRefs={[]} />)
 
-    const link = screen.getByRole('link', { name: /Şirket Kurulumu bilgi içeriğini aç/ })
-    expect(link).toBeInTheDocument()
-    expect(link).toHaveAttribute('href', '/app/knowledge/KO-SIRKET')
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+    expect(screen.getByText('Şirket Kurulumu')).toBeInTheDocument()
+    /* Kod hâlâ görünür: atfın işi cevabın neye dayandığını göstermek. */
+    expect(screen.getByText('(KO-SIRKET)')).toBeInTheDocument()
   })
 
-  it('renders as a static badge when code is missing', () => {
+  it('kod yokken de rozet çizilir', () => {
     renderWithRouter(<CitationBadge id={1} title="Bilinmeyen kaynak" sourceRefs={[]} />)
 
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
     expect(screen.getByText('Bilinmeyen kaynak')).toBeInTheDocument()
   })
 
-  it('renders as a static badge when code is empty string', () => {
-    renderWithRouter(<CitationBadge id={1} title="Empty" code="" sourceRefs={[]} />)
-
-    expect(screen.queryByRole('link')).not.toBeInTheDocument()
-  })
-
-  it('renders multiple badges with correct routes', () => {
+  it('birden fazla atıfın hiçbiri bağlantı olmaz', () => {
     renderWithRouter(
       <>
         <CitationBadge id={1} title="A" code="KO-A" sourceRefs={[]} />
@@ -41,39 +46,8 @@ describe('CitationBadge', () => {
       </>
     )
 
-    expect(screen.getByRole('link', { name: /A bilgi içeriğini aç/ })).toHaveAttribute('href', '/app/knowledge/KO-A')
-    expect(screen.getByRole('link', { name: /B bilgi içeriğini aç/ })).toHaveAttribute('href', '/app/knowledge/KO-B')
-  })
-
-  it('truncates long titles without breaking layout', () => {
-    const longTitle = 'A'.repeat(300)
-    renderWithRouter(<CitationBadge id={1} title={longTitle} code="KO-LONG" sourceRefs={[]} />)
-
-    const link = screen.getByRole('link')
-    expect(link).toBeInTheDocument()
-    expect(link.querySelector('.truncate')).toBeInTheDocument()
-  })
-
-  it('is keyboard accessible as a link', () => {
-    renderWithRouter(<CitationBadge id={1} title="Tıklanabilir" code="KO-1" sourceRefs={[]} />)
-
-    const link = screen.getByRole('link')
-    expect(link).toHaveAttribute('aria-label', 'Tıklanabilir bilgi içeriğini aç')
-    expect(link).toHaveClass('focus-visible:ring-2')
-  })
-
-  it('shows a source indicator when sourceRefs exist', () => {
-    renderWithRouter(<CitationBadge id={1} title="Kaynaklı" code="KO-SRC" sourceRefs={[{ sourceId: 's1', title: 'Resmi kaynak' }]} />)
-
-    const link = screen.getByRole('link')
-    expect(link).toBeInTheDocument()
-    expect(link.querySelector('span[aria-hidden="true"]')).toBeInTheDocument()
-  })
-
-  it('does not show a source indicator when sourceRefs are empty', () => {
-    renderWithRouter(<CitationBadge id={1} title="Kaynaksız" code="KO-NONE" sourceRefs={[]} />)
-
-    const link = screen.getByRole('link')
-    expect(link.querySelector('span[aria-hidden="true"]')).not.toBeInTheDocument()
+    expect(screen.queryAllByRole('link')).toHaveLength(0)
+    expect(screen.getByText('A')).toBeInTheDocument()
+    expect(screen.getByText('B')).toBeInTheDocument()
   })
 })

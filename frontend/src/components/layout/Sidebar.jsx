@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext'
 import FounderBadge from '@/components/billing/FounderBadge'
 import { useWorkspace } from '@/context/WorkspaceContext'
 import {
-  Home, BookOpen, Bot, Settings, Shield,
+  Home, BookOpen, Bot, Settings, Shield, Bell,
   Users, Database, X, Calculator, Newspaper,
   Building2, ListChecks, Scale, LogOut, LifeBuoy,
   PanelLeftClose, PanelLeftOpen, MessagesSquare, Search, Plus, ChevronDown
@@ -22,9 +22,12 @@ import { useTranslation } from 'react-i18next'
  *   İşletme Takvimi  → İşletme Takibi'nin sekmesi
  *   İşletmelerim     → İşletme Takibi'ndeki işletme seçicisi
  *   Kayıtlarım       → Kurslar sayfasında sekme (/app/enrollments hâlâ çalışır)
- *   Öğrenme Yolu     → Kurslar sayfasındaki koyu panel
- *   Pilot Program    → yalnızca route (/app/learning-path/pilot)
- *   Bilgi Nesneleri  → ders içinden (Lesson.knowledgeObjectId bağı)
+ *
+ * KALDIRILAN YÜZEYLER (03.09.2026, ürün sahibi kararı): Bilgi Kütüphanesi,
+ * Bilgi Nesnesi detayı ve Öğrenme Yolu. Deneme amaçlı içerikti; ürünün
+ * öğrenme yüzeyi 38 kanonik kursla sınırlandı. Rotalar da SİLİNDİ —
+ * menüden çıkarmakla yetinilmedi, çünkü erişilebilir kalmaları
+ * istenmiyordu.
  *   Model Laboratuvarı → Hesaplamalar içindeki detaylı mod (/app/finance/models redirect olur)
  *   Pratik Kartlar / Flashcard / Quiz → feature flag'li legacy route'lar
  */
@@ -81,6 +84,19 @@ const desktopPrimaryLinks = [
    Kaydedilenler ile Ayarlar bileşen içinde ekleniyor (biri işletme durumuna
    bakmıyor artık, diğeri grubun sonunda duruyor). */
 const secondaryLinks = [newsLink, forumLink]
+
+/*
+ * BİLDİRİMLER.
+ *
+ * 🔴 Sayfaya tek giriş üst çubuktaki ZİLDİ. Zili fark etmeyen kullanıcı
+ * üyelik ve ödeme bildirimlerini hiç göremiyordu; rozet okununca
+ * kaybolduğu için geri dönüş yolu da kalmıyordu.
+ *
+ * Ürün sahibi kararı (03.09.2026): menüye eklenecekse SOL MENÜYE
+ * eklensin — zil zaten üstte duruyor, hesap menüsüne koymak üçüncü bir
+ * kopya olurdu.
+ */
+const notificationsLink = { id: 'bildirimler', i18nKey: 'nav.notifications', icon: Bell, path: '/app/bildirimler' }
 
 const settingsLink = { id: 'settings', i18nKey: 'nav.settings', icon: Settings, path: '/app/settings' }
 
@@ -145,13 +161,11 @@ export default function Sidebar({
   function isActive(linkPath) {
     if (linkPath === location.pathname) return true
     if (linkPath.includes('/app/workspaces/') && linkPath.endsWith('/tracker') && location.pathname.startsWith('/app/workspaces/')) return true
-    if (linkPath === '/app/learning-path/pilot') return false
     if (linkPath === '/app/calculations' && (location.pathname.startsWith('/app/tools') || location.pathname.startsWith('/app/finance/models'))) return true
     /* Topluluk, Haberler'in alt yolu ama ayrı bir menü maddesi — Haberler
        onun üzerindeyken aktif görünmemeli. */
     if (linkPath === '/app/community' && location.pathname.startsWith('/app/community/topluluk')) return false
     if (linkPath !== '/app/dashboard' && location.pathname.startsWith(linkPath)) return true
-    if (linkPath === '/app/knowledge' && location.pathname.startsWith('/app/knowledge/')) return true
     if (linkPath === '/app/flashcards' && location.pathname.startsWith('/app/flashcards/')) return true
     if (linkPath === '/app/quiz' && location.pathname.startsWith('/app/quiz/')) return true
     return false
@@ -324,6 +338,7 @@ export default function Sidebar({
           <div className={styles.divider} />
           <div className={styles.sectionLabel}>{t('nav.otherSection')}</div>
           {secondaryLinks.map(renderLink)}
+          {renderLink(notificationsLink)}
           {renderLink(settingsLink)}
           {renderLink(helpLink)}
 

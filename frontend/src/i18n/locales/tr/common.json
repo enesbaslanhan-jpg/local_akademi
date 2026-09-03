@@ -295,7 +295,8 @@
       "description": "İşletme kayıtlarının yaklaşan tarihleri için uygulama içi uyarıları yönetin.",
       "selectBusiness": "Bildirim tercihi için etkin bir işletme seçin.",
       "reminders": "Yaklaşan kayıt hatırlatmaları",
-      "remindersDescription": "Ödeme, tahsilat ve diğer tarihli kayıtlar yaklaşınca bildirim oluşturur."
+      "remindersDescription": "Ödeme, tahsilat ve diğer tarihli kayıtlar yaklaşınca bildirim oluşturur.",
+      "openInbox": "Tüm bildirimleri gör"
     },
     "workspacePreferences": {
       "title": "İşletme tercihleri",

@@ -153,7 +153,7 @@ export default function NotificationsPage() {
         {hesapItems.length > 0 && (
           <>
             <h2 className={styles.bildirimBolumBaslik}>{t('notifications.accountSection')}</h2>
-            <div className={styles.bildirimListesi}>
+            <div className={`${styles.bildirimListesi} ${styles.bildirimListesiHesap}`}>
               {hesapItems.map(bildirim => {
                 const Ikon = HESAP_IKONLARI[bildirim.type] || Bell
                 return (

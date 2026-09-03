@@ -23,9 +23,7 @@ const TITLES = [
   ['/app/tools', 'nav.calculations'],
   ['/app/mentor', 'nav.mentor'],
   ['/app/practical-cards', 'nav.practicalCards'],
-  ['/app/knowledge', 'nav.knowledgeObjects'],
   ['/app/enrollments', 'nav.myEnrollments'],
-  ['/app/learning-path', 'nav.learningPath'],
   ['/app/finance/models', 'nav.calculations'],
   ['/app/flashcards', 'Flashcard'],
   ['/app/quiz', 'Quiz'],
@@ -47,7 +45,7 @@ function resolveTitle(pathname, t) {
   return match ? t(match[1]) : 'LocalKarar'
 }
 
-const EMPTY_RESULTS = { courses: [], knowledge: [], decisionChecks: [], news: [], people: [], posts: [] }
+const EMPTY_RESULTS = { courses: [], decisionChecks: [], news: [], people: [], posts: [] }
 
 /*
  * HESAP MENÜSÜNÜN HEDEFLERİ — dışa açık, çünkü TEST EDİLİYOR.
@@ -182,7 +180,6 @@ export default function Header({ onToggleSidebar }) {
              dedi, sunucu veri donerken. */
           setResults({
             courses: data.courses || [],
-            knowledge: data.knowledge || [],
             decisionChecks: data.decisionChecks || [],
             news: data.news || [],
             people: data.people || [],
@@ -234,7 +231,9 @@ export default function Header({ onToggleSidebar }) {
   const submitSearch = event => {
     event.preventDefault()
     if (!term) return
-    navigate(`/app/knowledge?search=${encodeURIComponent(term)}`)
+    /* Bilgi Kutuphanesi kaldirildi (urun sahibi karari, 03.09.2026);
+       arama artik kurslara gidiyor. */
+    navigate('/app/courses')
     setOpen(false)
   }
 
@@ -244,7 +243,6 @@ export default function Header({ onToggleSidebar }) {
   }
 
   const hasAny = results.courses.length > 0
-    || results.knowledge.length > 0
     || results.decisionChecks.length > 0
     || results.news.length > 0
     || (results.people?.length ?? 0) > 0
@@ -332,17 +330,6 @@ export default function Header({ onToggleSidebar }) {
                       ))}
                     </div>
                   )}
-                  {results.knowledge.length > 0 && (
-                    <div className={styles.searchGroup}>
-                      <div className={styles.searchGroupLabel}><BookOpen size={13} /> {t('search.groups.knowledge')}</div>
-                      {results.knowledge.map(item => (
-                        <button key={`k-${item.id}`} type="button" className={styles.searchItem} role="option" onClick={() => go(`/app/knowledge/${item.code}`)}>
-                          <span><strong>{item.title}</strong><small>{item.category?.name || item.code}</small></span>
-                          <ArrowRight size={14} aria-hidden="true" />
-                        </button>
-                      ))}
-                    </div>
-                  )}
                   {results.decisionChecks.length > 0 && (
                     <div className={styles.searchGroup}>
                       <div className={styles.searchGroupLabel}><ShieldCheck size={13} /> {t('search.groups.decisionTools')}</div>
@@ -376,9 +363,6 @@ export default function Header({ onToggleSidebar }) {
                       ))}
                     </div>
                   )}
-                  <button type="button" className={styles.searchFooter} onClick={() => go(`/app/knowledge?search=${encodeURIComponent(term)}`)}>
-                    {t('search.viewAllKnowledge')} <ArrowRight size={14} aria-hidden="true" />
-                  </button>
                 </>
               )}
             </div>

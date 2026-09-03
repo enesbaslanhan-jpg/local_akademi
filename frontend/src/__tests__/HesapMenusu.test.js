@@ -36,8 +36,28 @@ describe('hesap menüsü', () => {
     expect(HESAP_MENUSU.some(o => o.yol.includes('uyelik'))).toBe(true)
   })
 
-  it('🦷 hiçbir iki satır AYNI bölüme gitmiyor', () => {
-    const bolumler = HESAP_MENUSU.map(o => {
+  /*
+   * ⚠️ MENÜ ARTIK YALNIZ AYARLAR BÖLÜMLERİNE GİTMİYOR.
+   *
+   * `/app/bildirimler` eklendi (03.09.2026): bildirimler sayfasına tek
+   * giriş üst çubuktaki zildi, zili fark etmeyen kullanıcı üyelik ve
+   * ödeme bildirimlerini hiç göremiyordu.
+   *
+   * Bu yüzden bölüm kuralları YALNIZ ayarlara giden satırlara
+   * uygulanıyor. Kuralın kendisi zayıflamadı — aşağıdaki iki test hâlâ
+   * "iki ayar satırı aynı bölümü açamaz" ve "bölüm açıkça yazılmalı"
+   * diyor; üstüne bir de "hiçbir iki satır aynı adrese gitmez" geldi.
+   */
+  const ayarSatirlari = HESAP_MENUSU.filter(o => o.yol.startsWith('/app/settings'))
+  const digerSatirlar = HESAP_MENUSU.filter(o => !o.yol.startsWith('/app/settings'))
+
+  it('🦷 hiçbir iki satır AYNI adrese gitmiyor', () => {
+    const yollar = HESAP_MENUSU.map(o => o.yol)
+    expect(new Set(yollar).size, `çakışan adresler: ${yollar.join(', ')}`).toBe(yollar.length)
+  })
+
+  it('🦷 hiçbir iki AYAR satırı AYNI bölüme gitmiyor', () => {
+    const bolumler = ayarSatirlari.map(o => {
       const { search, hash } = parcala(o.yol)
       return bolumSec(search, hash)
     })
@@ -45,7 +65,7 @@ describe('hesap menüsü', () => {
     expect(new Set(bolumler).size, `çakışan hedefler: ${bolumler.join(', ')}`).toBe(bolumler.length)
   })
 
-  it('🦷 her hedef GERÇEK bir bölüm açıyor — sessizce profile düşmüyor', () => {
+  it('🦷 her AYAR hedefi GERÇEK bir bölüm açıyor — sessizce profile düşmüyor', () => {
     /*
      * Avatar önceden `/app/settings#hesap`e gidiyordu ve "hesap"
      * `BOLUMLER` listesinde yok; `bolumSec` onu tanımayıp sessizce
@@ -55,13 +75,27 @@ describe('hesap menüsü', () => {
      * Bu test o sessizliği kapatıyor: menüdeki bir hedefin bölümü
      * açıkça yazılmış olmalı.
      */
-    for (const { yol } of HESAP_MENUSU) {
+    expect(ayarSatirlari.length, 'ayarlara giden satır kalmamış').toBeGreaterThan(0)
+
+    for (const { yol } of ayarSatirlari) {
       const { search, hash } = parcala(yol)
       const istenen = new URLSearchParams(search).get('bolum') || hash.replace(/^#/, '')
 
       expect(istenen, `${yol} hiç bölüm belirtmiyor`).toBeTruthy()
       expect(BOLUMLER, `${yol} tanınmayan bir bölüm istiyor: ${istenen}`).toContain(istenen)
       expect(bolumSec(search, hash)).toBe(istenen)
+    }
+  })
+
+  it('🦷 ayarlar dışındaki hedefler uygulama içi mutlak adres', () => {
+    /*
+     * Bu satırlar `bolumSec`ten geçmiyor, yani yukarıdaki bekçilerin
+     * hiçbiri onlara bakmıyor. En azından biçimleri doğrulanıyor:
+     * göreli ya da dış bir adres menüye sızarsa yakalanır.
+     */
+    for (const { yol } of digerSatirlar) {
+      expect(yol, `${yol} /app/ ile başlamıyor`).toMatch(/^\/app\/[a-z0-9-]/i)
+      expect(yol, `${yol} sorgu/hash taşıyor — ayar satırı mı?`).not.toMatch(/[?#]/)
     }
   })
 

@@ -1441,6 +1441,14 @@
    bildirimlerinin arasında kaybolurdu; başlıklar onları ayırıyor. */
 .bildirimBolumBaslik {
   margin: 18px 0 8px;
+  /* Yatay dolgu ZORUNLU. `.communityPage .feed` daha özgül bir kuralla
+     `padding: 0` + `overflow: hidden` alıyor (liste satırları kenardan
+     kenara aksın diye) ve satırlar kendi dolgusunu taşıyor:
+     3px sol şerit + 12px = 15px. Başlığın dolgusu yoktu; kartın sol
+     kenarına yapışıp kenarlıkla çakışıyordu ve "ÜYELİK" baştaki harfi
+     kesilmiş gibi ("JYELİK") görünüyordu. Ölçüldü 03.09.2026:
+     başlığın soluyla kap arasında 1px kalıyordu. */
+  padding: 0 15px;
   color: var(--text-muted);
   font-size: var(--font-micro);
   font-weight: var(--font-weight-bold);
@@ -1467,6 +1475,12 @@
   font: inherit;
 }
 .bildirimListesi button:hover { background: var(--surface-card); }
+/* HESAP bildirimlerinde AVATAR YOK: satır üç öğeli (ikon, gövde, zaman).
+   Topluluk ızgarası dört sütunlu (ikon, avatar, gövde, zaman) olduğu için
+   hesap satırının gövdesi 38px'lik AVATAR yuvasına düşüyordu: "Ödemeniz
+   alındı" iki satıra kırılıyor, gövde "Üyeli…" diye kesiliyor ve zaman
+   damgası geniş sütunu kaplıyordu. Ölçüldü 03.09.2026. */
+.bildirimListesiHesap button { grid-template-columns: 26px minmax(0, 1fr) auto; }
 .bildirimListesi button:last-child { border-bottom: 0; }
 /* Okunmamış: renk TEK BAŞINA yeterli değil — sol şerit de var. */
 .bildirimOkunmamis {
@@ -1498,6 +1512,7 @@
 .bildirimListesi time { color: var(--text-light); font-size: .68rem; white-space: nowrap; }
 @media (max-width: 520px) {
   .bildirimListesi button { grid-template-columns: 26px minmax(0, 1fr) auto; }
+  .bildirimListesiHesap button { grid-template-columns: 26px minmax(0, 1fr) auto; }
   .bildirimListesi .authorAvatar { display: none; }
 }
 

@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma.js'
 import { getEmbeddedPracticeBlocksForCourse, getEmbeddedPracticeBlocksForLesson } from './embedded-practice-blocks.js'
+import { buildCanonicalSections, isCanonicalKnowledgeObject } from './canonical-lesson.js'
 import { contentLanguage, localized } from '../lib/content-language.js'
 import { COURSE_CATEGORY_EN, COURSE_EN_BY_SLUG, COURSE_SOURCE_TITLE_EN } from '../content/i18n/course-en.js'
 
@@ -357,6 +358,32 @@ export async function courseRoutes(fastify: FastifyInstance) {
     })
 
     const embeddedPracticeBlocks = await getEmbeddedPracticeBlocksForLesson(lid)
+    /*
+     * KANONIK DERS BOLUMLERI.
+     *
+     * Web bu ayristirmayi ISTEMCIDE yapiyor (CanonicalLessonSections.jsx).
+     * Mobil istemci yapamiyordu ve ham markdown basiyordu: kullanici
+     * `[ Hesaplamalar > ... ]` satirini duz metin olarak goruyordu.
+     *
+     * Yanit yalniz KANONIK derste bu alani tasir; digerlerinde null.
+     * Web davranisi DEGISMIYOR -- kendi ayristiricisini kullanmaya
+     * devam ediyor, bu alan ek bir yuzey.
+     */
+    const koCode = lesson.knowledgeObject?.code ?? null
+    const canonicalSections = isCanonicalKnowledgeObject(koCode)
+      ? buildCanonicalSections(
+          lesson.knowledgeObject?.content ?? null,
+          (() => {
+            try {
+              return JSON.parse(lesson.knowledgeObject!.metadata)?.decisionToolCode ?? null
+            } catch { return null }
+          })(),
+          embeddedPracticeBlocks
+            .filter(b => b.type === 'common_mistake')
+            .map(b => b.title)
+            .filter(Boolean)
+        )
+      : null
 
     // Previous/next lesson
     const allLessons = await prisma.lesson.findMany({
@@ -411,6 +438,7 @@ export async function courseRoutes(fastify: FastifyInstance) {
           hasFlashcards: lesson.knowledgeObject.flashcards.length > 0,
           hasVideo: (Array.isArray(lesson.knowledgeObject?.videos) && (lesson.knowledgeObject.videos as Array<any>).length > 0),
         } : null,
+        canonicalSections,
         quizzes: safeQuizzes,
         taskTemplates: lesson.knowledgeObject?.taskTemplates || [],
         progress: progress ? {

@@ -64,7 +64,10 @@ export default defineConfig({
       '/lessons': backendProxy,
       '/enrollments': backendProxy,
       '/knowledge': backendProxy,
-      '/learning-path': backendProxy,
+      /* `/learning-path` KALDIRILDI: Öğrenme Yolu üründen çıkarıldı
+         (03.09.2026, ürün sahibi kararı) ve sunucudaki uçları silindi.
+         Var olmayan bir önek için proxy tutmak, ileride o yolu yeniden
+         açan birine uç hâlâ varmış izlenimi verirdi. */
       '/learning': backendProxy,
       '/onboarding': backendProxy,
       '/assessment': backendProxy,

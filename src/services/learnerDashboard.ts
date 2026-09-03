@@ -36,7 +36,6 @@ export async function learnerDashboardRoutes(fastify: FastifyInstance) {
 
     const [
       enrollments,
-      currentPath,
       recentActivity,
       knowledgeProgress,
       professionalKOs,
@@ -51,11 +50,6 @@ export async function learnerDashboardRoutes(fastify: FastifyInstance) {
         include: { course: true },
         orderBy: { updatedAt: 'desc' }
       }).catch(() => []),
-
-      prisma.learningPath.findFirst({
-        where: { userId: user.id },
-        orderBy: { createdAt: 'desc' }
-      }).catch(() => null),
 
       prisma.activityEvent.findMany({
         where: { userId: user.id },
@@ -208,14 +202,6 @@ export async function learnerDashboardRoutes(fastify: FastifyInstance) {
         createdAt: e.createdAt,
         updatedAt: e.updatedAt
       })),
-      currentLearningPath: currentPath ? {
-        id: currentPath.id,
-        title: currentPath.title,
-        pathData: (() => {
-          try { return JSON.parse(currentPath.pathData) } catch { return {} }
-        })(),
-        createdAt: currentPath.createdAt
-      } : null,
       resumeItem: resumeItem ? {
         id: resumeItem.id,
         courseId: resumeItem.courseId,

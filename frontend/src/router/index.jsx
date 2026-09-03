@@ -20,12 +20,8 @@ const InvitationPage = lazy(() => import('@/pages/InvitationPage'))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const OnboardingPage = lazy(() => import('@/pages/OnboardingPage'))
 const AssessmentPage = lazy(() => import('@/pages/AssessmentPage'))
-const KnowledgePage = lazy(() => import('@/pages/KnowledgePage'))
-const KnowledgeDetail = lazy(() => import('@/pages/KnowledgeDetail'))
-const KnowledgeTopicPage = lazy(() => import('@/pages/KnowledgeTopicPage'))
 const CoursesPage = lazy(() => import('@/pages/CoursesPage'))
 const CoursePlayerPage = lazy(() => import('@/pages/CoursePlayerPage'))
-const LearningPathPage = lazy(() => import('@/pages/LearningPathPage'))
 const MentorPage = lazy(() => import('@/pages/MentorPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
 const ToolsPage = lazy(() => import('@/pages/ToolsPage'))
@@ -34,7 +30,6 @@ const FlashcardDashboardPage = lazy(() => import('@/pages/FlashcardDashboardPage
 const FlashcardStudyPage = lazy(() => import('@/pages/FlashcardStudyPage'))
 const QuizDashboardPage = lazy(() => import('@/pages/QuizDashboardPage'))
 const QuizTakePage = lazy(() => import('@/pages/QuizTakePage'))
-const PilotLearningPathPage = lazy(() => import('@/pages/PilotLearningPathPage'))
 const CommunityPage = lazy(() => import('@/pages/CommunityPage'))
 const CommunityPostPage = lazy(() => import('@/pages/CommunityPostPage'))
 const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
@@ -145,14 +140,9 @@ export default function AppRoutes() {
             <Route path="odeme/basarisiz" element={<SuspenseWrapper><OdemeSonucPage basarili={false} /></SuspenseWrapper>} />
             <Route path="onboarding" element={<SuspenseWrapper><OnboardingPage /></SuspenseWrapper>} />
             <Route path="assessment" element={<SuspenseWrapper><AssessmentPage /></SuspenseWrapper>} />
-            <Route path="knowledge" element={<SuspenseWrapper><KnowledgePage /></SuspenseWrapper>} />
-            <Route path="knowledge/topic/:topicKey" element={<SuspenseWrapper><KnowledgeTopicPage /></SuspenseWrapper>} />
-            <Route path="knowledge/:code" element={<SuspenseWrapper><KnowledgeDetail /></SuspenseWrapper>} />
             <Route path="courses" element={<SuspenseWrapper><CoursesPage /></SuspenseWrapper>} />
             <Route path="courses/:courseId/learn/:lessonId?" element={<SuspenseWrapper><CoursePlayerPage /></SuspenseWrapper>} />
             <Route path="enrollments" element={<SuspenseWrapper><CoursesPage initialTab="enrollments" /></SuspenseWrapper>} />
-            <Route path="learning-path" element={<SuspenseWrapper><LearningPathPage /></SuspenseWrapper>} />
-            <Route path="learning-path/pilot" element={<SuspenseWrapper><PilotLearningPathPage /></SuspenseWrapper>} />
             <Route path="mentor" element={<SuspenseWrapper><MentorPage /></SuspenseWrapper>} />
             {/* Haberler yalnızca resmî içerik; Topluluk kullanıcı gönderileri.
                 Aynı bileşen iki modda çalışır, yeni endpoint yok. */}

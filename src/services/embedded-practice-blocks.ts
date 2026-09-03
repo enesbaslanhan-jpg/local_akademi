@@ -16,7 +16,12 @@ export interface EmbeddedPracticeBlockSource {
   id: number
   title: string
   code: string | null
-  route: string
+  /*
+   * `route` ALANI KALDIRILDI: Bilgi Kutuphanesi kapatildi
+   * (03.09.2026, urun sahibi karari) ve `/app/knowledge/:code`
+   * sayfasi yok. Kaynak adi ve kodu bilgi olarak duruyor; gidilecek
+   * bir sayfa olmadigi icin arayuz baglanti basmiyor.
+   */
 }
 
 export interface EmbeddedPracticeBlock {
@@ -285,8 +290,7 @@ export async function getEmbeddedPracticeBlocksForKnowledgeObject(
     const source: EmbeddedPracticeBlockSource = {
       id: link.knowledgeObjectId,
       title: link.knowledgeObject?.title ?? link.practicalCard.title,
-      code: link.knowledgeObject?.code ?? link.practicalCard.code,
-      route: `/app/knowledge/${link.knowledgeObject?.code ?? link.practicalCard.code}`
+      code: link.knowledgeObject?.code ?? link.practicalCard.code
     }
 
     blocks.push(buildBlockFromCard(card, source))

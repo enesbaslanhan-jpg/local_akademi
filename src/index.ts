@@ -3,6 +3,7 @@ import cors from '@fastify/cors'
 import rateLimit from '@fastify/rate-limit'
 import fastifyStatic from '@fastify/static'
 import { authRoutes, registerJwtPlugin } from './services/auth'
+import { appConfigRoutes } from './services/app-config.js'
 import { paymentRoutes } from './services/payments/routes'
 import { mailYapilandirmasiniDogrula } from './services/mailer'
 import { decisionCheckRoutes } from './services/decision-checks'
@@ -12,7 +13,6 @@ import { enrollmentRoutes } from './services/enrollments'
 import { knowledgeRoutes } from './services/knowledge'
 import { mentorRoutes } from './services/mentor'
 import { conversationRoutes } from './services/conversation'
-import { learningPathRoutes } from './services/learningPath'
 import { quizRoutes } from './services/quizzes'
 import { taskRoutes } from './services/tasks'
 import { documentRoutes } from './services/documents'
@@ -85,61 +85,22 @@ const isProduction = process.env.NODE_ENV === 'production'
  *   10.0.0.5, 10.0.0.0/8 → güvenilecek adres/aralık listesi
  *   true                → her kaynağa güvenilir  [sınırlar aşılabilir]
  */
-function resolveTrustProxy(): boolean | number | string[] {
-  const raw = (process.env.TRUST_PROXY || '').trim()
-  if (!raw || raw.toLowerCase() === 'false') return false
-
-  if (raw.toLowerCase() === 'true') {
-    console.warn(
-      '[GÜVENLİK] TRUST_PROXY=true — X-Forwarded-For başlığına koşulsuz güveniliyor. ' +
-      'IP tabanlı hız sınırları (giriş, kayıt, şifre sıfırlama) başlık uydurularak aşılabilir. ' +
-      'Bunun yerine vekil sayısını (ör. TRUST_PROXY=1) veya vekil adresini yazın.'
-    )
-    return true
-  }
-
-  const hop = Number(raw)
-  if (Number.isInteger(hop) && hop > 0) return hop
-
-  return raw.split(',').map(s => s.trim()).filter(Boolean)
-}
-
-/**
- * Hız sınırlarının kime uygulanacağını belirleyen anahtar.
+/*
+ * `resolveTrustProxy` ve `hizSiniriAnahtari` BURADAN CIKARILDI.
  *
- * SORUN: Cloudflare arkasında `request.ip` GERÇEK KULLANICI DEĞİL,
- * Cloudflare'ın o isteği taşıyan kenar sunucusu oluyordu. Ölçüldü
- * (22.08.2026) — aynı istemciden iki istek, iki farklı adres:
+ * Yeni yerleri: src/lib/client-ip.ts. Sebep: auth.ts de basarisiz giris
+ * denetim kaydi icin gercek istemci adresine ihtiyac duyuyor ve index.ts
+ * zaten auth.ts'i ice aktardigi icin buradan almasi dairesel bag olurdu.
  *
- *     "remoteAddress":"172.71.164.99"
- *     "remoteAddress":"104.23.239.60"
+ * Gerekceler (Cloudflare kenar IP'si olcumu, neden sicrama sayisi degil,
+ * hangi guvenlik duvari katmani) tasindiklari dosyada korunuyor.
  *
- * Kenar sunucusu istekten isteğe değiştiği için sınır kovaları
- * dağılıyordu: sahte `X-Forwarded-For` ile 8/8 istek geçiyor, sahtesiz
- * denemede bile `200 200 429 429 200 200` gibi düzensiz bir sonuç
- * çıkıyordu. Yani giriş, kayıt ve şifre sıfırlama sınırları fiilen
- * çalışmıyordu.
- *
- * NEDEN SIÇRAMA SAYISI DEĞİL: `TRUST_PROXY` zaten `2` idi ve yetmedi.
- * Hop sayarak doğru adrese ulaşmak, zincirdeki her değişiklikte
- * (bir vekil eklenmesi, Cloudflare'ın başlığı farklı yazması) sessizce
- * bozulan kırılgan bir yöntem. `CF-Connecting-IP` ise Cloudflare'ın
- * gerçek istemci için yazdığı TEK ve kesin değer.
- *
- * GÜVENLİK: bu başlık yalnız bir ters vekil arkasındayken
- * (`TRUST_PROXY` tanımlıyken) dikkate alınıyor. Sunucuya doğrudan
- * ulaşabilen biri onu uydurabilirdi; ulaşamıyor, çünkü güvenlik duvarı
- * 80/443'ü yalnız Cloudflare aralıklarına açıyor ve uygulama portu
- * yalnız makine içine bağlı. İki katman.
+ * `hizSiniriAnahtari` asagida yeniden disa aktariliyor: mevcut testler
+ * (tests/rate-limit-client-key.test.ts) onu '../src/index.js' uzerinden
+ * ice aktariyor.
  */
-export function hizSiniriAnahtari(request: { ip: string; headers: Record<string, unknown> }): string {
-  if (resolveTrustProxy() !== false) {
-    const baslik = request.headers['cf-connecting-ip']
-    const deger = Array.isArray(baslik) ? baslik[0] : baslik
-    if (typeof deger === 'string' && deger.trim()) return deger.trim()
-  }
-  return request.ip
-}
+import { hizSiniriAnahtari, resolveTrustProxy } from './lib/client-ip.js'
+export { hizSiniriAnahtari }
 
 /**
  * Oturumlu trafikte NAT/IP kovasını paylaşmak yerine doğrulanmış JWT sahibi
@@ -498,6 +459,10 @@ async function build() {
    */
   server.addHook('preHandler', uyelikKapisi(server))
 
+  /* Mobil istemci yapılandırması ve uygulama bağlantı doğrulama dosyaları.
+     Hepsi GET olduğu için üyelik kapısından zaten geçiyor. */
+  server.register(appConfigRoutes)
+
   server.register(authRoutes, { prefix: '/auth' })
   /* Odeme: PayTR callback'i kimliksiz gelir ve kendi urlencoded
      ayristiricisini EKLENTI KAPSAMINDA kaydeder. */
@@ -510,7 +475,6 @@ async function build() {
   server.register(knowledgeRoutes, { prefix: '/knowledge' })
   server.register(mentorRoutes, { prefix: '/mentor' })
   server.register(conversationRoutes, { prefix: '/mentor/conversations' })
-  server.register(learningPathRoutes, { prefix: '/learning-path' })
   server.register(quizRoutes, { prefix: '/quizzes' })
   server.register(taskRoutes, { prefix: '/tasks' })
   server.register(documentRoutes, { prefix: '/documents' })

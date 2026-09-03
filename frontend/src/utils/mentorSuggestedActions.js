@@ -3,25 +3,13 @@
  */
 
 const ALLOWED_INTERNAL_ROUTES = [
-  '/app/knowledge/',
   '/app/finance/models/',
   '/app/settings',
   '/app/decision-checks/',
   '/app/practical-cards/'
 ];
 
-function isValidKOCode(code) {
-  if (typeof code !== 'string') return false;
-  const trimmed = code.trim();
-  if (trimmed.length === 0) return false;
-  // Sadece harf, rakam, tire ve alt çizgiye izin ver.
-  return /^[a-zA-Z0-9_-]+$/.test(trimmed);
-}
 
-function getSafeKnowledgeRoute(code) {
-  if (!isValidKOCode(code)) return null;
-  return `/app/knowledge/${encodeURIComponent(code.trim())}`;
-}
 
 export function generateSuggestedActions(message) {
   if (!message) return [];
@@ -40,22 +28,16 @@ export function generateSuggestedActions(message) {
     addedIds.add(action.id);
   }
 
-  // 1. Citation (Kaynak) Action
-  if (message.citations && Array.isArray(message.citations) && message.citations.length > 0) {
-    // Ilk gecerli citation
-    const validCitation = message.citations.find(c => isValidKOCode(c.knowledgeObjectCode));
-    if (validCitation) {
-      addAction({
-        id: `open_knowledge_${validCitation.knowledgeObjectCode}`,
-        type: 'open_knowledge',
-        labelKey: 'suggestedActions.openRelatedContent',
-        route: getSafeKnowledgeRoute(validCitation.knowledgeObjectCode),
-        source: 'citation',
-        disabled: false
-      });
-    }
-  }
-
+  /*
+   * ATIF TABANLI EYLEM KALDIRILDI.
+   *
+   * Eskiden ilk gecerli atif icin "ilgili icerigi ac" eylemi uretiliyor
+   * ve `/app/knowledge/:code` sayfasina goturuyordu. Bilgi Kutuphanesi
+   * urun sahibi kararyla kaldirildi (03.09.2026); o rota artik yok.
+   * Eylemi birakmak kullaniciyi olu bir baglantiya gonderirdi.
+   *
+   * Atiflar hala GORUNUYOR (CitationBadge) -- yalniz tiklanmiyorlar.
+   */
   // 2. Intent tabanli actions
   if (message.metadata?.intent === 'financial_analysis') {
     // Model routing - varsayalım intent'ten veya metadata'dan modelCode gelseydi:

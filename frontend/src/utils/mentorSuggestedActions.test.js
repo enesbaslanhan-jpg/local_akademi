@@ -12,13 +12,18 @@ describe('mentorSuggestedActions', () => {
     expect(generateSuggestedActions({ role: 'assistant', metadata: { intent: 'system_capability' } })).toEqual([]);
   });
 
-  it('returns knowledge route for valid citation', () => {
+  /*
+   * Bilgi Kütüphanesi kaldırıldı (03.09.2026, ürün sahibi kararı);
+   * `/app/knowledge/:code` rotası yok. Atıf artık eylem üretmemeli —
+   * üretirse kullanıcı var olmayan bir sayfaya gönderilir.
+   */
+  it('atıf için bilgi içeriği eylemi üretmez', () => {
     const actions = generateSuggestedActions({
       role: 'assistant',
       citations: [{ knowledgeObjectCode: 'VALID-123' }]
     });
-    expect(actions).toHaveLength(1);
-    expect(actions[0].route).toBe('/app/knowledge/VALID-123');
+    expect(actions.some(a => a.type === 'open_knowledge')).toBe(false);
+    expect(actions.some(a => String(a.route || '').includes('/app/knowledge'))).toBe(false);
   });
 
   it('does not render Karar Kontrolü action (disabled/Yakında filter)', () => {

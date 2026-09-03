@@ -295,7 +295,8 @@
       "description": "Manage in-app alerts for approaching business record dates.",
       "selectBusiness": "Select an active business to set notification preferences.",
       "reminders": "Upcoming record reminders",
-      "remindersDescription": "Creates notifications when payments, collections, and other dated records approach."
+      "remindersDescription": "Creates notifications when payments, collections, and other dated records approach.",
+      "openInbox": "View all notifications"
     },
     "workspacePreferences": {
       "title": "Business preferences",

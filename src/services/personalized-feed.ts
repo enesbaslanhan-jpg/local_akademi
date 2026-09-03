@@ -164,7 +164,12 @@ export class PersonalizedFeedService {
       let route = '/app';
       if (resume.contentType === 'course') route = '/app/enrollments';
       else if (resume.contentType === 'decision_check') route = `/app/decision-checks/${resume.contentCode || resume.contentId}`;
-      else if (resume.contentType === 'knowledge_object' || resume.contentType === 'lesson') route = `/app/knowledge/${resume.contentCode || resume.contentId}`;
+      /*
+       * Bilgi Kutuphanesi kaldirildi (03.09.2026, urun sahibi karari);
+       * `/app/knowledge/:code` sayfasi artik yok. Bu tur icerikler
+       * kurslar uzerinden sunuluyor.
+       */
+      else if (resume.contentType === 'knowledge_object' || resume.contentType === 'lesson') route = '/app/enrollments';
 
       candidates.push({
         itemKey: `continue_learning:${resume.contentType}:${resume.contentId}`,
@@ -302,7 +307,8 @@ export class PersonalizedFeedService {
         primaryAction: {
           code: 'open_guide',
           label: 'Rehberi aç',
-          route: `/app/knowledge/${guide.code || guide.id}`
+          /* Rehberler Bilgi Nesnesi kayitlari; o sayfa kaldirildi. */
+          route: '/app/courses'
         },
         sourceEntityType: 'knowledge_object',
         sourceEntityId: String(guide.id),

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
   Bell,
   BriefcaseBusiness,
@@ -456,6 +456,19 @@ export default function SettingsPage() {
           </SettingsSection>
 
           <SettingsSection id="bildirimler" icon={<Bell />} title={t('settings.notificationsSection.title')} description={t('settings.notificationsSection.description')}>
+            {/*
+              * Bu bölüm TERCİH panelidir, gelen kutusu değil — ve tek
+              * anahtarı işletmeye bağlı olduğu için işletme seçili
+              * değilken bomboş görünüyordu. Bildirimlerin KENDİSİNE
+              * giden tek yol ise üst çubuktaki zildi.
+              *
+              * Bağlantı buraya konuyor: "Bildirimler" başlığını görüp
+              * bu ekrana gelen kullanıcının aradığı şey çoğu zaman
+              * tercih değil, bildirimlerin listesi.
+              */}
+            <p className={styles.muted}>
+              <Link to="/app/bildirimler">{t('settings.notificationsSection.openInbox')}</Link>
+            </p>
             {!activeWorkspaceId || !wsSettings ? <p className={styles.muted}>{t('settings.notificationsSection.selectBusiness')}</p> : <label className={styles.switchRow}><span><strong>{t('settings.notificationsSection.reminders')}</strong><small>{t('settings.notificationsSection.remindersDescription')}</small></span><input type="checkbox" checked={wsSettings.notificationPrefs?.dueReminders !== false} onChange={event => setWsSettings(current => ({ ...current, notificationPrefs: { ...(current.notificationPrefs || {}), dueReminders: event.target.checked } }))} /></label>}
           </SettingsSection>
 
