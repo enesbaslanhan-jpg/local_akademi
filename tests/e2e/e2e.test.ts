@@ -770,55 +770,18 @@ describe('E2E: Flashcards', () => {
   })
 })
 
-describe('E2E: Learning Path (Pilot)', () => {
-  let pathId: number
-
-  it('POST /learning-path/generate-pilot creates pilot path', async () => {
-    const res = await post('/learning-path/generate-pilot', { title: 'Test Pilot Path' }, studentToken)
-    expect(res.statusCode).toBe(201)
-    const body = res.json()
-    expect(body.learningPath).toBeDefined()
-    expect(body.steps).toHaveLength(6)
-    expect(body.steps[0].category).toBe('Temel Finans')
-    expect(body.steps[0].kos).toHaveLength(5)
-    pathId = body.learningPath.id
-  })
-
-  it('POST /learning-path/generate-pilot rejects unauthenticated', async () => {
-    const res = await post('/learning-path/generate-pilot', {})
-    expect(res.statusCode).toBe(401)
-  })
-
-  it('GET /learning-path/current returns latest path', async () => {
-    const res = await get('/learning-path/current', studentToken)
-    expect(res.statusCode).toBe(200)
-    const body = res.json()
-    expect(body.learningPath).toBeDefined()
-    expect(body.learningPath.id).toBe(pathId)
-  })
-
-  it('GET /learning-path/:id/progress returns enriched steps', async () => {
-    const res = await get(`/learning-path/${pathId}/progress`, studentToken)
-    expect(res.statusCode).toBe(200)
-    const body = res.json()
-    expect(body.steps).toHaveLength(6)
-    expect(body.overallProgress).toBeDefined()
-    expect(body.steps[0].kos[0].progress).toBeDefined()
-    expect(body.steps[0].kos[0].quizPassed).toBeDefined()
-    expect(body.steps[0].kos[0].fcMasteredCount).toBeDefined()
-  })
-
-  it('GET /learning-path/:id/progress rejects other user', async () => {
-    const res = await get(`/learning-path/${pathId}/progress`, adminToken)
-    expect(res.statusCode).toBe(403)
-  })
-
-  it('GET /learning-path/:id/progress returns 404 for missing', async () => {
-    const res = await get('/learning-path/99999/progress', studentToken)
-    expect(res.statusCode).toBe(404)
-  })
-})
-
+/*
+ * E2E: Learning Path (Pilot) BLOGU KALDIRILDI.
+ *
+ * Ogrenme Yolu urunden cikarildi (03.09.2026, urun sahibi karari) ve
+ * /learning-path uclari ile src/services/learningPath.ts silindi.
+ * Blogun alti testi o uclari sinıyordu; tam test turunda 5'i 403/201
+ * yerine 404 alarak dustu -- yani testler dogru davraniyordu, uclar
+ * gercekten yok.
+ *
+ * Silinen bir ozelligin testleri de gider. Birakmak, kaldirmayi geri
+ * almayi zorunlu kilan yanlis bir sinyal olurdu.
+ */
 describe('E2E: Pilot Tasks', () => {
   let pilotTaskId: string
 
