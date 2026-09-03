@@ -13,6 +13,7 @@ import { isAbsolute, join, relative, resolve } from 'node:path'
 import { detectFileType, FileValidationError, validateImageFile } from './documentSecurity.js'
 import { generateNumericCode, generateRawToken, hashToken, safeEqual } from '../lib/tokens.js'
 import { hesaplaUyelikDurumu } from '../config/billing.js'
+import { hizSiniriAnahtari } from '../lib/client-ip.js'
 import { paytrYapilandirmasi } from './payments/paytr.js'
 import { LEGAL_DOCUMENTS, missingConsents, requiredDocuments } from '../config/legal-documents.js'
 import { contentLanguage } from '../lib/content-language.js'
@@ -68,6 +69,24 @@ const RESET_TOKEN_TTL_MS = 60 * 60 * 1000
 const VERIFY_CODE_TTL_MS = 15 * 60 * 1000
 /* 6 hane kaba kuvvetle denenebilir; deneme sayısı sınırlı olmak zorunda. */
 const VERIFY_MAX_ATTEMPTS = 5
+
+/*
+ * HESAP BAZLI GİRİŞ KİLİDİ.
+ *
+ * Giriş sınırlaması bugüne kadar YALNIZ IP başınaydı (10/dakika, aşağıdaki
+ * route config'inde). O sınır tek kaynaktan gelen saldırıyı kesiyor ama IP
+ * döndüren bir saldırgan aynı hesaba yüzlerce IP'den deneme dağıtabiliyordu:
+ * hesap başına TOPLAM bir sınır yoktu.
+ *
+ * 10 deneme seçildi çünkü parola minimumu 10 karakter ve bcrypt maliyeti 10;
+ * yani gerçek kullanıcının yazım hatasına bolca yer var, saldırgana ise
+ * kilit başına yalnız 10 tahmin düşüyor.
+ *
+ * 15 dakika, kilidi bir servis dışı bırakma aracına dönüştürmeyecek kadar
+ * kısa: saldırgan başkasının hesabını kilitleyebilir ama sonsuza kadar değil.
+ */
+const LOGIN_MAX_ATTEMPTS = 10
+const LOGIN_LOCK_MS = 15 * 60 * 1000
 
 const resetRequestSchema = z.object({
   email: z.string().email().max(254).transform(value => value.trim().toLowerCase())
@@ -244,9 +263,82 @@ export async function authRoutes(fastify: FastifyInstance) {
       return reply.status(401).send({ error: 'Invalid credentials' })
     }
 
+    /*
+     * KİLİT KONTROLÜ — parola karşılaştırmasından ÖNCE.
+     *
+     * Önce bakılıyor ki kilitli bir hesap için bcrypt maliyeti (cost 10,
+     * ~100ms) hiç ödenmesin; aksi halde kilidin kendisi bir CPU tüketme
+     * aracına dönüşürdü.
+     *
+     * Bu yanıt bilerek DİĞERLERİNDEN AYRI: kullanıcı adı sayımı (enumeration)
+     * riski var ama saldırgan zaten 10 başarısız denemeyi yapmış durumda,
+     * yani hesabın varlığını çoktan öğrendi. Buna karşılık gerçek kullanıcıya
+     * "neden giremiyorum" sorusunun cevabını vermemek, onu parola sıfırlama
+     * döngüsüne sokardı.
+     */
+    const now = new Date()
+    if (user.lockedUntil && user.lockedUntil > now) {
+      const kalanSaniye = Math.ceil((user.lockedUntil.getTime() - now.getTime()) / 1000)
+      return reply.status(429).send({
+        error: 'Çok fazla hatalı giriş denemesi yapıldı. Hesabınız geçici olarak kilitlendi.',
+        code: 'ACCOUNT_LOCKED',
+        retryAfterSeconds: kalanSaniye
+      })
+    }
+
     const valid = await bcrypt.compare(password, user.password)
     if (!valid) {
+      /*
+       * Sayaç artırılıyor ve eşiğe gelindiyse kilit konuyor.
+       *
+       * `lockedUntil` süresi GEÇMİŞ bir kilit varsa sayaç sıfırdan başlıyor:
+       * aksi halde aylar önceki 9 hatalı deneme, bugünkü tek yazım hatasıyla
+       * birleşip kullanıcıyı sebepsiz kilitlerdi.
+       */
+      const oncekiSayac = user.lockedUntil && user.lockedUntil <= now ? 0 : user.failedLoginCount
+      const yeniSayac = oncekiSayac + 1
+      const kilitlenecek = yeniSayac >= LOGIN_MAX_ATTEMPTS
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          failedLoginCount: kilitlenecek ? 0 : yeniSayac,
+          lockedUntil: kilitlenecek ? new Date(now.getTime() + LOGIN_LOCK_MS) : null
+        }
+      })
+
+      /*
+       * Başarısız giriş DENETİM KAYDINA yazılıyor.
+       *
+       * Önceden yalnız kayıt ve şifre sıfırlama loglanıyordu; başarısız giriş
+       * hiçbir yere yazılmıyordu, yani bir hesaba yönelik saldırı olup
+       * olmadığı sonradan anlaşılamıyordu. Parola LOGLANMIYOR.
+       */
+      await createAuditLog({
+        action: kilitlenecek ? 'auth.login_locked' : 'auth.login_failed',
+        entityType: 'user',
+        entityId: user.id,
+        actorId: user.id,
+        metadata: { attempt: yeniSayac, ip: hizSiniriAnahtari(request) }
+      }, prisma).catch(() => {})
+
+      if (kilitlenecek) {
+        return reply.status(429).send({
+          error: 'Çok fazla hatalı giriş denemesi yapıldı. Hesabınız geçici olarak kilitlendi.',
+          code: 'ACCOUNT_LOCKED',
+          retryAfterSeconds: Math.ceil(LOGIN_LOCK_MS / 1000)
+        })
+      }
       return reply.status(401).send({ error: 'Invalid credentials' })
+    }
+
+    // Başarılı giriş sayacı sıfırlıyor: gerçek kullanıcının biriken yazım
+    // hataları bir sonraki oturuma taşınmamalı.
+    if (user.failedLoginCount !== 0 || user.lockedUntil !== null) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { failedLoginCount: 0, lockedUntil: null }
+      })
     }
 
     const token = issueToken(fastify, user)

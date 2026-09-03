@@ -24,3 +24,14 @@ tmp/
 # Tasarim tuvalinin uretilmis hali (~2.4 MB). Kaynak tasarim/*.dc.html
 # ve canvas.json depoda; tuval onlardan yeniden uretiliyor.
 tasarim/*.html
+
+# Kisisel calisma notlari ve ozetler.
+#
+# 🔴 DEPO HERKESE ACIK. Bu klasordeki belgeler fiyat stratejisi, PayTR
+# ayrintilari, satici kimligi ve adres kararlari, sunucu kurulumu gibi
+# TICARI bilgiler tasiyor. `docs/` altina koymak bunlarin tamamini
+# yayimlamak olurdu.
+#
+# ⚠️ `tmp/` kullanilmadi: orasi "atilabilir" demek ve `git clean` ile
+# silinmesi beklenir; saklanmasi istenen belge oraya konmaz.
+notlar/
