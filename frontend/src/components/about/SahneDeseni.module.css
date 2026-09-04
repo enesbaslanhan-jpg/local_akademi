@@ -1,0 +1,78 @@
+/*
+ * Kodla çizilen bölüm deseni — DESIGN.md §23.1.
+ *
+ * Hepsi `background-image` ile; tek bir DOM düğümü, ek istek yok,
+ * pakete bayt eklemez. Renkler marka ailesinden (§23.2).
+ *
+ * `pointer-events: none` — desen tıklamayı yutmamalı; altındaki metin ve
+ * bağlantılar normal çalışır.
+ */
+
+.sahne {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.sag { right: -8%; top: -10%; }
+.sol { left: -12%; top: -6%; }
+
+/*
+ * Halka: eş merkezli çemberler. `repeating-radial-gradient` tek
+ * bildirimle onlarca halka üretir; her biri ayrı bir düğüm olsaydı
+ * gereksiz DOM olurdu.
+ */
+.halka {
+  width: clamp(320px, 46vw, 720px);
+  aspect-ratio: 1;
+  background-image: repeating-radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--auth-text) 7%, transparent) 0 1px,
+    transparent 1px 42px
+  );
+  -webkit-mask-image: radial-gradient(circle at center, #000 30%, transparent 72%);
+  mask-image: radial-gradient(circle at center, #000 30%, transparent 72%);
+}
+
+/* Izgara: seyrek noktalar. Veri ve ölçüm çağrışımı; ürünün işi bu. */
+.izgara {
+  width: clamp(280px, 38vw, 560px);
+  height: clamp(220px, 30vw, 420px);
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--auth-text) 16%, transparent) 1.4px,
+    transparent 1.4px
+  );
+  background-size: 22px 22px;
+  -webkit-mask-image: linear-gradient(135deg, #000 0%, transparent 78%);
+  mask-image: linear-gradient(135deg, #000 0%, transparent 78%);
+}
+
+/* Bant: bölümü yatay kesen yumuşak marka şeridi. */
+.bant {
+  width: clamp(340px, 52vw, 820px);
+  height: clamp(160px, 22vw, 300px);
+  background-image: linear-gradient(
+    108deg,
+    color-mix(in srgb, var(--brand-500, #306D88) 22%, transparent) 0%,
+    transparent 62%
+  );
+  filter: blur(28px);
+}
+
+/*
+ * §23.3: desen içeriğin önkoşulu değil. Dar ekranda gizleniyor —
+ * 360px'te dekoratif bir katman metnin okunmasını zorlaştırırdı ve
+ * hiçbir bilgi kaybı olmaz.
+ */
+@media (max-width: 640px) {
+  .sahne { display: none; }
+}
+
+/*
+ * Hareket kısıtlıyken desen KALIR (statik bir arka plan, animasyon
+ * değil); yalnız `filter: blur` gibi pahalı katman sadeleşir.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .bant { filter: none; opacity: 0.5; }
+}

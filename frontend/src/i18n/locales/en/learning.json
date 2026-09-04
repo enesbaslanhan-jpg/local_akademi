@@ -4,7 +4,7 @@
   "koDetailTitle": "Open knowledge object details",
   "courses": {
     "title": "Courses",
-    "subtitle": "Pick up where you left off.",
+    "subtitle": "Learn business finance through applied courses.",
     "filterButton": "Filter",
     "searchPlaceholder": "Search courses",
     "allDomains": "All domains",
@@ -12,13 +12,10 @@
     "levelPractical": "Practical",
     "clearButton": "Clear",
     "eyebrowActive": "ACTIVE LEARNING",
-    "eyebrowActivePath": "ACTIVE LEARNING PATH",
     "eyebrowCatalog": "COURSE CATALOG",
     "defaultHeadline": "Hands-on courses that power your business",
     "activeCourseLine_one": "You're progressing in {{count}} course.",
     "activeCourseLine_other": "You're progressing in {{count}} courses.",
-    "activePathLine_one": "You have {{count}} learning path ready.",
-    "activePathLine_other": "You have {{count}} learning paths ready.",
     "catalogLine_one": "Explore {{count}} published course.",
     "catalogLine_other": "Explore {{count}} published courses.",
     "continueLessonCta": "Continue lesson",
@@ -29,11 +26,9 @@
     "clearFiltersAction": "Clear filters",
     "prevPage": "Previous",
     "nextPage": "Next",
-    "competencyTitle": "Competency view",
     "stepDone": "Completed",
     "stepInProgress": "In progress",
     "stepReady": "Ready to start",
-    "competencyEmpty": "Your competency progress will appear here once you start a personalized learning path.",
     "domains": {
       "basicFinance": "Fundamentals of Finance",
       "costPricing": "Costing and Pricing",
@@ -507,8 +502,19 @@
     "inspect": "View"
   },
   "progress": {
-    "types": { "course": "Course", "lesson": "Lesson", "decisionCheck": "Decision Tool", "practicalCard": "Practical Card", "financialTool": "Financial Tool", "guide": "Guide" },
-    "status": { "started": "Started", "inProgress": "In Progress", "completed": "Completed" },
+    "types": {
+      "course": "Course",
+      "lesson": "Lesson",
+      "decisionCheck": "Decision Tool",
+      "practicalCard": "Practical Card",
+      "financialTool": "Financial Tool",
+      "guide": "Guide"
+    },
+    "status": {
+      "started": "Started",
+      "inProgress": "In Progress",
+      "completed": "Completed"
+    },
     "loadFailed": "An error occurred while loading progress data.",
     "contentFallback": "Content",
     "askMentor": "Ask Mentor",
@@ -525,7 +531,11 @@
     "completedEmpty": "You haven't completed any content yet."
   },
   "enrollments": {
-    "status": { "completed": "Completed", "inProgress": "In Progress", "notStarted": "Not Started" },
+    "status": {
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "notStarted": "Not Started"
+    },
     "loading": "Loading enrollments...",
     "title": "My Enrolled Courses",
     "courseCount_one": "You are enrolled in {{count}} course",

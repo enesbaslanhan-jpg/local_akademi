@@ -4,7 +4,7 @@
   "koDetailTitle": "Bilgi nesnesi detayını aç",
   "courses": {
     "title": "Kurslar",
-    "subtitle": "Öğrenme yolunu kaldığın yerden sürdür.",
+    "subtitle": "Uygulamalı kurslarla işletme finansını öğren.",
     "filterButton": "Filtrele",
     "searchPlaceholder": "Kurs ara",
     "allDomains": "Tüm alanlar",
@@ -12,13 +12,10 @@
     "levelPractical": "Uygulamalı",
     "clearButton": "Temizle",
     "eyebrowActive": "AKTİF ÖĞRENME",
-    "eyebrowActivePath": "AKTİF ÖĞRENME YOLU",
     "eyebrowCatalog": "KURS KATALOĞU",
     "defaultHeadline": "İşletmeni güçlendiren uygulamalı kurslar",
     "activeCourseLine_one": "{{count}} derslik kursunda ilerliyorsun.",
     "activeCourseLine_other": "{{count}} derslik kursunda ilerliyorsun.",
-    "activePathLine_one": "{{count}} adımlık öğrenme yolun hazır.",
-    "activePathLine_other": "{{count}} adımlık öğrenme yolun hazır.",
     "catalogLine_one": "{{count}} yayınlanmış kursu keşfet.",
     "catalogLine_other": "{{count}} yayınlanmış kursu keşfet.",
     "continueLessonCta": "Derse devam et",
@@ -29,11 +26,9 @@
     "clearFiltersAction": "Filtreleri temizle",
     "prevPage": "Önceki",
     "nextPage": "Sonraki",
-    "competencyTitle": "Yetkinlik görünümü",
     "stepDone": "Tamamlandı",
     "stepInProgress": "İlerliyor",
     "stepReady": "Başlamaya hazır",
-    "competencyEmpty": "Kişisel öğrenme yolunuz oluşturulduğunda yetkinlik ilerlemeniz burada görünecek.",
     "domains": {
       "basicFinance": "Temel Finans",
       "costPricing": "Maliyet ve Fiyatlandırma",
@@ -507,8 +502,19 @@
     "inspect": "İncele"
   },
   "progress": {
-    "types": { "course": "Eğitim", "lesson": "Ders", "decisionCheck": "Karar Aracı", "practicalCard": "Pratik Kart", "financialTool": "Finansal Araç", "guide": "Rehber" },
-    "status": { "started": "Başlandı", "inProgress": "Devam Ediyor", "completed": "Tamamlandı" },
+    "types": {
+      "course": "Eğitim",
+      "lesson": "Ders",
+      "decisionCheck": "Karar Aracı",
+      "practicalCard": "Pratik Kart",
+      "financialTool": "Finansal Araç",
+      "guide": "Rehber"
+    },
+    "status": {
+      "started": "Başlandı",
+      "inProgress": "Devam Ediyor",
+      "completed": "Tamamlandı"
+    },
     "loadFailed": "İlerleme verileri yüklenirken bir hata oluştu.",
     "contentFallback": "İçerik",
     "askMentor": "Mentora Sor",
@@ -525,7 +531,11 @@
     "completedEmpty": "Henüz tamamlanmış bir içerik yok."
   },
   "enrollments": {
-    "status": { "completed": "Tamamlandı", "inProgress": "Devam ediyor", "notStarted": "Başlanmadı" },
+    "status": {
+      "completed": "Tamamlandı",
+      "inProgress": "Devam ediyor",
+      "notStarted": "Başlanmadı"
+    },
     "loading": "Kayıtlar yükleniyor...",
     "title": "Kayıtlı Kurslarım",
     "courseCount_one": "{{count}} kursa kayıtlısınız",

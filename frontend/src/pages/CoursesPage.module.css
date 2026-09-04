@@ -686,8 +686,13 @@
 .activeCopy p { margin: 0; color: var(--text-secondary); font-size: var(--font-body-sm); }
 .activeProgress { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: var(--space-3); margin-top: var(--space-2); }
 .activeProgress em { color: var(--text-muted); font-size: var(--font-meta); font-style: normal; }
-.courseWorkspace { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(320px,1fr); gap: var(--gap-panel); min-height: 408px; }
-.catalogPanel, .competencyPanel { min-height: 408px; overflow: hidden; }
+/* 🔴 IZGARA IKI SUTUNDU AMA IKINCI COCUK YOK.
+ * Ogrenme Yolu kaldirilinca sagdaki "Yetkinlik gorunumu" paneli
+ * silindi; izgara ise 320px+ genisliginde ikinci sutunu ayirmaya
+ * devam ediyordu. Sonuc: katalog dar kaliyor, sagi bombos duruyordu.
+ * Tek cocuk kaldigi icin izgara da tek sutun. */
+.courseWorkspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap-panel); min-height: 408px; }
+.catalogPanel { min-height: 408px; overflow: hidden; }
 .categoryChips { display: flex; gap: var(--space-2); padding-bottom: var(--space-2); border-bottom: 1px solid var(--line); overflow-x: auto; }
 .categoryChips button { min-height: 28px; padding: 0 var(--space-3); border: 0; border-radius: var(--radius-full); background: var(--surface-sunken); color: var(--text-secondary); font: inherit; font-size: var(--font-micro); font-weight: var(--font-weight-bold); white-space: nowrap; cursor: pointer; }
 .categoryChips .chipActive { background: color-mix(in srgb, var(--primary) 13%, var(--surface-sunken)); color: var(--primary-deep); }
