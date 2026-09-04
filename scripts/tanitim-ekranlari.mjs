@@ -41,9 +41,17 @@ const TABAN = adresArg ?? 'http://localhost:5173'
 const GENISLIK = 1600
 const YUKSEKLIK = 1000
 
+/*
+ * `{ws}` calisma anini secilen ornek isletmenin id'siyle degistirilir.
+ *
+ * 🔴 ONCE `/app/workspaces` (liste ekrani) cekiliyordu ve tanitimda
+ * yalnizca isletme adlari goruluyordu: kayitlar, urunler, siparisler,
+ * entegrasyon -- hicbiri o ekranda yok. Asil veri isletme ICI
+ * sayfalarinda; `isletme-takibi.png` artik Genel Bakis'tan cekiliyor.
+ */
 const EKRANLAR = [
   { dosya: 'karar-araclari.png', yol: '/app/decision-checks' },
-  { dosya: 'isletme-takibi.png', yol: '/app/workspaces' },
+  { dosya: 'isletme-takibi.png', yol: '/app/workspaces/{ws}/overview' },
   { dosya: 'ai-mentor.png', yol: '/app/mentor' },
   { dosya: 'hesaplamalar.png', yol: '/app/calculations' },
   { dosya: 'kurslar.png', yol: '/app/courses' },
@@ -55,11 +63,29 @@ const EKRANLAR = [
  * ürünle ilgisiz gürültü; mentor balonu altı görselde de aynı köşede
  * tekrarlanıp kolajda göze batıyor.
  */
+/*
+ * 🔴 ILK SURUMDE SECICILER TAHMINDI VE HICBIRI TUTMADI — cekilen alti
+ * gorselde de dogrulama seridi, cerez bandi ve mentor balonu duruyordu.
+ *
+ * Gercek adlar canli DOM'dan okundu. CSS modulu deseni: `_ad_hash_satir`.
+ *   VerificationBanner.jsx -> styles.banner   -> [class*="_banner_"]
+ *   MentorLauncher.jsx     -> styles.launcher -> [class*="_launcher_"]
+ *
+ * Cerez bandi CSS ile degil, gosterimini kontrol eden localStorage
+ * anahtariyla bastiriliyor (asagida `addInitScript`): bant kapatildiginda
+ * zaten o anahtar yaziliyor, biz de cekimden once yaziyoruz.
+ */
 const GIZLE = `
-  [class*="verifyBanner"], [class*="dogrulaBanner"],
-  [class*="cookie"], [class*="cerez"],
-  [class*="mentorLauncher"], [class*="mentorFab"] { display: none !important; }
+  [class*="_banner_"], [class*="_launcher_"] { display: none !important; }
 `
+
+/** Depolama bildirimini gorulmus say — cerez bandi acilmaz.
+ *  🔴 Deger '1' DEGIL 'true' olmali; StorageNotice tam esitlik ariyor
+ *  (StorageNotice.test.jsx bunu dogruluyor). '1' yazdigimda bant
+ *  cikmaya devam etti. */
+const BILDIRIM_BASTIR = () => {
+  try { localStorage.setItem('localkarar-storage-notice-seen', 'true') } catch {}
+}
 
 /** Profilde geçerli oturum var mı? Headless deneyip URL'ye bakıyoruz. */
 async function oturumVar() {
@@ -100,6 +126,36 @@ async function girisAsamasi() {
   console.log('  Giriş alındı, pencere kapatıldı.\n')
 }
 
+/**
+ * En dolu ornek isletmenin id'sini bulur.
+ *
+ * Id'ler her `seed-tanitim` calismasinda degistigi icin sabit yazilamaz.
+ * API sozlesmesi yerine ARAYUZ uzerinden bulunuyor: liste ekranindaki ilk
+ * isletmeye tiklanip olusan adresten okunuyor. Boylece uc degisse bile
+ * betik calismaya devam eder.
+ */
+async function isletmeIdBul(s) {
+  await s.goto(`${TABAN}/app/workspaces`, { waitUntil: 'domcontentloaded' })
+  await s.waitForTimeout(2500)
+
+  const bag = s.locator('a[href*="/app/workspaces/"]').first()
+  if ((await bag.count()) > 0) {
+    const href = await bag.getAttribute('href')
+    const m = href?.match(/\/app\/workspaces\/([^/?#]+)/)
+    if (m) return m[1]
+  }
+
+  /* Bagalanti yoksa kart tiklanabilir olabilir. */
+  const kart = s.locator('[class*="_card_"], article, li').filter({ hasText: /üye/ }).first()
+  if ((await kart.count()) > 0) {
+    await kart.click()
+    await s.waitForURL(/\/app\/workspaces\/[^/]+/, { timeout: 15000 })
+    const m = s.url().match(/\/app\/workspaces\/([^/?#]+)/)
+    if (m) return m[1]
+  }
+  return null
+}
+
 /** 2. aşama: 2x headless, çekim. */
 async function cekimAsamasi() {
   fs.mkdirSync(HEDEF, { recursive: true })
@@ -110,18 +166,29 @@ async function cekimAsamasi() {
     deviceScaleFactor: 2,
     locale: 'tr-TR',
   })
+  await b.addInitScript(BILDIRIM_BASTIR)
   const s = b.pages()[0] ?? (await b.newPage())
 
+  const wsId = await isletmeIdBul(s)
+  if (!wsId) console.log("  UYARI: ornek isletme bulunamadi, liste ekrani cekilecek.")
+
   for (const ekran of EKRANLAR) {
-    await s.goto(TABAN + ekran.yol, { waitUntil: 'networkidle' })
+    const yol = wsId
+      ? ekran.yol.replace("{ws}", wsId)
+      : ekran.yol.replace("/{ws}/overview", "")
+    /* 🔴 `networkidle` KULLANILMIYOR: Topluluk akisinda surekli bir
+     * baglanti var, ag hicbir zaman bosa cikmiyor ve 30sn sonra zaman
+     * asimina dusuyordu (olculdu). `domcontentloaded` + sabit bekleme
+     * hem o rotada hem digerlerinde calisiyor. */
+    await s.goto(TABAN + yol, { waitUntil: 'domcontentloaded' })
     await s.addStyleTag({ content: GIZLE })
     /* Ağ boşa çıksa da liste ve grafikler bir kare sonra yerleşiyor. */
-    await s.waitForTimeout(1800)
+    await s.waitForTimeout(3200)
 
     const cikti = path.join(HEDEF, ekran.dosya)
     await s.screenshot({ path: cikti })
     const kb = (fs.statSync(cikti).size / 1024).toFixed(0)
-    console.log(`  ${ekran.dosya.padEnd(22)} ${ekran.yol.padEnd(30)} ${kb} KB`)
+    console.log(`  ${ekran.dosya.padEnd(22)} ${yol.padEnd(42)} ${kb} KB`)
   }
 
   await b.close()

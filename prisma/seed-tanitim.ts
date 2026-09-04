@@ -194,6 +194,12 @@ function eposta(ad: string) {
   return `${slug}${ISARET}`
 }
 
+/* Siparis musteri adlari — pazaryeri siparislerinde alici adi gorunur. */
+const MUSTERILER = [
+  'A. Kılıç', 'M. Şen', 'B. Aydın', 'S. Korkmaz', 'F. Erdoğan',
+  'H. Polat', 'N. Aslan', 'T. Güneş', 'E. Yalçın', 'D. Tekin',
+]
+
 const gun = (n: number) => new Date(Date.now() + n * 86400000)
 
 async function temizle() {
@@ -254,7 +260,7 @@ async function olustur(gozlemciEposta?: string) {
     10,
   )
 
-  let sayac = { ws: 0, kayit: 0, urun: 0, entegrasyon: 0, paylasim: 0, kisi: 0 }
+  let sayac = { ws: 0, kayit: 0, urun: 0, siparis: 0, entegrasyon: 0, paylasim: 0, kisi: 0 }
   const wsIdler: string[] = []
 
   for (const isletme of ISLETMELER) {
@@ -350,6 +356,62 @@ async function olustur(gozlemciEposta?: string) {
         })
         sayac.urun++
       }
+
+      /*
+       * Siparisler.
+       *
+       * 🔴 ILK SURUMDE HIC OLUSTURULMAMISTI: entegrasyon ve urun vardi
+       * ama Siparisler ekrani bombostu. Pazaryeri baglantisi olan bir
+       * isletmenin siparissiz gorunmesi zaten tutarsizdi.
+       *
+       * Durumlar bilincli karisik (kargoda, teslim, iade): tek durum
+       * olsaydi ekrandaki durum filtresi anlamsiz gorunurdu.
+       */
+      const DURUMLAR = ['DELIVERED', 'SHIPPED', 'PROCESSING', 'CREATED', 'RETURNED'] as const
+      const siparisSayisi = 6 + Math.floor(Math.random() * 5)
+
+      for (let i = 0; i < siparisSayisi; i++) {
+        const urun = isletme.urunler[i % isletme.urunler.length]
+        const adet = 1 + Math.floor(Math.random() * 3)
+        const brut = urun.fiyat * adet
+        /* Komisyon ve kargo gercekci oranlarda; net katki bunlardan
+           sonra kaliyor. Rakamlar birbirini tutmazsa ekrandaki
+           "net katki" sutunu yalan soylerdi. */
+        const komisyon = Math.round(brut * 0.17 * 100) / 100
+        const kargo = adet > 1 ? 74.9 : 49.9
+        const durum = DURUMLAR[i % DURUMLAR.length]
+        const iade = durum === 'RETURNED' ? brut : 0
+
+        await prisma.marketplaceOrder.create({
+          data: {
+            workspaceId: ws.id,
+            provider: isletme.saglayici as any,
+            externalId: `ornek-${Math.random().toString(36).slice(2, 10)}`,
+            externalOrderNumber: `TK-${900000 + Math.floor(Math.random() * 99999)}`,
+            customerDisplayName: MUSTERILER[(i + sayac.ws) % MUSTERILER.length],
+            currency: 'TRY',
+            grossAmount: brut,
+            commissionAmount: komisyon,
+            shippingAmount: kargo,
+            refundAmount: iade || null,
+            netContribution: Math.round((brut - komisyon - kargo - iade) * 100) / 100,
+            status: durum as any,
+            orderDate: gun(-(i * 2 + 1)),
+            items: {
+              create: {
+                title: urun.ad,
+                quantity: adet,
+                unitPrice: urun.fiyat,
+                grossAmount: brut,
+                commissionAmount: komisyon,
+                shippingAllocation: kargo,
+                netContribution: Math.round((brut - komisyon - kargo) * 100) / 100,
+              },
+            },
+          },
+        })
+        sayac.siparis++
+      }
     }
 
     if (isletme.paylasim) {
@@ -359,7 +421,10 @@ async function olustur(gozlemciEposta?: string) {
           postType: 'user',
           summary: isletme.paylasim,
           category: isletme.sektor,
-          status: 'approved',
+          /* 🔴 'approved' DEGIL: akis sorgusu status: 'published' ariyor
+             (src/services/community.ts). 'approved' yazilan paylasimlar
+             veritabaninda duruyor ama akista hic gorunmuyordu. */
+          status: 'published',
           publishedAt: gun(-Math.floor(Math.random() * 20) - 1),
         },
       })
@@ -369,7 +434,7 @@ async function olustur(gozlemciEposta?: string) {
 
   console.log('Örnek veri oluşturuldu:')
   console.log(`  ${sayac.ws} işletme, ${sayac.kayit} kayıt, ${sayac.urun} ürün,`)
-  console.log(`  ${sayac.entegrasyon} entegrasyon, ${sayac.paylasim} paylaşım, ${sayac.kisi} kişi.`)
+  console.log(`  ${sayac.siparis} sipariş, ${sayac.entegrasyon} entegrasyon, ${sayac.paylasim} paylaşım, ${sayac.kisi} kişi.`)
   console.log(`\nTemizlemek için: --temizle`)
 
   if (gozlemciEposta) await uyeYap(gozlemciEposta, wsIdler)
