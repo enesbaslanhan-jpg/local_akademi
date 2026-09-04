@@ -50,12 +50,36 @@ const YUKSEKLIK = 1000
  * sayfalarinda; `isletme-takibi.png` artik Genel Bakis'tan cekiliyor.
  */
 const EKRANLAR = [
-  { dosya: 'karar-araclari.png', yol: '/app/decision-checks' },
-  { dosya: 'isletme-takibi.png', yol: '/app/workspaces/{ws}/overview' },
-  { dosya: 'ai-mentor.png', yol: '/app/mentor' },
-  { dosya: 'hesaplamalar.png', yol: '/app/calculations' },
-  { dosya: 'kurslar.png', yol: '/app/courses' },
-  { dosya: 'topluluk.png', yol: '/app/community/topluluk' },
+  {
+    dosya: 'karar-araclari.png',
+    yol: '/app/decision-checks',
+    yakin: { dosya: 'karar-araclari-detay.png', metin: /Ürünüm Gerçekten Kârlı mı/ },
+  },
+  {
+    dosya: 'isletme-takibi.png',
+    yol: '/app/workspaces/{ws}/overview',
+    yakin: { dosya: 'isletme-takibi-detay.png', metin: /Yaklaşan ve gecikenler/ },
+  },
+  {
+    dosya: 'ai-mentor.png',
+    yol: '/app/mentor',
+    yakin: { dosya: 'ai-mentor-detay.png', metin: /Kâr marjımı nasıl hesaplarım/ },
+  },
+  {
+    dosya: 'hesaplamalar.png',
+    yol: '/app/calculations',
+    yakin: { dosya: 'hesaplamalar-detay.png', metin: /Fiyat Mimarisi ve Hedef Marj/ },
+  },
+  {
+    dosya: 'kurslar.png',
+    yol: '/app/courses',
+    yakin: { dosya: 'kurslar-detay.png', metin: /Gerçek Birim Maliyet|Kârlı Fiyat Mimarisi/ },
+  },
+  {
+    dosya: 'topluluk.png',
+    yol: '/app/community/topluluk',
+    yakin: { dosya: 'topluluk-detay.png', metin: /fire oranını|komisyonu ve kargo|Nakit dayanma/ },
+  },
 ]
 
 /*
@@ -171,6 +195,97 @@ async function isletmeIdBul(s) {
   return null
 }
 
+/**
+ * Yakın çekim: bir bölümün tek kartını/panelini kırpar.
+ *
+ * Kolajda tam sayfanın yanına konacak; tek başına tam sayfa görseller
+ * yan yana dizilince hepsi aynı gri dikdörtgen gibi duruyordu.
+ *
+ * ⚠️ SEÇİCİ DEĞİL METİN kullanılıyor. CSS modülü sınıfları her derlemede
+ * yeniden hashleniyor (`_ad_hash_satır`); sınıfa dayanan bir seçici bir
+ * sonraki derlemede sessizce boş dönerdi. Metin arayüzle birlikte
+ * değişir ve değişirse bu betik GÖRÜNÜR şekilde uyarır.
+ */
+async function yakinCekim(s, yakin, hedefDizin) {
+  /*
+   * 🔴 ONCE Playwright `.last()` KULLANILIYORDU VE HEP EN ICTEKI ogeyi
+   * seciyordu: metnin kendi kapsayicisi, 24-78px yuksekliginde. Bes
+   * yakin cekimin besi de olcu kontrolune takilip atlandi.
+   *
+   * Dogrusu metni bulup YUKARI dogru tirmanmak: kart/panel sinirina
+   * denk gelen ilk makul yukseklikteki ata aliniyor.
+   */
+  /*
+   * Once ogeyi GORUNUME KAYDIR: kirpma yalniz gorunen alandan yapilabilir,
+   * sayfanin altindaki kartlar aksi halde atlaniyordu (topluluk boyle
+   * atlanmisti).
+   */
+  await s.evaluate((desenKaynak) => {
+    const desen = new RegExp(desenKaynak)
+    const hepsi = [...document.querySelectorAll("body *")]
+    const eslesen = hepsi.filter((e) => desen.test(e.textContent || ""))
+    const temiz = eslesen.filter((e) => !e.closest("aside"))
+    ;(temiz[temiz.length - 1] || eslesen[eslesen.length - 1])?.scrollIntoView({ block: "center" })
+  }, yakin.metin.source)
+  await s.waitForTimeout(700)
+
+  const kutu = await s.evaluate((desenKaynak) => {
+    const desen = new RegExp(desenKaynak)
+    const hepsi = [...document.querySelectorAll("body *")]
+    /*
+     * 🔴 YAN PANEL DISLANIYOR. Karar Araclari sayfasinda ayni baslik hem
+     * ana izgarada hem sagdaki oneri panelinde geciyor; en son eslesme
+     * panelde kaliyordu ve onun atalari 1218px yuksekliginde, hicbir
+     * aday araliga girmiyordu.
+     */
+    const eslesen = hepsi
+      .filter((e) => desen.test(e.textContent || ""))
+      .filter((e) => !e.closest("aside"))
+    if (eslesen.length === 0) return null
+
+    /*
+     * En ictekinden yukari tirmanip TUM adaylari topla, sonra 320px
+     * hedefine en yakinini sec.
+     *
+     * Once "araliga giren ILK ata" aliniyordu; atalarin yuksekligi
+     * kucukten devasa atladigi icin bes cekimden ucu hicbir adaya
+     * denk gelmiyordu.
+     */
+    const adaylar = []
+    let n = eslesen[eslesen.length - 1]
+    while (n && n !== document.body) {
+      const r = n.getBoundingClientRect()
+      if (r.height >= 100 && r.height <= 700 && r.width >= 260) {
+        adaylar.push({ x: r.x, y: r.y, width: r.width, height: r.height })
+      }
+      n = n.parentElement
+    }
+    if (adaylar.length === 0) return null
+    adaylar.sort((a, b) => Math.abs(a.height - 320) - Math.abs(b.height - 320))
+    return adaylar[0]
+  }, yakin.metin.source)
+  if (!kutu) {
+    console.log(`  UYARI: ${yakin.dosya} için uygun kart bulunamadı, atlandı.`)
+    return
+  }
+
+  /* Görünümün dışına taşan kısım kırpılamaz; kutuyu görünüme sığdır. */
+  const clip = {
+    x: Math.max(0, kutu.x),
+    y: Math.max(0, kutu.y),
+    width: Math.min(kutu.width, GENISLIK - Math.max(0, kutu.x)),
+    height: Math.min(kutu.height, YUKSEKLIK - Math.max(0, kutu.y)),
+  }
+  if (clip.height < 100) {
+    console.log(`  UYARI: ${yakin.dosya} görünüme sığmadı, atlandı.`)
+    return
+  }
+
+  const cikti = path.join(hedefDizin, yakin.dosya)
+  await s.screenshot({ path: cikti, clip })
+  const kb = (fs.statSync(cikti).size / 1024).toFixed(0)
+  console.log(`  ${yakin.dosya.padEnd(28)} ${Math.round(clip.width)}x${Math.round(clip.height)} @2x   ${kb} KB`)
+}
 /** 2. aşama: 2x headless, çekim. */
 async function cekimAsamasi() {
   fs.mkdirSync(HEDEF, { recursive: true })
@@ -205,6 +320,8 @@ async function cekimAsamasi() {
     await s.screenshot({ path: cikti })
     const kb = (fs.statSync(cikti).size / 1024).toFixed(0)
     console.log(`  ${ekran.dosya.padEnd(22)} ${yol.padEnd(42)} ${kb} KB`)
+
+    if (ekran.yakin) await yakinCekim(s, ekran.yakin, HEDEF)
   }
 
   await b.close()
