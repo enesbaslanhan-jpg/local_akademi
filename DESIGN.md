@@ -270,6 +270,7 @@ kullanılmaz. Uygulamada `rem` kullanılacaksa ham px karşılığından türeti
 | `caption` | `11px` | `11px` | 500 | Zaman damgası, meta, footnote |
 | `metric-lg` | `24px` | `20px` | 700 | KPI ana değer |
 | `metric-md` | `18px` | `16px` | 700 | Kart içi metrik |
+| `nav-label` | — | `10px` | 600 | **Yalnız mobil alt navigasyon.** Beş sekme 11px'te 360dp genişlikte kırpılıyor (ölçüldü); onaylanan mobil prototip de burada 10px kullanıyor. Başka hiçbir yerde 10px kullanılmaz. |
 
 Zorunluluklar:
 
@@ -670,3 +671,53 @@ Bir UI işi "tamamlandı" sayılmadan önce zorunlu kontroller:
 - Input bir yerde `40px`, başka yerde `48px` (aynı kademe) → **yasak**.
 - Radius `8/12/16` yerine `10/18/24` karışımı → **yasak**.
 - Navigation item bir sayfada `40px`, diğerinde `48px` → **yasak**.
+---
+
+## 23. Herkese açık tanıtım sayfaları (kapsam istisnası)
+
+**Kapsam:** `/` (tanıtım ana sayfası), `/fiyatlar`, `/hakkinda`, `/yardim`.
+**Kapsam DIŞI:** `/app/**` altındaki her şey ve `/login`, `/register`.
+
+Bu sayfalar ürünü **anlatır**, ürünü **çalıştırmaz**. Ziyaretçi buraya bir iş
+yapmaya değil, karar vermeye gelir; günde onlarca kez açılmaz. Bu yüzden
+§3.1 (glow kısıtı), §3.4 (glass allow-list) ve §12 (500ms tavanı) burada
+gevşetilir.
+
+### 23.1 Serbest olanlar
+
+- Kaydırmaya bağlı animasyon (`animation-timeline: view()`, IntersectionObserver).
+- 500ms+ giriş/çıkış geçişleri ve sahne süreleri.
+- Dekoratif degrade, glow, doku ve geometrik kompozisyon.
+- `display` kademesinin üzerinde hero tipografi (`clamp` ile).
+- Tam ekran (full-bleed) koyu sahneler.
+
+### 23.2 Gevşemeyenler — KESİN
+
+Bunlar tanıtım sayfalarında da geçerlidir:
+
+- **§1.1 marka paleti.** Yeni hue üretilmez. Dekoratif degradeler `brand-*`
+  ailesinden ve `surface-signature`tan türetilir.
+- **§4 tipografi ailesi.** Manrope. Hero boyutu serbest, aile değil.
+- **§19 erişilebilirlik.** Kontrast eşikleri, klavye erişimi, görünür odak,
+  44px dokunma hedefi. Animasyon bunları bozamaz.
+- **`prefers-reduced-motion`.** Kaydırma animasyonları bu tercihte
+  TAMAMEN durur; yavaşlatılmaz. Sayfa animasyonsuz da eksiksiz okunmalı.
+- **§5.1 boşluk ölçeği** ve **§3.3 yarıçap** — hero yüzeyleri hariç.
+
+### 23.3 Zorunlu davranış
+
+- Animasyon **içeriğin önkoşulu olamaz**: JavaScript çalışmazsa ya da
+  `animation-timeline` desteklenmiyorsa tüm metin ve bağlantılar görünür
+  kalır. Animasyon yalnızca ekler.
+- **Yeni bağımlılık eklenmez.** Kaydırma efektleri CSS ve
+  `IntersectionObserver` ile yapılır; GSAP/Framer gibi kütüphaneler bu iş
+  için pakete girmez.
+- Tanıtım bileşenleri `/app/**` içinde **kullanılmaz**; ayrı dosyalarda
+  durur ve uygulama paketine sızmaz (route bazlı kod bölme).
+
+### 23.4 Gerekçe
+
+Revolut, Stripe ve benzeri ürünlerin sinematik ekranları giriş öncesi
+pazarlama yüzeyleridir; aynı ürünlerin çalışma ekranları sakindir. Bu
+ayrımı korumak, tanıtımın etkisini de uygulamanın kullanılabilirliğini de
+aynı anda mümkün kılar.

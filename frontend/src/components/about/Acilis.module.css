@@ -1,0 +1,47 @@
+/*
+ * Kaydırma açılışı — DESIGN.md §23.1.
+ *
+ * Süre §23'ün gevşetilmiş tavanında: §12 uygulama içinde 320-360ms'yi üst
+ * sınır yapıyor, tanıtım sayfalarında bu serbest. Yine de abartılmadı —
+ * 620ms, sahnenin fark edilmesi için yeterli, beklemeye dönüşmüyor.
+ *
+ * Easing §12'nin standart eğrisiyle AYNI: tanıtım sayfası daha yavaş
+ * olabilir ama başka bir karaktere bürünmemeli.
+ */
+
+.acilis {
+  --acilis-gecikme: 0;
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition:
+    opacity 620ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 620ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: calc(var(--acilis-gecikme) * 90ms);
+  will-change: opacity, transform;
+}
+
+.gorundu {
+  opacity: 1;
+  transform: none;
+}
+
+/*
+ * Animasyon bittiğinde `will-change` bırakılmalı; sayfada onlarca öğe
+ * varsa kalıcı katman ayırmak belleği boşuna tutar.
+ */
+.gorundu {
+  will-change: auto;
+}
+
+/*
+ * §23.2: hareket kısıtlıyken animasyon YAVAŞLATILMAZ, hiç oynatılmaz.
+ * İçerik ilk karede son halinde durur.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .acilis {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    transition-delay: 0ms;
+  }
+}

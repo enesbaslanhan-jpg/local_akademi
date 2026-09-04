@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Bot, ClipboardList, GraduationCap, MessagesSquare, Scale, Sheet } from 'lucide-react'
 import BrandMark from '@/components/ui/BrandMark'
 import EkranCizimi from '@/components/about/EkranCizimi'
+import Acilis from '@/components/about/Acilis'
 import AuthThemeToggle from './AuthThemeToggle'
 import styles from './AboutPage.module.css'
 import PublicFooter from '@/components/layout/PublicFooter'
@@ -133,13 +134,13 @@ export default function AboutPage() {
       </div>
 
       <div className={styles.icerik}>
-        <section className={styles.kimeSection}>
+        <Acilis as="section" className={styles.kimeSection}>
           <h2>{t('about.audienceTitle')}</h2>
           <p>{t('about.audienceText')}</p>
-        </section>
+        </Acilis>
 
         <section aria-labelledby="moduller-baslik">
-          <h2 id="moduller-baslik" className={styles.bolumBaslik}>{t('about.modulesTitle')}</h2>
+          <Acilis as="h2" id="moduller-baslik" className={styles.bolumBaslik}>{t('about.modulesTitle')}</Acilis>
 
           {/* Zikzak: geniş ekranda ekran ve metin dönüşümlü yer değiştirir,
               dar ekranda tek sütuna iner (ekran önce). */}
@@ -148,8 +149,12 @@ export default function AboutPage() {
               const base = `about.modules.${key}`
               const maddeler = Object.values(t(`${base}.bullets`, { returnObjects: true }))
               return (
-              <article
+              <Acilis
+                as="article"
                 key={key}
+                /* Kartlar sirayla aciliyor; hepsi ayni anda belirirse
+                   hareket fark edilmiyor, sirasi okuma yonunu izliyor. */
+                gecikme={sira % 2}
                 className={`${styles.modul} ${sira % 2 === 1 ? styles.modulTers : ''}`}
               >
                 <div className={styles.modulEkran}>
@@ -165,7 +170,7 @@ export default function AboutPage() {
                     {maddeler.map(madde => <li key={madde}>{madde}</li>)}
                   </ul>
                 </div>
-              </article>
+              </Acilis>
               )
             })}
           </div>
@@ -176,19 +181,19 @@ export default function AboutPage() {
           * iyidir. Kullanım Koşulları'nda da aynı şey yazıyor; burada
           * gizlenmesi tutarsız olurdu.
           */}
-        <section className={styles.sinirlar}>
+        <Acilis as="section" className={styles.sinirlar}>
           <h2>{t('about.limitsTitle')}</h2>
           <p>{t('about.limitsText')}</p>
-        </section>
+        </Acilis>
 
-        <section className={styles.kapanis}>
+        <Acilis as="section" className={styles.kapanis}>
           <h2>{t('about.closingTitle')}</h2>
           <p>{t('about.closingText')}</p>
           {/* Girişli kullanıcıyı kayıt formuna yollamıyoruz. */}
           <Link to={girisli ? '/app/dashboard' : '/register'} className={styles.birincilDugme}>
             {girisli ? t('about.backToApp') : t('about.createAccount')}
           </Link>
-        </section>
+        </Acilis>
 
         {/* Kopya bağlantı listesi kaldırıldı — ortak `PublicFooter`
             aşağıda ve yasal sayfaların tamamını taşıyor. Sayfaya özgü
