@@ -4,6 +4,7 @@ import { Bot, ClipboardList, GraduationCap, MessagesSquare, Scale, Sheet } from 
 import BrandMark from '@/components/ui/BrandMark'
 import EkranCizimi from '@/components/about/EkranCizimi'
 import Acilis from '@/components/about/Acilis'
+import SahneDeseni from '@/components/about/SahneDeseni'
 import AuthThemeToggle from './AuthThemeToggle'
 import styles from './AboutPage.module.css'
 import PublicFooter from '@/components/layout/PublicFooter'
@@ -135,6 +136,7 @@ export default function AboutPage() {
 
       <div className={styles.icerik}>
         <Acilis as="section" className={styles.kimeSection}>
+          <SahneDeseni desen="izgara" konum="sag" />
           <h2>{t('about.audienceTitle')}</h2>
           <p>{t('about.audienceText')}</p>
         </Acilis>
@@ -187,6 +189,7 @@ export default function AboutPage() {
         </Acilis>
 
         <Acilis as="section" className={styles.kapanis}>
+          <SahneDeseni desen="bant" konum="sol" />
           <h2>{t('about.closingTitle')}</h2>
           <p>{t('about.closingText')}</p>
           {/* Girişli kullanıcıyı kayıt formuna yollamıyoruz. */}

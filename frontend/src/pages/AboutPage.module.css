@@ -337,6 +337,27 @@
 .sinirlar h2 { color: var(--auth-text); }
 .sinirlar p { color: var(--auth-text-soft); }
 
+/*
+ * Desen tasiyan bolumler: konumlandirma icin `relative`, yatay tasmayi
+ * onlemek icin `hidden`.
+ *
+ * §14 sayfa genelinde yatay tasmayi yasakliyor; desen kenardan disari
+ * cikiyor ve kirpilmazsa 360px'te sayfayi kaydiriyordu. Desenin kendi
+ * maskesi zaten kenarlara dogru soniyor, kirpma gorunumu bozmuyor.
+ */
+.kimeSection,
+.kapanis {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Icerik desenin USTUNDE kalmali. */
+.kimeSection > :not([class*="sahne"]),
+.kapanis > :not([class*="sahne"]) {
+  position: relative;
+  z-index: 1;
+}
+
 .kapanis {
   display: flex;
   flex-direction: column;
