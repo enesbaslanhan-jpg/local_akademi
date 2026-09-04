@@ -79,12 +79,27 @@ const GIZLE = `
   [class*="_banner_"], [class*="_launcher_"] { display: none !important; }
 `
 
-/** Depolama bildirimini gorulmus say — cerez bandi acilmaz.
- *  🔴 Deger '1' DEGIL 'true' olmali; StorageNotice tam esitlik ariyor
- *  (StorageNotice.test.jsx bunu dogruluyor). '1' yazdigimda bant
- *  cikmaya devam etti. */
-const BILDIRIM_BASTIR = () => {
-  try { localStorage.setItem('localkarar-storage-notice-seen', 'true') } catch {}
+/**
+ * Cekimden once tarayici durumunu hazirlar.
+ *
+ * 1. Depolama bildirimi gorulmus sayilir — cerez bandi acilmaz.
+ *    🔴 Deger '1' DEGIL 'true' olmali; StorageNotice tam esitlik ariyor
+ *    (StorageNotice.test.jsx dogruluyor). '1' yazdigimda bant cikmaya
+ *    devam etti.
+ *
+ * 2. Tema KOYU'ya sabitlenir. Mevcut about-screens dosyalari koyu modda
+ *    cekilmisti; acik modda cekilenler yan yana gelince tanitim sayfasi
+ *    iki farkli urun gibi gorunuyordu.
+ *
+ *    Anahtar `localkarar-theme` (context/ThemeContext.jsx). Ayrica
+ *    baglamda `colorScheme: 'dark'` veriliyor: kullanici hic secim
+ *    yapmamissa ThemeContext sistem tercihine dusuyor.
+ */
+const TARAYICI_HAZIRLA = () => {
+  try {
+    localStorage.setItem('localkarar-storage-notice-seen', 'true')
+    localStorage.setItem('localkarar-theme', 'dark')
+  } catch {}
 }
 
 /** Profilde geçerli oturum var mı? Headless deneyip URL'ye bakıyoruz. */
@@ -165,8 +180,9 @@ async function cekimAsamasi() {
     viewport: { width: GENISLIK, height: YUKSEKLIK },
     deviceScaleFactor: 2,
     locale: 'tr-TR',
+    colorScheme: 'dark',
   })
-  await b.addInitScript(BILDIRIM_BASTIR)
+  await b.addInitScript(TARAYICI_HAZIRLA)
   const s = b.pages()[0] ?? (await b.newPage())
 
   const wsId = await isletmeIdBul(s)
