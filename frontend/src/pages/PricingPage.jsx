@@ -1,3 +1,4 @@
+import Acilis from '@/components/about/Acilis'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Check, Percent, ShieldCheck, Sparkles } from 'lucide-react'
@@ -373,7 +374,7 @@ export default function PricingPage() {
 
         {/* Kurucu üyeliğin fiyat DIŞINDAKİ karşılıkları — teklifin
             altında, kendi bölümünde. */}
-        <section className={styles.ayricaliklar} aria-labelledby="ayricalik-baslik">
+        <Acilis as="section" className={styles.ayricaliklar} aria-labelledby="ayricalik-baslik">
           <h2 id="ayricalik-baslik" className={styles.ayricalikBaslik}>
             <Sparkles size={16} aria-hidden="true" />
             {t('pricing.benefitsTitle')}
@@ -386,9 +387,9 @@ export default function PricingPage() {
               </li>
             ))}
           </ul>
-        </section>
+        </Acilis>
 
-        <section className={styles.guvence}>
+        <Acilis as="section" className={styles.guvence}>
           <ShieldCheck size={20} aria-hidden="true" />
           <div>
             <h2>{t('pricing.securityTitle')}</h2>
@@ -400,9 +401,9 @@ export default function PricingPage() {
               */}
             <p>{t('pricing.securityDescription')}</p>
           </div>
-        </section>
+        </Acilis>
 
-        <section className={styles.sss} aria-labelledby="sss-baslik">
+        <Acilis as="section" className={styles.sss} aria-labelledby="sss-baslik">
           <h2 id="sss-baslik" className={styles.bolumBaslik}>{t('pricing.faqTitle')}</h2>
 
           <details>
@@ -438,7 +439,7 @@ export default function PricingPage() {
             <summary>{t('pricing.faq.invoice.question')}</summary>
             <p>{t('pricing.faq.invoice.answer')}</p>
           </details>
-        </section>
+        </Acilis>
       </div>
 
       <PublicFooter />

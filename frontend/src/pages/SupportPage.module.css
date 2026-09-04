@@ -9,7 +9,15 @@
 .header button:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
 .header strong { font-family: var(--font-heading); }
 
-.govde { width: min(100%, 820px); margin: 0 auto; display: grid; gap: 18px; }
+/*
+ * §23 kapsaminda ama OLCULU.
+ *
+ * /hakkinda ve /fiyatlar satis yuzeyleri; burasi sorunu olan birinin
+ * geldigi yardim sayfasi. Sinematik tipografi burada isi yavaslatirdi,
+ * bu yuzden YALNIZ nefes acildi ve bolumler kaydirmayla beliriyor;
+ * baslik olcegi degismedi.
+ */
+.govde { width: min(100%, 920px); margin: 0 auto; display: grid; gap: clamp(28px, 4vw, 56px); }
 
 .giris, .sss, .formBolum, .kvkkKutu, .kilavuz {
   box-sizing: border-box;

@@ -140,12 +140,17 @@
 
 /* ---------- Gövde ---------- */
 
+/*
+ * §23.1: tanıtım sayfası ölçeği. /hakkinda ile AYNI değerler —
+ * iki tanıtım sayfası farklı genişlik ve ritimde olsaydı aynı ürünün
+ * parçası gibi durmazlardı.
+ */
 .icerik {
   flex: 1;
   width: 100%;
-  max-width: 1000px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 34px 24px 60px;
+  padding: clamp(48px, 6vw, 88px) clamp(20px, 4vw, 40px) clamp(64px, 8vw, 112px);
 }
 
 .duyuru {
@@ -454,7 +459,7 @@
 /* ---------- Kurucu ayrıcalıkları ---------- */
 
 .ayricaliklar {
-  margin-top: 22px;
+  margin-top: clamp(56px, 7vw, 104px);
   padding: 18px 20px;
   border: 1px solid var(--auth-card-border);
   border-radius: 13px;
@@ -510,7 +515,7 @@
   display: flex;
   align-items: flex-start;
   gap: 13px;
-  margin-top: 26px;
+  margin-top: clamp(40px, 5vw, 72px);
   padding: 18px 20px;
   border: 1px solid var(--auth-card-border);
   border-radius: 13px;
@@ -535,15 +540,20 @@
 
 /* ---------- SSS ---------- */
 
+/*
+ * Bölüm başlığı /hakkinda ile aynı kademede. Önceki 1.22rem gövde
+ * metninden zor ayırt ediliyordu.
+ */
 .bolumBaslik {
-  margin: 0 0 14px;
+  margin: 0 0 18px;
   color: var(--auth-text);
-  font-size: 1.22rem;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  line-height: 1.12;
   font-weight: 780;
-  letter-spacing: -.01em;
+  letter-spacing: -.03em;
 }
 
-.sss { margin-top: 40px; }
+.sss { margin-top: clamp(64px, 8vw, 128px); }
 
 .sss details {
   border-bottom: 1px solid var(--auth-divider);

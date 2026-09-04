@@ -1,3 +1,4 @@
+import Acilis from '@/components/about/Acilis'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
@@ -122,14 +123,14 @@ export default function SupportPage() {
       </header>
 
       <div className={styles.govde}>
-        <section className={styles.giris}>
+        <Acilis as="section" gecikme={0} className={styles.giris}>
           <div className={styles.ikon}><LifeBuoy size={24} /></div>
           <p className={styles.kicker}>{t('support.kicker')}</p>
           <h1>{t('support.title')}</h1>
           <p className={styles.aciklama}>{t('support.intro')}</p>
-        </section>
+        </Acilis>
 
-        <section className={styles.sss} aria-labelledby="sss-baslik">
+        <Acilis as="section" gecikme={1} className={styles.sss} aria-labelledby="sss-baslik">
           <h2 id="sss-baslik">{t('support.faqTitle')}</h2>
           {SSS.map(key => (
             <details key={key} className={styles.sssKalem}>
@@ -137,9 +138,9 @@ export default function SupportPage() {
               <p>{t(`support.faq.${key}.answer`)}</p>
             </details>
           ))}
-        </section>
+        </Acilis>
 
-        <section className={styles.kilavuz} aria-labelledby="kilavuz-baslik">
+        <Acilis as="section" gecikme={2} className={styles.kilavuz} aria-labelledby="kilavuz-baslik">
           <h2 id="kilavuz-baslik">{t('support.guideTitle')}</h2>
           <p className={styles.kilavuzGiris}>{t('support.guideIntro')}</p>
           <ol className={styles.kilavuzListe}>
@@ -153,9 +154,9 @@ export default function SupportPage() {
               </li>
             ))}
           </ol>
-        </section>
+        </Acilis>
 
-        <section className={styles.kvkkKutu}>
+        <Acilis as="section" gecikme={3} className={styles.kvkkKutu}>
           <ShieldCheck size={20} aria-hidden="true" />
           <div>
             <strong>{t('support.privacy.title')}</strong>
@@ -174,9 +175,9 @@ export default function SupportPage() {
               <Link to="/privacy">{t('support.privacy.link')}</Link>{t('support.privacy.suffix')}
             </p>
           </div>
-        </section>
+        </Acilis>
 
-        <section className={styles.formBolum} aria-labelledby="form-baslik">
+        <Acilis as="section" gecikme={4} className={styles.formBolum} aria-labelledby="form-baslik">
           <h2 id="form-baslik">{t('support.form.title')}</h2>
 
           <form className={styles.form} onSubmit={gonder}>
@@ -271,7 +272,7 @@ export default function SupportPage() {
               </button>
             </div>
           </form>
-        </section>
+        </Acilis>
 
         {/* Kopya yasal bağlantı listesi kaldırıldı; ortak
             `PublicFooter` aşağıda ve satıcı kimliğini de taşıyor. */}
