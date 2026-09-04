@@ -63,7 +63,7 @@ const EKRANLAR = [
   {
     dosya: 'ai-mentor.png',
     yol: '/app/mentor',
-    yakin: { dosya: 'ai-mentor-detay.png', metin: /Kâr marjımı nasıl hesaplarım/ },
+    yakin: { dosya: 'ai-mentor-detay.png', metin: /Stok yönetimi|MENTOR YANITI/ },
   },
   {
     dosya: 'hesaplamalar.png',

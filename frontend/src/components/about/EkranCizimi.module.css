@@ -44,9 +44,15 @@
   object-position: center top;
 }
 
+/*
+ * Rozet SOL alta alindi.
+ *
+ * Kolajda detay kart sag alt koseden tasiyor ve rozet onun altinda
+ * kaliyordu: buyutme etkilesimi gorunmez oluyordu (olculdu).
+ */
 .buyutRozeti {
   position: absolute;
-  right: 12px;
+  left: 12px;
   bottom: 12px;
   padding: 8px 12px;
   border: 1px solid rgba(255, 255, 255, .24);
@@ -176,5 +182,92 @@
   .buyutRozeti {
     right: 8px;
     bottom: 8px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   KOLAJ — DESIGN.md §23.1
+
+   Tam sayfa görselin üzerine o ekrandan bir yakın çekim bindiriliyor.
+   Ölçüldü: sayfada 11 bölüm vardı ama 6 görsel ve görseller sayfa
+   alanının yalnız %17'siydi; bölüm aralıkları büyütülünce boşluk daha
+   da belirginleşti.
+
+   Yeni bağımlılık yok: bindirme CSS, açılış IntersectionObserver.
+   ══════════════════════════════════════════════════════════════════ */
+
+.kolaj {
+  position: relative;
+  /* Detay dışarı taşıyor; kapsayıcı kırpmamalı. */
+  overflow: visible;
+}
+
+/*
+ * Detay, ana görselin sağ alt köşesinden dışarı taşar.
+ *
+ * `width: 62%` bilinçli: daha büyük olsaydı ana görseli örter, daha
+ * küçük olsaydı içindeki metin okunmazdı. 16:10 oranı korunmuyor —
+ * yakın çekimler kartın kendi oranında ve zorlamak onları bozardı.
+ */
+.detay {
+  position: absolute;
+  right: -6%;
+  bottom: -9%;
+  width: 62%;
+  max-height: 72%;
+  object-fit: cover;
+  object-position: left top;
+  border: 1px solid var(--auth-card-border);
+  border-radius: 12px;
+  background: var(--surface-panel);
+  box-shadow:
+    0 18px 40px -12px rgba(0, 0, 0, .55),
+    0 2px 8px rgba(0, 0, 0, .25);
+
+  /* Açılış: hafifçe aşağıdan ve küçükten gelir. §12'nin standart eğrisi. */
+  opacity: 0;
+  transform: translate3d(0, 22px, 0) scale(.96);
+  transition:
+    opacity 700ms cubic-bezier(0.4, 0, 0.2, 1) 160ms,
+    transform 700ms cubic-bezier(0.4, 0, 0.2, 1) 160ms;
+}
+
+.kolajAcik .detay {
+  opacity: 1;
+  transform: none;
+}
+
+/*
+ * Ana görsel de açılışta çok hafif ölçekleniyor — detay tek başına
+ * hareket edince kopuk duruyordu, ikisi birlikte tek bir sahne gibi
+ * yerleşiyor.
+ */
+.kolaj .cerceve {
+  transform: scale(.985);
+  transition: transform 700ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.kolajAcik .cerceve {
+  transform: none;
+}
+
+/*
+ * Dar ekranda detay GİZLENİYOR.
+ *
+ * 640px altında ana görsel zaten küçük; üzerine %62 genişlikte ikinci
+ * bir kare bindirmek ikisini de okunmaz yapıyordu. Bilgi kaybı yok:
+ * detay, ana ekranın bir parçası (§23.3).
+ */
+@media (max-width: 640px) {
+  .detay { display: none; }
+}
+
+/* §23.2 — hareket kısıtlıyken kolaj DURUR, yerinde ve görünür kalır. */
+@media (prefers-reduced-motion: reduce) {
+  .detay,
+  .kolaj .cerceve {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }
