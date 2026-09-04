@@ -66,14 +66,20 @@
   gap: clamp(36px, 4.5vw, 64px);
 }
 
+/*
+ * Genislik 1080 → 1240 ve bolum araligi buyudu (§23.1).
+ * Robinhood/Stripe kaliplarinda her bolum kendi sahnesi gibi durur;
+ * dar sutun ve kucuk aralik bolumleri tek bir metin akisina
+ * dondurüyordu.
+ */
 .icerik {
   position: relative;
-  max-width: 1080px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: clamp(44px, 5vw, 72px) clamp(20px, 6vw, 96px) 0;
+  padding: clamp(64px, 8vw, 128px) clamp(20px, 6vw, 96px) 0;
   display: flex;
   flex-direction: column;
-  gap: clamp(44px, 5vw, 72px);
+  gap: clamp(88px, 11vw, 176px);
 }
 
 /* --- Üst şerit ---------------------------------------------------------- */
@@ -245,15 +251,23 @@
  * DEĞİL. Sabit yazılsaydı açık modda düz zeminde kaybolurdu; ilk sürümün
  * hatası tam olarak buydu.
  */
+/*
+ * §23.1: tanitim sayfalarinda `display` kademesinin uzerine cikilabilir.
+ * Onceki tavan 1.75rem idi ve bolum basliklari govde metninden zor
+ * ayirt ediliyordu; sayfa tek bir gri blok gibi okunuyordu.
+ * §23.2 geregi AILE degismedi, yalniz olcek buyudu.
+ */
 .bolumBaslik,
 .kimeSection h2,
 .sinirlar h2,
 .kapanis h2 {
-  margin: 0 0 14px;
+  margin: 0 0 18px;
   color: var(--auth-text);
-  font-size: clamp(1.3rem, 1.9vw, 1.75rem);
+  font-size: clamp(1.9rem, 4vw, 3.1rem);
+  line-height: 1.08;
   font-weight: var(--font-weight-heavy, 780);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  max-width: 18ch;
 }
 
 .kimeSection p,
@@ -392,11 +406,16 @@
 
 .modulListesi { display: grid; gap: clamp(28px, 5vw, 52px); }
 
+/*
+ * Gorsel tarafi metinden GENIS: ekran goruntusu bolumun kahramani,
+ * metin ona eslik ediyor. Onceden ikisi neredeyse esitti ve gorsel
+ * kucuk kaliyordu.
+ */
 .modul {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
   align-items: center;
-  gap: clamp(20px, 4vw, 44px);
+  gap: clamp(32px, 6vw, 88px);
 }
 
 /* Zikzak: tek sıradakilerde ekran sağa geçer. Yalnız GENİŞ ekranda —
