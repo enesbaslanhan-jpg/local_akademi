@@ -35,3 +35,6 @@ tasarim/*.html
 # ⚠️ `tmp/` kullanilmadi: orasi "atilabilir" demek ve `git clean` ile
 # silinmesi beklenir; saklanmasi istenen belge oraya konmaz.
 notlar/
+
+# Playwright oturum profili — tanitim ekran goruntusu betigi
+.playwright-profil/
