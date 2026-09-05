@@ -101,6 +101,42 @@ describe('account management', () => {
     expect(removed.statusCode).toBe(204)
   })
 
+  /*
+   * KAPAK FOTOĞRAFI GERİ OKUNABİLMELİ.
+   *
+   * Bu test olmadığı için kapaklar sessizce kırıktı: `coverUrl`
+   * `/auth/avatar/<dosya>` üretiyordu ama o rota yalnızca
+   * `avatarStoredName` ile sorguluyordu ve her kapak isteği 404
+   * dönüyordu. Yükleme çalıştığı için hata yükleme testinden geçiyordu.
+   *
+   * Testin asıl konusu SUNMA adımı; yükleme yalnızca ön koşul.
+   */
+  it('serves an uploaded cover photo back', async () => {
+    const boundary = `cover-boundary-${Date.now()}`
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Zr2AAAAAASUVORK5CYII=', 'base64')
+    const body = Buffer.concat([
+      Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="cover"; filename="cover.png"\r\nContent-Type: image/png\r\n\r\n`),
+      png,
+      Buffer.from(`\r\n--${boundary}--\r\n`),
+    ])
+    const uploaded = await app.inject({
+      method: 'POST', url: '/auth/cover',
+      headers: { authorization: `Bearer ${token}`, 'content-type': `multipart/form-data; boundary=${boundary}` },
+      payload: body,
+    })
+    expect(uploaded.statusCode).toBe(201)
+
+    const me = await app.inject({ method: 'GET', url: '/auth/me', headers: { authorization: `Bearer ${token}` } })
+    const coverUrl = me.json().coverUrl
+    expect(coverUrl).toMatch(/^\/auth\/avatar\/[0-9a-f-]{36}\.png$/)
+
+    const served = await app.inject({ method: 'GET', url: coverUrl })
+    expect(served.statusCode).toBe(200)
+    expect(served.headers['content-type']).toContain('image/png')
+
+    await app.inject({ method: 'DELETE', url: '/auth/cover', headers: { authorization: `Bearer ${token}` } })
+  })
+
   it('anonymizes and disables the account', async () => {
     const response = await app.inject({
       method: 'DELETE', url: '/auth/account',

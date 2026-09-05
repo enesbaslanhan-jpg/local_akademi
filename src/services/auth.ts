@@ -484,9 +484,38 @@ export async function authRoutes(fastify: FastifyInstance) {
   fastify.get('/avatar/:storedName', async (request, reply) => {
     const storedName = String((request.params as { storedName?: string }).storedName || '')
     if (!AVATAR_NAME_RE.test(storedName)) return reply.status(404).send({ error: 'Profil fotoğrafı bulunamadı.' })
-    const owner = await prisma.user.findFirst({ where: { avatarStoredName: storedName, deletedAt: null }, select: { avatarMimeType: true } })
-    if (!owner?.avatarMimeType) return reply.status(404).send({ error: 'Profil fotoğrafı bulunamadı.' })
-    reply.header('Content-Type', owner.avatarMimeType)
+    /*
+     * 🔴 KAPAK FOTOĞRAFLARI HİÇ SERVİS EDİLMİYORDU.
+     *
+     * `coverUrl` bu rotayı işaret ediyor (`avatarUrl(coverStoredName)`,
+     * satır 174 ve 378/480) ama sorgu YALNIZCA `avatarStoredName` bakıyordu.
+     * Yani her kapak isteği 404 dönüyordu — mobilde de webde de. Yükleme
+     * çalışıyor (`POST /auth/cover`), dosya diske yazılıyor, veritabanına
+     * kaydediliyor; sadece geri okunamıyordu.
+     *
+     * İki alan tek sorguda aranıyor ve DOĞRU mime tipi seçiliyor: kapak ile
+     * avatarın türü farklı olabilir (biri PNG biri JPEG), yanlışını
+     * göndermek `nosniff` ile birlikte görselin hiç çizilmemesine yol açar.
+     */
+    const owner = await prisma.user.findFirst({
+      where: {
+        deletedAt: null,
+        OR: [{ avatarStoredName: storedName }, { coverStoredName: storedName }]
+      },
+      select: {
+        avatarStoredName: true,
+        avatarMimeType: true,
+        coverStoredName: true,
+        coverMimeType: true
+      }
+    })
+    const mimeType = owner?.avatarStoredName === storedName
+      ? owner.avatarMimeType
+      : owner?.coverStoredName === storedName
+        ? owner.coverMimeType
+        : null
+    if (!mimeType) return reply.status(404).send({ error: 'Profil fotoğrafı bulunamadı.' })
+    reply.header('Content-Type', mimeType)
     /*
      * `public, max-age=86400, immutable` DEĞİL.
      *
