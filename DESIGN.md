@@ -229,6 +229,9 @@ Kural:
 
 Yasak: `24px` radius her karta verilmez; `16px` üstü yalnızca `feature` kart ve hero yüzeylerdedir.
 
+> Mobil uygulama bu yasağı gevşetir (kart 20dp, çekmece 28dp) — bkz. §24.3.
+> Web yüzeyleri için yasak aynen geçerlidir.
+
 ### 3.4 Glass allow-list (serbest kullanım yok)
 
 Glassmorphism yalnızca **şu merkezi alanlarda** kullanılır:
@@ -721,3 +724,134 @@ Revolut, Stripe ve benzeri ürünlerin sinematik ekranları giriş öncesi
 pazarlama yüzeyleridir; aynı ürünlerin çalışma ekranları sakindir. Bu
 ayrımı korumak, tanıtımın etkisini de uygulamanın kullanılabilirliğini de
 aynı anda mümkün kılar.
+
+---
+
+## 24. Mobil uygulama tasarım dili (kapsam istisnası)
+
+**Kapsam:** yalnızca mobil uygulama (Compose Multiplatform, `LocalKarar-Mobile`).
+Web yüzeylerini bağlamaz.
+
+Ürün sahibi kararı (05.09.2026): mobil uygulama, dünya çapındaki finans
+uygulamalarıyla yarışacak şekilde **baştan tasarlanıyor**. Bu maddeden önceki
+model "renk + font + tipografi webden, yalnız düzen farklı" idi; **değişti.**
+
+### 24.1 Ne paylaşılır, ne ayrışır
+
+| katman | durum |
+|---|---|
+| §1.1 brand paleti, §1.5 semantic renkler | **değişmez** — tek marka sistemi |
+| §19 erişilebilirlik eşikleri | **değişmez** — pazarlık konusu değil |
+| §4 font ailesi (Manrope) | **değişmez** |
+| tipografi ölçeği, yarıçap, boşluk, gölge, hareket | **mobilde ayrışır** (aşağıda) |
+| bilgi mimarisi, alan ve bölüm adlandırması | **webden gelir** — görsel dil değil, yapı |
+
+### 24.2 Tipografi ölçeği (§4'ten ayrışır)
+
+Web ölçeği mobilde hiyerarşi üretmiyordu: 18/16/15px kademeleri küçük ekranda
+birbirinden ayırt edilemiyor.
+
+| rol | boyut / ağırlık | kullanım |
+|---|---|---|
+| `display` | 40sp / 720, `-0.03em` | ekranın **tek** hakim sayısı |
+| `titleL` | 26sp / 700 | ekran başlığı |
+| `titleS` | 18sp / 650 | bölüm başlığı |
+| `body` | 15sp / 500 | gövde |
+| `label` | 13sp / 600 | etiket, satır üstü |
+| `caption` | 11sp / 500 | yardımcı |
+| `nav-label` | 10sp / 600 | alt gezinme (§4'ün mevcut istisnası) |
+
+**Zorunlu:** tüm para ve oran gösterimleri **tabular figürlerle** çizilir.
+Orantılı rakamlarla canlı güncellenen tutarlar zıplar.
+
+### 24.3 Yarıçap — §3.3 yasağının mobil istisnası
+
+§3.3 "`24px` radius her karta verilmez; `16px` üstü yalnızca feature kart ve
+hero yüzeylerdedir" diyor. Mobilde bu **gevşetilir**, çünkü dokunmatik
+arayüzde kart daha büyük yarıçapla dokunulabilir bir nesne gibi okunuyor:
+
+| rol | değer |
+|---|---|
+| küçük (chip, badge) | `10dp` |
+| **kart** | `20dp` |
+| **çekmece / binen yüzey** | `28dp` |
+| hap (buton, sekme, avatar) | tam yuvarlak |
+
+`24px+` hâlâ **her yüzeye** verilmez; yalnızca kart ve çekmece kademelerine.
+
+### 24.4 Boşluk ve dolgu
+
+Ölçek: `4 · 8 · 12 · 16 · 20 · 24 · 32 · 40 · 56`.
+**Kart iç dolgusu 20dp** (web `PadPanel` 16px). Küçük ekranda 16dp dolgu
+kartı sıkışık gösteriyordu.
+
+### 24.5 Gölge — koyu temada gölge yoktur
+
+Sık yapılan hata: aynı gölge değerlerini iki temada kullanmak. Siyah zeminde
+siyah gölge görünmez.
+
+- **açık tema**: yumuşak, geniş yarıçaplı gölge
+- **koyu tema**: gölge yerine **yüzey tonu yükseltmesi** + üst kenarda 1dp
+  `rgba(255,255,255,.06)` ışık çizgisi
+
+Bileşenler kademe **adı** ister, ham değer değil.
+
+### 24.6 Hero başlık bloğu ve ölçülmüş kontrast kuralı
+
+Mobilin baskın kompozisyonu: marka renginde tam genişlikte başlık bloğu +
+üstüne binen `28dp` yarıçaplı yüzey. Gradyan `--auth-gradient`'tan gelir:
+`#060F14 → #0E2530 → #1B4356 → #275C72 → #2F6A82`, 158°.
+
+**Ölçüldü** (WCAG bağıl parlaklık): `#306D88` üzerinde beyaz **5.72:1**.
+Opaklık düşürülünce hızla kırılıyor — %85 → 4.65:1 (geçer),
+**%75 → 4.01:1 (kalır)**, %65 → 3.43:1.
+
+> **Kural:** hero başlık bloğu içindeki hiçbir metin **%85 beyaz opaklığın
+> altına inmez.** Soluk bir etiket isteniyorsa opaklık düşürülmez, ayrı bir
+> açık ton tanımlanır.
+
+### 24.7 Yüzey merdiveni — mockup değil, ölçüm bağlar
+
+§2.1 "iki komşu yüzey ayırt edilebilir olmalıdır" diyor. Kenarlıksız bir
+yüzey sınırının algılanması için kabaca **1.20** parlaklık oranı gerekiyor.
+
+Mobil kodun mevcut merdiveni ölçüldü ve geçiyor:
+
+| tema | canvas→panel | panel→raised | canvas→raised |
+|---|---|---|---|
+| açık (`#E1E7EB` / `#F0F3F6` / `#FFFFFF`) | 1.120 | 1.114 | **1.248** |
+| koyu (`#14181C` / `#1C2126` / `#242A30`) | 1.100 | 1.119 | **1.231** |
+
+⚠️ Tasarım mockup'ında daha açık bir merdiven denendi
+(`#EEF1F4` / `#F7F9FA` / `#FFFFFF`) ve **ölçümde geriledi**: canvas→raised
+1.134, eşiğin altında. **Alınmadı.** Mockup ölçü ve ritim referansıdır;
+erişilebilirlik değerlerini bağlamaz — bu tabloyu ölçüm bağlar.
+
+### 24.8 Hareket
+
+| jeton | süre | eğri |
+|---|---|---|
+| `instant` | 120ms | standard |
+| `short` | 200ms | standard |
+| `medium` | 320ms | emphasized |
+| `sheet` | yay, damping .82 | — |
+| `counter` | 480ms | decelerate |
+
+Dört zorunlu animasyon: sayı sayacı, skeleton yükleme, başarı mikro-etkileşimi
+(tik + konfeti), çekmece yayı. Dördü de dış bağımlılık olmadan yazılır.
+
+**Hareket kısıtlaması açıkken dördü de tamamen atlanır** — son değer doğrudan
+yazılır. Bu §19'un gereği, isteğe bağlı bir incelik değil.
+
+Konfeti **yalnızca gerçek tamamlanma anlarında** (kayıt kapatma, karar oturumu
+bitişi) oynar. Her kaydetmede oynarsa ciddi bir finans aracı oyuncak gibi
+görünür.
+
+### 24.9 Marka işareti
+
+Marka işareti **temayla dönmez**; renkleri sabittir ve açık/koyu temada aynı
+görünür. Animasyonu (pusula iğnesinin kuzeyi bulması) tek seferliktir.
+
+⚠️ Uygulama tuzağı: **aynı animasyon adı yeniden tetiklenmez.** CSS'te sınıfı
+kaldırıp reflow zorlamak, Compose'da `key()` ile yeniden başlatmak gerekir.
+Web'de ve mobil mockup'ta bu tuzağa iki kez düşüldü.
