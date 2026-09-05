@@ -202,20 +202,56 @@ const MUSTERILER = [
 
 const gun = (n: number) => new Date(Date.now() + n * 86400000)
 
+/* Örnek paylaşımların metinleri — temizlikte yetim kalanları bulmak için. */
+const ORNEK_PAYLASIMLAR = ISLETMELER
+  .map((i) => i.paylasim)
+  .filter((p): p is string => typeof p === 'string' && p.length > 0)
+
 async function temizle() {
+  /*
+   * 🔴 PAYLAŞIMLAR CASCADE İLE SİLİNMİYOR — ÖNCEKİ SÜRÜMDEKİ VARSAYIM YANLIŞTI.
+   *
+   * Şemada ilişki `author User? @relation("CommunityPostAuthor", ...)` ve
+   * `onDelete` TANIMLI DEĞİL. Prisma'nın isteğe bağlı ilişkilerdeki
+   * varsayılanı `SetNull`: kullanıcı silinince paylaşım silinmiyor,
+   * yalnızca `authorId` boşalıyor.
+   *
+   * Sonucu ölçüldü: veritabanında 18 yetim paylaşım birikmişti (6'sı
+   * published, 12'si approved) ve akışta "Bilinmeyen" yazarıyla
+   * görünüyorlardı. Her yeniden tohumlama aynı metinleri bir kez daha
+   * yazdığı için akış çift kayıt gösteriyordu.
+   *
+   * Çözüm: paylaşımlar kullanıcıdan ÖNCE, açıkça siliniyor.
+   */
   const kullanicilar = await prisma.user.findMany({
     where: { email: { endsWith: ISARET } },
     select: { id: true },
   })
-  if (kullanicilar.length === 0) {
-    console.log('Silinecek örnek veri yok.')
+  const idler = kullanicilar.map((k) => k.id)
+
+  /*
+   * Yetimler metinlerinden bulunuyor, "authorId is null" ile DEĞİL.
+   *
+   * Gerçek bir kullanıcı hesabını silince de aynı SetNull çalışır ve o
+   * kişinin paylaşımları yazarsız kalır — bu kasıtlı bir anonimleştirme
+   * olabilir. Yazarsız her paylaşımı silmek o kayıtları da götürürdü.
+   */
+  const yetim = await prisma.communityPost.deleteMany({
+    where: { authorId: null, summary: { in: ORNEK_PAYLASIMLAR } },
+  })
+
+  const paylasim = idler.length
+    ? await prisma.communityPost.deleteMany({ where: { authorId: { in: idler } } })
+    : { count: 0 }
+
+  if (idler.length === 0) {
+    console.log(`Silinecek örnek kullanıcı yok. Yetim paylaşım silindi: ${yetim.count}`)
     return
   }
-  const idler = kullanicilar.map((k) => k.id)
 
   /* Workspace'ler `createdById` üzerinden bulunuyor; onları silmek
      kayıt/ürün/entegrasyonu cascade ile götürüyor (şemada onDelete:
-     Cascade tanımlı). Paylaşımlar kullanıcıya bağlı, o da cascade. */
+     Cascade tanımlı). */
   const wsler = await prisma.businessWorkspace.findMany({
     where: { createdById: { in: idler } },
     select: { id: true },
@@ -223,7 +259,10 @@ async function temizle() {
   await prisma.businessWorkspace.deleteMany({ where: { id: { in: wsler.map((w) => w.id) } } })
   await prisma.user.deleteMany({ where: { id: { in: idler } } })
 
-  console.log(`Silindi: ${idler.length} kullanıcı, ${wsler.length} işletme (ve bağlı tüm kayıtlar).`)
+  console.log(
+    `Silindi: ${idler.length} kullanıcı, ${wsler.length} işletme, ` +
+    `${paylasim.count + yetim.count} paylaşım (${yetim.count} yetim).`
+  )
 }
 
 /*
