@@ -68,6 +68,8 @@ export default function Dashboard() {
   const [data, setData] = useState(null)
   const [tracker, setTracker] = useState(null)
   const [trackerRecords, setTrackerRecords] = useState([])
+  const [trackerState, setTrackerState] = useState({ workspaceId: null, status: 'loading', total: null })
+  const trackerRequest = useRef(0)
   const [operations, setOperations] = useState(null)
   const [decisionRows, setDecisionRows] = useState([])
   const [lastDecision, setLastDecision] = useState(null)
@@ -96,6 +98,11 @@ export default function Dashboard() {
   // Marketplace operations özeti de AYNI ortak endpoint'ten gelir; hata
   // olursa marketplace blokları sessizce gizlenir (dashboard çökmez).
   const fetchTracker = useCallback(async () => {
+    const requestId = ++trackerRequest.current
+    setTracker(null)
+    setTrackerRecords([])
+    setOperations(null)
+    setTrackerState({ workspaceId: activeWorkspaceId, status: 'loading', total: null })
     if (!activeWorkspaceId) {
       setTracker(null)
       setTrackerRecords([])
@@ -111,9 +118,11 @@ export default function Dashboard() {
       api.marketplace.operations(activeWorkspaceId).catch(() => null)
     ])
     if (!mountedRef.current) return
+    if (requestId !== trackerRequest.current) return
     setTracker(summary)
     setTrackerRecords(Array.isArray(list?.records) ? list.records : [])
     setOperations(ops)
+    setTrackerState({ workspaceId: activeWorkspaceId, status: summary && list ? 'ready' : 'error', total: list?.total ?? list?.records?.length ?? null })
   }, [activeWorkspaceId])
 
   // Önerilen karar aracı + son tamamlanan karar sonucu. İkisi de gerçek
@@ -202,6 +211,8 @@ export default function Dashboard() {
 
   const overdue = tracker?.counts?.overdue ?? 0
   const net = tracker?.nextThirtyDays?.net
+  const trackerReady = trackerState.workspaceId === activeWorkspaceId && trackerState.status === 'ready'
+  const hasRecords = trackerReady && trackerState.total > 0
 
   /* ---- Marketplace operations (ortak aggregate servis). Bağlı değilse
      hero ve görev akışı mevcut davranışını AYNEN sürdürür. ---- */
@@ -252,7 +263,7 @@ export default function Dashboard() {
       gösterilmediği için cümle de üretilmez. Marketplace riskleri
       BusinessRecord durumuyla BİRLEŞİR — tek başına hero'yu override etmez. ---- */
   let statusSentence = null
-  if (tracker) {
+  if (hasRecords) {
     const parts = []
     if (Number.isFinite(Number(net))) {
       parts.push(net < 0
@@ -270,7 +281,10 @@ export default function Dashboard() {
   }
 
   const totalIssues = overdue + mktIssues.length
-  const statusHeadline = tracker
+  const statusHeadline = !activeWorkspaceId ? t('dashboard:status.headlineSetup')
+    : !trackerReady ? t(`dashboard:status.${trackerState.status === 'error' ? 'headlineUnavailable' : 'headlineLoading'}`)
+    : !hasRecords ? (totalIssues > 0 ? t('dashboard:status.headlineIssues', { count: totalIssues }) : t('dashboard:status.headlineEmpty'))
+    : tracker
     ? totalIssues > 0
       ? t('dashboard:status.headlineIssues', { count: totalIssues })
       : net < 0
@@ -309,10 +323,10 @@ export default function Dashboard() {
             </span>
             <h2 className={styles.statusHeadline}>{statusHeadline}</h2>
             <p className={styles.statusSentence}>
-              {statusSentence || t('contentFallback')}
+              {statusSentence || (activeWorkspaceId ? t(`dashboard:status.${!trackerReady ? 'unavailableHint' : 'emptyHint'}`) : t('contentFallback'))}
             </p>
           </div>
-          {tracker ? (
+          {hasRecords ? (
             <div className={styles.statusKpis}>
               <div className={styles.statusKpi}>
                 <span className={styles.statusKpiLabel}>{t('receivables')}</span>
@@ -355,8 +369,8 @@ export default function Dashboard() {
               )}
             </div>
           ) : (
-            <Button variant="secondary" size="sm" className={styles.setupButton} onClick={() => navigate('/app/workspaces')}>
-              {t('setupBusiness')} <ArrowRight size={14} />
+            <Button variant="secondary" size="sm" className={styles.setupButton} onClick={() => activeWorkspaceId && !trackerReady ? fetchTracker() : navigate(activeWorkspaceId ? `/app/workspaces/${activeWorkspaceId}/tracker?new=task` : '/app/workspaces')} disabled={Boolean(activeWorkspaceId && trackerState.status === 'loading')}>
+              {activeWorkspaceId ? t(!trackerReady ? 'common:buttons.retry' : 'dashboard:firstRecord') : t('setupBusiness')} <ArrowRight size={14} />
             </Button>
           )}
         </DarkPanel>

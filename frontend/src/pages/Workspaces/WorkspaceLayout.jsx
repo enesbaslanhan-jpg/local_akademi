@@ -104,7 +104,7 @@ export default function WorkspaceLayout() {
             {activeWorkspace.sector && <span>{activeWorkspace.sector}</span>}
             {activeWorkspace.city && <span>{activeWorkspace.city}</span>}
             <span>{t('layout.members', { count: activeWorkspace.memberCount })}</span>
-            {activeWorkspace.myRole && <span>({activeWorkspace.myRole})</span>}
+            {activeWorkspace.myRole && <span>({t(`team.role.${activeWorkspace.myRole}`, { defaultValue: t('team.role.viewer') })})</span>}
           </div>
         </div>
       )}

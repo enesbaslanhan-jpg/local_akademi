@@ -6,6 +6,7 @@ import { useMentorContext } from '@/context/MentorContext'
 import { MessageSquare, RotateCcw } from 'lucide-react'
 import ProfitabilityDecisionTool from '@/components/decision-checks/ProfitabilityDecisionTool'
 import StructuredDecisionTool from '@/components/decision-checks/StructuredDecisionTool'
+import DecisionFollowUp from '@/components/decision-checks/DecisionFollowUp'
 import './DecisionCheckSession.css'
 import styles from './DecisionCheckSession.module.css'
 
@@ -166,11 +167,11 @@ export default function DecisionCheckSession() {
         <div className={`bg-white p-6 border rounded shadow-sm ${styles.resultCard}`}>
           <div className={`mb-4 ${styles.resultRow}`}>
             <span className={`font-semibold text-gray-700 ${styles.resultLabel}`}>{t('session.statusLabel')}</span>
-            <span className={`font-bold ${styles.resultValue}`}>{snap.status}</span>
+            <span className={`font-bold ${styles.resultValue}`}>{t(`session.resultStatus.${snap.status}`, { defaultValue: t('session.resultStatus.unknown') })}</span>
           </div>
           <div className={`mb-4 ${styles.resultRow}`}>
             <span className={`font-semibold text-gray-700 ${styles.resultLabel}`}>{t('session.riskLevelLabel')}</span>
-            <span className={`font-bold ${styles.resultValue}`}>{snap.riskLevel}</span>
+            <span className={`font-bold ${styles.resultValue}`}>{t(`session.riskLevel.${snap.riskLevel}`, { defaultValue: t('session.riskLevel.unknown') })}</span>
           </div>
           {snap.missingInformation && snap.missingInformation.length > 0 && (
             <div className={`mb-4 text-orange-600 ${styles.missingInfo}`}>
@@ -200,6 +201,7 @@ export default function DecisionCheckSession() {
           )}
 
           {recalculateError && <p role="alert" className={`text-red-600 text-sm mb-2 ${styles.recalcError}`}>{recalculateError}</p>}
+          <DecisionFollowUp session={session} snapshot={snap} navigate={navigate} />
           <div className={`mt-6 flex gap-4 ${styles.resultActions}`}>
             <button onClick={() => navigate('/app/decision-checks')} className={`px-4 py-2 bg-gray-200 rounded ${styles.secondaryBtn}`}>{t('session.backToListButton')}</button>
             <button onClick={handleRecalculate} disabled={recalculating} className={`px-4 py-2 bg-gray-200 rounded flex items-center gap-2 ${styles.secondaryBtn}`}>

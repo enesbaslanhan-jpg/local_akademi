@@ -1,5 +1,6 @@
 {
   "title": "Kontrol Merkezi",
+  "firstRecord": "İlk kaydı ekle",
   "subtitle": "Bugün işletmenizde ne önemli?",
   "calculate": "Hesapla",
   "askMentor": "Mentor'a Sor",
@@ -62,13 +63,18 @@
     "noConnection": "Henüz pazaryeri bağlantısı yok — Ayarlar → Entegrasyonlar"
   },
   "status": {
+    "headlineEmpty": "Değerlendirme için henüz kayıt yok.",
+    "emptyHint": "Ödeme, tahsilat veya yapılacak kaydı ekleyerek işletme takibini başlatın.",
+    "headlineLoading": "İşletme kayıtları kontrol ediliyor.",
+    "headlineUnavailable": "İşletme durumu şu anda değerlendirilemiyor.",
+    "unavailableHint": "Kayıtlar yüklenmeden nakit durumu hakkında değerlendirme yapılamaz.",
     "cashDeficit": "önümüzdeki 30 günde {{amount}} nakit açığın görünüyor",
     "cashPositive": "önümüzdeki 30 günde {{amount}} net nakit girişin görünüyor",
     "overdueRecords": "{{count}} kayıt gecikmiş durumda",
     "noOverdue": "geciken kaydın yok",
-    "headlineIssues": "İşletmeniz dengeli, {{count}} konu dikkat istiyor.",
+    "headlineIssues": "{{count}} konu dikkat istiyor.",
     "headlinePlanning": "Önümüzdeki 30 gün için nakit planı gerekiyor.",
-    "headlineBalanced": "İşletmeniz dengeli, takip düzenli ilerliyor.",
+    "headlineBalanced": "Mevcut kayıtlarda gecikme veya net nakit açığı görünmüyor.",
     "headlineSetup": "İşletme görünümünüzü kurarak başlayın."
   }
 }

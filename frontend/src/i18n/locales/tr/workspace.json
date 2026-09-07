@@ -503,6 +503,18 @@
     "noRecords": "Bu ay için tarihli kayıt bulunmuyor."
   },
   "activity": {
+    "inboxEnabled": "Belge gelen kutusu etkinleştirildi",
+    "inboxDisabled": "Belge gelen kutusu kapatıldı",
+    "recordCreated": "İşletme kaydı oluşturuldu",
+    "contactArchived": "Kişi arşivlendi",
+    "invitationCancelled": "Davet iptal edildi",
+    "inboxSenderAdded": "Belge gönderen adres eklendi",
+    "inboxSenderRemoved": "Belge gönderen adres kaldırıldı",
+    "settingsUpdated": "İşletme ayarları güncellendi",
+    "integrationConnected": "Pazaryeri bağlantısı kuruldu",
+    "integrationDisconnected": "Pazaryeri bağlantısı kaldırıldı",
+    "integrationSyncTriggered": "Pazaryeri eşitlemesi başlatıldı",
+    "other": "İşletme işlemi kaydedildi",
     "created": "İşletme oluşturuldu",
     "updated": "İşletme güncellendi",
     "archived": "İşletme arşivlendi",
@@ -532,6 +544,7 @@
     "emptyHint": "Yaklaşan tarihler burada görünecek."
   },
   "team": {
+    "memberStatus": { "active": "Aktif", "inactive": "Pasif", "pending": "Bekliyor", "suspended": "Askıya alındı", "unknown": "Durum bilinmiyor" },
     "inviteFailed": "Davet gönderilemedi.",
     "confirmRemove": "Bu üyeyi çıkarmak istediğinize emin misiniz?",
     "title": "Ekip Üyeleri",
@@ -544,6 +557,8 @@
     },
     "role": {
       "owner": "Sahip",
+      "manager": "Yönetici",
+      "accountant": "Muhasebeci",
       "admin": "Yönetici",
       "staff": "Personel",
       "viewer": "İzleyici"
@@ -771,7 +786,10 @@
     "history": "Geçmiş",
     "reminder": {
       "sent": "gönderildi",
-      "pending": "bekliyor"
-    }
+      "pending": "bekliyor",
+      "cancelled": "iptal edildi",
+      "other": "durum bilinmiyor"
+    },
+    "historyAction": { "created": "Oluşturuldu", "updated": "Güncellendi", "deferred": "Ertelendi", "createdImport": "İçe aktarıldı", "generatedRecurrence": "Tekrarlanan kayıt oluşturuldu", "statusOpen": "Açık duruma alındı", "statusInProgress": "İşleme alındı", "statusCompleted": "Tamamlandı", "statusCancelled": "İptal edildi", "statusDeferred": "Ertelendi", "other": "Kayıt işlemi" }
   }
 }

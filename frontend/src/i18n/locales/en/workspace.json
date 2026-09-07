@@ -503,6 +503,18 @@
     "noRecords": "No dated records for this month."
   },
   "activity": {
+    "inboxEnabled": "Document inbox enabled",
+    "inboxDisabled": "Document inbox disabled",
+    "recordCreated": "Business record created",
+    "contactArchived": "Contact archived",
+    "invitationCancelled": "Invitation cancelled",
+    "inboxSenderAdded": "Document sender added",
+    "inboxSenderRemoved": "Document sender removed",
+    "settingsUpdated": "Business settings updated",
+    "integrationConnected": "Marketplace connected",
+    "integrationDisconnected": "Marketplace disconnected",
+    "integrationSyncTriggered": "Marketplace sync started",
+    "other": "Business activity recorded",
     "created": "Business created",
     "updated": "Business updated",
     "archived": "Business archived",
@@ -532,6 +544,7 @@
     "emptyHint": "Upcoming dates will appear here."
   },
   "team": {
+    "memberStatus": { "active": "Active", "inactive": "Inactive", "pending": "Pending", "suspended": "Suspended", "unknown": "Unknown status" },
     "inviteFailed": "Invitation could not be sent.",
     "confirmRemove": "Are you sure you want to remove this member?",
     "title": "Team Members",
@@ -544,6 +557,8 @@
     },
     "role": {
       "owner": "Owner",
+      "manager": "Manager",
+      "accountant": "Accountant",
       "admin": "Admin",
       "staff": "Staff",
       "viewer": "Viewer"
@@ -771,7 +786,10 @@
     "history": "History",
     "reminder": {
       "sent": "sent",
-      "pending": "pending"
-    }
+      "pending": "pending",
+      "cancelled": "cancelled",
+      "other": "status unknown"
+    },
+    "historyAction": { "created": "Created", "updated": "Updated", "deferred": "Deferred", "createdImport": "Imported", "generatedRecurrence": "Recurring record created", "statusOpen": "Reopened", "statusInProgress": "Set in progress", "statusCompleted": "Completed", "statusCancelled": "Cancelled", "statusDeferred": "Deferred", "other": "Record activity" }
   }
 }

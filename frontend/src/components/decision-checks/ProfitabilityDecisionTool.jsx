@@ -4,6 +4,7 @@ import { useTranslation, Trans } from 'react-i18next'
 import { api } from '@/services/api'
 import { DarkPanel, Modal } from '@/components/ui'
 import DecisionReceipt from './DecisionReceipt'
+import DecisionFollowUp from './DecisionFollowUp'
 import receiptTrigger from './ReceiptTrigger.module.css'
 import './ProfitabilityDecisionTool.css'
 import { getFormatLocale } from '@/utils/formatters'
@@ -154,6 +155,7 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
           </section>
 
           {recalculateError && <p role="alert" className="profit-submit-error">{recalculateError}</p>}
+          <DecisionFollowUp session={session} snapshot={snapshot} navigate={navigate} />
           <div className="profit-actions">
             <button onClick={() => navigate('/app/decision-checks')} className="profit-secondary">{t('decisions.backToList')}</button>
             <button onClick={handleRecalculate} disabled={recalculating} className="profit-secondary">

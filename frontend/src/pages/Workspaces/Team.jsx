@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next'
 
 export default function Team() {
   const { t } = useTranslation('workspace')
-  const roleOptions = ['owner', 'admin', 'staff', 'viewer'].map(value => ({ value, label: t(`team.role.${value}`) }))
+  const roleOptions = ['owner', 'manager', 'staff', 'accountant', 'viewer'].map(value => ({ value, label: t(`team.role.${value}`) }))
   const { workspaceId } = useParams()
   const [members, setMembers] = useState([])
   const [invitations, setInvitations] = useState([])
@@ -91,9 +91,9 @@ export default function Team() {
                 </td>
                 <td>{m.email}</td>
                 <td>
-                  <Select className={styles.select} aria-label={t('team.col.role')} options={roleOptions} value={m.role} onChange={v => handleRoleChange(m.id, v)} />
+                  <Select className={styles.select} aria-label={t('team.col.role')} options={roleOptions} value={m.role === 'admin' ? 'manager' : m.role} onChange={v => handleRoleChange(m.id, v)} />
                 </td>
-                <td><span className={styles.badge}>{m.status}</span></td>
+                <td><span className={styles.badge}>{t(`team.memberStatus.${m.status}`, { defaultValue: t('team.memberStatus.unknown') })}</span></td>
                 <td>
                   {m.role !== 'owner' && (
                     <button onClick={() => handleRemoveMember(m.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '0.85rem' }}>{t('team.remove')}</button>
@@ -116,7 +116,7 @@ export default function Team() {
               {invitations.map(inv => (
                 <tr key={inv.id}>
                   <td>{inv.email}</td>
-                  <td>{inv.role}</td>
+                  <td>{t(`team.role.${inv.role}`, { defaultValue: t('team.role.viewer') })}</td>
                   <td><button onClick={() => handleCancelInvitation(inv.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '0.85rem' }}>{t('common:buttons.cancel')}</button></td>
                 </tr>
               ))}

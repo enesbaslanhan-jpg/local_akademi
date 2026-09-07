@@ -123,6 +123,31 @@ afterAll(async () => {
 })
 
 describe('Business tracker API', () => {
+  it('scopes decision follow-ups to the selected workspace and preserves outcome notes', async () => {
+    const sessionId = randomUUID()
+    const created = await inject('POST', `/workspaces/${workspaceId}/records`, ownerToken, {
+      type: 'task', title: 'Decision follow-up', metadata: { decisionSessionId: sessionId, decisionFollowUp: { expectedOutcome: 'Ten interviews' } }
+    })
+    expect(created.statusCode).toBe(201)
+    const record = created.json()
+    try {
+      const list = await inject('GET', `/workspaces/${workspaceId}/records?decisionSessionId=${sessionId}`, ownerToken)
+      expect(list.json().records.map((r: any) => r.id)).toEqual([record.id])
+      const unrelated = await inject('GET', `/workspaces/${workspaceId}/records?decisionSessionId=${randomUUID()}`, ownerToken)
+      expect(unrelated.json().total).toBe(0)
+      expect((await inject('GET', `/workspaces/${otherWorkspaceId}/records?decisionSessionId=${sessionId}`, ownerToken)).statusCode).toBe(403)
+      expect((await inject('GET', `/workspaces/${workspaceId}/records?decisionSessionId=invalid`, ownerToken)).statusCode).toBe(422)
+      expect((await inject('PATCH', `/workspaces/${workspaceId}/records/${record.id}`, viewerToken, { status: 'completed' })).statusCode).toBe(403)
+      const updated = await inject('PATCH', `/workspaces/${workspaceId}/records/${record.id}`, ownerToken, {
+        status: 'completed', metadata: { ...record.metadata, decisionFollowUp: { ...record.metadata.decisionFollowUp, actualOutcome: 'Eight interviews' } }
+      })
+      expect(updated.statusCode).toBe(200)
+      expect(updated.json().metadata.decisionFollowUp).toEqual({ expectedOutcome: 'Ten interviews', actualOutcome: 'Eight interviews' })
+      expect(updated.json().completedAt).toBeTruthy()
+    } finally {
+      await inject('DELETE', `/workspaces/${workspaceId}/records/${record.id}`, ownerToken)
+    }
+  })
   it('requires authentication', async () => {
     const response = await inject('GET', `/workspaces/${workspaceId}/records`)
     expect(response.statusCode).toBe(401)

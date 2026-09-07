@@ -141,6 +141,12 @@ export default function Tracker() {
   useEffect(() => { load() }, [load])
 
   useEffect(() => {
+    const requestedRecord = searchParams.get('record')
+    if (requestedRecord) {
+      setDetayId(requestedRecord)
+      setSearchParams({}, { replace: true })
+      return
+    }
     const requestedType = searchParams.get('new')
     const action = QUICK_ACTIONS.find(item => item.id === requestedType)
     if (!action) return

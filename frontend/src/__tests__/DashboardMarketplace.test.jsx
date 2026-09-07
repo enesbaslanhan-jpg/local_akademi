@@ -88,11 +88,28 @@ beforeEach(() => {
 })
 
 describe('Ana Sayfa — pazaryeri bağlı değil', () => {
+  it('does not label an empty business as healthy or show positive zero KPIs', async () => {
+    mocks.marketplaceOperations.mockResolvedValue(null)
+    mocks.trackerSummary.mockResolvedValue({ counts: { open: 0, overdue: 0 }, nextThirtyDays: { payable: 0, receivable: 0, net: 0 } })
+    mocks.trackerList.mockResolvedValue({ records: [], total: 0 })
+    renderDashboard()
+    expect(await screen.findByText('Değerlendirme için henüz kayıt yok.')).toBeInTheDocument()
+    expect(screen.queryByText('Olumlu')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /İlk kaydı ekle/ })).toBeInTheDocument()
+  })
+
+  it('distinguishes unavailable records from an empty business', async () => {
+    mocks.marketplaceOperations.mockResolvedValue(null)
+    mocks.trackerList.mockRejectedValue(new Error('offline'))
+    renderDashboard()
+    expect(await screen.findByText('İşletme durumu şu anda değerlendirilemiyor.')).toBeInTheDocument()
+    expect(screen.queryByText('Değerlendirme için henüz kayıt yok.')).not.toBeInTheDocument()
+  })
   it('hero ve görev akışı mevcut davranışını korur, pazaryeri kartı çizilmez', async () => {
     mocks.marketplaceOperations.mockResolvedValue(null)
     renderDashboard()
 
-    await waitFor(() => expect(screen.getByText('İşletmeniz dengeli, 3 konu dikkat istiyor.')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('3 konu dikkat istiyor.')).toBeInTheDocument())
     expect(screen.queryByText('Pazaryeri Özeti')).not.toBeInTheDocument()
     expect(screen.queryByText('4 sipariş kargoya verilmeyi bekliyor')).not.toBeInTheDocument()
     // Bagli degil CTA'si gorunur.
@@ -103,7 +120,7 @@ describe('Ana Sayfa — pazaryeri bağlı değil', () => {
     mocks.marketplaceOperations.mockRejectedValue(new Error('network down'))
     renderDashboard()
 
-    await waitFor(() => expect(screen.getByText('İşletmeniz dengeli, 3 konu dikkat istiyor.')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('3 konu dikkat istiyor.')).toBeInTheDocument())
     expect(screen.getByText(/Henüz pazaryeri bağlantısı yok/)).toBeInTheDocument()
   })
 })
@@ -113,7 +130,7 @@ describe('Ana Sayfa — pazaryeri bağlı', () => {
     mocks.marketplaceOperations.mockResolvedValue(connectedOps())
     renderDashboard()
 
-    await waitFor(() => expect(screen.getByText('İşletmeniz dengeli, 6 konu dikkat istiyor.')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('6 konu dikkat istiyor.')).toBeInTheDocument())
     expect(screen.getAllByText(/4 sipariş kargoya verilmeyi bekliyor/).length).toBeGreaterThanOrEqual(1)
   })
 

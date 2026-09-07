@@ -571,16 +571,18 @@ export async function businessTrackerRoutes(
       from: z.string().datetime().optional(),
       to: z.string().datetime().optional(),
       q: z.string().trim().max(200).optional(),
+      decisionSessionId: z.string().uuid().optional(),
       limit: z.coerce.number().int().min(1).max(100).default(50),
       offset: z.coerce.number().int().min(0).default(0)
     }).safeParse(request.query)
     if (!query.success) return reply.status(422).send({ error: 'Invalid filters', details: query.error.errors })
 
-    const { type, status, direction, from, to, q, limit, offset } = query.data
+    const { type, status, direction, from, to, q, decisionSessionId, limit, offset } = query.data
     const where: Prisma.BusinessRecordWhereInput = {
       workspaceId,
       archivedAt: null,
       ...(type ? { type } : {}),
+      ...(decisionSessionId ? { metadata: { contains: `"decisionSessionId":"${decisionSessionId}"` } } : {}),
       ...(status ? { status } : {}),
       ...(direction ? { direction } : {}),
       ...(from || to ? { dueAt: { ...(from ? { gte: new Date(from) } : {}), ...(to ? { lte: new Date(to) } : {}) } } : {}),

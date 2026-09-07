@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import styles from './DecisionReceipt.module.css'
 import { getFormatLocale } from '@/utils/formatters'
+import { formatDecisionText } from '@/utils/decisionText'
 
 /*
  * Karar Fişi — kararın saklanabilir / yazdırılabilir özet artefaktı.
@@ -129,7 +130,7 @@ export default function DecisionReceipt({ snapshot, title, completedAt, sik = fa
     ...(snapshot?.calculationOutput?.formulas || []).map(item => typeof item === 'string' ? item : item?.description || item?.label || item?.formula),
     ...(snapshot?.calculationOutput?.riskWarnings || []),
   ].filter(Boolean).slice(0, 3)
-  const nextSteps = (snapshot?.calculationOutput?.safeNextSteps || []).filter(Boolean).slice(0, 3)
+  const nextSteps = (snapshot?.calculationOutput?.safeNextSteps || []).filter(Boolean).slice(0, 3).map(item => formatDecisionText(item))
 
   function askMentor() {
     const context = [title, verdict, summary].filter(Boolean).join(' — ')

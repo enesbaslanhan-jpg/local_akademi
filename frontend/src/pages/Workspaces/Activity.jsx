@@ -18,6 +18,9 @@ const actionIcons = {
 }
 
 const actionLabelKeys = {
+  'inbox.enabled': 'activity.inboxEnabled',
+  'inbox.disabled': 'activity.inboxDisabled',
+  'record.created': 'activity.recordCreated',
   'workspace.created': 'activity.created',
   'workspace.updated': 'activity.updated',
   'workspace.archived': 'activity.archived',
@@ -26,7 +29,15 @@ const actionLabelKeys = {
   'invitation.sent': 'activity.invitationSent',
   'invitation.accepted': 'activity.invitationAccepted',
   'contact.created': 'activity.contactAdded',
-  'contact.updated': 'activity.contactUpdated'
+  'contact.updated': 'activity.contactUpdated',
+  'contact.archived': 'activity.contactArchived',
+  'invitation.cancelled': 'activity.invitationCancelled',
+  'inbox.sender.added': 'activity.inboxSenderAdded',
+  'inbox.sender.removed': 'activity.inboxSenderRemoved',
+  'settings.updated': 'activity.settingsUpdated',
+  'integration.connected': 'activity.integrationConnected',
+  'integration.disconnected': 'activity.integrationDisconnected',
+  'integration.sync_triggered': 'activity.integrationSyncTriggered'
 }
 
 function timeAgo(dateStr, t) {
@@ -64,13 +75,12 @@ export default function Activity() {
     <div className={styles.list}>
       {activities.map(a => {
         const Icon = actionIcons[a.action] || ActivityIcon
-        const label = actionLabelKeys[a.action] ? t(actionLabelKeys[a.action]) : a.action
+        const label = actionLabelKeys[a.action] ? t(actionLabelKeys[a.action]) : t('activity.other')
         return (
           <div key={a.id} className={styles.item}>
             <div className={styles.icon}><Icon size={18} /></div>
             <div>
               <div className={styles.action}>{label}</div>
-              {a.entityType !== 'workspace' && <div className={styles.meta}>{a.entityType}: {a.entityId || '-'}</div>}
             </div>
             <div className={styles.time}>{timeAgo(a.createdAt, t)}</div>
           </div>

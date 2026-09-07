@@ -1,5 +1,6 @@
 {
   "title": "Control Center",
+  "firstRecord": "Add your first record",
   "subtitle": "What matters in your business today?",
   "calculate": "Calculate",
   "askMentor": "Ask Mentor",
@@ -62,13 +63,18 @@
     "noConnection": "No marketplace connection yet — Settings → Integrations"
   },
   "status": {
+    "headlineEmpty": "There are no records to assess yet.",
+    "emptyHint": "Start tracking your business by adding a payment, receivable or task.",
+    "headlineLoading": "Checking business records.",
+    "headlineUnavailable": "Your business status cannot be assessed right now.",
+    "unavailableHint": "Cash position cannot be assessed until records have loaded.",
     "cashDeficit": "you have a {{amount}} cash deficit in the next 30 days",
     "cashPositive": "you have {{amount}} net cash inflow in the next 30 days",
     "overdueRecords": "{{count}} records are overdue",
     "noOverdue": "no overdue records",
-    "headlineIssues": "Your business is balanced, {{count}} issues need attention.",
+    "headlineIssues": "{{count}} issues need attention.",
     "headlinePlanning": "A cash plan is needed for the next 30 days.",
-    "headlineBalanced": "Your business is balanced, tracking is on track.",
+    "headlineBalanced": "Current records show no overdue items or net cash deficit.",
     "headlineSetup": "Start by setting up your business view."
   }
 }

@@ -38,6 +38,14 @@ const directionKeys = {
   neutral: 'neutral'
 }
 
+const historyActionKeys = {
+  created: 'created', updated: 'updated', deferred: 'deferred',
+  'created.import': 'createdImport', 'generated.recurrence': 'generatedRecurrence',
+  'status.open': 'statusOpen', 'status.in_progress': 'statusInProgress',
+  'status.completed': 'statusCompleted', 'status.cancelled': 'statusCancelled',
+  'status.deferred': 'statusDeferred'
+}
+
 /* `analysis` sunucudan METİN olarak geliyor; burada çözülüyor. */
 function analiziCoz(ham) {
   if (!ham) return {}
@@ -362,6 +370,16 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
                 </section>
               )}
 
+              {kayit.metadata?.decisionFollowUp && (
+                <section className={styles.bolum}>
+                  <h3>{t('tools:followUp.title')}</h3>
+                  <p>{kayit.metadata.decisionFollowUp.decisionTitle}</p>
+                  <p className={styles.aciklama}><strong>{t('tools:followUp.expected')}: </strong>{kayit.metadata.decisionFollowUp.expectedOutcome}</p>
+                  {kayit.metadata.decisionFollowUp.actualOutcome && <p className={styles.aciklama}><strong>{t('tools:followUp.actual')}: </strong>{kayit.metadata.decisionFollowUp.actualOutcome}</p>}
+                  {kayit.metadata.decisionFollowUp.lessonLearned && <p className={styles.aciklama}><strong>{t('tools:followUp.lesson')}: </strong>{kayit.metadata.decisionFollowUp.lessonLearned}</p>}
+                </section>
+              )}
+
               {/*
                 * DAYANAK. "Bu rakam nereden geldi" sorusunun cevabı.
                 * e-Faturadan gelen kayıtta faturanın kendi alanları
@@ -422,7 +440,7 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
                     {kayit.reminders.slice(0, 2).map(h => (
                       <li key={h.id}>
                         {tarih(h.scheduledAt, true)}
-                        <span className={styles.durumEtiketi}>{h.status === 'sent' ? t('detail.reminder.sent') : h.status === 'pending' ? t('detail.reminder.pending') : h.status}</span>
+                        <span className={styles.durumEtiketi}>{t(`detail.reminder.${h.status}`, { defaultValue: t('detail.reminder.other') })}</span>
                       </li>
                     ))}
                   </ul>
@@ -436,7 +454,7 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
                     {kayit.history.slice(0, 2).map(g => (
                       <li key={g.id}>
                         {tarih(g.createdAt, true)}
-                        <span className={styles.durumEtiketi}>{g.action}</span>
+                        <span className={styles.durumEtiketi}>{t(`detail.historyAction.${historyActionKeys[g.action] || 'other'}`)}</span>
                       </li>
                     ))}
                   </ul>

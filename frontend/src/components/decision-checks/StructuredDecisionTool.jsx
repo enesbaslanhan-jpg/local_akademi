@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { api } from '@/services/api'
 import { DarkPanel, Modal } from '@/components/ui'
 import DecisionReceipt from './DecisionReceipt'
+import DecisionFollowUp from './DecisionFollowUp'
+import { formatDecisionText } from '@/utils/decisionText'
 import receiptTrigger from './ReceiptTrigger.module.css'
 import './StructuredDecisionTool.css'
 import { getFormatLocale } from '@/utils/formatters'
@@ -85,7 +87,7 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
                 <article className={`structured-scenario structured-tone-${scenario.tone || 'neutral'}`} key={scenario.label}>
                   <span>{scenario.label}</span>
                   <strong>{formatMetric(scenario.value, scenario.format, t)}</strong>
-                  <p>{scenario.detail}</p>
+                  <p>{formatDecisionText(scenario.detail)}</p>
                 </article>
               ))}
             </div>
@@ -98,7 +100,7 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
             </section>
             <section className="structured-insight structured-safe">
               <h2><ShieldCheck size={19} /> {t('decisions.safeNextSteps')}</h2>
-              <ul>{(calculation.safeNextSteps || []).map(item => <li key={item}><CheckCircle2 size={15} /> <span>{item}</span></li>)}</ul>
+              <ul>{(calculation.safeNextSteps || []).map(item => <li key={item}><CheckCircle2 size={15} /> <span>{formatDecisionText(item)}</span></li>)}</ul>
             </section>
           </div>
 
@@ -108,6 +110,7 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
           </section>
 
           {recalculateError && <p className="structured-submit-error" role="alert">{recalculateError}</p>}
+          <DecisionFollowUp session={session} snapshot={snapshot} navigate={navigate} />
           <div className="structured-actions">
             <button type="button" className="structured-secondary" onClick={() => navigate('/app/decision-checks')}>{t('decisions.backToList')}</button>
             <button type="button" className="structured-secondary" onClick={handleRecalculate} disabled={recalculating}>
