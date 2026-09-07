@@ -7,6 +7,7 @@ export function getSafeErrorMessage(rawError, t) {
   if (!rawError) return null
   
   const errStr = String(rawError).toLowerCase()
+  if (errStr.includes('ai_mentor_temporarily_unavailable') || errStr.includes('ai mentor şu anda yanıt veremiyor')) return t('errors.mentorTemporarilyUnavailable')
 
   if (errStr.includes('network') || errStr.includes('fetch') || errStr.includes('econnrefused')) {
     return t('errors.mentorNetwork')

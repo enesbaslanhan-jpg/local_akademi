@@ -68,6 +68,14 @@ function replaceAll(
 
 export function maskSensitiveData(text: string): string {
   let masked = text
+  // Structured payloads are scrubbed by key before they become free text.
+  // Calculation/aggregate numeric fields remain untouched.
+  try {
+    const parsed = JSON.parse(text)
+    if (parsed && typeof parsed === 'object') masked = JSON.stringify(redactProviderContext(parsed))
+  } catch { /* Ordinary conversational text. */ }
+  masked = masked.replace(/\b(?:sk-[A-Za-z0-9_-]{12,}|AIza[A-Za-z0-9_-]{20,})\b/g, REPLACEMENT)
+  masked = masked.replace(/((?:customer\s*name|full\s*name|müşteri(?:\s*adı)?|musteri(?:\s*adi)?|ad\s*soyad|açık\s*adres|acik\s*adres|address|adres|kullanıcı)\s*[:=]\s*)[^\n;,]+/gi, '$1' + REPLACEMENT)
 
   /* Kimlik bilgileri / anahtarlar — her zaman. */
   masked = masked.replace(/-----BEGIN\s+(?:RSA\s+)?PRIVATE\s+KEY-----[\s\S]*?-----END\s+(?:RSA\s+)?PRIVATE\s+KEY-----/g, REPLACEMENT)
@@ -101,6 +109,15 @@ export function maskSensitiveData(text: string): string {
   masked = replaceAll(masked, /\$\{?\w+(?:API_KEY|SECRET|PASSWORD|TOKEN|KEY)\}?/g, () => true)
 
   return masked
+}
+
+const PRIVATE_CONTEXT_KEY = /^(?:customer|customers|customername|fullname|firstname|lastname|name|surname|phone|telephone|email|address|shippingaddress|billingaddress|tckn|vkn|taxid|taxnumber|identitynumber|raworder|rawpayload|orders|orderpayload|apikey|password|secret|token|authorization|payment|paymentcredentials|cardnumber|cvv|iban)$/i
+export function redactProviderContext(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactProviderContext)
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key,
+    PRIVATE_CONTEXT_KEY.test(key.replace(/[_\s-]/g, '')) ? REPLACEMENT : redactProviderContext(item)]))
+  if (typeof value === 'string') return maskSensitiveData(value)
+  return value
 }
 
 export function maskChatMessages<T extends { role: string; content: string }>(messages: T[]): T[] {

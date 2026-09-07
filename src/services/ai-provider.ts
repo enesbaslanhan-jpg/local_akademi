@@ -14,7 +14,7 @@ import { buildProfiledSystemPrompt, detectUserRequestedLength } from './mentor-p
 
 const retriever = createKnowledgeRetriever(prisma)
 
-export type AiProvider = 'nvidia' | 'openai' | 'deepseek' | 'omniroute'
+export type AiProvider = 'gemini' | 'ollama' | 'nvidia' | 'openai' | 'deepseek' | 'omniroute'
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant'
@@ -140,7 +140,7 @@ export async function* streamAiResponse(
       if (event.code === 'INPUT_BLOCKED') {
         throw new Error('MENTOR_INPUT_BLOCKED')
       }
-      throw new Error(`MENTOR_PROVIDER_ERROR:${event.code}`)
+      throw new Error('AI_MENTOR_TEMPORARILY_UNAVAILABLE')
     }
     const base = event as AiStreamEvent
     if (base.type === 'done') {

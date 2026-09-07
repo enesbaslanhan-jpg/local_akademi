@@ -1,4 +1,6 @@
 import { maskChatMessages } from './sensitive-data-masker'
+import { getProviderRouter, resolveCandidates, mentorProfile, prepareProviderMessages } from './ai-provider-registry'
+import { UNAVAILABLE, UNAVAILABLE_MESSAGE, ProviderFailure } from './provider-router'
 import { reviewInput, reviewOutput, type ReviewResult } from './review-gate'
 import { secureLog, secureLogError } from './secure-logger'
 import type { AiProvider, ChatMessage, TokenUsage } from './ai-provider'
@@ -192,7 +194,7 @@ function joinChatCompletionsUrl(baseUrl: string): string {
   return `${baseUrl.trim().replace(/\/+$/, '')}/chat/completions`
 }
 
-const OMNIROUTE_LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '::1', '[::1]'])
+const OMNIROUTE_LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '::1', '[::1]', 'host.docker.internal'])
 
 /* OMNIROUTE_BASE_URL yerel bir yönlendiriciye mi bakıyor.
    Model adının zorunlu olup olmadığını bu belirliyor. */
@@ -316,49 +318,49 @@ export function getProviderConfig(options: { provider?: string; model?: string }
 
   assertProviderAllowedByPolicy(provider)
 
-  const configs: Record<AiProviderName, ProviderConfig> = {
-    ollama: {
+  const configs: Record<AiProviderName, () => ProviderConfig> = {
+    ollama: () => ({
       provider: 'ollama',
       apiUrl: getLoopbackOllamaUrl(),
       model: process.env.OLLAMA_MODEL || 'qwen3:4b-instruct',
       timeout: getPositiveInteger(process.env.OLLAMA_TIMEOUT, REQUEST_TIMEOUT),
       maxTokens: MAX_OUTPUT_TOKENS,
-    },
-    nvidia: {
+    }),
+    nvidia: () => ({
       provider: 'nvidia',
-      apiUrl: process.env.NVIDIA_API_URL || 'https://integrate.api.nvidia.com/v1/chat/completions',
+      apiUrl: process.env.NVIDIA_API_URL || (process.env.NVIDIA_BASE_URL ? joinChatCompletionsUrl(process.env.NVIDIA_BASE_URL) : 'https://integrate.api.nvidia.com/v1/chat/completions'),
       apiKey: process.env.NVIDIA_API_KEY,
       model: process.env.NVIDIA_MODEL || 'deepseek-ai/deepseek-v4-flash',
       timeout: REQUEST_TIMEOUT,
       maxTokens: MAX_OUTPUT_TOKENS
-    },
-    openai: {
+    }),
+    openai: () => ({
       provider: 'openai',
       apiUrl: process.env.OPENAI_API_URL || 'https://api.openai.com/v1/chat/completions',
       apiKey: process.env.OPENAI_API_KEY,
       model: process.env.OPENAI_MODEL || 'gpt-5',
       timeout: REQUEST_TIMEOUT,
       maxTokens: MAX_OUTPUT_TOKENS
-    },
-    deepseek: {
+    }),
+    deepseek: () => ({
       provider: 'deepseek',
       apiUrl: process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/chat/completions',
       apiKey: process.env.DEEPSEEK_API_KEY,
       model: process.env.DEEPSEEK_MODEL || 'deepseek-v4-flash',
       timeout: REQUEST_TIMEOUT,
       maxTokens: MAX_OUTPUT_TOKENS
-    },
-    omniroute: {
+    }),
+    omniroute: () => ({
       provider: 'omniroute',
       apiUrl: resolveOmniRouteUrl(),
       apiKey: process.env.OMNIROUTE_API_KEY,
       model: process.env.OMNIROUTE_MODEL || 'auto/best-free',
       timeout: REQUEST_TIMEOUT,
       maxTokens: MAX_OUTPUT_TOKENS
-    }
+    })
   }
 
-  const baseConfig = configs[provider]
+  const baseConfig = configs[provider]?.()
   if (!baseConfig) throw new GatewayConfigError('MENTOR_INVALID_PROVIDER')
   if (baseConfig.provider !== 'ollama' && !baseConfig.apiKey) {
     throw new GatewayConfigError(`MENTOR_API_KEY_MISSING:${provider}`)
@@ -969,10 +971,11 @@ export function formatOutputContent(content: string, reviewResult: ReviewResult)
 export async function generateCompletion(req: GatewayRequest): Promise<GatewayResponse> {
   const startTime = Date.now()
   const requestId = req.requestId || `gw-${Date.now()}`
-  const config = getProviderConfig({ provider: req.provider, model: req.model })
+  const routing = process.env.AI_GATEWAY_ENABLED === 'true'
+  const config = routing ? { provider: 'gateway', model: 'logical-profile' } : getProviderConfig({ provider: req.provider, model: req.model })
 
   let messages: ChatMessage[] = req.messages
-  if (!req.skipMasking) {
+  if (routing || !req.skipMasking) {
     messages = maskChatMessages(messages)
   }
 
@@ -997,7 +1000,7 @@ export async function generateCompletion(req: GatewayRequest): Promise<GatewayRe
   let lastError: Error | undefined
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const result = await callProvider(messages as ChatMessage[], config, {
+      const result = routing ? await routeCompletion(messages, req) : await callProvider(messages as ChatMessage[], config as ProviderConfig, {
         temperature: req.temperature,
         maxOutputTokens: req.maxOutputTokens,
         keepAlive: req.keepAlive,
@@ -1091,6 +1094,7 @@ export async function generateCompletion(req: GatewayRequest): Promise<GatewayRe
         reviewResult: outputReviewResult || undefined
       }
     } catch (err: unknown) {
+      if (routing) throw err
       lastError = err instanceof Error ? err : new Error(String(err))
       if (err instanceof GatewayProviderError) {
         if (!err.retryable || attempt >= MAX_RETRIES) {
@@ -1112,6 +1116,26 @@ export async function generateCompletion(req: GatewayRequest): Promise<GatewayRe
 }
 
 export async function* generateStream(req: GatewayRequest): AsyncGenerator<GatewayStreamEvent> {
+  if (process.env.AI_GATEWAY_ENABLED === 'true') {
+    // Explicit V1 policy: no client-visible content until generation and review succeed.
+    // A provider failure can therefore never mix partial answers across providers.
+    try {
+      const result = await generateCompletion({ ...req, stream: false })
+      if (req.abortSignal?.aborted) throw new ProviderFailure('ABORTED')
+      if (result.reviewResult?.blocked) {
+        yield { type: 'error', code: result.provider === 'gateway' && result.model === 'review-gate' ? 'INPUT_BLOCKED' : 'OUTPUT_BLOCKED', message: result.reviewResult.safeDisclaimer || UNAVAILABLE_MESSAGE }
+        return
+      }
+      yield { type: 'provider', provider: result.provider, model: result.model }
+      yield { type: 'delta', delta: result.content }
+      yield { type: 'done', tokenUsage: result.usage, citations: result.citations, reviewResult: result.reviewResult }
+    } catch (error) {
+      yield error instanceof ProviderFailure && error.code === 'ABORTED'
+        ? { type: 'error', code: 'STREAM_ABORTED', message: 'Stream aborted' }
+        : { type: 'error', code: UNAVAILABLE, message: UNAVAILABLE_MESSAGE }
+    }
+    return
+  }
   const startTime = Date.now()
   const requestId = req.requestId || `gw-${Date.now()}`
   const config = getProviderConfig({ provider: req.provider, model: req.model })
@@ -1297,4 +1321,25 @@ export async function* generateStream(req: GatewayRequest): AsyncGenerator<Gatew
       yield { type: 'error', code: 'UNKNOWN', message: 'Beklenmeyen bir hata oluştu.' }
     }
   }
+}
+
+async function routeCompletion(messages: ChatMessage[], req: GatewayRequest): Promise<GatewayResponse> {
+  try {
+    const profile = mentorProfile()
+    return await getProviderRouter(getProviderConfig, buildRequestBody).generate(
+      prepareProviderMessages(messages), resolveCandidates(getProviderConfig, profile), profile,
+      { temperature: req.temperature, maxOutputTokens: req.maxOutputTokens, keepAlive: req.keepAlive }, req.abortSignal,
+    )
+  } catch (error) {
+    if (error instanceof ProviderFailure && error.code === 'ABORTED') throw error
+    throw new ProviderFailure(UNAVAILABLE)
+  }
+}
+
+export function getGatewayHealth() {
+  try {
+    const profile = mentorProfile()
+    return { enabled: process.env.AI_GATEWAY_ENABLED === 'true', profile,
+      providers: getProviderRouter(getProviderConfig, buildRequestBody).snapshot(resolveCandidates(getProviderConfig, profile)) }
+  } catch { return { enabled: process.env.AI_GATEWAY_ENABLED === 'true', error: 'CONFIG', providers: [] } }
 }

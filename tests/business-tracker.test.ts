@@ -101,17 +101,19 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
+  const workspaceIds = [workspaceId, otherWorkspaceId].filter(Boolean)
   /* İçe aktarım testlerinin diske yazdığı geçici CSV'ler. */
   for (const storedName of icAktarmaDosyalari) {
     await unlink(join(process.cwd(), 'uploads', storedName)).catch(() => {})
   }
   await prisma.uploadedDocument.deleteMany({ where: { id: { in: icAktarmaBelgeleri } } }).catch(() => {})
   await prisma.documentConversation.deleteMany({ where: { documentId } }).catch(() => {})
-  await prisma.businessRecordDocument.deleteMany({ where: { workspaceId } }).catch(() => {})
-  await prisma.businessReminder.deleteMany({ where: { workspaceId } }).catch(() => {})
-  await prisma.businessNotification.deleteMany({ where: { workspaceId } }).catch(() => {})
-  await prisma.businessRecordHistory.deleteMany({ where: { workspaceId } }).catch(() => {})
-  await prisma.businessRecord.deleteMany({ where: { workspaceId } }).catch(() => {})
+  await prisma.businessRecordDocument.deleteMany({ where: { workspaceId: { in: workspaceIds } } }).catch(() => {})
+  await prisma.businessReminder.deleteMany({ where: { workspaceId: { in: workspaceIds } } }).catch(() => {})
+  await prisma.businessNotification.deleteMany({ where: { workspaceId: { in: workspaceIds } } }).catch(() => {})
+  await prisma.businessRecordHistory.deleteMany({ where: { workspaceId: { in: workspaceIds } } }).catch(() => {})
+  await prisma.businessRecord.deleteMany({ where: { workspaceId: { in: workspaceIds } } }).catch(() => {})
+  await prisma.businessContact.deleteMany({ where: { workspaceId: { in: workspaceIds } } }).catch(() => {})
   await prisma.uploadedDocument.deleteMany({ where: { id: documentId } }).catch(() => {})
   await prisma.businessMember.deleteMany({ where: { workspaceId: { in: [workspaceId, otherWorkspaceId] } } }).catch(() => {})
   await prisma.businessWorkspace.deleteMany({ where: { id: { in: [workspaceId, otherWorkspaceId] } } }).catch(() => {})
@@ -158,12 +160,24 @@ describe('Business tracker API', () => {
   })
 
   it('lists only workspace records', async () => {
-    await prisma.businessRecord.create({
-      data: { workspaceId: otherWorkspaceId, type: 'task', title: 'Private record', createdById: otherId }
-    })
-    const response = await inject('GET', `/workspaces/${workspaceId}/records`, ownerToken)
-    expect(response.statusCode).toBe(200)
-    expect(response.json().records.map((record: any) => record.title)).toEqual(['Kira ödemesi'])
+    const marker = randomUUID()
+    const [own, privateRecord] = await Promise.all([
+      prisma.businessRecord.create({
+        data: { workspaceId, type: 'task', title: `Workspace record ${marker}`, createdById: ownerId }
+      }),
+      prisma.businessRecord.create({
+        data: { workspaceId: otherWorkspaceId, type: 'task', title: `Private record ${marker}`, createdById: otherId }
+      })
+    ])
+    try {
+      const response = await inject('GET', `/workspaces/${workspaceId}/records`, ownerToken)
+      expect(response.statusCode).toBe(200)
+      const titles = response.json().records.map((record: any) => record.title)
+      expect(titles).toContain(own.title)
+      expect(titles).not.toContain(privateRecord.title)
+    } finally {
+      await prisma.businessRecord.deleteMany({ where: { id: { in: [own.id, privateRecord.id] } } })
+    }
   })
 
   it('blocks cross-workspace record IDOR', async () => {

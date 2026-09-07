@@ -25,6 +25,13 @@ export default defineConfig({
        */
       DATABASE_URL: 'postgresql://localakademi:localakademi@127.0.0.1:5432/localakademi_test?schema=public&connection_limit=8&pool_timeout=30',
       JWT_SECRET: 'test-secret-key-min-32-bytes-long!!',
+      /* Never inherit a developer's live provider selection or credentials.
+         Tests that exercise another provider override these values and stub
+         fetch explicitly. Any forgotten transport call fails on loopback. */
+      AI_PROVIDER: 'nvidia',
+      NVIDIA_API_KEY: 'test-key',
+      NVIDIA_API_URL: 'http://127.0.0.1:1/v1/chat/completions',
+      AI_GATEWAY_ENABLED: 'false',
       /* Testler dış sağlayıcı kod yollarını (nvidia/openai/deepseek) bilerek
          çalıştırıyor. Üretimde bu bayrak KAPALIDIR — bkz. ai-gateway.ts
          `assertProviderAllowedByPolicy`. */

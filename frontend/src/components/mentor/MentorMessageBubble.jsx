@@ -230,7 +230,7 @@ export default function MentorMessageBubble({
             ) : isError ? (
                <div>
                  <p className={`text-sm font-medium ${styles.errorTitle}`}>{t('error.responseFailed')}</p>
-                 <p className={`text-xs mt-1 opacity-80 ${styles.errorDetail}`}>{msg.error}</p>
+                 <p className={`text-xs mt-1 opacity-80 ${styles.errorDetail}`}>{t('common:errors.mentorTemporarilyUnavailable')}</p>
                </div>
             ) : isCancelled ? (
               <div>

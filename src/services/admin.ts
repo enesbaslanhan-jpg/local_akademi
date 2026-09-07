@@ -1,3 +1,4 @@
+import { getGatewayHealth } from './ai-gateway'
 import { FastifyInstance, FastifyReply } from 'fastify'
 import { prisma } from '../lib/prisma.js'
 import bcrypt from 'bcryptjs'
@@ -80,6 +81,10 @@ const reviewerHumanAuditSchema = z.object({
 })
 
 export async function adminRoutes(fastify: FastifyInstance) {
+  fastify.get('/ai-gateway/health', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    if (request.user.role !== 'admin') return reply.status(403).send({ error: 'Admin access required' })
+    return getGatewayHealth()
+  })
   fastify.post('/quiz-generator/:koId/draft', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {

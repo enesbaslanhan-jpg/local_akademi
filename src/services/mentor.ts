@@ -1,3 +1,4 @@
+import { UNAVAILABLE, UNAVAILABLE_MESSAGE } from './provider-router'
 import { FastifyInstance, FastifyReply } from 'fastify'
 import { prisma } from '../lib/prisma.js'
 import { randomUUID } from 'crypto'
@@ -128,7 +129,7 @@ Kurallar:
 - Örneklerle açıkla, somut ol.
 - Öğrenciyi düşünmeye teşvik et, direkt cevabı vermek yerine rehberlik et.
 
-Kullanıcı: ${user.name}
+Kullanıcı: Kullanıcı
 Rol: ${user.role}`
 
   prompt += responseLanguage === 'en'
@@ -225,48 +226,7 @@ export async function mentorRoutes(fastify: FastifyInstance, opts?: { aiProvider
       assistantReply = result.content
       usage = result.usage
     } catch (error: unknown) {
-      console.error('[MENTOR] API error:', error instanceof Error ? error.message : error)
-      const msg = error instanceof Error ? error.message : ''
-
-      if (msg.startsWith('MENTOR_API_KEY_MISSING') || error instanceof GatewayConfigError) {
-        return reply.status(503).send({
-          error: 'AI mentor sağlayıcısının API anahtarı yapılandırılmamış.'
-        })
-      }
-
-      if (msg === 'MENTOR_INVALID_PROVIDER') {
-        return reply.status(503).send({ error: 'AI mentor sağlayıcısı geçersiz.' })
-      }
-
-      if (error instanceof GatewayProviderError) {
-        if (error.code === 'TIMEOUT') {
-          return reply.status(504).send({
-            error: 'AI mentor yanıt vermedi. Lütfen tekrar deneyin.',
-            code: 'TIMEOUT'
-          })
-        }
-        if (error.code === 'RATE_LIMITED') {
-          return reply.status(429).send({
-            error: 'Çok fazla istek gönderildi. Lütfen bekleyip tekrar deneyin.',
-            code: 'RATE_LIMITED'
-          })
-        }
-        if (error.code === 'EMPTY_RESPONSE') {
-          return reply.status(502).send({
-            error: 'AI mentor boş yanıt döndü. Lütfen tekrar deneyin.',
-            code: 'EMPTY_RESPONSE'
-          })
-        }
-        if (error.code === 'NETWORK') {
-          return reply.status(502).send({
-            error: 'AI mentor servisine bağlanılamadı. Lütfen tekrar deneyin.',
-            code: 'NETWORK_ERROR'
-          })
-        }
-      }
-
-      console.error('[MENTOR] Unhandled error:', error)
-      return reply.status(500).send({ error: 'AI hatası: Lütfen tekrar deneyin.' })
+      return reply.status(503).send({ error: UNAVAILABLE_MESSAGE, code: UNAVAILABLE })
     }
 
     const updatedContext: ChatMessage[] = [

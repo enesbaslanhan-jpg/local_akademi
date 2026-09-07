@@ -137,7 +137,7 @@ export function useMentorChat(contextCode = '', contextTitle = '') {
         setIsStreaming(false)
         setStreamingContent('')
         streamingBufferRef.current = ''
-        setError(data?.message || i18n.t('common:states.error'))
+        setError(data?.code === 'AI_MENTOR_TEMPORARILY_UNAVAILABLE' ? data.code : (data?.message || i18n.t('common:states.error')))
         loadMessages(convId)
       }
     })

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { generateCompletion } from '../src/services/ai-gateway'
 
 /**
@@ -19,6 +19,14 @@ const EXTERNAL = ['nvidia', 'openai', 'deepseek'] as const
 let onceki: Record<string, string | undefined>
 
 beforeEach(() => {
+  // Policy tests must never spend provider quota or depend on a live local gateway.
+  // A local 400 proves that accepted URLs reached the transport boundary without
+  // exercising the legacy network retry path.
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(
+    JSON.stringify({ error: { message: 'policy-test transport boundary' } }),
+    { status: 400, headers: { 'content-type': 'application/json' } }
+  )))
+
   onceki = {
     flag: process.env.AI_ALLOW_EXTERNAL_PROVIDERS,
     provider: process.env.AI_PROVIDER,
@@ -55,6 +63,8 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.unstubAllGlobals()
+
   for (const [k, v] of Object.entries({
     AI_ALLOW_EXTERNAL_PROVIDERS: onceki.flag,
     AI_PROVIDER: onceki.provider,
@@ -94,6 +104,12 @@ describe('yurt dışı AI sağlayıcı politikası', () => {
 describe('OmniRoute adres doğrulaması', () => {
   it('yerel adres politika engeline takılmaz', async () => {
     process.env.OMNIROUTE_BASE_URL = 'http://localhost:20128/v1'
+    await expect(generateCompletion({ messages, provider: 'omniroute' }))
+      .rejects.not.toThrow(/NON_LOOPBACK|EXTERNAL_PROVIDER_DISABLED/)
+  })
+
+  it('Docker container host adresi yerel OmniRoute olarak kabul edilir', async () => {
+    process.env.OMNIROUTE_BASE_URL = 'http://host.docker.internal:20128/v1'
     await expect(generateCompletion({ messages, provider: 'omniroute' }))
       .rejects.not.toThrow(/NON_LOOPBACK|EXTERNAL_PROVIDER_DISABLED/)
   })

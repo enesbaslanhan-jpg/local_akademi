@@ -1,3 +1,4 @@
+import { UNAVAILABLE, UNAVAILABLE_MESSAGE } from './provider-router'
 import { FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma.js'
 
@@ -450,6 +451,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       },
       messages: messages.map(m => ({
         ...m,
+        error: m.error && m.error !== 'GENERATION_CANCELLED' ? UNAVAILABLE : m.error,
         citations: safeJsonParse(m.citations),
         knowledgeObjects: safeJsonParse(m.knowledgeObjects),
         tokenUsage: safeJsonParse(m.tokenUsage)
@@ -719,7 +721,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       telemetry?.set('model', 'unknown')
       telemetry?.emit(Date.now() - requestStart)
       const assistantMsg = await prisma.conversationMessage.create({
-        data: { conversationId: convId, role: 'assistant', content: '', error: errorMsg, generationStatus: 'failed' }
+        data: { conversationId: convId, role: 'assistant', content: '', error: UNAVAILABLE, generationStatus: 'failed' }
       })
       const now = new Date()
       const updateData: Record<string, unknown> = {
@@ -735,7 +737,8 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       return {
         messageId: assistantMsg.id,
         reply: null,
-        error: 'AI servisi şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.',
+        error: UNAVAILABLE_MESSAGE,
+        code: UNAVAILABLE,
         usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
       }
     }
@@ -1191,7 +1194,7 @@ export async function conversationRoutes(fastify: FastifyInstance) {
             data: {
               conversationId: convId, role: 'assistant', content: '',
               generationStatus: 'failed',
-              error: errorMsg
+              error: UNAVAILABLE
             }
           })
           assistantId = assistantMsg.id
@@ -1203,8 +1206,8 @@ export async function conversationRoutes(fastify: FastifyInstance) {
           sendSSE(reply, 'error', {
             type: 'error',
             error: {
-              code: 'AI_PROVIDER_ERROR',
-              message: 'Yanıt oluşturulamadı. Lütfen tekrar deneyin.'
+              code: UNAVAILABLE,
+              message: UNAVAILABLE_MESSAGE
             }
           })
         }
@@ -1465,15 +1468,15 @@ export async function conversationRoutes(fastify: FastifyInstance) {
           data: {
             conversationId: convId, role: 'assistant', content: '',
             generationStatus: 'failed',
-            error: errorMsg,
+            error: UNAVAILABLE,
             regeneratedFromMessageId: msgId
           }
         })
         sendSSE(reply, 'error', {
           type: 'error',
           error: {
-            code: 'AI_PROVIDER_ERROR',
-            message: 'Yanıt oluşturulamadı. Lütfen tekrar deneyin.'
+            code: UNAVAILABLE,
+            message: UNAVAILABLE_MESSAGE
           }
         })
       }
@@ -1761,12 +1764,12 @@ export async function conversationRoutes(fastify: FastifyInstance) {
         const assistantMsg = await prisma.conversationMessage.create({
           data: {
             conversationId: convId, role: 'assistant', content: '',
-            generationStatus: 'failed', error: errorMsg
+            generationStatus: 'failed', error: UNAVAILABLE
           }
         })
         sendSSE(reply, 'error', {
           type: 'error',
-          error: { code: 'AI_PROVIDER_ERROR', message: 'Yanıt oluşturulamadı. Lütfen tekrar deneyin.' }
+          error: { code: UNAVAILABLE, message: UNAVAILABLE_MESSAGE }
         })
       }
     }

@@ -1045,7 +1045,8 @@
     "backHome": "Back to Home",
     "exportFailed": "Export failed",
     "downloadFailed": "Record could not be downloaded",
-    "membershipExpired": "Your free period has ended. Your account is read-only — your data is intact and exportable. You can start your membership from Settings → Membership."
+    "membershipExpired": "Your free period has ended. Your account is read-only — your data is intact and exportable. You can start your membership from Settings → Membership.",
+    "mentorTemporarilyUnavailable": "AI Mentor is temporarily unavailable. Please try again in a few minutes."
   },
   "loading": {
     "page": "Loading page…"

@@ -1045,7 +1045,8 @@
     "backHome": "Ana Sayfaya Dön",
     "exportFailed": "Dışa aktarım başarısız",
     "downloadFailed": "Kayıt indirilemedi",
-    "membershipExpired": "Ücretsiz kullanım süren doldu. Hesabın salt okunur modda — verilerin duruyor ve dışa aktarılabilir. Üyeliğini Ayarlar → Üyelik bölümünden başlatabilirsin."
+    "membershipExpired": "Ücretsiz kullanım süren doldu. Hesabın salt okunur modda — verilerin duruyor ve dışa aktarılabilir. Üyeliğini Ayarlar → Üyelik bölümünden başlatabilirsin.",
+    "mentorTemporarilyUnavailable": "AI Mentor şu anda yanıt veremiyor. Birkaç dakika sonra tekrar deneyebilirsin."
   },
   "loading": {
     "page": "Sayfa yükleniyor…"

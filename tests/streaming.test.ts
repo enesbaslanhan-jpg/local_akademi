@@ -239,7 +239,8 @@ describe('Streaming API', () => {
     const events = parseSSE(res.body)
     const errorEvent = events.find(e => e.event === 'error')
     expect(errorEvent).toBeDefined()
-    expect(errorEvent!.data.error.code).toBe('AI_PROVIDER_ERROR')
+    expect(errorEvent!.data.error.code).toBe('AI_MENTOR_TEMPORARILY_UNAVAILABLE')
+    expect(res.body).not.toContain('MENTOR_ALL_PROVIDERS_FAILED')
 
     const detailRes = await app.inject({
       method: 'GET', url: `/mentor/conversations/${convId}`,
@@ -267,7 +268,8 @@ describe('Streaming API', () => {
     const events = parseSSE(res.body)
     const errorEvent = events.find(e => e.event === 'error')
     expect(errorEvent).toBeDefined()
-    expect(errorEvent!.data.error.code).toBe('AI_PROVIDER_ERROR')
+    expect(errorEvent!.data.error.code).toBe('AI_MENTOR_TEMPORARILY_UNAVAILABLE')
+    expect(res.body).not.toContain('MENTOR_PROVIDER_ERROR:TIMEOUT')
 
     const detailRes = await app.inject({
       method: 'GET', url: `/mentor/conversations/${convId}`,
@@ -277,6 +279,7 @@ describe('Streaming API', () => {
     const assistantMsgs = messages.filter((m: any) => m.role === 'assistant')
     expect(assistantMsgs.length).toBe(1)
     expect(assistantMsgs[0].generationStatus).toBe('failed')
+    expect(assistantMsgs[0].error).toBe('AI_MENTOR_TEMPORARILY_UNAVAILABLE')
   })
 
   it('timeout sonrasında concurrency slotu serbest kalır ve yeni stream kabul edilir', async () => {

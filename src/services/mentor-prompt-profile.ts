@@ -195,7 +195,7 @@ export function buildProfiledSystemPrompt(
     ? 'responseLanguage: en\nDefault to natural English. If the user clearly asks in another language, you may answer in that language. Do not alter deterministic calculations or citation/source structures.'
     : 'responseLanguage: tr\nVarsayılan olarak doğal Türkçe yanıt ver. Kullanıcı açıkça başka bir dilde sorarsa o dili dikkate alabilirsin. Deterministik hesapları ve kaynak/citation yapısını değiştirme.')
 
-  parts.push(`Kullanıcı: ${user.name}\nRol: ${user.role}`)
+  parts.push(`Kullanıcı: Kullanıcı\nRol: ${user.role}`)
   parts.push(profile.intentInstruction)
   parts.push(`Tercih edilen uzunluk: ${profile.preferredAnswerLength}`)
 
