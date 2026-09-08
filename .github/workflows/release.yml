@@ -132,6 +132,7 @@ jobs:
         run: npm run verify:release
         env:
           SKIP_NPM_INSTALL: 'true'
+          SKIP_UNIT_TESTS: 'true'
 
       # Adi "Frontend smoke test" idi ama betik BACKEND uc noktalarini
       # deniyor (/health, /auth/register, /business/business-profile,

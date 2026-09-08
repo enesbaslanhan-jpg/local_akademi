@@ -32,9 +32,9 @@ function unverified(msg) {
   RESULTS.push({ status: 'unverified', message: msg })
 }
 
-function run(cmd, label) {
+function run(cmd, label, timeout = 120000) {
   try {
-    execSync(cmd, { cwd: ROOT, stdio: 'pipe', timeout: 120000, encoding: 'utf8' })
+    execSync(cmd, { cwd: ROOT, stdio: 'pipe', timeout, encoding: 'utf8' })
     pass(label)
     return true
   } catch (e) {
@@ -59,7 +59,13 @@ async function main() {
   }
 
   // ── Gate 2: Unit tests ──
-  run('node_modules\\.bin\\vitest.cmd run --reporter=verbose', 'Unit tests (vitest)')
+  if (process.env.SKIP_UNIT_TESTS === 'true') {
+    skipped('Unit tests (already passed in this CI job)')
+  } else {
+    // `vitest.cmd` yalniz Windows'ta vardir. npx, kurulu yerel binary'yi
+    // Windows ve Linux'ta ayni sekilde calistirir.
+    run('npx --no-install vitest run --reporter=verbose', 'Unit tests (vitest)', 300000)
+  }
 
   // ── Gate 3: TypeScript check ──
   run('npx tsc --noEmit 2>&1', 'TypeScript (backend) check')
@@ -98,7 +104,22 @@ async function main() {
   try {
     const dockerCompose = join(ROOT, 'docker-compose.yml')
     if (existsSync(dockerCompose)) {
-      execSync('docker compose config', { cwd: ROOT, stdio: 'pipe', timeout: 30000 })
+      // Compose uretimde bu degerleri zorunlu tutar. Burada amac gercek
+      // secret kullanmak degil, yalnizca birlestirilmis yapilandirmayi parse
+      // etmektir; bu nedenle surece ozel ve zararsiz placeholder verilir.
+      execSync('docker compose config', {
+        cwd: ROOT,
+        stdio: 'pipe',
+        timeout: 30000,
+        env: {
+          ...process.env,
+          DB_PASSWORD: process.env.DB_PASSWORD || 'compose-validation-db-password',
+          APP_DB_PASSWORD: process.env.APP_DB_PASSWORD || 'compose-validation-app-password',
+          RESEND_API_KEY: process.env.RESEND_API_KEY || 'compose-validation-resend-key',
+          MAIL_FROM: process.env.MAIL_FROM || 'ci@invalid.example',
+          APP_PUBLIC_URL: process.env.APP_PUBLIC_URL || 'https://invalid.example'
+        }
+      })
       pass('docker compose config valid')
     } else {
       skipped('docker-compose.yml not found')
