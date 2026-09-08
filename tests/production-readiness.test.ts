@@ -312,8 +312,19 @@ describe('PostgreSQL development infrastructure (FAZ 6B)', () => {
     expect(pkg.scripts).toHaveProperty('db:logs')
   })
 
-  it('SQLite database files are preserved (not deleted)', () => {
-    expect(existsSync(join(import.meta.dirname, '..', 'prisma', 'dev.db'))).toBe(true)
-    expect(existsSync(join(import.meta.dirname, '..', 'prisma', 'test.db'))).toBe(true)
+  it('legacy SQLite files remain local artifacts instead of release inputs', () => {
+    /*
+     * Bu dosyalar bilerek Git'e alinmiyor; temiz CI checkout'unda bulunmalari
+     * beklenemez. Koruma, yerel dosyalari silmek/commit etmek yerine ignore
+     * kuralini surdurmek ve varsa ikisini de birlikte tutmaktir.
+     */
+    const root = join(import.meta.dirname, '..')
+    const gitignore = readFileSync(join(root, '.gitignore'), 'utf-8')
+    expect(gitignore).toMatch(/^\*\.db$/m)
+
+    const legacyFiles = ['dev.db', 'test.db'].map(name =>
+      existsSync(join(root, 'prisma', name))
+    )
+    expect(new Set(legacyFiles).size).toBe(1)
   })
 })

@@ -93,7 +93,10 @@ describe('Genel Bakış — pazaryeri bağlı', () => {
     renderOverview()
 
     expect(await screen.findByText('Açık yükümlülük')).toBeInTheDocument()
-    expect(screen.getByText('Bugünkü sipariş')).toBeInTheDocument()
+    // Marketplace istegi ana ozet isteklerinden bagimsiz tamamlanir. Yavas CI
+    // makinesinde ilk bant gorunurken bu ikinci durum henuz render edilmemis
+    // olabilir; gercek asenkron kullanici akisini bekle.
+    expect(await screen.findByText('Bugünkü sipariş')).toBeInTheDocument()
     expect(screen.getByText('Bugünkü brüt satış')).toBeInTheDocument()
     // Aynı değer KPI şeridi ve Pazaryeri Özeti kartında da görünür.
     expect(screen.getAllByText('₺1.234,56').length).toBeGreaterThanOrEqual(1)

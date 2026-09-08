@@ -89,6 +89,16 @@ jobs:
       - name: Seed database
         run: npx tsx prisma/seed.ts
 
+      # production-readiness testi, sunucu tarafindan servis edilecek gercek
+      # hash'li frontend ciktisini da dogrular. Temiz checkout'ta dist yoktur.
+      - name: Install frontend dependencies for integrity check
+        working-directory: frontend
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Build frontend for integrity check
+        working-directory: frontend
+        run: npm run build
+
       - name: Unit tests
         run: npm test
 

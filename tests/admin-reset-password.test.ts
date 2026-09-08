@@ -167,8 +167,13 @@ describe('CLI subprocess', () => {
   const cliPrefix = 'cli-reset'
 
   async function runCLI(extraEnv: Record<string, string> = {}) {
-    const { execSync } = await import('child_process')
-    return execSync(`npm.cmd run ${scriptName}`, {
+    const { execFileSync } = await import('child_process')
+    const isWindows = process.platform === 'win32'
+    const executable = isWindows ? (process.env.ComSpec || 'cmd.exe') : 'npm'
+    const args = isWindows
+      ? ['/d', '/s', '/c', 'npm.cmd', 'run', scriptName]
+      : ['run', scriptName]
+    return execFileSync(executable, args, {
       cwd: process.cwd(),
       env: {
         ...process.env,
