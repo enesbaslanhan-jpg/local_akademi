@@ -91,6 +91,12 @@ COPY docker-entrypoint.sh ./
 RUN mkdir -p /app/uploads /app/BACKUPS && chown -R node:node /app
 RUN chmod +x ./docker-entrypoint.sh
 
+# Calisan surumun kimligi imaja GOMULUYOR; CI bunu
+# --build-arg RELEASE_COMMIT=<dogrulanmis sha> ile veriyor ve
+# /health uzerinden okunuyor. Bos birakilirsa uygulama "unknown"
+# diyor -- yanlis bir surum iddia etmiyor.
+ARG RELEASE_COMMIT=""
+ENV RELEASE_COMMIT=${RELEASE_COMMIT}
 ENV NODE_ENV=production
 ENV PORT=3000
 

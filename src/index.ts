@@ -431,6 +431,11 @@ async function build() {
       return {
         status: 'ok',
         version: RELEASE_INFO.version,
+        /* Dagitim dogrulamasi bunu okuyor: `deploy-production.sh`
+           calisan konteynerin commit'i ile dagitilan imaj etiketini
+           karsilastiriyor. Ust seviyede duruyor cunku tuketicisi bir
+           kabuk betigi ve ic ice alan okumasi gereksiz kirilgan. */
+        commit: RELEASE_INFO.commit,
         release: RELEASE_INFO,
         database: {
           provider: RELEASE_INFO.databaseProvider,

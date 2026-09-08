@@ -110,6 +110,12 @@ describe('E2E: Health & API Contract', () => {
     const body = res.json()
     expect(body.status).toBe('ok')
     expect(body.version).toBe('2.0.0')
+    /* ⚠️ ALAN ADI SOZLESME: `deploy/deploy-production.sh` calisan
+       surumu bu alandan okuyup dagitilan imaj etiketiyle
+       karsilastiriyor. Ad degisirse dogrulama sessizce ise yaramaz
+       hale gelir ve eski bir konteyner "basarili" sayilir. */
+    expect(body).toHaveProperty('commit')
+    expect(String(body.commit)).toMatch(/^([0-9a-f]{40}|unknown)$/)
     expect(body.database).toMatchObject({
       provider: 'postgresql',
       label: 'PostgreSQL + Prisma',

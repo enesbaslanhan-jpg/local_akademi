@@ -45,17 +45,33 @@ export LOCALKARAR_IMAGE="$target_image"
 "${compose[@]}" pull server
 "${compose[@]}" up -d --no-build server
 
+# Dagitilan imajin commit'i: etiket her zaman tam SHA.
+expected_commit="${target_image##*:}"
+
 healthy="false"
+reported_commit=""
 for _ in {1..24}; do
-  if curl --fail --silent --show-error --max-time 5 http://127.0.0.1:3000/health >/dev/null; then
+  if health_body="$(curl --fail --silent --show-error --max-time 5 http://127.0.0.1:3000/health)"; then
+    # Govde JSON; yalniz ilk "commit" alani okunuyor. jq sunucuda
+    # kurulu olmayabilir, o yuzden sed ile.
+    reported_commit="$(printf '%s' "$health_body" | sed -n 's/.*"commit":"\([0-9a-f]\{40\}\)".*/\1/p' | head -1)"
     healthy="true"
     break
   fi
   sleep 5
 done
 
+# 🔴 SAGLIK KONTROLU TEK BASINA "YENI SURUM AYAKTA" DEMEK DEGIL.
+# Eski konteyner ayakta kalir ya da compose yeni imaji almazsa /health
+# yine 200 doner ve dagitim basarili gorunurdu. Calisan surum
+# dagitilanla ayni degilse bu bir basarisizliktir ve geri donulur.
+if [[ "$healthy" == "true" && "$reported_commit" != "$expected_commit" ]]; then
+  echo "Deployed $expected_commit but the running container reports '${reported_commit:-none}'" >&2
+  healthy="false"
+fi
+
 if [[ "$healthy" == "true" ]]; then
-  echo "Production health check passed for $target_image"
+  echo "Production health check passed for $target_image (commit $reported_commit)"
   exit 0
 fi
 
