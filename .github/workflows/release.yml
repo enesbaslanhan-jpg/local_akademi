@@ -28,7 +28,10 @@ env:
   AI_REQUEST_TIMEOUT_MS: '10000'
   BETA_MODE: 'true'
   ENABLE_MEMORY_API: 'false'
-  DATABASE_URL: postgresql://localakademi:localakademi@localhost:5432/localakademi_ci?schema=public
+  # GitHub'in Ubuntu imajinda yerel PostgreSQL 5432'yi kullanabilir. CI
+  # konteynerini 5433'e baglamak `docker create` asamasindaki port
+  # cakismasini onler; konteynerin kendi portu degismez.
+  DATABASE_URL: postgresql://localakademi:localakademi@localhost:5433/localakademi_ci?schema=public
   DB_PASSWORD: localakademi
 
 jobs:
@@ -38,13 +41,15 @@ jobs:
 
     services:
       postgres:
-        image: pgvector/pgvector:pg16
+        # Yeniden uretilebilir CI: pg16 etiketinin zamanla baska bir imaja
+        # kaymasini engellemek icin dogrulanmis linux/amd64 digest'i sabit.
+        image: pgvector/pgvector:pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
         env:
           POSTGRES_USER: localakademi
           POSTGRES_PASSWORD: localakademi
           POSTGRES_DB: localakademi_ci
         ports:
-          - 5432:5432
+          - 5433:5432
         options: >-
           --health-cmd pg_isready -U localakademi -d localakademi_ci
           --health-interval 5s
