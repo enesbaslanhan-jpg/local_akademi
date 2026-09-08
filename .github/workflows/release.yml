@@ -2,10 +2,19 @@ name: Release Gate
 
 on:
   push:
-    branches: [main, master, beta, develop]
+    branches: [design/localkarar-18]
   pull_request:
-    branches: [main, master, beta]
+    branches: [design/localkarar-18]
   workflow_dispatch:
+
+# LocalKarar'in kanonik dali design/localkarar-18. Diger dallar korunur,
+# ancak uretim kapisi yalniz bu dala gelen degisiklikleri kabul eder.
+concurrency:
+  group: release-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 env:
   NODE_VERSION: '20'
