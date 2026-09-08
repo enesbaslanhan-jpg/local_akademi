@@ -12,18 +12,29 @@
  * `--build-arg RELEASE_COMMIT=<verified_sha>`). Calisma aninda compose
  * ortamindan okunsaydi, imaj ile etiket birbirinden ayrilabilirdi;
  * imaja gomulu deger hangi kodun paketlendigini soyler.
+ */
+
+/**
+ * Ortamdan gelen degeri kabul edilebilir tek bicime indirger.
  *
  * ⚠️ BICIM DOGRULANIYOR: yalniz 40 haneli kucuk harf onaltilik bir
  * dize kabul ediliyor, aksi halde "unknown". Ortamdan gelen serbest
  * bir dizeyi oldugu gibi yayimlamak, saglik ucuna disaridan metin
  * enjekte etmenin yolu olurdu.
+ *
+ * ⚠️ SAF VE DISA ACIK: testler bunu DOGRUDAN cagiriyor. Ilk yazimda
+ * modul icine kapaliydi ve test edebilmek icin modul kaydini
+ * sifirlamak gerekiyordu; test dosyalari tek surecte sirayla kostugu
+ * icin bu, SONRAKI dosyalari bozup rastgele basarisizliklar uretti
+ * (olculdu 08.09.2026: kapida conversation-citation, yerelde
+ * marketplace-sync dustu -- ikisi de bu degisiklikle ilgisiz).
  */
-function commitFromEnv(): string {
-  const raw = (process.env.RELEASE_COMMIT || '').trim().toLowerCase()
-  return /^[0-9a-f]{40}$/.test(raw) ? raw : 'unknown'
+export function normalizeReleaseCommit(raw: string | undefined): string {
+  const temiz = (raw || '').trim().toLowerCase()
+  return /^[0-9a-f]{40}$/.test(temiz) ? temiz : 'unknown'
 }
 
-export const RELEASE_COMMIT = commitFromEnv()
+export const RELEASE_COMMIT = normalizeReleaseCommit(process.env.RELEASE_COMMIT)
 
 export const RELEASE_INFO = {
   version: '2.0.0',
