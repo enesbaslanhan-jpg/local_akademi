@@ -408,6 +408,12 @@ export const api = {
         body: JSON.stringify(preferences)
       });
     },
+    async updateAnalyticsConsent(consent, version) {
+      return api.request('/auth/analytics-consent', {
+        method: 'PUT',
+        body: JSON.stringify({ consent, version })
+      });
+    },
     async changePassword(currentPassword, newPassword) {
       return api.request('/auth/password', {
         method: 'PUT',

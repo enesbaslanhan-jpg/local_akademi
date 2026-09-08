@@ -1,5 +1,8 @@
 services:
   server:
+    # Yerelde varsayılan adla build edilir. CI/CD, aynı compose dosyasını
+    # değiştirmeden GHCR'daki doğrulanmış imajı LOCALKARAR_IMAGE ile seçer.
+    image: ${LOCALKARAR_IMAGE:-localakademi:local}
     build:
       context: .
       dockerfile: Dockerfile

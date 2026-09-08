@@ -15,6 +15,7 @@ import {
   fiyatYaz,
 } from '@/config/billing'
 import styles from './MembershipModal.module.css'
+import { captureAnalytics } from '@/services/analytics'
 
 /*
  * ÜYELİĞİ ETKİNLEŞTİR — ödeme paneli.
@@ -205,6 +206,10 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
 
     setYukleniyor(true)
     setHata(null)
+    captureAnalytics('subscription_checkout_started', {
+      plan_code: 'founder',
+      billing_period: donem
+    })
     try {
       const sonuc = await api.payments.checkout({
         period: donem, sozlesmeOnayi, caymaFeragati,
@@ -212,8 +217,16 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
       /* Token gelmeden çerçeve AÇILMIYOR: boş bir iframe, kullanıcıya
          "bir şeyler oldu ama ne" hissi verir. */
       if (sonuc?.iframeUrl) setCerceveAdresi(sonuc.iframeUrl)
-      else setHata(t('billing.modal.initFailed'))
+      else {
+        captureAnalytics('subscription_failed', { plan_code: 'founder', billing_period: donem, error_code: 'missing_iframe_url' })
+        setHata(t('billing.modal.initFailed'))
+      }
     } catch (e) {
+      captureAnalytics('subscription_failed', {
+        plan_code: 'founder',
+        billing_period: donem,
+        error_code: String(e?.status || e?.code || 'checkout_error')
+      })
       setHata(e?.message || t('billing.modal.initFailed'))
     } finally {
       setYukleniyor(false)
@@ -231,13 +244,25 @@ export default function MembershipModal({ open, onClose, demoBasari = false }) {
   async function odemeBaslatKimlikle() {
     setYukleniyor(true)
     setHata(null)
+    captureAnalytics('subscription_checkout_started', {
+      plan_code: 'founder',
+      billing_period: donem
+    })
     try {
       const sonuc = await api.payments.checkout({
         period: donem, sozlesmeOnayi, caymaFeragati,
       })
       if (sonuc?.iframeUrl) setCerceveAdresi(sonuc.iframeUrl)
-      else setHata(t('billing.modal.initFailed'))
+      else {
+        captureAnalytics('subscription_failed', { plan_code: 'founder', billing_period: donem, error_code: 'missing_iframe_url' })
+        setHata(t('billing.modal.initFailed'))
+      }
     } catch (e) {
+      captureAnalytics('subscription_failed', {
+        plan_code: 'founder',
+        billing_period: donem,
+        error_code: String(e?.status || e?.code || 'checkout_error')
+      })
       setHata(e?.apiMessage || e?.message || t('billing.modal.initFailed'))
     } finally {
       setYukleniyor(false)

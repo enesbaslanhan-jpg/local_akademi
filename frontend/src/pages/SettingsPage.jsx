@@ -28,6 +28,7 @@ import PasswordInput from '@/components/ui/PasswordInput'
 import ImageViewer from '@/components/ui/ImageViewer'
 import IntegrationsPanel from '@/components/settings/IntegrationsPanel'
 import LegalModal from '@/components/legal/LegalModal'
+import AnalyticsPreference from '@/components/analytics/AnalyticsPreference'
 import MembershipSettings from '@/components/billing/MembershipSettings'
 import styles from './SettingsPage.module.css'
 import { useTranslation } from 'react-i18next'
@@ -515,6 +516,7 @@ export default function SettingsPage() {
           </section>
 
           <SettingsSection id="yasal" icon={<Scale />} title={t('settings.legal.title')} description={t('settings.legal.description')}>
+            <AnalyticsPreference />
             <div className={styles.legalLinks}><button type="button" onClick={() => navigate('/hakkinda')}>{t('settings.legal.about')}</button><button type="button" onClick={() => navigate('/privacy')}>{t('settings.legal.privacy')}</button><button type="button" onClick={() => navigate('/terms')}>{t('settings.legal.terms')}</button><button type="button" onClick={() => navigate('/cookies')}>{t('settings.legal.cookies')}</button><button type="button" onClick={() => navigate('/on-bilgilendirme')}>{t('publicFooter.links.preInfo')}</button><button type="button" onClick={() => navigate('/mesafeli-satis')}>{t('publicFooter.links.distanceSale')}</button><button type="button" onClick={() => navigate('/teslimat-iade')}>{t('publicFooter.links.deliveryRefund')}</button><button type="button" onClick={() => navigate('/abonelik')}>{t('publicFooter.links.subscription')}</button></div>
           </SettingsSection>
 

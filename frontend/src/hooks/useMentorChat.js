@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react'
 import { api } from '@/services/api'
 import { getSafeErrorMessage } from '@/components/mentor/MentorErrorAlert'
 import i18n from '@/i18n'
+import { captureAnalytics } from '@/services/analytics'
 
 export function useMentorChat(contextCode = '', contextTitle = '') {
   const [conversations, setConversations] = useState([])
@@ -114,6 +115,10 @@ export function useMentorChat(contextCode = '', contextTitle = '') {
         scheduleStreamingUpdate(onScroll)
       },
       onDone: () => {
+        captureAnalytics('mentor_response_completed', {
+          mentor_mode: contextCode ? 'contextual' : 'general',
+          outcome: 'completed'
+        })
         streamRequestedRef.current = false
         abortControllerRef.current = null
         setIsStreaming(false)
@@ -132,6 +137,10 @@ export function useMentorChat(contextCode = '', contextTitle = '') {
         loadMessages(convId)
       },
       onError: (data) => {
+        captureAnalytics('mentor_failed', {
+          mentor_mode: contextCode ? 'contextual' : 'general',
+          error_code: String(data?.code || 'stream_error')
+        })
         streamRequestedRef.current = false
         abortControllerRef.current = null
         setIsStreaming(false)
@@ -141,7 +150,7 @@ export function useMentorChat(contextCode = '', contextTitle = '') {
         loadMessages(convId)
       }
     })
-  }, [loadMessages, loadConversations, scheduleStreamingUpdate])
+  }, [contextCode, loadMessages, loadConversations, scheduleStreamingUpdate])
 
   const handleSend = useCallback(async (text, onScroll, activeContext = null) => {
     if (!text || sendingLockRef.current || streamRequestedRef.current) return
@@ -153,6 +162,9 @@ export function useMentorChat(contextCode = '', contextTitle = '') {
 
     let convId = selectedId
     if (!convId) {
+      captureAnalytics('mentor_session_started', {
+        mentor_mode: contextCode ? 'contextual' : 'general'
+      })
       try {
         const data = await api.conversation.create('Yeni Sohbet', activeContext)
         convId = data.conversation.id

@@ -11,6 +11,7 @@ import DarkPanel from '@/components/ui/DarkPanel'
 import { Button, PageHead } from '@/components/ui'
 import { ContextPanelSlot, useContextPanel } from '@/components/layout/ContextPanel'
 import './DecisionCheckList.css'
+import { captureAnalytics } from '@/services/analytics'
 
 const STATUS_CONTENT = {
   not_started: {
@@ -137,6 +138,7 @@ export default function DecisionCheckList() {
     try {
       const response = await api.decisionChecks.start(check.code)
       if (response.sessionId) {
+        captureAnalytics('decision_tool_started', { decision_tool_code: check.code })
         navigate(`/app/decision-checks/${response.sessionId}`)
       }
     } catch (error) {

@@ -1,0 +1,95 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_sha:
+        description: Full 40-character commit SHA produced by Publish Production Image
+        required: true
+        type: string
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+
+    steps:
+      - name: Validate immutable image tag
+        shell: bash
+        env:
+          IMAGE_SHA: ${{ inputs.image_sha }}
+        run: |
+          if [[ ! "$IMAGE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "image_sha must be a full lowercase commit SHA" >&2
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: design/localkarar-18
+
+      - name: Configure verified SSH host
+        shell: bash
+        env:
+          SSH_KEY: ${{ secrets.PRODUCTION_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.PRODUCTION_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SSH_KEY" > "$HOME/.ssh/production_key"
+          chmod 600 "$HOME/.ssh/production_key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Sign the server in to GHCR
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.PRODUCTION_SSH_HOST }}
+          SSH_PORT: ${{ secrets.PRODUCTION_SSH_PORT }}
+          SSH_USER: ${{ secrets.PRODUCTION_SSH_USER }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+        run: |
+          port="${SSH_PORT:-22}"
+          if [[ ! "$SSH_HOST" =~ ^[A-Za-z0-9.-]+$ || ! "$SSH_USER" =~ ^[A-Za-z0-9._-]+$ || ! "$port" =~ ^[0-9]{1,5}$ ]]; then
+            echo "Production SSH coordinates are invalid" >&2
+            exit 1
+          fi
+          if [[ ! "$GHCR_USERNAME" =~ ^[A-Za-z0-9-]+$ ]]; then
+            echo "GHCR_USERNAME is invalid" >&2
+            exit 1
+          fi
+          printf '%s' "$GHCR_READ_TOKEN" | ssh -i "$HOME/.ssh/production_key" -p "$port" \
+            -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "$SSH_USER@$SSH_HOST" "docker login ghcr.io -u '$GHCR_USERNAME' --password-stdin"
+
+      - name: Back up, deploy, verify, and roll back on failure
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.PRODUCTION_SSH_HOST }}
+          SSH_PORT: ${{ secrets.PRODUCTION_SSH_PORT }}
+          SSH_USER: ${{ secrets.PRODUCTION_SSH_USER }}
+          DEPLOY_PATH: ${{ secrets.PRODUCTION_DEPLOY_PATH }}
+          IMAGE_SHA: ${{ inputs.image_sha }}
+        run: |
+          port="${SSH_PORT:-22}"
+          if [[ ! "$SSH_HOST" =~ ^[A-Za-z0-9.-]+$ || ! "$SSH_USER" =~ ^[A-Za-z0-9._-]+$ || ! "$port" =~ ^[0-9]{1,5}$ ]]; then
+            echo "Production SSH coordinates are invalid" >&2
+            exit 1
+          fi
+          if [[ ! "$DEPLOY_PATH" =~ ^/[A-Za-z0-9._/-]+$ ]]; then
+            echo "PRODUCTION_DEPLOY_PATH contains unsupported characters" >&2
+            exit 1
+          fi
+          repository="${GITHUB_REPOSITORY,,}"
+          image="ghcr.io/${repository}:${IMAGE_SHA}"
+          ssh -i "$HOME/.ssh/production_key" -p "$port" \
+            -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "$SSH_USER@$SSH_HOST" "bash -s -- '$DEPLOY_PATH' '$image'" < deploy/deploy-production.sh

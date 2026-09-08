@@ -195,7 +195,21 @@
       "emphasis": "kendi analitik veya reklam çerezini kullanmıyor",
       "after": "ve üçüncü taraf izleme aracı çalıştırmıyor. Tarayıcında oturumun ve tercihlerin saklanıyor; Cloudflare gerektiğinde teknik güvenlik çerezi oluşturabilir.",
       "details": "Ayrıntılar",
-      "dismiss": "Bildirimi kapat"
+      "dismiss": "Bildirimi kapat",
+      "analyticsText": "LocalKarar'ı geliştirmek için yalnızca anonim kullanım olaylarını ölçmek istiyoruz. Finansal değerler, müşteri bilgileri, sipariş ayrıntıları ve Mentor mesajları gönderilmez. Analitik tercihinizi daha sonra ayarlardan değiştirebilirsiniz.",
+      "allowAnalytics": "Analitiğe izin ver",
+      "rejectAnalytics": "Reddet"
+    },
+    "analyticsPreference": {
+      "title": "Anonim kullanım analitiği",
+      "description": "Ürün akışlarının çalışıp çalışmadığını ölçer; finansal değer, müşteri bilgisi, sipariş ayrıntısı veya Mentor mesajı göndermez.",
+      "allow": "İzin ver",
+      "reject": "İzni kaldır",
+      "status": {
+        "unknown": "Henüz seçim yapılmadı.",
+        "granted": "Analitik izni açık.",
+        "denied": "Analitik izni kapalı."
+      }
     },
     "task": {
       "steps": "Uygulama adımları",

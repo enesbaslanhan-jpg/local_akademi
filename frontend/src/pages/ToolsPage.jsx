@@ -14,6 +14,7 @@ import {
 import { buildCalculationCatalog, CALCULATION_CATEGORIES, CALCULATION_DEFINITIONS, modeLabelKeys } from '@/data/calculationCatalog'
 import styles from './ToolsPage.module.css'
 import { getFormatLocale } from '@/utils/formatters'
+import { captureAnalytics } from '@/services/analytics'
 
 const ICONS = {
   kar_hesabi: TrendingUp,
@@ -399,6 +400,7 @@ export default function ToolsPage({ initialView = 'calculator' }) {
 
   async function calculate() {
     if (!selected) return
+    captureAnalytics('calculation_started', { calculation_code: selected.id })
     setCalculating(true)
     setError('')
     setResult(null)
@@ -407,6 +409,7 @@ export default function ToolsPage({ initialView = 'calculator' }) {
         (selected.inputs || []).map(input => [input.name, inputs[input.name] === '' ? 0 : Number(inputs[input.name])])
       )
       const response = await api.formulas.calculate(selected.id, numericInputs)
+      captureAnalytics('calculation_completed', { calculation_code: selected.id, outcome: 'completed' })
       setResult({
         ...(response.result || response),
         warnings: response.warnings || response.result?.warnings || []
@@ -414,6 +417,10 @@ export default function ToolsPage({ initialView = 'calculator' }) {
       const freshHistory = await api.formulas.getHistory().catch(() => null)
       if (Array.isArray(freshHistory)) setHistory(freshHistory)
     } catch (err) {
+      captureAnalytics('calculation_failed', {
+        calculation_code: selected.id,
+        error_code: String(err?.status || err?.code || 'unknown')
+      })
       setError(err.message || t('calculations.errors.calculate'))
     } finally {
       setCalculating(false)

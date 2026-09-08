@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 import { api, oturumTokenleriniSil, oturumTokenleriniYaz } from '@/services/api'
 import { useLocalization } from './LocalizationContext'
+import { captureAnalytics, identifyAnalytics, resetAnalytics } from '@/services/analytics'
 
 /*
  * Bağlamın KENDİSİ de dışa açık.
@@ -53,12 +54,19 @@ export function AuthProvider({ children }) {
   }, [setUiLanguage])
 
   const register = useCallback(async (email, password, name, acceptedLegal) => {
+    captureAnalytics('signup_started', { platform: 'web' })
     const data = await api.auth.register(email, password, name, acceptedLegal)
     oturumTokenleriniYaz(data.token, data.refreshToken)
     setToken(data.token)
     setUser(data.user)
     if (['tr', 'en'].includes(data.user.uiLanguage)) setUiLanguage(data.user.uiLanguage)
     setOnboardingCompleted(data.user.onboardingCompleted ?? true)
+    identifyAnalytics(data.user.id, {
+      language: data.user.uiLanguage,
+      user_role: data.user.role,
+      subscription_status: data.user.membership?.status
+    })
+    captureAnalytics('signup_completed', { platform: 'web' })
     return data
   }, [setUiLanguage])
 
@@ -74,6 +82,7 @@ export function AuthProvider({ children }) {
     const refreshToken = localStorage.getItem('refreshToken')
     if (refreshToken) api.auth.logout(refreshToken).catch(() => {})
     oturumTokenleriniSil()
+    resetAnalytics()
     setToken('')
     setUser(null)
   }, [])
@@ -91,6 +100,7 @@ export function AuthProvider({ children }) {
   const completeOnboarding = useCallback(async () => {
     await api.onboarding.complete()
     setOnboardingCompleted(true)
+    captureAnalytics('onboarding_completed', { platform: 'web' })
   }, [])
 
   const value = useMemo(() => ({

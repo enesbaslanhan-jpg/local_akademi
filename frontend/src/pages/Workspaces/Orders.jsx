@@ -8,6 +8,7 @@ import styles from './Orders.module.css'
 import { useTranslation } from 'react-i18next'
 import { useLocalization } from '@/context/LocalizationContext'
 import { formatCurrency, formatDate as formatDateValue } from '@/utils/formatters'
+import { captureAnalytics } from '@/services/analytics'
 
 
 
@@ -118,6 +119,7 @@ export default function Orders() {
       try {
         const statusData = await api.integrations.trendyolStatus(workspaceId)
         if (!statusData?.syncing) {
+          captureAnalytics('sync_succeeded', { integration_type: 'trendyol', sync_mode: 'manual' })
           setSyncing(false)
           await load()
           toast.success(t('orders.syncComplete'))
@@ -128,12 +130,18 @@ export default function Orders() {
   }, [syncing, workspaceId, load])
 
   async function handleSync() {
+    captureAnalytics('sync_started', { integration_type: 'trendyol', sync_mode: 'manual' })
     try {
       await api.integrations.trendyolSync(workspaceId)
       setSyncing(true)
       toast.success(t('orders.syncStarted'))
     } catch (err) {
       if (err.status === 409) { setSyncing(true); return }
+      captureAnalytics('sync_failed', {
+        integration_type: 'trendyol',
+        sync_mode: 'manual',
+        error_code: String(err?.status || err?.code || 'unknown')
+      })
       toast.error(err.message || t('orders.syncFailed'))
     }
   }

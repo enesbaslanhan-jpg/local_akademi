@@ -43,6 +43,12 @@ services:
       - FEATURE_LEGACY_QUIZ_ENABLED=${FEATURE_LEGACY_QUIZ_ENABLED:-false}
       - FEATURE_LEGACY_FLASHCARDS_ENABLED=${FEATURE_LEGACY_FLASHCARDS_ENABLED:-false}
       - FEATURE_PRACTICAL_CARDS_ENABLED=${FEATURE_PRACTICAL_CARDS_ENABLED:-false}
+      # Ürün analitiği açıkça etkinleştirilmedikçe istemci SDK'yı yüklemez.
+      # POSTHOG_PROJECT_TOKEN herkese açık istemci tokenidir; kişisel API
+      # anahtarı veya yönetim anahtarı burada KESİNLİKLE kullanılmaz.
+      - PRODUCT_ANALYTICS_ENABLED=${PRODUCT_ANALYTICS_ENABLED:-false}
+      - POSTHOG_HOST=${POSTHOG_HOST:-}
+      - POSTHOG_PROJECT_TOKEN=${POSTHOG_PROJECT_TOKEN:-}
 
   caddy:
     image: caddy:2-alpine

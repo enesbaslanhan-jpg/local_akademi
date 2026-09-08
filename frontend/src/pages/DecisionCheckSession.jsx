@@ -9,6 +9,7 @@ import StructuredDecisionTool from '@/components/decision-checks/StructuredDecis
 import DecisionFollowUp from '@/components/decision-checks/DecisionFollowUp'
 import './DecisionCheckSession.css'
 import styles from './DecisionCheckSession.module.css'
+import { captureAnalytics } from '@/services/analytics'
 
 export default function DecisionCheckSession() {
   const { t, i18n } = useTranslation('tools')
@@ -34,6 +35,7 @@ export default function DecisionCheckSession() {
     try {
       const response = await api.decisionChecks.start(session.decisionCheckCode)
       if (response?.sessionId) {
+        captureAnalytics('decision_tool_started', { decision_tool_code: session.decisionCheckCode })
         navigate(`/app/decision-checks/${response.sessionId}`)
       }
     } catch (err) {
@@ -55,6 +57,7 @@ export default function DecisionCheckSession() {
         if (routeIdentifier?.startsWith('DC-')) {
           const started = await api.decisionChecks.start(routeIdentifier)
           sessionId = started.sessionId
+          captureAnalytics('decision_tool_started', { decision_tool_code: routeIdentifier })
         }
 
         const res = await api.decisionChecks.getSession(sessionId)
@@ -120,6 +123,10 @@ export default function DecisionCheckSession() {
     try {
       const res = await api.decisionChecks.complete(session.id)
       if (res.resultId) {
+        captureAnalytics('decision_tool_completed', {
+          decision_tool_code: session.decisionCheckCode,
+          outcome: 'completed'
+        })
         // Switch to result view, for MVP we just refresh and show the state
         window.location.reload()
       }

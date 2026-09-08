@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { Select } from '@/components/ui'
 import styles from './OnboardingPage.module.css'
 import { useTranslation } from 'react-i18next'
+import { captureAnalytics } from '@/services/analytics'
 
 const STAGES = [
   { value: 'startup', labelKey: 'onboarding.options.stages.startup' },
@@ -81,6 +82,7 @@ export default function OnboardingPage() {
   })
 
   useEffect(() => {
+    captureAnalytics('onboarding_started', { source: 'onboarding' })
     api.onboarding.getProfile().then(data => {
       if (data) {
         setExisting(data)
@@ -100,6 +102,14 @@ export default function OnboardingPage() {
       }
     }).catch(() => {})
   }, [])
+
+  function continueToNextStep() {
+    captureAnalytics('onboarding_step_completed', {
+      onboarding_step: String(step + 1),
+      source: 'onboarding'
+    })
+    setStep(previous => previous + 1)
+  }
 
   function toggleChannel(value) {
     setForm(prev => ({
@@ -371,7 +381,7 @@ export default function OnboardingPage() {
             </button>
           )}
           {step < 3 ? (
-            <button className={styles.btnPrimary} onClick={() => setStep(prev => prev + 1)}>
+            <button className={styles.btnPrimary} onClick={continueToNextStep}>
               {t('onboarding.continue')}
             </button>
           ) : (

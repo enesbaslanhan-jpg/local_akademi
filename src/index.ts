@@ -57,6 +57,7 @@ import { RELEASE_INFO } from './config/release'
 import { createHash } from 'crypto'
 import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
+import { shutdownProductAnalytics } from './services/product-analytics'
 
 const isProduction = process.env.NODE_ENV === 'production'
   || process.env.BETA_MODE === 'true'
@@ -301,13 +302,28 @@ async function build() {
     )
   }
 
+  function analyticsBaglantiKaynagi(): string | null {
+    if ((process.env.PRODUCT_ANALYTICS_ENABLED || '').trim().toLowerCase() !== 'true') return null
+    const raw = (process.env.POSTHOG_HOST || '').trim()
+    if (!raw) return null
+    try {
+      const url = new URL(raw)
+      if (url.protocol !== 'https:' && url.hostname !== 'localhost') return null
+      return url.origin
+    } catch {
+      return null
+    }
+  }
+
+  const analyticsKaynagi = analyticsBaglantiKaynagi()
+
   const CONTENT_SECURITY_POLICY = [
     "default-src 'self'",
     scriptSrc,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self' data:",
-    "connect-src 'self'",
+    `connect-src 'self'${analyticsKaynagi ? ` ${analyticsKaynagi}` : ''}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -641,6 +657,7 @@ export async function start() {
     stopNewsWorker()
     stopMarketplaceWorker()
     stopAccountNotificationWorker()
+    await shutdownProductAnalytics()
   })
   try {
     await server.listen({ port, host: process.env.HOST || '0.0.0.0' })

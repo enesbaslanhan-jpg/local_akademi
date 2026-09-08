@@ -21,6 +21,9 @@ let app: FastifyInstance
 beforeAll(async () => {
   process.env.JWT_SECRET = 'app-config-test-secret-key-min-32-bytes'
   process.env.NODE_ENV = 'test'
+  delete process.env.PRODUCT_ANALYTICS_ENABLED
+  delete process.env.POSTHOG_HOST
+  delete process.env.POSTHOG_PROJECT_TOKEN
   const { default: build } = await import('../src/index')
   app = await build()
   await app.ready()
@@ -41,6 +44,32 @@ describe('GET /app-config', () => {
     expect(typeof govde.minAppVersion.ios).toBe('string')
     expect(govde).toHaveProperty('storeUrls')
     expect(govde).toHaveProperty('maintenance')
+    expect(govde.analytics).toEqual({
+      enabled: false,
+      provider: null,
+      host: null,
+      projectToken: null,
+      sessionReplay: false
+    })
+  })
+
+  it('yalnız açıkça etkin ve eksiksiz yapılandırıldığında istemci ayarı döner', async () => {
+    process.env.PRODUCT_ANALYTICS_ENABLED = 'true'
+    process.env.POSTHOG_HOST = 'https://eu.i.posthog.com'
+    process.env.POSTHOG_PROJECT_TOKEN = 'phc_public_test'
+
+    const yanit = await app.inject({ method: 'GET', url: '/app-config' })
+    expect(yanit.json().analytics).toEqual({
+      enabled: true,
+      provider: 'posthog',
+      host: 'https://eu.i.posthog.com',
+      projectToken: 'phc_public_test',
+      sessionReplay: false
+    })
+
+    delete process.env.PRODUCT_ANALYTICS_ENABLED
+    delete process.env.POSTHOG_HOST
+    delete process.env.POSTHOG_PROJECT_TOKEN
   })
 
   it('kimlik doğrulaması istemiyor', async () => {

@@ -77,6 +77,27 @@ describe('account management', () => {
     expect(me.json().uiLanguage).toBe('en')
   })
 
+  it('stores an explicit, versioned analytics consent choice', async () => {
+    const invalid = await app.inject({
+      method: 'PUT', url: '/auth/analytics-consent',
+      headers: { authorization: `Bearer ${token}` },
+      payload: { consent: 'maybe', version: '2026-09-08' }
+    })
+    expect(invalid.statusCode).toBe(422)
+
+    const saved = await app.inject({
+      method: 'PUT', url: '/auth/analytics-consent',
+      headers: { authorization: `Bearer ${token}` },
+      payload: { consent: 'denied', version: '2026-09-08' }
+    })
+    expect(saved.statusCode).toBe(200)
+    expect(saved.json()).toMatchObject({ consent: 'denied', version: '2026-09-08' })
+
+    const preference = await prisma.userPreference.findUnique({ where: { userId } })
+    expect(preference?.analyticsConsent).toBe(false)
+    expect(preference?.analyticsConsentAt).toBeInstanceOf(Date)
+  })
+
   it('validates, stores and removes a profile photo', async () => {
     const boundary = `avatar-boundary-${Date.now()}`
     const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Zr2AAAAAASUVORK5CYII=', 'base64')

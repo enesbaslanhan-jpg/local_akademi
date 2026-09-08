@@ -6,6 +6,7 @@ import type { ProviderCode, ProviderCredentials } from './types.js'
 import { resolveLowStockThreshold } from './product-analytics.js'
 import { siparisOnerileriniUret } from './order-suggestions.js'
 import { pazaryeriBildirimleriniUret } from './marketplace-notifications.js'
+import { captureProductEvent } from '../product-analytics.js'
 
 /*
  * CORE SYNC SERVICE.
@@ -429,6 +430,18 @@ async function runConnectionSyncLocked(
       void pazaryeriBildirimleriniUret(prisma, connection.workspaceId).catch(() => {})
     }
 
+    await captureProductEvent(
+      prisma,
+      options.requestedByUserId ?? connection.createdByUserId,
+      finalStatus === 'SUCCESS' ? 'sync_succeeded' : 'sync_failed',
+      {
+        integration_type: String(connection.provider).toLowerCase(),
+        sync_mode: options.syncType.toLowerCase(),
+        outcome: finalStatus.toLowerCase(),
+        ...(finalStatus === 'PARTIAL' ? { error_code: failures[0]?.errorCode ?? 'sync_partial' } : {})
+      }
+    ).catch(() => false)
+
     return { status: finalStatus, runId: run.id }
   } catch (error) {
     // Credential cozumlemesi ya da beklenmeyen hata: FAILED.
@@ -454,6 +467,17 @@ async function runConnectionSyncLocked(
         data: { status: 'FAILED', finishedAt: new Date(), errorMessageSafe: message.slice(0, 500) }
       }).catch(() => {})
     }
+    await captureProductEvent(
+      prisma,
+      options.requestedByUserId ?? connection.createdByUserId,
+      'sync_failed',
+      {
+        integration_type: String(connection.provider).toLowerCase(),
+        sync_mode: options.syncType.toLowerCase(),
+        outcome: 'failed',
+        error_code: 'SYNC_FAILED'
+      }
+    ).catch(() => false)
     return { status: 'FAILED', reason: message.slice(0, 300) }
   }
 }

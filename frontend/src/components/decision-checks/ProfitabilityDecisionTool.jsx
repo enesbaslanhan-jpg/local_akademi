@@ -8,6 +8,7 @@ import DecisionFollowUp from './DecisionFollowUp'
 import receiptTrigger from './ReceiptTrigger.module.css'
 import './ProfitabilityDecisionTool.css'
 import { getFormatLocale } from '@/utils/formatters'
+import { captureAnalytics } from '@/services/analytics'
 
 const FIELD_META = [
   { code: 'salePrice', suffix: '₺', min: 0.01 },
@@ -63,6 +64,7 @@ function ResultView({ session, result, navigate, mentorContext, mentorEnabled })
     try {
       const response = await api.decisionChecks.start(session.decisionCheckCode)
       if (response?.sessionId) {
+        captureAnalytics('decision_tool_started', { decision_tool_code: session.decisionCheckCode })
         navigate(`/app/decision-checks/${response.sessionId}`)
       }
     } catch (error) {
@@ -234,6 +236,10 @@ export default function ProfitabilityDecisionTool({ session, result, navigate, m
         isUnknown: false
       })))
       await api.decisionChecks.complete(session.id)
+      captureAnalytics('decision_tool_completed', {
+        decision_tool_code: session.decisionCheckCode,
+        outcome: 'completed'
+      })
       window.location.reload()
     } catch (error) {
       setSubmitError(error?.data?.message || t('session.saveFailed'))

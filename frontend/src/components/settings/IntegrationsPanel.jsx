@@ -10,6 +10,7 @@ import styles from './IntegrationsPanel.module.css'
 import { Trans, useTranslation } from 'react-i18next'
 import { useLocalization } from '@/context/LocalizationContext'
 import { formatDate } from '@/utils/formatters'
+import { captureAnalytics } from '@/services/analytics'
 
 /*
  * Provider yuzeyleri. Ortak modal shell + kart iskeleti; credential
@@ -150,6 +151,10 @@ export default function IntegrationsPanel() {
         const statusData = await provider.status(activeWorkspaceId)
         setStatusByProvider(current => ({ ...current, [syncingProvider]: statusData }))
         if (!statusData?.syncing) {
+          captureAnalytics('sync_succeeded', {
+            integration_type: syncingProvider.toLowerCase(),
+            sync_mode: 'manual'
+          })
           setSyncingProvider(null)
           setMessage({ type: 'ok', text: t('syncComplete') })
         }
@@ -191,6 +196,7 @@ export default function IntegrationsPanel() {
     }
 
     setSaving(true)
+    captureAnalytics('integration_connect_started', { integration_type: providerKey.toLowerCase() })
     try {
       if (providerKey === 'TRENDYOL') {
         await PROVIDERS.TRENDYOL.connect(activeWorkspaceId, {
@@ -219,10 +225,15 @@ export default function IntegrationsPanel() {
         })
       }
       setForm(EMPTY_FORM)
+      captureAnalytics('integration_connect_succeeded', { integration_type: providerKey.toLowerCase() })
       setConnectProvider(null)
       setMessage({ type: 'ok', text: t('connected', { provider: PROVIDERS[providerKey].label }) })
       await refresh()
     } catch (error) {
+      captureAnalytics('integration_connect_failed', {
+        integration_type: providerKey.toLowerCase(),
+        error_code: String(error?.status || error?.code || 'unknown')
+      })
       setFormError(error.message || t('errors.connect'))
     } finally {
       setSaving(false)
@@ -231,6 +242,10 @@ export default function IntegrationsPanel() {
 
   async function handleSync(providerKey) {
     setMessage(null)
+    captureAnalytics('sync_started', {
+      integration_type: providerKey.toLowerCase(),
+      sync_mode: 'manual'
+    })
     try {
       await PROVIDERS[providerKey].sync(activeWorkspaceId)
       setSyncingProvider(providerKey)
@@ -240,6 +255,11 @@ export default function IntegrationsPanel() {
         setSyncingProvider(providerKey)
         return
       }
+      captureAnalytics('sync_failed', {
+        integration_type: providerKey.toLowerCase(),
+        sync_mode: 'manual',
+        error_code: String(error?.status || error?.code || 'unknown')
+      })
       setMessage({ type: 'err', text: error.message || t('errors.sync') })
     }
   }

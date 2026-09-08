@@ -6,6 +6,7 @@ import { Button, Input } from '@/components/ui'
 import { formatDecisionText } from '@/utils/decisionText'
 import { getFormatLocale } from '@/utils/formatters'
 import styles from './DecisionFollowUp.module.css'
+import { captureAnalytics } from '@/services/analytics'
 
 export default function DecisionFollowUp({ session, snapshot, navigate }) {
   const workspace = useContext(WorkspaceContext)
@@ -69,6 +70,10 @@ function FollowUpForm({ session, snapshot, workspaceId, workspace, t, navigate }
         } }
       })
       setRecords(current => [...current, created])
+      captureAnalytics('decision_follow_up_created', {
+        decision_tool_code: session.decisionCheckCode,
+        source: 'decision_result'
+      })
       setEditing(false)
       setTitle(''); setExpected(''); setDueDate(''); setAssignedTo('')
     } catch { setError(t('followUp.saveError')) }

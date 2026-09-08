@@ -8,6 +8,7 @@ import { MentorProvider } from './context/MentorContext'
 import { ThemeProvider } from './context/ThemeContext'
 import AppRoutes from './router'
 import StorageNotice from './components/ui/StorageNotice'
+import AnalyticsBridge from './components/analytics/AnalyticsBridge'
 import { installButtonFeedback } from './utils/buttonFeedback'
 /* Manrope kendi sunucumuzdan — Google Fonts CDN'i kaldırıldı, böylece
    ziyaretçi IP'si ABD'ye gitmiyor. Token'lardan ÖNCE yüklenir. */
@@ -39,6 +40,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <WorkspaceProvider>
             <ToastProvider>
               <MentorProvider>
+                <AnalyticsBridge />
                 <AppRoutes />
                 <StorageNotice />
               </MentorProvider>

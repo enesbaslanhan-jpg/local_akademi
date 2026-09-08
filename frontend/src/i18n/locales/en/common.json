@@ -195,7 +195,21 @@
       "emphasis": "does not use its own analytics or advertising cookies",
       "after": "and runs no third-party tracking tools. Your session and preferences are stored in your browser; Cloudflare may create a technical security cookie when needed.",
       "details": "Details",
-      "dismiss": "Dismiss notice"
+      "dismiss": "Dismiss notice",
+      "analyticsText": "We would like to measure anonymous usage events to improve LocalKarar. Financial values, customer information, order details, and Mentor messages are never sent. You can change this preference later in settings.",
+      "allowAnalytics": "Allow analytics",
+      "rejectAnalytics": "Reject"
+    },
+    "analyticsPreference": {
+      "title": "Anonymous usage analytics",
+      "description": "Measures whether product flows work; it never sends financial values, customer information, order details, or Mentor messages.",
+      "allow": "Allow",
+      "reject": "Withdraw consent",
+      "status": {
+        "unknown": "No choice has been made yet.",
+        "granted": "Analytics consent is enabled.",
+        "denied": "Analytics consent is disabled."
+      }
     },
     "task": {
       "steps": "Practice steps",

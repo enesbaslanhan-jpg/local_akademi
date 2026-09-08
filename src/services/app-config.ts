@@ -100,6 +100,10 @@ export async function appConfigRoutes(fastify: FastifyInstance) {
    */
   fastify.get('/app-config', { config: { rateLimit: false } }, async () => {
     const minimum = minimumSurumler()
+    const analyticsEnabled = (process.env.PRODUCT_ANALYTICS_ENABLED || '').trim().toLowerCase() === 'true'
+    const analyticsHost = (process.env.POSTHOG_HOST || '').trim()
+    const analyticsProjectToken = (process.env.POSTHOG_PROJECT_TOKEN || '').trim()
+    const analyticsReady = analyticsEnabled && Boolean(analyticsHost && analyticsProjectToken)
     return {
       minAppVersion: minimum,
       storeUrls: {
@@ -109,6 +113,15 @@ export async function appConfigRoutes(fastify: FastifyInstance) {
       // Bakım kipi: mobil istemci sunucunun geçici olarak kapalı olduğunu
       // istek başına 503 toplamadan öğrenebilsin.
       maintenance: (process.env.MAINTENANCE_MODE || '').trim().toLowerCase() === 'true',
+      // Project token bir istemci anahtarıdır; kişisel API anahtarı değildir.
+      // Yapılandırma eksikse istemci SDK'yı indirmez ve hiçbir olay göndermez.
+      analytics: {
+        enabled: analyticsReady,
+        provider: analyticsReady ? 'posthog' : null,
+        host: analyticsReady ? analyticsHost : null,
+        projectToken: analyticsReady ? analyticsProjectToken : null,
+        sessionReplay: false
+      },
       apiVersion: RELEASE_INFO.version
     }
   })

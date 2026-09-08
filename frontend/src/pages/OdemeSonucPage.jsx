@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/services/api'
 import styles from './OdemeSonucPage.module.css'
+import { captureAnalytics } from '@/services/analytics'
 
 /*
  * ÖDEME SONUCU.
@@ -35,6 +36,7 @@ export default function OdemeSonucPage({ basarili = true }) {
   const [durum, setDurum] = useState(null)
   const [bitti, setBitti] = useState(false)
   const yoklamaSayisi = useRef(0)
+  const analyticsReported = useRef(false)
 
   /*
    * ÇERÇEVEDEN ÇIKIŞ.
@@ -73,6 +75,25 @@ export default function OdemeSonucPage({ basarili = true }) {
     sor()
     return () => { iptal = true }
   }, [siparis])
+
+  useEffect(() => {
+    if (!bitti || analyticsReported.current) return
+    if (durum?.status === 'SUCCEEDED') {
+      analyticsReported.current = true
+      captureAnalytics('subscription_activated', {
+        plan_code: 'founder',
+        billing_period: 'monthly',
+        outcome: 'activated'
+      })
+    } else if (durum?.status && durum.status !== 'PENDING') {
+      analyticsReported.current = true
+      captureAnalytics('subscription_failed', {
+        plan_code: 'founder',
+        billing_period: 'monthly',
+        error_code: String(durum.status).toLowerCase()
+      })
+    }
+  }, [bitti, durum?.status])
 
   const odendi = durum?.status === 'SUCCEEDED'
   const bekliyor = !bitti && durum?.status !== 'SUCCEEDED'

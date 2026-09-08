@@ -423,6 +423,41 @@ export async function authRoutes(fastify: FastifyInstance) {
     return { uiLanguage: preference.uiLanguage }
   })
 
+  const analyticsConsentSchema = z.object({
+    consent: z.enum(['granted', 'denied']),
+    version: z.string().trim().min(1).max(32)
+  })
+
+  fastify.put('/analytics-consent', {
+    preHandler: [fastify.authenticate],
+    config: { rateLimit: { max: 20, timeWindow: '1 minute' } }
+  }, async (request, reply) => {
+    const parsed = analyticsConsentSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(422).send({ error: 'INVALID_ANALYTICS_CONSENT', code: 'INVALID_ANALYTICS_CONSENT' })
+    }
+    const granted = parsed.data.consent === 'granted'
+    const preference = await prisma.userPreference.upsert({
+      where: { userId: request.user.id },
+      update: {
+        analyticsConsent: granted,
+        analyticsConsentAt: new Date(),
+        analyticsConsentVersion: parsed.data.version
+      },
+      create: {
+        userId: request.user.id,
+        analyticsConsent: granted,
+        analyticsConsentAt: new Date(),
+        analyticsConsentVersion: parsed.data.version
+      }
+    })
+    return {
+      consent: preference.analyticsConsent ? 'granted' : 'denied',
+      version: preference.analyticsConsentVersion,
+      updatedAt: preference.analyticsConsentAt
+    }
+  })
+
   /*
    * PROFIL DUZENLEME.
    *

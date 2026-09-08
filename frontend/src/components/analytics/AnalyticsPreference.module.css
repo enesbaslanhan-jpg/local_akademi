@@ -1,0 +1,9 @@
+.panel { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 18px; padding: 14px; border: 1px solid var(--line-strong); border-radius: var(--radius-md); background: var(--surface-raised); }
+.panel p { margin: 4px 0; color: var(--text-secondary); font-size: 0.875rem; }
+.panel small { color: var(--text-muted); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; flex-shrink: 0; }
+.actions button { min-height: 36px; padding: 7px 11px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--surface-panel); color: var(--text); font: inherit; font-weight: 700; cursor: pointer; }
+.actions button:last-child { border-color: var(--primary); background: var(--primary); color: var(--on-primary, #fff); }
+.actions button:disabled { opacity: .55; cursor: default; }
+.actions button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+@media (max-width: 700px) { .panel { align-items: stretch; flex-direction: column; } .actions button { flex: 1; } }
