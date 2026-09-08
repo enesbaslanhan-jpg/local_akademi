@@ -865,6 +865,38 @@ export async function businessTrackerRoutes(
     return reply.status(201).send(link)
   })
 
+  /*
+   * BAGI KOPAR.
+   *
+   * 🔴 EKLEME VARDI, KALDIRMA YOKTU. Yanlis belgeyi bir kayda baglayan
+   * kullanicinin bunu geri almasinin HICBIR yolu yoktu; tek care
+   * belgeyi tumden arsivlemekti -- yani dogru baglandigi diger
+   * kayitlardan da kopariyordu.
+   *
+   * ⚠️ Yalniz BAG siliniyor, BELGE degil. Belge calisma alaninda
+   * duruyor ve baska kayitlara bagli kalabilir. Belgeyi silmek icin
+   * ayri bir uc var (`DELETE /:workspaceId/documents/:documentId`).
+   *
+   * ⚠️ Belgenin `workspaceId` alani GERI ALINMIYOR. Ekleme sirasinda
+   * sahipsiz bir belge calisma alanina yaziliyor; bagi kopardik diye
+   * belgeyi tekrar sahipsiz birakmak, calisma alanindaki Belgeler
+   * listesinden kaybolmasi demek olurdu.
+   */
+  fastify.delete('/:workspaceId/records/:recordId/documents/:documentId', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId, recordId, documentId } = request.params as { workspaceId: string, recordId: string, documentId: string }
+    if (!await access(prisma, user.id, workspaceId, reply, true)) return
+    if (!await scopedRecord(prisma, workspaceId, recordId, reply)) return
+    const link = await prisma.businessRecordDocument.findUnique({
+      where: { recordId_documentId: { recordId, documentId } }
+    })
+    if (!link || link.workspaceId !== workspaceId) {
+      return reply.status(404).send({ error: 'Link not found' })
+    }
+    await prisma.businessRecordDocument.delete({ where: { id: link.id } })
+    return reply.status(204).send()
+  })
+
   fastify.get('/:workspaceId/documents', async (request, reply) => {
     const user = request.user as { id: number }
     const { workspaceId } = request.params as { workspaceId: string }

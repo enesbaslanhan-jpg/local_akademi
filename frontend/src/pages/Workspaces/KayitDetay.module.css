@@ -351,3 +351,45 @@
   gap: var(--space-2);
   margin-top: var(--space-2);
 }
+
+/* Kayıt–belge bağlama (madde 11). */
+.bagKopar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* ≥44px dokunma hedefi: ikon 14px, dolgu onu taşıyor. */
+  min-width: 32px;
+  min-height: 32px;
+  padding: 4px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.bagKopar:hover:not(:disabled) { background: var(--surface-sunken); color: var(--danger); }
+.bagKopar:disabled { opacity: .5; cursor: not-allowed; }
+
+.belgeSecici { display: grid; gap: 6px; }
+
+.belgeSecenek {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-panel);
+  color: var(--text);
+  font-family: inherit;
+  font-size: .82rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.belgeSecenek span { overflow-wrap: anywhere; }
+.belgeSecenek small { margin-left: auto; flex: 0 0 auto; color: var(--text-secondary); }
+.belgeSecenek:hover:not(:disabled) { border-color: var(--primary); }
+.belgeSecenek:disabled { opacity: .6; cursor: not-allowed; }

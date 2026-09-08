@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, FileText, HelpCircle, History, Bell, X, Edit, Trash2, Loader2, Check, X as XIcon } from 'lucide-react'
+import { AlertTriangle, FileText, HelpCircle, History, Bell, X, Edit, Trash2, Loader2, Check, Paperclip, X as XIcon } from 'lucide-react'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
 import { useLocalization } from '@/context/LocalizationContext'
@@ -267,6 +267,66 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
   }
 
   const belgeler = kayit?.documents || []
+
+  /*
+   * KAYIT–BELGE BAĞLAMA.
+   *
+   * 🔴 Uç ve API istemcisi VARDI, arayüzde HİÇBİR YERDEN
+   * çağrılmıyordu (`api.workspace.tracker.attachDocument`). Yani
+   * kullanıcı elindeki bir belgeyi bir kayda bağlayamıyordu; bağ
+   * yalnızca belge analizinden ÜRETİLEN kayıtlarda kuruluyordu.
+   * Elle yüklenmiş bir sözleşmeyi mevcut bir ödemeye iliştirmenin
+   * yolu yoktu.
+   */
+  const [belgeSecici, setBelgeSecici] = useState(false)
+  const [calismaAlaniBelgeleri, setCalismaAlaniBelgeleri] = useState([])
+  const [belgelerYukleniyor, setBelgelerYukleniyor] = useState(false)
+  const [belgeIsleniyor, setBelgeIsleniyor] = useState(false)
+
+  const bagliBelgeKimlikleri = new Set(belgeler.map(bag => bag.document?.id).filter(Boolean))
+  const baglanabilirBelgeler = calismaAlaniBelgeleri.filter(belge => !bagliBelgeKimlikleri.has(belge.id))
+
+  const belgeleriAc = async () => {
+    setBelgeSecici(true)
+    setBelgelerYukleniyor(true)
+    try {
+      const sonuc = await api.workspace.documents.list(workspaceId)
+      setCalismaAlaniBelgeleri(sonuc.documents || [])
+    } catch (e) {
+      toast.error(e.message || t('detail.documentsLoadFailed'))
+      setBelgeSecici(false)
+    } finally {
+      setBelgelerYukleniyor(false)
+    }
+  }
+
+  const handleBagla = async (documentId) => {
+    setBelgeIsleniyor(true)
+    try {
+      await api.workspace.tracker.attachDocument(workspaceId, recordId, documentId)
+      await kayitYenile()
+      setBelgeSecici(false)
+      toast.success(t('detail.documentAttached'))
+    } catch (e) {
+      toast.error(e.message || t('detail.attachFailed'))
+    } finally {
+      setBelgeIsleniyor(false)
+    }
+  }
+
+  const handleBagKopar = async (documentId) => {
+    setBelgeIsleniyor(true)
+    try {
+      await api.workspace.tracker.detachDocument(workspaceId, recordId, documentId)
+      await kayitYenile()
+      toast.success(t('detail.documentDetached'))
+    } catch (e) {
+      toast.error(e.message || t('detail.detachFailed'))
+    } finally {
+      setBelgeIsleniyor(false)
+    }
+  }
+
   const tarih = (deger, saatli = false) => formatDate(deger, { locale: formatLocale, ...(saatli ? { dateStyle: 'medium', timeStyle: 'short' } : { dateStyle: 'medium' }) })
   const para = (deger, birim = 'TRY') => formatCurrency(deger, { locale: formatLocale, currency: birim })
 
@@ -386,9 +446,21 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
                 * gösteriliyor -- kullanıcı rakama körlemesine güvenmek
                 * zorunda kalmasın.
                 */}
-              {belgeler.length > 0 && (
-                <section className={styles.bolum}>
+              {/*
+                * 🔴 BÖLÜM ARTIK BELGE YOKKEN DE ÇİZİLİYOR.
+                *
+                * Önceden yalnız `belgeler.length > 0` iken görünüyordu;
+                * belge bağlamanın kullanıcıya sunulan HİÇBİR yolu
+                * olmadığı için bu doğal görünüyordu. Bağlama eklenince
+                * bölümün gizli olması, işlevin bulunamaması demek
+                * olurdu -- kullanıcı zaten belgesi olmayan kayda belge
+                * eklemek istiyor.
+                */}
+              <section className={styles.bolum}>
                   <h3>{t('detail.sourceDocument')}</h3>
+                  {belgeler.length === 0 && (
+                    <p className={styles.sessiz}>{t('detail.noDocuments')}</p>
+                  )}
                   {belgeler.map(bag => {
                     const belge = bag.document || {}
                     const fatura = analiziCoz(belge.analysis).eFatura
@@ -398,6 +470,21 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
                           <FileText size={16} aria-hidden="true" />
                           <span>{belge.originalName}</span>
                           <small>{Math.round((belge.sizeBytes || 0) / 1024)} KB</small>
+                          {/*
+                            * ⚠️ Yalnız BAĞI koparıyor, belgeyi SİLMİYOR.
+                            * Etiket de bunu söylüyor: kullanıcı belgesini
+                            * kaybetmekten korkmamalı.
+                            */}
+                          <button
+                            type="button"
+                            className={styles.bagKopar}
+                            onClick={() => handleBagKopar(belge.id)}
+                            disabled={belgeIsleniyor}
+                            aria-label={t('detail.detachDocument', { name: belge.originalName })}
+                            title={t('detail.detachHint')}
+                          >
+                            <XIcon size={14} aria-hidden="true" />
+                          </button>
                         </div>
 
                         {fatura ? (
@@ -430,8 +517,59 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
                       </div>
                     )
                   })}
+
+                  {/*
+                    * BELGE BAĞLA.
+                    *
+                    * Liste ANCAK açılınca çekiliyor: detay paneli her
+                    * açılışta çalışma alanının tüm belgelerini indirmek
+                    * için sebep yok.
+                    *
+                    * ⚠️ Zaten bağlı olanlar listede YOK. Sunucu aynı bağı
+                    * ikinci kez yazmıyor (upsert), ama kullanıcıya
+                    * hiçbir şey değiştirmeyecek bir seçenek göstermek
+                    * yanıltıcı olurdu.
+                    */}
+                  {!belgeSecici ? (
+                    <button
+                      type="button"
+                      className={styles.secondary}
+                      onClick={belgeleriAc}
+                      disabled={belgeIsleniyor}
+                      style={{ justifySelf: 'start' }}
+                    >
+                      <Paperclip size={14} aria-hidden="true" /> {t('detail.attachDocument')}
+                    </button>
+                  ) : (
+                    <div className={styles.belgeSecici}>
+                      {belgelerYukleniyor && <p className={styles.sessiz}>{t('detail.documentsLoading')}</p>}
+                      {!belgelerYukleniyor && baglanabilirBelgeler.length === 0 && (
+                        <p className={styles.sessiz}>{t('detail.noAttachableDocuments')}</p>
+                      )}
+                      {!belgelerYukleniyor && baglanabilirBelgeler.map(belge => (
+                        <button
+                          key={belge.id}
+                          type="button"
+                          className={styles.belgeSecenek}
+                          onClick={() => handleBagla(belge.id)}
+                          disabled={belgeIsleniyor}
+                        >
+                          <FileText size={14} aria-hidden="true" />
+                          <span>{belge.originalName}</span>
+                          <small>{tarih(belge.documentDate || belge.createdAt)}</small>
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        className={styles.secondary}
+                        onClick={() => setBelgeSecici(false)}
+                        style={{ justifySelf: 'start' }}
+                      >
+                        {t('common:buttons.cancel')}
+                      </button>
+                    </div>
+                  )}
                 </section>
-              )}
 
               {kayit.reminders?.length > 0 && (
                 <section className={styles.bolum}>

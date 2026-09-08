@@ -1282,6 +1282,12 @@ export const api = {
           method: 'POST'
         })
       },
+      /* Yalnız BAĞI koparır; belge çalışma alanında kalır. */
+      async detachDocument(workspaceId, recordId, documentId) {
+        return api.request(`/workspaces/${workspaceId}/records/${recordId}/documents/${documentId}`, {
+          method: 'DELETE'
+        })
+      },
       async import(workspaceId, data) {
         return api.request(`/workspaces/${workspaceId}/records/import`, {
           method: 'POST', body: JSON.stringify(data)

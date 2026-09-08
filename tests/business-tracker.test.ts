@@ -254,6 +254,51 @@ describe('Business tracker API', () => {
     expect((await prisma.uploadedDocument.findUnique({ where: { id: documentId } }))?.workspaceId).toBe(workspaceId)
   })
 
+  /*
+   * 🔴 EKLEME VARDI, KALDIRMA YOKTU. Yanlis belgeyi bir kayda baglayan
+   * kullanicinin bunu geri almasinin hicbir yolu yoktu.
+   *
+   * ⚠️ Yalniz BAG kopuyor, BELGE duruyor: belge calisma alaninda kalmali
+   * ve baska kayitlarda kullanilabilmeli.
+   */
+  it('detaches a document from a record without deleting the document', async () => {
+    const bagliMi = () => prisma.businessRecordDocument.count({
+      where: { recordId, documentId }
+    })
+    expect(await bagliMi()).toBe(1)
+
+    /* Baska calisma alanindan kopariliamaz. */
+    expect(
+      (await inject('DELETE', `/workspaces/${otherWorkspaceId}/records/${recordId}/documents/${documentId}`, otherToken)).statusCode
+    ).toBe(404)
+    expect(await bagliMi()).toBe(1)
+
+    /* Salt okuyan uye kopariliamaz. */
+    expect(
+      (await inject('DELETE', `/workspaces/${workspaceId}/records/${recordId}/documents/${documentId}`, viewerToken)).statusCode
+    ).toBe(403)
+    expect(await bagliMi()).toBe(1)
+
+    const kopar = await inject('DELETE', `/workspaces/${workspaceId}/records/${recordId}/documents/${documentId}`, ownerToken)
+    expect(kopar.statusCode).toBe(204)
+    expect(await bagliMi()).toBe(0)
+
+    /* Belge SILINMEDI ve calisma alanindan da dusmedi. */
+    const belge = await prisma.uploadedDocument.findUnique({ where: { id: documentId } })
+    expect(belge?.archivedAt ?? null).toBeNull()
+    expect(belge?.workspaceId).toBe(workspaceId)
+
+    /* Olmayan bagi koparmak 404. */
+    expect(
+      (await inject('DELETE', `/workspaces/${workspaceId}/records/${recordId}/documents/${documentId}`, ownerToken)).statusCode
+    ).toBe(404)
+
+    /* Sonraki testler bagli belge bekliyor: geri baglaniyor. */
+    expect(
+      (await inject('POST', `/workspaces/${workspaceId}/records/${recordId}/documents/${documentId}`, ownerToken)).statusCode
+    ).toBe(201)
+  })
+
   it('proposes a record from a document but creates it only after explicit approval', async () => {
     const before = await prisma.businessRecord.count({ where: { workspaceId } })
     const update = await inject('PATCH', `/workspaces/${workspaceId}/documents/${documentId}`, ownerToken, {
