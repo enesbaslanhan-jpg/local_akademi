@@ -19,7 +19,7 @@ import { applyHistoryBudget, estimateHistoryCharacters } from './mentor-history-
 import { getProviderParameters, getPromptProfile, buildProfiledSystemPrompt, type UserBusinessContext, type ProductCatalogContext } from './mentor-prompt-profile'
 import { getProductCatalog, formatCatalogForPrompt } from './mentor-urun-katalogu'
 import { streamSlotManager } from './stream-manager'
-import { extractAndStoreMemories, buildExtractionPrompt } from './memory/memory-extractor'
+import { extractAndStoreMemories, buildExtractionPrompt, shouldExtractMemoryFromMessage } from './memory/memory-extractor'
 import { updateConversationSummary } from './memory/summary-service'
 import { getGlobalMentorTelemetryCollector } from './mentor-telemetry'
 import { detectMentorIntent } from './mentor-intent'
@@ -49,6 +49,7 @@ async function runBackgroundMemoryExtraction(
   sourceMessageId: number
 ): Promise<void> {
   try {
+    if (!shouldExtractMemoryFromMessage(userMessage)) return
     const extractPrompt = buildExtractionPrompt(userMessage, assistantReply)
     const extractMsgs: ChatMessage[] = [{ role: 'user', content: extractPrompt }]
     const result = await callAiProviderWithRetry(extractMsgs)

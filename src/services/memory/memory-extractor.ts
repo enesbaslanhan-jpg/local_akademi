@@ -42,6 +42,20 @@ KURALLAR (kesinlikle uyulmalıdır):
 
 Yanıtı SADECE JSON formatında ver, ek açıklama ekleme:`
 
+const MEMORY_SIGNAL_PATTERNS = [
+  /\b(işletmem(?:iz)?|şirketim(?:iz)?|dükkanım(?:ız)?|hedefim(?:iz)?|cirom(?:uz)?|giderim(?:iz)?|bütçem(?:iz)?|satışlarım(?:ız)?|borcum(?:uz)?|nakdim(?:iz)?|çalışanım(?:ız)?|tercihim(?:iz)?)\b/i,
+  /\b(karar verdim|karar verdik|faaliyet gösteriyorum|faaliyet gösteriyoruz|satıyorum|satıyoruz|üretiyorum|üretiyoruz)\b/i,
+  /\b(my business|my company|my shop|my goal|my revenue|my expenses|my budget|my sales|my debt|my cash|my employees|my preference)\b/i,
+  /\b(i run|we run|i sell|we sell|i produce|we produce|i prefer|we prefer|i decided|we decided)\b/i,
+]
+
+/** Avoid spending a second provider request on ordinary questions with no durable user fact. */
+export function shouldExtractMemoryFromMessage(userMessage: string): boolean {
+  const normalized = userMessage.trim().toLocaleLowerCase('tr-TR')
+  if (normalized.length < 8) return false
+  return MEMORY_SIGNAL_PATTERNS.some(pattern => pattern.test(normalized))
+}
+
 export function buildExtractionPrompt(userMessage: string, assistantReply: string): string {
   return `${EXTRACTION_PROMPT}
 {
