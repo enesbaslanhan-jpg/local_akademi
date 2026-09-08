@@ -368,3 +368,52 @@ export function hesaplaUyelikDurumu(
     currentPeriodEnd: null,
   }
 }
+
+/* ------------------------------------------------------------------ *
+ * ÖDENMİŞ DÖNEMİN SONU
+ * ------------------------------------------------------------------ */
+
+/**
+ * Ödeme alındığında `Subscription.currentPeriodEnd` ne olmalı.
+ *
+ * 🔴 BU FONKSİYON OLMADAN ÖDEME ÜYELİĞİ AÇMIYORDU.
+ *
+ * Ölçülen arıza (07.09.2026): PayTR callback'i yalnız
+ * `status: 'ACTIVE'` yazıyordu; `currentPeriodEnd` deponun HİÇBİR
+ * yerinde yazılmıyor, yalnız okunuyordu. `hesaplaUyelikDurumu` ise
+ * iki şartı BİRDEN arıyor (`status === 'ACTIVE'` VE dönem geçerli),
+ * dolayısıyla ödeyen kullanıcı deneme mantığına düşüp 30 gün sonra
+ * salt okunur moda geçiyordu. `hesaplaUyelikDurumu`nun kendi yorumu
+ * bu arızanın giderildiğini söylüyor — yalnız yarısı giderilmişti.
+ *
+ * ⚠️ UZATMA MEVCUT DÖNEMİN ÜSTÜNE BİNİYOR.
+ *
+ * Süresi henüz dolmamışken yeniden ödeyen kullanıcının kalan günleri
+ * YAKILMAZ; yeni dönem `simdi`den değil, mevcut bitişten başlar.
+ * `simdi`den başlatmak, erken ödeyeni cezalandırmak olurdu.
+ *
+ * @param donem     Abonelik dönemi (`Subscription.period`).
+ * @param mevcutSon Şu anki `currentPeriodEnd`; yoksa `null`.
+ * @param simdi     Referans an — test edilebilirlik için parametre.
+ */
+export function odenmisDonemSonu(
+  donem: 'MONTHLY' | 'YEARLY',
+  mevcutSon: Date | string | null = null,
+  simdi: Date = new Date()
+): Date {
+  const mevcut = mevcutSon ? new Date(mevcutSon) : null
+  const gecerli = mevcut !== null && !Number.isNaN(mevcut.getTime()) && mevcut > simdi
+  /* Taban: kalan süre varsa onun bitişi, yoksa şimdi. */
+  const taban = gecerli ? new Date(mevcut!.getTime()) : new Date(simdi.getTime())
+
+  /*
+   * Ay ekleme `setMonth` ile — 30 gün eklemek DEĞİL.
+   *
+   * 31 Ocak'a bir ay eklemek 31 Şubat etmez; `setMonth` taşmayı
+   * kendisi çözüyor (3 Mart'a düşer). Sabit 30 gün, 12 ayda 5 günlük
+   * sapma yaratır ve yıllık ödeyenden bir günü çalardı.
+   */
+  const ay = donem === 'YEARLY' ? 12 : 1
+  taban.setMonth(taban.getMonth() + ay)
+  return taban
+}

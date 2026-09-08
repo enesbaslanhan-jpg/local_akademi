@@ -5,10 +5,11 @@ import { prisma as sharedPrisma } from '../../lib/prisma'
 import { createAuditLog } from '../audit'
 import { bildirimYaz } from '../account-notifications'
 import { randomUUID } from 'node:crypto'
-import { BILLING_CURRENCY, BILLING_STARTS_AT, ilkUcretliTutar } from '../../config/billing'
+import { BILLING_CURRENCY, BILLING_STARTS_AT, ilkUcretliTutar, odenmisDonemSonu } from '../../config/billing'
 import { LEGAL_DOCUMENTS } from '../../config/legal-documents'
 import { callbackHashDogrula, iframeTokenAl, odemeCercevesiAdresi, paytrYapilandirmasi, siparisNumarasiUret } from './paytr'
 import { faturaKimligiDogrula, paytrAdresi } from './fatura-kimlik'
+import { hizSiniriAnahtari } from '../../lib/client-ip'
 
 /*
  * ÖDEME ROTALARI — PayTR callback'i
@@ -258,7 +259,38 @@ export async function paymentRoutes(
     }
 
     const govde = (request.body ?? {}) as Record<string, unknown>
-    const donem = govde.period === 'yearly' ? 'YEARLY' : 'MONTHLY'
+
+    /*
+     * 🔴 YILLIK DÖNEM KAMPANYA BOYUNCA SATILMIYOR — İSTEK REDDEDİLİYOR.
+     *
+     * Ölçülen tuzak (07.09.2026): burası `period === 'yearly'` isteğini
+     * KABUL EDİYOR ve `Subscription.period`e YEARLY yazıyordu, ama
+     * aşağıdaki tutar her hâlde `ilkUcretliTutar()` yani lansman aylık
+     * bedeliydi. Yani yıllık isteyen bir çağrıdan aylık tutar tahsil
+     * edilir, karşılığında bir yıllık abonelik kaydı açılırdı.
+     *
+     * Bugün arayüzden ulaşılamıyor — ödeme paneli `period`i sabit
+     * `monthly` gönderiyor (MembershipModal.jsx) ve dönem seçicisinin
+     * geri gelmemesi ayrı bir testle korunuyor. Ama `/checkout`
+     * doğrudan da çağrılabilir; kapıyı ön yüzün tutmasına bırakmak,
+     * kapıyı olmayan bir yere koymaktır.
+     *
+     * ⚠️ TUTAR HESAPLAMAK YERİNE REDDEDİLİYOR, bilerek: lansman
+     * aşamasının (149 TL/ay) TANIMLI BİR YILLIK FİYATI YOK.
+     * `yillikTutar()` nihai kurucu fiyatından türüyor ve yasal
+     * metinlerde "5. aydan itibaren" diye geçiyor. Buraya bir çarpım
+     * yazmak, ürün sahibinin koymadığı bir fiyatı icat etmek olurdu.
+     * Kampanya bitip yıllık gerçekten satılacağında burası tutarı
+     * `config/billing.ts`ten TÜRETECEK; ikinci bir fiyat kaynağı
+     * doğmayacak.
+     */
+    if (govde.period === 'yearly') {
+      return reply.status(422).send({
+        error: 'Yıllık ödeme şu anda sunulmuyor.',
+        code: 'PERIOD_NOT_AVAILABLE',
+      })
+    }
+    const donem = 'MONTHLY' as const
 
     /*
      * Üç onayın da açıkça verilmiş olması ŞART.
@@ -332,10 +364,27 @@ export async function paymentRoutes(
       merchantOid,
       email: kullanici.email,
       tutar,
-      /* Gerçek istemci IP'si: `trustProxy` açık olduğu için Fastify
-         bunu X-Forwarded-For'dan doğru çözüyor. PayTR hash'i bu değeri
-         içeriyor, yani yanlışsa token isteği reddedilir. */
-      kullaniciIp: request.ip,
+      /*
+       * 🔴 `request.ip` DEĞİL — Cloudflare arkasında o KULLANICI DEĞİL.
+       *
+       * Buradaki eski yorum "trustProxy açık olduğu için Fastify bunu
+       * X-Forwarded-For'dan doğru çözüyor" diyordu; deponun KENDİ
+       * ölçümü bunun yanlış olduğunu gösteriyor (lib/client-ip.ts,
+       * 22.08.2026): aynı istemcinin iki isteği iki farklı adres
+       * veriyordu, çünkü `request.ip` isteği taşıyan Cloudflare kenar
+       * sunucusuydu. Hız sınırları da tam bu yüzden bozulmuştu.
+       *
+       * `hizSiniriAnahtari` o sorun için yazılmış ve sınanmış yardımcı:
+       * ters vekil arkasındayken `CF-Connecting-IP`yi, değilken
+       * `request.ip`yi veriyor. İkinci bir IP çözümleme yolu açmak,
+       * aynı hatayı bir de burada yapmak olurdu.
+       *
+       * ⚠️ Yanlış IP token isteğini REDDETTİRMEZ — imzayı biz
+       * üretiyoruz ve gönderdiğimiz değerle tutarlı oluyor. Etkisi
+       * daha sessiz: PayTR'nin dolandırıcılık değerlendirmesi, her
+       * istekte değişen bir kenar sunucusu adresi görüyor.
+       */
+      kullaniciIp: hizSiniriAnahtari(request as any),
       urunAdi: 'LocalKarar Uyelik',
       basariliUrl: `${taban}/app/odeme/basarili?siparis=${merchantOid}`,
       basarisizUrl: `${taban}/app/odeme/basarisiz?siparis=${merchantOid}`,
@@ -452,7 +501,9 @@ export async function paymentRoutes(
       where: { merchantOid },
       select: {
         id: true, status: true, subscriptionId: true,
-        subscription: { select: { userId: true } },
+        /* `period` ve `currentPeriodEnd` ödenmiş dönemin sonunu
+           hesaplamak için gerekiyor — bkz. `odenmisDonemSonu`. */
+        subscription: { select: { userId: true, period: true, currentPeriodEnd: true } },
       },
     })
 
@@ -493,9 +544,32 @@ export async function paymentRoutes(
     })
 
     if (basarili) {
+      /*
+       * 🔴 `currentPeriodEnd` DE YAZILIYOR — yalnız `status` YETMİYOR.
+       *
+       * Ölçülen arıza (07.09.2026): burada sadece `status: 'ACTIVE'`
+       * yazılıyordu ve `currentPeriodEnd` deponun hiçbir yerinde
+       * yazılmıyordu. `hesaplaUyelikDurumu` (config/billing.ts) iki
+       * şartı BİRDEN arıyor: `ACTIVE` VE dönem geçerli. Dolayısıyla
+       * gerçekten ödeyen kullanıcı `ACTIVE` oluyor ama dönemi `null`
+       * kaldığı için deneme mantığına düşüyor ve 30 gün sonra salt
+       * okunur moda geçiyordu. Parası alınmış kullanıcıya erişimi
+       * kapatmak, düzeltilebilecek en pahalı hatadır.
+       *
+       * Süre hesabı `odenmisDonemSonu`da; kalan gün varsa üstüne
+       * biniyor, yakılmıyor. Aynı callback'in tekrarı yukarıdaki
+       * idempotency kapısında (`status !== 'PENDING'`) duruyor, yani
+       * dönem iki kez uzamıyor.
+       */
       await prisma.subscription.update({
         where: { id: odeme.subscriptionId },
-        data: { status: 'ACTIVE' },
+        data: {
+          status: 'ACTIVE',
+          currentPeriodEnd: odenmisDonemSonu(
+            odeme.subscription.period,
+            odeme.subscription.currentPeriodEnd
+          ),
+        },
       })
     }
 

@@ -62,9 +62,21 @@ const FATURA_KIMLIGI = {
 }
 
 /** Tek bir ödeme satırı tutan, durumu gerçekten değişen sahte prisma. */
-function sahtePrisma(baslangicDurumu: 'PENDING' | 'SUCCEEDED' = 'PENDING') {
+function sahtePrisma(
+  baslangicDurumu: 'PENDING' | 'SUCCEEDED' = 'PENDING',
+  /*
+   * Aboneliğin dönemi ve mevcut bitişi — `currentPeriodEnd` hesabını
+   * sınayan testler bunları değiştiriyor. Varsayılan, bugünkü tek
+   * satılabilir hâl: aylık ve hiç ödenmemiş.
+   */
+  abonelikDonemi: 'MONTHLY' | 'YEARLY' = 'MONTHLY',
+  mevcutDonemSonu: Date | null = null,
+) {
   const durum = { deger: baslangicDurumu }
   const cagrilar = { paymentUpdate: 0, subscriptionUpdate: 0, bildirim: 0 }
+  /* Aboneliğe YAZILAN veri — `status`ün yanında `currentPeriodEnd`in
+     de yazıldığını sınamak için saklanıyor. */
+  const yazilan: { abonelik: any } = { abonelik: null }
 
   const prisma = {
     payment: {
@@ -75,7 +87,11 @@ function sahtePrisma(baslangicDurumu: 'PENDING' | 'SUCCEEDED' = 'PENDING') {
               id: 'odeme-1',
               status: durum.deger,
               subscriptionId: 'abonelik-1',
-              subscription: { userId: 7 },
+              subscription: {
+                userId: 7,
+                period: abonelikDonemi,
+                currentPeriodEnd: mevcutDonemSonu,
+              },
             }
       ),
       update: vi.fn(async ({ data }: any) => {
@@ -85,7 +101,11 @@ function sahtePrisma(baslangicDurumu: 'PENDING' | 'SUCCEEDED' = 'PENDING') {
       }),
     },
     subscription: {
-      update: vi.fn(async () => { cagrilar.subscriptionUpdate++; return {} }),
+      update: vi.fn(async ({ data }: any) => {
+        cagrilar.subscriptionUpdate++
+        yazilan.abonelik = data
+        return {}
+      }),
     },
     accountNotification: {
       create: vi.fn(async () => { cagrilar.bildirim++; return {} }),
@@ -104,7 +124,7 @@ function sahtePrisma(baslangicDurumu: 'PENDING' | 'SUCCEEDED' = 'PENDING') {
       upsert: vi.fn(async () => ({})),
     },
   }
-  return { prisma: prisma as never, cagrilar, durum }
+  return { prisma: prisma as never, cagrilar, durum, yazilan }
 }
 
 async function sunucuKur(prisma: never) {
@@ -221,6 +241,64 @@ describe('callback rotası', () => {
 
     expect(yanit.statusCode, 'ayrıştırıcı yoksa Fastify 415 döner').not.toBe(415)
     expect(yanit.statusCode).toBe(200)
+  })
+
+  /*
+   * 🔴 ÖDENEN ÜYELİĞİN SÜRESİ.
+   *
+   * Ölçülen arıza (07.09.2026): callback yalnız `status: 'ACTIVE'`
+   * yazıyordu, `currentPeriodEnd` deponun hiçbir yerinde
+   * yazılmıyordu. `hesaplaUyelikDurumu` iki şartı BİRDEN aradığı için
+   * ödeyen kullanıcı 30 gün sonra salt okunur moda düşüyordu.
+   *
+   * Bu üç test o arızanın geri gelmesini engelliyor. Yalnız
+   * `subscriptionUpdate` sayısına bakan mevcut test bunu YAKALAMIYORDU
+   * — çağrı sayısı doğruydu, yazılan veri eksikti.
+   */
+  async function basariliCallback(prisma: never) {
+    const app = await sunucuKur(prisma)
+    return app.inject({
+      method: 'POST', url: '/payments/paytr/callback',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      payload: urlencoded({
+        merchant_oid: 'ABC123', status: 'success', total_amount: '14900',
+        hash: gecerliHash('ABC123', 'success', '14900'),
+      }),
+    })
+  }
+
+  it('🔴 başarılı ödeme DÖNEM SONUNU da yazıyor — yalnız ACTIVE yetmiyor', async () => {
+    const { prisma, yazilan } = sahtePrisma()
+    await basariliCallback(prisma)
+
+    expect(yazilan.abonelik.status).toBe('ACTIVE')
+    expect(yazilan.abonelik.currentPeriodEnd, 'dönem sonu yazılmazsa üyelik 30 gün sonra kapanır')
+      .toBeInstanceOf(Date)
+    /* Aylık abonelik: bitiş gelecekte ve bir yıldan yakın olmalı. */
+    const son = yazilan.abonelik.currentPeriodEnd as Date
+    expect(son.getTime()).toBeGreaterThan(Date.now())
+    expect(son.getTime()).toBeLessThan(Date.now() + 70 * 24 * 60 * 60 * 1000)
+  })
+
+  it('🦷 kalan süre YAKILMIYOR — yeni dönem mevcut bitişin üstüne biniyor', async () => {
+    /* Süresi dolmadan yeniden ödeyen kullanıcı ceza görmemeli. */
+    const mevcutSon = new Date(Date.now() + 20 * 24 * 60 * 60 * 1000)
+    const { prisma, yazilan } = sahtePrisma('PENDING', 'MONTHLY', mevcutSon)
+    await basariliCallback(prisma)
+
+    const son = yazilan.abonelik.currentPeriodEnd as Date
+    expect(son.getTime(), 'yeni dönem şimdiden değil, mevcut bitişten başlamalı')
+      .toBeGreaterThan(mevcutSon.getTime())
+  })
+
+  it('yıllık abonelikte dönem bir YIL uzuyor', async () => {
+    const { prisma, yazilan } = sahtePrisma('PENDING', 'YEARLY')
+    await basariliCallback(prisma)
+
+    const son = yazilan.abonelik.currentPeriodEnd as Date
+    /* 12 ay: 300 günden uzun, 400 günden kısa. */
+    expect(son.getTime()).toBeGreaterThan(Date.now() + 300 * 24 * 60 * 60 * 1000)
+    expect(son.getTime()).toBeLessThan(Date.now() + 400 * 24 * 60 * 60 * 1000)
   })
 
   it('başarılı ödeme aboneliği aktive ediyor ve düz metin OK dönüyor', async () => {
@@ -411,6 +489,31 @@ describe('satın alma başlatma', () => {
     }
     expect(p.payment.create, 'onaysız sipariş oluşmamalı').not.toHaveBeenCalled()
     expect(p.userConsent.createMany, 'onaysız onay yazılmamalı').not.toHaveBeenCalled()
+  })
+
+  it('🔴 yıllık dönem isteği REDDEDİLİYOR — aylık tutarla yıllık abonelik açılmaz', async () => {
+    /*
+     * Ölçülen tuzak (07.09.2026): `/checkout` `period: 'yearly'`
+     * isteğini kabul edip aboneliği YEARLY yazıyor, ama tutar her
+     * hâlde lansmanın AYLIK bedeliydi. Bugün ödeme paneli `period`i
+     * sabit `monthly` gönderdiği için arayüzden ulaşılamıyor — ama
+     * uç nokta doğrudan çağrılabilir ve kapı ön yüzde değil burada
+     * olmalı.
+     *
+     * Tutar hesaplanmıyor, istek reddediliyor: lansman aşamasının
+     * tanımlı bir yıllık fiyatı YOK ve buraya bir çarpım yazmak
+     * ürün sahibinin koymadığı bir fiyatı icat etmek olurdu.
+     */
+    const { app, p } = await checkoutSunucusu('2026-01-01')
+    const yanit = await app.inject({
+      method: 'POST', url: '/payments/checkout',
+      payload: { ...TAM_ONAY, period: 'yearly' },
+    })
+
+    expect(yanit.statusCode).toBe(422)
+    expect(yanit.json().code).toBe('PERIOD_NOT_AVAILABLE')
+    expect(p.payment.create, 'reddedilen dönemde sipariş oluşmamalı').not.toHaveBeenCalled()
+    expect(p.subscription.upsert, 'reddedilen dönemde abonelik yazılmamalı').not.toHaveBeenCalled()
   })
 
   it('ücretlendirme açıkken ve onaylar tamken sipariş ile onaylar birlikte yazılıyor', async () => {
