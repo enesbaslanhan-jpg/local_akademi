@@ -24,8 +24,9 @@ compatible because application rollback does not reverse a database migration.
 
 ## GitHub environment and secrets
 
-Create a GitHub environment named `production`, enable required reviewers, and
-add these environment secrets:
+Create a GitHub environment named `production`, restrict deployments to
+`design/localkarar-18`, and add these environment secrets. A required reviewer
+is optional because this deployment workflow is already started manually:
 
 - `PRODUCTION_SSH_HOST`
 - `PRODUCTION_SSH_PORT` (optional; defaults to 22)
@@ -33,8 +34,11 @@ add these environment secrets:
 - `PRODUCTION_SSH_KEY`
 - `PRODUCTION_KNOWN_HOSTS` (the pinned host-key line; never use `ssh-keyscan` in CI)
 - `PRODUCTION_DEPLOY_PATH` (absolute path of the existing checkout)
-- `GHCR_USERNAME`
-- `GHCR_READ_TOKEN` (read-only package scope)
+
+The published GHCR package is public, so production pulls it anonymously. Do
+not create or store a long-lived package token for this workflow. If the package
+is made private later, add an explicit least-privilege authentication step as a
+separate reviewed change.
 
 Keep the production `.env` only on the server. It is neither copied nor printed
 by the workflow. The server checkout must already be on `design/localkarar-18`;

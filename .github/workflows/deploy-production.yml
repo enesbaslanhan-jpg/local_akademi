@@ -48,28 +48,6 @@ jobs:
           printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
 
-      - name: Sign the server in to GHCR
-        shell: bash
-        env:
-          SSH_HOST: ${{ secrets.PRODUCTION_SSH_HOST }}
-          SSH_PORT: ${{ secrets.PRODUCTION_SSH_PORT }}
-          SSH_USER: ${{ secrets.PRODUCTION_SSH_USER }}
-          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
-          GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
-        run: |
-          port="${SSH_PORT:-22}"
-          if [[ ! "$SSH_HOST" =~ ^[A-Za-z0-9.-]+$ || ! "$SSH_USER" =~ ^[A-Za-z0-9._-]+$ || ! "$port" =~ ^[0-9]{1,5}$ ]]; then
-            echo "Production SSH coordinates are invalid" >&2
-            exit 1
-          fi
-          if [[ ! "$GHCR_USERNAME" =~ ^[A-Za-z0-9-]+$ ]]; then
-            echo "GHCR_USERNAME is invalid" >&2
-            exit 1
-          fi
-          printf '%s' "$GHCR_READ_TOKEN" | ssh -i "$HOME/.ssh/production_key" -p "$port" \
-            -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            "$SSH_USER@$SSH_HOST" "docker login ghcr.io -u '$GHCR_USERNAME' --password-stdin"
-
       - name: Back up, deploy, verify, and roll back on failure
         shell: bash
         env:
