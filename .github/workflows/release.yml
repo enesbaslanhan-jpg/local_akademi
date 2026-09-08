@@ -28,10 +28,10 @@ env:
   AI_REQUEST_TIMEOUT_MS: '10000'
   BETA_MODE: 'true'
   ENABLE_MEMORY_API: 'false'
-  # GitHub'in Ubuntu imajinda yerel PostgreSQL 5432'yi kullanabilir. CI
-  # konteynerini 5433'e baglamak `docker create` asamasindaki port
-  # cakismasini onler; konteynerin kendi portu degismez.
-  DATABASE_URL: postgresql://localakademi:localakademi@localhost:5433/localakademi_ci?schema=public
+  # Test guvenlik kilidi yalniz `_test` son ekli veritabanlarini kabul eder.
+  # Vitest de bu adresi kullanir; uretim veritabanina test semasi uygulanamaz.
+  DATABASE_URL: postgresql://localakademi:localakademi@localhost:5432/localakademi_test?schema=public
+  TEST_DATABASE_URL: postgresql://localakademi:localakademi@localhost:5432/localakademi_test?schema=public
   DB_PASSWORD: localakademi
 
 jobs:
@@ -49,15 +49,15 @@ jobs:
         run: |
           docker run --detach \
             --name localkarar-ci-postgres \
-            --publish 5433:5432 \
+            --publish 5432:5432 \
             --env POSTGRES_USER=localakademi \
             --env POSTGRES_PASSWORD=localakademi \
-            --env POSTGRES_DB=localakademi_ci \
+            --env POSTGRES_DB=localakademi_test \
             pgvector/pgvector:pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
 
           for attempt in {1..30}; do
             if docker exec localkarar-ci-postgres \
-              pg_isready -U localakademi -d localakademi_ci; then
+              pg_isready -U localakademi -d localakademi_test; then
               exit 0
             fi
             sleep 2
