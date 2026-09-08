@@ -37,7 +37,10 @@ env:
 jobs:
   release-gate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Tam test paketi ve cok asamali Docker imaji ayni kapida dogrulanir.
+    # GitHub runner hizindaki dalgalanmalarda dogru yapinin yarida kesilmemesi
+    # icin ust sinir; takilan alt komutlarin kendi daha kisa timeout'lari var.
+    timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@v4

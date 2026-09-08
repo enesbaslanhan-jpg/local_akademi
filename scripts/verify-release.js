@@ -18,6 +18,13 @@ function pass(msg) {
 
 function fail(msg) {
   log('FAIL', msg)
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    const annotation = String(msg)
+      .replace(/%/g, '%25')
+      .replace(/\r/g, '%0D')
+      .replace(/\n/g, '%0A')
+    console.log(`::error title=Release gate failed::${annotation}`)
+  }
   RESULTS.push({ status: 'fail', message: msg })
   EXIT_CODE = 1
 }
@@ -167,14 +174,23 @@ async function main() {
         execSync([
           'docker', 'run', '--rm', '-d',
           '--name', containerName,
-          '-e', 'DATABASE_URL=postgresql://localakademi:localakademi@host.docker.internal:5432/localakademi_ci?schema=public',
+          '--add-host', 'host.docker.internal:host-gateway',
+          '-e', 'DATABASE_URL=postgresql://localakademi:localakademi@host.docker.internal:5432/localakademi_test?schema=public',
+          '-e', 'MIGRATE_DATABASE_URL=postgresql://localakademi:localakademi@host.docker.internal:5432/localakademi_test?schema=public',
           '-e', 'JWT_SECRET=e2e-docker-secret-key-min-32-bytes-long!!',
           '-e', 'JWT_EXPIRES_IN=1h',
           '-e', 'NODE_ENV=production',
+          '-e', 'CORS_ORIGIN=http://127.0.0.1',
+          '-e', 'RESEND_API_KEY=ci-docker-validation-key',
+          '-e', 'MAIL_FROM=ci@invalid.example',
+          '-e', 'APP_PUBLIC_URL=http://127.0.0.1',
           '-e', 'BETA_MODE=true',
+          '-e', 'AI_PROVIDER=nvidia',
+          '-e', 'NVIDIA_API_KEY=ci-docker-validation-key',
+          '-e', 'NVIDIA_API_URL=http://127.0.0.1:9999/v1/chat/completions',
+          '-e', 'NVIDIA_MODEL=ci-docker-validation-model',
           '-e', 'AI_REVIEW_GATE_ENABLED=false',
           '-e', 'ENABLE_MEMORY_API=false',
-          '-v', `${join(ROOT, 'prisma')}:/app/prisma`,
           '-p', '0:3000',
           tag
         ].join(' '), { stdio: 'pipe', timeout: 30000 })
