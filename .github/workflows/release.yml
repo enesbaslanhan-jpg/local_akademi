@@ -39,25 +39,32 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
-    services:
-      postgres:
-        # Yeniden uretilebilir CI: pg16 etiketinin zamanla baska bir imaja
-        # kaymasini engellemek icin dogrulanmis linux/amd64 digest'i sabit.
-        image: pgvector/pgvector:pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
-        env:
-          POSTGRES_USER: localakademi
-          POSTGRES_PASSWORD: localakademi
-          POSTGRES_DB: localakademi_ci
-        ports:
-          - 5433:5432
-        options: >-
-          --health-cmd pg_isready -U localakademi -d localakademi_ci
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
     steps:
       - uses: actions/checkout@v4
+
+      # GitHub'in service-container hazirligi hata ayrintisini saklayarak
+      # checkout'tan once cikiyordu. Veritabanini acik bir adimda baslatmak
+      # hem ayni izolasyonu korur hem de gercek Docker logunu gorunur yapar.
+      - name: Start PostgreSQL with pgvector
+        run: |
+          docker run --detach \
+            --name localkarar-ci-postgres \
+            --publish 5433:5432 \
+            --env POSTGRES_USER=localakademi \
+            --env POSTGRES_PASSWORD=localakademi \
+            --env POSTGRES_DB=localakademi_ci \
+            pgvector/pgvector:pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
+
+          for attempt in {1..30}; do
+            if docker exec localkarar-ci-postgres \
+              pg_isready -U localakademi -d localakademi_ci; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          docker logs localkarar-ci-postgres
+          exit 1
 
       - uses: actions/setup-node@v4
         with:
@@ -152,6 +159,10 @@ jobs:
         with:
           name: release-gate-report
           path: release-gate-report.json
+
+      - name: Stop PostgreSQL
+        if: always()
+        run: docker rm --force localkarar-ci-postgres || true
 
   # Frontend CI'da HIC KAPSANMIYORDU: ne birim testleri ne derleme
   # calisiyordu. Kirik bir arayuz release gate'ten temiz gecerdi.
