@@ -1,10 +1,12 @@
 name: Publish Production Image
 
 on:
-  workflow_run:
-    workflows: [Release Gate]
-    branches: [design/localkarar-18]
-    types: [completed]
+  workflow_call:
+    inputs:
+      verified_sha:
+        description: Exact commit SHA that passed Release Gate
+        required: true
+        type: string
 
 concurrency:
   group: publish-production-image
@@ -16,7 +18,6 @@ permissions:
 
 jobs:
   publish:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
@@ -24,14 +25,14 @@ jobs:
       - name: Check out the exact verified commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ inputs.verified_sha }}
 
       - name: Prepare image coordinates
         id: image
         shell: bash
         run: |
           repository="${GITHUB_REPOSITORY,,}"
-          sha="${{ github.event.workflow_run.head_sha }}"
+          sha="${{ inputs.verified_sha }}"
           echo "name=ghcr.io/${repository}" >> "$GITHUB_OUTPUT"
           echo "sha_tag=ghcr.io/${repository}:${sha}" >> "$GITHUB_OUTPUT"
 
@@ -54,7 +55,7 @@ jobs:
             ${{ steps.image.outputs.sha_tag }}
             ${{ steps.image.outputs.name }}:latest
           labels: |
-            org.opencontainers.image.revision=${{ github.event.workflow_run.head_sha }}
+            org.opencontainers.image.revision=${{ inputs.verified_sha }}
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

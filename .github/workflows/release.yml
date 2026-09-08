@@ -213,3 +213,17 @@ jobs:
       - name: Build
         working-directory: frontend
         run: npm run build
+
+  # `workflow_run` yalniz GitHub'in varsayilan dalindaki workflow dosyalarini
+  # yukler. Kanonik dal ayari panelde tamamlanmadan da guvenli imaj yayininin
+  # calismasi icin, basarili kapidan sonra ayni commit'teki reusable workflow
+  # dogrudan cagrilir.
+  publish-image:
+    needs: [release-gate, frontend]
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/publish-image.yml
+    with:
+      verified_sha: ${{ github.sha }}
