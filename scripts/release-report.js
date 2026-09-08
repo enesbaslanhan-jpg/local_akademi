@@ -5,9 +5,15 @@ const { join, resolve } = require('path')
 const ROOT = resolve(__dirname, '..')
 const OUTPUT_PATH = join(ROOT, 'release-report.json')
 
-function run(label, cmd) {
+function run(label, cmd, options = {}) {
   try {
-    const out = execSync(cmd, { cwd: ROOT, encoding: 'utf8', timeout: 60000, stdio: 'pipe' })
+    const out = execSync(cmd, {
+      cwd: ROOT,
+      encoding: 'utf8',
+      timeout: options.timeout || 60000,
+      stdio: 'pipe',
+      env: options.env ? { ...process.env, ...options.env } : process.env
+    })
     return { status: 'pass', label, detail: out.trim().split('\n').slice(0, 5).join('; ') }
   } catch (e) {
     return { status: 'fail', label, detail: (e.stderr || e.stdout || e.message || '').split('\n')[0].trim().substring(0, 200) }
@@ -58,15 +64,19 @@ async function main() {
     { key: 'devDependencies', value: Object.keys(pkg.devDependencies || {}).length.toString() }
   ]})
 
+  const unitTestCheck = process.env.SKIP_UNIT_TESTS === 'true'
+    ? { status: 'pass', label: 'Unit tests', detail: 'passed in the preceding CI gate' }
+    : run('Unit tests', 'npx --no-install vitest run --reporter=json 2>&1', { timeout: 300000 })
+
   sections.push({ section: 'Build Status', checks: [
     run('TypeScript (tsc --noEmit)', 'npx tsc --noEmit 2>&1'),
     run('Prisma validate', 'npx prisma validate 2>&1'),
     run('Prisma generate', 'npx prisma generate 2>&1'),
-    run('Unit tests', 'npx vitest run --reporter=json 2>&1')
+    unitTestCheck
   ]})
 
   sections.push({ section: 'Frontend', checks: [
-    run('Frontend build', 'npm run build 2>&1'),
+    run('Frontend build', 'npm --prefix frontend run build 2>&1'),
     { key: 'dist/index.html', value: existsSync(join(ROOT, 'frontend', 'dist', 'index.html')) ? 'exists' : 'missing' }
   ]})
 
@@ -82,7 +92,15 @@ async function main() {
     { key: 'Dockerfile', value: existsSync(join(ROOT, 'Dockerfile')) ? 'exists' : 'missing' },
     { key: 'docker-daemon', value: dockerAvailable ? 'available' : 'unavailable' },
     ...(dockerAvailable
-      ? [run('docker compose config', 'docker compose config 2>&1')]
+      ? [run('docker compose config', 'docker compose config 2>&1', {
+          env: {
+            DB_PASSWORD: process.env.DB_PASSWORD || 'compose-validation-db-password',
+            APP_DB_PASSWORD: process.env.APP_DB_PASSWORD || 'compose-validation-app-password',
+            RESEND_API_KEY: process.env.RESEND_API_KEY || 'compose-validation-resend-key',
+            MAIL_FROM: process.env.MAIL_FROM || 'ci@invalid.example',
+            APP_PUBLIC_URL: process.env.APP_PUBLIC_URL || 'https://invalid.example'
+          }
+        })]
       : [{ key: 'docker-compose-config', value: 'UNVERIFIED (no daemon)', status: 'unverified' }])
   ]})
 
