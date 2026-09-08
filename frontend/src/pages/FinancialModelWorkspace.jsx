@@ -101,7 +101,21 @@ export default function FinancialModelWorkspace() {
       for (const alan of Object.keys(ipucuAlanlari)) {
         yeni[alan] = {
           ...(current[alan] || {}),
-          sourceType: 'marketplace',
+          /*
+           * 🔴 BURADA 'marketplace' YAZIYORDU ve MODEL ÇALIŞTIRILAMIYORDU.
+           *
+           * Sunucunun `assumptionSchema` enum'u altı değer kabul ediyor
+           * (`financial-models/routes.ts`): document | business_record |
+           * user | case | approved_dataset | market_data. 'marketplace'
+           * bunların arasında yok.
+           *
+           * Sonuç ölçüldü (08.09.2026, çalışan sunucuya istek):
+           * "Bu değerlerle doldur" → "Modeli çalıştır" akışı
+           * `422 Model çalışma girdileri geçersiz` ile düşüyordu.
+           * Aşağıdaki `<Select>` zaten doğru altı değeri sunuyor;
+           * sapma yalnızca bu satırdaydı.
+           */
+          sourceType: 'market_data',
           sourceReference: t('tools:models.hintReference', { source: ipucu.source || t('tools:models.marketplaceSource'), sampleSize: ipucu.sampleSize }),
           effectiveDate: new Date().toISOString().slice(0, 10)
         }
