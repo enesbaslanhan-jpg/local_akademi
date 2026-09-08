@@ -51,6 +51,19 @@ function configFor(resolve: ResolveConfig, c: Candidate) {
   try { return resolve({ provider: c.providerId, model: c.model }) } catch { throw new ProviderFailure('CONFIG') }
 }
 function token(n: unknown) { return typeof n === 'number' && Number.isFinite(n) && n >= 0 ? n : 0 }
+function geminiGenerationConfig(model: string, options: GenerateOptions) {
+  const requested = options.maxOutputTokens ?? 2048
+  if (!/^gemini-3(?:[.\-]|$)/i.test(model.replace(/^models\//, ''))) {
+    return { temperature: options.temperature ?? 0.5, maxOutputTokens: requested }
+  }
+  const level = process.env.GEMINI_THINKING_LEVEL || 'low'
+  if (!['minimal', 'low', 'medium', 'high'].includes(level)) throw new ProviderFailure('CONFIG')
+  const configuredFloor = Number(process.env.GEMINI_MIN_OUTPUT_TOKENS || 2048)
+  if (!Number.isInteger(configuredFloor) || configuredFloor < 256 || configuredFloor > 8192) throw new ProviderFailure('CONFIG')
+  // Gemini 3 thinking tokens share maxOutputTokens with visible answer tokens.
+  // Keep enough headroom so a concise Mentor profile cannot end after its preamble.
+  return { maxOutputTokens: Math.max(requested, configuredFloor), thinkingConfig: { thinkingLevel: level } }
+}
 
 /** Existing provider URL/policy and request-body behavior are reused, not duplicated. */
 export class OpenAICompatibleProvider implements AIProvider {
@@ -76,17 +89,26 @@ export class GeminiProvider implements AIProvider {
   async generate(messages: ChatMessage[], c: Candidate, signal: AbortSignal, options: GenerateOptions): Promise<ProviderResult> {
     if (process.env.AI_ALLOW_EXTERNAL_PROVIDERS !== 'true' || !process.env.GEMINI_API_KEY || !c.model) throw new ProviderFailure('CONFIG')
     const systemParts = messages.filter(m => m.role === 'system').map(m => ({ text: m.content }))
-    const data = await jsonRequest(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(c.model.replace(/^models\//, ''))}:generateContent`, {
-      method: 'POST', signal,
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
-      body: JSON.stringify({
-        ...(systemParts.length ? { systemInstruction: { parts: systemParts } } : {}),
-        contents: messages.filter(m => m.role !== 'system').map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
-        generationConfig: { temperature: options.temperature ?? 0.5, maxOutputTokens: options.maxOutputTokens ?? 2048 },
-      }),
-    })
+    let data: any
+    try {
+      data = await jsonRequest(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(c.model.replace(/^models\//, ''))}:generateContent`, {
+        method: 'POST', signal,
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
+        body: JSON.stringify({
+          ...(systemParts.length ? { systemInstruction: { parts: systemParts } } : {}),
+          contents: messages.filter(m => m.role !== 'system').map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
+          generationConfig: geminiGenerationConfig(c.model, options),
+        }),
+      })
+    } catch (error) {
+      // The adapter owns the Gemini request shape. A 400 therefore indicates
+      // incompatible model/config rather than a user prompt to replay nowhere.
+      if (error instanceof ProviderFailure && error.status === 400) throw new ProviderFailure('CONFIG', 400)
+      throw error
+    }
     const candidate = data?.candidates?.[0]
     if (data?.promptFeedback?.blockReason || ['SAFETY', 'RECITATION', 'BLOCKLIST', 'PROHIBITED_CONTENT', 'SPII'].includes(candidate?.finishReason)) throw new ProviderFailure('SAFETY')
+    if (candidate?.finishReason === 'MAX_TOKENS') throw new ProviderFailure('TRUNCATED_RESPONSE')
     const content = candidate?.content?.parts?.filter((p: any) => !p.thought && typeof p.text === 'string').map((p: any) => p.text).join('')
     if (!content?.trim()) throw new ProviderFailure('EMPTY_RESPONSE')
     const u = data?.usageMetadata || {}

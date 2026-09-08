@@ -111,7 +111,7 @@ export class ProviderRouter {
             this.record(h, { requestId, provider: c.providerId, model: c.model, profile, latencyMs: this.dependencies.now() - start, success: false, errorCode: e.code, status: e.status, retryCount: retry, fallbackPosition: position })
             // Invalid prompts and safety refusals must not be retried on another provider.
             if (requestProblem) throw new ProviderFailure(UNAVAILABLE)
-            const retryable = ['RATE_LIMITED', 'TIMEOUT', 'SERVER_ERROR', 'NETWORK', 'EMPTY_RESPONSE'].includes(e.code)
+            const retryable = ['RATE_LIMITED', 'TIMEOUT', 'SERVER_ERROR', 'NETWORK', 'EMPTY_RESPONSE', 'TRUNCATED_RESPONSE'].includes(e.code)
             const cooldown = Math.max(30000, Math.min(300000, e.retryAfterMs))
             if (h.configError || h.failures >= 3 || probe) h.openUntil = this.dependencies.now() + cooldown
             if (!retryable || retry >= c.maxRetries || retry >= 3 || probe || h.openUntil > this.dependencies.now()) break
