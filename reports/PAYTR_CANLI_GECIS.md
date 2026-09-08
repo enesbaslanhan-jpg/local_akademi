@@ -5,6 +5,38 @@
 
 ---
 
+## 0. GÜNCEL DURUM (09.09.2026) — ÖNCE BUNU OKU
+
+**Ürün sahibi kararı: canlıya geçiş, MOBİL UYGULAMA YAYINLANANA KADAR ERTELENDİ.**
+Gerekçe: uygulama mağazada yokken ödeme almak yarım bir deneyim olur.
+
+Bu tarihte doğrulanan durum (sunucudan okundu, değerler ekrana basılmadı):
+
+| | |
+|---|---|
+| PayTR mağazası | **CANLI MOD** — dört adım da tamamlandı, mağaza no `742814` |
+| `PAYTR_MERCHANT_ID` | girildi (`742814`) |
+| `PAYTR_MERCHANT_KEY` / `_SALT` | girildi (16'şar karakter) |
+| `APP_PUBLIC_URL` | `https://localkarar.com` |
+| `PAYTR_TEST_MODE` | **`true`** — bilerek, henüz canlıya alınmadı |
+| `BILLING_STARTS_AT` | **`null`** — bilerek, ödeme kapısı kapalı |
+
+⚠️ **Bu iki ayar BİRLİKTE değişmeli.** Yalnız `TEST_MODE=false` yapmak ödemeyi
+tamamen kapatır (herkes `409 BILLING_NOT_STARTED` alır); yalnız tarihi açmak
+ekranı açar ama PayTR test kipinde kalır, gerçek tahsilat olmaz.
+
+⚠️ **Bugün gerçek para dönmeden PROVA YAPILABİLİR.** `routes.ts`teki
+`testKipiDenemesi = cfg.testMode && role === 'admin'` iki şartı birden arıyor:
+test kipi açıkken **admin** hesabı ödeme akışını uçtan uca çalıştırabilir, normal
+kullanıcı yine kapıda çevrilir. Lansmandan önce şu zincirin bir kez
+doğrulanması önerilir: token isteği → iframe → PayTR test kartı → callback →
+üyelik `ACTIVE` **ve** `currentPeriodEnd` dolu (§1.1'de düzeltilen arıza).
+
+⚠️ Mağaza canlı moda geçtiği için sunucudaki anahtarların hâlâ geçerli olduğu
+**doğrulanmadı**. Prova, aynı zamanda bunu da sınar.
+
+---
+
 ## 1. Bu turda düzeltilenler
 
 ### 1.1 🔴 Ödeme yapan kullanıcının üyeliği yine de bitiyordu
