@@ -27,4 +27,17 @@ describe('legal content language catalogs', () => {
     expect(en.bolumler.map(section => section.id)).toEqual(tr.bolumler.map(section => section.id))
     expect(en.bolumler.every(section => section.baslik && /[A-Za-z]/.test(section.baslik))).toBe(true)
   })
+
+  it('AI failover disclosures stay aligned in Turkish and English', () => {
+    const tr = JSON.stringify({privacyTr,termsTr})
+    const en = JSON.stringify({privacyEn,termsEn})
+    for (const provider of ['Gemini','NVIDIA','Mistral']) {
+      expect(tr).toContain(provider)
+      expect(en).toContain(provider)
+    }
+    expect(tr).toContain('deterministik')
+    expect(en).toContain('deterministic')
+    expect(tr).toContain('sıradaki sağlayıcı')
+    expect(en).toContain('next provider')
+  })
 })

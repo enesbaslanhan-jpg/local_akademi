@@ -71,7 +71,9 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
        terms.js'in kendi başlık yorumundaki "eklendiğinde ayrı bölüm
        yazılıp sürüm artırılacak" talimatı bu turda tetiklendi.
        Türkçe ve İngilizce metinler AYNI turda güncellendi. */
-    version: '2026-08-29',
+    /* 2026-09-07: AI sağlayıcı yönlendirmesi/failover ve deterministik
+       hesaplama sınırı açıklandı; dış sağlayıcı koşullarına atıf eklendi. */
+    version: '2026-09-07',
     requiredAtSignup: true
   },
   {
@@ -88,7 +90,10 @@ export const LEGAL_DOCUMENTS: readonly LegalDocumentMeta[] = [
        yazılmadı. Fatura kimlik bilgisi ve vergi mevzuatı kaynaklı
        saklama süresi de bu bölümde. Açık adres notu artık koşullu:
        adres yayımlandığı gün kendiliğinden düşüyor. */
-    version: '2026-08-29',
+    /* 2026-09-07: Gemini ve NVIDIA alıcı tablosuna eklendi; provider
+       failover, veri minimizasyonu/maskesi ve plan bazlı saklama/eğitim
+       koşulları TR/EN metinlerde açıklandı. */
+    version: '2026-09-07',
     requiredAtSignup: true
   },
   {

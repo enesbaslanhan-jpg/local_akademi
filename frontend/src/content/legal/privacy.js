@@ -119,7 +119,10 @@ export default {
           'Pazaryeri mağazanız bağlıysa buna sipariş sayıları ile satış, komisyon, kargo ve ' +
           'iade TOPLAMLARI ve EN ÇOK SATAN ÜRÜNLERİNİZİN ADLARI da eklenir. ' +
           'Müşteri adı, alıcı adı, fatura numarası, sipariş numarası ve kayıt başlığı gibi ' +
-          'tanımlayıcı detaylar aktarılmaz.'
+          'tanımlayıcı detaylar; telefon, e-posta, açık adres, TCKN/VKN, ham sipariş ' +
+          'içeriği ve erişim bilgileri aktarılmaz. Serbest mesaj alanına kendiniz ' +
+          'yazarsanız bu metin yanıt üretimi için işlenir; bu nedenle gereksiz kişisel, ' +
+          'özel nitelikli veya gizli bilgileri AI Mentor mesajına yazmayınız.'
         ],
         [
           'Topluluk ve destek içeriği',
@@ -301,6 +304,20 @@ export default {
             'Yapay zekâ yanıtlarının üretilmesi'
           ],
           [
+            'Google LLC (Gemini API)',
+            'ABD ve kullanılan küresel altyapı',
+            'AI Mentor mesajı ve yalnızca yanıt için gerekli, asgariye indirilmiş ve ' +
+            'tanımlayıcıları maskelenmiş işletme, kurs, hesaplama ve belge bağlamı',
+            'Yapay zekâ yanıtlarının üretilmesi ve sağlayıcı yedeklemesi'
+          ],
+          [
+            'NVIDIA Corporation (NVIDIA API Catalog / NIM)',
+            'ABD ve kullanılan küresel altyapı',
+            'AI Mentor mesajı ve yalnızca yanıt için gerekli, asgariye indirilmiş ve ' +
+            'tanımlayıcıları maskelenmiş işletme, kurs, hesaplama ve belge bağlamı',
+            'Yapay zekâ yanıtlarının üretilmesi ve sağlayıcı yedeklemesi'
+          ],
+          [
             'Resend',
             'ABD ve kullanılan küresel alt işleyenler',
             'Ad, e-posta adresi ve gönderilen e-postanın içeriği; destek formu ' +
@@ -322,12 +339,22 @@ export default {
         ]
       },
       son: [
+        'AI Mentor, sağlayıcı bağımsız bir yönlendirme katmanı kullanır. Seçilen sağlayıcı ' +
+        'zaman aşımı, hız sınırı veya geçici sunucu hatası verirse aynı asgari ve maskelenmiş ' +
+        'istek sıradaki sağlayıcıya gönderilebilir. Gereksiz eş zamanlı aktarım yapılmaz. ' +
+        'Kendi sunucumuzda çalışan OmniRoute yalnızca bu yönlendirmeyi yapar; ayrı bir dış ' +
+        'alıcı değildir. Verinin ulaştığı dış alıcılar yukarıdaki tabloda gösterilir.',
         'AI Mentor\'a yazdıklarınız, Mistral AI tarafından kötüye kullanım denetimi ' +
         'amacıyla 30 gün süreyle saklanır. Bu süre, kullanılan hizmet planında ' +
         'kapatılabilir değildir.',
         'Mistral AI hesabımızda, verilerin yapay zekâ modellerinin eğitiminde ' +
         'kullanılmasına ilişkin seçenek kapatılmıştır. Yazışmalarınız model eğitiminde ' +
-        'kullanılmaz.',
+        'kullanılmaz. Gemini API ücretsiz hizmet kotası kullanıldığında Google, istemleri ' +
+        've yanıtları ürünlerini geliştirmek için kullanabilir ve insan inceleyiciler ' +
+        'inceleyebilir; ücretli hizmet ve etkin faturalandırmada bu içerik ürün geliştirme ' +
+        'amacıyla kullanılmaz. NVIDIA deneme hizmetlerinde içerik saklama ve güvenlik ' +
+        'günlüğü koşulları kullanılan uç noktaya göre değişebilir. Bu nedenle sağlayıcılara ' +
+        'gönderilen bağlam teknik olarak asgariye indirilir ve tanımlayıcılar maskelenir.',
         'Yurt dışına kişisel veri aktarımı gerektiren hizmetlerde, 6698 sayılı Kanun\'un 9. maddesinde öngörülen aktarım şartları ve uygun güvence yöntemleri dikkate alınır. Uygulanması gereken hukuki aktarım mekanizmaları, ilgili hizmet sağlayıcının rolü ve aktarımın niteliğine göre ayrıca değerlendirilir.'
       ]
     },
@@ -380,7 +407,7 @@ export default {
           ['Oturum yenileme anahtarları', 'Azami 30 gün; çıkış yapıldığında geçersiz kılınır'],
           ['Doğrulama ve şifre sıfırlama anahtarları', 'Kısa süreli; kullanıldığında veya süresi dolduğunda geçersiz'],
           ['Sunucu erişim günlükleri', 'Sınırlı süre; dosya boyutuna göre döngüsel olarak silinir'],
-          ['AI Mentor istemleri (Mistral AI nezdinde)', '30 gün'],
+          ['AI Mentor istemleri (dış AI sağlayıcıları nezdinde)', 'Sağlayıcıya ve ücretsiz/ücretli hizmet planına göre değişir; ayrıntılar 7. bölümde açıklanır'],
           ['İşlem ve denetim kayıtları', 'Güvenlik ve hukuki yükümlülükler için gerekli süre']
         ]
       },

@@ -77,7 +77,7 @@ describe('LegalPage', () => {
 
   it('aydınlatma metni yurt dışına aktarılan alıcıların HEPSİNİ adlandırır', () => {
     ciz('privacy')
-    for (const alici of ['OVH', 'Mistral', 'Resend', 'Cloudflare']) {
+    for (const alici of ['OVH', 'Mistral', 'Google', 'Gemini', 'NVIDIA', 'Resend', 'Cloudflare']) {
       expect(screen.getAllByText(new RegExp(alici)).length).toBeGreaterThan(0)
     }
     /* Ülke adları da geçmeli — "yurt dışı" demek yeterli değil. */
@@ -97,6 +97,9 @@ describe('LegalPage', () => {
     for (const metin of ['Karar Araçları', 'hesaplama', 'kurs kayıtları', 'yüklenen dosyalardan']) {
       expect(screen.getAllByText(new RegExp(metin, 'i')).length).toBeGreaterThan(0)
     }
-    expect(screen.queryByText(/OmniRoute|OpenRouter|Groq/i)).not.toBeInTheDocument()
+    expect(screen.getAllByText(/OmniRoute.*ayrı bir dış alıcı değildir/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/asgariye indiril|maskelen/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/sıradaki sağlayıcı/i).length).toBeGreaterThan(0)
+    expect(screen.queryByText(/OpenRouter|Groq/i)).not.toBeInTheDocument()
   })
 })

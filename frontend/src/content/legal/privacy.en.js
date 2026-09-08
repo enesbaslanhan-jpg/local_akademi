@@ -22,7 +22,7 @@ export default {
         ['Business records', 'Income, expense, and other tracking records; contacts, reminders, workspace memberships and invitations; uploaded files and extracted text.'],
         ['Calculation and decision data', 'Calculation inputs and results; financial-model runs, assumptions, and traces; Decision Tool sessions, answers, and results; saved practice cards and decision-journal records.'],
         ['Learning data', 'Course enrolments; lesson, knowledge-object, video, and study progress; tasks and in-lesson exercise marks.'],
-        ['AI Mentor data', 'Conversations, summaries, manageable memory notes, and context used to generate responses. When relevant, context may include aggregate business tracking figures and marketplace totals plus names of top-selling products. Customer/buyer names, invoice and order numbers, and record titles are excluded.'],
+        ['AI Mentor data', 'Conversations, summaries, manageable memory notes, and context used to generate responses. When relevant, context may include aggregate business tracking figures and marketplace totals plus names of top-selling products. Customer/buyer names, phone numbers, email addresses, street addresses, national or tax identifiers, invoice and order numbers, record titles, raw order payloads, and credentials are excluded or masked. Text you type into the free-form message field is processed to generate a response, so do not enter unnecessary personal, special-category, or confidential data.'],
         ['Community and support', 'Posts, replies, likes, saves, follow relationships, blocks, complaints, and the contact and request content submitted through support.'],
         ['Private member messages', 'One-to-one and group message content, timestamps, memberships, and invitations. Messages are stored on the server and are NOT END-TO-END ENCRYPTED. Administrators access content only when necessary to investigate a complaint.'],
         ['Inbound email channel', 'When enabled: sender address, subject, and attachments sent to the dedicated business inbox. Attachments are processed like manual uploads; the email body is not stored.'],
@@ -72,12 +72,14 @@ export default {
         satirlar: [
           ['OVH SAS', 'France', 'All data processed in the application', 'Server and database hosting'],
           ['Mistral AI', 'France', 'AI Mentor messages and only the business, document, course, progress, calculation, and model context needed for a response', 'Generating AI responses'],
+          ['Google LLC (Gemini API)', 'United States and global infrastructure', 'AI Mentor messages and only the minimised, identifier-masked business, course, calculation, and document context needed for a response', 'Generating AI responses and provider failover'],
+          ['NVIDIA Corporation (NVIDIA API Catalog / NIM)', 'United States and global infrastructure', 'AI Mentor messages and only the minimised, identifier-masked business, course, calculation, and document context needed for a response', 'Generating AI responses and provider failover'],
           ['Resend', 'United States and global subprocessors', 'Name, email address, email content, and support requests when used', 'Verification, password reset, notifications, invitations, and support email'],
           ['Cloudflare', 'Global infrastructure', 'IP address and connection metadata', 'Attack protection and content delivery'],
           ['Shopify', 'Canada and global infrastructure', 'Store identity and authorisation details; imported order and product data', 'Only when you connect a store: importing orders and products']
         ]
       },
-      son: ['Mistral AI retains AI Mentor prompts for 30 days for abuse monitoring; this cannot be disabled under the current service plan.', 'The setting allowing data to be used for model training is disabled on our Mistral AI account. Your conversations are not used for model training.', 'Transfers are assessed under Article 9 of Law No. 6698, including the applicable transfer conditions and safeguards for each provider and transfer.']
+      son: ['AI Mentor uses a provider-independent routing layer. If a selected provider times out, rate-limits a request, or has a temporary server failure, the same minimised and masked request may be sent to the next provider. Requests are not sent concurrently without need. Self-hosted OmniRoute performs routing on our server and is not a separate external recipient; the external recipients that may receive data are listed above.', 'Mistral AI retains AI Mentor prompts for 30 days for abuse monitoring; this cannot be disabled under the current service plan. The training option is disabled on our Mistral AI account.', 'When the unpaid Gemini API service is used, Google may use prompts and responses to improve its products and human reviewers may review them. With paid services and active billing, this content is not used for product improvement. NVIDIA trial-service retention and security-log conditions may differ by endpoint. Provider context is therefore minimised and identifiers are masked.', 'Transfers are assessed under Article 9 of Law No. 6698, including the applicable transfer conditions and safeguards for each provider and transfer.']
     },
     {
       id: 'odeme-verisi', baslik: '7.1. Payment data and the payment institution',
@@ -106,7 +108,7 @@ export default {
           ['Refresh tokens', 'Up to 30 days; invalidated on sign-out'],
           ['Verification and password-reset tokens', 'Short-lived; invalidated after use or expiry'],
           ['Server access logs', 'A limited period, with rotation based on file size'],
-          ['AI Mentor prompts held by Mistral AI', '30 days'],
+          ['AI Mentor prompts held by external AI providers', 'Varies by provider and unpaid/paid service plan; see section 7'],
           ['Transaction and audit records', 'For the period required by security and legal obligations']
         ]
       },

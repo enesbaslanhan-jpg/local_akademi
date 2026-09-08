@@ -115,6 +115,9 @@ export default {
         'AI Mentor, bir dil modeli tarafından üretilen yanıtlar sunar. Dil modelleri ' +
         'kendinden emin görünen ancak hatalı, eksik veya güncelliğini yitirmiş bilgi ' +
         'üretebilir.',
+        'Yanıt üretiminde sağlayıcı bağımsız bir yönlendirme katmanı kullanılır. Bir ' +
+        'sağlayıcı zaman aşımı, hız sınırı veya geçici hata verirse istek sıradaki ' +
+        'sağlayıcıya yönlendirilebilir; kullanılan sağlayıcı veya model zaman içinde değişebilir.',
         'Hesaplamalar bölümündeki sayısal sonuçlar, kullanıcı girdilerini tanımlı ' +
         'formül ve kurallarla işleyen deterministik uygulama motoru tarafından üretilir. ' +
         'AI Mentor bu kayıtlı sonuçları yorumlayabilir ve açıklayabilir; deterministik ' +
@@ -134,8 +137,12 @@ export default {
         'Uygulamaya yüklediğiniz belgeler, girdiğiniz kayıtlar ve paylaştığınız ' +
         'gönderiler üzerindeki haklar sizde kalır.',
         'Hizmeti sunabilmek için bu içeriği saklama, işleme ve size geri gösterme ' +
-        'yetkisi verirsiniz. Bu yetki hizmetin sunulmasıyla sınırlıdır; içeriğiniz ' +
-        'pazarlama amacıyla kullanılmaz ve yapay zekâ modeli eğitiminde kullanılmaz.'
+        'yetkisi verirsiniz. Bu yetki hizmetin sunulmasıyla sınırlıdır ve LocalKarar ' +
+        'içeriğinizi pazarlama amacıyla veya kendi yapay zekâ modelini eğitmek için kullanmaz. ' +
+        'AI sağlayıcılarının ücretsiz ve ücretli hizmetlerdeki işleme koşulları Gizlilik ' +
+        've KVKK Aydınlatma Metni’nde açıklanır.',
+        'AI Mentor serbest mesaj alanına gereksiz kişisel tanımlayıcı, özel nitelikli ' +
+        'kişisel veri, ödeme bilgisi, API anahtarı veya başka bir gizli bilgi yazmayınız.'
       ]
     },
 
