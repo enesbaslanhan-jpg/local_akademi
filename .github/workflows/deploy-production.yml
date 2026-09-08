@@ -68,6 +68,38 @@ jobs:
           fi
           repository="${GITHUB_REPOSITORY,,}"
           image="ghcr.io/${repository}:${IMAGE_SHA}"
-          ssh -i "$HOME/.ssh/production_key" -p "$port" \
-            -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            "$SSH_USER@$SSH_HOST" "bash -s -- '$DEPLOY_PATH' '$image'" < deploy/deploy-production.sh
+          ssh_opts=(-i "$HOME/.ssh/production_key" -p "$port" -o BatchMode=yes -o StrictHostKeyChecking=yes)
+          remote_script="/tmp/localkarar-deploy-${IMAGE_SHA}.sh"
+
+          # 🔴 BETIK ARTIK STDIN'DEN BESLENMIYOR.
+          #
+          # Onceki hali `bash -s ... < deploy/deploy-production.sh` idi:
+          # bash betigi STDIN'den satir satir okuyor, betigin ICINDEKI
+          # `docker compose exec` de STDIN'den okuyor. Yedek komutu
+          # betigin GERI KALANINI yutunca bash "dosya bitti" deyip
+          # 0 ile cikti. Olculdu (08.09.2026, ilk uretim dagitimi):
+          # yedek alindi, imaj hic cekilmedi, servis yeniden
+          # baslatilmadi, saglik/surum dogrulamasi hic calismadi --
+          # ve GitHub "Success" gosterdi. Site eski surumde kaldi.
+          #
+          # Betik once dosyaya yaziliyor, sonra STDIN kapali calisiyor.
+          ssh "${ssh_opts[@]}" "$SSH_USER@$SSH_HOST" \
+            "cat > '$remote_script'" < deploy/deploy-production.sh
+
+          set +e
+          deploy_output="$(ssh -n "${ssh_opts[@]}" "$SSH_USER@$SSH_HOST" \
+            "bash '$remote_script' '$DEPLOY_PATH' '$image'; rc=\$?; rm -f '$remote_script'; exit \$rc" 2>&1)"
+          deploy_rc=$?
+          set -e
+          printf '%s\n' "$deploy_output"
+          if [[ $deploy_rc -ne 0 ]]; then
+            exit "$deploy_rc"
+          fi
+
+          # ⚠️ CIKIS KODU TEK BASINA YETMIYOR — yukaridaki ariza tam da
+          # 0 ile cikmisti. Betik yalniz TUM adimlari bitirdiginde bu
+          # satiri yaziyor; yoksa dagitim yarim kalmis demektir.
+          if ! grep -q "DEPLOY_COMPLETE ${IMAGE_SHA}" <<< "$deploy_output"; then
+            echo "Deployment did not run to completion for ${IMAGE_SHA}" >&2
+            exit 1
+          fi

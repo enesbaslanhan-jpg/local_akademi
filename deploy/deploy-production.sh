@@ -36,7 +36,10 @@ fi
 
 # Existing production data must be backed up before migrations run.
 if [[ "$server_running" == "true" ]]; then
-  "${compose[@]}" exec -T server npm run ops:backup
+  # ⚠️ STDIN /dev/null: `docker compose exec` STDIN okur. Betik artik
+  # STDIN'den beslenmiyor ama bu yine de kapatiliyor -- ayni tuzak
+  # bir daha kurulmasin.
+  "${compose[@]}" exec -T server npm run ops:backup < /dev/null
 else
   echo "No running server container; treating this as an initial deployment"
 fi
@@ -72,6 +75,10 @@ fi
 
 if [[ "$healthy" == "true" ]]; then
   echo "Production health check passed for $target_image (commit $reported_commit)"
+  # ⚠️ TAMAMLANDI ISARETI: is akisi bu satiri ariyor. Cikis kodu tek
+  # basina yetmiyor -- betigin yarida kesilip 0 ile cikabildigi
+  # olculdu (08.09.2026).
+  echo "DEPLOY_COMPLETE $expected_commit"
   exit 0
 fi
 
