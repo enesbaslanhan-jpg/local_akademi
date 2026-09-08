@@ -45,6 +45,18 @@ async function ensureWorkspace(prisma: PrismaClient, userId: number, name?: stri
   return ws.id
 }
 
+/** Etkin calisma alani: once tercih, yoksa en son katilinan uyelik. */
+async function aktifCalismaAlani(prisma: PrismaClient, userId: number): Promise<string | undefined> {
+  const pref = await prisma.userPreference.findUnique({ where: { userId }, select: { activeWorkspaceId: true } })
+  if (pref?.activeWorkspaceId) return pref.activeWorkspaceId
+  const member = await prisma.businessMember.findFirst({
+    where: { userId, status: 'active' },
+    orderBy: { joinedAt: 'desc' },
+    select: { workspaceId: true }
+  })
+  return member?.workspaceId
+}
+
 async function syncWorkspaceToLegacyProfile(prisma: PrismaClient, userId: number, workspaceId?: string): Promise<void> {
   let wsId = workspaceId
   if (!wsId) {
@@ -178,6 +190,56 @@ export async function onboardingRoutes(fastify: FastifyInstance, opts?: { prisma
         return reply.status(422).send({ error: 'Validation failed', details: err.errors })
       }
       return reply.status(422).send({ error: 'Invalid request body' })
+    }
+
+    /*
+     * 🔴 ANKET CEVAPLARI CALISMA ALANINA DA YAZILIYOR.
+     *
+     * Olculdu (08.09.2026, calisan sunucu): kurulum anketini dolduran ve
+     * ZATEN bir calisma alani olan kullanicinin cevaplari kayboluyordu.
+     * Yanit govdesi dogru degerleri dondugu icin arayuz "kaydedildi"
+     * diyor, sayfa yenilenince alanlar bos donuyordu.
+     *
+     * Sebep: asagidaki upsert `BusinessProfile`a yaziyor, hemen
+     * ardindan gelen `syncWorkspaceToLegacyProfile` ise
+     * `BusinessWorkspace`i profilin USTUNE kopyaliyor -- ve o kopyalama
+     * kosulsuz (`businessStage: ws.businessStage`), yani yeni yazilani
+     * geri siliyor. Calisma alani olmayan kullanicida sync erken
+     * donduğu icin arıza gorunmuyordu.
+     *
+     * ⚠️ Bu WEBI DE etkiliyordu; mobile ozgu degil. `BusinessProfile`
+     * kodun kendi deyimiyle "legacy", dogruluk kaynagi calisma alani --
+     * o yuzden cozum sync'i kaldirmak degil, ankete verilen cevaplari
+     * KAYNAGA yazmak.
+     *
+     * ⚠️ `weeklyLearningMinutes` calisma alaninda YOK; sync de ona
+     * dokunmuyor, yalniz profilde yasiyor.
+     */
+    const aktifCalismaAlaniId = await aktifCalismaAlani(prisma, user.id)
+    if (aktifCalismaAlaniId) {
+      const alanVerisi: Record<string, unknown> = {
+        ...(validated.sector !== undefined && { sector: validated.sector }),
+        ...(validated.city !== undefined && { city: validated.city }),
+        ...(validated.currency !== undefined && { currency: validated.currency }),
+        ...(validated.monthlySales !== undefined && { monthlySales: validated.monthlySales }),
+        ...(validated.monthlyExpenses !== undefined && { monthlyExpenses: validated.monthlyExpenses }),
+        ...(validated.cashBalance !== undefined && { cashBalance: validated.cashBalance }),
+        ...(validated.debtBalance !== undefined && { debtBalance: validated.debtBalance }),
+        ...(validated.businessStage !== undefined && { businessStage: validated.businessStage }),
+        ...(validated.employeeCount !== undefined && { employeeCount: validated.employeeCount }),
+        ...(validated.salesChannels !== undefined && { salesChannels: JSON.stringify(validated.salesChannels) }),
+        ...(validated.primaryGoal !== undefined && { primaryGoal: validated.primaryGoal }),
+        ...(validated.challenges !== undefined && { challenges: JSON.stringify(validated.challenges) })
+      }
+      /* Bos ad calisma alaninin adini SILMEZ: `name` zorunlu bir alan ve
+         anketi bos gecen kullanici isletmesini adsiz birakmamali. */
+      if (validated.name) alanVerisi.name = validated.name
+      if (Object.keys(alanVerisi).length > 0) {
+        await prisma.businessWorkspace.update({
+          where: { id: aktifCalismaAlaniId },
+          data: alanVerisi
+        })
+      }
     }
 
     const profile = await prisma.businessProfile.upsert({
