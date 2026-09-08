@@ -7,7 +7,8 @@ import { streamSlotManager } from '../src/services/stream-manager'
 const mockState = vi.hoisted(() => ({
   events: [] as Array<{ event: string; data: any }>,
   error: null as Error | null,
-  abortSignal: null as AbortSignal | null
+  abortSignal: null as AbortSignal | null,
+  messages: [] as Array<{ role: string; content: string }>,
 }))
 
 vi.mock('../src/services/ai-provider', async (importOriginal) => {
@@ -15,6 +16,7 @@ vi.mock('../src/services/ai-provider', async (importOriginal) => {
   const mod = { ...actual as any }
 
   mod.streamAiResponse = async function* (_messages: any[], signal?: AbortSignal) {
+    mockState.messages = _messages
     if (signal) mockState.abortSignal = signal
     if (mockState.error) throw mockState.error
     for (const evt of mockState.events) {
@@ -73,6 +75,7 @@ beforeEach(() => {
   ]
   mockState.error = null
   mockState.abortSignal = null
+  mockState.messages = []
   streamSlotManager.reset()
 })
 
@@ -196,6 +199,23 @@ describe('Streaming API', () => {
     expect(doneEvent!.data.assistantMessage).toBeDefined()
     expect(doneEvent!.data.assistantMessage.role).toBe('assistant')
     expect(doneEvent!.data.assistantMessage.content).toContain('Merhaba')
+  })
+
+  it('uzun süreli hafıza kullanmayan intentte de kullanıcı mesajını modele gönderir', async () => {
+    const convId = await createConversation(userToken, 'Vergi sorusu')
+    const question = 'KDV oranları hakkında genel bilgi verir misin?'
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/mentor/conversations/${convId}/messages/stream`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: question },
+    })
+
+    expect(res.statusCode).toBe(200)
+    expect(mockState.messages).toEqual(expect.arrayContaining([
+      expect.objectContaining({ role: 'user', content: question }),
+    ]))
   })
 
   it('stream tamamlanınca assistant mesajı bir kez kaydedilir', async () => {

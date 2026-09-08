@@ -19,6 +19,7 @@ const ORIGINAL_ENV_KEYS = [
   'DEEPSEEK_API_KEY',
   'MENTOR_AI_PROVIDER',
   'MENTOR_AI_MODEL',
+  'OMNIROUTE_MIN_OUTPUT_TOKENS',
 ] as const
 
 const originalEnv: Record<string, string | undefined> = {}
@@ -43,6 +44,7 @@ function setUpOmniRouteEnv(): void {
   delete process.env.DEEPSEEK_API_KEY
   delete process.env.MENTOR_AI_PROVIDER
   delete process.env.MENTOR_AI_MODEL
+  delete process.env.OMNIROUTE_MIN_OUTPUT_TOKENS
 }
 
 function safeRequest(extra: Record<string, unknown> = {}) {
@@ -71,6 +73,7 @@ describe('OmniRoute AI provider', () => {
       const body = JSON.parse(String(init?.body))
       expect(body.model).toBe('auto/best-free')
       expect(body.stream).toBe(false)
+      expect(body.max_tokens).toBe(2048)
       return new Response(
         JSON.stringify({
           choices: [{ message: { content: 'KOBİ ve Girişimci için nakit akışı planı.' } }],
@@ -175,6 +178,40 @@ describe('OmniRoute AI provider', () => {
     expect(
       events.filter(event => event.type === 'done'),
     ).toHaveLength(1)
+  })
+
+  it('OmniRoute reasoning modelleri için düşük Mentor bütçesini güvenli tabana yükseltir', async () => {
+    const fetchMock = vi.fn(async (_url: string | URL, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body))
+      expect(body.max_tokens).toBe(3072)
+      return new Response(
+        JSON.stringify({ choices: [{ message: { content: 'Tam yanıt' } }], usage: {} }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      )
+    })
+    process.env.OMNIROUTE_MIN_OUTPUT_TOKENS = '3072'
+    vi.stubGlobal('fetch', fetchMock)
+
+    await generateCompletion(safeRequest({ maxOutputTokens: 450 }))
+    expect(fetchMock).toHaveBeenCalledOnce()
+  })
+
+  it('uzunluk sınırında kesilen OmniRoute akışını tamamlanmış saymaz', async () => {
+    const truncated = [
+      'data: {"choices":[{"delta":{"content":"Yarım yanıt"},"finish_reason":null}]}',
+      'data: {"choices":[{"delta":{},"finish_reason":"length"}],"usage":{"prompt_tokens":5,"completion_tokens":450,"total_tokens":455}}',
+      '',
+    ].join('\n')
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(truncated, {
+      status: 200,
+      headers: { 'Content-Type': 'text/event-stream' },
+    })))
+
+    const events: Array<{ type: string; code?: string }> = []
+    for await (const event of generateStream(safeRequest())) events.push(event as never)
+
+    expect(events.some(event => event.type === 'done')).toBe(false)
+    expect(events).toContainEqual(expect.objectContaining({ type: 'error', code: 'TRUNCATED_RESPONSE' }))
   })
 
   it('OMNIROUTE_API_KEY yoksa istek göndermeden yapılandırma hatası döner', async () => {

@@ -438,11 +438,24 @@ function buildRequestBody(
   stream: boolean,
   options: { temperature?: number; maxOutputTokens?: number; keepAlive?: string | null } = {},
 ): Record<string, unknown> {
+  const requestedMaxTokens = options.maxOutputTokens ?? config.maxTokens
+  const configuredOmniRouteFloor = Number(process.env.OMNIROUTE_MIN_OUTPUT_TOKENS || 2048)
+  const omniRouteFloor = Number.isInteger(configuredOmniRouteFloor) && configuredOmniRouteFloor >= 256 && configuredOmniRouteFloor <= 8192
+    ? configuredOmniRouteFloor
+    : 2048
+  // OmniRoute combos may select a reasoning model (for example Gemini 3).
+  // Reasoning and visible output share the OpenAI-compatible max_tokens budget;
+  // the Mentor's ordinary 450-token ceiling can otherwise be exhausted before
+  // a useful visible answer is produced.
+  const maxTokens = config.provider === 'omniroute'
+    ? Math.max(requestedMaxTokens, omniRouteFloor)
+    : requestedMaxTokens
+
   const body: Record<string, unknown> = {
     model: config.model,
     messages,
     temperature: options.temperature ?? 0.5,
-    max_tokens: options.maxOutputTokens ?? config.maxTokens,
+    max_tokens: maxTokens,
     stream,
   }
 
@@ -934,7 +947,11 @@ async function* streamFromProvider(
           yield { type: 'delta', delta: deltaContent }
         }
 
-        if (finishReason === 'stop' || finishReason === 'length') {
+        if (finishReason === 'length') {
+          throw new GatewayProviderError('TRUNCATED_RESPONSE', 'Provider output was truncated', provider, undefined, true)
+        }
+
+        if (finishReason === 'stop') {
           clearInactivityTimer()
           const usageData = (parsed.usage || {}) as Record<string, number>
           yield {

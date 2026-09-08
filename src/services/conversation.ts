@@ -678,7 +678,11 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     telemetry?.set('knowledgeContextCharacters', resolvedContext.knowledgeContext.length)
     telemetry?.set('estimatedInputTokens', Math.round((systemPromptCharacters + historyCharacters + resolvedContext.knowledgeContext.length) / 4))
 
-    let memCtx = { systemMessages: [systemMessage], usedMemoryIds: [] as number[] }
+    // The current user message and bounded conversation history must reach the
+    // provider even for intents that do not use long-term memory. Previously
+    // those intents sent only the system prompt, which produced unrelated
+    // answers that appeared to quote the prompt itself.
+    let memCtx = { systemMessages: [systemMessage, ...chatMessages], usedMemoryIds: [] as number[] }
     if (shouldUseMemory(intent)) {
       telemetry?.startStage('memory')
       memCtx = await buildMemoryContext({
@@ -999,7 +1003,9 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       telemetry?.set('knowledgeContextCharacters', resolvedContext.knowledgeContext.length)
       telemetry?.set('estimatedInputTokens', Math.round((systemPromptCharacters + historyCharacters + resolvedContext.knowledgeContext.length) / 4))
 
-      let systemMessages: ChatMessage[] = [systemMessage]
+      // Keep the normal chat context when memory enrichment is not applicable.
+      // buildMemoryContext returns this same history plus optional memory.
+      let systemMessages: ChatMessage[] = [systemMessage, ...chatMessages]
       let usedMemoryIds: number[] = []
       if (shouldUseMemory(intent)) {
         telemetry?.startStage('memory')
