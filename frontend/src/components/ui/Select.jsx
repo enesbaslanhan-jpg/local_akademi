@@ -13,6 +13,47 @@ const SEARCH_THRESHOLD = 12
  * API: options=[{value,label,disabled?}], placeholder (sıfırlama seçeneği),
  * value/onChange(value), label/error/className/aria-label/disabled/name.
  */
+
+/**
+ * Açılır menünün ekrandaki yeri.
+ *
+ * ⚠️ SAF VE DIŞA AÇIK: testler bunu doğrudan çağırıyor. Konumlandırma
+ * bu bileşende iki kez arızalandı (biri sayfa geçişinin bıraktığı
+ * transform, biri aşağıdaki genişlik hatası) ve ikisi de ancak
+ * kullanıcı bildirince görüldü; hesabın kendisi artık test altında.
+ *
+ * 🔴 SINIR HESABINDA MENÜNÜN GERÇEK GENİŞLİĞİ KULLANILIYOR.
+ *
+ * Önceden tetikleyicinin genişliği kullanılıyordu. Menünün
+ * `min-width: 160px` tabanı var: dar bir tetikleyicide menü ondan geniş
+ * çiziliyor, sağ sınır ise dar genişliğe göre hesaplandığı için menü
+ * ekranın sağından taşıyor ve seçenekler kırpılıyordu.
+ *
+ * Ölçüldü (09.09.2026, takvim ay seçici): tetikleyici 75px, menü 160px;
+ * menü ekran sağında 43px taşıyordu.
+ */
+export function menuKonumu({ rect, menu, viewportWidth, viewportHeight, gap = 6, margin = 12 }) {
+  const width = Math.min(
+    Math.max(rect.width, menu.width),
+    viewportWidth - margin * 2,
+  )
+  const left = Math.min(
+    Math.max(margin, rect.left),
+    viewportWidth - margin - width,
+  )
+
+  /* Altta yer yoksa ve üstte daha çok yer varsa yukarı açılıyor;
+     menü her hâlükârda tetikleyiciye bağlı kalıyor. */
+  const availableBelow = viewportHeight - rect.bottom - gap - margin
+  const availableAbove = rect.top - gap - margin
+  const opensAbove = availableBelow < menu.height && availableAbove > availableBelow
+  const top = opensAbove
+    ? Math.max(margin, rect.top - gap - menu.height)
+    : Math.min(rect.bottom + gap, viewportHeight - margin - menu.height)
+
+  return { top, left, width }
+}
+
 export default function Select({
   label,
   error,
@@ -93,21 +134,12 @@ export default function Select({
       const menu = listRef.current?.getBoundingClientRect()
       if (!rect || !menu) return
 
-      const gap = 6
-      const margin = 12
-      const width = Math.min(rect.width, window.innerWidth - margin * 2)
-      const left = Math.min(
-        Math.max(margin, rect.left),
-        window.innerWidth - margin - width,
-      )
-      const availableBelow = window.innerHeight - rect.bottom - gap - margin
-      const availableAbove = rect.top - gap - margin
-      const opensAbove = availableBelow < menu.height && availableAbove > availableBelow
-      const top = opensAbove
-        ? Math.max(margin, rect.top - gap - menu.height)
-        : Math.min(rect.bottom + gap, window.innerHeight - margin - menu.height)
-
-      setMenuRect({ top, left, width })
+      setMenuRect(menuKonumu({
+        rect,
+        menu,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+      }))
     }
     updateRect()
     window.addEventListener('scroll', updateRect, true)
