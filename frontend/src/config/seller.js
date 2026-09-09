@@ -56,6 +56,12 @@ export const SATICI = {
    * 0850 hizmet numarası; kişisel cep numarası değil. Mevzuat
    * "tüketicinin hızlıca ulaşabileceği telefon numarası" diyor,
    * hattın türünü şart koşmuyor.
+   *
+   * ✅ HAT HEM ARAMA HEM WHATSAPP KARŞILIYOR (ürün sahibi, 09.09.2026).
+   * Bu yüzden yasal metinlerde "Telefon" etiketi doğru; alt bilgide
+   * WhatsApp'a açılması yalnızca daha hızlı olan yolu öne çıkarıyor.
+   * ⚠️ Hat bir gün yalnız WhatsApp'a dönerse yasal metinlerdeki
+   * "Telefon" ibaresi YANILTICI olur ve orası da değişmeli.
    */
   telefon: '0850 241 19 40',
 
