@@ -1571,9 +1571,25 @@ export async function conversationRoutes(fastify: FastifyInstance) {
       }
     })
 
+    /*
+     * 🔴 SIRALAMA `createdAt`E DEĞİL `id`YE GÖRE.
+     *
+     * `createdAt` milisaniye çözünürlüğünde. Kullanıcı mesajı ile onu
+     * izleyen asistan yanıtı aynı milisaniyede yazılabiliyor; o zaman
+     * `createdAt: { gt: ... }` İZLEYEN YANITI HİÇ BULAMIYOR ve seçili
+     * bilgi nesnesi sessizce kayboluyordu — düzenle-ve-yeniden-üret,
+     * kullanıcının seçtiği kaynağı unutup sıradan aramaya düşüyordu.
+     *
+     * CI'da bu yakalandı (09.09.2026): `conversation-citation` testi
+     * hızlı makinede iki mesajı aynı milisaniyede oluşturunca düştü.
+     * Yerelde geçiyordu, çünkü iki `create` arasında yeterli süre
+     * geçiyordu — yani arıza makinenin hızına bağlıydı.
+     *
+     * `id` autoincrement: yazma sırasının kendisi. Eşitlik ihtimali yok.
+     */
     const followingAssistant = await prisma.conversationMessage.findFirst({
-      where: { conversationId: convId, role: 'assistant', createdAt: { gt: targetMsg.createdAt } },
-      orderBy: { createdAt: 'asc' }
+      where: { conversationId: convId, role: 'assistant', id: { gt: targetMsg.id } },
+      orderBy: { id: 'asc' }
     })
     const selectedCode = extractSelectedKnowledgeObjectCode(followingAssistant?.knowledgeObjects)
 

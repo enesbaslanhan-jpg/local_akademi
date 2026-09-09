@@ -869,6 +869,60 @@ describe('Edit-and-regenerate — preserves selected knowledge object context', 
     expect(thirdArg[1].code).toBe('KO-TEST')
   })
 
+  /*
+   * 🔴 AYNI MİLİSANİYE.
+   *
+   * Yukarıdaki test yerelde geçip CI'da düşüyordu (09.09.2026). Sebep
+   * kodun `createdAt: { gt: ... }` ile "izleyen asistan yanıtını"
+   * aramasıydı: hızlı makinede iki mesaj AYNI milisaniyeye düşünce
+   * yanıt hiç bulunamıyor, kullanıcının seçtiği bilgi nesnesi sessizce
+   * kayboluyordu.
+   *
+   * Bu test o koşulu TESADÜFE BIRAKMIYOR: iki mesaja bilerek aynı
+   * `createdAt` veriyor. Sıralama `id`ye (autoincrement, yani yazma
+   * sırasının kendisi) taşındığı için artık geçiyor.
+   */
+  it('aynı milisaniyedeki mesajlarda da seçili KO korunuyor', async () => {
+    mockNeedsClarification.mockReturnValue(false)
+    mockGetKO.mockResolvedValue([makeMockKO()])
+
+    async function* mockGen() {
+      yield { type: 'provider' as const, provider: 'nvidia', model: 'test' }
+      yield { type: 'delta' as const, delta: 'Düzenlenmiş' }
+      yield { type: 'done' as const, tokenUsage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }, citations: [makeMockCitation()], knowledgeObjects: [makeMockCitation()] }
+    }
+    mockStreamAiResponse.mockReturnValue(mockGen())
+
+    const conv = JSON.parse((await app.inject({
+      method: 'POST', url: '/mentor/conversations',
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { title: 'Ayni Milisaniye Testi' },
+    })).body).conversation
+
+    const anlik = new Date()
+    const userMsg = await prisma.conversationMessage.create({
+      data: { conversationId: conv.id, role: 'user', content: 'özgün', generationStatus: 'completed', createdAt: anlik }
+    })
+    await prisma.conversationMessage.create({
+      data: {
+        conversationId: conv.id, role: 'assistant', content: 'İlk yanıt',
+        generationStatus: 'completed',
+        /* Kullanıcı mesajıyla TAM OLARAK aynı an. */
+        createdAt: anlik,
+        knowledgeObjects: JSON.stringify([makeSelectedCitation()])
+      }
+    })
+
+    const editRes = await app.inject({
+      method: 'POST', url: `/mentor/conversations/${conv.id}/messages/${userMsg.id}/edit-and-regenerate`,
+      headers: { authorization: `Bearer ${userToken}` },
+      body: { message: 'düzenlenmiş' },
+    })
+
+    expect(editRes.statusCode).toBe(200)
+    expect(mockResolveContext).toHaveBeenCalledWith('düzenlenmiş', 'KO-SELECTED', expect.any(String))
+  })
+
   it('falls back to normal retrieval when following assistant has no knowledgeObjects', async () => {
     mockNeedsClarification.mockReturnValue(false)
     mockGetKO.mockResolvedValue([makeMockKO()])
