@@ -545,6 +545,31 @@ lk exec postgres psql -U localakademi -d localakademi -c "\dt" | tail -20
 
 ---
 
+## Günlükler nerede
+
+Konteyner günlükleri makinenin systemd günlüğüne yazılıyor (`journald`),
+konteynerin kendi dizinine değil.
+
+**Neden:** `docker compose up -d` yeni imajla konteyneri yeniden
+oluşturuyor ve varsayılan `json-file` sürücüsünde günlük de onunla
+birlikte siliniyordu. Yani geçmiş yalnızca **son dağıtıma kadar**
+uzanıyordu — ölçüldü: 6 saat, 621 istek. "Geçen hafta şu hata olmuştu"
+denildiğinde bakılacak yer yoktu.
+
+| Ne istiyorsun | Komut |
+|---|---|
+| Şu an akan günlük | `docker compose logs -f server` |
+| Dağıtımdan öncesi | `sudo journalctl CONTAINER_NAME=localakademi-server --since "3 days ago"` |
+| Belirli bir hata | `sudo journalctl CONTAINER_NAME=localakademi-server | grep P2028` |
+| Veritabanı günlüğü | `sudo journalctl CONTAINER_NAME=localakademi-postgres` |
+| Günlük ne kadar yer kaplıyor | `sudo journalctl --disk-usage` |
+
+⚠️ journald varsayılan olarak diskin **%10'u** ile sınırlı (bu makinede
+~3,8 GB) ve eskiyeni siler. Eski `json-file` sürücüsünde **hiçbir sınır
+yoktu**.
+
+---
+
 ## Sorun çıkarsa
 
 | Belirti | Muhtemel sebep |

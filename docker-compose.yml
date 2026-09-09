@@ -8,6 +8,28 @@ services:
       dockerfile: Dockerfile
     container_name: localakademi-server
     restart: unless-stopped
+    # 🔴 GUNLUKLER HER DAGITIMDA SILINIYORDU.
+    #
+    # Varsayilan `json-file` surucusu gunlugu konteynerin kendi
+    # dizininde tutuyor; `docker compose up -d` yeni imajla konteyneri
+    # YENIDEN OLUSTURUNCA o dizin de gidiyor. Yani gecmis yalnizca son
+    # dagitima kadar uzaniyordu -- olculdu: 6 saatlik, 621 istek.
+    # "Gecen hafta su hata olmustu" denildiginde bakilacak yer yoktu.
+    #
+    # `journald`: gunluk makinenin systemd gunluguene yaziliyor, yani
+    # konteynerin omrunden BAGIMSIZ. Sunucuda /var/log/journal var, yani
+    # yeniden baslatmayi da asiyor (dogrulandi).
+    #
+    # ⚠️ Sinirsiz buyume yok: journald varsayilani diskin %10'u ile
+    # sinirli (bu makinede ~3,8 GB). Eski `json-file` ise SINIRSIZDI --
+    # hicbir max-size verilmemisti.
+    #
+    # Okuma: `docker compose logs server` calisan konteyneri gosterir,
+    # gecmis icin `journalctl CONTAINER_NAME=localakademi-server`.
+    logging:
+      driver: journald
+      options:
+        tag: localakademi-server
     ports:
       # YALNIZ makine ici. Disariya acilan tek sey Caddy'nin 80/443'u.
       #
@@ -135,6 +157,13 @@ services:
     image: pgvector/pgvector:pg16
     container_name: localakademi-postgres
     restart: unless-stopped
+    # Veritabani gunlugu de kalici: bir kesinti arastirmasinda sunucu
+    # gunlugu tek basina yetmiyor, "o sirada veritabani ne yapiyordu"
+    # sorusu da soruluyor.
+    logging:
+      driver: journald
+      options:
+        tag: localakademi-postgres
     shm_size: 256mb
     environment:
       - POSTGRES_USER=localakademi
