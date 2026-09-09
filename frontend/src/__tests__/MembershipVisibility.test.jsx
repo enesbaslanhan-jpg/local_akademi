@@ -94,7 +94,7 @@ describe('üyelik ekranı — tek düzen, dört durum', () => {
        `/ilk tahsilat/i` bu yüzden "İlk tahsilat"ı bulamıyordu — test
        ilk yazıldığında tam olarak buna düştü. */
     expect(screen.getByText(/bugün ödediğin|aylık ücretin/i)).toBeInTheDocument()
-    expect(screen.getByText(/sonraki tahsilat|[İi]lk tahsilat|erişimini açmak/i)).toBeInTheDocument()
+    expect(screen.getByText(/sonraki tahsilat|[İi]lk tahsilat|erişimin bitiyor|erişimini açmak/i)).toBeInTheDocument()
   })
 
   it('🦷 ücretlendirme başlamamışken İPTAL kartı ÇİZİLMİYOR', () => {
@@ -149,6 +149,26 @@ describe('uyelikSunumu — saf eşleyici', () => {
     expect(uyelikSunumu({ state: 'active' }).sag.deger).toBe('—')
     expect(uyelikSunumu({ state: 'active', currentPeriodEnd: '2026-10-01T00:00:00.000Z' }).sag.deger)
       .toMatch(/1 Eki/)
+  })
+
+  /*
+   * 🔴 EKRAN TUTULMAYACAK BİR SÖZ VERİYORDU.
+   *
+   * Aktif üyede sağdaki ölçü "Sonraki tahsilat — 9 Eki · ₺149" diyordu:
+   * yani o gün karttan para çekileceği. Oysa otomatik yenileme YOK —
+   * kart saklanmıyor, `renewalMode` varsayılanı MANUAL. O tarihte
+   * hiçbir tahsilat olmuyor, erişim kapanıyor.
+   *
+   * Devam etmek isteyen kullanıcı "nasılsa çekilir" diye bekleyip
+   * erişimini kaybederdi; bırakmak isteyen olmayacak bir çekim için
+   * telaşlanırdı.
+   */
+  it('🦷 aktif üyede tarih TAHSİLAT sözü vermiyor', () => {
+    const s = uyelikSunumu({ state: 'active', currentPeriodEnd: '2026-10-01T00:00:00.000Z' })
+    expect(s.sag.etiket).toBe('billing.durum.olcu.erisimBitisi')
+    expect(s.sag.etiket).not.toMatch(/tahsilat/i)
+    /* Tarihin yanına tutar yazmak da aynı izlenimi sürdürüyordu. */
+    expect(s.sag.deger).not.toMatch(/₺|TL/)
   })
 
   it('metin değil ANAHTAR dönüyor — çeviri json`da kalıyor', () => {

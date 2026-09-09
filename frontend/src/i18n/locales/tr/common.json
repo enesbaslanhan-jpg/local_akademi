@@ -827,7 +827,7 @@
       },
       "active": {
         "baslik": "Üyeliğin aktif",
-        "alt": "Lansman dönemi — kurucu üye fiyatıyla devam ediyorsun."
+        "alt": "Lansman dönemi — kurucu üye fiyatıyla devam ediyorsun. Yenileme otomatik değil: kart bilgin saklanmıyor, devam etmek için bitiş tarihinden önce yeniden ödeme yapman gerekiyor."
       },
       "expired": {
         "baslik": "Deneme süren doldu",
@@ -837,6 +837,7 @@
         "bugunOdedigin": "Bugün ödediğin",
         "aylikUcretin": "Aylık ücretin",
         "sonrakiTahsilat": "Sonraki tahsilat",
+        "erisimBitisi": "Erişimin bitiyor",
         "ilkTahsilat": "İlk tahsilat",
         "erisimIcin": "Erişimini açmak için",
         "yok": "Yok"

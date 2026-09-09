@@ -101,9 +101,26 @@ export function uyelikSunumu(membership, { locale = 'tr-TR' } = {}) {
       baslik: { anahtar: 'billing.durum.active.baslik' },
       alt: { anahtar: 'billing.durum.active.alt' },
       sol: { etiket: 'billing.durum.olcu.aylikUcretin', deger: aylikUcret },
+      /*
+       * 🔴 "SONRAKİ TAHSİLAT" TUTULMAYACAK BİR SÖZDÜ.
+       *
+       * Etiket kullanıcıya o gün kartından para çekileceğini söylüyordu.
+       * Oysa otomatik yenileme YOK: kart saklanmıyor, tekrarlayan çekim
+       * yok, `Subscription.renewalMode` varsayılanı MANUAL. O tarihte
+       * hiçbir tahsilat olmuyor; kullanıcının kendisi yeniden ödeme
+       * yapmazsa erişimi kapanıyor.
+       *
+       * İki yönden de zarar veriyordu: devam etmek isteyen "nasılsa
+       * çekilir" diye bekleyip erişimini kaybediyor, bırakmak isteyen
+       * ise olmayacak bir çekim için telaşlanıyordu.
+       *
+       * ⚠️ Tutar da kaldırıldı: soldaki ölçü zaten "Aylık ücretin"
+       * diyor. Tarihin yanına fiyat yazmak, o gün o tutarın tahsil
+       * edileceği izlenimini sürdürüyordu.
+       */
       sag: {
-        etiket: 'billing.durum.olcu.sonrakiTahsilat',
-        deger: tarih ? `${tarih} · ${aylikUcret}` : '—',
+        etiket: 'billing.durum.olcu.erisimBitisi',
+        deger: tarih || '—',
       },
       birincil: { anahtar: 'billing.settings.managePayment', hedef: 'odeme' },
       planBaslik: 'billing.durum.plan.fiyatNasil',

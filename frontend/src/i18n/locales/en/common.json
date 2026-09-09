@@ -827,7 +827,7 @@
       },
       "active": {
         "baslik": "Your membership is active",
-        "alt": "Launch period — you are continuing at the founder member price."
+        "alt": "Launch period — you are continuing at the founder member price. Renewal is not automatic: your card is not stored, so you need to pay again before the end date to continue."
       },
       "expired": {
         "baslik": "Your trial has ended",
@@ -837,6 +837,7 @@
         "bugunOdedigin": "You pay today",
         "aylikUcretin": "Your monthly fee",
         "sonrakiTahsilat": "Next charge",
+        "erisimBitisi": "Access ends",
         "ilkTahsilat": "First charge",
         "erisimIcin": "To restore access",
         "yok": "None"
