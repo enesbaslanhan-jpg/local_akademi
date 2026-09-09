@@ -51,6 +51,7 @@ export default {
           ['Provide courses, Calculations, Decision Tools, and business tracking', 'Business profile and records, learning, calculation, and decision data', 'Performance of a contract (Art. 5/2-c)'],
           ['Provide AI Mentor', 'AI Mentor data and, only where relevant, limited business, course, calculation, and document context', 'Performance of a contract (Art. 5/2-c)'],
           ['Provide community and private messaging', 'Community, support, and private-message data', 'Performance of a contract (Art. 5/2-c)'],
+          ['Measure and improve how the product is used', 'Which steps are completed (signing up, creating a business, adding a record, completing a decision tool) and related technical metadata. Business names, record titles, amounts, and document contents are not processed.', 'EXPLICIT CONSENT (Art. 5/1): the tool never runs unless you allow it, and you can withdraw consent at any time in Settings'],
           ['Operate blocking and complaints', 'Block and complaint records', 'Legitimate interest (Art. 5/2-f): protecting users from harassment and unwanted contact'],
           ['Process documents sent to the dedicated inbox', 'Inbound-email data and records extracted from attachments', 'Performance of a contract (Art. 5/2-c), when you enable the channel'],
           ['Protect accounts and prevent misuse', 'Account, security, and transaction-security data', 'Legitimate interest (Art. 5/2-f)'],
@@ -58,7 +59,7 @@ export default {
           ['Meet legal duties and respond to authorities', 'Relevant data', 'Legal obligation (Art. 5/2-ç)']
         ]
       },
-      son: ['These activities are necessary to provide the service and do not rely on explicit consent. If a new activity requires explicit consent, it will be requested separately and clearly.']
+      son: ['Apart from product analytics, these activities are necessary to provide the service and do not rely on explicit consent. Product analytics is the one activity that runs solely on your explicit consent; declining it does not limit any feature.']
     },
     {
       id: 'toplama-yontemi', baslik: '6. How data is collected',
@@ -74,6 +75,7 @@ export default {
           ['Mistral AI', 'France', 'AI Mentor messages and only the business, document, course, progress, calculation, and model context needed for a response', 'Generating AI responses'],
           ['Google LLC (Gemini API)', 'United States and global infrastructure', 'AI Mentor messages and only the minimised, identifier-masked business, course, calculation, and document context needed for a response', 'Generating AI responses and provider failover'],
           ['NVIDIA Corporation (NVIDIA API Catalog / NIM)', 'United States and global infrastructure', 'AI Mentor messages and only the minimised, identifier-masked business, course, calculation, and document context needed for a response', 'Generating AI responses and provider failover'],
+          ['PostHog (EU Cloud)', 'Germany (EU)', 'Product-usage events and a pseudonymous identifier. Name, email, business name, record titles, amounts, and document contents are not transferred.', 'Measuring how the product is used — only with your explicit consent'],
           ['Resend', 'United States and global subprocessors', 'Name, email address, email content, and support requests when used', 'Verification, password reset, notifications, invitations, and support email'],
           ['Cloudflare', 'Global infrastructure', 'IP address and connection metadata', 'Attack protection and content delivery'],
           ['Shopify', 'Canada and global infrastructure', 'Store identity and authorisation details; imported order and product data', 'Only when you connect a store: importing orders and products']

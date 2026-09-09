@@ -234,6 +234,14 @@ export default {
             'Sözleşmenin ifası (m.5/2-c)'
           ],
           [
+            'Ürünün nasıl kullanıldığını ölçmek ve geliştirmek',
+            'Hangi adımların tamamlandığı (kayıt olma, işletme oluşturma, kayıt girme, ' +
+            'karar aracını tamamlama gibi) ve bunlara ait teknik üstveri. İşletme adı, ' +
+            'kayıt başlığı, tutar gibi ticari veriler ve belge içerikleri işlenmez.',
+            'AÇIK RIZA (m.5/1) — izin vermezseniz ölçüm aracı hiç çalışmaz; izni ' +
+            'dilediğiniz zaman Ayarlar bölümünden geri alabilirsiniz'
+          ],
+          [
             'Engelleme ve şikâyet mekanizmalarını işletmek',
             'Engelleme ve şikâyet kayıtları',
             'Meşru menfaat (m.5/2-f) — kullanıcıların taciz ve istenmeyen iletişimden korunması'
@@ -316,6 +324,13 @@ export default {
             'AI Mentor mesajı ve yalnızca yanıt için gerekli, asgariye indirilmiş ve ' +
             'tanımlayıcıları maskelenmiş işletme, kurs, hesaplama ve belge bağlamı',
             'Yapay zekâ yanıtlarının üretilmesi ve sağlayıcı yedeklemesi'
+          ],
+          [
+            'PostHog (EU Cloud)',
+            'Almanya (AB)',
+            'Ürün kullanım olayları ve bunlara bağlı takma kimlik. Ad, e-posta, ' +
+            'işletme adı, kayıt başlığı, tutar ve belge içeriği aktarılmaz.',
+            'Ürünün nasıl kullanıldığını ölçmek — YALNIZCA açık rızanız varsa'
           ],
           [
             'Resend',

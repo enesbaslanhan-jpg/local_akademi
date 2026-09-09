@@ -6,6 +6,7 @@ import {
   FileSpreadsheet
 } from 'lucide-react'
 import { api } from '@/services/api'
+import { captureAnalytics } from '@/services/analytics'
 import { useToast } from '@/context/ToastContext'
 import { Select } from '@/components/ui'
 import { dosyaPaylas, paylasabilirMi } from '@/utils/dosyaPaylas'
@@ -180,6 +181,18 @@ export default function Tracker() {
         amount: form.amount === '' ? null : Number(form.amount),
         dueAt: form.dueAt ? new Date(form.dueAt).toISOString() : null,
         recurrenceRule: form.recurrenceRule || null
+      })
+      /*
+       * İlk kaydın girilmesi, ürünün gerçekten kullanılmaya başlandığı
+       * an. `records.length === 0` ise bu O AN demek.
+       *
+       * ⚠️ Başlık ve tutar GÖNDERİLMİYOR — ticari veri analitik aracına
+       * taşınmaz. Yalnız tür, yön ve bunun ilk kayıt olup olmadığı.
+       */
+      captureAnalytics('record_created', {
+        record_type: form.type,
+        direction: form.direction,
+        is_first_record: records.length === 0
       })
       setForm(emptyForm)
       setShowForm(false)

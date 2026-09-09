@@ -15,6 +15,18 @@
  *   (b) StorageNotice.jsx içindeki aynı cümle değişmeli,
  *   (c) bildirim, gerçek bir onay bandına dönüşmeli.
  * Üçü AYNI ANDA yapılmazsa ürün kullanıcıya yalan söyler.
+ *
+ * ✅ 10.09.2026 — ÜRÜN ANALİTİĞİ EKLENDİĞİ İÇİN UYGULANDI.
+ *   (a) 4. bölümdeki "analitik aracı çalıştırılmaz" taahhüdü kaldırıldı,
+ *       yerine izne bağlı çalışma ve ölçülenler yazıldı.
+ *   (b)+(c) StorageNotice.jsx bunu zaten yapıyordu: analitik
+ *       yapılandırılınca bildirim gerçek onay bandına dönüşüyor, izin ve
+ *       ret eşit görünürlükte, izin verilmeden SDK hiç yüklenmiyor.
+ *
+ * ⚠️ 1. bölümdeki "çerez yerleştirmez" cümlesi DOĞRU KALDI, silinmedi:
+ * PostHog istemcisi `persistence: 'localStorage'` ile kuruluyor
+ * (services/analytics.js), yani çerez yazmıyor. Doğru olan bir cümleyi
+ * "temkinli olalım" diye kaldırmak, metni gereksizce belirsizleştirirdi.
  */
 
 export default {
@@ -55,6 +67,13 @@ export default {
             'Oturum yenileme anahtarı',
             'Her açılışta yeniden şifre girmenizi önler',
             'Çıkış yaptığınızda; en geç 30 gün sonra'
+          ],
+          [
+            'Ürün analitiği kimliği',
+            'Yalnızca analitiğe izin verdiyseniz yazılır. Aynı kişinin ' +
+            'ziyaretlerini birbirine bağlar; ad, e-posta ya da işletme bilgisi ' +
+            'içermez. İzin vermezseniz hiç oluşturulmaz.',
+            'İzni geri çektiğinizde; ayrıca tarayıcı verilerini temizlediğinizde'
           ],
           [
             'Tema tercihi',
@@ -109,10 +128,22 @@ export default {
 
     {
       id: 'izleme-yok',
-      baslik: '4. Üçüncü taraf izleme bulunmuyor',
+      baslik: '4. Ürün analitiği ve üçüncü taraf izleme',
       paragraflar: [
-        'Uygulamada analitik aracı, reklam ağı, sosyal medya izleyicisi veya benzeri ' +
-        'bir üçüncü taraf izleme kodu çalıştırılmaz.',
+        'Reklam ağı, sosyal medya izleyicisi veya reklam amaçlı izleme kodu ' +
+        'çalıştırılmaz. Bunlar hiçbir koşulda kullanılmaz.',
+        'Ürünün nasıl kullanıldığını anlamak için PostHog adlı ürün analitiği aracı ' +
+        'kullanılır. Bu araç YALNIZCA siz açıkça izin verirseniz çalışır: izin ' +
+        'vermediğiniz sürece aracın kodu tarayıcınıza hiç yüklenmez ve tek bir olay ' +
+        'bile gönderilmez. Seçiminizi daha sonra Ayarlar üzerinden değiştirebilirsiniz.',
+        'İzin verdiğinizde yalnızca ürünü hangi adımlarda kullandığınız ölçülür: ' +
+        'kayıt olma, işletme oluşturma, kayıt girme, karar aracını tamamlama gibi ' +
+        'olaylar. Ölçüm bilinçli olarak dar tutulmuştur — otomatik tıklama yakalama, ' +
+        'ekran kaydı, ısı haritası ve performans izleme KAPALIDIR; sayfa adresleri ve ' +
+        'yönlendiren site bilgisi gönderilmez; ekrandaki metinler maskelenir.',
+        'İşletme adı, kayıt başlığı, tutar gibi ticari veriler ve belge içerikleri ' +
+        'analitik aracına GÖNDERİLMEZ. Tarayıcınızın "izlenmek istemiyorum" (Do Not ' +
+        'Track) ayarı açıksa buna da uyulur.',
         'Kullandığımız yazı tipleri kendi sunucumuzdan sunulur. Daha önce harici bir ' +
         'font servisi kullanılıyordu; bu, giriş sayfasını açan her ziyaretçinin IP ' +
         'adresini o servise göndermek anlamına geldiği için kaldırılmıştır.',

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 import { api } from '@/services/api'
+import { captureAnalytics } from '@/services/analytics'
 import { useAuth } from './AuthContext'
 
 const WorkspaceContext = createContext(null)
@@ -68,9 +69,24 @@ export function WorkspaceProvider({ children }) {
 
   const createWorkspace = useCallback(async (data) => {
     const ws = await api.workspace.create(data)
+    /*
+     * AKTİVASYON ANI — ölçülmeden ürün doğrulanamaz.
+     *
+     * Kayıt olan kullanıcı sayısı tek başına bir şey söylemiyor; asıl
+     * soru "kaçı gerçekten bir işletme kurdu". Bu olay olmadan huninin
+     * en kritik basamağı görünmüyordu.
+     *
+     * ⚠️ İşletme ADI GÖNDERİLMİYOR: analitik aracına iş bilgisi
+     * taşımanın hiçbir faydası yok, riski var. Yalnız sektör ve
+     * kullanıcının kaçıncı işletmesi olduğu.
+     */
+    captureAnalytics('workspace_created', {
+      sector: data?.sector || null,
+      workspace_index: workspaces.length + 1
+    })
     await refreshWorkspaces()
     return ws
-  }, [refreshWorkspaces])
+  }, [refreshWorkspaces, workspaces.length])
 
   const refreshActiveWorkspace = useCallback(async () => {
     if (!activeWorkspaceId) return

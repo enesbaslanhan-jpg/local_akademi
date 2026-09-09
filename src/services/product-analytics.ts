@@ -35,6 +35,29 @@ export function sanitizeProductAnalyticsProperties(properties: Record<string, un
   return safe
 }
 
+/*
+ * 🔴 YALNIZ AB BÖLGESİ KABUL EDİLİYOR.
+ *
+ * Aydınlatma metni (frontend/src/content/legal/privacy.js, "Yurt dışına
+ * aktarım" tablosu) analitik verisinin AB'ye aktarıldığını YAZILI olarak
+ * beyan ediyor. `POSTHOG_HOST` bir çevre değişkeni; yanlışlıkla ABD
+ * bölgesine çevrilirse metin sessizce YANLIŞ BEYAN hâline gelir ve bunu
+ * fark ettirecek hiçbir şey olmaz.
+ *
+ * Bu yüzden bölge kodda kilitli: metinde ne yazıyorsa sunucu ancak oraya
+ * gönderebiliyor. Bölge değişecekse önce metin değişmeli.
+ *
+ * ⚠️ localhost geliştirme için açık; orada gerçek kullanıcı verisi yok.
+ */
+const IZINLI_ANALITIK_SUNUCULARI = [
+  'eu.i.posthog.com',
+  'eu.posthog.com'
+]
+
+export function analitikSunucusuIzinli(hostname: string): boolean {
+  return IZINLI_ANALITIK_SUNUCULARI.includes(hostname) || hostname === 'localhost'
+}
+
 function getClient(): PostHog | null {
   if (client !== undefined) return client
   const enabled = (process.env.PRODUCT_ANALYTICS_ENABLED || '').trim().toLowerCase() === 'true'
@@ -47,6 +70,16 @@ function getClient(): PostHog | null {
   try {
     const url = new URL(host)
     if (url.protocol !== 'https:' && url.hostname !== 'localhost') {
+      client = null
+      return null
+    }
+    if (!analitikSunucusuIzinli(url.hostname)) {
+      /* Sessizce kapatmak yetmez: yanlış bölge YAZILI BEYANLA çelişir,
+         kurulumu yapan kişinin bunu görmesi gerekir. */
+      console.error(
+        '[analytics] POSTHOG_HOST AB bölgesinde değil: ' + url.hostname +
+        ' -- aydınlatma metni AB beyan ediyor, analitik KAPATILDI.'
+      )
       client = null
       return null
     }

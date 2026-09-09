@@ -18,6 +18,7 @@ export default {
         satirlar: [
           ['Access token', 'Confirms that you are signed in and authenticates each request', 'When you sign out; it also expires automatically after 8 hours'],
           ['Refresh token', 'Avoids requiring your password again every time the application opens', 'When you sign out; no later than 30 days'],
+          ['Product-analytics identifier', 'Written only if you have allowed analytics. Links visits by the same person; contains no name, email, or business information. Never created if you decline.', 'When you withdraw consent; also when you clear browser data'],
           ['Theme preference', 'Remembers your light or dark appearance choice', 'Until you clear browser data'],
           ['Menu layout', 'Remembers whether you collapsed the side menu', 'Until you clear browser data'],
           ['Storage-notice status', 'Remembers that you dismissed the browser-storage notice', 'Until you clear browser data'],
@@ -38,9 +39,12 @@ export default {
     },
     {
       id: 'izleme-yok',
-      baslik: '4. No third-party tracking',
+      baslik: '4. Product analytics and third-party tracking',
       paragraflar: [
-        'The application does not run analytics tools, advertising networks, social-media trackers, or similar third-party tracking code.',
+        'No advertising network, social-media tracker, or advertising-related tracking code is used. These are never used under any circumstance.',
+        'A product-analytics tool called PostHog is used to understand how the product is used. It runs ONLY if you explicitly consent: until you do, the tool’s code is never loaded into your browser and not a single event is sent. You can change this choice later in Settings.',
+        'When you consent, only the steps you take in the product are measured: signing up, creating a business, adding a record, completing a decision tool, and similar events. The measurement is deliberately narrow — automatic click capture, session recording, heatmaps, and performance tracking are DISABLED; page addresses and referring sites are not sent; on-screen text is masked.',
+        'Commercial data such as business names, record titles, and amounts, along with document contents, are NOT sent to the analytics tool. Your browser’s Do Not Track setting is also respected.',
         'Fonts are served from our own server. An external font service used in the past was removed because it disclosed each visitor’s IP address to that provider.',
         'If a tracking feature is introduced later, this policy will be updated, users will be informed, and the required preference controls will be provided. Tracking will not be added silently.'
       ]
