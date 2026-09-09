@@ -7,6 +7,7 @@
     "documents": "Belgeler",
     "notifications": "Bildirimler",
     "calendar": "Takvim",
+    "decisions": "Karar Raporu",
     "team": "Ekip",
     "contacts": "Kişiler",
     "activity": "Aktiviteler",
@@ -166,6 +167,13 @@
     "preparing": "İşletme bilgileri hazırlanıyor…",
     "marketplaceOp": "Pazaryeri operasyonu",
     "noUpcoming": "Yaklaşan açık yükümlülük yok.",
+    "decisionTasks": {
+      "label": "Karar takibi",
+      "title": "Kararlardan gelen görevler",
+      "report": "Karar raporu",
+      "awaitingOutcome": "Sonucu bekliyor",
+      "noDecisionTitle": "Karar başlığı kayıtlı değil"
+    },
     "activity": "Son hareketler",
     "noActivity": "Henüz işletme hareketi yok.",
     "marketplaceSummary": "Pazaryeri Özeti",
@@ -477,6 +485,47 @@
     "notes": "Notlar",
     "saving": "Kaydediliyor...",
     "save": "Kaydet"
+  },
+  "decisionReport": {
+    "title": "Karar Raporu",
+    "subtitle": "Hedeflediğin sonuçla gerçekleşeni yan yana gör.",
+    "total": "Karar sayısı",
+    "reviewed": "Sonucu yazılan",
+    "pending": "Sonucu bekleyen",
+    "filterLabel": "Karar süzgeci",
+    "filter": {
+      "hepsi": "Hepsi",
+      "bekleyen": "Sonucu bekleyen",
+      "degerlendirilen": "Sonucu yazılan"
+    },
+    "expected": "Hedeflenen",
+    "actual": "Gerçekleşen",
+    "notYet": "Henüz yazılmadı",
+    "variance": "Sapma:",
+    "lesson": "Çıkarılan ders:",
+    "decidedAt": "Karar: {{date}}",
+    "reviewedAt": "Değerlendirme: {{date}}",
+    "openTask": "Görevi aç",
+    "source": {
+      "followUp": "Karar aracı",
+      "journal": "Finansal model"
+    },
+    "loading": "Kararlar getiriliyor…",
+    "loadError": "Karar raporu yüklenemedi.",
+    "empty": "Henüz takibe alınmış karar yok. Karar araçlarında bir karar verip görevi bağladığında burada görünür.",
+    "emptyFiltered": "Bu süzgeçle eşleşen karar yok.",
+    "analysis": {
+      "title": "Yönetici analizi",
+      "note": "Kararın \"başarılı\" olup olmadığı hesaplanmıyor: hedeflenen ve gerçekleşen serbest metin, farkları programla ölçülemez. Aşağıdaki sayılar ölçülebilenler — kararın takip edilip edilmediği ve görevin zamanında bitip bitmediği. Başarı hükmü metinleri okuyana ait.",
+      "tracked": "Sonucu yazılan karar",
+      "unassigned": "Sorumlusu olmayan kayıt",
+      "person": "Kişi",
+      "assigned": "Atanan",
+      "completed": "Tamamlanan",
+      "onTime": "Zamanında",
+      "overdue": "Geciken",
+      "noAssignees": "Henüz kimseye görev atanmamış."
+    }
   },
   "calendar": {
     "monthEmpty": "Bu ay için tarihli kayıt bulunmuyor.",

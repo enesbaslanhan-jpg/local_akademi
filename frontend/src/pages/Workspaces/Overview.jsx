@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   AlertTriangle, ArrowRight, Building2, CalendarDays, FileSignature,
-  HandCoins, Package, Receipt, Truck, WalletCards
+  HandCoins, Package, Receipt, Scale, Truck, WalletCards
 } from 'lucide-react'
 import { api } from '@/services/api'
 import { useWorkspace } from '@/context/WorkspaceContext'
@@ -115,6 +115,7 @@ export default function Overview() {
   const [documents, setDocuments] = useState([])
   const [activities, setActivities] = useState([])
   const [operations, setOperations] = useState(null)
+  const [kararGorevleri, setKararGorevleri] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -128,14 +129,26 @@ export default function Overview() {
       api.workspace.documents.list(workspaceId).catch(() => ({ documents: [] })),
       api.workspace.activity.list(workspaceId, { limit: 8 }).catch(() => ({ items: [] })),
       // Ortak operations servisi: hata olursa marketplace bloklari sessizce gizlenir.
-      api.marketplace.operations(workspaceId).catch(() => null)
-    ]).then(([summaryData, listData, documentData, activityData, operationsData]) => {
+      api.marketplace.operations(workspaceId).catch(() => null),
+      /*
+       * KARARDAN DOĞAN GÖREVLER.
+       *
+       * Sunucuda süzülüyor, burada değil: yukarıdaki genel liste
+       * varsayılan olarak 50 kayıt getiriyor ve karar görevi 51.
+       * sırada kalırsa bölüm sessizce boş görünürdü.
+       *
+       * Hata yutuluyor; bu bölüm ana sayfanın geri kalanını
+       * düşürmemeli.
+       */
+      api.workspace.tracker.list(workspaceId, { kararKaynakli: 'true', limit: 20 }).catch(() => ({ records: [] }))
+    ]).then(([summaryData, listData, documentData, activityData, operationsData, kararData]) => {
       if (!active) return
       setSummary(summaryData)
       setRecords(listData.records || [])
       setDocuments(documentData.documents || [])
       setActivities(activityData.items || [])
       setOperations(operationsData)
+      setKararGorevleri(kararData.records || [])
     }).catch(err => {
       if (active) setError(err.message || t('workspace:overview.loadError'))
     }).finally(() => {
@@ -155,6 +168,34 @@ export default function Overview() {
     .sort((a, b) => new Date(a.dueAt || '9999-12-31') - new Date(b.dueAt || '9999-12-31'))
     .slice(0, 5)
   const recentActivity = activities.slice(0, 5)
+
+  /*
+   * KARARDAN DOĞAN GÖREVLER — açık olanlar önce, sonra sonucu
+   * beklenenler.
+   *
+   * "Sonucu bekleyen": görev bitmiş ama gerçekleşen sonuç hâlâ
+   * yazılmamış. Karar takibinin bütün anlamı bu adımda; kararı verip
+   * görevi bitirip sonucu hiç yazmazsan geriye dönüp öğrenecek bir şey
+   * kalmıyor. Bu yüzden bitmiş görevler listeden DÜŞMÜYOR, "sonucu
+   * bekliyor" diye kalıyorlar.
+   */
+  const kararSatirlari = kararGorevleri
+    .map(record => {
+      const takip = record.metadata?.decisionFollowUp || {}
+      const bitti = ['completed', 'cancelled'].includes(record.status)
+      return {
+        record,
+        kararBasligi: takip.decisionTitle || null,
+        beklenen: takip.expectedOutcome || null,
+        sonucBekliyor: bitti && !takip.actualOutcome,
+        kapandi: bitti && Boolean(takip.actualOutcome)
+      }
+    })
+    /* Sonucu yazılmış ve bitmiş kararlar ana sayfada yer kaplamıyor;
+       onların yeri karar raporu. */
+    .filter(satir => !satir.kapandi)
+    .sort((a, b) => Number(a.sonucBekliyor) - Number(b.sonucBekliyor))
+    .slice(0, 5)
   const latestChange = recentActivity[0]?.createdAt || records[0]?.updatedAt || records[0]?.createdAt
 
   /* ---- Marketplace (ortak operations servisi). Bağlı degilse tum
@@ -246,6 +287,48 @@ export default function Overview() {
           {recentActivity.length ? <div className={styles.activityList}>{recentActivity.map(item => <article key={item.id}><i /><div><strong>{activityLabelFor(item, t) || t('workspace:activity.created')}{isMarketplaceActivity(item) && providerSourceLabel(item) ? <em className={styles.feedSource}>{providerSourceLabel(item)}</em> : null}</strong><small>{localDate(item.createdAt)}</small></div></article>)}</div> : recentRecords.length ? <div className={styles.activityList}>{recentRecords.map(record => <article key={record.id}><i /><div><strong>{record.title}</strong><small>{localDate(record.updatedAt || record.createdAt)}</small></div></article>)}</div> : <p className={styles.inlineState}>{t('workspace:overview.feed.noActivity')}</p>}
         </aside>
       </div>
+
+      {/*
+        * KARARLARDAN GELEN GÖREVLER.
+        *
+        * 🔴 Bu bölüm YOKTU. Karar aracında alınan karar bir göreve
+        * bağlanıyordu (metadata.decisionFollowUp), ama o ekrandan
+        * çıkınca görev sıradan bir kayda dönüşüyordu: hangi karardan
+        * doğduğu ve ne beklendiği bir daha hiçbir yerde görünmüyordu.
+        *
+        * Hiç karar görevi yoksa bölüm ÇİZİLMİYOR — boş bir kutu, ana
+        * sayfada yer kaplamaktan başka bir şey yapmaz.
+        */}
+      {kararSatirlari.length > 0 && (
+        <section className={styles.obligationsPanel} aria-label={t('workspace:overview.decisionTasks.title')}>
+          <div className={styles.panelTitle}>
+            <div><span><Scale size={14} aria-hidden="true" /> {t('workspace:overview.decisionTasks.label')}</span><h3>{t('workspace:overview.decisionTasks.title')}</h3></div>
+            <button onClick={() => navigate(`/app/workspaces/${workspaceId}/decisions`)}>{t('workspace:overview.decisionTasks.report')} <ArrowRight size={15} /></button>
+          </div>
+          <div className={styles.obligationList}>
+            {/* Kayıt detayı ayrı bir rota DEĞİL, takip listesinin içinde
+                açılan panel; `?record=` onu açıyor. */}
+            {kararSatirlari.map(({ record, kararBasligi, beklenen, sonucBekliyor }) => (
+              <button key={record.id} onClick={() => navigate(`/app/workspaces/${workspaceId}/tracker?record=${record.id}`)}>
+                <span>
+                  <strong>{record.title}</strong>
+                  {/* Karar başlığı yoksa UYDURULMUYOR; beklenen sonuç
+                      yazılıysa o gösteriliyor, o da yoksa satır sade
+                      kalıyor. */}
+                  <small>{kararBasligi || beklenen || t('workspace:overview.decisionTasks.noDecisionTitle')}</small>
+                </span>
+                <span>{localDate(record.dueAt)}</span>
+                <em className={sonucBekliyor ? styles.attention : ''}>
+                  {sonucBekliyor
+                    ? t('workspace:overview.decisionTasks.awaitingOutcome')
+                    : record.overdue ? t('workspace:tracker.overdue') : t(`workspace:status.${record.status}`) || record.status}
+                </em>
+                <ArrowRight size={14} />
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* PAZARYERI ÖZETİ — kompakt kart; bağlantı yoksa hiç çizilmez. */}
       {mktSummary && (

@@ -7,6 +7,7 @@
     "documents": "Documents",
     "notifications": "Notifications",
     "calendar": "Calendar",
+    "decisions": "Decision Report",
     "team": "Team",
     "contacts": "Contacts",
     "activity": "Activity",
@@ -166,6 +167,13 @@
     "preparing": "Loading business data…",
     "marketplaceOp": "Marketplace operation",
     "noUpcoming": "No upcoming open obligations.",
+    "decisionTasks": {
+      "label": "Decision follow-up",
+      "title": "Tasks from decisions",
+      "report": "Decision report",
+      "awaitingOutcome": "Awaiting outcome",
+      "noDecisionTitle": "No decision title recorded"
+    },
     "activity": "Recent activity",
     "noActivity": "No business activity yet.",
     "marketplaceSummary": "Marketplace Summary",
@@ -477,6 +485,47 @@
     "notes": "Notes",
     "saving": "Saving...",
     "save": "Save"
+  },
+  "decisionReport": {
+    "title": "Decision Report",
+    "subtitle": "See the outcome you aimed for next to what actually happened.",
+    "total": "Decisions",
+    "reviewed": "Outcome recorded",
+    "pending": "Awaiting outcome",
+    "filterLabel": "Decision filter",
+    "filter": {
+      "hepsi": "All",
+      "bekleyen": "Awaiting outcome",
+      "degerlendirilen": "Outcome recorded"
+    },
+    "expected": "Expected",
+    "actual": "Actual",
+    "notYet": "Not recorded yet",
+    "variance": "Variance:",
+    "lesson": "Lesson learned:",
+    "decidedAt": "Decided: {{date}}",
+    "reviewedAt": "Reviewed: {{date}}",
+    "openTask": "Open task",
+    "source": {
+      "followUp": "Decision tool",
+      "journal": "Financial model"
+    },
+    "loading": "Loading decisions…",
+    "loadError": "Could not load the decision report.",
+    "empty": "No decisions are being tracked yet. Once you make a decision in the decision tools and link a task, it shows up here.",
+    "emptyFiltered": "No decisions match this filter.",
+    "analysis": {
+      "title": "Manager analysis",
+      "note": "Whether a decision \"succeeded\" is not computed: the expected and actual outcomes are free text, and their difference cannot be measured programmatically. The numbers below are the measurable ones — whether the decision was followed up and whether the task finished on time. Judging success is up to whoever reads the text.",
+      "tracked": "Decisions with an outcome",
+      "unassigned": "Records with no assignee",
+      "person": "Person",
+      "assigned": "Assigned",
+      "completed": "Completed",
+      "onTime": "On time",
+      "overdue": "Overdue",
+      "noAssignees": "No tasks have been assigned to anyone yet."
+    }
   },
   "calendar": {
     "monthEmpty": "No dated records for this month.",

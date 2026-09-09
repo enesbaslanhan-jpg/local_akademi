@@ -199,4 +199,45 @@ describe('Phase 6 financial model routes', () => {
     expect(reviewed.statusCode).toBe(200)
     expect(reviewed.json().reviewedAt).toBeTruthy()
   })
+
+  /*
+   * 🔴 KARAR GÜNLÜĞÜ YAZILIYOR AMA OKUNAMIYORDU.
+   *
+   * POST ve PATCH vardı, GET yoktu. Yani kullanıcı kararını ve
+   * sonucunu giriyor, o veri veritabanında kalıyor ve arayüzde bir
+   * daha hiçbir yerde görünmüyordu.
+   */
+  it('kaydedilen kararı geri okuyor', async () => {
+    const response = await inject('GET', `/workspaces/${workspaceId}/decision-journal`, ownerToken)
+    expect(response.statusCode).toBe(200)
+    const govde = response.json()
+    const kayit = govde.entries.find((entry: any) => entry.id === decisionId)
+    expect(kayit, 'kaydedilen karar listede yok').toBeTruthy()
+    expect(kayit.expectedOutcome).toBe('Cari oranı üç ay içinde 2,2 seviyesine çıkar.')
+    expect(kayit.actualOutcome).toBe('Cari oran 2,1 seviyesine çıktı.')
+    /* Rapor "hangi modelden çıktı" diyebilsin diye çalışma da geliyor. */
+    expect(kayit.modelRun.model.code).toBeTruthy()
+  })
+
+  it('özet, filtreden bağımsız toplamı veriyor', async () => {
+    /* Filtre uygulanınca toplam da düşseydi "5 karardan 2'si
+       değerlendirildi" cümlesi yanlış çıkardı. */
+    const hepsi = await inject('GET', `/workspaces/${workspaceId}/decision-journal`, ownerToken)
+    const suzulmus = await inject('GET', `/workspaces/${workspaceId}/decision-journal?durum=bekleyen`, ownerToken)
+    expect(suzulmus.statusCode).toBe(200)
+    expect(suzulmus.json().ozet.toplam).toBe(hepsi.json().ozet.toplam)
+    /* Yukarıdaki test kararı değerlendirdi; bekleyenlerde çıkmamalı. */
+    expect(suzulmus.json().entries.some((entry: any) => entry.id === decisionId)).toBe(false)
+  })
+
+  it('görüntüleyici geçmiş kararları okuyabiliyor', async () => {
+    /* Okumak karar vermek değil; viewer'a kapatmak geçmişi gizlerdi. */
+    const response = await inject('GET', `/workspaces/${workspaceId}/decision-journal`, viewerToken)
+    expect(response.statusCode).toBe(200)
+  })
+
+  it('başka işletmenin karar günlüğünü vermiyor', async () => {
+    const response = await inject('GET', `/workspaces/${workspaceId}/decision-journal`, otherToken)
+    expect(response.statusCode).toBe(403)
+  })
 })

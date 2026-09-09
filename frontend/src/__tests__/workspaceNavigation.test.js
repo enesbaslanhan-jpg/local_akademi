@@ -17,6 +17,10 @@ const EXPECTED = [
   ['documents', 'workspace:nav.documents'],
   ['notifications', 'workspace:nav.notifications'],
   ['calendar', 'workspace:nav.calendar'],
+  /* 09.09.2026'da eklendi: karar raporu. Bu liste bölümlerin sessizce
+     kaybolmasını/yer değiştirmesini engelliyor; yeni bölüm eklemek
+     bilinçli bir ürün kararı ve burada da yazılıyor. */
+  ['decisions', 'workspace:nav.decisions'],
   ['team', 'workspace:nav.team'],
   ['contacts', 'workspace:nav.contacts'],
   ['activity', 'workspace:nav.activity'],

@@ -3,7 +3,7 @@ import type { Prisma, PrismaClient } from '@prisma/client'
 import { z } from 'zod'
 import { readFile } from 'fs/promises'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
-import { processDueBusinessReminders, syncAutomaticReminder } from './business-reminder-worker.js'
+import { atamaBildirimi, processDueBusinessReminders, syncAutomaticReminder } from './business-reminder-worker.js'
 import { buildDocumentSuggestion, oneriKaydet } from './document-suggestions.js'
 import { yuklemeYoluCoz, exceljsYukle } from './documents.js'
 
@@ -559,6 +559,100 @@ export async function businessTrackerRoutes(
     }
   })
 
+  /*
+   * YÖNETİCİ ANALİZİ — görev tamamlama ve karar takibi.
+   *
+   * 🔴 "KARAR BAŞARISI" ORANI HESAPLANMIYOR ve hesaplanamaz.
+   *
+   * Beklenen ve gerçekleşen sonuç SERBEST METİN. "Cari oranı 2,2'ye
+   * çıkar" ile "2,1 oldu" arasındaki farkı programla ölçmenin yolu
+   * yok. Buna rağmen bir yüzde üretmek — mesela sonucu yazılmış her
+   * kararı "başarılı" saymak — yöneticiye uydurma bir sayı vermek
+   * olurdu ve o sayıya bakarak karar verirdi.
+   *
+   * Bunun yerine ÖLÇÜLEBİLEN şey veriliyor: kararın takip edilip
+   * edilmediği (sonucu yazılmış mı), doğan görevin bitirilip
+   * bitirilmediği ve zamanında bitirilip bitirilmediği. Bunlar gerçek
+   * ölçüler; "başarı" ise yöneticinin metinleri okuyup vereceği hüküm.
+   *
+   * ⚠️ YALNIZ SAHİP VE YÖNETİCİ görebiliyor: kişi kişi tamamlama
+   * oranı bir performans ölçüsü; ekipteki herkese açmak istenmedi.
+   */
+  fastify.get('/:workspaceId/tracker/analysis', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId } = request.params as { workspaceId: string }
+    const member = await access(prisma, user.id, workspaceId, reply)
+    if (!member) return
+    if (!['owner', 'manager'].includes(normalizeRole(member.role))) {
+      return reply.status(403).send({ error: 'Insufficient permissions' })
+    }
+
+    const simdi = new Date()
+    const kayitlar = await prisma.businessRecord.findMany({
+      where: { workspaceId, archivedAt: null },
+      select: {
+        status: true, dueAt: true, completedAt: true, metadata: true,
+        assignedToId: true, createdById: true,
+        assignedTo: { select: { id: true, name: true } }
+      }
+    })
+
+    /* Sorumlusu olmayan kayıtlar kimsenin oranına yazılmıyor: onları
+       yaratana saymak, atamadığı bir işten sorumlu tutmak olurdu. */
+    const kisiler = new Map<number, { userId: number; name: string; toplam: number; tamamlanan: number; zamaninda: number; geciken: number }>()
+    for (const kayit of kayitlar) {
+      if (!kayit.assignedToId) continue
+      const mevcut = kisiler.get(kayit.assignedToId) ?? {
+        userId: kayit.assignedToId,
+        name: kayit.assignedTo?.name ?? '—',
+        toplam: 0, tamamlanan: 0, zamaninda: 0, geciken: 0
+      }
+      mevcut.toplam += 1
+      if (kayit.status === 'completed') {
+        mevcut.tamamlanan += 1
+        /* Vadesi olmayan iş "zamanında" sayılıyor: geciktiği
+           söylenebilecek bir tarih yok. */
+        if (!kayit.dueAt || (kayit.completedAt && kayit.completedAt <= kayit.dueAt)) mevcut.zamaninda += 1
+      } else if (kayit.dueAt && kayit.dueAt < simdi && kayit.status !== 'cancelled') {
+        mevcut.geciken += 1
+      }
+      kisiler.set(kayit.assignedToId, mevcut)
+    }
+
+    /* Karar takibi iki kaynaktan: karar aracı görevleri ve finansal
+       model karar günlüğü. İkisi de "verilen karar"; ayrı raporlamak
+       aynı soruyu iki yerde sordururdu. */
+    const kararGorevleri = kayitlar.filter(kayit => {
+      const meta = parseJson(kayit.metadata) as any
+      return Boolean(meta?.decisionFollowUp)
+    })
+    const sonucuYazilanGorev = kararGorevleri.filter(kayit => {
+      const meta = parseJson(kayit.metadata) as any
+      return Boolean(meta?.decisionFollowUp?.actualOutcome)
+    }).length
+
+    const [gunlukToplam, gunlukDegerlendirilen] = await prisma.$transaction([
+      prisma.decisionJournalEntry.count({ where: { businessId: workspaceId } }),
+      prisma.decisionJournalEntry.count({ where: { businessId: workspaceId, NOT: { reviewedAt: null } } })
+    ])
+
+    const kararToplam = kararGorevleri.length + gunlukToplam
+    const kararTakipEdilen = sonucuYazilanGorev + gunlukDegerlendirilen
+
+    return {
+      gorevler: {
+        toplam: kayitlar.length,
+        atanmamis: kayitlar.filter(kayit => !kayit.assignedToId).length,
+        kisiler: [...kisiler.values()].sort((a, b) => b.toplam - a.toplam)
+      },
+      kararlar: {
+        toplam: kararToplam,
+        takipEdilen: kararTakipEdilen,
+        bekleyen: kararToplam - kararTakipEdilen
+      }
+    }
+  })
+
   fastify.get('/:workspaceId/records', async (request, reply) => {
     const user = request.user as { id: number }
     const { workspaceId } = request.params as { workspaceId: string }
@@ -572,17 +666,26 @@ export async function businessTrackerRoutes(
       to: z.string().datetime().optional(),
       q: z.string().trim().max(200).optional(),
       decisionSessionId: z.string().uuid().optional(),
+      /* Karardan doğan görevler. `decisionSessionId` TEK bir karar
+         oturumunu süzüyor; bu ise "kaynağı ne olursa olsun bir karara
+         bağlı olanlar" demek — ana sayfadaki bölüm ve karar raporu
+         ikisi de bunu soruyor. */
+      /* ⚠️ `z.coerce.boolean()` DEĞİL: o, "false" dizesini de true'ya
+         çeviriyor (boş olmayan her dize true). Sorgu dizesi her zaman
+         metin taşıdığı için filtre kapatılamaz hâle gelirdi. */
+      kararKaynakli: z.enum(['true', 'false']).optional(),
       limit: z.coerce.number().int().min(1).max(100).default(50),
       offset: z.coerce.number().int().min(0).default(0)
     }).safeParse(request.query)
     if (!query.success) return reply.status(422).send({ error: 'Invalid filters', details: query.error.errors })
 
-    const { type, status, direction, from, to, q, decisionSessionId, limit, offset } = query.data
+    const { type, status, direction, from, to, q, decisionSessionId, kararKaynakli, limit, offset } = query.data
     const where: Prisma.BusinessRecordWhereInput = {
       workspaceId,
       archivedAt: null,
       ...(type ? { type } : {}),
       ...(decisionSessionId ? { metadata: { contains: `"decisionSessionId":"${decisionSessionId}"` } } : {}),
+      ...(kararKaynakli === 'true' && !decisionSessionId ? { metadata: { contains: '"decisionFollowUp"' } } : {}),
       ...(status ? { status } : {}),
       ...(direction ? { direction } : {}),
       ...(from || to ? { dueAt: { ...(from ? { gte: new Date(from) } : {}), ...(to ? { lte: new Date(to) } : {}) } } : {}),
@@ -641,6 +744,7 @@ export async function businessTrackerRoutes(
         data: { workspaceId, actorId: user.id, action: 'record.created', entityType: 'business_record', entityId: created.id }
       })
       await syncAutomaticReminder(tx, created)
+      await atamaBildirimi(tx, created, null, user.id)
       return created
     })
     return reply.status(201).send(recordJson(record))
@@ -735,6 +839,7 @@ export async function businessTrackerRoutes(
         }
       })
       await syncAutomaticReminder(tx, result)
+      await atamaBildirimi(tx, result, previous.assignedToId, user.id)
       if (input.status === 'completed') {
         await createNextRecurringRecord(tx, result, user.id)
       }

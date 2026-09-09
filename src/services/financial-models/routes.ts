@@ -227,6 +227,67 @@ export async function financialModelRoutes(fastify: FastifyInstance) {
     return { runs: parsed.data.runIds.map(id => runs.find(run => run.id === id)) }
   })
 
+  /*
+   * KARAR GÜNLÜĞÜ — OKUMA.
+   *
+   * 🔴 Bu uç YOKTU. Kayıt (POST) ve sonuç güncelleme (PATCH) vardı,
+   * okuma yoktu: kullanıcı kararını yazıyor, sonucunu giriyor ve o
+   * veriyi BİR DAHA HİÇBİR YERDE GÖREMİYORDU. Karar günlüğünün bütün
+   * anlamı geriye dönüp "ne bekliyordum, ne oldu" diye bakabilmek;
+   * yazılıp okunamayan bir günlük, günlük değil.
+   *
+   * Görüntüleyici de okuyabiliyor (write=false): geçmiş kararları
+   * okumak, karar vermek değil.
+   *
+   * ⚠️ `variance` SUNUCUDA HESAPLANMIYOR, kullanıcı yazıyor. Beklenen
+   * ve gerçekleşen serbest metin; ikisinin farkını sayısal olarak
+   * çıkarmak mümkün değil. Uydurulmuyor.
+   */
+  fastify.get('/workspaces/:workspaceId/decision-journal', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId } = request.params as { workspaceId: string }
+    if (!await membership(user.id, workspaceId)) return reply.status(403).send({ error: 'Bu işletmenin karar günlüğünü göremezsiniz.' })
+
+    const parsed = z.object({
+      /* Yalnız değerlendirilmemiş kararlar: "hangilerine dönmem
+         gerekiyor" sorusunun cevabı, rapor ekranının varsayılan işi. */
+      durum: z.enum(['hepsi', 'bekleyen', 'degerlendirilen']).default('hepsi'),
+      limit: z.coerce.number().int().min(1).max(200).default(100),
+    }).safeParse(request.query)
+    if (!parsed.success) return reply.status(422).send({ error: 'Karar günlüğü sorgusu geçersiz.' })
+
+    const durumKosulu = parsed.data.durum === 'bekleyen' ? { reviewedAt: null }
+      : parsed.data.durum === 'degerlendirilen' ? { NOT: { reviewedAt: null } }
+      : {}
+
+    const [entries, toplam, degerlendirilen] = await prisma.$transaction([
+      prisma.decisionJournalEntry.findMany({
+        where: { businessId: workspaceId, ...durumKosulu },
+        orderBy: { createdAt: 'desc' },
+        take: parsed.data.limit,
+        include: {
+          user: { select: { id: true, name: true } },
+          modelRun: {
+            select: {
+              id: true, scenarioName: true, createdAt: true,
+              model: { select: { code: true, name: true, category: true } },
+            },
+          },
+        },
+      }),
+      prisma.decisionJournalEntry.count({ where: { businessId: workspaceId } }),
+      prisma.decisionJournalEntry.count({ where: { businessId: workspaceId, NOT: { reviewedAt: null } } }),
+    ])
+
+    return {
+      entries,
+      /* Özet sunucuda: aynı sayı arayüzde tekrar hesaplanırsa filtre
+         uygulandığında toplam da değişir ve "5 karardan 2'si
+         değerlendirildi" cümlesi yanlış çıkar. */
+      ozet: { toplam, degerlendirilen, bekleyen: toplam - degerlendirilen },
+    }
+  })
+
   fastify.post('/workspaces/:workspaceId/decision-journal', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const user = request.user as { id: number }
     const { workspaceId } = request.params as { workspaceId: string }

@@ -622,6 +622,12 @@ export const api = {
     async compare(workspaceId, runIds) {
       return api.request(`/workspaces/${workspaceId}/financial-model-runs/compare`, { method: 'POST', body: JSON.stringify({ runIds }) });
     },
+    /* Karar günlüğünü GERİ OKUMA. Uzun süre yalnız yazma uçları
+       vardı; kullanıcı kararını ve sonucunu giriyor, bir daha hiçbir
+       yerde göremiyordu. */
+    async decisionJournal(workspaceId, filters = {}) {
+      return api.request(`/workspaces/${workspaceId}/decision-journal${buildQuery(filters)}`);
+    },
     async saveDecision(workspaceId, data) {
       return api.request(`/workspaces/${workspaceId}/decision-journal`, { method: 'POST', body: JSON.stringify(data) });
     },
@@ -1242,6 +1248,11 @@ export const api = {
     tracker: {
       async summary(workspaceId) {
         return api.request(`/workspaces/${workspaceId}/tracker/summary`)
+      },
+      /* Yalnız sahip/yönetici; diğer roller 403 alır ve panel hiç
+         çizilmez. */
+      async analysis(workspaceId) {
+        return api.request(`/workspaces/${workspaceId}/tracker/analysis`)
       },
       async calendar(workspaceId, from, to) {
         const q = buildQuery({ from, to })

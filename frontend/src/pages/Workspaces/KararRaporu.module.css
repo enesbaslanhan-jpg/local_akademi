@@ -1,0 +1,65 @@
+.page { display: grid; gap: 18px; }
+
+.heading h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; }
+.heading p { margin: 0; color: var(--text-secondary); }
+
+.metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.metrics span { display: grid; gap: 4px; padding: 13px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 11px; }
+.metrics small { color: var(--text-secondary); }
+.metrics strong { font-size: 1.3rem; }
+
+.filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.filters button { padding: 8px 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-panel); color: var(--text-secondary); font-size: .85rem; cursor: pointer; }
+.filters button:hover { color: var(--text); }
+.filterActive { color: var(--theme-on-primary); border-color: var(--primary); background: var(--primary); font-weight: var(--font-weight-semibold); }
+
+.list { display: grid; gap: 12px; }
+
+.card { display: grid; gap: 10px; padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-panel); }
+.cardHead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.cardHead strong { display: block; }
+.cardHead small { display: block; margin-top: 3px; color: var(--text-secondary); }
+.source { flex: 0 0 auto; padding: 3px 9px; border: 1px solid var(--border); border-radius: 999px; font-size: .72rem; color: var(--text-secondary); }
+
+/* İki sütun: hedeflenen ve gerçekleşen aynı anda görünsün. Dar ekranda
+   alt alta düşüyor; orada da sıralama hedeften sonuca. */
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.compare > div { padding: 11px; border-radius: 9px; background: var(--bg-secondary); min-width: 0; }
+.compare span { display: block; margin-bottom: 4px; font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--text-secondary); }
+.compare p { margin: 0; overflow-wrap: anywhere; }
+.awaiting p { color: var(--text-secondary); font-style: italic; }
+
+.variance, .lesson { margin: 0; font-size: .9rem; overflow-wrap: anywhere; }
+.variance span, .lesson span { font-weight: 700; color: var(--text-secondary); }
+
+.cardFoot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.cardFoot small { color: var(--text-secondary); }
+.cardFoot button { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-secondary); color: var(--text); cursor: pointer; }
+
+.state { padding: 26px; text-align: center; color: var(--text-secondary); border: 1px dashed var(--border); border-radius: 12px; }
+.error { padding: 12px 14px; border: 1px solid var(--danger); border-radius: 10px; color: var(--danger); }
+
+@media (max-width: 720px) {
+  .metrics { grid-template-columns: 1fr; }
+  .compare { grid-template-columns: 1fr; }
+}
+
+/* ---------- Yönetici analizi ---------- */
+.analysis { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-panel); }
+.analysis h3 { margin: 0; font-size: 1rem; }
+.analysisNote { margin: 0; font-size: .85rem; color: var(--text-secondary); }
+.analysisMetrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.analysisMetrics span { display: grid; gap: 3px; padding: 11px; background: var(--bg-secondary); border-radius: 9px; }
+.analysisMetrics small { color: var(--text-secondary); font-size: .78rem; }
+.analysisEmpty { margin: 0; color: var(--text-secondary); }
+
+/* Dar ekranda tablo KENDİ içinde kayıyor; sayfa yana kaymıyor. */
+.table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
+.table th, .table td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.table thead th { font-size: .76rem; text-transform: uppercase; letter-spacing: .03em; color: var(--text-secondary); }
+.table tbody th { font-weight: var(--font-weight-semibold); }
+.overdue { color: var(--danger); font-weight: 700; }
+
+@media (max-width: 720px) {
+  .analysisMetrics { grid-template-columns: 1fr; }
+}

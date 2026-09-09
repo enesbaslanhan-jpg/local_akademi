@@ -3,6 +3,14 @@ import { prisma as sharedPrisma } from '../lib/prisma.js'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
+/*
+ * Hatırlatmanın türü dedupeKey ÖNEKİNDEN okunuyor, ayrı bir sütundan
+ * değil. Şema zaten iptal etmeyi bu önekle yapıyordu; tür için yeni
+ * sütun açmak üretimde geçiş (migration) gerektirirdi ve kazancı yok.
+ */
+const YAKLASAN_ONEK = 'auto:'
+const GECIKEN_ONEK = 'overdue:'
+
 type ReminderTransaction = Prisma.TransactionClient
 
 export async function syncAutomaticReminder(
@@ -10,28 +18,52 @@ export async function syncAutomaticReminder(
   record: { id: string; workspaceId: string; createdById: number; assignedToId: number | null; dueAt: Date | null; status: string },
   now = new Date()
 ) {
-  const prefix = `auto:${record.id}:`
+  const yaklasanOnek = `${YAKLASAN_ONEK}${record.id}:`
+  const gecikenOnek = `${GECIKEN_ONEK}${record.id}:`
   await tx.businessReminder.updateMany({
-    where: { recordId: record.id, status: 'pending', dedupeKey: { startsWith: prefix } },
+    where: {
+      recordId: record.id,
+      status: 'pending',
+      OR: [{ dedupeKey: { startsWith: yaklasanOnek } }, { dedupeKey: { startsWith: gecikenOnek } }]
+    },
     data: { status: 'cancelled' }
   })
 
   if (!record.dueAt || ['completed', 'cancelled'].includes(record.status)) return null
   const recipientId = record.assignedToId ?? record.createdById
-  const scheduledAt = new Date(Math.max(now.getTime(), record.dueAt.getTime() - DAY_MS))
-  const dedupeKey = `${prefix}${recipientId}:${record.dueAt.toISOString()}`
-  return tx.businessReminder.upsert({
-    where: { dedupeKey },
-    update: { scheduledAt, status: 'pending', sentAt: null },
-    create: {
-      workspaceId: record.workspaceId,
-      recordId: record.id,
-      recipientId,
-      scheduledAt,
-      channel: 'in_app',
-      dedupeKey
-    }
-  })
+
+  async function kur(onek: string, scheduledAt: Date) {
+    const dedupeKey = `${onek}${recipientId}:${record.dueAt!.toISOString()}`
+    return tx.businessReminder.upsert({
+      where: { dedupeKey },
+      update: { scheduledAt, status: 'pending', sentAt: null },
+      create: {
+        workspaceId: record.workspaceId,
+        recordId: record.id,
+        recipientId,
+        scheduledAt,
+        channel: 'in_app',
+        dedupeKey
+      }
+    })
+  }
+
+  const yaklasan = await kur(yaklasanOnek, new Date(Math.max(now.getTime(), record.dueAt.getTime() - DAY_MS)))
+  /*
+   * 🔴 GECİKME HATIRLATMASI — daha önce YOKTU.
+   *
+   * Tek hatırlatma vardı, o da vadeden bir gün önce. Vade geçtikten
+   * sonra hiçbir şey üretilmiyordu: görev sessizce gecikiyor, sorumlu
+   * listeye kendisi bakmadıkça haberi olmuyordu. Listedeki `overdue`
+   * rozeti ekranda duruyordu ama kimseye gitmiyordu.
+   *
+   * ⚠️ Kayıt tamamlanır ya da iptal edilirse bu hatırlatma da
+   * yukarıdaki iptal sorgusuyla düşüyor (`syncAutomaticReminder` her
+   * güncellemede yeniden çağrılıyor). Yani zamanında biten bir görev
+   * için "gecikti" bildirimi ÇIKMIYOR.
+   */
+  const geciken = await kur(gecikenOnek, new Date(record.dueAt.getTime() + DAY_MS))
+  return { yaklasan, geciken }
 }
 
 /*
@@ -47,7 +79,8 @@ export async function syncAutomaticReminder(
  */
 function bildirimGovdesi(
   record: { title: string; amount: unknown; currency: string; direction: string },
-  dueLabel: string
+  dueLabel: string,
+  geciken = false
 ): string {
   const parcalar: string[] = [record.title]
 
@@ -64,9 +97,65 @@ function bildirimGovdesi(
     neutral: 'yön belirsiz'
   }
   parcalar.push(yonMetni[record.direction] || 'yön belirsiz')
-  parcalar.push(`tarih: ${dueLabel}`)
+  /* Geciken bildirimde tarih TEK BAŞINA yanıltıcı: geçmiş bir tarih
+     görüp "daha var" diye okunabiliyor. Durum açıkça yazılıyor. */
+  parcalar.push(geciken ? `vadesi geçti: ${dueLabel}` : `tarih: ${dueLabel}`)
 
   return parcalar.join(' · ')
+}
+
+/*
+ * ATAMA BİLDİRİMİ.
+ *
+ * 🔴 Bu YOKTU. `assignedToId` yazılıyordu ama sorumluya hiçbir şey
+ * gitmiyordu: birine görev atıyorsun, o kişi listeye kendisi bakmadıkça
+ * haberi olmuyor. Vadesi olmayan bir görevde hiç haberi olmuyordu,
+ * vadesi olanda da ancak vadeye bir gün kala.
+ *
+ * ⚠️ KENDİNE ATAYANA BİLDİRİM GİTMİYOR. Kendi yazdığı görevi kendine
+ * atamak en sık kullanım; ona bildirim göndermek bildirim kutusunu
+ * kullanıcının kendi hareketleriyle doldurup asıl bildirimleri
+ * görünmez yapardı.
+ *
+ * ⚠️ `dedupeKey` YOK (null). Tekilleştirme burada yanlış olurdu: aynı
+ * görev birine atanıp geri alınıp yeniden atanırsa ikinci atama da
+ * duyurulmalı. Çift bildirim riski yok, çünkü bu işlev yalnızca sorumlu
+ * GERÇEKTEN DEĞİŞTİĞİNDE çağrılıyor.
+ */
+export async function atamaBildirimi(
+  tx: ReminderTransaction,
+  record: { id: string; workspaceId: string; title: string; assignedToId: number | null; dueAt: Date | null },
+  oncekiAssignedToId: number | null,
+  actorId: number
+) {
+  const yeni = record.assignedToId
+  if (!yeni || yeni === oncekiAssignedToId || yeni === actorId) return null
+
+  const ayarlar = await tx.businessWorkspace.findUnique({
+    where: { id: record.workspaceId },
+    select: { settings: { select: { notificationPrefs: true } } }
+  })
+  let acik = true
+  try { acik = JSON.parse(ayarlar?.settings?.notificationPrefs || '{}').assignments !== false }
+  catch { acik = true }
+  if (!acik) return null
+
+  const tarih = record.dueAt
+    ? record.dueAt.toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' })
+    : null
+
+  return tx.businessNotification.create({
+    data: {
+      workspaceId: record.workspaceId,
+      userId: yeni,
+      recordId: record.id,
+      type: 'record_assigned',
+      title: 'Size bir görev atandı',
+      /* Tarih yoksa UYDURULMUYOR: "tarihsiz" yazmak, olmayan bir
+         tarihi ima etmekten iyi. */
+      body: tarih ? `${record.title} · tarih: ${tarih}` : `${record.title} · tarihsiz`
+    }
+  })
 }
 
 export async function processDueBusinessReminders(
@@ -118,6 +207,8 @@ export async function processDueBusinessReminders(
       const dueLabel = reminder.record.dueAt
         ? reminder.record.dueAt.toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' })
         : 'belirlenen tarih'
+      /* Tür dedupeKey önekinden okunuyor (bkz. YAKLASAN_ONEK). */
+      const geciken = reminder.dedupeKey.startsWith(GECIKEN_ONEK)
       await tx.businessNotification.upsert({
         where: { dedupeKey: `reminder:${reminder.id}` },
         update: {},
@@ -126,9 +217,9 @@ export async function processDueBusinessReminders(
           userId: reminder.recipientId,
           recordId: reminder.recordId,
           dedupeKey: `reminder:${reminder.id}`,
-          type: 'record_due',
-          title: 'Yaklaşan işletme kaydı',
-          body: bildirimGovdesi(reminder.record, dueLabel)
+          type: geciken ? 'record_overdue' : 'record_due',
+          title: geciken ? 'Geciken işletme kaydı' : 'Yaklaşan işletme kaydı',
+          body: bildirimGovdesi(reminder.record, dueLabel, geciken)
         }
       })
       await tx.businessReminder.update({

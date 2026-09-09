@@ -681,4 +681,45 @@ describe('Mentor işletme özeti', () => {
       await prisma.user.delete({ where: { id: yalnizKullanici.id } }).catch(() => {})
     }
   })
+
+  /*
+   * YÖNETİCİ ANALİZİ.
+   *
+   * 🔴 En kritik iddia: "karar başarısı" ORANI YOK ve olmamalı.
+   * Beklenen/gerçekleşen serbest metin; farkı programla ölçülemez.
+   * Uydurma bir yüzde, yöneticinin ona bakıp karar vermesi demek.
+   */
+  it('yönetici analizi görev tamamlamayı kişi kişi veriyor', async () => {
+    const gorev = await inject('POST', `/workspaces/${workspaceId}/records`, ownerToken, {
+      type: 'task', title: 'Analiz görevi', direction: 'neutral',
+      assignedToId: viewerId, dueAt: new Date(Date.now() + 86400000).toISOString()
+    })
+    expect(gorev.statusCode).toBe(201)
+
+    const response = await inject('GET', `/workspaces/${workspaceId}/tracker/analysis`, ownerToken)
+    expect(response.statusCode).toBe(200)
+    const govde = response.json()
+    const satir = govde.gorevler.kisiler.find((kisi: any) => kisi.userId === viewerId)
+    expect(satir, 'sorumluya ait satır yok').toBeTruthy()
+    expect(satir.toplam).toBeGreaterThanOrEqual(1)
+  })
+
+  it('uydurma bir karar başarısı oranı üretmiyor', async () => {
+    const govde = (await inject('GET', `/workspaces/${workspaceId}/tracker/analysis`, ownerToken)).json()
+    /* Ölçülebilen: takip edilmiş mi. Ölçülemeyen: başarılı mı. */
+    expect(govde.kararlar).toHaveProperty('takipEdilen')
+    expect(govde.kararlar).not.toHaveProperty('basariOrani')
+    expect(govde.kararlar).not.toHaveProperty('successRate')
+  })
+
+  it('görüntüleyici kişi kişi tamamlama oranını göremiyor', async () => {
+    /* Kişi kişi oran bir performans ölçüsü; ekipteki herkese açık değil. */
+    const response = await inject('GET', `/workspaces/${workspaceId}/tracker/analysis`, viewerToken)
+    expect(response.statusCode).toBe(403)
+  })
+
+  it('başka işletmenin analizini vermiyor', async () => {
+    const response = await inject('GET', `/workspaces/${workspaceId}/tracker/analysis`, otherToken)
+    expect(response.statusCode).toBe(403)
+  })
 })
