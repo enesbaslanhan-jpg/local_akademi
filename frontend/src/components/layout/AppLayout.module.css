@@ -42,8 +42,33 @@
 /* Sayfa geçişi: ray sabit kalır, yalnızca bu sarmalayıcı 10px'den
    fadeSlideUp ile gelir (kural 7). Layout shift olmaması için genişlik/
    yükseklik değişmez, sadece opacity + transform animasyonu çalışır. */
+
+/*
+ * 🔴 DOLGU KİPİ `both` DEĞİL `backwards`.
+ *
+ * `both`, animasyon bittikten sonra SON KAREYİ öğenin üzerinde bırakıyor
+ * — yani `transform: translateY(0)` kalıcı oluyor. CSS'te `none`
+ * olmayan bir `transform`, içindeki `position: fixed` öğeler için YENİ
+ * BİR REFERANS KUTUSU yaratır: "ekrana sabitle" artık "bu sarmalayıcıya
+ * sabitle" demek olur.
+ *
+ * Bu sarmalayıcı BÜTÜN sayfa içeriğini kapsıyor, dolayısıyla arıza
+ * uygulama geneliydi (ürün sahibi bildirdi, 09.09.2026):
+ *   - Açılır menüler tetikleyicinin yanında değil, sol ray + üst bar
+ *     kadar sağa/aşağı kayarak açılıyordu (Ekip'te rol menüsü ekranın
+ *     sağ alt köşesine düşüyordu).
+ *   - Modalların karartma katmanı ekranı değil bu kutuyu kaplıyordu;
+ *     kutu ekrandan kısa olduğu için ortalanan form yukarı taşıyor ve
+ *     başlığı görünmez oluyordu (Kişiler > Yeni Kişi).
+ *
+ * ⚠️ `backwards` seçildi, dolgusuz bırakılmadı: dolgu olmasaydı
+ * animasyon başlamadan önceki ilk karede öğe taban stiliyle (opak)
+ * çizilip sonra saydama düşerdi — gözle görülür bir titreme. `backwards`
+ * başlangıç karesini önden uygular ama BİTİŞTE hiçbir şey bırakmaz;
+ * animasyon sonunda `transform` yeniden `none` olur.
+ */
 .pageTransitionAnim {
-  animation: fadeSlideUp var(--dur-page) var(--ease-decelerate) both;
+  animation: fadeSlideUp var(--dur-page) var(--ease-decelerate) backwards;
 }
 
 /* <900px: ray ve bağlam paneli gizli, içerik tam genişlik.
