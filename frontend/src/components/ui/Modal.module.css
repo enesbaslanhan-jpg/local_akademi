@@ -18,7 +18,7 @@
   -webkit-backdrop-filter: blur(var(--glass-blur));
   backdrop-filter: blur(var(--glass-blur));
   z-index: var(--z-modal-overlay);
-  animation: fadeSlideIn var(--dur-fast) var(--ease) both;
+  animation: fadeSlideIn var(--dur-fast) var(--ease) backwards;
 }
 
 .modal {
@@ -31,7 +31,9 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-deep);
   outline: none;
-  animation: fadeSlideUp var(--dur-base) var(--ease) both;
+  /* `backwards`: `both`, panel üstünde kalıcı bir transform bırakıp
+     modal içindeki açılır listelerin referans kutusunu değiştiriyordu. */
+  animation: fadeSlideUp var(--dur-base) var(--ease) backwards;
 }
 
 .sm { max-width: 400px; }

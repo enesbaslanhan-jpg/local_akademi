@@ -54,7 +54,7 @@ body:has(.profit-tool) button[title="AI Mentor"] span { display: none; }
   overflow: hidden;
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  animation: fichOpen var(--dur-slow) var(--ease-decelerate) both;
+  animation: fichOpen var(--dur-slow) var(--ease-decelerate) backwards;
 }
 .profit-hero::before {
   content: '';
@@ -85,7 +85,7 @@ body:has(.profit-tool) button[title="AI Mentor"] span { display: none; }
    fadeSlideUp animasyonunu artan gecikmeyle kullanır — süre/easing sabit,
    yalnızca sıralama (delay) değişir. */
 .profit-result-body > * {
-  animation: fadeSlideUp var(--dur-base) var(--ease-standard) both;
+  animation: fadeSlideUp var(--dur-base) var(--ease-standard) backwards;
 }
 .profit-result-body > *:nth-child(1) { animation-delay: 60ms; }
 .profit-result-body > *:nth-child(2) { animation-delay: 110ms; }

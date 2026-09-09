@@ -144,8 +144,8 @@
 .toolCardActive small { color: var(--sidebar-text-dim); }
 
 /* ---------- Hesaplama paneli ---------- */
-.calcOverlay { position: fixed; inset: 0; z-index: var(--z-modal-overlay); display: grid; place-items: center; padding: 72px 22px 22px; background: rgba(0,0,0,.48); animation: fadeSlideIn var(--dur-fast) var(--ease-standard) both; }
-.calcPanel { position: relative; width: min(720px, 100%); max-height: calc(100vh - 94px); overflow-y: auto; padding: 24px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--surface-raised); box-shadow: var(--shadow-4); min-width: 0; animation: calcPanelIn var(--dur-panel) var(--ease-standard) both; transform-origin: center; }
+.calcOverlay { position: fixed; inset: 0; z-index: var(--z-modal-overlay); display: grid; place-items: center; padding: 72px 22px 22px; background: rgba(0,0,0,.48); animation: fadeSlideIn var(--dur-fast) var(--ease-standard) backwards; }
+.calcPanel { position: relative; width: min(720px, 100%); max-height: calc(100vh - 94px); overflow-y: auto; padding: 24px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--surface-raised); box-shadow: var(--shadow-4); min-width: 0; animation: calcPanelIn var(--dur-panel) var(--ease-standard) backwards; transform-origin: center; }
 .calcResultPanel { width: min(980px, 100%); }
 @keyframes calcPanelIn { from { opacity: 0; transform: translateY(18px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .calcClose { position: sticky; top: 0; float: right; display: grid; place-items: center; width: 38px; height: 38px; margin: -8px -8px 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-panel); color: var(--text); z-index: 2; }
@@ -153,8 +153,8 @@
 @media (prefers-reduced-motion: reduce) { .calcPanel { animation: none; } }
 
 /* ---------- Hesaplama başlat seçicisi ---------- */
-.startOverlay { position: fixed; inset: 0; z-index: var(--z-modal-overlay); display: grid; place-items: start center; padding: 72px 22px 22px; background: rgba(0,0,0,.48); overflow-y: auto; animation: fadeSlideIn var(--dur-fast) var(--ease-standard) both; }
-.startDialog { position: relative; width: min(680px, 100%); margin: auto 0; padding: 24px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--surface-raised); box-shadow: var(--shadow-4); min-width: 0; animation: calcPanelIn var(--dur-panel) var(--ease-standard) both; transform-origin: center; }
+.startOverlay { position: fixed; inset: 0; z-index: var(--z-modal-overlay); display: grid; place-items: start center; padding: 72px 22px 22px; background: rgba(0,0,0,.48); overflow-y: auto; animation: fadeSlideIn var(--dur-fast) var(--ease-standard) backwards; }
+.startDialog { position: relative; width: min(680px, 100%); margin: auto 0; padding: 24px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--surface-raised); box-shadow: var(--shadow-4); min-width: 0; animation: calcPanelIn var(--dur-panel) var(--ease-standard) backwards; transform-origin: center; }
 .startSearch { width: 100%; box-sizing: border-box; margin-bottom: 14px; padding: 12px 14px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); outline: 0; background: var(--bg-primary); color: var(--text-primary); font: inherit; }
 .startSearch:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent); }
 .startLabel { margin: 2px 0 8px; color: var(--text-secondary); font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }

@@ -56,7 +56,7 @@
   mask-repeat: no-repeat, repeat-x, repeat-x;
 
   /* Keskin ve hızlı açılış — mevcut fichOpen, --dur-slow'u aşmaz. */
-  animation: fichOpen var(--dur-slow) var(--ease-decelerate) both;
+  animation: fichOpen var(--dur-slow) var(--ease-decelerate) backwards;
 }
 
 /* Açık yüzeyde tek seferlik ayna taraması. --sweep-tint koyu zemin için

@@ -1032,6 +1032,7 @@
     "identity": {
       "address": "Adres",
       "phone": "Telefon",
+      "whatsapp": "WhatsApp",
       "region": "Faaliyet yeri"
     }
   },

@@ -12,7 +12,24 @@
 .tab:hover { color: var(--text); }
 .tabActive { color: var(--theme-on-primary); border-color: var(--primary); background: var(--primary); font-weight: var(--font-weight-semibold); }
 :global(.dark) .tabActive { color: var(--theme-on-primary); border-color: var(--primary); background: var(--primary); }
-.workspaceContent { min-width: 0; animation: workspaceReveal 420ms cubic-bezier(.2,.75,.2,1) both; }
+/*
+ * 🔴 DOLGU KİPİ `both` DEĞİL `backwards` — SEBEBİ AppLayout ile AYNI.
+ *
+ * `both` bitişte son kareyi bırakıyor, yani `transform: translateY(0)`
+ * kalıcı oluyor. `none` olmayan bir `transform`, içindeki
+ * `position: fixed` öğeler için YENİ BİR REFERANS KUTUSU yaratır.
+ *
+ * Bu sarmalayıcı BÜTÜN işletme ekranlarını kapsıyor. AppLayout'ta aynı
+ * düzeltme yapıldıktan SONRA da arıza sürdü (ürün sahibi bildirdi,
+ * 09.09.2026): Ekip'te rol menüsü sağ alt köşeye düşüyor, Kişiler >
+ * Yeni Kişi'nin üstü ekran dışında kalıyor, Takvim'de ay seçici
+ * görünmüyor ve sayfa yana kayıyordu. Aynı hata İKİ AYRI YERDEYDİ;
+ * birini düzeltmek yetmedi.
+ *
+ * ⚠️ Dolgusuz bırakılmadı: `backwards` başlangıç karesini önden
+ * uygular (ilk karede titreme olmaz) ama BİTİŞTE hiçbir şey bırakmaz.
+ */
+.workspaceContent { min-width: 0; animation: workspaceReveal 420ms cubic-bezier(.2,.75,.2,1) backwards; }
 
 @keyframes workspaceReveal {
   from { opacity: 0; transform: translateY(10px); }

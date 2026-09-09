@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import StorageNotice from '@/components/ui/StorageNotice'
-import { SATICI, saticiSatirlari, iletisimEpostasi } from '@/config/seller'
+import { SATICI, saticiSatirlari, iletisimEpostasi, whatsappAdresi } from '@/config/seller'
 import styles from './PublicFooter.module.css'
 
 /*
@@ -127,9 +127,29 @@ export default function PublicFooter({ compact = false }) {
               return <a key={anahtar} href={`mailto:${deger}`}>{deger}</a>
             }
             if (anahtar === 'telefon') {
+              /*
+               * ⚠️ NUMARA WHATSAPP'A AÇILIYOR, ARAMA BAŞLATMIYOR.
+               *
+               * Hat WhatsApp Business'a bağlı (ürün sahibi, 09.09.2026);
+               * yazışma aramadan daha hızlı karşılık buluyor.
+               *
+               * ⚠️ Etiket bunu SÖYLÜYOR. "Telefon" yazıp WhatsApp açmak
+               * kullanıcıyı şaşırtırdı; numaranın kendisi yine görünür
+               * durumda, dolayısıyla arayabilmek isteyen numarayı
+               * kopyalayabiliyor ve mevzuatın istediği "telefon
+               * numarası bildirme" karşılanmaya devam ediyor.
+               *
+               * ⚠️ Adres üretilemezse (numara beklenen biçimde değilse)
+               * bağlantı değil düz metin yazılıyor — bozuk bir wa.me
+               * adresi kullanıcıyı hata ekranına götürürdü.
+               */
+              const wa = whatsappAdresi()
+              if (!wa) {
+                return <span key={anahtar}>{t(etiketKey)}: {deger}</span>
+              }
               return (
-                <a key={anahtar} href={`tel:${String(deger).replace(/\s/g, '')}`}>
-                  {t(etiketKey)}: {deger}
+                <a key={anahtar} href={wa} target="_blank" rel="noopener noreferrer">
+                  {t('publicFooter.identity.whatsapp')}: {deger}
                 </a>
               )
             }

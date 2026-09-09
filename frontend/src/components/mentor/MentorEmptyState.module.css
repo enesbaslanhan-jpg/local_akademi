@@ -14,7 +14,7 @@
   height: 100%;
   padding: var(--space-6);
   text-align: center;
-  animation: fadeSlideIn var(--dur-base) var(--ease-standard) both;
+  animation: fadeSlideIn var(--dur-base) var(--ease-standard) backwards;
 }
 
 .icon {

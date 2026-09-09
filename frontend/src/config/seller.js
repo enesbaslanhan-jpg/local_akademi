@@ -135,6 +135,29 @@ export function saticiKimligiTam() {
 }
 
 /**
+ * Numaranın WhatsApp adresi.
+ *
+ * Numara İKİNCİ KEZ YAZILMIYOR: `SATICI.telefon`tan türetiliyor.
+ * Elle yazılsaydı numara değiştiğinde biri güncellenip diğeri
+ * unutulurdu — satıcı kimliğinin belgeden belgeye farklı görünmesi
+ * ticari bir beyan hatasıdır.
+ *
+ * ⚠️ Biçim: WhatsApp uluslararası numara istiyor, baştaki sıfır
+ * olmadan ve ülke koduyla. "0850 241 19 40" → "908502411940".
+ *
+ * ⚠️ Numara beklenen biçimde değilse `null` dönüyor ve arayüz WhatsApp
+ * bağlantısını HİÇ çizmiyor. Bozuk bir wa.me adresi, kullanıcıyı
+ * "numara bulunamadı" ekranına götürürdü.
+ */
+export function whatsappAdresi() {
+  const rakamlar = String(SATICI.telefon || '').replace(/\D/g, '')
+  if (!rakamlar) return null
+  const ulusal = rakamlar.startsWith('0') ? rakamlar.slice(1) : rakamlar
+  if (ulusal.length !== 10) return null
+  return `https://wa.me/90${ulusal}`
+}
+
+/**
  * Alt bilgi ve belgelerde basılacak satırlar.
  *
  * Bilinmeyen alanlar listeye HİÇ girmiyor; `kimlikNo` ise bilinse bile

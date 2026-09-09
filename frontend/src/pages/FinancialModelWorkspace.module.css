@@ -76,7 +76,7 @@
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border-color: var(--glass-border);
   box-shadow: var(--glass-shadow);
-  animation: fadeSlideUp var(--dur-base) var(--ease-standard) both;
+  animation: fadeSlideUp var(--dur-base) var(--ease-standard) backwards;
 }
 .twoColumns .panel { margin-top: 0; }
 .panel h2 { margin: 7px 0 9px; }

@@ -14,7 +14,7 @@
   inset: 0;
   background: rgba(15, 23, 42, 0.4);
   z-index: var(--z-modal-overlay);
-  animation: fadeSlideIn var(--dur-fast) var(--ease-standard) both;
+  animation: fadeSlideIn var(--dur-fast) var(--ease-standard) backwards;
 }
 
 @media (min-width: 768px) {
@@ -37,7 +37,7 @@
   flex-direction: column;
   overflow: hidden;
   overscroll-behavior: contain;
-  animation: drawerIn var(--dur-slow) var(--ease-decelerate) both;
+  animation: drawerIn var(--dur-slow) var(--ease-decelerate) backwards;
 }
 
 @media (min-width: 768px) {
@@ -57,13 +57,13 @@
 .contextBarGlass {
   background: var(--surface-panel);
   border-bottom: 1px solid var(--border);
-  animation: fadeSlideIn var(--dur-base) var(--ease-standard) both;
+  animation: fadeSlideIn var(--dur-base) var(--ease-standard) backwards;
 }
 
 /* "AI düşünüyor" balonu göründüğünde kısa fade — sahte typing animasyonu
    eklenmez, sadece giriş (kural 14). */
 .streamingBubble {
-  animation: fadeSlideIn var(--dur-fast) var(--ease-standard) both;
+  animation: fadeSlideIn var(--dur-fast) var(--ease-standard) backwards;
 }
 
 /* ==========================================================================

@@ -20,7 +20,7 @@
   color: var(--danger);
   font-size: var(--font-size-sm);
   box-shadow: var(--shadow-sm);
-  animation: fadeSlideIn var(--dur-fast) var(--ease-standard) both;
+  animation: fadeSlideIn var(--dur-fast) var(--ease-standard) backwards;
 }
 
 .alertIcon {
