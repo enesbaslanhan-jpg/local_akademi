@@ -562,6 +562,7 @@ denildiğinde bakılacak yer yoktu.
 | Dağıtımdan öncesi | `sudo journalctl CONTAINER_NAME=localakademi-server --since "3 days ago"` |
 | Belirli bir hata | `sudo journalctl CONTAINER_NAME=localakademi-server | grep P2028` |
 | Veritabanı günlüğü | `sudo journalctl CONTAINER_NAME=localakademi-postgres` |
+| Web sunucusu (erişim kayıtları) | `sudo journalctl CONTAINER_NAME=localakademi-caddy` |
 | Günlük ne kadar yer kaplıyor | `sudo journalctl --disk-usage` |
 
 ⚠️ journald varsayılan olarak diskin **%10'u** ile sınırlı (bu makinede

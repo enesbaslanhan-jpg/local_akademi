@@ -54,6 +54,21 @@ services:
     image: caddy:2-alpine
     container_name: localakademi-caddy
     restart: unless-stopped
+    # Diger servislerle ayni gerekce (bkz. docker-compose.yml): varsayilan
+    # `json-file` surucusunde gunluk konteynerle birlikte siliniyor ve
+    # BOYUT SINIRI YOK.
+    #
+    # ⚠️ Caddy en cok satir ureten servis (her istek bir erisim kaydi) ve
+    # bu makinede disk bir kez %93'e cikti. Sinirsiz birakmak, cozulen bir
+    # sorunu geri davet etmek olurdu.
+    #
+    # Not: `caddy-logs` birimi zaten var ama Caddyfile oraya yazmiyorsa
+    # bos duruyor; erisim kaydi stdout'a gidiyor. Bu satir onu kaliciya
+    # baglayan yer.
+    logging:
+      driver: journald
+      options:
+        tag: localakademi-caddy
     ports:
       - "80:80"
       - "443:443"
