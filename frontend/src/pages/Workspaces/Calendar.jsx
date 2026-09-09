@@ -3,6 +3,7 @@ import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
+import Select from '@/components/ui/Select'
 import styles from './Calendar.module.css'
 import { useTranslation } from 'react-i18next'
 import { useLocalization } from '@/context/LocalizationContext'
@@ -29,6 +30,35 @@ export default function WorkspaceCalendar() {
   const [data, setData] = useState({ days: {}, totals: { records: 0, payable: 0, receivable: 0 } })
   const [loading, setLoading] = useState(true)
   const range = useMemo(() => monthRange(anchor), [anchor])
+
+  const bugun = useMemo(() => new Date(), [])
+  const buAyAcik = anchor.getFullYear() === bugun.getFullYear() && anchor.getMonth() === bugun.getMonth()
+
+  /* Ay adları çeviri dosyasına KOPYALANMIYOR: tarih biçimleyici zaten
+     kullanıcının diline göre veriyor. İkinci bir liste tutmak, dil
+     eklendiğinde güncellenmeyi unutulacak bir yer daha demekti. */
+  const ayLari = useMemo(() => Array.from({ length: 12 }, (_, ay) => ({
+    value: String(ay),
+    label: formatDate(new Date(2000, ay, 1), { locale: formatLocale, month: 'long' }),
+  })), [formatLocale])
+
+  /*
+   * ⚠️ Yıl aralığı VERİDEN türetilemiyor: sunucu yalnız açık ayı
+   * döndürüyor, en eski/en yeni kaydın yılı burada bilinmiyor. Bu
+   * yüzden bugüne göre makul bir pencere veriliyor — geriye beş yıl
+   * (geçmiş kayıtlar incelenir), ileriye iki yıl (vade ve senetler
+   * ileri tarihli olabilir).
+   *
+   * ⚠️ Açık olan yıl pencerenin dışındaysa yine de listeye giriyor;
+   * aksi hâlde seçici kendi gösterdiği yılı seçeneklerinde bulamaz ve
+   * boş görünürdü.
+   */
+  const yillar = useMemo(() => {
+    const buYil = bugun.getFullYear()
+    const kume = new Set([anchor.getFullYear()])
+    for (let yil = buYil - 5; yil <= buYil + 2; yil += 1) kume.add(yil)
+    return [...kume].sort((a, b) => b - a).map(yil => ({ value: String(yil), label: String(yil) }))
+  }, [anchor, bugun])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -62,10 +92,38 @@ export default function WorkspaceCalendar() {
     <section className={styles.page}>
       <div className={styles.heading}>
         <div><h2>{t('calendar.title')}</h2><p>{t('calendar.subtitle')}</p></div>
+        {/*
+          * 🔴 AY VE YIL SEÇİLEMİYORDU — yalnız tek tek ileri/geri.
+          *
+          * Ürün sahibi bildirdi (09.09.2026): bir yıl öncesine gitmek
+          * için oka on iki kez basmak gerekiyordu. Ödeme, tahsilat ve
+          * senet tarihleri geriye dönük incelenen şeyler; takvimin
+          * geçmişe gitmesi istisna değil olağan kullanım.
+          *
+          * Oklar KALDIRILMADI: komşu aya geçmek en sık yapılan hareket
+          * ve tek tıkla olmalı. Seçiciler onun yerine değil yanına.
+          */}
         <div className={styles.navigation}>
           <button aria-label={t('calendar.prevMonth')} onClick={() => setAnchor(value => new Date(value.getFullYear(), value.getMonth() - 1, 1))}><ChevronLeft /></button>
-          <strong>{formatDate(anchor, { locale: formatLocale, month: 'long', year: 'numeric' })}</strong>
+          <Select
+            aria-label={t('calendar.monthLabel')}
+            options={ayLari}
+            value={String(anchor.getMonth())}
+            onChange={ay => setAnchor(value => new Date(value.getFullYear(), Number(ay), 1))}
+          />
+          <Select
+            aria-label={t('calendar.yearLabel')}
+            options={yillar}
+            value={String(anchor.getFullYear())}
+            onChange={yil => setAnchor(value => new Date(Number(yil), value.getMonth(), 1))}
+          />
           <button aria-label={t('calendar.nextMonth')} onClick={() => setAnchor(value => new Date(value.getFullYear(), value.getMonth() + 1, 1))}><ChevronRight /></button>
+          {/* Uzağa gidildikten sonra dönüş yolu; bu ay açıkken gereksiz. */}
+          {!buAyAcik && (
+            <button type="button" className={styles.today} onClick={() => setAnchor(new Date(bugun.getFullYear(), bugun.getMonth(), 1))}>
+              {t('calendar.today')}
+            </button>
+          )}
         </div>
       </div>
       <div className={styles.metrics}>

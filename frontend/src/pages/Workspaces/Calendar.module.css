@@ -47,3 +47,22 @@
 :global(.dark) .day { background: var(--surface-card); }
 :global(.dark) .blank { background: var(--surface-sunken); }
 :global(.dark) .empty { background: var(--surface-panel); }
+
+/* Ay/yıl seçicileri: dar kalsınlar, başlık satırını taşırmasınlar. */
+.navigation :global(.lk-select-wrapper),
+.navigation > div { min-width: 0; }
+
+/* "Bu ay" — uzağa gidildikten sonra dönüş yolu. Oklardan ayrışsın diye
+   metin düğmesi; birincil eylem değil. */
+.today {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 9px;
+  padding: 7px 11px;
+  font-size: .85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.today:hover { background: var(--bg-secondary); color: var(--text-primary); }

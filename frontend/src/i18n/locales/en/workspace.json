@@ -500,7 +500,10 @@
       "sun": "Sun"
     },
     "moreRecords": "+{{count}} records",
-    "noRecords": "No dated records for this month."
+    "noRecords": "No dated records for this month.",
+    "monthLabel": "Month",
+    "yearLabel": "Year",
+    "today": "This month"
   },
   "activity": {
     "inboxEnabled": "Document inbox enabled",

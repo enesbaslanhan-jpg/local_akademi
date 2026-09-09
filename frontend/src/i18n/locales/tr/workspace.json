@@ -500,7 +500,10 @@
       "sun": "Paz"
     },
     "moreRecords": "+{{count}} kayıt",
-    "noRecords": "Bu ay için tarihli kayıt bulunmuyor."
+    "noRecords": "Bu ay için tarihli kayıt bulunmuyor.",
+    "monthLabel": "Ay",
+    "yearLabel": "Yıl",
+    "today": "Bu ay"
   },
   "activity": {
     "inboxEnabled": "Belge gelen kutusu etkinleştirildi",
