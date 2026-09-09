@@ -9,7 +9,6 @@ import MentorEmptyState from '@/components/mentor/MentorEmptyState'
 import MentorErrorAlert from '@/components/mentor/MentorErrorAlert'
 import MentorDeleteModal from '@/components/mentor/MentorDeleteModal'
 import { useAuth } from '@/context/AuthContext'
-import { ContextPanelSlot } from '@/components/layout/ContextPanel'
 import { generateSuggestedActions } from '@/utils/mentorSuggestedActions'
 import { api } from '@/services/api'
 import {
@@ -458,10 +457,6 @@ const sessionLabel = useMemo(() => {
       {/* Sayfa adı üst barda yazıyor; görünür h1 yerine sr-only başlık. */}
       <h1 className="sr-only">{t('title')}</h1>
 
-      {/* Masaüstü: sohbet listesi kabuğun bağlam panelinde. Panel rayfaki
-          düğmeyle kapatılınca sohbet alanı kendiliğinden genişler. */}
-      <ContextPanelSlot>{conversationList}</ContextPanelSlot>
-
       {sidebarOpen && (
         <div
           className={styles.overlay}
@@ -469,7 +464,9 @@ const sessionLabel = useMemo(() => {
         />
       )}
 
-      {/* Mobil: aynı liste drawer olarak. */}
+      {/* Liste TEK yerde: geniş ekranda kalıcı sütun, dar ekranda çekmece.
+          Eskiden ayrıca kabuğun bağlam paneline de portal ile basılıyordu;
+          o panel kaldırılınca içerik sessizce düşüyordu (bkz. CSS notu). */}
       <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}>
         {conversationList}
       </aside>

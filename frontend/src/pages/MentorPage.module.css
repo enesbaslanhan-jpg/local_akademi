@@ -29,9 +29,11 @@
 }
 
 /* ---------- Sohbet listesi ----------
-   İki yerde yaşar: masaüstünde kabuğun KOYU bağlam panelinde (portal),
-   mobilde AÇIK bir drawer'da. Taban stiller koyu panele göre yazılmıştır;
-   .sidebar altındaki override'lar açık drawer'ı üretir. */
+   Tek yerde yaşar: sayfanın kendi sütununda. Geniş ekranda kalıcı,
+   dar ekranda çekmece olarak açılıyor.
+
+   ⚠️ Taban stiller kaldırılan KOYU bağlam paneline göre yazılmıştı;
+   aşağıdaki "açık deri" bloğu hepsini açık yüzeye çeviriyor. */
 .convPanel {
   display: flex;
   flex-direction: column;
@@ -40,12 +42,28 @@
   min-width: 0;
 }
 
-/* Masaüstünde drawer hiç yok — liste bağlam panelinde. */
+/*
+ * 🔴 SOHBET LİSTESİ MASAÜSTÜNDE HİÇ GÖRÜNMÜYORDU.
+ *
+ * Liste eskiden kabuğun sağdaki bağlam paneline portal ile basılıyordu
+ * ve `.sidebar` masaüstünde `display: none` idi. O panel görsel
+ * yenilemede (1cd6553) kaldırıldı, navigasyonu sol raya taşındı — ama
+ * bu sayfa hâlâ panele içerik gönderiyordu. `ContextPanelSlot` host
+ * yokken içeriği SESSİZCE düşürdüğü için hata da vermedi.
+ *
+ * Sonuç (ürün sahibi bildirdi, 09.09.2026): masaüstünde sohbet geçmişi
+ * ve "Yeni sohbet" düğmesine ulaşmanın HİÇBİR yolu yoktu. Mobilde
+ * çekmece çalıştığı için gözden kaçmıştı.
+ *
+ * Liste artık sayfanın kendi sütunu. Her genişlikte bir erişim yolu
+ * var: geniş ekranda kalıcı sütun, dar ekranda çekmece.
+ */
 .sidebar {
   display: none;
 }
 
-@media (max-width: 899px) {
+/* Çekmece — düğmesinin göründüğü her genişlikte. */
+@media (max-width: 1199px) {
   .sidebar {
     position: fixed;
     inset-block: var(--header-height, 52px) 0;
@@ -65,6 +83,25 @@
   .sidebarOpen {
     transform: translateX(0);
     box-shadow: var(--glass-shadow);
+  }
+}
+
+/*
+ * Geniş ekran: kalıcı sütun.
+ *
+ * ⚠️ Eşik 1200px, 900px değil. 1200'ün altında sağdaki HAFIZA rayı
+ * (`.actionsCol`) zaten gizleniyor; sohbet sütununu da eklemek üç
+ * sütunu 900px'e sıkıştırırdı. O aralıkta çekmece + görünür düğme var.
+ */
+@media (min-width: 1200px) {
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 0 0 260px;
+    width: 260px;
+    background: var(--white);
+    border-right: 1px solid var(--border);
   }
 }
 
@@ -270,33 +307,38 @@
   color: var(--sidebar-active-text);
 }
 
-/* ---------- Açık drawer derisi (yalnızca mobilde) ----------
-   Taban stiller koyu bağlam paneline göre yazıldı; burada aynı sınıflar
-   beyaz drawer için geri çevriliyor. */
-@media (max-width: 899px) {
-  .sidebar .convPanel { padding: 0; }
-  .sidebar .sidebarHeader { padding: var(--space-3); border-bottom-color: var(--border); }
-  .sidebar .sidebarHeaderTitle { color: var(--text); }
-  .sidebar .headerBtnOutline { background: var(--white); color: var(--text); border-color: var(--border); }
-  .sidebar .headerBtnOutline:hover { background: var(--primary-light); color: var(--brand-ink); }
-  .sidebar .headerBtnPrimary { background: var(--brand-teal); color: var(--white); }
-  .sidebar .headerBtnPrimary:hover { background: var(--primary-dark); }
-  .sidebar .tabs { border-bottom-color: var(--border); }
-  .sidebar .tab { color: var(--text-light); min-height: 44px; }
-  .sidebar .tab:hover { background: var(--bg-hover); color: var(--text); }
-  .sidebar .tabActive { background: var(--primary-light); color: var(--primary); border-bottom-color: var(--primary); }
-  .sidebar .convListEmpty { color: var(--text-light); }
-  .sidebar .convItem { padding: var(--space-2) var(--space-3); border-radius: 0; border-bottom: 1px solid var(--border); }
-  .sidebar .convItem:hover { background: var(--bg-hover); }
-  .sidebar .convItemActive, .sidebar .convItemActive:hover { background: var(--primary-light); }
-  .sidebar .convTitle { color: var(--text); }
-  .sidebar .convTitleInput { background: var(--white); color: var(--text); border-color: var(--primary); }
-  .sidebar .convPreview, .sidebar .convMeta { color: var(--text-light); }
-  .sidebar .convActionBtn { color: var(--text-light); }
-  .sidebar .convActionBtn:hover { background: var(--bg-tertiary); color: var(--text); }
-  /* Dokunmatikte hover yok — aksiyonlar hep görünür olsun */
-  .sidebar .convActions { opacity: 1; }
-}
+/* ---------- Açık deri ----------
+   Taban stiller kaldırılan KOYU bağlam paneline göre yazılmıştı; burada
+   aynı sınıflar beyaz yüzey için geri çevriliyor.
+
+   ⚠️ Eskiden bu blok `@media (max-width: 899px)` içindeydi, çünkü liste
+   yalnız mobilde beyaz drawer'da yaşıyordu. Artık geniş ekranda da beyaz
+   sayfanın içinde bir sütun; medya sorgusu kalırsa masaüstünde koyu panel
+   renkleriyle çizilir ve okunmaz. */
+
+.sidebar .convPanel { padding: 0; }
+.sidebar .sidebarHeader { padding: var(--space-3); border-bottom-color: var(--border); }
+.sidebar .sidebarHeaderTitle { color: var(--text); }
+.sidebar .headerBtnOutline { background: var(--white); color: var(--text); border-color: var(--border); }
+.sidebar .headerBtnOutline:hover { background: var(--primary-light); color: var(--brand-ink); }
+.sidebar .headerBtnPrimary { background: var(--brand-teal); color: var(--white); }
+.sidebar .headerBtnPrimary:hover { background: var(--primary-dark); }
+.sidebar .tabs { border-bottom-color: var(--border); }
+.sidebar .tab { color: var(--text-light); min-height: 44px; }
+.sidebar .tab:hover { background: var(--bg-hover); color: var(--text); }
+.sidebar .tabActive { background: var(--primary-light); color: var(--primary); border-bottom-color: var(--primary); }
+.sidebar .convListEmpty { color: var(--text-light); }
+.sidebar .convItem { padding: var(--space-2) var(--space-3); border-radius: 0; border-bottom: 1px solid var(--border); }
+.sidebar .convItem:hover { background: var(--bg-hover); }
+.sidebar .convItemActive, .sidebar .convItemActive:hover { background: var(--primary-light); }
+.sidebar .convTitle { color: var(--text); }
+.sidebar .convTitleInput { background: var(--white); color: var(--text); border-color: var(--primary); }
+.sidebar .convPreview, .sidebar .convMeta { color: var(--text-light); }
+.sidebar .convActionBtn { color: var(--text-light); }
+.sidebar .convActionBtn:hover { background: var(--bg-tertiary); color: var(--text); }
+/* Dokunmatikte hover yok — aksiyonlar hep görünür olsun */
+.sidebar .convActions { opacity: 1; }
+
 
 /* ---------- Ana sohbet alanı ---------- */
 .main {
@@ -327,14 +369,17 @@
   cursor: pointer;
 }
 
-/* Masaüstünde sohbet listesi bağlam panelinde duruyor; drawer düğmesi gereksiz. */
-@media (min-width: 900px) {
+/* Liste kalıcı sütun olarak göründüğü genişlikte çekmece düğmesi
+   gereksiz. Eşik 1200px: altında liste yalnız çekmecede yaşıyor ve
+   düğme TEK erişim yolu — daha önce 900px'ti ve 900-1199 aralığında
+   ne sütun ne düğme vardı. */
+@media (min-width: 1200px) {
   .menuBtn {
     display: none;
   }
 }
 
-@media (max-width: 899px) {
+@media (max-width: 1199px) {
   .menuBtn {
     /* Dokunma hedefi alt sınırı */
     display: flex;
