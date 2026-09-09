@@ -4,6 +4,7 @@ import { Cookie, X } from 'lucide-react'
 import styles from './StorageNotice.module.css'
 import { useTranslation } from 'react-i18next'
 import {
+  ANALYTICS_CONSENT_EVENT,
   getAnalyticsConsent,
   isAnalyticsConfigured,
   setAnalyticsConsent
@@ -63,8 +64,42 @@ export default function StorageNotice({ inline = false }) {
     return () => { active = false }
   }, [])
 
+  /*
+   * 🔴 AYNI SAYFADA BİRDEN FAZLA ÖRNEK VAR.
+   *
+   * `main.jsx` genel bandı çiziyor, `PublicFooter` ve `AuthPage` birer
+   * satır içi örnek daha. Rıza kararı `localStorage`a yazılıyor ama her
+   * örnek kendi durumunu YALNIZ MOUNT ANINDA okuyordu: birine "İzin ver"
+   * denince o kapanıyor, öteki ekranda kalıyordu.
+   *
+   * Ürün sahibi bunu "onayladım ama tekrar çıktı" diye bildirdi
+   * (10.09.2026) ve tarayıcıda doğrulandı: tıklamadan sonra
+   * localStorage 'granted' oluyor, ikinci bant hâlâ duruyor.
+   *
+   * `setAnalyticsConsent` zaten bir olay yayınlıyordu; kimse dinlemiyordu.
+   */
+  useEffect(() => {
+    function rizaDegisti(event) {
+      setConsentState(event?.detail?.consent || getAnalyticsConsent())
+    }
+    window.addEventListener(ANALYTICS_CONSENT_EVENT, rizaDegisti)
+    return () => window.removeEventListener(ANALYTICS_CONSENT_EVENT, rizaDegisti)
+  }, [])
+
   if (hiddenByRoute) return null
   if (analyticsAvailable && analyticsConsent !== 'unknown') return null
+  /*
+   * ⚠️ RIZA KİPİNDE SAYFADA TEK BANT.
+   *
+   * Genel örnek görünürken satır içi olan da bant çizerse kullanıcı aynı
+   * soruyu iki kez görür. Genel örneğin gizlendiği rotalarda (giriş,
+   * kayıt) satır içi olan devralıyor -- `shouldHideNotice` ile aynı
+   * kuralı `inline: false` diye sorarak öğreniyoruz.
+   *
+   * Analitik kapalıyken davranış DEĞİŞMİYOR: orada satır içi metin bir
+   * bant değil, alt bilgideki kalıcı bilgilendirme.
+   */
+  if (inline && analyticsAvailable && !shouldHideNotice(location.pathname, location.hash, false)) return null
   if (!analyticsAvailable && gorundu) return null
 
   function kapat() {
