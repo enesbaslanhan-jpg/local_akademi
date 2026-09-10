@@ -1223,6 +1223,11 @@ export const api = {
     },
     contacts: {
       async list(workspaceId) { return api.request(`/workspaces/${workspaceId}/contacts`) },
+      /* Cari hesap: bakiye + hareket dökümü. "Ahmet'e ne kadar borcum
+         var?" sorusunun cevabı. */
+      async hesap(workspaceId, contactId) {
+        return api.request(`/workspaces/${workspaceId}/contacts/${contactId}/hesap`)
+      },
       async create(workspaceId, data) {
         return api.request(`/workspaces/${workspaceId}/contacts`, { method: 'POST', body: JSON.stringify(data) })
       },

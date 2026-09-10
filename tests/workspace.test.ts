@@ -340,6 +340,90 @@ describe('Workspace API', () => {
       expect(res.statusCode).toBe(200)
     })
 
+
+
+
+    /*
+     * 🔴 CARİ HESAP — "Ahmet'e ne kadar borcum var?"
+     *
+     * Bu sorunun cevabı üründe hiçbir yerde yoktu; kayıtlar kişiye
+     * bağlanıyordu ama toplanmıyordu.
+     *
+     * ⚠️ Kendi çalışma alanını kuruyor: yukarıdaki testler `wsAId`i
+     * arşivliyor ve rolleri değiştiriyor. Paylaşılan duruma yaslanmak,
+     * bu testleri sıraya bağımlı ve kırılgan yapardı.
+     */
+    describe('cari hesap', () => {
+      let cariWsId: string
+      let cariKisiId: string
+
+      beforeAll(async () => {
+        const ws = await prisma.businessWorkspace.create({
+          data: {
+            name: 'Cari Testi Alanı',
+            status: 'active',
+            createdById: userId,
+            members: { create: { userId, role: 'owner', status: 'active' } },
+            settings: { create: { defaultCurrency: 'TRY' } }
+          }
+        })
+        cariWsId = ws.id
+
+        const kisi = await prisma.businessContact.create({
+          data: { workspaceId: cariWsId, type: 'supplier', name: 'Cari Testi', createdById: userId }
+        })
+        cariKisiId = kisi.id
+
+        const kayitlar = [
+          { direction: 'payable', amount: 1000, status: 'open' },
+          { direction: 'payable', amount: 500, status: 'open' },
+          { direction: 'receivable', amount: 200, status: 'open' },
+          /* Kapanan kayıt bakiyeye GİRMEMELİ ama ekstrede görünmeli. */
+          { direction: 'payable', amount: 9999, status: 'completed' }
+        ]
+        for (const kayit of kayitlar) {
+          await prisma.businessRecord.create({
+            data: {
+              workspaceId: cariWsId, contactId: cariKisiId, type: 'payment',
+              title: 'kayit', direction: kayit.direction, status: kayit.status,
+              amount: kayit.amount, currency: 'TRY', createdById: userId
+            }
+          })
+        }
+      })
+
+      it('açık borç ve alacağı toplayıp bakiye veriyor', async () => {
+        const res = await get(`/workspaces/${cariWsId}/contacts/${cariKisiId}/hesap`, userToken)
+        expect(res.statusCode).toBe(200)
+        const govde = res.json()
+        expect(govde.birincil.borc).toBe(1500)
+        expect(govde.birincil.alacak).toBe(200)
+        /* Kapanan 9999 hesaba girmiyor. */
+        expect(govde.birincil.bakiye).toBe(-1300)
+        /* Ekstre kapananı da gösteriyor: geçmiş görünsün. */
+        expect(govde.hareketler.length).toBe(4)
+      })
+
+      it('bakiye kişiler listesinde de görünüyor', async () => {
+        const res = await get(`/workspaces/${cariWsId}/contacts`, userToken)
+        const kisi = res.json().find((c: any) => c.id === cariKisiId)
+        expect(kisi.birincil.bakiye).toBe(-1300)
+      })
+
+      it('olmayan kişi için 404', async () => {
+        const res = await get(
+          `/workspaces/${cariWsId}/contacts/00000000-0000-4000-8000-000000000000/hesap`,
+          userToken
+        )
+        expect(res.statusCode).toBe(404)
+      })
+
+      it('üye olmayan kullanıcıya vermiyor', async () => {
+        const res = await get(`/workspaces/${cariWsId}/contacts/${cariKisiId}/hesap`, user2Token)
+        expect(res.statusCode).toBe(403)
+      })
+    })
+
     it('archives contact', async () => {
       const contacts = await get(`/workspaces/${wsAId}/contacts`, userToken)
       const contactId = contacts.json()[0].id

@@ -4,12 +4,18 @@ import { api } from '@/services/api'
 import Button from '@/components/ui/Button'
 import { Select } from '@/components/ui'
 import styles from './Contacts.module.css'
+import CariHesap from './CariHesap'
 import { useTranslation } from 'react-i18next'
+import { useLocalization } from '@/context/LocalizationContext'
+import { formatCurrency } from '@/utils/formatters'
 
 const emptyContact = { type: 'customer', name: '', legalName: '', contactPerson: '', email: '', phone: '', city: '', address: '', notes: '' }
 
 export default function Contacts() {
   const { t } = useTranslation('workspace')
+  const { formatLocale } = useLocalization()
+  /* Cari hesap ayrı rota değil panel; kayıt detayıyla aynı desen. */
+  const [cariKisi, setCariKisi] = useState(null)
   const typeOptions = ['customer', 'supplier', 'partner', 'other'].map(value => ({ value, label: t(`contacts.${value}`) }))
   const { workspaceId } = useParams()
   const [contacts, setContacts] = useState([])
@@ -71,23 +77,44 @@ export default function Contacts() {
       ) : (
         <table className={styles.table}>
           <thead>
-            <tr><th>{t('contacts.col.name')}</th><th>{t('contacts.col.type')}</th><th>{t('contacts.col.email')}</th><th>{t('contacts.col.phone')}</th><th>{t('contacts.col.city')}</th><th></th></tr>
+            <tr><th>{t('contacts.col.name')}</th><th>{t('contacts.col.type')}</th><th>{t('contacts.col.email')}</th><th>{t('contacts.col.phone')}</th><th>{t('contacts.col.city')}</th><th>{t('contacts.col.balance')}</th><th></th></tr>
           </thead>
           <tbody>
             {contacts.map(c => (
               <tr key={c.id}>
                 <td>
+                  {/* Ada tıklayınca cari hesap açılıyor: bir esnafın
+                      kişi kartında aradığı ilk şey bakiyesi. */}
+                  <button type="button" className={styles.adDugmesi} onClick={() => setCariKisi(c)} title={t('cari.open')}>
                   <span className={styles.nameCell}>
                     <span className={styles.avatar} aria-hidden="true">
                       {(c.name || '?').trim().charAt(0)}
                     </span>
                     {c.name}
                   </span>
+                  </button>
                 </td>
                 <td><span className={styles.badge}>{t(`contacts.${c.type}`, { defaultValue: c.type })}</span></td>
                 <td>{c.email || '-'}</td>
                 <td>{c.phone || '-'}</td>
                 <td>{c.city || '-'}</td>
+                {/*
+                  * ⚠️ Başka para biriminde de hesap varsa bu SÖYLENİYOR.
+                  * Tek sayı gösterip ötekini gizlemek eksik bilgi olurdu.
+                  */}
+                <td className={styles.bakiyeHucresi}>
+                  {c.birincil ? (
+                    <>
+                      <span className={c.birincil.bakiye >= 0 ? styles.alacakli : styles.borclu}>
+                        {formatCurrency(Math.abs(c.birincil.bakiye), { locale: formatLocale, currency: c.birincil.currency })}
+                      </span>
+                      <small>{c.birincil.bakiye >= 0 ? t('cari.shortReceivable') : t('cari.shortPayable')}</small>
+                      {c.digerParaBirimleri > 0 && (
+                        <small>{t('cari.otherCurrencies', { count: c.digerParaBirimleri })}</small>
+                      )}
+                    </>
+                  ) : <span className={styles.bakiyeYok}>—</span>}
+                </td>
                 <td>
                   <button onClick={() => openEdit(c)} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', marginRight: 8, fontSize: '0.85rem' }}>{t('contacts.edit')}</button>
                   <button onClick={() => handleArchive(c.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '0.85rem' }}>{t('contacts.archive')}</button>
@@ -146,6 +173,15 @@ export default function Contacts() {
             </form>
           </div>
         </div>
+      )}
+
+      {cariKisi && (
+        <CariHesap
+          workspaceId={workspaceId}
+          contactId={cariKisi.id}
+          contactName={cariKisi.name}
+          onClose={() => setCariKisi(null)}
+        />
       )}
     </div>
   )

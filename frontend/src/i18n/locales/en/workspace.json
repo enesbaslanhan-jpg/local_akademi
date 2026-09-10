@@ -467,7 +467,8 @@
       "type": "Type",
       "email": "Email",
       "phone": "Phone",
-      "city": "City"
+      "city": "City",
+      "balance": "Balance"
     },
     "archive": "Archive",
     "editTitle": "Edit Contact",
@@ -598,7 +599,13 @@
     "emptyHint": "Upcoming dates will appear here."
   },
   "team": {
-    "memberStatus": { "active": "Active", "inactive": "Inactive", "pending": "Pending", "suspended": "Suspended", "unknown": "Unknown status" },
+    "memberStatus": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending",
+      "suspended": "Suspended",
+      "unknown": "Unknown status"
+    },
     "inviteFailed": "Invitation could not be sent.",
     "confirmRemove": "Are you sure you want to remove this member?",
     "title": "Team Members",
@@ -794,7 +801,11 @@
   },
   "detail": {
     "dialogAria": "Record details",
-    "direction": { "payable": "Payable (debt)", "receivable": "Receivable (credit)", "neutral": "Unspecified" },
+    "direction": {
+      "payable": "Payable (debt)",
+      "receivable": "Receivable (credit)",
+      "neutral": "Unspecified"
+    },
     "updated": "Record updated.",
     "updateFailed": "Record could not be updated.",
     "deleteTitle": "Delete record",
@@ -857,6 +868,36 @@
       "cancelled": "cancelled",
       "other": "status unknown"
     },
-    "historyAction": { "created": "Created", "updated": "Updated", "deferred": "Deferred", "createdImport": "Imported", "generatedRecurrence": "Recurring record created", "statusOpen": "Reopened", "statusInProgress": "Set in progress", "statusCompleted": "Completed", "statusCancelled": "Cancelled", "statusDeferred": "Deferred", "other": "Record activity" }
+    "historyAction": {
+      "created": "Created",
+      "updated": "Updated",
+      "deferred": "Deferred",
+      "createdImport": "Imported",
+      "generatedRecurrence": "Recurring record created",
+      "statusOpen": "Reopened",
+      "statusInProgress": "Set in progress",
+      "statusCompleted": "Completed",
+      "statusCancelled": "Cancelled",
+      "statusDeferred": "Deferred",
+      "other": "Record activity"
+    }
+  },
+  "cari": {
+    "title": "Account",
+    "open": "Open account",
+    "close": "Close",
+    "loading": "Loading account…",
+    "loadError": "Could not load the account.",
+    "receivable": "Receivable",
+    "payable": "Payable",
+    "netReceivable": "Net receivable",
+    "netPayable": "Net payable",
+    "shortReceivable": "receivable",
+    "shortPayable": "payable",
+    "otherCurrencies": "+{{count}} more currency",
+    "movements": "Movements",
+    "noMovements": "No records linked to this contact.",
+    "noBalance": "No open balance.",
+    "truncated": "Showing the last 200 movements only."
   }
 }

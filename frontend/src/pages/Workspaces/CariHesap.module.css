@@ -1,0 +1,59 @@
+/* Kayıt detayıyla (KayitDetay.module.css) aynı desen: ekranı kaplayan
+   karartma + ortalanmış panel. İki detay yüzeyi birbirine benzemeli. */
+.katman {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal-overlay, 900);
+  display: grid;
+  place-items: start center;
+  padding: 64px 20px 20px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, .48);
+}
+
+.panel {
+  width: min(720px, 100%);
+  padding: 22px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-4);
+  min-width: 0;
+}
+
+.baslik { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 18px; }
+.baslik span { font-size: .74rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text-secondary); }
+.baslik h2 { margin: 4px 0 0; font-size: 1.25rem; }
+.baslik button { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-secondary); color: var(--text); cursor: pointer; }
+
+.bakiyeKarti { display: grid; gap: 6px; padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 11px; background: var(--bg-secondary); }
+.bakiyeSatiri { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.bakiyeSatiri span { color: var(--text-secondary); font-size: .9rem; }
+/* Net satır, üstündeki iki kalemin sonucu olduğu için ayrılıyor. */
+.net { padding-top: 8px; border-top: 1px solid var(--border); }
+.net strong { font-size: 1.15rem; }
+
+.alacakli { color: var(--success, #1a7f5a); }
+.borclu { color: var(--danger); }
+
+.altBaslik { margin: 18px 0 10px; font-size: .95rem; }
+
+.hareketler { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.hareketler li { display: grid; grid-template-columns: 22px 1fr auto auto; align-items: center; gap: 12px; padding: 9px 4px; border-bottom: 1px solid var(--border); }
+/* Kapanan hareket soluk: bakiyeye girmiyor, ama geçmişte duruyor. */
+.kapali { opacity: .55; }
+.yon { display: grid; place-items: center; color: var(--text-secondary); }
+.hareketAd { display: grid; min-width: 0; }
+.hareketAd strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hareketAd small { color: var(--text-secondary); }
+.hareketDurum { font-size: .8rem; color: var(--text-secondary); white-space: nowrap; }
+
+.durum { padding: 14px; text-align: center; color: var(--text-secondary); }
+.hata { padding: 11px 13px; margin-bottom: 12px; border: 1px solid var(--danger); border-radius: 9px; color: var(--danger); }
+
+@media (max-width: 640px) {
+  .katman { padding: 20px 12px; }
+  .hareketler li { grid-template-columns: 20px 1fr auto; }
+  /* Dar ekranda durum sütunu düşüyor; tutar ve ad kalıyor. */
+  .hareketDurum { display: none; }
+}

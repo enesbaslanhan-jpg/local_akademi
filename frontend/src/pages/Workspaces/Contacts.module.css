@@ -41,3 +41,28 @@
 
 :global(.dark) .sectionHeader { background: var(--surface-panel); color: var(--text); border: 1px solid var(--border); box-shadow: var(--shadow-card); }
 :global(.dark) .table th { background: var(--surface-panel); color: var(--text-light); }
+
+/* ---------- Cari hesap sütunu ---------- */
+
+/* Ad hücresi artık düğme: tıklayınca cari hesap açılıyor. Tablo
+   hizasını bozmasın diye düğmenin kendi dolgusu ve kenarlığı yok. */
+.adDugmesi {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.adDugmesi:hover { color: var(--accent); }
+.adDugmesi:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
+
+.bakiyeBaslik, .bakiyeHucresi { text-align: right; }
+.bakiyeHucresi { display: table-cell; white-space: nowrap; }
+.bakiyeHucresi span { display: block; font-weight: 700; }
+.bakiyeHucresi small { display: block; color: var(--text-secondary); font-size: .74rem; }
+.bakiyeYok { color: var(--text-secondary); font-weight: 400 !important; }
+
+.alacakli { color: var(--success, #1a7f5a); }
+.borclu { color: var(--danger); }

@@ -1,4 +1,5 @@
 import { FastifyInstance } from 'fastify'
+import { cariBakiye, listeBakiyesi } from './cari-hesap.js'
 import type { PrismaClient, Prisma } from '@prisma/client'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { z } from 'zod'
@@ -1111,6 +1112,50 @@ export async function workspaceRoutes(fastify: FastifyInstance, opts?: { prisma?
       orderBy: { name: 'asc' }
     })
 
+    /*
+     * 🔴 LİSTEDE BAKİYE — kişi başına ayrı sorgu ATILMIYOR.
+     *
+     * 50 kişilik bir listede 50 sorgu (N+1) demek olurdu. Tek
+     * `groupBy` ile bütün açık kayıtlar bir kerede toplanıyor ve
+     * bellekte kişiye dağıtılıyor.
+     *
+     * ⚠️ Gruplama para birimini de içeriyor: farklı para birimleri
+     * toplanmıyor (bkz. cari-hesap.ts).
+     */
+    const acikToplamlar = await prisma.businessRecord.groupBy({
+      by: ['contactId', 'direction', 'currency'],
+      where: {
+        workspaceId,
+        archivedAt: null,
+        contactId: { not: null },
+        status: { in: ['open', 'in_progress', 'deferred'] },
+        direction: { in: ['receivable', 'payable'] }
+      },
+      _sum: { amount: true }
+    })
+
+    const ayarlar = await prisma.businessSetting.findUnique({
+      where: { workspaceId },
+      select: { defaultCurrency: true }
+    })
+    const isletmeParaBirimi = ayarlar?.defaultCurrency || 'TRY'
+
+    const kisiKayitlari = new Map<string, { direction: string; status: string; amount: number | null; currency: string }[]>()
+    for (const satir of acikToplamlar) {
+      if (!satir.contactId) continue
+      const liste = kisiKayitlari.get(satir.contactId) ?? []
+      liste.push({
+        direction: satir.direction,
+        /* groupBy zaten açık olanları süzdü; `cariBakiye` yeniden
+           süzebilsin diye açık bir durum veriliyor. */
+        status: 'open',
+        amount: satir._sum.amount === null ? null : Number(satir._sum.amount),
+        currency: satir.currency
+      })
+      kisiKayitlari.set(satir.contactId, liste)
+    }
+
+
     return contacts.map(c => ({
       id: c.id,
       type: c.type,
@@ -1123,8 +1168,68 @@ export async function workspaceRoutes(fastify: FastifyInstance, opts?: { prisma?
       address: c.address,
       notes: c.notes,
       status: c.status,
-      createdAt: c.createdAt
+      createdAt: c.createdAt,
+      /* Bakiye listede tek satırda; ayrıntı kişi detayında. */
+      ...listeBakiyesi(cariBakiye(kisiKayitlari.get(c.id) ?? []), isletmeParaBirimi)
     }))
+  })
+
+  /*
+   * 🔴 CARİ HESAP — "Ahmet'e ne kadar borcum var?"
+   *
+   * Bu sorunun cevabı üründe hiçbir yerde yoktu. Kayıtlar kişiye
+   * bağlanabiliyordu ama toplanmıyordu; kullanıcı gözle toplamak
+   * zorundaydı.
+   *
+   * ⚠️ Görüntüleyici de görebiliyor: hesabı okumak, değiştirmek değil.
+   */
+  fastify.get('/:workspaceId/contacts/:contactId/hesap', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId, contactId } = request.params as { workspaceId: string; contactId: string }
+
+    const member = await assertMember(prisma, user.id, workspaceId, reply)
+    if (!member) return
+
+    const contact = await prisma.businessContact.findFirst({
+      where: { id: contactId, workspaceId, archivedAt: null }
+    })
+    if (!contact) return reply.status(404).send({ error: 'Kişi bulunamadı' })
+
+    /*
+     * Hareketler kapanmış olanları DA içeriyor: ekstre geçmişi
+     * gösterir. Bakiye ise yalnız açık olanlardan hesaplanıyor
+     * (`cariBakiye` bunu kendi içinde yapıyor).
+     */
+    const kayitlar = await prisma.businessRecord.findMany({
+      where: { contactId, workspaceId, archivedAt: null },
+      orderBy: [{ dueAt: 'desc' }, { createdAt: 'desc' }],
+      take: 200,
+      select: {
+        id: true, type: true, title: true, direction: true, status: true,
+        amount: true, currency: true, dueAt: true, completedAt: true, createdAt: true
+      }
+    })
+
+    const sayisal = kayitlar.map(kayit => ({
+      ...kayit,
+      amount: kayit.amount === null ? null : Number(kayit.amount)
+    }))
+
+    const ayarlar = await prisma.businessSetting.findUnique({
+      where: { workspaceId },
+      select: { defaultCurrency: true }
+    })
+    const bakiyeler = cariBakiye(sayisal)
+
+    return {
+      contact: { id: contact.id, name: contact.name, type: contact.type },
+      bakiyeler,
+      ...listeBakiyesi(bakiyeler, ayarlar?.defaultCurrency || 'TRY'),
+      hareketler: sayisal,
+      /* 200'den fazlası varsa arayüz bunu söylemeli; sessizce kırpmak
+         "hepsi bu" izlenimi verirdi. */
+      kirpildi: kayitlar.length === 200
+    }
   })
 
   fastify.post('/:workspaceId/contacts', async (request, reply) => {

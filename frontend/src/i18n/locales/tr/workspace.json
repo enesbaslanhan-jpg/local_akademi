@@ -467,7 +467,8 @@
       "type": "Tür",
       "email": "E-posta",
       "phone": "Telefon",
-      "city": "Şehir"
+      "city": "Şehir",
+      "balance": "Bakiye"
     },
     "archive": "Arşivle",
     "editTitle": "Kişiyi Düzenle",
@@ -598,7 +599,13 @@
     "emptyHint": "Yaklaşan tarihler burada görünecek."
   },
   "team": {
-    "memberStatus": { "active": "Aktif", "inactive": "Pasif", "pending": "Bekliyor", "suspended": "Askıya alındı", "unknown": "Durum bilinmiyor" },
+    "memberStatus": {
+      "active": "Aktif",
+      "inactive": "Pasif",
+      "pending": "Bekliyor",
+      "suspended": "Askıya alındı",
+      "unknown": "Durum bilinmiyor"
+    },
     "inviteFailed": "Davet gönderilemedi.",
     "confirmRemove": "Bu üyeyi çıkarmak istediğinize emin misiniz?",
     "title": "Ekip Üyeleri",
@@ -794,7 +801,11 @@
   },
   "detail": {
     "dialogAria": "Kayıt detayı",
-    "direction": { "payable": "Ödenecek (borç)", "receivable": "Tahsil edilecek (alacak)", "neutral": "Belirsiz" },
+    "direction": {
+      "payable": "Ödenecek (borç)",
+      "receivable": "Tahsil edilecek (alacak)",
+      "neutral": "Belirsiz"
+    },
     "updated": "Kayıt güncellendi.",
     "updateFailed": "Kayıt güncellenemedi.",
     "deleteTitle": "Kaydı sil",
@@ -857,6 +868,36 @@
       "cancelled": "iptal edildi",
       "other": "durum bilinmiyor"
     },
-    "historyAction": { "created": "Oluşturuldu", "updated": "Güncellendi", "deferred": "Ertelendi", "createdImport": "İçe aktarıldı", "generatedRecurrence": "Tekrarlanan kayıt oluşturuldu", "statusOpen": "Açık duruma alındı", "statusInProgress": "İşleme alındı", "statusCompleted": "Tamamlandı", "statusCancelled": "İptal edildi", "statusDeferred": "Ertelendi", "other": "Kayıt işlemi" }
+    "historyAction": {
+      "created": "Oluşturuldu",
+      "updated": "Güncellendi",
+      "deferred": "Ertelendi",
+      "createdImport": "İçe aktarıldı",
+      "generatedRecurrence": "Tekrarlanan kayıt oluşturuldu",
+      "statusOpen": "Açık duruma alındı",
+      "statusInProgress": "İşleme alındı",
+      "statusCompleted": "Tamamlandı",
+      "statusCancelled": "İptal edildi",
+      "statusDeferred": "Ertelendi",
+      "other": "Kayıt işlemi"
+    }
+  },
+  "cari": {
+    "title": "Cari Hesap",
+    "open": "Cari hesabı aç",
+    "close": "Kapat",
+    "loading": "Hesap getiriliyor…",
+    "loadError": "Cari hesap yüklenemedi.",
+    "receivable": "Alacak",
+    "payable": "Borç",
+    "netReceivable": "Net alacak",
+    "netPayable": "Net borç",
+    "shortReceivable": "alacak",
+    "shortPayable": "borç",
+    "otherCurrencies": "+{{count}} para birimi daha",
+    "movements": "Hareketler",
+    "noMovements": "Bu kişiye bağlı kayıt yok.",
+    "noBalance": "Açık hesap yok.",
+    "truncated": "Yalnız son 200 hareket gösteriliyor."
   }
 }
