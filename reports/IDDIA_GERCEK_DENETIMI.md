@@ -43,13 +43,34 @@ ucuz ve dürüst. Bu karar Faz 0.5'e ait.
 | Belge sohbeti | 0 |
 | Toplu içe aktarma | **0 iş** |
 
-🔴 Bunlar ürünün en çok anlatılan yüzeyleri ve **hiçbiri gerçek veriyle
-çalıştırılmadı.** Testler geçiyor olabilir; gerçek bir e-Fatura XML'i, gerçek
-bir taranmış PDF ya da gerçek bir Excel dosyası hiç girmedi.
+### ⚠️ DÜZELTME (aynı gün)
 
-⚠️ Faz 0.2'de gerçek kullanıcı gelmeden önce **bu üçü en az bir kez gerçek
-dosyayla denenmeli.** Kullanıcının ilk belgesini yüklediği an patlarsa, o
-kullanıcı geri gelmez.
+Bu bölümün ilk hâli **"hiçbiri gerçek veriyle çalıştırılmadı"** diyordu.
+**Yanlıştı.** Depoya bakınca durum çok daha iyi çıktı:
+
+| Kapsam | Durum |
+|---|---|
+| e-Fatura ayrıştırma | **27 test**, GİB'in resmî örnek dosyalarıyla (`tests/fixtures/ubl/`): temel fatura, ticari fatura, irsaliye, istisna, özel matrah, hatta "fatura değil" negatif örneği |
+| Belge uçları | **38 test**, HTTP seviyesinde (`app.inject`), gerçek uçlardan geçiyor |
+| Belgeden öneri | 9 test |
+| Toplu içe aktarma | HTTP seviyesinde test var (`records/import`, business-tracker.test.ts) |
+| PDF | İşleniyor; metin çıkmazsa 500 değil **422 ve anlaşılır mesaj** dönüyor |
+
+Beş dosya birlikte koşturuldu: **94 test geçiyor.**
+
+Yani "test edilmemiş" demek haksızlıktı. Doğru ifade şu: **üretimde hiç
+kullanılmadı**, ama temsilî gerçek dosyalarla kapsamlı biçimde test edilmiş.
+
+### Geriye kalan gerçek boşluk
+
+- **Taranmış PDF / telefonla çekilmiş fatura fotoğrafı** — OCR yolu için
+  örnek dosya YOK. Bir esnafın en olası davranışı bu ve tam orası denenmemiş.
+- **Gerçek dünyanın dağınıklığı** — GİB örnekleri temiz. Sahadaki dosyalar
+  tuhaf kodlamalar, alışılmadık profiller ve büyük boyutlar getirir.
+
+⚠️ Faz 0.2'de gerçek kullanıcı gelmeden önce **en az bir taranmış PDF ve bir
+fatura fotoğrafı** denenmeli. Kullanıcının ilk belgesini yüklediği an
+patlarsa, o kullanıcı geri gelmez.
 
 ---
 
