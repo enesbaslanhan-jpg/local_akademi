@@ -22,7 +22,7 @@ import styles from './KayitDetay.module.css'
  */
 
 const typeKeys = {
-  payment: 'payment', receivable: 'receivable', promissory_note: 'promissoryNote',
+  payment: 'payment', receivable: 'receivable', promissory_note: 'promissoryNote', cheque: 'cheque',
   purchase: 'purchase', shipment: 'shipment', task: 'task', deferred: 'deferred', other: 'other'
 }
 

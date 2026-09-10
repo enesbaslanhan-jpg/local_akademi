@@ -320,6 +320,45 @@ describe('Business tracker API', () => {
     expect(await prisma.businessRecord.count({ where: { workspaceId } })).toBe(before + 1)
     expect((await inject('POST', `/workspaces/${workspaceId}/document-suggestions/${suggestion.id}/accept`, ownerToken, {})).statusCode).toBe(409)
   })
+  /*
+   * 🔴 ÖDENMİŞ BELGE AÇIK BORÇ OLARAK AÇILMAMALI.
+   *
+   * Dekont ve fiş zaten yapılmış ödemelerdir. Öneri 'completed'
+   * durumunda geldiğinde kayıt da tamamlanmış doğmalı; aksi hâlde
+   * kullanıcı ödediği parayı ana sayfada bir daha borç olarak görür.
+   */
+  it('geçmiş işlem önerisi tamamlanmış kayıt açıyor', async () => {
+    const oneri = await prisma.documentSuggestion.create({
+      data: {
+        workspaceId,
+        documentId,
+        suggestionType: 'business_record',
+        confidence: 0.6,
+        status: 'proposed',
+        evidence: JSON.stringify(['Tutar: 3.250,00 TL']),
+        payload: JSON.stringify({
+          status: 'completed',
+          type: 'payment',
+          title: 'Havale dekontu',
+          direction: 'payable',
+          amount: 3250,
+          currency: 'TRY',
+          dueAt: null,
+          priority: 'normal'
+        })
+      }
+    })
+
+    const kabul = await inject('POST', `/workspaces/${workspaceId}/document-suggestions/${oneri.id}/accept`, ownerToken, {})
+    expect(kabul.statusCode).toBe(201)
+    expect(kabul.json().status).toBe('completed')
+
+    /* Tarih de tutarlı kurulmalı: "tamamlandı" deyip tamamlanma
+       tarihini boş bırakmak raporları bozardı. */
+    const kayit = await prisma.businessRecord.findUnique({ where: { id: kabul.json().id } })
+    expect(kayit?.completedAt).not.toBeNull()
+  })
+
 
   it('defers a record and keeps an audit reason', async () => {
     const dueAt = new Date(Date.now() + 7 * 86400000).toISOString()

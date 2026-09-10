@@ -145,8 +145,49 @@ describe('belge önerisi uydurmuyor', () => {
       'İşbu çek karşılığında 78.500,00 TL ödeyiniz.'
     ))
     expect(oneri).not.toBeNull()
-    expect(oneri!.payload.type).toBe('promissory_note')
+    /* 🔴 Çek ve senet Türkiye'de HUKUKEN farklı: çek görüldüğünde
+       ödenir ve karşılıksız çıkması cezai sorumluluk doğurur. İkisini
+       tek türde toplamak, kullanıcıya yanlış bir vade algısı verirdi. */
+    expect(oneri!.payload.type).toBe('cheque')
     expect(oneri!.payload.amount).toBe(78500)
+    /* Vadesi kaçarsa sonucu ağır: senet gibi yüksek öncelikli. */
+    expect(oneri!.payload.priority).toBe('high')
+  })
+
+  /*
+   * 🔴 GEÇMİŞ İŞLEM AÇIK BORÇ DEĞİLDİR.
+   *
+   * Dekont/makbuz/fiş zaten YAPILMIŞ ödemenin belgesidir. Bunlardan
+   * "açık borç" önermek, kullanıcıya ödediği parayı bir daha borç
+   * göstermek ve ana sayfadaki geciken sayısını şişirmek demekti.
+   */
+  it('dekont tamamlanmış olarak öneriliyor', () => {
+    const oneri = buildDocumentSuggestion(belge(
+      'HAVALE DEKONTU\nİşlem tutarı: 3.250,00 TL\nTahsil edildi.',
+      { originalName: 'dekont.pdf' }
+    ))
+    expect(oneri).not.toBeNull()
+    /* Öneri KALDIRILMIYOR: harcamanın kaydı tutulmak istenebilir. */
+    expect(oneri!.payload.status).toBe('completed')
+    /* Olmuş bitmiş işin aciliyeti yok. */
+    expect(oneri!.payload.priority).toBe('normal')
+  })
+
+  it('market fişi tamamlanmış olarak öneriliyor', () => {
+    const oneri = buildDocumentSuggestion(belge(
+      'FİŞ NO: 004512\nTOPLAM: 842,50 TL\nPara üstü: 157,50 TL',
+      { originalName: 'fis.jpg' }
+    ))
+    expect(oneri!.payload.status).toBe('completed')
+  })
+
+  it('vadesi gelmemiş senet açık kalıyor', () => {
+    /* Karşı kontrol: her belgeyi tamamlanmış saymıyoruz. */
+    const oneri = buildDocumentSuggestion(belge(
+      'EMRE MUHARRER SENET\nVade tarihi: 15.12.2026\n' +
+      'İşbu senet mukabilinde 45.000,00 TL bedeli malen ahzolunmuştur.'
+    ))
+    expect(oneri!.payload.status).toBeUndefined()
   })
 
   it('senet doğru okunuyor', () => {

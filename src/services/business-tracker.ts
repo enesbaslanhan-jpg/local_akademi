@@ -36,8 +36,18 @@ export function indirmeBasligi(originalName: string): string {
   return `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(temiz)}`
 }
 
+/*
+ * ⚠️ 'cheque' EKLENDİ (10.09.2026): çek ve senet Türkiye'de HUKUKEN
+ * FARKLI. Çek bankaya çekilir, karşılıksız çıkarsa ayrı bir süreç
+ * işler; senet farklı. Bir esnaf ikisini ayrı takip eder ve ikisi tek
+ * türe girdiğinde "hangisi çekti" bilgisi kayboluyordu.
+ *
+ * ⚠️ Mevcut senet kayıtları OLDUĞU GİBİ kaldı. Geriye dönük yeniden
+ * sınıflandırma yapılmadı: hangisinin gerçekte çek olduğunu bilmiyoruz
+ * ve tahmin etmek veri uydurmak olurdu.
+ */
 const RECORD_TYPES = [
-  'payment', 'receivable', 'promissory_note', 'purchase',
+  'payment', 'receivable', 'promissory_note', 'cheque', 'purchase',
   'shipment', 'task', 'deferred', 'other'
 ] as const
 const RECORD_STATUSES = ['open', 'in_progress', 'completed', 'cancelled', 'deferred'] as const
@@ -59,6 +69,15 @@ const recordInput = z.object({
   contactId: z.string().uuid().nullable().optional(),
   assignedToId: z.number().int().positive().nullable().optional(),
   recurrenceRule: z.enum(RECURRENCE_RULES).nullable().optional(),
+  /*
+   * 🔴 GEÇMİŞ İŞLEM KAYDI. Dekont, makbuz ve fiş ZATEN YAPILMIŞ
+   * ödemelerdir; onları "açık borç" olarak açmak, kullanıcıya ödediği
+   * parayı bir daha borç olarak göstermek demekti.
+   *
+   * Belge önerisi bu durumda 'completed' gönderiyor. Elle kayıt açan
+   * kullanıcı da geçmiş bir ödemeyi doğrudan tamamlanmış girebilir.
+   */
+  status: z.enum(RECORD_STATUSES).optional(),
   metadata: z.record(z.unknown()).optional()
 })
 
@@ -763,6 +782,10 @@ export async function businessTrackerRoutes(
           assignedToId: input.assignedToId ?? null,
           recurrenceRule: input.recurrenceRule ?? null,
           createdById: user.id,
+          /* Geçmiş bir ödeme doğrudan tamamlanmış girilebiliyor;
+             `recordInput`a durum eklendiği için burada da okunmalı,
+             yoksa kullanıcının verdiği değer sessizce yutulurdu. */
+          ...(input.status ? { status: input.status, ...updateDates(input.status) } : {}),
           metadata: JSON.stringify(input.metadata ?? {})
         }
       })
@@ -1255,6 +1278,9 @@ export async function businessTrackerRoutes(
           contactId: input.contactId ?? null,
           assignedToId: input.assignedToId ?? null,
           createdById: user.id,
+          /* Geçmiş işlem belgeleri tamamlanmış açılıyor; `updateDates`
+             tarihleri de tutarlı kuruyor. */
+          ...(input.status ? { status: input.status, ...updateDates(input.status) } : {}),
           metadata: JSON.stringify({ ...(input.metadata ?? {}), sourceSuggestionId: suggestion.id })
         }
       })

@@ -81,6 +81,7 @@
     "payment": "Payment",
     "receivable": "Receivable",
     "promissoryNote": "Promissory Note",
+    "cheque": "Cheque",
     "purchase": "Purchase",
     "shipment": "Shipment",
     "task": "Task",

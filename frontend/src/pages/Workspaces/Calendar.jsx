@@ -10,7 +10,7 @@ import { useLocalization } from '@/context/LocalizationContext'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 
 const typeKeys = {
-  payment: 'payment', receivable: 'receivable', promissory_note: 'promissoryNote',
+  payment: 'payment', receivable: 'receivable', promissory_note: 'promissoryNote', cheque: 'cheque',
   purchase: 'purchase', shipment: 'shipment', task: 'task', deferred: 'deferred', other: 'other'
 }
 

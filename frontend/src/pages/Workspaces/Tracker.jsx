@@ -50,6 +50,7 @@ export default function Tracker() {
     payment: t('type.payment'),
     receivable: t('type.receivable'),
     promissory_note: t('type.promissoryNote'),
+    cheque: t('type.cheque'),
     purchase: t('type.purchase'),
     shipment: t('type.shipment'),
     task: t('type.task'),
@@ -275,7 +276,7 @@ export default function Tracker() {
           <label><Search size={16} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder={t('tracker.searchPlaceholder')} /></label>
           <div className={styles.filterChips}>
             <button className={!filters.type ? styles.activeChip : ''} onClick={() => setFilters(current => ({ ...current, type: '' }))}>{t('tracker.all')}</button>
-            {['payment', 'receivable', 'promissory_note', 'shipment', 'task'].map(type => <button key={type} className={filters.type === type ? styles.activeChip : ''} onClick={() => setFilters(current => ({ ...current, type }))}>{typeLabels[type]}</button>)}
+            {['payment', 'receivable', 'promissory_note', 'cheque', 'shipment', 'task'].map(type => <button key={type} className={filters.type === type ? styles.activeChip : ''} onClick={() => setFilters(current => ({ ...current, type }))}>{typeLabels[type]}</button>)}
           </div>
           <Select aria-label={t('tracker.statusFilter')} placeholder={t('tracker.allStatuses')} options={Object.entries(statusLabels).map(([value, label]) => ({ value, label }))} value={filters.status} onChange={v => setFilters(current => ({ ...current, status: v }))} />
         </div>

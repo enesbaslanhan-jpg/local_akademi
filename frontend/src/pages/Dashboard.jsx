@@ -233,7 +233,7 @@ export default function Dashboard() {
         done: r.status === 'completed',
         priority: priorityLevel(r.priority),
         date: shortDate(r.dueAt, formatLocale),
-        kind: ({ payment: t('workspace:type.payment'), receivable: t('workspace:type.receivable'), promissory_note: t('workspace:type.promissoryNote'), purchase: t('workspace:type.purchase'), shipment: t('workspace:type.shipment'), task: t('workspace:type.task'), deferred: t('workspace:type.deferred'), other: t('workspace:type.other') })[r.type] || t('workspace:type.other'),
+        kind: ({ payment: t('workspace:type.payment'), receivable: t('workspace:type.receivable'), promissory_note: t('workspace:type.promissoryNote'), cheque: t('workspace:type.cheque'), purchase: t('workspace:type.purchase'), shipment: t('workspace:type.shipment'), task: t('workspace:type.task'), deferred: t('workspace:type.deferred'), other: t('workspace:type.other') })[r.type] || t('workspace:type.other'),
         link: null
       }))
     : tasks.slice(0, 3).map(task => ({

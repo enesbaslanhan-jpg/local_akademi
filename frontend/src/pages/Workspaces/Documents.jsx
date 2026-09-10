@@ -15,7 +15,8 @@ const categoryKeys = {
 }
 
 const recordTypeKeys = {
-  payment: 'payment', receivable: 'receivable', promissory_note: 'promissoryNote', purchase: 'purchase', shipment: 'shipment'
+  payment: 'payment', receivable: 'receivable', promissory_note: 'promissoryNote', cheque: 'cheque',
+  purchase: 'purchase', shipment: 'shipment'
 }
 
 export default function Documents() {

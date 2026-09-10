@@ -66,7 +66,7 @@ function faturadanOneri(fatura: UblFatura, isletmeVergiNo: string | null | undef
 }
 
 export type RecordSuggestionPayload = {
-  type: 'payment' | 'receivable' | 'promissory_note' | 'purchase' | 'shipment'
+  type: 'payment' | 'receivable' | 'promissory_note' | 'cheque' | 'purchase' | 'shipment'
   title: string
   description: string
   direction: 'payable' | 'receivable' | 'neutral'
@@ -74,6 +74,55 @@ export type RecordSuggestionPayload = {
   currency: string
   dueAt: string | null
   priority: 'normal' | 'high'
+  /* Geçmiş işlem belgelerinde 'completed'; ötekilerde tanımsız
+     (kayıt varsayılan olarak açık doğar). */
+  status?: 'completed'
+}
+
+/*
+ * 🔴 GEÇMİŞ İŞLEM BELGELERİ.
+ *
+ * Dekont, makbuz ve fiş ZATEN YAPILMIŞ ödemelerdir. Bunlardan "açık
+ * borç" kaydı önermek, kullanıcıya ödediği parayı bir daha borç olarak
+ * göstermek demekti -- ana sayfadaki toplamları ve geciken sayısını da
+ * bozardı.
+ *
+ * Ölçüldü (10.09.2026): banka dekontu "alım borcu" olarak öneriliyordu.
+ *
+ * ⚠️ Öneri KALDIRILMIYOR, DURUMU değişiyor. Harcamanın kaydı tutulmak
+ * istenebilir; olan biteni yok saymak yerine "bu iş bitti" demek doğru.
+ */
+const GECMIS_ISLEM_ISARETLERI = [
+  'dekont',
+  'makbuz',
+  'fiş',
+  'fis no',
+  'tahsil edildi',
+  'ödenmiştir',
+  'ödendi',
+  'para üstü'
+]
+
+export function gecmisIslemMi(aranabilir: string): boolean {
+  return GECMIS_ISLEM_ISARETLERI.some(isaret => aranabilir.includes(isaret))
+}
+
+/*
+ * Geçmiş işlemin YÖNÜ.
+ *
+ * ⚠️ Tahmin edilmiyor, yalnız belgenin söylediği okunuyor. Fiş ve
+ * makbuz para çıkışıdır; "tahsil edildi" para girişidir. Tek başına
+ * "dekont" ikisi de olabilir -- havale hem gelir hem gider olarak
+ * çekilir. O durumda yön 'neutral' kalıyor ve kullanıcıya soruluyor;
+ * yanlış yön, kullanıcının alacağını borç yazmak demektir.
+ */
+const GECMIS_ODEME_ISARETLERI = ['fiş', 'fis no', 'makbuz', 'para üstü', 'ödenmiştir', 'ödendi']
+const GECMIS_TAHSILAT_ISARETLERI = ['tahsil edildi']
+
+function gecmisIslemYonu(aranabilir: string): RecordSuggestionPayload['direction'] {
+  if (GECMIS_TAHSILAT_ISARETLERI.some(i => aranabilir.includes(i))) return 'receivable'
+  if (GECMIS_ODEME_ISARETLERI.some(i => aranabilir.includes(i))) return 'payable'
+  return 'neutral'
 }
 
 const TYPE_RULES: Array<{
@@ -93,9 +142,10 @@ const TYPE_RULES: Array<{
    * geçmiş göründü ve iki hatırlatma kurdu.
    */
   { type: 'promissory_note', direction: 'payable', terms: ['senet', 'bono'] },
-  /* Çek de bir ödeme taahhüdü; keşide tarihi vadesidir. Eskiden hiç
-     tanınmıyordu: 78.500 TL'lik bir çek sessizce görmezden geliniyordu. */
-  { type: 'promissory_note', direction: 'payable', terms: ['çek no', 'keşide'] },
+  /* Çek ve senet Türkiye'de hukuken FARKLI; çek bankaya çekilir ve
+     karşılıksız çıkarsa ayrı bir süreç işler. Tek türe girdiklerinde
+     'hangisi çekti' bilgisi kayboluyordu. */
+  { type: 'cheque', direction: 'payable', terms: ['çek no', 'keşide'] },
   { type: 'shipment', direction: 'neutral', terms: ['kargo', 'sevkiyat', 'teslimat', 'takip numarası'] },
   { type: 'receivable', direction: 'receivable', terms: ['tahsilat', 'alacak', 'müşteriden alınacak'] },
   { type: 'purchase', direction: 'payable', terms: ['satın alma', 'sipariş', 'tedarik', 'alım'] },
@@ -217,7 +267,23 @@ export function buildDocumentSuggestion(
   const searchable = `${document.originalName}\n${document.extractedText}`.toLocaleLowerCase('tr-TR')
   const matchedRule = TYPE_RULES.find(rule => rule.terms.some(term => searchable.includes(term)))
   const categoryRule = document.category ? CATEGORY_TYPE[document.category] : undefined
-  const classification = matchedRule ?? categoryRule
+  /*
+   * 🔴 GEÇMİŞ İŞLEM BELGESİ HİÇ ÖNERİ ÜRETMİYORDU.
+   *
+   * Dekont ve fişte 'fatura', 'ödeme', 'senet' gibi tür kelimeleri
+   * geçmez; hiçbir kural eşleşmiyor ve belge sessizce düşüyordu.
+   * Yapılmış bir harcamanın kaydı esnaf için değerli -- ay sonunda
+   * "para nereye gitti" sorusunun cevabı bu kayıtlar.
+   *
+   * ⚠️ Kural eşleşmesi VARSA ona dokunulmuyor; bu yalnız hiçbir şey
+   * bulunamadığında devreye giren son çare.
+   */
+  const gecmisIslem = gecmisIslemMi(searchable)
+  const gecmisKurali = gecmisIslem
+    ? { type: 'payment' as const, direction: gecmisIslemYonu(searchable) }
+    : undefined
+
+  const classification = matchedRule ?? categoryRule ?? gecmisKurali
   if (!classification) return null
 
   /* Etiketli toplam varsa o kazanır; yoksa eski tarama. */
@@ -270,7 +336,10 @@ export function buildDocumentSuggestion(
       (amountMatch ? 0.25 : 0) +
       (dateMatch ? 0.15 : 0)
   )
+  const gecmis = gecmisIslem
+
   const payload: RecordSuggestionPayload = {
+    ...(gecmis ? { status: 'completed' as const } : {}),
     type: classification.type,
     title: baseName || 'Belgeden oluşturulan kayıt',
     description: `“${document.originalName}” belgesinden önerildi. Kaydetmeden önce bilgileri kontrol edin.`,
@@ -278,7 +347,12 @@ export function buildDocumentSuggestion(
     amount: amountMatch?.amount ?? null,
     currency: 'TRY',
     dueAt: dateMatch?.date.toISOString() ?? null,
-    priority: classification.type === 'promissory_note' ? 'high' : 'normal'
+    /* Çek ve senet vadeli ödeme taahhüdü; kaçırılması ağır sonuç
+       doğurur, o yüzden ikisi de yüksek öncelikli. Ama zaten olmuş bir
+       işlemin aciliyeti yok. */
+    priority: !gecmis && (classification.type === 'promissory_note' || classification.type === 'cheque')
+      ? 'high'
+      : 'normal'
   }
   return { suggestionType: 'business_record', payload, confidence, evidence }
 }
