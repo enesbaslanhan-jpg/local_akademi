@@ -10,6 +10,20 @@ const ALLOWED_EVENTS = new Set([
   'onboarding_started',
   'onboarding_step_completed',
   'onboarding_completed',
+  /*
+   * 🔴 AKTİVASYON OLAYLARI — izin listesine EKLENMEYİ UNUTMUŞTU.
+   *
+   * Olaylar 09.09.2026'da çağrı yerlerine eklendi ama buraya
+   * yazılmadığı için `captureAnalytics` ikisini de SESSİZCE düşürdü.
+   * PostHog'da yalnız `page_view` göründü (ürün sahibi bildirdi).
+   *
+   * ⚠️ Bu liste bilerek var: yeni bir olay eklerken buraya da yazmak
+   * ZORUNLU, yoksa hiç gitmiyor. Sessiz düşürme, izinsiz veri
+   * göndermekten iyi -- ama olayı ekleyip burayı unutmak da veri
+   * kaybettiriyor. Test artık ikisini bağlıyor.
+   */
+  'workspace_created',
+  'record_created',
   'integration_connect_started',
   'integration_connect_succeeded',
   'integration_connect_failed',
@@ -36,7 +50,10 @@ const SAFE_PROPERTIES = new Set([
   'user_role', 'workspace_role', 'subscription_status', 'integration_type',
   'sync_mode', 'calculation_code', 'decision_tool_code', 'outcome',
   'duration_bucket', 'error_code', 'plan_code', 'billing_period',
-  'onboarding_step', 'mentor_mode'
+  'onboarding_step', 'mentor_mode',
+  /* Aktivasyon olaylarının özellikleri. Hepsi ya sabit bir kod ya da
+     sayı; işletme adı, kayıt başlığı ve tutar BİLEREK yok. */
+  'sector', 'workspace_index', 'record_type', 'direction', 'is_first_record'
 ])
 
 const SDK_PROPERTIES = new Set([
