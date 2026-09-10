@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, FileText, HelpCircle, History, Bell, X, Edit, Trash2, Loader2, Check, Paperclip, X as XIcon } from 'lucide-react'
+import { AlertTriangle, FileText, HelpCircle, History, Bell, X, Edit, Trash2, Loader2, Check, Paperclip, Download as DownloadIcon, X as XIcon } from 'lucide-react'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
 import { useLocalization } from '@/context/LocalizationContext'
@@ -314,6 +314,16 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
     }
   }
 
+  /* Kayda bakarken dayanağı indirmek isteyen kişi, Belgeler ekranına
+     gitmek zorunda kalmasın. */
+  const belgeIndir = async (belge) => {
+    try {
+      await api.workspace.documents.download(workspaceId, belge.id, belge.originalName)
+    } catch (error) {
+      toast.error(error.message || t('detail.downloadFailed'))
+    }
+  }
+
   const handleBagKopar = async (documentId) => {
     setBelgeIsleniyor(true)
     try {
@@ -475,6 +485,18 @@ export default function KayitDetay({ workspaceId, recordId, onClose }) {
                             * Etiket de bunu söylüyor: kullanıcı belgesini
                             * kaybetmekten korkmamalı.
                             */}
+                          {/* Belgeyi buradan da indirebilmeli: kayda
+                              bakarken dayanağı görmek isteyen kişi,
+                              Belgeler ekranına gitmek zorunda kalmasın. */}
+                          <button
+                            type="button"
+                            className={styles.bagKopar}
+                            onClick={() => belgeIndir(belge)}
+                            aria-label={t('detail.downloadDocument', { name: belge.originalName })}
+                            title={t('detail.downloadDocument', { name: belge.originalName })}
+                          >
+                            <DownloadIcon size={14} aria-hidden="true" />
+                          </button>
                           <button
                             type="button"
                             className={styles.bagKopar}

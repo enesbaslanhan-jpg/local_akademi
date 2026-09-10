@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { BarChart3, Camera, Check, Eye, FileImage, FileText, ImagePlus, Mail, Trash2, Upload, X } from 'lucide-react'
+import { BarChart3, Camera, Check, Download, Eye, FileImage, FileText, ImagePlus, Mail, Trash2, Upload, X } from 'lucide-react'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
 import { Select, Button } from '@/components/ui'
@@ -88,6 +88,14 @@ export default function Documents() {
     event.preventDefault()
     setDragging(false)
     if (!uploading) processFile(event.dataTransfer.files?.[0])
+  }
+
+  async function belgeIndir(document) {
+    try {
+      await api.workspace.documents.download(workspaceId, document.id, document.originalName)
+    } catch (error) {
+      toast.error(error.message || t('documents.downloadFailed'))
+    }
   }
 
   async function archive(documentId) {
@@ -233,6 +241,18 @@ export default function Documents() {
                   {document.analysisStatus === 'no_suggestion' && <span className={styles.noSuggestionBadge}>{t('documents.noSuggestionBadge')}</span>}
                 </div>
                 <button className={styles.previewButton} onClick={() => setPreview(document)}><Eye size={17} /> {t('documents.viewContent')}</button>
+                {/*
+                  * 🔴 BELGENİN KENDİSİ İNDİRİLEMİYORDU.
+                  *
+                  * "İçerik" yalnız OCR metnini gösteriyor. Kullanıcı
+                  * faturasının fotoğrafını yüklüyor ve geri alamıyordu;
+                  * muhasebecisine gönderemiyor, yazdıramıyordu.
+                  */}
+                <button
+                  className={styles.previewButton}
+                  onClick={() => belgeIndir(document)}
+                  aria-label={t('documents.download')}
+                ><Download size={17} /> {t('documents.download')}</button>
                 <button className={styles.delete} aria-label={t('documents.archive')} onClick={() => archive(document.id)}><Trash2 size={17} /></button>
               </div>
               {document.suggestions?.filter(item => item.status === 'proposed').map(suggestion => (

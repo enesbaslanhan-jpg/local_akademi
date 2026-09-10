@@ -1393,6 +1393,55 @@ export const api = {
           method: 'PATCH', body: JSON.stringify(metadata)
         })
       },
+      /*
+       * BELGENİN KENDİSİNİ İNDİR.
+       *
+       * 🔴 Bu yol YOKTU: kullanıcı faturasının fotoğrafını yüklüyor,
+       * geri alamıyordu. Belge detayı yalnız OCR metnini dönüyordu.
+       *
+       * ⚠️ `downloadRecords` dosya adını `filename="..."` alanından
+       * okuyor; orası ASCII karşılığı, yani "Fatura Özeti.pdf" ->
+       * "Fatura _zeti.pdf" olur. Burada önce RFC 5987 biçimi
+       * (`filename*=UTF-8''`) deneniyor, Türkçe ad korunsun diye.
+       */
+      async download(workspaceId, documentId, fallbackName = 'belge') {
+        const token = localStorage.getItem('token')
+        const res = await fetch(
+          `${API_URL}/workspaces/${workspaceId}/documents/${documentId}/download`,
+          { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+        )
+
+        if (!res.ok) {
+          let data = null
+          try { data = await res.json() } catch { /* ikili/boş yanıt */ }
+          throw new ApiError(data?.error || i18n.t('common:errors.downloadFailed'), res.status, data)
+        }
+
+        const disposition = res.headers.get('Content-Disposition') || ''
+        let filename = fallbackName
+        const utf8 = disposition.match(/filename\*=UTF-8''([^;]+)/i)
+        if (utf8) {
+          try { filename = decodeURIComponent(utf8[1]) } catch { /* bozuksa ASCII'ye düş */ }
+        }
+        if (filename === fallbackName) {
+          const ascii = disposition.match(/filename="?([^";]+)"?/i)
+          if (ascii) filename = ascii[1]
+        }
+
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        try {
+          const link = document.createElement('a')
+          link.href = url
+          link.download = filename
+          document.body.appendChild(link)
+          link.click()
+          link.remove()
+        } finally {
+          URL.revokeObjectURL(url)
+        }
+        return { filename }
+      },
       async archive(workspaceId, documentId) {
         return api.request(`/workspaces/${workspaceId}/documents/${documentId}`, { method: 'DELETE' })
       },

@@ -7,6 +7,35 @@ import { atamaBildirimi, processDueBusinessReminders, syncAutomaticReminder } fr
 import { buildDocumentSuggestion, oneriKaydet } from './document-suggestions.js'
 import { yuklemeYoluCoz, exceljsYukle } from './documents.js'
 
+/*
+ * İNDİRME BAŞLIĞI — dosya adı kullanıcının verdiği ad olmalı.
+ *
+ * `storedName` sunucunun ürettiği uuid; kullanıcıya onu indirtmek,
+ * "fatura.pdf" yerine "9c2a....pdf" vermek demekti.
+ *
+ * 🔴 İKİ AYRI TEHLİKE:
+ *
+ * 1. BAŞLIK ENJEKSİYONU. `originalName` kullanıcıdan geliyor; içinde
+ *    tırnak, satır sonu ya da denetim karakteri olabilir ve bunlar
+ *    HTTP başlığını bölerdi. Hepsi ayıklanıyor.
+ *
+ * 2. TÜRKÇE KARAKTER. "Fatura Özeti.pdf" gibi bir ad ASCII değil;
+ *    yalnız `filename=` yazılırsa tarayıcı adı bozuk gösterir. RFC
+ *    5987'nin `filename*=UTF-8''` biçimi bunun için var. İkisi birden
+ *    yazılıyor: eski tarayıcı ASCII olanı, yenisi UTF-8 olanı okur.
+ */
+export function indirmeBasligi(originalName: string): string {
+  const temiz = (originalName || 'belge')
+    // Denetim karakterleri, tırnak ve ters bölü başlığı bozabilir.
+    .replace(/[\u0000-\u001F\u007F"\\]/g, '')
+    .trim() || 'belge'
+
+  // Eski tarayıcılar için ASCII karşılığı; Türkçe harfler alt çizgiye düşer.
+  const ascii = temiz.replace(/[^\x20-\x7E]/g, '_')
+
+  return `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(temiz)}`
+}
+
 const RECORD_TYPES = [
   'payment', 'receivable', 'promissory_note', 'purchase',
   'shipment', 'task', 'deferred', 'other'
@@ -1091,6 +1120,61 @@ export async function businessTrackerRoutes(
       return result
     })
     return updated
+  })
+
+  /*
+   * 🔴 BELGE İNDİRME — bu uç YOKTU.
+   *
+   * Esnaf faturasının fotoğrafını yüklüyor, dosya diskte duruyor, ama
+   * onu dışarı çıkaran hiçbir yol yoktu: belge detayı yalnızca OCR
+   * metnini dönüyordu (en fazla 20.000 karakter). Yani veri içeri
+   * girip çıkamıyordu.
+   *
+   * Bu yalnız kullanışlılık meselesi değil: kullanıcının kendi
+   * yüklediği belgeye erişememesi güven sorunudur ve veri
+   * taşınabilirliği beklentisiyle çelişir.
+   *
+   * ⚠️ Yol çözümü `yuklemeYoluCoz` ile: `../` kaçışına karşı korumayı
+   * tek kapıda tutuyoruz (silme ve içe aktarma da oradan geçiyor).
+   */
+  fastify.get('/:workspaceId/documents/:documentId/download', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId, documentId } = request.params as { workspaceId: string; documentId: string }
+    if (!await access(prisma, user.id, workspaceId, reply)) return
+
+    const document = await prisma.uploadedDocument.findFirst({
+      where: { id: documentId, workspaceId, archivedAt: null },
+      select: { originalName: true, storedName: true, mimeType: true, sizeBytes: true }
+    })
+    if (!document) return reply.status(404).send({ error: 'Belge bulunamadı' })
+
+    let yol: string
+    try {
+      yol = yuklemeYoluCoz(document.storedName)
+    } catch {
+      request.log.error({ storedName: document.storedName }, 'Unsafe storedName rejected')
+      return reply.status(500).send({ error: 'Belge okunamadı' })
+    }
+
+    let govde: Buffer
+    try {
+      govde = await readFile(yol)
+    } catch {
+      /*
+       * Kayıt veritabanında var ama dosya diskte yok. Bu, silinmiş ya
+       * da taşınmış bir dosya demek; 500 yerine 404 dönüyoruz çünkü
+       * sunucu arızası değil, belge gerçekten yok.
+       */
+      request.log.error({ documentId }, 'Belge dosyası diskte bulunamadı')
+      return reply.status(404).send({ error: 'Belge dosyası bulunamadı' })
+    }
+
+    reply.header('Content-Type', document.mimeType || 'application/octet-stream')
+    reply.header('Content-Length', String(govde.byteLength))
+    reply.header('Content-Disposition', indirmeBasligi(document.originalName))
+    /* Tarayıcı belgeyi kendi başına yorumlamasın. */
+    reply.header('X-Content-Type-Options', 'nosniff')
+    return reply.send(govde)
   })
 
   fastify.get('/:workspaceId/documents/:documentId/suggestions', async (request, reply) => {

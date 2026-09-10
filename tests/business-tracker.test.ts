@@ -722,4 +722,63 @@ describe('Mentor işletme özeti', () => {
     const response = await inject('GET', `/workspaces/${workspaceId}/tracker/analysis`, otherToken)
     expect(response.statusCode).toBe(403)
   })
+
+  /*
+   * 🔴 BELGE İNDİRME UCU YOKTU.
+   *
+   * Esnaf faturasının fotoğrafını yüklüyor, dosya diskte duruyor, ama
+   * dışarı çıkaran hiçbir yol yoktu; belge detayı yalnız OCR metnini
+   * dönüyordu. Veri içeri girip çıkamıyordu.
+   */
+  describe('belge indirme', () => {
+    it('yüklenen dosyayı olduğu gibi geri veriyor', async () => {
+      const icerik = 'satir1;satir2\n'
+      const belgeId = await csvDosyasiHazirla('Fatura Özeti.csv', icerik)
+
+      const yanit = await inject('GET', `/workspaces/${workspaceId}/documents/${belgeId}/download`, ownerToken)
+      expect(yanit.statusCode).toBe(200)
+      /* Bayt bayt aynı olmalı: sıkıştırma ya da kırpma yok. */
+      expect(yanit.body).toBe(icerik)
+    })
+
+    it('dosya adı kullanıcının verdiği ad', async () => {
+      const belgeId = await csvDosyasiHazirla('Fatura Özeti.csv', 'a;b\n')
+      const yanit = await inject('GET', `/workspaces/${workspaceId}/documents/${belgeId}/download`, ownerToken)
+      const baslik = yanit.headers['content-disposition'] as string
+      /* `storedName` bir uuid; kullanıcı onu değil kendi adını görmeli. */
+      expect(baslik).toContain("filename*=UTF-8''")
+      expect(baslik).toContain(encodeURIComponent('Fatura Özeti.csv'))
+      expect(baslik.startsWith('attachment;')).toBe(true)
+    })
+
+    it('görüntüleyici de indirebiliyor', async () => {
+      /* Belgeyi okumak, değiştirmek değil. */
+      const belgeId = await csvDosyasiHazirla('Rapor.csv', 'x;y\n')
+      const yanit = await inject('GET', `/workspaces/${workspaceId}/documents/${belgeId}/download`, viewerToken)
+      expect(yanit.statusCode).toBe(200)
+    })
+
+    it('başka işletmenin belgesini vermiyor', async () => {
+      const belgeId = await csvDosyasiHazirla('Gizli.csv', 'gizli\n')
+      const yanit = await inject('GET', `/workspaces/${workspaceId}/documents/${belgeId}/download`, otherToken)
+      expect(yanit.statusCode).toBe(403)
+    })
+
+    it('olmayan belge için 404', async () => {
+      const yanit = await inject('GET', `/workspaces/${workspaceId}/documents/${randomUUID()}/download`, ownerToken)
+      expect(yanit.statusCode).toBe(404)
+    })
+
+    it('kayıt var ama dosya diskte yoksa 404, 500 değil', async () => {
+      /* Silinmiş ya da taşınmış dosya sunucu arızası değil. */
+      const belgeId = await csvDosyasiHazirla('Kayip.csv', 'z\n')
+      const belge = await prisma.uploadedDocument.findUnique({
+        where: { id: belgeId }, select: { storedName: true }
+      })
+      await unlink(join(process.cwd(), 'uploads', belge!.storedName))
+
+      const yanit = await inject('GET', `/workspaces/${workspaceId}/documents/${belgeId}/download`, ownerToken)
+      expect(yanit.statusCode).toBe(404)
+    })
+  })
 })
