@@ -81,7 +81,18 @@ const TYPE_RULES: Array<{
   direction: RecordSuggestionPayload['direction']
   terms: string[]
 }> = [
-  { type: 'promissory_note', direction: 'payable', terms: ['senet', 'bono', 'vade tarihi'] },
+  /*
+   * ⚠️ 'vade tarihi' BU LİSTEDEN ÇIKARILDI (10.09.2026).
+   *
+   * Çok genel bir ifade: vadeli hesabı olan bir banka cüzdanında,
+   * kredi ekstresinde ya da kira sözleşmesinde geçer. Üstelik bu kural
+   * listenin İLK sırasında olduğu için ötekilerin hepsini eziyordu.
+   *
+   * Ölçüldü: ürün sahibi bir "Dijital Hesap Cüzdanı.pdf" yükledi;
+   * belge SENET + borç + yüksek öncelik olarak sınıflandı, vadesi
+   * geçmiş göründü ve iki hatırlatma kurdu.
+   */
+  { type: 'promissory_note', direction: 'payable', terms: ['senet', 'bono'] },
   { type: 'shipment', direction: 'neutral', terms: ['kargo', 'sevkiyat', 'teslimat', 'takip numarası'] },
   { type: 'receivable', direction: 'receivable', terms: ['tahsilat', 'alacak', 'müşteriden alınacak'] },
   { type: 'purchase', direction: 'payable', terms: ['satın alma', 'sipariş', 'tedarik', 'alım'] },
@@ -121,10 +132,19 @@ function parseDate(day: number, month: number, year: number) {
   return date
 }
 
+/*
+ * 🔴 ETİKETSİZ TARİH VADE SAYILMIYOR.
+ *
+ * Önceki sürümde etiketli tarih bulunamazsa belgedeki İLK tarihe
+ * düşülüyordu. Bir hesap ekstresinde onlarca tarih var ve ilki genelde
+ * geçmişte; kayıt doğduğu anda "vadesi geçmiş" görünüyordu.
+ *
+ * Vade, belgenin SÖYLEDİĞİ bir şeydir; rastgele bir tarih değil.
+ * Bulunamıyorsa boş bırakılıyor -- kullanıcı girer.
+ */
 function findDueDate(text: string) {
   const labelled = /(?:vade|son ödeme|teslimat|kargo)[^\d]{0,30}(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/i.exec(text)
-  const fallback = /(\d{1,2})[./-](\d{1,2})[./-](\d{4})/.exec(text)
-  const match = labelled ?? fallback
+  const match = labelled
   if (!match) return null
   const date = parseDate(Number(match[1]), Number(match[2]), Number(match[3]))
   return date ? { date, evidence: match[0].trim() } : null
@@ -153,6 +173,25 @@ export function buildDocumentSuggestion(
   const dateMatch = document.dueDate
     ? { date: document.dueDate, evidence: 'Belge için girilen vade tarihi' }
     : findDueDate(document.extractedText)
+  /*
+   * 🔴 TUTARSIZ PARA KAYDI ÖNERİLMİYOR.
+   *
+   * Ödeme, tahsilat, alım ve senet kayıtlarının varlık sebebi TUTAR.
+   * Tutar okunamadığında öneri yine de üretiliyordu ve kullanıcının
+   * karşısına ₺0,00'lık bir borç kaydı çıkıyordu (ölçüldü, 10.09.2026).
+   * Sıfır tutarlı bir borç, bilgi değil gürültüdür: ana sayfadaki
+   * toplamları ve geciken sayısını bozar.
+   *
+   * ⚠️ Kargo/sevkiyat bunun DIŞINDA: onların tutarı olmayabilir ve
+   * kayıt yine de anlamlıdır.
+   */
+  const PARA_TURLERI = new Set(['payment', 'receivable', 'purchase', 'promissory_note'])
+  if (PARA_TURLERI.has(classification.type) && !amountMatch) return null
+
+  /* Elde tek bir genel kelimeden başka hiçbir somut veri yoksa kayıt
+     önermek, uydurmaktır. */
+  if (!amountMatch && !dateMatch) return null
+
   const evidence = [
     matchedRule ? `Tür eşleşmesi: ${matchedRule.terms.find(term => searchable.includes(term))}` : `Belge kategorisi: ${document.category}`,
     amountMatch?.evidence ? `Tutar: ${amountMatch.evidence}` : null,
@@ -160,9 +199,23 @@ export function buildDocumentSuggestion(
   ].filter(Boolean)
 
   const baseName = document.originalName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim()
+  /*
+   * GÜVEN, GERÇEK KANITI YANSITMALI.
+   *
+   * Önceki formülde tek bir anahtar kelime eşleşmesi %70'e, üstüne
+   * rastgele bir tarih eklenince %80'e çıkıyordu. Ekranda "%80"
+   * yazarken elde yalnızca "vade tarihi" ifadesi vardı.
+   *
+   * ⚠️ İNSANIN SEÇTİĞİ KATEGORİ, ANAHTAR KELİMEDEN DAHA GÜÇLÜ kanıt.
+   * Önceki formül tam tersini yapıyordu (kelime 0.18, kategori 0.08).
+   */
   const confidence = Math.min(
-    0.95,
-    0.52 + (matchedRule ? 0.18 : 0.08) + (amountMatch ? 0.12 : 0) + (dateMatch ? 0.1 : 0)
+    0.9,
+    0.30 +
+      (categoryRule ? 0.20 : 0) +
+      (matchedRule ? 0.08 : 0) +
+      (amountMatch ? 0.25 : 0) +
+      (dateMatch ? 0.15 : 0)
   )
   const payload: RecordSuggestionPayload = {
     type: classification.type,
