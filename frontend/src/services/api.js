@@ -264,6 +264,27 @@ function buildQuery(params) {
   return s ? `?${s}` : '';
 };
 
+/*
+ * İkili yanıtı tarayıcıya indirtir.
+ *
+ * Üç ayrı uç (toplu dışa aktarım, belge indirme, cari ekstre) bu on
+ * satırı birebir kopyalıyordu. `revokeObjectURL` bir kopyada
+ * unutulsa sızıntı olurdu; tek yerde duruyor.
+ */
+function tarayiciyaIndir(blob, filename) {
+  const url = URL.createObjectURL(blob)
+  try {
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  } finally {
+    URL.revokeObjectURL(url)
+  }
+}
+
 export const api = {
   async request(path, options = {}, includeAuth = true, tekrarMi = false, tekUcusMu = false) {
     const method = String(options.method || 'GET').toUpperCase();
@@ -1336,24 +1357,39 @@ export const api = {
         const match = disposition.match(/filename="?([^";]+)"?/i)
         const filename = match ? match[1] : `kayitlar.${format}`
 
-        const blob = await res.blob()
-        const url = URL.createObjectURL(blob)
-        try {
-          const link = document.createElement('a')
-          link.href = url
-          link.download = filename
-          document.body.appendChild(link)
-          link.click()
-          link.remove()
-        } finally {
-          URL.revokeObjectURL(url)
-        }
+        tarayiciyaIndir(await res.blob(), filename)
 
         return {
           filename,
           rowCount: Number(res.headers.get('X-Export-Row-Count') ?? 0),
           truncated: res.headers.get('X-Export-Truncated') === 'true'
         }
+      },
+
+      /*
+       * CARİ EKSTRE PDF'İ.
+       *
+       * 🔴 Cari hesap ekranda vardı ama dışarı çıkamıyordu. Esnaf bu
+       * dökümü karşı tarafa ("bak, şu kadar kalmış") ya da
+       * muhasebecisine gönderir; ekran görüntüsü almak kullanıcının işi
+       * olmamalı.
+       */
+      async downloadContactStatement(workspaceId, contactId) {
+        const token = localStorage.getItem('token')
+        const res = await fetch(
+          `${API_URL}/workspaces/${workspaceId}/contacts/${contactId}/ekstre.pdf`,
+          { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+        )
+        if (!res.ok) {
+          let data = null
+          try { data = await res.json() } catch { /* ikili/boş yanıt */ }
+          throw new ApiError(data?.error || i18n.t('common:errors.downloadFailed'), res.status, data)
+        }
+        const disposition = res.headers.get('Content-Disposition') || ''
+        const match = disposition.match(/filename="?([^";]+)"?/i)
+        const filename = match ? match[1] : 'ekstre.pdf'
+        tarayiciyaIndir(await res.blob(), filename)
+        return { filename }
       },
 
       /*
@@ -1433,18 +1469,7 @@ export const api = {
           if (ascii) filename = ascii[1]
         }
 
-        const blob = await res.blob()
-        const url = URL.createObjectURL(blob)
-        try {
-          const link = document.createElement('a')
-          link.href = url
-          link.download = filename
-          document.body.appendChild(link)
-          link.click()
-          link.remove()
-        } finally {
-          URL.revokeObjectURL(url)
-        }
+        tarayiciyaIndir(await res.blob(), filename)
         return { filename }
       },
       async archive(workspaceId, documentId) {

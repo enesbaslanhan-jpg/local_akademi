@@ -899,6 +899,9 @@
     "movements": "Hareketler",
     "noMovements": "Bu kişiye bağlı kayıt yok.",
     "noBalance": "Açık hesap yok.",
-    "truncated": "Yalnız son 200 hareket gösteriliyor."
+    "truncated": "Yalnız son 200 hareket gösteriliyor.",
+    "statement": "Ekstre",
+    "statementLoading": "Hazırlanıyor…",
+    "statementError": "Ekstre indirilemedi."
   }
 }

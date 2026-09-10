@@ -33,6 +33,7 @@ export const RECORD_TYPE_LABELS: Record<string, string> = {
   payment: 'Ödeme',
   receivable: 'Tahsilat',
   promissory_note: 'Senet',
+  cheque: 'Çek',
   purchase: 'Satın alma',
   shipment: 'Sevkiyat',
   task: 'Görev',
@@ -85,6 +86,17 @@ export interface ExportSummary {
   receivable: number
   net: number
   currency: string
+  /*
+   * Üstteki üç kutunun başlıkları.
+   *
+   * ⚠️ Verilmezse 30 günlük ufuk yazısı kullanılıyor -- toplu dışa
+   * aktarımın anlamı budur. Cari ekstre AYNI kutuları kümülatif
+   * bakiye için kullanıyor; "30 gün" yazmak orada düpedüz yanlış
+   * bilgi olurdu.
+   */
+  etiketler?: { receivable: string; payable: string; net: string }
+  /** Kutuların altındaki satır. null verilirse hiç yazılmıyor. */
+  altSatir?: string | null
 }
 
 const COLUMNS = [
@@ -376,10 +388,15 @@ export async function recordsToPdf(
   doc.fillColor('#000').moveDown(0.8)
 
   if (summary) {
+    const etiket = summary.etiketler ?? {
+      receivable: '30 gün tahsilat',
+      payable: '30 gün ödeme',
+      net: '30 gün net'
+    }
     const tiles: Array<[string, string]> = [
-      ['30 gün tahsilat', moneyForPdf(summary.receivable, summary.currency)],
-      ['30 gün ödeme', moneyForPdf(summary.payable, summary.currency)],
-      ['30 gün net', moneyForPdf(summary.net, summary.currency)]
+      [etiket.receivable, moneyForPdf(summary.receivable, summary.currency)],
+      [etiket.payable, moneyForPdf(summary.payable, summary.currency)],
+      [etiket.net, moneyForPdf(summary.net, summary.currency)]
     ]
     const tileWidth = contentWidth / tiles.length
     const top = doc.y
@@ -390,8 +407,12 @@ export async function recordsToPdf(
         .text(value, x, top + 12, { width: tileWidth - 8 })
     })
     doc.y = top + 34
-    doc.font('tr').fontSize(9).fillColor('#555')
-      .text(`Açık ${summary.open} · Geciken ${summary.overdue} · Bugün ${summary.dueToday}`, left, doc.y)
+    const altSatir = summary.altSatir === undefined
+      ? `Açık ${summary.open} · Geciken ${summary.overdue} · Bugün ${summary.dueToday}`
+      : summary.altSatir
+    if (altSatir) {
+      doc.font('tr').fontSize(9).fillColor('#555').text(altSatir, left, doc.y)
+    }
     doc.fillColor('#000').moveDown(0.8)
   }
 

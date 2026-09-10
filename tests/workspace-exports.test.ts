@@ -298,3 +298,97 @@ describe('GET /workspaces/:id/records/:recordId/export.pdf', () => {
     expect(audit!.format).toBe('pdf')
   })
 })
+
+/*
+ * CARİ EKSTRE PDF'İ.
+ *
+ * Cari hesap ekranda vardı ama dışarı çıkamıyordu; esnaf bu sayfayı
+ * karşı tarafa ya da muhasebecisine gönderir.
+ *
+ * ⚠️ Kendi kişisini ve kayıtlarını kuruyor: yukarıdaki testler ortak
+ * veri kümesini arşivleme/rol testleriyle hırpalıyor.
+ */
+describe('GET /workspaces/:id/contacts/:contactId/ekstre.pdf', () => {
+  let kisiId: string
+
+  beforeAll(async () => {
+    const kisi = await prisma.businessContact.create({
+      data: { workspaceId, type: 'supplier', name: 'Şükrü Çeliköz', createdById: ownerId }
+    })
+    kisiId = kisi.id
+
+    const kayitlar = [
+      { direction: 'payable', amount: 1000, status: 'open', currency: 'TRY' },
+      { direction: 'receivable', amount: 250, status: 'open', currency: 'TRY' },
+      /* Kapanan kayıt bakiyeye girmemeli ama ekstrede görünmeli. */
+      { direction: 'payable', amount: 7777, status: 'completed', currency: 'TRY' },
+      /* Farklı para birimi: TL ile TOPLANMAMALI. */
+      { direction: 'payable', amount: 200, status: 'open', currency: 'USD' }
+    ]
+    for (const k of kayitlar) {
+      await prisma.businessRecord.create({
+        data: {
+          workspaceId, contactId: kisiId, type: 'payment', title: 'ekstre kalemi',
+          direction: k.direction, status: k.status, amount: k.amount,
+          currency: k.currency, createdById: ownerId
+        }
+      })
+    }
+  })
+
+  it('geçerli PDF döndürür', async () => {
+    const res = await inject(`/workspaces/${workspaceId}/contacts/${kisiId}/ekstre.pdf`, ownerToken)
+    expect(res.statusCode).toBe(200)
+    expect(res.headers['content-type']).toContain('application/pdf')
+    expect(res.rawPayload.subarray(0, 5).toString('latin1')).toBe('%PDF-')
+    expect(res.rawPayload.length).toBeGreaterThan(1000)
+  })
+
+  it('dosya adında Türkçe karakter kalmıyor', async () => {
+    const res = await inject(`/workspaces/${workspaceId}/contacts/${kisiId}/ekstre.pdf`, ownerToken)
+    expect(res.headers['content-disposition']).toMatch(/filename="[A-Za-z0-9._-]+"/)
+    expect(res.headers['content-disposition']).toContain('ekstre')
+  })
+
+  /* 🔴 BOLA: başka alanın kişi kimliği yazılarak ekstre alınamamalı. */
+  it('başka çalışma alanının kişisi bu uçtan alınamaz', async () => {
+    const yabanci = await prisma.businessContact.create({
+      data: { workspaceId: otherWorkspaceId, type: 'customer', name: 'Yabancı', createdById: outsiderId }
+    })
+    const res = await inject(`/workspaces/${workspaceId}/contacts/${yabanci.id}/ekstre.pdf`, ownerToken)
+    expect(res.statusCode).toBe(404)
+  })
+
+  it('üye olmayan kullanıcı erişemez', async () => {
+    const res = await inject(`/workspaces/${workspaceId}/contacts/${kisiId}/ekstre.pdf`, outsiderToken)
+    expect(res.statusCode).toBe(403)
+  })
+
+  it('kimliksiz istek reddedilir', async () => {
+    const res = await inject(`/workspaces/${workspaceId}/contacts/${kisiId}/ekstre.pdf`)
+    expect(res.statusCode).toBe(401)
+  })
+
+  it('görüntüleyici rolü de indirebilir', async () => {
+    const res = await inject(`/workspaces/${workspaceId}/contacts/${kisiId}/ekstre.pdf`, viewerToken)
+    expect(res.statusCode).toBe(200)
+  })
+
+  it('olmayan kişi 404 döner', async () => {
+    const res = await inject(
+      `/workspaces/${workspaceId}/contacts/00000000-0000-4000-8000-000000000000/ekstre.pdf`,
+      ownerToken
+    )
+    expect(res.statusCode).toBe(404)
+  })
+
+  it('denetim kaydı yazılır', async () => {
+    await inject(`/workspaces/${workspaceId}/contacts/${kisiId}/ekstre.pdf`, ownerToken)
+    const audit = await prisma.generatedReport.findFirst({
+      where: { userId: ownerId, reportType: `workspace_contact_statement:${workspaceId}` },
+      orderBy: { createdAt: 'desc' }
+    })
+    expect(audit).not.toBeNull()
+    expect(audit!.format).toBe('pdf')
+  })
+})

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X, ArrowDownLeft, ArrowUpRight } from 'lucide-react'
+import { X, ArrowDownLeft, ArrowUpRight, Download } from 'lucide-react'
 import { api } from '@/services/api'
 import { useTranslation } from 'react-i18next'
 import { useLocalization } from '@/context/LocalizationContext'
@@ -24,6 +24,7 @@ export default function CariHesap({ workspaceId, contactId, contactName, onClose
   const [veri, setVeri] = useState(null)
   const [yukleniyor, setYukleniyor] = useState(true)
   const [hata, setHata] = useState('')
+  const [indiriliyor, setIndiriliyor] = useState(false)
 
   useEffect(() => {
     let aktif = true
@@ -35,6 +36,21 @@ export default function CariHesap({ workspaceId, contactId, contactName, onClose
       .finally(() => { if (aktif) setYukleniyor(false) })
     return () => { aktif = false }
   }, [workspaceId, contactId, t])
+
+  /* Ekstre PDF'i: bu döküm karşı tarafa ya da muhasebeciye gönderilir.
+     ⚠️ İndirme sırasında düğme kilitleniyor; iki kez basmak iki dosya
+     indirirdi. */
+  async function ekstreIndir() {
+    setIndiriliyor(true)
+    setHata('')
+    try {
+      await api.workspace.exports.downloadContactStatement(workspaceId, contactId)
+    } catch (err) {
+      setHata(err.message || t('cari.statementError'))
+    } finally {
+      setIndiriliyor(false)
+    }
+  }
 
   const para = (tutar, birim) =>
     formatCurrency(tutar || 0, { locale: formatLocale, currency: birim || 'TRY' })
@@ -48,9 +64,20 @@ export default function CariHesap({ workspaceId, contactId, contactName, onClose
             <span>{t('cari.title')}</span>
             <h2>{contactName}</h2>
           </div>
-          <button type="button" onClick={onClose} aria-label={t('cari.close')}>
-            <X size={18} aria-hidden="true" />
-          </button>
+          <div className={styles.baslikEylemleri}>
+            <button
+              type="button"
+              className={styles.ekstreDugmesi}
+              onClick={ekstreIndir}
+              disabled={indiriliyor || yukleniyor}
+            >
+              <Download size={15} aria-hidden="true" />
+              {indiriliyor ? t('cari.statementLoading') : t('cari.statement')}
+            </button>
+            <button type="button" className={styles.kapat} onClick={onClose} aria-label={t('cari.close')}>
+              <X size={18} aria-hidden="true" />
+            </button>
+          </div>
         </header>
 
         {hata && <div className={styles.hata}>{hata}</div>}

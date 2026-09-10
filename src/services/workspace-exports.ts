@@ -15,6 +15,7 @@ import type { Prisma, PrismaClient } from '@prisma/client'
 import { z } from 'zod'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { access } from './business-tracker.js'
+import { cariBakiye, listeBakiyesi } from './cari-hesap.js'
 import {
   recordsToCsv,
   recordsToXlsx,
@@ -27,7 +28,7 @@ import {
 } from './report-formats.js'
 
 const RECORD_TYPES = [
-  'payment', 'receivable', 'promissory_note', 'purchase',
+  'payment', 'receivable', 'promissory_note', 'cheque', 'purchase',
   'shipment', 'task', 'deferred', 'other'
 ] as const
 const RECORD_STATUSES = ['open', 'in_progress', 'completed', 'cancelled', 'deferred'] as const
@@ -321,6 +322,127 @@ export async function workspaceExportRoutes(
       })
     } catch (err) {
       fastify.log.warn({ err, workspaceId, recordId }, 'tek kayıt export denetim kaydı yazılamadı')
+    }
+
+    return reply
+      .header('Content-Type', MEDIA_TYPES.pdf)
+      .header('Content-Disposition', `attachment; filename="${filename}"`)
+      .header('Content-Length', body.length)
+      .header('Cache-Control', 'no-store')
+      .send(body)
+  })
+  /*
+   * CARİ EKSTRE PDF'İ.
+   *
+   * 🔴 NEDEN GEREKLİ: cari hesap ekranda görünüyor ama dışarı
+   * çıkamıyordu. Esnaf bu sayfayı karşı tarafa ("bak, şu kadar
+   * kalmış") ya da muhasebecisine gönderir; ekran görüntüsü almak
+   * kullanıcının işi olmamalı.
+   *
+   * `recordsToPdf` AYNEN kullanılıyor. İkinci bir PDF üretici yazmak,
+   * ileride birinin yalnız birini güncellemesi demekti.
+   *
+   * ⚠️ Üstteki üç kutu burada 30 GÜNLÜK ufku değil, KÜMÜLATİF açık
+   * bakiyeyi gösteriyor; başlıkları da onu söylüyor.
+   */
+  fastify.get('/:workspaceId/contacts/:contactId/ekstre.pdf', async (request, reply) => {
+    const user = request.user as { id: number; name?: string; email: string }
+    const { workspaceId, contactId } = request.params as { workspaceId: string; contactId: string }
+
+    const member = await access(prisma, user.id, workspaceId, reply)
+    if (!member) return
+
+    const workspace = await prisma.businessWorkspace.findUnique({
+      where: { id: workspaceId },
+      select: { name: true, currency: true }
+    })
+    if (!workspace) return reply.status(404).send({ error: 'Workspace not found' })
+
+    /* 🔴 BOLA: `workspaceId` koşula dahil — başka alanın kişi kimliği
+       yazılarak o kişinin ekstresi indirilemesin. */
+    const contact = await prisma.businessContact.findFirst({
+      where: { id: contactId, workspaceId, archivedAt: null },
+      select: { id: true, name: true }
+    })
+    if (!contact) return reply.status(404).send({ error: 'Kişi bulunamadı' })
+
+    /* Ekstre kapanmış kayıtları DA içeriyor: bakiye bugünü, ekstre
+       geçmişi anlatır. Ekrandaki panelle aynı sıra ve aynı sınır. */
+    const rows = await prisma.businessRecord.findMany({
+      where: { contactId, workspaceId, archivedAt: null },
+      orderBy: [{ dueAt: 'desc' }, { createdAt: 'desc' }],
+      take: MAX_EXPORT_ROWS,
+      include: { _count: { select: { documents: true } } }
+    })
+
+    const records: ExportRecord[] = rows.map(row => ({
+      id: row.id,
+      type: row.type,
+      status: row.status,
+      direction: row.direction,
+      title: row.title,
+      contactName: contact.name,
+      amount: row.amount === null || row.amount === undefined ? null : Number(row.amount),
+      currency: row.currency,
+      dueAt: row.dueAt,
+      completedAt: row.completedAt,
+      documentCount: row._count.documents,
+      createdAt: row.createdAt
+    }))
+
+    /*
+     * 🔴 PARA BİRİMLERİ TOPLANMIYOR — ekranla aynı kural. Kur bilgisi
+     * sistemde yok; 5.000 TL ile 200 USD'yi tek sayıda toplamak
+     * uydurma bir rakam üretirdi. Kutularda işletmenin para birimi,
+     * ötekiler alt satırda ADIYLA yazılıyor: gizlemek eksik bilgi
+     * vermek olurdu.
+     */
+    const bakiyeler = cariBakiye(records)
+    const { birincil, digerParaBirimleri } = listeBakiyesi(bakiyeler, workspace.currency)
+    const acik = records.filter(r => ['open', 'in_progress', 'deferred'].includes(r.status))
+    const simdi = new Date()
+
+    const summary: ExportSummary = {
+      open: acik.length,
+      overdue: acik.filter(r => r.dueAt && r.dueAt < simdi).length,
+      dueToday: acik.filter(r => r.dueAt && r.dueAt.toDateString() === simdi.toDateString()).length,
+      receivable: birincil?.alacak ?? 0,
+      payable: birincil?.borc ?? 0,
+      net: birincil?.bakiye ?? 0,
+      currency: birincil?.currency ?? workspace.currency,
+      etiketler: { receivable: 'Toplam alacak', payable: 'Toplam borç', net: 'Bakiye' },
+      altSatir: [
+        `Açık ${acik.length} kayıt`,
+        digerParaBirimleri > 0
+          ? `Diğer para birimleri: ${bakiyeler.filter(b => b.currency !== birincil?.currency).map(b => b.currency).join(', ')}`
+          : null
+      ].filter(Boolean).join(' · ')
+    }
+
+    const meta: ExportMeta = {
+      workspaceName: workspace.name,
+      generatedAt: new Date(),
+      generatedBy: user.name || user.email,
+      filterSummary: `Cari ekstre: ${contact.name}`
+    }
+
+    const body = await recordsToPdf(records, meta, summary)
+    const stamp = meta.generatedAt.toISOString().slice(0, 10)
+    const filename = `${safeFileSlug(contact.name)}-ekstre-${stamp}.pdf`
+
+    /* Denetim kaydı; başarısızlığı isteği düşürmesin. */
+    try {
+      await prisma.generatedReport.create({
+        data: {
+          userId: user.id,
+          reportType: `workspace_contact_statement:${workspaceId}`,
+          title: `${workspace.name} — ${contact.name} cari ekstre`,
+          format: 'pdf',
+          storedName: filename
+        }
+      })
+    } catch (err) {
+      fastify.log.warn({ err, workspaceId, contactId }, 'cari ekstre denetim kaydı yazılamadı')
     }
 
     return reply

@@ -899,6 +899,9 @@
     "movements": "Movements",
     "noMovements": "No records linked to this contact.",
     "noBalance": "No open balance.",
-    "truncated": "Showing the last 200 movements only."
+    "truncated": "Showing the last 200 movements only.",
+    "statement": "Statement",
+    "statementLoading": "Preparing…",
+    "statementError": "Could not download the statement."
   }
 }

@@ -24,7 +24,12 @@
 .baslik { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 18px; }
 .baslik span { font-size: .74rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text-secondary); }
 .baslik h2 { margin: 4px 0 0; font-size: 1.25rem; }
-.baslik button { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-secondary); color: var(--text); cursor: pointer; }
+.baslikEylemleri { display: flex; align-items: center; gap: 8px; }
+/* Ekstre düğmesi kapatmadan ayrı okunsun: metinli ve çerçeveli. */
+.ekstreDugmesi { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-secondary); color: var(--text); font-size: .85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.ekstreDugmesi:disabled { opacity: .6; cursor: default; }
+
+.kapat { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-secondary); color: var(--text); cursor: pointer; }
 
 .bakiyeKarti { display: grid; gap: 6px; padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 11px; background: var(--bg-secondary); }
 .bakiyeSatiri { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
