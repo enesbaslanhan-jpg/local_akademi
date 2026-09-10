@@ -93,6 +93,9 @@ const TYPE_RULES: Array<{
    * geçmiş göründü ve iki hatırlatma kurdu.
    */
   { type: 'promissory_note', direction: 'payable', terms: ['senet', 'bono'] },
+  /* Çek de bir ödeme taahhüdü; keşide tarihi vadesidir. Eskiden hiç
+     tanınmıyordu: 78.500 TL'lik bir çek sessizce görmezden geliniyordu. */
+  { type: 'promissory_note', direction: 'payable', terms: ['çek no', 'keşide'] },
   { type: 'shipment', direction: 'neutral', terms: ['kargo', 'sevkiyat', 'teslimat', 'takip numarası'] },
   { type: 'receivable', direction: 'receivable', terms: ['tahsilat', 'alacak', 'müşteriden alınacak'] },
   { type: 'purchase', direction: 'payable', terms: ['satın alma', 'sipariş', 'tedarik', 'alım'] },
@@ -104,6 +107,54 @@ const CATEGORY_TYPE: Record<string, Pick<RecordSuggestionPayload, 'type' | 'dire
   promissory_note: { type: 'promissory_note', direction: 'payable' },
   shipment: { type: 'shipment', direction: 'neutral' },
   purchase: { type: 'purchase', direction: 'payable' }
+}
+
+/*
+ * 🔴 FATURADA İLK TUTAR YANLIŞ TUTARDIR.
+ *
+ * Önceki sürüm metindeki İLK parayı alıyordu. Faturada ilk tutar hemen
+ * her zaman KDV'siz ara toplamdır; ödenecek olan en altta yazar.
+ * Ölçüldü (10.09.2026): e-fatura örneğinde 15.000 yerine 12.500,
+ * tedarikçi faturasında 3.840 yerine 3.200 alınıyordu. Yani her
+ * faturada EKSİK borç kaydediliyordu.
+ *
+ * Artık önce etiketli toplam aranıyor. Etiket yoksa eski davranışa
+ * dönülüyor -- fişte, dekontta tek tutar olur ve etiket aranmaz.
+ *
+ * ⚠️ Sıra ÖNEMLİ: 'ödenecek tutar' en spesifik olan, başta. Yalnız
+ * 'toplam' en sonda, çünkü 'ara toplam' da onu içerir.
+ */
+const TOPLAM_ETIKETLERI = [
+  'ödenecek tutar',
+  'vergiler dahil toplam tutar',
+  'genel toplam',
+  'genel tutar',
+  'toplam tutar',
+  'toplam'
+]
+
+/* Etiketlerin hepsi düz metin (nokta, yıldız vb. yok); bu yüzden
+   RegExp'e doğrudan gömülüyorlar, kaçış gerekmiyor. */
+const PARA_DESENI = String.raw`(\d{1,3}(?:\.\d{3})*(?:,\d{1,2})|\d+(?:[.,]\d{1,2})?)`
+
+function findLabelledAmount(text: string) {
+  for (const etiket of TOPLAM_ETIKETLERI) {
+    const kalip = new RegExp(
+      etiket + String.raw`[^\d]{0,20}` + PARA_DESENI + String.raw`\s*(?:₺|TL|TRY)?`,
+      'i'
+    )
+    const eslesme = kalip.exec(text)
+    if (!eslesme) continue
+    const ham = eslesme[1]
+    const duz = ham.includes(',')
+      ? ham.replace(/\./g, '').replace(',', '.')
+      : ham.replace(/,(?=\d{3}\b)/g, '')
+    const tutar = Number(duz)
+    if (Number.isFinite(tutar) && tutar > 0 && tutar <= 1e15) {
+      return { amount: tutar, evidence: eslesme[0].trim() }
+    }
+  }
+  return null
 }
 
 function findAmount(text: string) {
@@ -169,7 +220,9 @@ export function buildDocumentSuggestion(
   const classification = matchedRule ?? categoryRule
   if (!classification) return null
 
-  const amountMatch = findAmount(document.extractedText)
+  /* Etiketli toplam varsa o kazanır; yoksa eski tarama. */
+  const amountMatch =
+    findLabelledAmount(document.extractedText) ?? findAmount(document.extractedText)
   const dateMatch = document.dueDate
     ? { date: document.dueDate, evidence: 'Belge için girilen vade tarihi' }
     : findDueDate(document.extractedText)

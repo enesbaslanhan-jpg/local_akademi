@@ -90,4 +90,80 @@ describe('belge önerisi uydurmuyor', () => {
     /* Ve ekranda "%80 güvenilir" diye görünmemeli. */
     expect(zayif!.confidence).toBeLessThan(0.75)
   })
+
+  /*
+   * 🔴 FATURADA İLK TUTAR YANLIŞ TUTARDIR.
+   *
+   * Faturada ilk geçen para hemen her zaman KDV'siz ara toplamdır;
+   * ödenecek olan en altta yazar. Motor ilk tutarı aldığı için HER
+   * FATURADA eksik borç kaydediliyordu (10.09.2026'da ölçüldü).
+   */
+  it('e-faturada ödenecek tutarı alıyor, ara toplamı değil', () => {
+    const oneri = buildDocumentSuggestion(belge(
+      'e-ARŞİV FATURA\n' +
+      'Mal/Hizmet Toplam Tutarı: 12.500,00 TL\n' +
+      'Hesaplanan KDV %20: 2.500,00 TL\n' +
+      'Ödenecek Tutar: 15.000,00 TL\n' +
+      'Son ödeme tarihi: 30.09.2026'
+    ))
+    expect(oneri).not.toBeNull()
+    expect(oneri!.payload.amount).toBe(15000)
+  })
+
+  it('kağıt faturada genel toplamı alıyor', () => {
+    const oneri = buildDocumentSuggestion(belge(
+      'FATURA\nÜrün bedeli: 3.200,00 TL\nKDV: 640,00 TL\n' +
+      'GENEL TOPLAM: 3.840,00 TL\nSon ödeme: 20.09.2026'
+    ))
+    expect(oneri!.payload.amount).toBe(3840)
+  })
+
+  it('ara toplam, toplam sanılmıyor', () => {
+    /* 'toplam' etiketi listenin sonunda ve 'ara toplam' da onu içerir;
+       daha spesifik etiket varsa o kazanmalı. */
+    const oneri = buildDocumentSuggestion(belge(
+      'Fatura\nARA TOPLAM 256,40 TL\nKDV 25,64 TL\nGENEL TOPLAM 282,04 TL\nson ödeme 01.10.2026'
+    ))
+    expect(oneri!.payload.amount).toBe(282.04)
+  })
+
+  it('etiket yoksa tek tutar yine bulunuyor', () => {
+    /* Dekont ve fişte etiketli toplam olmayabilir; eski davranış korunuyor. */
+    const oneri = buildDocumentSuggestion(belge(
+      'HAVALE DEKONTU\nTutar: 5.000,00 TL\nAçıklama: tedarik ödemesi'
+    ))
+    expect(oneri!.payload.amount).toBe(5000)
+  })
+
+  /*
+   * Çek eskiden HİÇ tanınmıyordu: 78.500 TL'lik bir çek sessizce
+   * görmezden geliniyordu.
+   */
+  it('çek tanınıyor', () => {
+    const oneri = buildDocumentSuggestion(belge(
+      'ÇEK NO: 0012345\nKeşide tarihi: 20.11.2026\n' +
+      'İşbu çek karşılığında 78.500,00 TL ödeyiniz.'
+    ))
+    expect(oneri).not.toBeNull()
+    expect(oneri!.payload.type).toBe('promissory_note')
+    expect(oneri!.payload.amount).toBe(78500)
+  })
+
+  it('senet doğru okunuyor', () => {
+    const oneri = buildDocumentSuggestion(belge(
+      'EMRE MUHARRER SENET\nVade tarihi: 15.12.2026\n' +
+      'İşbu senet mukabilinde 45.000,00 TL bedeli malen ahzolunmuştur.'
+    ))
+    expect(oneri!.payload.type).toBe('promissory_note')
+    expect(oneri!.payload.amount).toBe(45000)
+    expect(oneri!.payload.dueAt?.slice(0, 10)).toBe('2026-12-15')
+  })
+
+  it('kira sözleşmesinden kayıt önerilmiyor', () => {
+    /* Sözleşme tek bir kayıt değil, tekrar eden bir yükümlülük. */
+    const oneri = buildDocumentSuggestion(belge(
+      'KİRA SÖZLEŞMESİ\nAylık kira bedeli: 18.000,00 TL\nBaşlangıç tarihi: 01.01.2026'
+    ))
+    expect(oneri).toBeNull()
+  })
 })
