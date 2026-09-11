@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import FinanceFields from './FinanceFields'
 import { AlertTriangle, FileText, HelpCircle, History, Bell, X, Edit, Trash2, Loader2, Check, Paperclip, Download as DownloadIcon, X as XIcon } from 'lucide-react'
 import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
@@ -56,6 +57,7 @@ function analiziCoz(ham) {
 function KayitForm({ kayit, onClose, onSave }) {
   const { t } = useTranslation('workspace')
   const [form, setForm] = useState({
+    accountId: kayit.accountId || '', category: kayit.category || '', settlementAt: kayit.settlementAt || '', loanId: kayit.loanId,
     type: kayit.type,
     title: kayit.title,
     description: kayit.description || '',
@@ -84,8 +86,11 @@ function KayitForm({ kayit, onClose, onSave }) {
         priority: form.priority,
         dueAt: form.dueAt ? new Date(form.dueAt).toISOString() : null,
         recurrenceRule: form.recurrenceRule || null,
-        status: form.status
+        status: form.status,
+        accountId: form.accountId || null, category: form.category || null,
+        settlementAt: form.direction === 'receivable' && form.settlementAt ? `${form.settlementAt.slice(0, 10)}T09:00:00+03:00` : null
       }
+      if (kayit.loanId) { delete payload.amount; delete payload.currency; delete payload.direction; delete payload.recurrenceRule }
       await onSave(payload)
       toast.success(t('detail.updated'))
     } catch (error) {
@@ -98,6 +103,7 @@ function KayitForm({ kayit, onClose, onSave }) {
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.grid}>
+        <FinanceFields workspaceId={kayit.workspaceId} value={form} onChange={(key, value) => setForm(current => ({ ...current, [key]: value }))} />
         <label>{t('form.type')}
           <select
             value={form.type}

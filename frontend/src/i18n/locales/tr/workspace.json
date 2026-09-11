@@ -1,5 +1,8 @@
 {
   "nav": {
+    "loans": "Krediler",
+    "accounts": "Kasa / Banka",
+    "employees": "Personel",
     "overview": "Genel Bakış",
     "records": "Kayıtlar",
     "orders": "Siparişler",

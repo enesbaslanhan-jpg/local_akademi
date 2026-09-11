@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('@/services/api', () => ({
   api: {
+    request: vi.fn(async path => path.endsWith('/accounts') ? { accounts: [] } : { records: [], notice: 'Tarihi teyit edin.' }),
     workspace: {
       tracker: {
         summary: mocks.trackerSummary,

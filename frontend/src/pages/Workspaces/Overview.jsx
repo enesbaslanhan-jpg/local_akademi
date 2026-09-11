@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next'
 import { useLocalization } from '@/context/LocalizationContext'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 import { marketplaceActionLabel } from '@/utils/marketplaceActionLabels'
+import { FinanceOverview } from './FinancePanels'
 
 const QUICK_ACTIONS = [
   { id: 'payment', icon: Receipt },
@@ -230,6 +231,7 @@ export default function Overview() {
 
   return (
     <section className={styles.overviewPage}>
+      <FinanceOverview />
       <header className={styles.overviewHead}>
         <div><h2>{t('workspace:overview.title')}</h2><p>{t('workspace:overview.subtitle')}</p></div>
         <button onClick={() => navigate(`/app/workspaces/${workspaceId}/tracker?new=task`)}>{t('workspace:overview.addRecord')}</button>

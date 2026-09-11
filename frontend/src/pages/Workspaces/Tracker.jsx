@@ -15,9 +15,11 @@ import { useLocalization } from '@/context/LocalizationContext'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 import KayitDetay from './KayitDetay'
 import ImportDialog from './ImportDialog'
+import FinanceFields from './FinanceFields'
 import styles from './Tracker.module.css'
 
 const emptyForm = {
+  accountId: '', category: '', settlementAt: '',
   type: 'payment',
   title: '',
   description: '',
@@ -181,7 +183,9 @@ export default function Tracker() {
         ...form,
         amount: form.amount === '' ? null : Number(form.amount),
         dueAt: form.dueAt ? new Date(form.dueAt).toISOString() : null,
-        recurrenceRule: form.recurrenceRule || null
+        recurrenceRule: form.recurrenceRule || null,
+        accountId: form.accountId || null, category: form.category || null,
+        settlementAt: form.direction === 'receivable' && form.settlementAt ? `${form.settlementAt}T09:00:00+03:00` : null
       })
       /*
        * İlk kaydın girilmesi, ürünün gerçekten kullanılmaya başlandığı
@@ -366,6 +370,7 @@ export default function Tracker() {
                   <input type="datetime-local" value={form.dueAt} onChange={event => setForm(current => ({ ...current, dueAt: event.target.value }))} />
                 </label>
               </div>
+              <FinanceFields workspaceId={workspaceId} value={form} onChange={(key, value) => setForm(current => ({ ...current, [key]: value }))} />
               <label>{t('form.recurrence')}
                 <Select aria-label={t('form.recurrence')} options={[{ value: '', label: t('form.none') }, { value: 'weekly', label: t('form.weekly') }, { value: 'monthly', label: t('form.monthly') }, { value: 'quarterly', label: t('form.quarterly') }, { value: 'yearly', label: t('form.yearly') }]} value={form.recurrenceRule} onChange={v => setForm(current => ({ ...current, recurrenceRule: v }))} />
               </label>

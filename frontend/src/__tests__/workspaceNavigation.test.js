@@ -21,6 +21,9 @@ const EXPECTED = [
      kaybolmasını/yer değiştirmesini engelliyor; yeni bölüm eklemek
      bilinçli bir ürün kararı ve burada da yazılıyor. */
   ['decisions', 'workspace:nav.decisions'],
+  ['loans', 'workspace:nav.loans'],
+  ['accounts', 'workspace:nav.accounts'],
+  ['employees', 'workspace:nav.employees'],
   ['team', 'workspace:nav.team'],
   ['contacts', 'workspace:nav.contacts'],
   ['activity', 'workspace:nav.activity'],

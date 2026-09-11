@@ -1,5 +1,6 @@
 import type { Prisma, PrismaClient } from '@prisma/client'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
+import { DEADLINE_SOURCES } from '../config/business-deadlines.js'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -78,7 +79,7 @@ export async function syncAutomaticReminder(
  * "ödenecek" diye bildirmek, hiç bildirmemekten kötüdür.
  */
 function bildirimGovdesi(
-  record: { title: string; amount: unknown; currency: string; direction: string },
+  record: { title: string; amount: unknown; currency: string; direction: string; category?: string | null },
   dueLabel: string,
   geciken = false
 ): string {
@@ -101,6 +102,7 @@ function bildirimGovdesi(
      görüp "daha var" diye okunabiliyor. Durum açıkça yazılıyor. */
   parcalar.push(geciken ? `vadesi geçti: ${dueLabel}` : `tarih: ${dueLabel}`)
 
+  if (record.category === 'tax' || record.category === 'sgk') parcalar.push(DEADLINE_SOURCES.notice)
   return parcalar.join(' · ')
 }
 

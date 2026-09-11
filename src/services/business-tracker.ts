@@ -55,9 +55,12 @@ const RECURRENCE_RULES = ['weekly', 'monthly', 'quarterly', 'yearly'] as const
 const WRITE_ROLES = new Set(['owner', 'manager', 'staff', 'accountant', 'admin'])
 
 const nullableText = z.string().trim().max(4000).nullable().optional()
-const optionalDate = z.string().datetime().nullable().optional()
+const optionalDate = z.string().datetime({ offset: true }).nullable().optional()
 
 const recordInput = z.object({
+  accountId: z.string().uuid().nullable().optional(),
+  settlementAt: optionalDate,
+  category: z.enum(['sales', 'supplies', 'rent', 'utilities', 'salary', 'sgk', 'tax', 'loan_repayment', 'transfer', 'capital', 'other']).nullable().optional(),
   type: z.enum(RECORD_TYPES),
   title: z.string().trim().min(1).max(240),
   description: nullableText,
@@ -484,6 +487,16 @@ async function validateReferences(
   return true
 }
 
+async function validateFinancialAccount(prisma: PrismaClient, workspaceId: string, accountId: string | null | undefined, currency: string, reply: any) {
+  if (!accountId) return true
+  const account = await prisma.businessAccount.findFirst({ where: { id: accountId, workspaceId, archivedAt: null } })
+  if (!account || account.currency !== currency.toUpperCase()) {
+    reply.code(422).send({ error: 'Hesap bu işletmeye ve kayıt para birimine ait olmalıdır.' })
+    return false
+  }
+  return true
+}
+
 function updateDates(status: typeof RECORD_STATUSES[number]) {
   if (status === 'completed') return { completedAt: new Date(), cancelledAt: null }
   if (status === 'cancelled') return { cancelledAt: new Date(), completedAt: null }
@@ -534,7 +547,8 @@ async function createNextRecurringRecord(
       createdById: actorId,
       recurrenceRule: record.recurrenceRule,
       parentRecordId: record.id,
-      metadata: record.metadata
+      metadata: record.metadata,
+      employeeId: record.employeeId, category: record.category, accountId: record.accountId
     }
   })
   await tx.businessRecordHistory.create({
@@ -765,11 +779,17 @@ export async function businessTrackerRoutes(
     const input = parsed.data
     if (!await validateReferences(prisma, workspaceId, input.contactId, input.assignedToId, reply)) return
 
+    if (!await validateFinancialAccount(prisma, workspaceId, input.accountId, input.currency, reply)) return
+    if (input.settlementAt && input.direction !== 'receivable') return reply.code(422).send({ error: 'Valör yalnız tahsilat kaydında kullanılabilir.' })
+
     const record = await prisma.$transaction(async tx => {
       const created = await tx.businessRecord.create({
         data: {
           workspaceId,
           type: input.type,
+          accountId: input.accountId ?? null,
+          settlementAt: input.settlementAt ? new Date(input.settlementAt) : null,
+          category: input.category ?? null,
           title: input.title,
           description: input.description ?? null,
           direction: input.direction,
@@ -861,6 +881,9 @@ export async function businessTrackerRoutes(
     if (!await validateReferences(prisma, workspaceId, input.contactId, input.assignedToId, reply)) return
 
     const data: Prisma.BusinessRecordUpdateInput = {
+      ...(input.accountId !== undefined ? { account: input.accountId ? { connect: { id: input.accountId } } : { disconnect: true } } : {}),
+      ...(input.settlementAt !== undefined ? { settlementAt: input.settlementAt ? new Date(input.settlementAt) : null } : {}),
+      ...(input.category !== undefined ? { category: input.category } : {}),
       ...(input.type !== undefined ? { type: input.type } : {}),
       ...(input.title !== undefined ? { title: input.title } : {}),
       ...(input.description !== undefined ? { description: input.description } : {}),
@@ -873,8 +896,16 @@ export async function businessTrackerRoutes(
       ...(input.assignedToId !== undefined ? { assignedTo: input.assignedToId ? { connect: { id: input.assignedToId } } : { disconnect: true } } : {}),
       ...(input.recurrenceRule !== undefined ? { recurrenceRule: input.recurrenceRule } : {}),
       ...(input.metadata !== undefined ? { metadata: JSON.stringify(input.metadata) } : {}),
-      ...(input.status !== undefined ? { status: input.status, ...updateDates(input.status) } : {}),
+      ...(input.status !== undefined ? { status: input.status, ...(input.status !== previous.status ? updateDates(input.status) : {}) } : {}),
       updatedBy: { connect: { id: user.id } }
+    }
+
+    if (!await validateFinancialAccount(prisma, workspaceId, input.accountId === undefined ? previous.accountId : input.accountId, input.currency ?? previous.currency, reply)) return
+    if ((input.settlementAt === undefined ? previous.settlementAt : input.settlementAt) && (input.direction ?? previous.direction) !== 'receivable') {
+      return reply.code(422).send({ error: 'Valör yalnız tahsilat kaydında kullanılabilir.' })
+    }
+    if (previous.loanId && (input.amount !== undefined || input.currency !== undefined || input.direction !== undefined || input.recurrenceRule)) {
+      return reply.code(422).send({ error: 'Kredi taksitinin tutarı, para birimi ve yönü plan tarafından belirlenir.' })
     }
 
     const updated = await prisma.$transaction(async tx => {

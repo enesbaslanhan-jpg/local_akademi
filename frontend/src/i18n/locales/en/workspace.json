@@ -1,5 +1,8 @@
 {
   "nav": {
+    "loans": "Loans",
+    "accounts": "Cash / Bank",
+    "employees": "Employees",
     "overview": "Overview",
     "records": "Records",
     "orders": "Orders",

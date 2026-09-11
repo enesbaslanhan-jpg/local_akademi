@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useLocalization } from '@/context/LocalizationContext'
 import { formatDate } from '@/utils/formatters'
 import styles from './KararRaporu.module.css'
+import { MonthlyFinance } from './FinancePanels'
 
 /*
  * KARAR RAPORU — hedeflenen ile gerçekleşeni yan yana koyar.
@@ -133,6 +134,7 @@ export default function KararRaporu() {
 
   return (
     <section className={styles.page}>
+      <MonthlyFinance />
       <header className={styles.heading}>
         <div>
           <h2><Scale size={19} aria-hidden="true" /> {t('workspace:decisionReport.title')}</h2>

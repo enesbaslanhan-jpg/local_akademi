@@ -499,17 +499,8 @@ export async function documentRoutes(fastify: FastifyInstance, opts?: { prisma?:
       const text = doc.extractedText || ''
       const answer = answerQuestion(question, text)
 
-      await prisma.documentConversation.create({
-        data: {
-          id: randomUUID(),
-          userId: user.id,
-          documentId,
-          question,
-          answer: answer.answer,
-          evidence: JSON.stringify(answer.evidence || []),
-          aiMode: 'local_extractive'
-        }
-      })
+      // This one-shot answer has no conversation-history surface. Do not
+      // persist questions that users cannot retrieve; retain existing history.
 
       return { ...answer, id: randomUUID(), document_id: documentId }
     } catch (error) {

@@ -50,6 +50,7 @@ const WorkspaceContacts = lazy(() => import('@/pages/Workspaces/Contacts'))
 const WorkspaceKararRaporu = lazy(() => import('@/pages/Workspaces/KararRaporu'))
 const WorkspaceSettings = lazy(() => import('@/pages/Workspaces/Settings'))
 const WorkspaceActivity = lazy(() => import('@/pages/Workspaces/Activity'))
+const WorkspaceFinance = lazy(() => import('@/pages/Workspaces/Finance'))
 const DecisionCheckList = lazy(() => import('@/pages/DecisionCheckList'))
 const DecisionCheckSession = lazy(() => import('@/pages/DecisionCheckSession'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
@@ -190,6 +191,9 @@ export default function AppRoutes() {
               <Route path="contacts" element={<SuspenseWrapper><WorkspaceContacts /></SuspenseWrapper>} />
               <Route path="settings" element={<SuspenseWrapper><WorkspaceSettings /></SuspenseWrapper>} />
               <Route path="activity" element={<SuspenseWrapper><WorkspaceActivity /></SuspenseWrapper>} />
+              <Route path="loans" element={<SuspenseWrapper><WorkspaceFinance key="loans" section="loans" /></SuspenseWrapper>} />
+              <Route path="accounts" element={<SuspenseWrapper><WorkspaceFinance key="accounts" section="accounts" /></SuspenseWrapper>} />
+              <Route path="employees" element={<SuspenseWrapper><WorkspaceFinance key="employees" section="employees" /></SuspenseWrapper>} />
             </Route>
           </Route>
         </Route>

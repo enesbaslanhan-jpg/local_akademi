@@ -17,6 +17,7 @@ import KararRaporu from '@/pages/Workspaces/KararRaporu'
 
 vi.mock('@/services/api', () => ({
   api: {
+    request: vi.fn().mockResolvedValue({ current: { currencies: {}, categories: [] }, previous: { currencies: {}, categories: [] } }),
     workspace: { tracker: { list: vi.fn(), analysis: vi.fn() } },
     financialModels: { decisionJournal: vi.fn() }
   }
@@ -32,7 +33,7 @@ vi.mock('@/context/LocalizationContext', () => ({
 }))
 
 vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: anahtar => anahtar })
+  useTranslation: () => ({ t: anahtar => anahtar, i18n: { language: 'tr' } })
 }))
 
 const { api } = await import('@/services/api')

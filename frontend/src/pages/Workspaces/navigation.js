@@ -19,6 +19,9 @@ export const WORKSPACE_NAV_TABS = [
   /* Karar raporu takvimden sonra: ikisi de "geriye dönüp bak"
      ekranları, ekip/kişiler ise yönetim. */
   { id: 'decisions', i18nKey: 'workspace:nav.decisions', path: 'decisions' },
+  { id: 'loans', i18nKey: 'workspace:nav.loans', path: 'loans' },
+  { id: 'accounts', i18nKey: 'workspace:nav.accounts', path: 'accounts' },
+  { id: 'employees', i18nKey: 'workspace:nav.employees', path: 'employees' },
   { id: 'team', i18nKey: 'workspace:nav.team', path: 'team' },
   { id: 'contacts', i18nKey: 'workspace:nav.contacts', path: 'contacts' },
   { id: 'activity', i18nKey: 'workspace:nav.activity', path: 'activity' },

@@ -5,6 +5,7 @@ import { api } from '@/services/api'
 import { useToast } from '@/context/ToastContext'
 import Select from '@/components/ui/Select'
 import styles from './Calendar.module.css'
+import { RenewalPanel } from './FinancePanels'
 import { useTranslation } from 'react-i18next'
 import { useLocalization } from '@/context/LocalizationContext'
 import { formatCurrency, formatDate } from '@/utils/formatters'
@@ -90,6 +91,7 @@ export default function WorkspaceCalendar() {
 
   return (
     <section className={styles.page}>
+      <RenewalPanel onSaved={load} />
       <div className={styles.heading}>
         <div><h2>{t('calendar.title')}</h2><p>{t('calendar.subtitle')}</p></div>
         {/*

@@ -5,6 +5,7 @@ import { useWorkspace } from '@/context/WorkspaceContext'
 import Button from '@/components/ui/Button'
 import { Select, Input } from '@/components/ui'
 import styles from './Settings.module.css'
+import { TaxProfilePanel } from './FinancePanels'
 import { Trans, useTranslation } from 'react-i18next'
 
 const emptyProfile = {
@@ -213,6 +214,7 @@ export default function Settings() {
 
   return (
     <div className={styles.page}>
+      <TaxProfilePanel />
       {msg && <div className={`${styles.message} ${msg.type === 'success' ? styles.success : styles.error}`}>{msg.text}</div>}
 
       <form className={styles.card} onSubmit={saveProfile}>

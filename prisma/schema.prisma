@@ -538,6 +538,20 @@ model UploadedDocument {
 }
 
 model BusinessRecord {
+  sourceKey      String?
+  @@unique([workspaceId, sourceKey])
+  @@index([accountId, status, completedAt])
+  @@index([loanId])
+  @@index([employeeId])
+  accountId      String?
+  loanId         String?
+  installmentNo  Int?
+  employeeId     String?
+  settlementAt   DateTime?
+  category       String?
+  account        BusinessAccount? @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  loan           BusinessLoan? @relation(fields: [loanId], references: [id], onDelete: Restrict)
+  employee       BusinessEmployee? @relation(fields: [employeeId], references: [id], onDelete: Restrict)
   id             String                   @id @default(uuid())
   workspaceId    String
   type           String
@@ -824,6 +838,9 @@ model UserPreference {
 }
 
 model BusinessWorkspace {
+  accounts BusinessAccount[]
+  loans BusinessLoan[]
+  employees BusinessEmployee[]
   id        String  @id @default(uuid())
   name      String
   legalName String?
@@ -885,6 +902,68 @@ model BusinessWorkspace {
   marketplaceProducts    MarketplaceProduct[]
 
   @@unique([slug])
+}
+
+model BusinessAccount {
+  id String @id @default(uuid())
+  workspaceId String
+  name String
+  type String
+  currency String @default("TRY")
+  openingBalance Decimal @db.Decimal(18, 2)
+  openingAt DateTime
+  archivedAt DateTime?
+  createdAt DateTime @default(now())
+  workspace BusinessWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  records BusinessRecord[]
+  @@index([workspaceId])
+}
+
+model BusinessLoan {
+  id String @id @default(uuid())
+  workspaceId String
+  institution String
+  amount Decimal @db.Decimal(18, 2)
+  currency String @default("TRY")
+  installmentCount Int
+  installmentAmount Decimal @db.Decimal(18, 2)
+  firstPaymentAt DateTime
+  requestKey String
+  createdAt DateTime @default(now())
+  workspace BusinessWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  records BusinessRecord[]
+  @@unique([workspaceId, requestKey])
+  @@index([workspaceId])
+}
+
+model BusinessEmployee {
+  id String @id @default(uuid())
+  workspaceId String
+  name String
+  startedAt DateTime
+  salaryAmount Decimal @db.Decimal(18, 2)
+  currency String @default("TRY")
+  insured Boolean @default(false)
+  leaveAllowance Decimal @default(0) @db.Decimal(6, 1)
+  archivedAt DateTime?
+  requestKey String
+  createdAt DateTime @default(now())
+  workspace BusinessWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  records BusinessRecord[]
+  leaves BusinessEmployeeLeave[]
+  @@unique([workspaceId, requestKey])
+  @@index([workspaceId])
+}
+
+model BusinessEmployeeLeave {
+  id String @id @default(uuid())
+  employeeId String
+  date DateTime
+  days Decimal @db.Decimal(6, 1)
+  requestKey String
+  createdAt DateTime @default(now())
+  employee BusinessEmployee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  @@unique([employeeId, requestKey])
 }
 
 // Gelen kutusuna posta gonderebilen GUVENILIR adresler.
@@ -976,6 +1055,7 @@ model BusinessContact {
 }
 
 model BusinessSetting {
+  taxProfile String @default("{}")
   id                String            @id @default(uuid())
   workspaceId       String            @unique
   timezone          String            @default("Europe/Istanbul")
