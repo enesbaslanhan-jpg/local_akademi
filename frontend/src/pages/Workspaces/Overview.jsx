@@ -231,7 +231,6 @@ export default function Overview() {
 
   return (
     <section className={styles.overviewPage}>
-      <FinanceOverview />
       <header className={styles.overviewHead}>
         <div><h2>{t('workspace:overview.title')}</h2><p>{t('workspace:overview.subtitle')}</p></div>
         <button onClick={() => navigate(`/app/workspaces/${workspaceId}/tracker?new=task`)}>{t('workspace:overview.addRecord')}</button>
@@ -245,6 +244,9 @@ export default function Overview() {
         <article><span>{t('workspace:overview.band.lastChange')}</span><strong>{loading ? '—' : latestChange ? formatDate(latestChange, { locale: formatLocale, day: 'numeric', month: 'short' }) : t('workspace:overview.band.none')}</strong><small>{activityLabelFor(recentActivity[0], t) || records[0]?.title || t('workspace:overview.band.noMovement')}</small></article>
         <article><span>{t('workspace:overview.band.trackingStatus')}</span><strong className={hasCritical ? styles.statusCritical : undefined}>{followStatus}</strong><small>{followDetail}</small></article>
       </section>
+
+      {/* FİNANS BANDI — kasa/banka ve vergi/SGK, durum bandıyla aynı dilde. */}
+      <FinanceOverview className={`${styles.statusBand} ${styles.financeBand}`} />
 
       {/* MARKETPLACE KPI ŞERİDİ — yalnız entegrasyon bağlıyken; mevcut
           dört kartlık bandın düzeni korunur, şerit ayrı satırda akar. */}

@@ -35,6 +35,12 @@
 
 /* ---- MARKETPLACE eklentileri (mevcut bant duzenini bozmaz) ---- */
 .mktBand { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+/* Finans bandı: iki kart; bağlantı olan da kart gibi durur. */
+.financeBand { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.bantKarti { display: grid; gap: 5px; min-width: 0; padding: 0 16px; border-right: 1px solid var(--border); color: inherit; text-decoration: none; }
+.bantKarti:last-child { border-right: 0; }
+.bantKarti small a { color: var(--brand-ink); }
+.bantKarti small button { border: 0; padding: 0; background: none; color: var(--danger); font: inherit; cursor: pointer; }
 .statusCritical { color: var(--danger) !important; }
 .obligationList .critical { background: var(--danger-bg); color: var(--danger); }
 .sourceTag { display: inline-flex; align-items: center; gap: 6px; }
