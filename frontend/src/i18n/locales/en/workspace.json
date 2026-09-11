@@ -196,7 +196,18 @@
       "lastChange": "Last change",
       "none": "None",
       "noMovement": "No movement",
-      "trackingStatus": "Tracking status"
+      "trackingStatus": "Tracking status",
+      "weekPayable": "Due this week",
+      "weekReceivable": "Collect this week",
+      "overdueAmount": "Overdue",
+      "cashToday": "Cash today",
+      "records": "{{count}} records",
+      "accounts": "{{count}} accounts",
+      "noAccount": "Add an account",
+      "awaitingDirection": "{{count}} records have no direction (payable/receivable) yet — complete them in Records.",
+      "taxSsi": "Tax / SSI · 30 days",
+      "taxNoProfile": "Tax profile in settings",
+      "taxConfirm": "Confirm with the tax office"
     },
     "mkt": {
       "todayOrders": "Today's orders",

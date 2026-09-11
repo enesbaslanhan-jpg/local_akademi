@@ -299,6 +299,46 @@ describe('Business tracker API', () => {
     ).toBe(201)
   })
 
+  /*
+   * 🔴 "BUGÜN NE DURUMDAYIM?" ARTIK TUTAR SÖYLÜYOR.
+   *
+   * Ürün sahibi adetlerin anlamsız olduğunu söyledi (11.09.2026): "3
+   * geciken" karar verdirmez, "₺18.400 gecikmiş" verdirir. Geciken bu
+   * haftaya GİRMİYOR; ikisini toplamak gecikeni saklardı.
+   */
+  it('özet bu hafta ve geciken tutarlarını ayrı veriyor, kasa yoksa null', async () => {
+    const gun = 86400000
+    const ws = await prisma.businessWorkspace.create({
+      data: { name: 'Özet Testi', status: 'active', createdById: ownerId,
+        members: { create: { userId: ownerId, role: 'owner', status: 'active' } } }
+    })
+    const kayitlar = [
+      { direction: 'payable', amount: 1000, dueAt: new Date(Date.now() + 2 * gun) },
+      { direction: 'payable', amount: 500, dueAt: new Date(Date.now() + 6 * gun) },
+      { direction: 'receivable', amount: 300, dueAt: new Date(Date.now() + 3 * gun) },
+      /* Geciken: haftaya girmemeli. */
+      { direction: 'payable', amount: 7000, dueAt: new Date(Date.now() - 2 * gun) },
+      /* 7 günden sonrası: haftaya girmemeli. */
+      { direction: 'payable', amount: 9999, dueAt: new Date(Date.now() + 20 * gun) }
+    ]
+    for (const k of kayitlar) {
+      await prisma.businessRecord.create({
+        data: { workspaceId: ws.id, type: 'payment', title: 'k', status: 'open',
+          currency: 'TRY', createdById: ownerId, ...k }
+      })
+    }
+    const res = await inject('GET', `/workspaces/${ws.id}/tracker/summary`, ownerToken)
+    expect(res.statusCode).toBe(200)
+    const ozet = res.json()
+    expect(ozet.thisWeek.payable).toBe(1500)
+    expect(ozet.thisWeek.payableCount).toBe(2)
+    expect(ozet.thisWeek.receivable).toBe(300)
+    expect(ozet.overdueTotals.amount).toBe(7000)
+    expect(ozet.overdueTotals.count).toBe(1)
+    /* Hesap yoksa sıfır değil null: sıfır "kasa boş" demek olurdu. */
+    expect(ozet.cash).toBeNull()
+  })
+
   it('proposes a record from a document but creates it only after explicit approval', async () => {
     const before = await prisma.businessRecord.count({ where: { workspaceId } })
     const update = await inject('PATCH', `/workspaces/${workspaceId}/documents/${documentId}`, ownerToken, {

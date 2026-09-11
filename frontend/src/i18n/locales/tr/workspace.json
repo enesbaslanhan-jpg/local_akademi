@@ -196,7 +196,18 @@
       "lastChange": "Son değişiklik",
       "none": "Yok",
       "noMovement": "Hareket bulunmuyor",
-      "trackingStatus": "Takip durumu"
+      "trackingStatus": "Takip durumu",
+      "weekPayable": "Bu hafta ödenecek",
+      "weekReceivable": "Bu hafta tahsil edilecek",
+      "overdueAmount": "Geciken",
+      "cashToday": "Kasada bugün",
+      "records": "{{count}} kayıt",
+      "accounts": "{{count}} hesap",
+      "noAccount": "Hesap ekle",
+      "awaitingDirection": "{{count}} kaydın yönü (borç/alacak) belirsiz — Kayıtlar'dan tamamlayın.",
+      "taxSsi": "Vergi / SGK · 30 gün",
+      "taxNoProfile": "Vergi profili ayarlardan",
+      "taxConfirm": "GİB / SGK’dan teyit edin"
     },
     "mkt": {
       "todayOrders": "Bugünkü sipariş",

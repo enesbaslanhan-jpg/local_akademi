@@ -50,7 +50,11 @@ beforeEach(() => {
   vi.clearAllMocks()
   mocks.trackerSummary.mockResolvedValue({
     counts: { open: 2, overdue: 3 },
-    nextThirtyDays: { payable: 100, receivable: 200, net: 100 }
+    nextThirtyDays: { payable: 100, receivable: 200, net: 100 },
+    /* Bant artık tutar söylüyor (11.09.2026); sunucu bu üç alanı da veriyor. */
+    thisWeek: { payable: 1500, payableCount: 2, receivable: 300, receivableCount: 1 },
+    overdueTotals: { amount: 7000, count: 3 },
+    cash: null
   })
   mocks.trackerList.mockResolvedValue({ records: [{ id: 'r1', title: 'Elektrik faturası', status: 'open', type: 'payment', dueAt: '2026-09-05' }] })
   mocks.documentsList.mockResolvedValue({ documents: [] })
@@ -58,13 +62,20 @@ beforeEach(() => {
 })
 
 describe('Genel Bakış — pazaryeri bağlı değil', () => {
-  it('mevcut bant ve takip durumu AYNEN çalışır', async () => {
+  /*
+   * 🔴 BANT SAYI DEĞİL TUTAR SÖYLÜYOR (ürün sahibi, 11.09.2026).
+   * "3 geciken" karar verdirmez, "₺7.000 gecikmiş" verdirir. Kasa hesabı
+   * yoksa "—": sıfır "kasa boş" demek olurdu.
+   */
+  it('bant bu hafta, geciken tutarı ve kasayı gösterir', async () => {
     mocks.marketplaceOperations.mockResolvedValue(null)
     renderOverview()
 
-    expect(await screen.findByText('Açık yükümlülük')).toBeInTheDocument()
-    expect(screen.getByText('Dikkat')).toBeInTheDocument() // overdue=3
-    expect(screen.getByText('3 kayıt bekliyor')).toBeInTheDocument()
+    expect(await screen.findByText('Bu hafta ödenecek')).toBeInTheDocument()
+    expect(screen.getByText('₺1.500,00')).toBeInTheDocument()
+    expect(screen.getByText('₺7.000,00')).toBeInTheDocument()
+    expect(screen.getByText('3 geciken kayıt')).toBeInTheDocument()
+    expect(screen.getByText('Hesap ekle')).toBeInTheDocument()
     expect(screen.queryByText('Pazaryeri Özeti')).not.toBeInTheDocument()
     expect(screen.queryByText('Bugünkü sipariş')).not.toBeInTheDocument()
   })
@@ -93,7 +104,7 @@ describe('Genel Bakış — pazaryeri bağlı', () => {
     mocks.marketplaceOperations.mockResolvedValue(connectedOps())
     renderOverview()
 
-    expect(await screen.findByText('Açık yükümlülük')).toBeInTheDocument()
+    expect(await screen.findByText('Bu hafta ödenecek')).toBeInTheDocument()
     // Marketplace istegi ana ozet isteklerinden bagimsiz tamamlanir. Yavas CI
     // makinesinde ilk bant gorunurken bu ikinci durum henuz render edilmemis
     // olabilir; gercek asenkron kullanici akisini bekle.
@@ -101,16 +112,19 @@ describe('Genel Bakış — pazaryeri bağlı', () => {
     expect(screen.getByText('Bugünkü brüt satış')).toBeInTheDocument()
     // Aynı değer KPI şeridi ve Pazaryeri Özeti kartında da görünür.
     expect(screen.getAllByText('₺1.234,56').length).toBeGreaterThanOrEqual(1)
-    // Mevcut kartlar hâlâ yerinde.
-    expect(screen.getByText('Belge')).toBeInTheDocument()
-    expect(screen.getByText('Son değişiklik')).toBeInTheDocument()
+    // Bant kartları hâlâ yerinde.
+    expect(screen.getByText('Geciken')).toBeInTheDocument()
+    expect(screen.getByText('Kasada bugün')).toBeInTheDocument()
   })
 
-  it('Takip durumu birleşik risk özeti üretir (geciken + marketplace)', async () => {
+  /* "Takip durumu" kutusu kaldırıldı; pazaryeri riskleri bağlıyken kendi
+     KPI şeridinde, gecikme tutar kutusunda. Riskler kaybolmadı. */
+  it('pazaryeri riskleri KPI şeridinde görünmeye devam eder', async () => {
     mocks.marketplaceOperations.mockResolvedValue(connectedOps())
     renderOverview()
 
-    await waitFor(() => expect(screen.getByText('3 geciken kayıt · 4 sipariş kargoya verilmeyi bekliyor · 2 ürün düşük stokta')).toBeInTheDocument())
+    expect((await screen.findAllByText('Bekleyen kargo')).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText('3 geciken kayıt')).toBeInTheDocument()
   })
 
   it('Pazaryeri Özeti kartı CTA ile doğru sayfaya derin bağlanır', async () => {

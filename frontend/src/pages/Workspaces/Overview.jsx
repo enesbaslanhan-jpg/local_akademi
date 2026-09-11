@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   AlertTriangle, ArrowRight, Building2, CalendarDays, FileSignature,
   HandCoins, Package, Receipt, Scale, Truck, WalletCards
@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next'
 import { useLocalization } from '@/context/LocalizationContext'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 import { marketplaceActionLabel } from '@/utils/marketplaceActionLabels'
-import { FinanceOverview } from './FinancePanels'
+import { VergiSgkKarti } from './FinancePanels'
 
 const QUICK_ACTIONS = [
   { id: 'payment', icon: Receipt },
@@ -83,10 +83,6 @@ function relativeTime(dateStr, t) {
   const hours = Math.round(minutes / 60)
   if (hours < 24) return t('workspace:relative.hoursAgo', { count: hours })
   return t('workspace:relative.daysAgo', { count: Math.round(hours / 24) })
-}
-
-function lowercaseFirst(text, locale) {
-  return text ? text.charAt(0).toLocaleLowerCase(locale) + text.slice(1) : text
 }
 
 function severityLabel(severity, t) {
@@ -197,7 +193,6 @@ export default function Overview() {
     .filter(satir => !satir.kapandi)
     .sort((a, b) => Number(a.sonucBekliyor) - Number(b.sonucBekliyor))
     .slice(0, 5)
-  const latestChange = recentActivity[0]?.createdAt || records[0]?.updatedAt || records[0]?.createdAt
 
   /* ---- Marketplace (ortak operations servisi). Bağlı degilse tum
      marketplace bloklari devre disi: mevcut ekran AYNEN calisir. ---- */
@@ -208,26 +203,11 @@ export default function Overview() {
      her sipariş TEK TEK listelenmez, kategori başına tek satır. */
   const mktActionRows = mktActions.slice(0, 3)
 
-  /* ---- BİRLEŞİK TAKİP DURUMU: geciken kayıtlar + marketplace riskleri.
-     Kritik önceliklendirilir. Bağlı DEĞİLSE eski davranış birebir korunur:
-     yalnız BusinessRecord gecikmesine bakılır. ---- */
-  const hasCritical = mktActions.some(action => action.severity === 'CRITICAL')
-  const hasAttention = mktActions.some(action => action.severity === 'ATTENTION')
+  /*
+   * "Takip durumu" kutusu kaldırıldı: pazaryeri riskleri zaten bağlıyken
+   * kendi KPI şeridinde görünüyor, gecikme ise artık tutar kutusunda.
+   */
   const overdueCount = summary?.counts.overdue ?? 0
-  let followStatus = t('workspace:severity.info')
-  let followDetail = overdueCount > 0 ? t('workspace:overview.band.waitingRecords', { count: overdueCount }) : t('workspace:overview.band.noOverdue')
-  if (!mktSummary) {
-    followStatus = overdueCount > 0 ? t('workspace:severity.attention') : t('workspace:severity.info')
-  } else if (overdueCount > 0 || hasAttention || hasCritical) {
-    followStatus = hasCritical ? t('workspace:severity.critical') : t('workspace:severity.attention')
-    const segments = []
-    if (overdueCount > 0) segments.push(t('workspace:overview.band.overdueRecords', { count: overdueCount }))
-    for (const action of mktActions) {
-      if (segments.length >= 3) break
-      segments.push(lowercaseFirst(marketplaceActionLabel(action, t), formatLocale))
-    }
-    if (segments.length > 0) followDetail = segments.join(' · ')
-  }
 
   return (
     <section className={styles.overviewPage}>
@@ -238,15 +218,28 @@ export default function Overview() {
 
       {error && <div className={styles.error}>{error}</div>}
 
-      <section className={styles.statusBand} aria-label={t('workspace:overview.title')}>
-        <article><span>{t('workspace:overview.band.openObligation')}</span><strong>{loading ? '—' : summary?.counts.open ?? 0}</strong><small>{summary?.counts.overdue ? `${summary.counts.overdue} ${t('workspace:overview.band.overdue')}` : t('workspace:overview.band.noOverdue')}</small></article>
-        <article><span>{t('workspace:overview.band.document')}</span><strong>{loading ? '—' : documents.length}</strong><small>{documents.length ? t('workspace:overview.band.archived') : t('workspace:overview.band.noDocument')}</small></article>
-        <article><span>{t('workspace:overview.band.lastChange')}</span><strong>{loading ? '—' : latestChange ? formatDate(latestChange, { locale: formatLocale, day: 'numeric', month: 'short' }) : t('workspace:overview.band.none')}</strong><small>{activityLabelFor(recentActivity[0], t) || records[0]?.title || t('workspace:overview.band.noMovement')}</small></article>
-        <article><span>{t('workspace:overview.band.trackingStatus')}</span><strong className={hasCritical ? styles.statusCritical : undefined}>{followStatus}</strong><small>{followDetail}</small></article>
+      {/*
+        * 🔴 DURUM BANDI SAYI DEĞİL TUTAR SÖYLÜYOR (ürün sahibi, 11.09.2026).
+        *
+        * Önceki dört kutu (açık yükümlülük / belge / son değişiklik / takip
+        * durumu) adet ve tarih veriyordu; esnafa karar verdiren "3 geciken"
+        * değil "₺18.400 gecikmiş". Mobildeki kutularla birebir aynı beş
+        * başlık: sunucu (`tracker/summary`) hesaplıyor, iki ürün okuyor.
+        *
+        * ⚠️ Kasa hesabı yoksa "—", sıfır değil: sıfır "kasa boş" demek olurdu.
+        * Yön bekleyen kayıt kutu değil; varsa listenin başında tek satır.
+        */}
+      <section className={`${styles.statusBand} ${styles.mktBand}`} aria-label={t('workspace:overview.title')}>
+        <article><span>{t('workspace:overview.band.weekPayable')}</span><strong>{loading || !summary ? '—' : money(summary.thisWeek?.payable ?? 0)}</strong><small>{t('workspace:overview.band.records', { count: summary?.thisWeek?.payableCount ?? 0 })}</small></article>
+        <article><span>{t('workspace:overview.band.weekReceivable')}</span><strong>{loading || !summary ? '—' : money(summary.thisWeek?.receivable ?? 0)}</strong><small>{t('workspace:overview.band.records', { count: summary?.thisWeek?.receivableCount ?? 0 })}</small></article>
+        <article><span>{t('workspace:overview.band.overdueAmount')}</span><strong className={overdueCount > 0 ? styles.statusCritical : undefined}>{loading || !summary ? '—' : money(summary.overdueTotals?.amount ?? 0)}</strong><small>{overdueCount > 0 ? t('workspace:overview.band.overdueRecords', { count: overdueCount }) : t('workspace:overview.band.noOverdue')}</small></article>
+        <Link to={`/app/workspaces/${workspaceId}/accounts`} className={styles.bantKarti}><span>{t('workspace:overview.band.cashToday')}</span><strong>{loading || !summary ? '—' : !summary.cash ? '—' : summary.cash.total === null ? t('workspace:overview.band.accounts', { count: summary.cash.accountCount }) : formatCurrency(summary.cash.total, { locale: formatLocale, currency: summary.cash.currency })}</strong><small>{!summary?.cash ? t('workspace:overview.band.noAccount') : t('workspace:overview.band.accounts', { count: summary.cash.accountCount })}</small></Link>
+        <VergiSgkKarti />
       </section>
 
-      {/* FİNANS BANDI — kasa/banka ve vergi/SGK, durum bandıyla aynı dilde. */}
-      <FinanceOverview className={`${styles.statusBand} ${styles.financeBand}`} />
+      {summary?.counts?.awaitingDirection > 0 && (
+        <p className={styles.inlineNotice}>{t('workspace:overview.band.awaitingDirection', { count: summary.counts.awaitingDirection })}</p>
+      )}
 
       {/* MARKETPLACE KPI ŞERİDİ — yalnız entegrasyon bağlıyken; mevcut
           dört kartlık bandın düzeni korunur, şerit ayrı satırda akar. */}

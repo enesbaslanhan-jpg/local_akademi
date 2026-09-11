@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { access } from './business-tracker.js'
 import { syncAutomaticReminder } from './business-reminder-worker.js'
+import { hesapBakiyeleri } from './kasa-bakiye.js'
 import { DEADLINE_SOURCES, RENEWAL_LABELS, RENEWAL_TEMPLATES } from '../config/business-deadlines.js'
 
 const money = z.number().finite().nonnegative().max(1e12).refine(v => Math.abs(v * 100 - Math.round(v * 100)) < 0.001)
@@ -168,21 +169,8 @@ export async function businessFinanceRoutes(app: FastifyInstance, opts?: { prism
   app.get('/:workspaceId/accounts', async (request, reply) => {
     if (!await allowed(request, reply)) return
     const { workspaceId } = request.params as { workspaceId: string }
-    const now = new Date()
-    const accounts = await prisma.businessAccount.findMany({ where: { workspaceId, archivedAt: null }, orderBy: { createdAt: 'asc' } })
-    const balances = []
-    for (const account of accounts) {
-      const settled = await prisma.businessRecord.groupBy({ by: ['direction'], where: { workspaceId, accountId: account.id,
-        archivedAt: null, status: 'completed',
-        OR: [{ settlementAt: null, completedAt: { gte: account.openingAt, lte: now } },
-          { settlementAt: { gte: account.openingAt, lte: now } }] }, _sum: { amount: true } })
-      let balance = account.openingBalance
-      for (const group of settled) balance = group.direction === 'receivable' ? balance.plus(group._sum.amount ?? 0)
-        : group.direction === 'payable' ? balance.minus(group._sum.amount ?? 0) : balance
-      const pending = await prisma.businessRecord.aggregate({ where: { workspaceId, accountId: account.id, direction: 'receivable',
-        archivedAt: null, status: { not: 'cancelled' }, settlementAt: { gt: now } }, _sum: { amount: true } })
-      balances.push({ ...account, balance: balance.toFixed(2), inTransit: (pending._sum.amount ?? new Prisma.Decimal(0)).toFixed(2) })
-    }
+    /* Bakiye hesabı `kasa-bakiye.ts`te; Genel Bakış da aynı sayıyı okuyor. */
+    const balances = await hesapBakiyeleri(prisma, workspaceId)
     return { accounts: balances }
   })
   app.post('/:workspaceId/accounts', async (request, reply) => {

@@ -6,6 +6,7 @@ import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { atamaBildirimi, processDueBusinessReminders, syncAutomaticReminder } from './business-reminder-worker.js'
 import { buildDocumentSuggestion, oneriKaydet } from './document-suggestions.js'
 import { yuklemeYoluCoz, exceljsYukle } from './documents.js'
+import { hesapBakiyeleri, kasaToplami } from './kasa-bakiye.js'
 
 /*
  * İNDİRME BAŞLIĞI — dosya adı kullanıcının verdiği ad olmalı.
@@ -379,7 +380,41 @@ export async function trackerOzetiHesapla(prisma: PrismaClient, workspaceId: str
    */
   const yonBekleyenler = records.filter(r => r.direction === 'neutral' && r.amount !== null)
 
+  /*
+   * 🔴 "BUGÜN NE DURUMDAYIM?" KUTULARI SAYI DEĞİL TUTAR SÖYLÜYOR.
+   *
+   * Önceki dört kutu (geciken / bugün / açık kayıt / yön bekleyen)
+   * yalnız ADET veriyordu; ürün sahibi "daha anlamlı bir şey" istedi
+   * (11.09.2026). Esnafa karar verdiren "3 geciken" değil "₺18.400
+   * gecikmiş"tir. Dört kutu: bu hafta ödenecek, bu hafta tahsil
+   * edilecek, geciken tutar, kasada bugün.
+   *
+   * "Bu hafta" = bugünden 7 gün ileri. Geciken buna GİRMİYOR, kendi
+   * kutusunda; ikisini toplamak gecikeni saklardı.
+   */
+  const haftaSonu = new Date(now.getTime() + 7 * 86400000)
+  const buHafta = records.filter(r => r.dueAt && r.dueAt >= now && r.dueAt <= haftaSonu)
+  const gecikenler = records.filter(r => r.dueAt && r.dueAt < now)
+  const topla = (liste: typeof records, yon: string) =>
+    liste.filter(r => r.direction === yon).reduce((s, r) => s + Number(r.amount ?? 0), 0)
+
+  const hesaplar = await hesapBakiyeleri(prisma, workspaceId)
+
   return {
+    thisWeek: {
+      payable: topla(buHafta, 'payable'),
+      payableCount: buHafta.filter(r => r.direction === 'payable').length,
+      receivable: topla(buHafta, 'receivable'),
+      receivableCount: buHafta.filter(r => r.direction === 'receivable').length
+    },
+    /* Adı `overdue` DEĞİL: mobil DTO o adı boş bir liste olarak tanımlıyor,
+       nesne gönderilse kurulu uygulama çözümlemede patlardı. */
+    overdueTotals: {
+      amount: topla(gecikenler, 'payable') + topla(gecikenler, 'receivable'),
+      count: gecikenler.length
+    },
+    /* Hesap yoksa null: arayüz "—" yazar, sıfır değil. Sıfır "kasa boş" demek olurdu. */
+    cash: kasaToplami(hesaplar),
     counts: {
       open: records.length,
       overdue: records.filter(r => r.dueAt && r.dueAt < now && r.status !== 'completed').length,

@@ -1,70 +1,46 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import Button from '@/components/ui/Button'
 import { FinanceField, financeMoney, financeCategory, financeRequest, useFinanceText } from './Finance'
 import styles from './Finance.module.css'
 
 /*
- * GENEL BAKIŞ FİNANS BANDI — Genel Bakış'ın kendi dört kartlık bandıyla
- * aynı dilde iki kart.
+ * VERGİ / SGK KARTI — Genel Bakış durum bandının beşinci kutusu.
  *
- * 🔴 ÖNCEKİ HALİ İKİ BAŞLIK + PARAGRAFLARDI ve sayfanın EN ÜSTÜNDE,
- * başlığın bile üstünde duruyordu. Hesap yokken bile Genel Bakış bir
- * ekran boyu düz metinle açılıyordu (ürün sahibi, 11.09.2026: "üstte
- * full yazı olmuş, böyle olmaz").
+ * 🔴 ÖNCEKİ HALİ İKİ BAŞLIK + PARAGRAFTI ve sayfa başlığının bile
+ * üstünde duruyordu (ürün sahibi, 11.09.2026: "üstte full yazı olmuş").
+ * Kasa/banka kutusu bandın kendisine geçti (`tracker/summary.cash`);
+ * burada yalnız vergi/SGK hatırlatma sayısı kaldı.
  *
- * Metin yalnız gerektiğinde: hatırlatma VARSA GİB/SGK teyit notu (bu not
- * kaldırılamaz, tarihler resmî takvimden okunmuyor); yoksa hiç yazı yok.
- * Kasa/banka toplamı para birimleri farklıysa toplanmıyor -- kur yok.
+ * ⚠️ GİB teyit notu KALDIRILAMAZ: tarihler resmî takvimden okunmuyor,
+ * planlama tahmini. Ama yalnız hatırlatma varken yazılıyor; hatırlatma
+ * yokken "vergi profili" yönlendirmesi.
  */
-export function FinanceOverview({ className = '' }) {
-  const text = useFinanceText(); const { workspaceId } = useParams()
-  const [accounts, setAccounts] = useState(null); const [deadlines, setDeadlines] = useState(null)
-  const [error, setError] = useState(''); const [revision, setRevision] = useState(0)
+export function VergiSgkKarti() {
+  const { t } = useTranslation()
+  const { workspaceId } = useParams()
+  const [deadlines, setDeadlines] = useState(null); const [error, setError] = useState('')
   useEffect(() => {
     let active = true; setError('')
-    Promise.all([financeRequest(workspaceId, 'accounts'), financeRequest(workspaceId, 'finance/deadlines')])
-      .then(([a, d]) => { if (active) { setAccounts(a.accounts); setDeadlines(d) } })
+    financeRequest(workspaceId, 'finance/deadlines')
+      .then(d => { if (active) setDeadlines(d) })
       .catch(e => { if (active) setError(e.message) })
     return () => { active = false }
-  }, [workspaceId, revision])
-
-  const hesaplar = accounts || []
-  const ilkBirim = hesaplar[0]?.currency
-  const ayniBirim = hesaplar.every(a => a.currency === ilkBirim)
-  const toplam = ayniBirim ? hesaplar.reduce((s, a) => s + Number(a.balance || 0), 0) : null
-  const kasaDegeri = !accounts && !error ? '—'
-    : hesaplar.length === 0 ? '—'
-    : toplam !== null ? financeMoney(toplam, ilkBirim)
-    : `${hesaplar.length} ${text('hesap', 'accounts')}`
-  const kasaAlt = hesaplar.length === 0
-    ? text('Hesap ekle', 'Add an account')
-    : hesaplar.length === 1 ? hesaplar[0].name : `${hesaplar.length} ${text('hesap', 'accounts')}`
+  }, [workspaceId])
   const hatirlatmalar = deadlines?.records || []
-
   return (
-    <section className={className} aria-label={text('Nakit ve yaklaşan yükümlülükler', 'Cash and upcoming obligations')}>
-      <Link to={`/app/workspaces/${workspaceId}/accounts`} className={styles.bantKarti}>
-        <span>{text('Kasa / Banka', 'Cash / Bank')}</span>
-        <strong>{kasaDegeri}</strong>
-        <small>{kasaAlt}</small>
-      </Link>
-      <article className={styles.bantKarti}>
-        <span>{text('Vergi / SGK · 30 gün', 'Tax / SSI · 30 days')}</span>
-        <strong>{deadlines ? hatirlatmalar.length : '—'}</strong>
-        <small>
-          {error
-            ? <button type="button" onClick={() => setRevision(v => v + 1)}>{error} · {text('Tekrar dene', 'Retry')}</button>
-            : hatirlatmalar.length === 0
-              ? (deadlines ? text('Vergi profili ayarlardan', 'Tax profile in settings') : '')
-              : hatirlatmalar.slice(0, 2).map(r => (
-                <Link key={r.id} to={`/app/workspaces/${workspaceId}/tracker?record=${r.id}`}>{r.title}</Link>
-              )).reduce((acc, el) => acc === null ? [el] : [...acc, ' · ', el], null)}
-        </small>
-        {/* ⚠️ Teyit notu kaldırılamaz: tarihler GİB'den okunmuyor. Ama yalnız hatırlatma varken. */}
-        {hatirlatmalar.length > 0 && <small title={deadlines.notice}>{text('Tarihleri GİB / SGK’dan teyit edin', 'Confirm dates with the tax office')}</small>}
-      </article>
-    </section>
+    <article>
+      <span>{t('workspace:overview.band.taxSsi')}</span>
+      <strong>{!deadlines ? '—' : hatirlatmalar.length === 0 ? '—' : hatirlatmalar.length}</strong>
+      <small title={deadlines?.notice}>
+        {error ? error
+          : hatirlatmalar.length === 0 ? (deadlines ? t('workspace:overview.band.taxNoProfile') : '')
+          : <>{hatirlatmalar.slice(0, 2).map((r, i) => (
+              <Link key={r.id} to={`/app/workspaces/${workspaceId}/tracker?record=${r.id}`}>{i > 0 ? ' · ' : ''}{r.title}</Link>
+            ))} · {t('workspace:overview.band.taxConfirm')}</>}
+      </small>
+    </article>
   )
 }
 
