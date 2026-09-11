@@ -19,3 +19,79 @@
 .table th, .table td { text-align: start; padding: var(--space-3); border-bottom: 1px solid var(--border); }
 .scroll { overflow-x: auto; }
 @media(max-width:640px) { .form { grid-template-columns: minmax(0,1fr); } }
+
+.accountsPage { display: grid; gap: var(--space-5); min-width: 0; color: var(--text); }
+.accountsHeading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-5); }
+.accountsHeading h2 { margin: 0 0 var(--space-1); font-size: var(--font-size-page-title); letter-spacing: -.035em; }
+.accountsHeading p { max-width: 65ch; margin: 0; color: var(--text-secondary); }
+.accountsHeading button { flex: 0 0 auto; display: inline-flex; gap: var(--space-2); }
+.truthNote { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-1); color: var(--brand-ink); }
+.truthNote div { display: grid; gap: var(--space-1); }
+.truthNote span { max-width: 72ch; color: var(--text-secondary); font-size: var(--font-size-sm); }
+.accountGroup { overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); }
+.accountRow { display: grid; grid-template-columns: auto minmax(9rem, 1fr) minmax(9rem, auto) minmax(9rem, auto); align-items: center; gap: var(--space-4); min-height: calc(var(--control-h) + var(--space-6)); padding: var(--space-4); border-bottom: 1px solid var(--border); }
+.accountRow:last-child { border-bottom: 0; }
+.accountIcon { display: grid; place-items: center; width: var(--control-h); height: var(--control-h); border-radius: var(--radius-md); background: var(--surface-1); color: var(--brand-ink); }
+.accountIdentity, .accountAmount, .accountTransit { display: grid; gap: var(--space-1); min-width: 0; }
+.accountIdentity strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.accountIdentity small, .accountAmount small, .accountTransit small { color: var(--text-secondary); }
+.accountAmount, .accountTransit { text-align: right; }
+.accountAmount strong, .accountTransit strong { font-variant-numeric: tabular-nums; }
+.accountTransit { padding-left: var(--space-4); border-left: 1px solid var(--border); }
+.hasTransit strong { color: var(--brand-ink); }
+.accountsFooter { display: flex; justify-content: flex-end; }
+.accountsFooter a { color: var(--brand-ink); font-weight: var(--font-weight-bold); }
+.accountSkeleton { display: grid; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-md); }
+.accountSkeleton span { min-height: calc(var(--control-h) + var(--space-6)); border-bottom: 1px solid var(--border); background: var(--surface-1); animation: pulse var(--dur-slow) var(--ease) infinite alternate; }
+.accountSkeleton span:last-child { border-bottom: 0; }
+.accountForm { display: grid; gap: var(--space-4); }
+.accountForm > p { margin: 0; color: var(--text-secondary); }
+.accountForm input { width: 100%; min-width: 0; height: var(--control-h); padding: 0 var(--control-px); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface-0); color: var(--text); font: inherit; }
+.accountForm input:focus-visible { outline: 3px solid color-mix(in srgb, var(--primary) 12%, transparent); border-color: var(--primary); }
+.formActions { display: flex; justify-content: flex-end; gap: var(--space-3); padding-top: var(--space-2); }
+.loanGroup { display: grid; gap: var(--space-4); }
+.loanCard { overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); }
+.loanSummary { display: grid; grid-template-columns: auto minmax(9rem, 1fr) minmax(9rem, auto) minmax(9rem, auto); align-items: center; gap: var(--space-4); padding: var(--space-4); }
+.loanIdentity, .loanStat { display: grid; gap: var(--space-1); min-width: 0; }
+.loanIdentity strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.loanIdentity small, .loanStat small { color: var(--text-secondary); }
+.loanStat { text-align: right; }
+.loanStat strong { font-variant-numeric: tabular-nums; }
+.loanSchedule { border-top: 1px solid var(--border); }
+.loanSchedule summary { cursor: pointer; padding: var(--space-3) var(--space-4); color: var(--brand-ink); font-weight: var(--font-weight-bold); }
+.loanSchedule summary:focus-visible { outline: 2px solid var(--brand-400); outline-offset: -2px; }
+.loanSchedule ol { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--border); }
+.loanSchedule li + li { border-top: 1px solid var(--border); }
+.loanSchedule a { display: grid; grid-template-columns: minmax(8rem, 1fr) repeat(3, auto); align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-4); color: var(--text); text-decoration: none; }
+.loanSchedule a:hover { background: var(--surface-1); }
+.loanSchedule a:focus-visible { outline: 2px solid var(--brand-400); outline-offset: -2px; }
+.statusPaid, .statusPending { font-size: var(--font-size-xs); font-weight: var(--font-weight-bold); }
+.statusPaid { color: var(--success); }
+.statusPending { color: var(--text-secondary); }
+.employeeGroup { overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); }
+.employeeRow { display: grid; grid-template-columns: auto minmax(9rem, 1fr) minmax(8rem, auto) minmax(8rem, auto) auto; align-items: center; gap: var(--space-4); padding: var(--space-4); border-bottom: 1px solid var(--border); }
+.employeeRow:last-child { border-bottom: 0; }
+.employeeIdentity, .employeeStat { display: grid; gap: var(--space-1); min-width: 0; }
+.employeeIdentity strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.employeeIdentity small, .employeeStat small { color: var(--text-secondary); }
+.employeeStat { text-align: right; }
+.employeeStat strong { font-variant-numeric: tabular-nums; }
+.toggleField { display: flex; align-items: center; gap: var(--space-3); min-height: var(--control-h); padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-1); cursor: pointer; }
+.toggleField input { width: auto; height: auto; margin: 0; accent-color: var(--primary); }
+.toggleField span { display: grid; gap: var(--space-1); }
+.toggleField small { color: var(--text-secondary); }
+.toggleField:focus-within { outline: 3px solid color-mix(in srgb, var(--primary) 12%, transparent); border-color: var(--primary); }
+@keyframes pulse { from { opacity: .62; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .accountSkeleton span { animation: none; } }
+@media (max-width: 760px) {
+  .accountsHeading { align-items: stretch; flex-direction: column; }
+  .accountsHeading button { align-self: flex-start; }
+  .accountRow { grid-template-columns: auto minmax(0, 1fr); }
+  .accountAmount, .accountTransit { grid-column: 2; text-align: left; }
+  .accountTransit { padding: 0; border-left: 0; }
+  .loanSummary { grid-template-columns: auto minmax(0, 1fr); }
+  .loanStat { grid-column: 2; text-align: left; }
+  .loanSchedule a { grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2) var(--space-3); }
+  .employeeRow { grid-template-columns: auto minmax(0, 1fr); }
+  .employeeStat, .employeeRow > button { grid-column: 2; text-align: left; justify-self: start; }
+}
