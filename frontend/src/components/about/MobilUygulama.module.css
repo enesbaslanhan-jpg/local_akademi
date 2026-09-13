@@ -1,0 +1,97 @@
+/* Hakkında → Mobil uygulama. Sayfanın öteki bölümleriyle aynı kart dili
+   (AboutPage.module.css .sinirlar): cam zemin, 14px köşe. */
+.bolum {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: center;
+  padding: 28px;
+  border: 1px solid var(--auth-card-border);
+  border-radius: 14px;
+  background: var(--auth-card);
+  backdrop-filter: blur(20px);
+  overflow: hidden;
+}
+
+.metin { display: grid; gap: 12px; justify-items: start; min-width: 0; }
+.metin h2 { margin: 0; color: var(--auth-text); }
+.metin p { margin: 0; color: var(--auth-text-muted, rgba(238, 241, 243, .78)); line-height: 1.55; }
+.ikon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: rgba(255, 255, 255, .08); color: var(--auth-accent, #6FB3C9); }
+.not { font-size: .8rem; opacity: .75; }
+
+.magazalar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+/* Mağaza düğmesi: küçük üst satır + kalın ad; App Store/Play rozetlerinin
+   okunma düzeni, ama marka görseli yok (lisans ve boyut sebebiyle). */
+.magaza {
+  display: grid;
+  gap: 1px;
+  min-width: 150px;
+  padding: 9px 16px;
+  border: 1px solid rgba(238, 241, 243, .28);
+  border-radius: 12px;
+  background: rgba(6, 15, 20, .55);
+  color: #F4FAFC;
+  text-decoration: none;
+  transition: transform .18s ease, border-color .18s ease;
+}
+.magaza small { font-size: .68rem; letter-spacing: .04em; text-transform: uppercase; opacity: .75; }
+.magaza strong { font-size: 1rem; }
+a.magaza:hover { transform: translateY(-1px); border-color: rgba(238, 241, 243, .6); }
+/* Adres yokken: soluk, tıklanmaz. "Yakında" sahte bağlantıdan iyidir. */
+.magazaKapali { opacity: .55; cursor: default; }
+
+/* ---- Yelpaze ------------------------------------------------------- */
+.yelpaze {
+  --acilma: 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+  /* Telefon 190px genişlikte ≈ 422px yüksek; alt yazıya da yer. */
+  min-height: 500px;
+  padding: 12px 0 40px;
+}
+.telefon {
+  --sira: 0;
+  position: absolute;
+  margin: 0;
+  width: clamp(140px, 38%, 190px);
+  transform:
+    translateX(calc((var(--sira) - 1) * 62% * var(--acilma)))
+    rotate(calc((var(--sira) - 1) * 6deg * var(--acilma)))
+    translateY(calc(var(--acilma) * -6px));
+  transition: transform .6s cubic-bezier(.2, .75, .2, 1);
+  transition-delay: calc(var(--sira) * 60ms);
+  filter: drop-shadow(0 18px 40px rgba(0, 0, 0, .45));
+}
+.telefon img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 22px;
+  border: 3px solid #0B1A22;
+  background: #0B1A22;
+}
+.altyazi {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  margin: 0;
+  text-align: center;
+  font-size: .76rem;
+  color: var(--auth-text-muted, rgba(238, 241, 243, .78));
+  opacity: var(--acilma);
+  transition: opacity .4s ease;
+}
+/* Görünüme girince yelpaze açılır; fare üstüne gelince biraz daha. */
+.acik { --acilma: .85; }
+.bolum:hover .yelpaze { --acilma: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .telefon, .altyazi { transition: none; }
+  .yelpaze, .bolum:hover .yelpaze { --acilma: 1; }
+}
+
+@media (max-width: 760px) {
+  .bolum { grid-template-columns: 1fr; padding: 22px; }
+  .yelpaze { min-height: 420px; }
+  .telefon { width: clamp(120px, 34%, 160px); }
+}

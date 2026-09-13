@@ -4,6 +4,7 @@ import { Bot, ClipboardList, GraduationCap, MessagesSquare, Scale, Sheet } from 
 import BrandMark from '@/components/ui/BrandMark'
 import EkranCizimi from '@/components/about/EkranCizimi'
 import Acilis from '@/components/about/Acilis'
+import MobilUygulama from '@/components/about/MobilUygulama'
 import SahneDeseni from '@/components/about/SahneDeseni'
 import AuthThemeToggle from './AuthThemeToggle'
 import styles from './AboutPage.module.css'
@@ -183,6 +184,8 @@ export default function AboutPage() {
           * iyidir. Kullanım Koşulları'nda da aynı şey yazıyor; burada
           * gizlenmesi tutarsız olurdu.
           */}
+        {/* Mobil uygulama: mağaza düğmeleri + üç gerçek ekran (13.09.2026). */}
+        <MobilUygulama />
         <Acilis as="section" className={styles.sinirlar}>
           <h2>{t('about.limitsTitle')}</h2>
           <p>{t('about.limitsText')}</p>

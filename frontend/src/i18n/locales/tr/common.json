@@ -607,7 +607,21 @@
       "cookies": "Çerezler",
       "note": "Sorular ve KVKK başvuruları için Gizlilik metnindeki iletişim kanalını kullanabilirsin."
     },
-    "backToApp": "LocalKarar’a dön"
+    "backToApp": "LocalKarar’a dön",
+    "mobile": {
+      "title": "Mobil uygulama",
+      "text": "Kayıtlar, cari hesap ve topluluk cebinde. Uygulama 5 MB’ın altında; eski telefonlarda da anında iner ve açılır.",
+      "android": "Android için",
+      "ios": "iPhone için",
+      "soon": "Yakında",
+      "sizeNote": "Web hesabınla aynı veriler; ayrı kayıt gerekmez.",
+      "screensLabel": "Uygulama ekran görüntüleri",
+      "screens": {
+        "home": "Ana sayfa — 30 günlük net ve kısayollar",
+        "business": "İşletme Takibi — bu hafta ödenecek ve tahsil edilecek",
+        "account": "Cari hesap — kişiyle borç/alacak dökümü"
+      }
+    }
   },
   "support": {
     "kicker": "Destek",

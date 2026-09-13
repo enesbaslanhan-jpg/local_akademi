@@ -607,7 +607,21 @@
       "cookies": "Cookies",
       "note": "For questions and KVKK requests, use the contact channel in the Privacy Notice."
     },
-    "backToApp": "Back to LocalKarar"
+    "backToApp": "Back to LocalKarar",
+    "mobile": {
+      "title": "Mobile app",
+      "text": "Records, contact balances and the community in your pocket. Under 5 MB — installs and opens instantly on older phones too.",
+      "android": "For Android",
+      "ios": "For iPhone",
+      "soon": "Coming soon",
+      "sizeNote": "Same data as your web account; no separate sign-up.",
+      "screensLabel": "App screenshots",
+      "screens": {
+        "home": "Home — 30-day net and shortcuts",
+        "business": "Business tracking — due and receivable this week",
+        "account": "Contact account — payables and receivables per contact"
+      }
+    }
   },
   "support": {
     "kicker": "Support",
