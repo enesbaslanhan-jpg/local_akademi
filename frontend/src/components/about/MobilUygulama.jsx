@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Smartphone } from 'lucide-react'
+import { Smartphone, Receipt, Camera, Wallet, Compass, Check } from 'lucide-react'
 import Acilis from './Acilis'
 import { useGorunumeGirince } from '@/hooks/useGorunumeGirince'
 import styles from './MobilUygulama.module.css'
@@ -29,6 +29,9 @@ const EKRANLAR = [
   { dosya: 'mobil-cari-hesap.png', anahtar: 'account' }
 ]
 
+/* Sıra i18n'deki `about.mobile.items` ile birebir. */
+const MADDE_IKONLARI = [Receipt, Camera, Wallet, Compass]
+
 export default function MobilUygulama() {
   const { t } = useTranslation()
   const [magazalar, setMagazalar] = useState({ android: null, ios: null })
@@ -50,7 +53,21 @@ export default function MobilUygulama() {
       <div className={styles.metin}>
         <span className={styles.ikon}><Smartphone size={20} aria-hidden="true" /></span>
         <h2 id="mobil-baslik">{t('about.mobile.title')}</h2>
-        <p>{t('about.mobile.text')}</p>
+        {/* Madde madde, simgeli (ürün sahibi, 14.09.2026): düz paragraf
+            okunmuyordu. Her madde uygulamada GERÇEKTEN olan bir şey. */}
+        <p className={styles.giris}>{t('about.mobile.lead')}</p>
+        <ul className={styles.maddeler}>
+          {MADDE_IKONLARI.map((Ikon, i) => (
+            <li key={i}>
+              <span className={styles.maddeIkon}><Ikon size={16} aria-hidden="true" /></span>
+              <span>
+                <strong>{t(`about.mobile.items.${i}.t`)}</strong>
+                <span className={styles.maddeAciklama}>{t(`about.mobile.items.${i}.d`)}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className={styles.not}><Check size={14} aria-hidden="true" /> {t('about.mobile.outro')}</p>
         <div className={styles.magazalar}>
           <MagazaDugmesi url={magazalar.android} etiket="Google Play" altEtiket={t('about.mobile.android')} />
           <MagazaDugmesi url={magazalar.ios} etiket="App Store" altEtiket={t('about.mobile.ios')} />

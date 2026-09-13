@@ -23,7 +23,13 @@
 .metin h2 { margin: 0; color: var(--auth-text); }
 .metin p { margin: 0; color: var(--auth-text-muted, rgba(238, 241, 243, .78)); line-height: 1.55; }
 .ikon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: rgba(255, 255, 255, .08); color: var(--auth-accent, #6FB3C9); }
-.not { font-size: .8rem; opacity: .75; }
+.giris { font-weight: 600; }
+.maddeler { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.maddeler li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align-items: start; }
+.maddeler strong { display: block; color: var(--auth-text); font-size: .95rem; }
+.maddeAciklama { display: block; color: var(--auth-text-muted, rgba(238, 241, 243, .78)); font-size: .88rem; line-height: 1.45; }
+.maddeIkon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: rgba(255, 255, 255, .08); color: var(--auth-accent, #6FB3C9); }
+.not { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; opacity: .8; }
 
 .magazalar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
 /* Mağaza düğmesi: küçük üst satır + kalın ad; App Store/Play rozetlerinin

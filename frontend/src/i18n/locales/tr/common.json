@@ -610,7 +610,9 @@
     "backToApp": "LocalKarar’a dön",
     "mobile": {
       "title": "Mobil uygulama",
-      "text": "LocalKarar mobil uygulamasında işletmenin bütün takibi elinin altında: ödeme, tahsilat, çek ve senet kayıtlarını girip vadeleri takvimde izlersin. Faturanın fotoğrafını çekersin, uygulama tutarı ve vadeyi okuyup kaydı sana önerir. Kişi kartında cari hesabı görür, ekstreyi tek dokunuşla WhatsApp’tan gönderirsin. Karar araçları, hesaplamalar ve topluluk da aynı uygulamada; web hesabınla aynı veriler, ayrı kayıt gerekmez.",
+      "lead": "İşletmenin bütün takibi cebinde:",
+      "items": [{"t":"Kayıt ve vade","d":"Ödeme, tahsilat, çek ve senet; vadeler takvimde."},{"t":"Faturadan kayıt","d":"Fotoğrafını çek; tutar ve vade okunur, kayıt önerilir."},{"t":"Cari hesap","d":"Kişi kartında borç/alacak; ekstre tek dokunuşla WhatsApp’a."},{"t":"Karar ve topluluk","d":"Karar araçları, hesaplamalar ve topluluk aynı uygulamada."}],
+      "outro": "Web hesabınla aynı veriler; ayrı kayıt gerekmez.",
       "android": "Android için",
       "ios": "iPhone için",
       "soon": "Yakında",
