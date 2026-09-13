@@ -29,7 +29,22 @@ export const BILLING_CURRENCY = 'TRY' as const
  * Ücretlendirmenin gerçekten başladığı an (ISO 8601).
  * `null` = henüz başlamadı.
  */
-export const BILLING_STARTS_AT: string | null = null
+/*
+ * 🔴 13.09.2026 — ÜRÜN SAHİBİ KARARI: ÜCRETLENDİRME AÇILDI.
+ *
+ * 9 Eylül'deki "mobil yayınlanınca" ertelemesi geri alındı: deneme her
+ * yeni kullanıcıya kayıt tarihinde başlayacak, bitince abone olma
+ * uyarısı gelecek. Prova yapıldı: admin hesabı test kartıyla ödedi,
+ * callback üyeliği ACTIVE yaptı (canlıda 1 aktif abonelik, 2 başarılı
+ * test ödemesi görüldü).
+ *
+ * ⚠️ Bu tarih sunucudaki PAYTR_TEST_MODE=false ile AYNI yayında
+ * gitmeli; tek başına açılırsa ekran açılır ama tahsilat test kipinde
+ * kalır. Mevcut kullanıcıların denemesi bu tarihte başlar (aylar önce
+ * kaydolanı anında "süresi dolmuş" düşürmemek için), yeni kayıt
+ * olanın kendi kayıt tarihinde.
+ */
+export const BILLING_STARTS_AT: string | null = '2026-09-14T00:00:00.000Z'
 
 /** Ücretsiz deneme uzunluğu (gün). */
 export const TRIAL_DAYS = 30

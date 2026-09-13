@@ -64,12 +64,13 @@ describe('karşılama ekranı', () => {
     expect(screen.getByRole('button', { name: /başla/i })).toBeInTheDocument()
   })
 
-  it('ücretlendirme başlamadığını SÖYLER', () => {
-    /* Bu test bugünkü yapılandırmaya bağlı ve bilerek öyle: config
-       açıldığında düşmesi DOĞRU, çünkü o zaman metin de değişmeli. */
-    expect(BILLING_STARTS_AT).toBeNull()
+  it('ücretlendirme AÇIK: "başlamadı" duyurusu yok', () => {
+    /* 13.09.2026: config açıldı, bu test de onunla değişti — önceki sürüm
+       "başlamadı" yazısını arıyordu. Şimdi o yazı OLMAMALI: fiyatlar
+       gösteriliyor ve gerçekten tahsil edilecek. */
+    expect(BILLING_STARTS_AT).toBe('2026-09-14T00:00:00.000Z')
     sar(<WelcomePage />)
-    expect(screen.getByRole('status')).toHaveTextContent(/başlamadı/i)
+    expect(screen.queryByText(/başlamadı/i)).not.toBeInTheDocument()
   })
 })
 
@@ -155,7 +156,7 @@ describe('ödeme paneli', () => {
     expect(screen.getByText(new RegExp(kuruculUyeFiyati().toLocaleString('tr-TR')))).toBeInTheDocument()
   })
 
-  it('ücretlendirme başlamadan sebebi panelde yazılı', () => {
+  it('ücretlendirme AÇIK: "ödeme alınmıyor" notu panelde yok', () => {
     sar(<MembershipModal open onClose={() => {}} />)
 
     /*
@@ -169,7 +170,9 @@ describe('ödeme paneli', () => {
      * istemci kodu değiştirilebilir. Burada sınanan şey KULLANICIYA
      * NE SÖYLENDİĞİ.
      */
-    expect(screen.getByText(/ödeme alınmıyor/i)).toBeInTheDocument()
+    /* 13.09.2026: anahtar açık; not kalsaydı ödeme alan bir panelde
+       "ödeme alınmıyor" yazardı — yanlış beyan. */
+    expect(screen.queryByText(/ödeme alınmıyor/i)).not.toBeInTheDocument()
   })
 
   /*

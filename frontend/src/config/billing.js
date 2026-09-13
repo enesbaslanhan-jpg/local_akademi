@@ -21,7 +21,9 @@
 export const BILLING_CURRENCY = 'TRY'
 
 /** Ücretlendirmenin başladığı an (ISO). `null` = henüz başlamadı. */
-export const BILLING_STARTS_AT = null
+/* 13.09.2026: ücretlendirme AÇILDI — arka uçtaki tarihle birebir aynı
+   (billing-config-drift testi bunu korur). */
+export const BILLING_STARTS_AT = '2026-09-14T00:00:00.000Z'
 
 export const TRIAL_DAYS = 30
 

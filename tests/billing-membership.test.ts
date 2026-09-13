@@ -36,18 +36,18 @@ const GUN = 24 * 60 * 60 * 1000
 const ACILIS = '2026-09-01T00:00:00.000Z'
 
 describe('üyelik durumu türetimi', () => {
-  it('ÜRETİMDEKİ HÂL: ücretlendirme başlamadı, hiçbir uyarı yok', () => {
-    /* Bu, bugün gerçekten sevk edilen davranış. */
-    expect(BILLING_STARTS_AT).toBeNull()
+  it('ÜRETİMDEKİ HÂL: ücretlendirme 14.09.2026\'da açıldı, eski kullanıcı denemeye o gün başlar', () => {
+    /* Bu, bugün gerçekten sevk edilen davranış (ürün sahibi kararı,
+       13.09.2026). Aylar önce kaydolan kullanıcı anında "süresi dolmuş"
+       düşmez; denemesi açılış gününden sayılır. */
+    expect(BILLING_STARTS_AT).toBe('2026-09-14T00:00:00.000Z')
 
-    const durum = hesaplaUyelikDurumu(new Date('2020-01-01'))
-    expect(durum.state).toBe('billing_not_started')
+    const durum = hesaplaUyelikDurumu(new Date('2020-01-01'), new Date('2026-09-20T12:00:00Z'))
+    expect(durum.state).toBe('trial')
+    expect(durum.trialEndsAt).toBe('2026-10-14T00:00:00.000Z')
+    expect(durum.trialDaysLeft).toBe(24)
     expect(durum.showBanner).toBe(false)
-    expect(durum.trialDaysLeft).toBeNull()
-    expect(durum.trialEndsAt).toBeNull()
-    /* Rozet de yok: ücretlendirme başlamadan herkes "kurucu üye"
-       olamaz, rozet o zaman hiçbir şey ayırt etmez. */
-    expect(durum.founder).toBe(false)
+    expect(durum.founder).toBe(true)
   })
 
   it('ESKİ kullanıcı, ücretlendirme açılınca 30 günü BAŞTAN alır', () => {
