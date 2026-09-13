@@ -610,11 +610,10 @@
     "backToApp": "Back to LocalKarar",
     "mobile": {
       "title": "Mobile app",
-      "text": "Records, contact balances and the community in your pocket. Under 5 MB — installs and opens instantly on older phones too.",
+      "text": "The LocalKarar mobile app keeps your whole business tracking at hand: enter payments, receivables, cheques and promissory notes and follow due dates on the calendar. Snap a photo of an invoice and the app reads the amount and due date and proposes the record. See each contact’s running balance and send the statement over WhatsApp in one tap. Decision tools, calculators and the community live in the same app; same data as your web account, no separate sign-up.",
       "android": "For Android",
       "ios": "For iPhone",
       "soon": "Coming soon",
-      "sizeNote": "Same data as your web account; no separate sign-up.",
       "screensLabel": "App screenshots",
       "screens": {
         "home": "Home — 30-day net and shortcuts",

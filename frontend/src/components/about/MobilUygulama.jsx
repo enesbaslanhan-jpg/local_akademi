@@ -55,7 +55,6 @@ export default function MobilUygulama() {
           <MagazaDugmesi url={magazalar.android} etiket="Google Play" altEtiket={t('about.mobile.android')} />
           <MagazaDugmesi url={magazalar.ios} etiket="App Store" altEtiket={t('about.mobile.ios')} />
         </div>
-        <p className={styles.not}>{t('about.mobile.sizeNote')}</p>
       </div>
 
       <div ref={yelpazeRef} className={`${styles.yelpaze} ${yelpazeGorundu ? styles.acik : ''}`} aria-label={t('about.mobile.screensLabel')}>
