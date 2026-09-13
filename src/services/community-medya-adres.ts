@@ -51,6 +51,11 @@ export function imzaliMedyaUrl(mediaId: string): string {
   return `/community/media/${mediaId}?e=${bitis}&s=${medyaImzasi(mediaId, bitis)}`
 }
 
+export function imzaliPosterUrl(mediaId: string): string {
+  const bitis = Math.floor(Date.now() / 1000) + OMUR_SANIYE
+  return `/community/media/${mediaId}/poster?e=${bitis}&s=${medyaImzasi(mediaId, bitis)}`
+}
+
 export type ImzaSonucu = 'gecerli' | 'suresi-doldu' | 'gecersiz'
 
 export function imzayiDogrula(mediaId: string, e?: string, imza?: string): ImzaSonucu {
@@ -78,6 +83,12 @@ export function imzayiDogrula(mediaId: string, e?: string, imza?: string): ImzaS
  * Tek yerden geçmesi önemli: bir listede unutulursa orada görseller
  * kırılır ve bu ancak o listeye bakan biri fark edince anlaşılır.
  */
-export function medyaCikti<T extends { id: string } | null | undefined>(media: T) {
-  return media ? { ...media, url: imzaliMedyaUrl(media.id) } : media
+export function medyaCikti<T extends { id: string; status?: string; posterStoredName?: string | null } | null | undefined>(media: T) {
+  if (!media) return media
+  const hazir = media.status == null || media.status === 'ready'
+  return {
+    ...media,
+    url: hazir ? imzaliMedyaUrl(media.id) : null,
+    posterUrl: media.posterStoredName ? imzaliPosterUrl(media.id) : null,
+  }
 }

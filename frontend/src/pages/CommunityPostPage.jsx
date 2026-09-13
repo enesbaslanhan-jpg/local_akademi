@@ -76,6 +76,21 @@ export default function CommunityPostPage() {
 
   useEffect(() => { yukle() }, [yukle])
 
+  useEffect(() => {
+    if (post?.media?.status !== 'processing') return undefined
+
+    const timer = window.setInterval(() => {
+      api.community.post(postId)
+        .then((sonuc) => {
+          setPost(sonuc.post)
+          setParent(sonuc.parent || null)
+        })
+        .catch(() => {})
+    }, 4000)
+
+    return () => window.clearInterval(timer)
+  }, [post?.media?.status, postId])
+
   function kaldirilabilir(hedef) {
     return isAdmin || (hedef.author?.id != null && hedef.author.id === user?.id)
   }

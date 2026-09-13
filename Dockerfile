@@ -3,7 +3,7 @@ FROM node:20-alpine AS backend-build
 
 WORKDIR /app
 
-RUN apk add --no-cache openssl
+RUN apk add --no-cache openssl ffmpeg
 
 COPY package*.json ./
 
@@ -44,7 +44,7 @@ WORKDIR /app
 # postgresql16-client: pg_dump ve psql. Yedekleme betigi bunlari
 #   cagiriyor ve imajda YOKTULAR -- yani "npm run backup:database"
 #   sunucuda hic calisamazdi. Surum veritabaniyla ayni (pg16).
-RUN apk add --no-cache openssl postgresql16-client
+RUN apk add --no-cache openssl postgresql16-client ffmpeg
 
 # Production dependencies only (no devDependencies)
 COPY package*.json ./

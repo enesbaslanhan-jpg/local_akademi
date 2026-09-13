@@ -48,6 +48,10 @@
       "video": "Video",
       "file": "File",
       "uploading": "Uploading…",
+      "processingTitle": "Preparing video",
+      "processingHint": "It will play here when compression and poster generation finish.",
+      "failedTitle": "Video could not be prepared",
+      "failedHint": "The author can remove it and upload the video again.",
       "previewAlt": "Upload preview",
       "removeAttachment": "Remove attachment",
       "zoomImage": "Zoom image"

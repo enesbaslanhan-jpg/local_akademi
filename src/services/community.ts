@@ -5,8 +5,9 @@ import { z } from 'zod'
 import { bildirimYaz, gonderiSahibineBildir } from './community-bildirim.js'
 import { imzayiDogrula, medyaCikti } from './community-medya-adres.js'
 import fastifyMultipart from '@fastify/multipart'
-import { createReadStream } from 'fs'
-import { mkdir, stat, unlink, writeFile } from 'fs/promises'
+import { createReadStream, createWriteStream } from 'fs'
+import { mkdir, open, stat, unlink, writeFile } from 'fs/promises'
+import { pipeline } from 'stream/promises'
 import { isAbsolute, join, relative, resolve } from 'path'
 import { randomUUID } from 'crypto'
 import {
@@ -27,6 +28,11 @@ import {
   localAiGenerationQueue,
   LocalAiQueueFullError,
 } from './local-ai-job-queue'
+import {
+  CommunityVideoProcessor,
+  TOPLULUK_DIGER_MEDYA_SINIRI,
+  TOPLULUK_VIDEO_SINIRI,
+} from './community-video-processor.js'
 
 /*
  * Topluluk medyası için boyut sınırı — belge yüklemeninkinden AYRI.
@@ -40,7 +46,7 @@ import {
  * demek. Disk dolarsa uygulama durur, o yüzden büyütmeden önce izleme
  * gerekir.
  */
-const TOPLULUK_MEDYA_SINIRI = 20 * 1024 * 1024
+const TOPLULUK_MEDYA_SINIRI = TOPLULUK_VIDEO_SINIRI
 
 /*
  * RESMÎ gönderiler için. Başlık + özet zorunlu; kaynak gösterimi olan,
@@ -151,6 +157,10 @@ export async function communityRoutes(
     limits: { fileSize: TOPLULUK_MEDYA_SINIRI, files: 1 },
   })
   await mkdir(mediaDirectory, { recursive: true })
+  const videoProcessor = new CommunityVideoProcessor(prisma, mediaDirectory, fastify.log)
+  void videoProcessor.recoverPending().catch(error => {
+    fastify.log.error({ error }, 'Pending community videos could not be recovered')
+  })
 
   const mediaSelect = {
     id: true,
@@ -158,6 +168,9 @@ export async function communityRoutes(
     mimeType: true,
     sizeBytes: true,
     kind: true,
+    status: true,
+    posterStoredName: true,
+    durationSec: true,
   } as const
 
   /*
@@ -277,7 +290,7 @@ export async function communityRoutes(
     } catch (error: any) {
       const tooLarge = error?.statusCode === 413 || error?.message?.includes('file size limit')
       return reply.status(tooLarge ? 413 : 400).send({
-        error: tooLarge ? 'Dosya en fazla 20 MB olabilir.' : 'Dosya okunamadı.',
+        error: tooLarge ? 'Video en fazla 200 MB, diğer dosyalar en fazla 20 MB olabilir.' : 'Dosya okunamadı.',
       })
     }
     if (!upload) return reply.status(400).send({ error: 'Dosya seçilmedi.' })
@@ -289,6 +302,51 @@ export async function communityRoutes(
       return reply.status(415).send({ error: 'PNG, JPEG, MP4, WebM, PDF veya DOCX dosyası yükleyin.' })
     }
 
+    const videoMu = upload.mimetype.startsWith('video/')
+    if (videoMu) {
+      /* 200 MB videoyu tek Buffer'a almak sunucunun belleğini gereksizce
+         sisirir. Akis dogrudan diske iner; yalniz sihirli baytlar okunur. */
+      const id = randomUUID()
+      const storedName = `${id}.raw.${extension}`
+      const path = safeMediaPath(storedName)
+      try {
+        await pipeline(upload.file, createWriteStream(path, { flags: 'wx' }))
+        if (upload.file.truncated) throw new FileValidationError('Video en fazla 200 MB olabilir.', 413)
+        const bilgi = await stat(path)
+        if (!bilgi.size) throw new FileValidationError('Dosya boş.', 422)
+
+        const handle = await open(path, 'r')
+        const header = Buffer.alloc(32)
+        const { bytesRead } = await handle.read(header, 0, header.length, 0)
+        await handle.close()
+        validateVideoFile(header.subarray(0, bytesRead), extension as 'mp4' | 'webm')
+
+        const media = await prisma.communityMedia.create({
+          data: {
+            id,
+            uploaderId: request.user.id,
+            originalName,
+            storedName,
+            mimeType: upload.mimetype,
+            sizeBytes: bilgi.size,
+            kind: 'video',
+            status: 'processing',
+          },
+          select: mediaSelect,
+        })
+        videoProcessor.enqueue(media.id)
+        return reply.status(201).send({ media: medyaCikti(media) })
+      } catch (error: any) {
+        await unlink(path).catch(() => {})
+        if (error instanceof FileValidationError) return reply.status(error.statusCode).send({ error: error.message })
+        const tooLarge = error?.statusCode === 413 || error?.message?.includes('file size limit')
+        request.log.error({ error }, 'Community video upload failed')
+        return reply.status(tooLarge ? 413 : 500).send({
+          error: tooLarge ? 'Video en fazla 200 MB olabilir.' : 'Video kaydedilemedi.',
+        })
+      }
+    }
+
     let buffer: Buffer
     try {
       buffer = await upload.toBuffer()
@@ -298,14 +356,15 @@ export async function communityRoutes(
     if (!buffer.length || buffer.length > TOPLULUK_MEDYA_SINIRI) {
       return reply.status(buffer.length > TOPLULUK_MEDYA_SINIRI ? 413 : 422).send({ error: 'Dosya boş veya çok büyük.' })
     }
+    if (buffer.length > TOPLULUK_DIGER_MEDYA_SINIRI) {
+      return reply.status(413).send({ error: 'Görsel ve belgeler en fazla 20 MB olabilir.' })
+    }
 
     try {
       const detected = detectFileType(buffer)
       if (!detected.valid) throw new FileValidationError(detected.error || 'Dosya türü doğrulanamadı', 415)
       if (extension === 'png' && detected.detectedType !== 'png') throw new FileValidationError('Görsel içeriği uzantıyla uyuşmuyor', 415)
       if (['jpg', 'jpeg'].includes(extension) && detected.detectedType !== 'jpeg') throw new FileValidationError('Görsel içeriği uzantıyla uyuşmuyor', 415)
-      if (extension === 'mp4') validateVideoFile(buffer, 'mp4')
-      if (extension === 'webm') validateVideoFile(buffer, 'webm')
       if (extension === 'pdf') validatePdfFile(buffer)
       if (extension === 'png') validateImageFile(buffer, 'png')
       if (['jpg', 'jpeg'].includes(extension)) validateImageFile(buffer, 'jpeg')
@@ -336,6 +395,7 @@ export async function communityRoutes(
           kind: upload.mimetype.startsWith('image/')
             ? 'image'
             : upload.mimetype.startsWith('video/') ? 'video' : 'file',
+          status: 'ready',
         },
         select: mediaSelect,
       })
@@ -366,7 +426,7 @@ export async function communityRoutes(
       return reply.status(404).send({ error: 'Dosya bulunamadı.' })
     }
     const media = await prisma.communityMedia.findFirst({
-      where: { id: mediaId, post: { status: 'published' } },
+      where: { id: mediaId, status: 'ready', post: { status: 'published' } },
       select: { storedName: true, mimeType: true, originalName: true },
     })
     if (!media) return reply.status(404).send({ error: 'Dosya bulunamadı.' })
@@ -456,6 +516,35 @@ export async function communityRoutes(
     }
   })
 
+  fastify.get('/media/:mediaId/poster', async (request, reply) => {
+    const mediaId = String((request.params as { mediaId?: string }).mediaId || '')
+    const sorgu = request.query as { e?: string; s?: string }
+    const imzaDurumu = imzayiDogrula(mediaId, sorgu.e, sorgu.s)
+    if (imzaDurumu === 'suresi-doldu') {
+      return reply.status(403).send({
+        error: 'Bu baglantinin suresi doldu, sayfayi yenileyin.',
+        code: 'MEDIA_LINK_EXPIRED',
+      })
+    }
+    if (imzaDurumu !== 'gecerli') return reply.status(404).send({ error: 'Dosya bulunamadı.' })
+
+    const media = await prisma.communityMedia.findFirst({
+      where: { id: mediaId, status: 'ready', post: { status: 'published' } },
+      select: { posterStoredName: true },
+    })
+    if (!media?.posterStoredName) return reply.status(404).send({ error: 'Kapak bulunamadı.' })
+    try {
+      const path = safeMediaPath(media.posterStoredName)
+      const bilgi = await stat(path)
+      reply.header('Content-Type', 'image/jpeg')
+      reply.header('Content-Length', String(bilgi.size))
+      reply.header('Cache-Control', 'private, no-cache')
+      return reply.send(createReadStream(path))
+    } catch {
+      return reply.status(404).send({ error: 'Kapak bulunamadı.' })
+    }
+  })
+
   fastify.delete('/media/:mediaId', {
     preHandler: [fastify.authenticate],
   }, async (request, reply) => {
@@ -466,6 +555,7 @@ export async function communityRoutes(
     if (!media) return reply.status(404).send({ error: 'Dosya bulunamadı.' })
     await prisma.communityMedia.delete({ where: { id: media.id } })
     await unlink(safeMediaPath(media.storedName)).catch(() => {})
+    if (media.posterStoredName) await unlink(safeMediaPath(media.posterStoredName)).catch(() => {})
     return { deleted: true }
   })
 

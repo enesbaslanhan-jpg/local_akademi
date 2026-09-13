@@ -711,6 +711,32 @@
 /* Dosya eki de aynı yuvarlaklığı alıyor. */
 .fileAttachment { border-radius: 14px; }
 
+.videoProcessing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 112px;
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--surface-panel), var(--surface-card));
+}
+.videoProcessingIcon {
+  display: grid;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary);
+}
+.videoProcessing span:last-child { display: grid; gap: 4px; line-height: 1.35; }
+.videoProcessing small { color: var(--text-light); }
+.videoFailed { border-color: color-mix(in srgb, var(--danger) 28%, var(--border)); }
+.videoFailed .videoProcessingIcon { color: var(--danger); }
+
 /* ==========================================================
  * TOPLULUK — ÜRÜN SEVİYESİ YERLEŞİM
  *

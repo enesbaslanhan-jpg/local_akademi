@@ -48,6 +48,10 @@
       "video": "Video",
       "file": "Dosya",
       "uploading": "Yükleniyor…",
+      "processingTitle": "Video hazırlanıyor",
+      "processingHint": "Sıkıştırma ve kapak oluşturma bitince burada oynatılacak.",
+      "failedTitle": "Video hazırlanamadı",
+      "failedHint": "Gönderi sahibi videoyu kaldırıp yeniden yükleyebilir.",
       "previewAlt": "Yüklenecek görsel önizlemesi",
       "removeAttachment": "Ek dosyayı kaldır",
       "zoomImage": "Görseli büyüt"

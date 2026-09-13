@@ -9,7 +9,7 @@ function sureyiYaz(saniye) {
   return `${dakika}:${String(Math.floor(saniye % 60)).padStart(2, '0')}`
 }
 
-function ViewerVideo({ url, overlayText = '', mediaActions = null }) {
+function ViewerVideo({ url, poster = '', overlayText = '', mediaActions = null }) {
   const { t } = useTranslation('common')
   const videoRef = useRef(null)
   const [oynuyor, setOynuyor] = useState(false)
@@ -45,6 +45,7 @@ function ViewerVideo({ url, overlayText = '', mediaActions = null }) {
       <video
         ref={videoRef}
         src={url}
+        poster={poster || undefined}
         className={styles.image}
         autoPlay
         playsInline
@@ -104,7 +105,7 @@ function ViewerVideo({ url, overlayText = '', mediaActions = null }) {
  * `actions` verilirse görselin altında eylem çubuğu çıkar (ör. profil
  * fotoğrafı için "Değiştir" / "Kaldır").
  */
-export default function ImageViewer({ url, alt = '', onClose, actions = null, caption = null, tur = 'image', yan = null, overlayText = '', mediaActions = null }) {
+export default function ImageViewer({ url, poster = '', alt = '', onClose, actions = null, caption = null, tur = 'image', yan = null, overlayText = '', mediaActions = null }) {
   const { t } = useTranslation('common')
   const panelRef = useRef(null)
   const closeRef = useRef(null)
@@ -172,7 +173,7 @@ export default function ImageViewer({ url, alt = '', onClose, actions = null, ca
           */}
         <div className={styles.mediaColumn}>
           {tur === 'video'
-            ? <ViewerVideo url={url} overlayText={overlayText} mediaActions={mediaActions} />
+            ? <ViewerVideo url={url} poster={poster} overlayText={overlayText} mediaActions={mediaActions} />
             : <img src={url} alt={alt} className={styles.image} />}
           {caption && <p className={styles.caption}>{caption}</p>}
           {actions && <div className={styles.actions}>{actions}</div>}

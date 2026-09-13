@@ -170,11 +170,29 @@ export function PostMedia({ media, featured = false, kucuk = false, yanPanel = n
   const [buyutuldu, setBuyutuldu] = useState(false)
   if (!media) return null
   const url = mediaUrl(media)
+  const poster = media?.posterUrl ? `${API_URL}${media.posterUrl}` : ''
+
+  if (media.kind === 'video' && media.status === 'processing') {
+    return (
+      <div className={styles.videoProcessing} role="status">
+        <span className={styles.videoProcessingIcon}><Clock size={22} aria-hidden="true" /></span>
+        <span><strong>{t('feed.media.processingTitle')}</strong><small>{t('feed.media.processingHint')}</small></span>
+      </div>
+    )
+  }
+  if (media.kind === 'video' && media.status === 'failed') {
+    return (
+      <div className={`${styles.videoProcessing} ${styles.videoFailed}`} role="status">
+        <span className={styles.videoProcessingIcon}><Video size={22} aria-hidden="true" /></span>
+        <span><strong>{t('feed.media.failedTitle')}</strong><small>{t('feed.media.failedHint')}</small></span>
+      </div>
+    )
+  }
 
   /* Büyütülmüş görünüm görsel ve video için AYNI kutuyu kullanıyor:
      odak tuzağı, Esc ve odağı geri verme orada zaten doğru yazılmış. */
   const buyutucu = buyutuldu && (
-    <ImageViewer url={url} tur={media.kind} yan={yanPanel} overlayText={overlayText} mediaActions={mediaActions} onClose={() => setBuyutuldu(false)} />
+    <ImageViewer url={url} poster={poster} tur={media.kind} yan={yanPanel} overlayText={overlayText} mediaActions={mediaActions} onClose={() => setBuyutuldu(false)} />
   )
 
   if (media.kind === 'video') {
@@ -187,7 +205,7 @@ export function PostMedia({ media, featured = false, kucuk = false, yanPanel = n
      */
     return (
       <>
-        <AkisVideosu src={url} kucuk={kucuk} onAc={() => setBuyutuldu(true)} />
+        <AkisVideosu src={url} poster={poster} kucuk={kucuk} onAc={() => setBuyutuldu(true)} />
         {buyutucu}
       </>
     )
@@ -324,6 +342,18 @@ export default function CommunityPage({ mode = 'news' }) {
   }
 
   useEffect(() => { load() }, [type, isAdmin])
+
+  /* Islenen video hazir olunca kullaniciyi sayfa yenilemeye zorlamiyoruz.
+     Yalniz akista bekleyen video varken hafif bir yenileme yapilir. */
+  useEffect(() => {
+    if (!posts.some(post => post.media?.status === 'processing')) return undefined
+    const timer = window.setInterval(() => {
+      api.community.list(type)
+        .then(feed => setPosts(feed.posts || []))
+        .catch(() => {})
+    }, 4000)
+    return () => window.clearInterval(timer)
+  }, [posts, type])
 
   async function submitUserPost(event) {
     event.preventDefault()

@@ -97,7 +97,7 @@ function secimIste() {
   requestAnimationFrame(kazananiSec)
 }
 
-export default function AkisVideosu({ src, onAc, kucuk = false }) {
+export default function AkisVideosu({ src, poster, onAc, kucuk = false }) {
   const { t } = useTranslation('common')
   const videoRef = useRef(null)
   const sarmalRef = useRef(null)
@@ -154,6 +154,7 @@ export default function AkisVideosu({ src, onAc, kucuk = false }) {
         ref={videoRef}
         className={styles.video}
         src={src}
+        poster={poster || undefined}
         playsInline
         muted={sessiz}
         loop

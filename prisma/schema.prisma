@@ -216,19 +216,25 @@ model CommunityPost {
 }
 
 model CommunityMedia {
-  id           String         @id @default(uuid())
-  uploaderId   Int
-  postId       String?        @unique
-  originalName String
-  storedName   String         @unique
-  mimeType     String
-  sizeBytes    Int
-  kind         String
-  createdAt    DateTime       @default(now())
-  uploader     User           @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
-  post         CommunityPost? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  id               String         @id @default(uuid())
+  uploaderId       Int
+  postId           String?        @unique
+  originalName     String
+  storedName       String         @unique
+  mimeType         String
+  sizeBytes        Int
+  kind             String
+  /// Video yuklendikten sonra tek isci tarafindan donusturulur. Eski medya
+  /// kayitlari migration varsayilani sayesinde hazir kalir.
+  status           String         @default("ready")
+  posterStoredName String?
+  durationSec      Int?
+  createdAt        DateTime       @default(now())
+  uploader         User           @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  post             CommunityPost? @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([uploaderId, createdAt])
+  @@index([kind, status, createdAt])
 }
 
 model CommunityReport {
