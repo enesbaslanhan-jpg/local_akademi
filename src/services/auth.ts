@@ -1259,7 +1259,19 @@ export async function authRoutes(fastify: FastifyInstance) {
         userId: found.id,
         role: 'owner',
         status: 'active',
-        workspace: { members: { none: { userId: { not: found.id }, role: 'owner', status: 'active' } } }
+        /*
+         * 🔴 ARŞİVLENMİŞ İŞLETME HESAP SİLMEYİ ENGELLEMEZ (14.09.2026).
+         *
+         * Ölçüldü: işletmesini arşivleyen kullanıcı hesabını silmeye
+         * kalkınca "önce başka sahip atayın" alıyordu -- arşivli işletmeye
+         * sahip atanamaz, kapı kilitleniyordu. KVKK'daki silme hakkı için
+         * bu çıkışsız bir döngü. Arşivli işletmenin sahibi kalmasının bir
+         * sonucu yok; yalnız AKTİF işletmeler sayılır.
+         */
+        workspace: {
+          status: { not: 'archived' },
+          members: { none: { userId: { not: found.id }, role: 'owner', status: 'active' } }
+        }
       },
       select: { workspace: { select: { name: true } } }
     })

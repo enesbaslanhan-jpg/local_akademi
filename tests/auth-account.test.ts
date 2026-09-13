@@ -173,4 +173,35 @@ describe('account management', () => {
     expect(deleted?.deletedAt).toBeInstanceOf(Date)
     expect(deleted?.email).toContain('@deleted.local')
   })
+  /*
+   * 🔴 ARŞİVLİ İŞLETME HESAP SİLMEYİ KİLİTLİYORDU (14.09.2026).
+   *
+   * Ölçüldü: kullanıcı işletmesini arşivledi, hesabını silmeye kalktı,
+   * "önce başka sahip atayın" aldı; arşivli işletmeye sahip atanamaz.
+   * KVKK'daki silme hakkı için çıkışsız döngü. Aktif işletmesi olan
+   * hâlâ engellenir (yukarıdaki kural korunuyor), arşivli olan engellemez.
+   */
+  it('arşivlenmiş işletmenin tek sahibi hesabını silebilir', async () => {
+    const email = `${marker}-arsiv@example.com`
+    const user = await prisma.user.create({
+      data: { email, password: await bcrypt.hash(password, 10), name: 'Arşiv Sahibi' }
+    })
+    const aktif = await prisma.businessWorkspace.create({
+      data: { name: 'Aktif Dükkan', status: 'active', createdById: user.id,
+        members: { create: { userId: user.id, role: 'owner', status: 'active' } } }
+    })
+    const t = app.jwt.sign({ id: user.id, email, role: user.role })
+    const govde = { currentPassword: password, confirmation: 'HESABIMI SİL' }
+
+    /* Aktif işletme varken hâlâ engel. */
+    let res = await app.inject({ method: 'DELETE', url: '/auth/account', headers: { authorization: `Bearer ${t}` }, payload: govde })
+    expect(res.statusCode).toBe(409)
+    expect(res.json().error).toBe('SOLE_WORKSPACE_OWNER')
+
+    /* Arşivlenince engel kalkar. */
+    await prisma.businessWorkspace.update({ where: { id: aktif.id }, data: { status: 'archived', archivedAt: new Date() } })
+    res = await app.inject({ method: 'DELETE', url: '/auth/account', headers: { authorization: `Bearer ${t}` }, payload: govde })
+    expect(res.statusCode).toBe(204)
+  })
+
 })
