@@ -496,6 +496,7 @@
     "effectiveVersion": "Yürürlük tarihi: {{date}} · Sürüm {{version}}",
     "contents": "İçindekiler",
     "documents": {
+      "licenses": "Açık kaynak lisansları",
       "privacy": "Gizlilik ve KVKK Aydınlatma Metni",
       "terms": "Kullanım Koşulları",
       "cookies": "Çerez ve Yerel Depolama Politikası",

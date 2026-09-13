@@ -115,6 +115,7 @@ export default function AppRoutes() {
         <Route path="/privacy" element={<SuspenseWrapper><LegalPage type="privacy" /></SuspenseWrapper>} />
         <Route path="/terms" element={<SuspenseWrapper><LegalPage type="terms" /></SuspenseWrapper>} />
         <Route path="/cookies" element={<SuspenseWrapper><LegalPage type="cookies" /></SuspenseWrapper>} />
+        <Route path="/licenses" element={<SuspenseWrapper><LegalPage type="licenses" /></SuspenseWrapper>} />
         {/* Ticari satış belgeleri — PayTR başvurusu ve Mesafeli
             Sözleşmeler Yönetmeliği gereği herkese açık olmalı. */}
         <Route path="/on-bilgilendirme" element={<SuspenseWrapper><LegalPage type="on-bilgilendirme" /></SuspenseWrapper>} />

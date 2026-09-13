@@ -496,6 +496,7 @@
     "effectiveVersion": "Effective date: {{date}} · Version {{version}}",
     "contents": "Contents",
     "documents": {
+      "licenses": "Open-source licenses",
       "privacy": "Privacy and KVKK Notice",
       "terms": "Terms of Use",
       "cookies": "Cookie and Local Storage Policy",

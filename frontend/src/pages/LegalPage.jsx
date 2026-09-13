@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, ClipboardList, Cookie, CreditCard, FileText, PackageCheck, Scale, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, ClipboardList, Cookie, CreditCard, FileText, PackageCheck, Scale, ShieldCheck, Code2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import BrandMark from '@/components/ui/BrandMark'
 import PublicFooter from '@/components/layout/PublicFooter'
@@ -15,6 +15,8 @@ import onBilgilendirme from '@/content/legal/on-bilgilendirme'
 import mesafeliSatis from '@/content/legal/mesafeli-satis'
 import teslimatIade from '@/content/legal/teslimat-iade'
 import abonelik from '@/content/legal/abonelik'
+import licenses from '@/content/legal/licenses'
+import licensesEn from '@/content/legal/licenses.en'
 import styles from './LegalPage.module.css'
 
 /*
@@ -39,6 +41,8 @@ export const BELGELER = {
   privacy: { icon: ShieldCheck, baslikKey: 'legal.documents.privacy', icerik: { tr: privacy, en: privacyEn } },
   terms: { icon: FileText, baslikKey: 'legal.documents.terms', icerik: { tr: terms, en: termsEn } },
   cookies: { icon: Cookie, baslikKey: 'legal.documents.cookies', icerik: { tr: cookies, en: cookiesEn } },
+  /* Mobil Hakkında ekranı buraya bağlanıyor; sayfa yokken 404 veriyordu (13.09.2026). */
+  licenses: { icon: Code2, baslikKey: 'legal.documents.licenses', icerik: { tr: licenses, en: licensesEn } },
 
   /*
    * TİCARİ SATIŞ BELGELERİ — yalnız Türkçe (29.08.2026).
