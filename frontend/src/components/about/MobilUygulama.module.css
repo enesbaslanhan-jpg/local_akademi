@@ -4,8 +4,14 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 28px;
-  align-items: center;
+  /* Metin yukarıdan başlar; ortalanınca ikon ve başlık kartın ortasına
+     düşüyor, üstte boş bir alan kalıyordu (canlıda görüldü, 13.09.2026). */
+  align-items: start;
   padding: 28px;
+  /* İçerik alanının üst boşluğu (64–128px) bu kart ilk sıraya gelince
+     kahramanla arasında boş beyaz bir bant gibi okunuyordu; kart
+     kahramanın altına biniyor. */
+  margin-top: calc(-1 * clamp(36px, 5vw, 84px));
   border: 1px solid var(--auth-card-border);
   border-radius: 14px;
   background: var(--auth-card);
@@ -47,8 +53,8 @@ a.magaza:hover { transform: translateY(-1px); border-color: rgba(238, 241, 243, 
   display: grid;
   place-items: center;
   /* Telefon 190px genişlikte ≈ 422px yüksek; alt yazıya da yer. */
-  min-height: 500px;
-  padding: 12px 0 40px;
+  min-height: 460px;
+  padding: 0 0 36px;
 }
 .telefon {
   --sira: 0;
