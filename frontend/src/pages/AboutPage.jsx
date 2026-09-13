@@ -136,6 +136,10 @@ export default function AboutPage() {
       </div>
 
       <div className={styles.icerik}>
+        {/* Mobil uygulama EN ÜSTTE (ürün sahibi, 13.09.2026): kahramanın
+            hemen altında, öteki bölümlerden önce. */}
+        <MobilUygulama />
+
         <Acilis as="section" className={styles.kimeSection}>
           <SahneDeseni desen="izgara" konum="sag" />
           <h2>{t('about.audienceTitle')}</h2>
@@ -184,8 +188,6 @@ export default function AboutPage() {
           * iyidir. Kullanım Koşulları'nda da aynı şey yazıyor; burada
           * gizlenmesi tutarsız olurdu.
           */}
-        {/* Mobil uygulama: mağaza düğmeleri + üç gerçek ekran (13.09.2026). */}
-        <MobilUygulama />
         <Acilis as="section" className={styles.sinirlar}>
           <h2>{t('about.limitsTitle')}</h2>
           <p>{t('about.limitsText')}</p>
