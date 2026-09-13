@@ -21,15 +21,15 @@
 
 .metin { display: grid; gap: 12px; justify-items: start; min-width: 0; }
 .metin h2 { margin: 0; color: var(--auth-text); }
-.metin p { margin: 0; color: var(--auth-text-muted, rgba(238, 241, 243, .78)); line-height: 1.55; }
-.ikon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: rgba(255, 255, 255, .08); color: var(--auth-accent, #6FB3C9); }
-.giris { font-weight: 600; }
+.metin p { margin: 0; color: var(--auth-text-soft); line-height: 1.55; }
+.ikon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--auth-field); border: 1px solid var(--auth-field-border); color: var(--auth-accent); }
+.giris { font-weight: 600; color: var(--auth-text); }
 .maddeler { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
 .maddeler li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align-items: start; }
 .maddeler strong { display: block; color: var(--auth-text); font-size: .95rem; }
-.maddeAciklama { display: block; color: var(--auth-text-muted, rgba(238, 241, 243, .78)); font-size: .88rem; line-height: 1.45; }
-.maddeIkon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: rgba(255, 255, 255, .08); color: var(--auth-accent, #6FB3C9); }
-.not { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; opacity: .8; }
+.maddeAciklama { display: block; color: var(--auth-text-soft); font-size: .88rem; line-height: 1.45; }
+.maddeIkon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--auth-field); border: 1px solid var(--auth-field-border); color: var(--auth-accent); }
+.not { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--auth-text-soft); }
 
 .magazalar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
 /* Mağaza düğmesi: küçük üst satır + kalın ad; App Store/Play rozetlerinin
@@ -39,16 +39,16 @@
   gap: 1px;
   min-width: 150px;
   padding: 9px 16px;
-  border: 1px solid rgba(238, 241, 243, .28);
+  border: 1px solid var(--auth-field-border);
   border-radius: 12px;
-  background: rgba(6, 15, 20, .55);
-  color: #F4FAFC;
+  background: var(--auth-field);
+  color: var(--auth-text);
   text-decoration: none;
   transition: transform .18s ease, border-color .18s ease;
 }
 .magaza small { font-size: .68rem; letter-spacing: .04em; text-transform: uppercase; opacity: .75; }
 .magaza strong { font-size: 1rem; }
-a.magaza:hover { transform: translateY(-1px); border-color: rgba(238, 241, 243, .6); }
+a.magaza:hover { transform: translateY(-1px); border-color: var(--auth-accent); }
 /* Adres yokken: soluk, tıklanmaz. "Yakında" sahte bağlantıdan iyidir. */
 .magazaKapali { opacity: .55; cursor: default; }
 
@@ -89,7 +89,7 @@ a.magaza:hover { transform: translateY(-1px); border-color: rgba(238, 241, 243, 
   margin: 0;
   text-align: center;
   font-size: .76rem;
-  color: var(--auth-text-muted, rgba(238, 241, 243, .78));
+  color: var(--auth-text-soft);
   opacity: var(--acilma);
   transition: opacity .4s ease;
 }
