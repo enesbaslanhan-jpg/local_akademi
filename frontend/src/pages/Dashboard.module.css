@@ -52,7 +52,8 @@
 .workspaceGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(360px, 1fr);
-  grid-template-rows: 250px minmax(292px, 1fr);
+  /* 2. satır pazaryeri şeridi (tam genişlik, içeriğine göre). */
+  grid-template-rows: 250px auto minmax(292px, 1fr);
   gap: var(--gap-panel);
   min-height: 650px;
 }
@@ -332,6 +333,8 @@
     min-height: 0;
   }
 
+  /* Tek sütunda satır sabitlemesi kalkar; DOM sırası (kahraman, görevler, pazaryeri) geçerli. */
+  .marketplacePanel, .marketplaceEmptyCta { grid-row: auto; }
   .statusPanel { min-height: 250px; }
   .operationPanel { min-height: 220px; }
 }
@@ -371,6 +374,7 @@
    satırı; mevcut kart yerleşimini DEĞİŞTİRMEZ. ---- */
 .marketplacePanel {
   grid-column: 1 / -1;
+  grid-row: 2;
 }
 
 .mktProviders { display: inline-flex; gap: var(--space-2); }
@@ -435,6 +439,8 @@
 }
 
 .marketplaceEmptyCta {
+  grid-column: 1 / -1;
+  grid-row: 2;
   display: flex;
   width: 100%;
   min-height: 40px;

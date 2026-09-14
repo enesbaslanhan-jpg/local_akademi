@@ -413,6 +413,54 @@ export default function Dashboard() {
           </div>
         </Card>
 
+        {/* PAZARYERI ÖZETİ — ortak operations servisinden. Kahramanın
+            HEMEN ALTINDA, tam genişlik: sayfanın en altında duruyordu ve
+            kaydırmadan görünmüyordu (ürün sahibi, 15.09.2026). Bağlı
+            değilse yalnız ince CTA. */}
+        {activeWorkspaceId && (mktConnected ? (
+          <Card className={`${styles.operationPanel} ${styles.marketplacePanel}`}>
+            <div className={styles.panelHead}>
+              <h2>{t('dashboard:marketplacePanel.title')}</h2>
+              <span className={styles.mktProviders}>
+                {(mktSummary?.providers || []).filter(p => p.status !== 'DISABLED').map(provider => (
+                  <span key={provider.provider} className={styles.mktProviderChip}>
+                    <Store size={11} aria-hidden="true" />
+                    {({ TRENDYOL: 'Trendyol', HEPSIBURADA: 'Hepsiburada', N11: 'N11', SHOPIFY: 'Shopify', AMAZON: 'Amazon', WOOCOMMERCE: 'WooCommerce' })[provider.provider] || provider.provider}
+                  </span>
+                ))}
+              </span>
+              <button type="button" className={styles.panelLink} onClick={() => navigate(`/app/workspaces/${activeWorkspaceId}/orders`)}>{t('dashboard:marketplacePanel.orders')}</button>
+              <button type="button" className={styles.panelLink} onClick={() => navigate(`/app/workspaces/${activeWorkspaceId}/products`)}>{t('dashboard:marketplacePanel.products')}</button>
+            </div>
+            {mktSummary?.sync?.hasError && (
+              <p className={styles.mktSyncWarning}>{t('marketplacePanel.syncError', { time: relativeTime(mktSummary.sync.lastSyncedAt, t) })}</p>
+            )}
+            <div className={styles.mktStats}>
+              <div><span>{t('dashboard:marketplacePanel.todayOrders')}</span><strong>{mktSummary?.today?.orderCount ?? 0}</strong></div>
+              <div><span>{t('dashboard:marketplacePanel.todaySales')}</span><strong>{money.format(mktSummary?.today?.grossSales ?? 0)}</strong></div>
+              {/*
+                * 🔴 GENEL BAKIŞ İLE AYNI KAYNAK (15.09.2026). Burada
+                * `today.pendingShipmentCount` (yalnız BUGÜN oluşan kargosuz
+                * sipariş) okunuyordu; Genel Bakış ise PENDING_SHIPMENT
+                * aksiyonunu (bekleyen TÜM siparişler) gösteriyordu. Aynı
+                * işletme iki sayfada 0 ve 2 gösterdi (ürün sahibi bildirdi).
+                * İade satırı da bugünkü + aksiyon toplanarak çift sayılıyordu.
+                */}
+              <div><span>{t('dashboard:marketplacePanel.pendingShipment')}</span><strong>{mktActions.find(a => a.type === 'PENDING_SHIPMENT')?.count ?? mktSummary?.today?.pendingShipmentCount ?? 0}</strong></div>
+              <div><span>{t('dashboard:marketplacePanel.lowStock')}</span><strong>{mktSummary?.inventory?.lowStockCount ?? 0}</strong></div>
+              <div><span>{t('dashboard:marketplacePanel.return')}</span><strong>{mktActions.find(a => a.type === 'RETURN_PENDING')?.count ?? mktSummary?.today?.returnCount ?? 0}</strong></div>
+              <div><span>{t('marketplacePanel.lastSync')}</span><small>{relativeTime(mktSummary?.sync?.lastSyncedAt, t)}</small></div>
+              {mktSummary?.performance?.bestSeller && (
+                <div><span>{t('dashboard:marketplacePanel.bestSeller')}</span><em>{mktSummary.performance.bestSeller.title}</em></div>
+              )}
+            </div>
+          </Card>
+        ) : (
+          <button type="button" className={styles.marketplaceEmptyCta} onClick={() => navigate('/app/settings?bolum=integrations')}>
+            <Store size={13} aria-hidden="true" /> {t('dashboard:marketplacePanel.noConnection')}
+          </button>
+        ))}
+
         <Card className={`${styles.operationPanel} ${styles.resumePanel}`}>
           <div className={styles.panelHead}><h2>{t('dashboard:resume.title')}</h2></div>
           {resume ? (
@@ -464,43 +512,6 @@ export default function Dashboard() {
           </div>
         </Card>
 
-        {/* PAZARYERI ÖZETİ — ortak operations servisinden; ana odağı
-            ele geçirmeyen kompakt şerit. Bağlı değilse yalnız ince CTA. */}
-        {activeWorkspaceId && (mktConnected ? (
-          <Card className={`${styles.operationPanel} ${styles.marketplacePanel}`}>
-            <div className={styles.panelHead}>
-              <h2>{t('dashboard:marketplacePanel.title')}</h2>
-              <span className={styles.mktProviders}>
-                {(mktSummary?.providers || []).filter(p => p.status !== 'DISABLED').map(provider => (
-                  <span key={provider.provider} className={styles.mktProviderChip}>
-                    <Store size={11} aria-hidden="true" />
-                    {({ TRENDYOL: 'Trendyol', HEPSIBURADA: 'Hepsiburada', N11: 'N11', SHOPIFY: 'Shopify', AMAZON: 'Amazon', WOOCOMMERCE: 'WooCommerce' })[provider.provider] || provider.provider}
-                  </span>
-                ))}
-              </span>
-              <button type="button" className={styles.panelLink} onClick={() => navigate(`/app/workspaces/${activeWorkspaceId}/orders`)}>{t('dashboard:marketplacePanel.orders')}</button>
-              <button type="button" className={styles.panelLink} onClick={() => navigate(`/app/workspaces/${activeWorkspaceId}/products`)}>{t('dashboard:marketplacePanel.products')}</button>
-            </div>
-            {mktSummary?.sync?.hasError && (
-              <p className={styles.mktSyncWarning}>{t('marketplacePanel.syncError', { time: relativeTime(mktSummary.sync.lastSyncedAt, t) })}</p>
-            )}
-            <div className={styles.mktStats}>
-              <div><span>{t('dashboard:marketplacePanel.todayOrders')}</span><strong>{mktSummary?.today?.orderCount ?? 0}</strong></div>
-              <div><span>{t('dashboard:marketplacePanel.todaySales')}</span><strong>{money.format(mktSummary?.today?.grossSales ?? 0)}</strong></div>
-              <div><span>{t('dashboard:marketplacePanel.pendingShipment')}</span><strong>{mktSummary?.today?.pendingShipmentCount ?? 0}</strong></div>
-              <div><span>{t('dashboard:marketplacePanel.lowStock')}</span><strong>{mktSummary?.inventory?.lowStockCount ?? 0}</strong></div>
-              <div><span>{t('dashboard:marketplacePanel.return')}</span><strong>{(mktSummary?.today?.returnCount ?? 0) + mktActions.filter(a => a.type === 'RETURN_PENDING').reduce((sum, a) => sum + a.count, 0)}</strong></div>
-              <div><span>{t('marketplacePanel.lastSync')}</span><small>{relativeTime(mktSummary?.sync?.lastSyncedAt, t)}</small></div>
-              {mktSummary?.performance?.bestSeller && (
-                <div><span>{t('dashboard:marketplacePanel.bestSeller')}</span><em>{mktSummary.performance.bestSeller.title}</em></div>
-              )}
-            </div>
-          </Card>
-        ) : (
-          <button type="button" className={styles.marketplaceEmptyCta} onClick={() => navigate('/app/settings?bolum=integrations')}>
-            <Store size={13} aria-hidden="true" /> {t('dashboard:marketplacePanel.noConnection')}
-          </button>
-        ))}
       </div>
 
       {/* Son Karar Sonucu kartı, sonuç sayfasına gitmek yerine aynı fişi açar. */}
