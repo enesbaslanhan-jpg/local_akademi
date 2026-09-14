@@ -611,7 +611,24 @@
     "mobile": {
       "title": "Mobil uygulama",
       "lead": "İşletmenin bütün takibi cebinde:",
-      "items": [{"t":"Kayıt ve vade","d":"Ödeme, tahsilat, çek ve senet; vadeler takvimde."},{"t":"Faturadan kayıt","d":"Fotoğrafını çek; tutar ve vade okunur, kayıt önerilir."},{"t":"Cari hesap","d":"Kişi kartında borç/alacak; ekstre tek dokunuşla WhatsApp’a."},{"t":"Karar ve topluluk","d":"Karar araçları, hesaplamalar ve topluluk aynı uygulamada."}],
+      "items": [
+        {
+          "t": "Kayıt ve vade",
+          "d": "Ödeme, tahsilat, çek ve senet; vadeler takvimde."
+        },
+        {
+          "t": "Faturadan kayıt",
+          "d": "Fotoğrafını çek; tutar ve vade okunur, kayıt önerilir."
+        },
+        {
+          "t": "Cari hesap",
+          "d": "Kişi kartında borç/alacak; ekstre tek dokunuşla WhatsApp’a."
+        },
+        {
+          "t": "Karar ve topluluk",
+          "d": "Karar araçları, hesaplamalar ve topluluk aynı uygulamada."
+        }
+      ],
       "outro": "Web hesabınla aynı veriler; ayrı kayıt gerekmez.",
       "android": "Android için",
       "ios": "iPhone için",
@@ -1043,7 +1060,8 @@
       "preInfo": "Ön Bilgilendirme",
       "distanceSale": "Mesafeli Sözleşme",
       "deliveryRefund": "Teslimat ve İade",
-      "subscription": "Abonelik Koşulları"
+      "subscription": "Abonelik Koşulları",
+      "tools": "Ücretsiz araçlar"
     },
     "identity": {
       "address": "Adres",
@@ -1091,5 +1109,83 @@
     "notStarted": "Ücretlendirme henüz başlamadı. Başlamadan önce bilgilendirileceksin.",
     "start": "LocalKarar’a başla",
     "seePricing": "Fiyatları incele"
+  },
+  "tools": {
+    "commission": {
+      "metaTitle": "Pazaryeri Komisyon Hesaplayıcı — Trendyol, Hepsiburada, N11 | LocalKarar",
+      "metaDescription": "Trendyol, Hepsiburada veya N11'de sattığın ürün komisyon, kargo ve iade sonrası gerçekten kâr ediyor mu? Ücretsiz, kayıt istemez, sonucu anında gör.",
+      "eyebrow": "Ücretsiz araç",
+      "title": "Pazaryeri komisyonundan sonra elinde ne kalıyor?",
+      "description": "Satış fiyatını, komisyon oranını ve maliyetlerini gir; ürün başına net katkını, marjını ve zarara girmeden inebileceğin en düşük fiyatı anında gör. Kayıt gerekmez.",
+      "inputsTitle": "Rakamlarını gir",
+      "presetAria": "Pazaryeri ön ayarı",
+      "presetOther": "Diğer",
+      "presetNote": "Ön ayarlar yalnız başlangıç değeri. Komisyon oranı kategoriye göre değişir ve pazaryeri güncelleyebilir; kendi satıcı panelindeki oranı yaz.",
+      "fields": {
+        "price": "Satış fiyatı",
+        "priceHint": "Müşterinin ödediği, KDV dahil fiyat.",
+        "commission": "Komisyon oranı",
+        "commissionHint": "Satıcı panelindeki kategori komisyonu.",
+        "cost": "Ürün maliyeti",
+        "shipping": "Kargo (satıcıya düşen)",
+        "shippingHint": "Pazaryeri kargo bareminde senden kesilen tutar.",
+        "packaging": "Ambalaj ve paketleme",
+        "ads": "Reklam payı (ürün başına)",
+        "adsHint": "Reklam yapıyorsan aylık harcamayı satılan adede böl.",
+        "returns": "İade oranı",
+        "returnsHint": "Her iade gidiş-dönüş kargo demek; risk buna göre hesaplanır."
+      },
+      "resultTitle": "Sonuç",
+      "contribution": "Ürün başına net katkı",
+      "margin": "%{{value}} marj",
+      "status": {
+        "karli": "kârlı",
+        "zarar": "zarar ediyor",
+        "basabas": "başabaş"
+      },
+      "rows": {
+        "revenue": "Satış fiyatı",
+        "commission": "Komisyon (%{{rate}})",
+        "cost": "Ürün maliyeti",
+        "shipping": "Kargo",
+        "packaging": "Ambalaj",
+        "ads": "Reklam payı",
+        "returns": "İade riski (%{{rate}})",
+        "total": "Net katkı"
+      },
+      "breakEven": "Başabaş fiyat:",
+      "breakEvenHint": "Bu fiyatın altında her satış zarar. Kampanya indirimini buna göre planla.",
+      "ctaText": "Bu hesabı ürünlerine kaydet, gerçek siparişlerinle karşılaştır.",
+      "ctaRegister": "30 gün ücretsiz dene",
+      "ctaApp": "Uygulamada hesapla",
+      "ctaNote": "Kart bilgisi istenmez. Hesaplayıcı her zaman ücretsiz kalır.",
+      "howTitle": "Nasıl hesaplanıyor?",
+      "how": {
+        "1": "Komisyon, satış fiyatının yüzdesi olarak hesaplanır: fiyat × oran.",
+        "2": "Satış fiyatından komisyon, ürün maliyeti, kargo, ambalaj ve reklam payı düşülür.",
+        "3": "İade riski eklenir: iade oranı × (kargo × 2). Çünkü iade edilen ürün için kargo iki yön ödenir.",
+        "4": "Kalan tutar ürün başına net katkı; fiyata oranı marj. Başabaş fiyat, katkının sıfır olduğu fiyattır."
+      },
+      "privacyNote": "Hesap tarayıcında yapılır; girdiğin rakamlar sunucuya gönderilmez, saklanmaz.",
+      "faqTitle": "Sık sorulanlar",
+      "faq": {
+        "rate": {
+          "q": "Komisyon oranımı nereden bulurum?",
+          "a": "Trendyol Satıcı Paneli → Ürünler → kategori komisyonu; Hepsiburada Merchant Panel → Komisyon; N11 Mağazam → Sözleşmeler. Oranlar kategoriye göre değişir ve kampanya dönemlerinde geçici olarak güncellenebilir."
+        },
+        "vat": {
+          "q": "KDV nasıl hesaba giriyor?",
+          "a": "Bu araç KDV dahil fiyatla çalışır ve nakit bakışını verir: elinde ne kalıyor. Komisyon faturasındaki KDV'yi indirim konusu yapabildiğin için vergi sonrası kâr bir miktar daha yüksek olur; bunu muhasebecinle netleştir."
+        },
+        "returns": {
+          "q": "İade oranımı bilmiyorum, ne yazayım?",
+          "a": "Pazaryeri panelinde son 3 ayın iade sayısını sipariş sayısına böl. Bilmiyorsan giyimde %10–20, ev-yaşamda %3–7 tipik başlangıç aralığıdır; gerçek oranını öğrenince güncelle."
+        },
+        "free": {
+          "q": "Bu araç neden ücretsiz?",
+          "a": "Çünkü LocalKarar'ın yaptığı işin küçük bir parçası. Uygulamada aynı hesap ürün başına kaydedilir, pazaryeri siparişlerin otomatik çekilir ve her siparişin net katkısı gerçek komisyonla görünür. İstersen 30 gün ücretsiz denersin, istemezsen bu sayfa hep burada."
+        }
+      }
+    }
   }
 }

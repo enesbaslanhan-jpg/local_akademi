@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Yalnız giriş gerektirmeyen sayfalar. /sitemap.xml daha önce SPA
+     yedeği yüzünden ana sayfanın HTML'ini döndürüyordu; Google hiçbir
+     alt sayfayı keşfedemiyordu. Yeni herkese açık sayfa eklenirse
+     buraya da yazılmalı. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://localkarar.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://localkarar.com/araclar/pazaryeri-komisyon-hesaplayici</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://localkarar.com/fiyatlar</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://localkarar.com/hakkinda</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://localkarar.com/yardim</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://localkarar.com/register</loc><changefreq>yearly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://localkarar.com/login</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://localkarar.com/privacy</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://localkarar.com/terms</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://localkarar.com/cookies</loc><changefreq>yearly</changefreq><priority>0.1</priority></url>
+  <url><loc>https://localkarar.com/abonelik</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://localkarar.com/on-bilgilendirme</loc><changefreq>yearly</changefreq><priority>0.1</priority></url>
+  <url><loc>https://localkarar.com/mesafeli-satis</loc><changefreq>yearly</changefreq><priority>0.1</priority></url>
+  <url><loc>https://localkarar.com/teslimat-iade</loc><changefreq>yearly</changefreq><priority>0.1</priority></url>
+</urlset>

@@ -1,0 +1,280 @@
+/*
+ * Pazaryeri Komisyon Hesaplayıcı — herkese açık araç sayfası.
+ *
+ * Üst bant, marka satırı ve kart dili PricingPage ile bire bir aynı
+ * (`--auth-*` paleti). Degrade yalnız üst bantta: AboutPage'de ölçülen
+ * kontrast hatası (açık başlık degradenin açık ucuna düşüyordu) burada
+ * tekrarlanmasın.
+ *
+ * Görsel merkez SONUÇ KARTI: ziyaretçi "elime ne kalıyor" sorusunun
+ * cevabını girdileri değiştirirken anında görmeli; o yüzden iki sütun
+ * yan yana ve sonuç yapışkan (sticky).
+ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--auth-page);
+  color: var(--auth-text);
+}
+
+/* ---------- Üst bant (PricingPage ile aynı) ---------- */
+
+.ustAlan { position: relative; overflow: hidden; background: var(--auth-gradient-band); }
+
+.glowCool {
+  position: absolute;
+  inset: -40% 40% 40% -20%;
+  background: var(--auth-glow-light);
+  filter: blur(90px);
+  opacity: .5;
+  pointer-events: none;
+}
+
+.ustIcerik { position: relative; max-width: 1100px; margin: 0 auto; padding: 22px 24px 56px; }
+
+.ust { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.brandRow { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+.brandText { color: #F4FAFC; font-size: 1.02rem; font-weight: 800; letter-spacing: -.01em; }
+.ustEylemler { display: flex; align-items: center; gap: 12px; }
+.girisLink { color: rgba(244, 250, 252, .82); text-decoration: none; font-size: .86rem; font-weight: 600; }
+.girisLink:hover { color: #F4FAFC; }
+.kayitDugmesi {
+  padding: 9px 16px;
+  border-radius: 9px;
+  background: var(--auth-accent);
+  color: var(--auth-on-accent);
+  text-decoration: none;
+  font-size: .86rem;
+  font-weight: 700;
+}
+.kayitDugmesi:hover { background: var(--auth-accent-hover); }
+
+.kahraman { margin-top: 44px; }
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 5px 12px;
+  border: 1px solid rgba(244, 250, 252, .28);
+  border-radius: 999px;
+  color: rgba(244, 250, 252, .9);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.kahraman h1 {
+  margin: 0;
+  max-width: 22ch;
+  color: #F4FAFC;
+  font-size: clamp(1.9rem, 4.2vw, 2.8rem);
+  font-weight: 820;
+  line-height: 1.12;
+  letter-spacing: -.025em;
+}
+.kahramanMetin { margin: 14px 0 0; max-width: 56ch; color: rgba(244, 250, 252, .84); font-size: 1rem; line-height: 1.6; }
+
+/* ---------- İçerik ---------- */
+
+.icerik {
+  flex: 1;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  /* Kartlar üst bandın altına biner: Hakkında'da ölçülen "boş beyaz
+     bant" hissi burada da olmasın. */
+  padding: 0 clamp(20px, 4vw, 40px) clamp(64px, 8vw, 112px);
+  margin-top: -28px;
+}
+
+.izgara {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.kart {
+  padding: 24px 24px 22px;
+  border: 1px solid var(--auth-card-border);
+  border-radius: 18px;
+  background: var(--auth-card);
+  box-shadow: var(--auth-card-shadow);
+  backdrop-filter: blur(20px);
+}
+
+.kartBaslik {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  color: var(--auth-text);
+  font-size: 1.08rem;
+  font-weight: 780;
+  letter-spacing: -.01em;
+}
+
+/* Ön ayar düğmeleri */
+.onAyarlar { display: flex; flex-wrap: wrap; gap: 8px; }
+.onAyar {
+  padding: 7px 13px;
+  border: 1px solid var(--auth-field-border);
+  border-radius: 999px;
+  background: var(--auth-field);
+  color: var(--auth-text);
+  font-size: .82rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.onAyar:hover { border-color: var(--auth-accent); }
+.onAyarSecili { background: var(--auth-accent); border-color: var(--auth-accent); color: var(--auth-on-accent); }
+.onAyarNot { display: flex; align-items: flex-start; gap: 6px; margin: 10px 0 18px; color: var(--auth-text-soft); font-size: .78rem; line-height: 1.5; }
+.onAyarNot svg { flex: none; margin-top: 2px; }
+
+/* Girdi alanları */
+.alanlar { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+.alan { display: grid; gap: 6px; min-width: 0; }
+.alanEtiket { color: var(--auth-text); font-size: .84rem; font-weight: 650; }
+.alanKutu {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--auth-field-border);
+  border-radius: 10px;
+  background: var(--auth-field);
+  overflow: hidden;
+}
+.alanKutu:focus-within { border-color: var(--auth-accent); box-shadow: 0 0 0 3px var(--auth-focus-ring); }
+/* ⚠️ styles/fields.css bütün input'lara !important ile uygulama paletini
+   (--input-bg, --text) basıyor; bu sayfa --auth-* paletinde. O kural
+   burada gri, koyu modda okunmaz bir kutu üretiyordu — aynı ağırlıkla
+   geri alınıyor. Çerçeve ve odak halkası sarmalayıcıda (.alanKutu). */
+.alanKutu input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--auth-text) !important;
+  box-shadow: none !important;
+  font: inherit;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+.alanKutu input:focus { outline: none !important; }
+.birim { padding: 0 12px; color: var(--auth-text-soft); font-size: .86rem; font-weight: 700; }
+.ipucu { color: var(--auth-text-soft); font-size: .76rem; line-height: 1.45; }
+
+/* ---------- Sonuç ---------- */
+
+.sonuc { position: sticky; top: 18px; }
+
+.ana {
+  padding: 18px 20px;
+  border-radius: 14px;
+  border: 1px solid var(--auth-card-border);
+  background: var(--auth-field);
+  display: grid;
+  gap: 4px;
+}
+.anaEtiket { color: var(--auth-text-soft); font-size: .8rem; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; }
+.anaTutar { color: var(--auth-text); font-size: clamp(1.9rem, 4vw, 2.5rem); font-weight: 820; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.anaAlt { color: var(--auth-text-soft); font-size: .86rem; }
+/* Durum rengi yalnız sol kenar çizgisiyle: renk körü için metin de
+   ("kârlı / zarar") aynı satırda yazıyor. */
+.durumKarli { border-left: 4px solid #2E9E6B; }
+.durumZarar { border-left: 4px solid var(--auth-error-border); }
+.durumBasabas { border-left: 4px solid var(--auth-text-soft); }
+
+.dokum { margin: 18px 0 0; display: grid; gap: 0; }
+.dokum > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--auth-divider);
+  font-size: .88rem;
+}
+.dokum dt { color: var(--auth-text-soft); }
+.dokum dd { margin: 0; color: var(--auth-text); font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.eksi dd { color: var(--auth-error-text); }
+.toplam { border-bottom: 0 !important; padding-top: 12px !important; }
+.toplam dt, .toplam dd { color: var(--auth-text); font-weight: 800; }
+
+.basabas {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--auth-field);
+  color: var(--auth-text-soft);
+  font-size: .86rem;
+  line-height: 1.5;
+  display: grid;
+  gap: 2px;
+}
+.basabas strong { color: var(--auth-text); font-size: 1rem; }
+.basabas span { font-size: .78rem; }
+
+.cagri {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--auth-divider);
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+.cagri p { margin: 0; color: var(--auth-text); font-size: .9rem; line-height: 1.5; font-weight: 600; }
+.cagriDugme {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border-radius: 10px;
+  background: var(--auth-accent);
+  color: var(--auth-on-accent);
+  text-decoration: none;
+  font-size: .9rem;
+  font-weight: 750;
+}
+.cagriDugme:hover { background: var(--auth-accent-hover); }
+.cagriNot { color: var(--auth-text-soft); font-size: .76rem; }
+
+/* ---------- Açıklama ve SSS ---------- */
+
+.bolumBaslik {
+  margin: 0 0 16px;
+  color: var(--auth-text);
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  line-height: 1.15;
+  font-weight: 780;
+  letter-spacing: -.02em;
+}
+
+.aciklama { margin-top: clamp(56px, 7vw, 96px); max-width: 720px; }
+.adimlar { margin: 0; padding-left: 22px; list-style: decimal; /* base.css ol'u sıfırlıyor */ color: var(--auth-text-soft); font-size: .92rem; line-height: 1.65; display: grid; gap: 8px; }
+.adimlar li::marker { color: var(--auth-accent); font-weight: 800; }
+.guvence { display: flex; align-items: center; gap: 8px; margin: 18px 0 0; color: var(--auth-text-soft); font-size: .84rem; }
+
+.sss { margin-top: clamp(48px, 6vw, 80px); max-width: 720px; }
+.sss details { border-bottom: 1px solid var(--auth-divider); padding: 14px 0; }
+.sss summary { cursor: pointer; color: var(--auth-text); font-size: .93rem; font-weight: 650; }
+.sss summary:focus-visible { outline: 2px solid var(--auth-focus-ring); outline-offset: 3px; border-radius: 4px; }
+.sss p { margin: 10px 0 2px; color: var(--auth-text-soft); font-size: .88rem; line-height: 1.62; }
+
+.kayitDugmesi:focus-visible, .girisLink:focus-visible, .cagriDugme:focus-visible, .onAyar:focus-visible {
+  outline: 2px solid var(--auth-focus-ring);
+  outline-offset: 3px;
+}
+
+/* ---------- Dar ekran ---------- */
+
+@media (max-width: 860px) {
+  .izgara { grid-template-columns: 1fr; }
+  .sonuc { position: static; }
+}
+
+@media (max-width: 520px) {
+  .alanlar { grid-template-columns: 1fr; }
+  .kart { padding: 18px 16px; }
+}

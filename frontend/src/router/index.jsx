@@ -13,6 +13,7 @@ const PasswordResetPage = lazy(() => import('@/pages/PasswordResetPage'))
 const EmailVerifyPage = lazy(() => import('@/pages/PasswordResetPage').then(m => ({ default: m.EmailVerifyPage })))
 const AboutPage = lazy(() => import('@/pages/AboutPage'))
 const PricingPage = lazy(() => import('@/pages/PricingPage'))
+const KomisyonHesaplayiciPage = lazy(() => import('@/pages/araclar/KomisyonHesaplayiciPage'))
 /* Kayıt sonrası karşılama — yalnız kayıttan yönlendiriliyor. */
 const WelcomePage = lazy(() => import('@/pages/WelcomePage'))
 const OdemeSonucPage = lazy(() => import('@/pages/OdemeSonucPage'))
@@ -125,6 +126,10 @@ export default function AppRoutes() {
         <Route path="/yardim" element={<SuspenseWrapper><SupportPage /></SuspenseWrapper>} />
         <Route path="/hakkinda" element={<SuspenseWrapper><AboutPage /></SuspenseWrapper>} />
         <Route path="/fiyatlar" element={<SuspenseWrapper><PricingPage /></SuspenseWrapper>} />
+        {/* Herkese açık araçlar: kayıt istemez, arama motorundan ve
+            reklamdan gelen ziyaretçinin ilk durağı. Yeni araç eklenince
+            public/sitemap.xml de güncellenmeli. */}
+        <Route path="/araclar/pazaryeri-komisyon-hesaplayici" element={<SuspenseWrapper><KomisyonHesaplayiciPage /></SuspenseWrapper>} />
         {/* Davet baglantisinin dustugu yer. Giris GEREKMIYOR: davetli
             cogunlukla oturum acmamis geliyor, sayfa onu ?next= ile giris
             ekranina yonlendirip geri getiriyor. */}

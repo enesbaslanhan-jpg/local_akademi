@@ -38,6 +38,7 @@ const YASAL = [
 
 const KURUMSAL = [
   { to: '/fiyatlar', key: 'pricing' },
+  { to: '/araclar/pazaryeri-komisyon-hesaplayici', key: 'tools' },
   { to: '/hakkinda', key: 'about' },
   { to: '/yardim', key: 'help' },
 ]

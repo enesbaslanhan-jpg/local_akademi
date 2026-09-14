@@ -1,0 +1,12 @@
+# LocalKarar — herkese açık sayfalar taranabilir; oturum gerektiren
+# uygulama (/app) ve yönetim (/admin) tarama dışında. Bu dosya yokken
+# Cloudflare'in varsayılan metni dönüyordu ve Google'a site haritası
+# adresi hiç verilmiyordu (14.09.2026).
+User-agent: *
+Allow: /
+Disallow: /app/
+Disallow: /admin/
+Disallow: /reset-password
+Disallow: /verify-email
+
+Sitemap: https://localkarar.com/sitemap.xml

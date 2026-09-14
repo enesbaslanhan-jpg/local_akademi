@@ -611,7 +611,24 @@
     "mobile": {
       "title": "Mobile app",
       "lead": "Your whole business tracking in your pocket:",
-      "items": [{"t":"Records and due dates","d":"Payments, receivables, cheques, notes; due dates on the calendar."},{"t":"Records from invoices","d":"Snap a photo; amount and due date are read, a record is proposed."},{"t":"Contact balances","d":"Payables/receivables per contact; statement to WhatsApp in one tap."},{"t":"Decisions and community","d":"Decision tools, calculators and the community in the same app."}],
+      "items": [
+        {
+          "t": "Records and due dates",
+          "d": "Payments, receivables, cheques, notes; due dates on the calendar."
+        },
+        {
+          "t": "Records from invoices",
+          "d": "Snap a photo; amount and due date are read, a record is proposed."
+        },
+        {
+          "t": "Contact balances",
+          "d": "Payables/receivables per contact; statement to WhatsApp in one tap."
+        },
+        {
+          "t": "Decisions and community",
+          "d": "Decision tools, calculators and the community in the same app."
+        }
+      ],
       "outro": "Same data as your web account; no separate sign-up.",
       "android": "For Android",
       "ios": "For iPhone",
@@ -1043,7 +1060,8 @@
       "preInfo": "Pre-Contract Info",
       "distanceSale": "Distance Agreement",
       "deliveryRefund": "Delivery and Refunds",
-      "subscription": "Subscription Terms"
+      "subscription": "Subscription Terms",
+      "tools": "Free tools"
     },
     "identity": {
       "address": "Address",
@@ -1091,5 +1109,83 @@
     "notStarted": "Billing has not started yet. You will be notified before it does.",
     "start": "Start using LocalKarar",
     "seePricing": "See pricing"
+  },
+  "tools": {
+    "commission": {
+      "metaTitle": "Marketplace Commission Calculator — Trendyol, Hepsiburada, N11 | LocalKarar",
+      "metaDescription": "Is your product still profitable after marketplace commission, shipping and returns? Free, no sign-up, instant result.",
+      "eyebrow": "Free tool",
+      "title": "What is left after marketplace commission?",
+      "description": "Enter your sale price, commission rate and costs; see net contribution per unit, margin and the lowest price you can go without losing money. No account needed.",
+      "inputsTitle": "Your numbers",
+      "presetAria": "Marketplace preset",
+      "presetOther": "Other",
+      "presetNote": "Presets are starting values only. Commission depends on category and marketplaces update it; use the rate from your seller panel.",
+      "fields": {
+        "price": "Sale price",
+        "priceHint": "What the customer pays, VAT included.",
+        "commission": "Commission rate",
+        "commissionHint": "Category commission from your seller panel.",
+        "cost": "Product cost",
+        "shipping": "Shipping (seller share)",
+        "shippingHint": "What the marketplace deducts from you per shipment.",
+        "packaging": "Packaging",
+        "ads": "Ad spend per unit",
+        "adsHint": "Monthly ad spend divided by units sold.",
+        "returns": "Return rate",
+        "returnsHint": "Each return means round-trip shipping; risk is estimated from that."
+      },
+      "resultTitle": "Result",
+      "contribution": "Net contribution per unit",
+      "margin": "{{value}}% margin",
+      "status": {
+        "karli": "profitable",
+        "zarar": "losing money",
+        "basabas": "break-even"
+      },
+      "rows": {
+        "revenue": "Sale price",
+        "commission": "Commission ({{rate}}%)",
+        "cost": "Product cost",
+        "shipping": "Shipping",
+        "packaging": "Packaging",
+        "ads": "Ad spend",
+        "returns": "Return risk ({{rate}}%)",
+        "total": "Net contribution"
+      },
+      "breakEven": "Break-even price:",
+      "breakEvenHint": "Every sale below this price loses money. Plan discounts against it.",
+      "ctaText": "Save this calculation to your products and compare with real orders.",
+      "ctaRegister": "Try free for 30 days",
+      "ctaApp": "Calculate in the app",
+      "ctaNote": "No card required. The calculator stays free.",
+      "howTitle": "How is it calculated?",
+      "how": {
+        "1": "Commission is a percentage of the sale price: price × rate.",
+        "2": "Commission, product cost, shipping, packaging and ad spend are deducted from the sale price.",
+        "3": "Return risk is added: return rate × (shipping × 2), because a returned item ships both ways.",
+        "4": "What remains is net contribution per unit; its ratio to price is the margin. Break-even is the price where contribution is zero."
+      },
+      "privacyNote": "Calculated in your browser; your numbers are never sent or stored.",
+      "faqTitle": "Frequently asked",
+      "faq": {
+        "rate": {
+          "q": "Where do I find my commission rate?",
+          "a": "In your marketplace seller panel under category commission or contracts. Rates vary by category and may change temporarily during campaigns."
+        },
+        "vat": {
+          "q": "How does VAT factor in?",
+          "a": "The tool works with VAT-inclusive prices and shows the cash view: what you keep. Since VAT on the commission invoice is deductible, after-tax profit is slightly higher; confirm with your accountant."
+        },
+        "returns": {
+          "q": "I don't know my return rate.",
+          "a": "Divide returns by orders over the last 3 months in your seller panel. Typical starting ranges: 10–20% for apparel, 3–7% for home goods; update once you know yours."
+        },
+        "free": {
+          "q": "Why is this free?",
+          "a": "Because it is a small part of what LocalKarar does. In the app the same calculation is saved per product, marketplace orders are pulled automatically and each order shows its real net contribution. Try it free for 30 days, or keep using this page."
+        }
+      }
+    }
   }
 }
