@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Calculator, Info, ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -76,7 +76,17 @@ function para(n, dil) {
   return new Intl.NumberFormat(dil === 'en' ? 'en-US' : 'tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 2 }).format(n)
 }
 
+/*
+ * Alan kendi ham metnini tutar. Değeri doğrudan sayıdan üretince kutu
+ * silindiğinde "0" beliriyor ve yazılan rakam onun peşine ekleniyordu
+ * ("01849" — video kaydında görüldü). Boş kutu boş kalır, hesap 0 alır;
+ * ön ayar gibi dış değişiklikler metne geri yazılır.
+ */
 function Alan({ id, label, deger, onChange, birim, adim = '0.01', min = '0', ipucu }) {
+  const [ham, setHam] = useState(String(deger))
+  useEffect(() => {
+    if (Number(ham === '' ? 0 : ham) !== deger) setHam(String(deger))
+  }, [deger]) // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <label className={styles.alan} htmlFor={id}>
       <span className={styles.alanEtiket}>{label}</span>
@@ -87,8 +97,8 @@ function Alan({ id, label, deger, onChange, birim, adim = '0.01', min = '0', ipu
           inputMode="decimal"
           min={min}
           step={adim}
-          value={deger}
-          onChange={e => onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+          value={ham}
+          onChange={e => { setHam(e.target.value); onChange(e.target.value === '' ? 0 : Number(e.target.value)) }}
         />
         <span className={styles.birim}>{birim}</span>
       </span>
