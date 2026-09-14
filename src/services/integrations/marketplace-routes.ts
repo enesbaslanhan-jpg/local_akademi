@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify'
+import { siparisSatirlarinaGorselBagla } from './order-images.js'
 import type { PrismaClient } from '@prisma/client'
 import { z } from 'zod'
 import { prisma as sharedPrisma } from '../../lib/prisma.js'
@@ -189,7 +190,21 @@ function orderJson(order: any) {
           commissionAmount: num(item.commissionAmount),
           refundAmount: num(item.refundAmount),
           netContribution: num(item.netContribution),
+          // Ürün kataloğundan bağlanan görsel (order-images.ts). Eşleşme yoksa null.
+          imageUrl: item.imageUrl ?? null,
           metadata: item.metadata ?? null
+        }))
+      : undefined,
+    /*
+     * Liste kartı için önizleme: ilk üç satırın adı, adedi ve görseli.
+     * Liste uç noktası satırların tamamını taşımaz (sayfa başına 50
+     * sipariş × N satır), yalnız bu özeti verir.
+     */
+    previewItems: Array.isArray(order.items)
+      ? order.items.slice(0, 3).map((item: any) => ({
+          title: item.title,
+          quantity: item.quantity,
+          imageUrl: item.imageUrl ?? null
         }))
       : undefined
   }
@@ -1122,12 +1137,18 @@ export async function integrationRoutes(
         orderBy: [{ orderDate: 'desc' }],
         take: limit,
         skip: offset,
-        include: { _count: { select: { items: true } } }
+        include: {
+          _count: { select: { items: true } },
+          // Önizleme için ilk üç satır; görsel eşlemesi için anahtarlarıyla.
+          items: { orderBy: { createdAt: 'asc' }, take: 3, select: { id: true, title: true, quantity: true, externalProductId: true, sku: true, barcode: true } }
+        }
       }),
       prisma.marketplaceOrder.count({ where })
     ])
 
-    return { orders: orders.map(orderJson), total, limit, offset }
+    await siparisSatirlarinaGorselBagla(prisma, workspaceId, orders as any)
+    // Listede tam satır dökümü yok; yalnız previewItems + itemCount.
+    return { orders: orders.map(o => { const j = orderJson(o); delete (j as any).items; return j }), total, limit, offset }
   })
 
   fastify.get('/marketplace/orders/:orderId', async (request, reply) => {
@@ -1142,6 +1163,7 @@ export async function integrationRoutes(
       include: { items: { orderBy: { createdAt: 'asc' } } }
     })
     if (!order) return reply.status(404).send({ error: 'Sipariş bulunamadı.' })
+    await siparisSatirlarinaGorselBagla(prisma, parsed.data.workspaceId, [order as any])
     return { order: orderJson(order) }
   })
 

@@ -61,6 +61,18 @@
 .mutedValue { color: var(--text-tertiary, var(--text-secondary)); }
 
 .orderNo { display: grid; gap: 2px; }
+.orderNoSatir { display: flex; align-items: center; gap: 10px; }
+.orderNoSatir > div { display: grid; gap: 2px; min-width: 0; }
+.ilkUrun { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Ürün görselleri — Products.module.css .thumb ile aynı dil. */
+.thumb { display: grid; place-items: center; overflow: hidden; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-tertiary); flex: 0 0 auto; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumbIcon { color: var(--text-tertiary, var(--text-secondary)); }
+.thumb_sm { width: 34px; height: 34px; }
+.thumb_lg { width: 56px; height: 56px; }
+/* Üst üste bindirilmiş küçük görseller: 3 satır 3 kutu yerine tek küme. */
+.onizleme { display: inline-flex; flex: 0 0 auto; }
+.onizleme .thumb + .thumb { margin-left: -12px; box-shadow: -2px 0 0 var(--bg-secondary, var(--bg)); }
 .orderNo span { font-weight: 700; }
 .orderNo small { color: var(--text-tertiary, var(--text-secondary)); font-size: .68rem; }
 
@@ -184,13 +196,13 @@
 .itemsTitle { margin: 4px 0 0; font-size: .78rem; }
 .items { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
 .items li {
-  display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; align-items: center;
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--bg-tertiary);
 }
-.itemMain { display: grid; gap: 2px; min-width: 0; }
+.itemMain { display: grid; gap: 2px; min-width: 0; flex: 1; }
 .itemMain strong { font-size: .78rem; overflow-wrap: anywhere; }
 .itemMain small { color: var(--text-tertiary, var(--text-secondary)); font-size: .68rem; }
 .itemMoney { display: grid; gap: 2px; text-align: right; font-size: .7rem; color: var(--text-secondary); white-space: nowrap; }

@@ -13,12 +13,14 @@ import Orders from '@/pages/Workspaces/Orders'
 
 const mocks = vi.hoisted(() => ({
   orders: vi.fn(),
+  /* Detay ayrı uçtan çekilir (15.09.2026): liste satırları taşımaz. */
+  order: vi.fn(),
   trendyolStatus: vi.fn()
 }))
 
 vi.mock('@/services/api', () => ({
   api: {
-    marketplace: { orders: mocks.orders },
+    marketplace: { orders: mocks.orders, order: mocks.order },
     integrations: { trendyolStatus: mocks.trendyolStatus, trendyolSync: vi.fn() }
   }
 }))
@@ -123,14 +125,20 @@ describe('Siparişler sekmesi', () => {
   })
 
   it('satıra tıklayınca detay çekmecesi açılır (ürünler + tutarlar)', async () => {
-    mocks.orders.mockResolvedValue({ orders: [siparis()], total: 1 })
+    /* Liste ucu satır taşımaz; detay ucu satırları görseliyle verir. */
+    const { items, ...listeSatiri } = siparis()
+    mocks.orders.mockResolvedValue({ orders: [{ ...listeSatiri, previewItems: [{ title: 'Desenli Tepsi', quantity: 2, imageUrl: 'https://example.com/tepsi.jpg' }] }], total: 1 })
+    mocks.order.mockResolvedValue({ order: siparis({ items: items.map(i => ({ ...i, imageUrl: 'https://example.com/tepsi.jpg' })) }) })
     const user = userEvent.setup()
     ciz()
 
     await user.click(await screen.findByText('10654411111'))
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByText('Sipariş detayı')).toBeInTheDocument()
-    expect(within(dialog).getByText('Desenli Tepsi')).toBeInTheDocument()
+    expect(await within(dialog).findByText('Desenli Tepsi')).toBeInTheDocument()
+    expect(mocks.order).toHaveBeenCalledWith(undefined, 'o1')
+    /* Ürün görseli satırda: sunucunun eşlediği URL. */
+    expect(within(dialog).getByRole('listitem').querySelector('img')?.getAttribute('src')).toBe('https://example.com/tepsi.jpg')
     expect(within(dialog).getByText('Hesaplanamaz*')).toBeInTheDocument()
   })
 })

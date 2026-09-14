@@ -6,6 +6,34 @@ import { useToast } from '@/context/ToastContext'
 import Modal from '@/components/ui/Modal'
 import styles from './Orders.module.css'
 import { useTranslation } from 'react-i18next'
+
+/*
+ * ÜRÜN GÖRSELİ (15.09.2026). Sipariş satırında görsel yok; sunucu satırı
+ * ürün kataloğuyla (barkod/sku) eşleyip `imageUrl` veriyor
+ * (integrations/order-images.ts). Eşleşme yoksa nötr kutu — sahte
+ * görsel ÜRETİLMEZ (Products.jsx'teki ilkeyle aynı). Listede ilk üç
+ * satırın küçük görselleri üst üste bindirilmiş durur; detayda satır başı.
+ */
+function UrunGorseli({ url, boyut = 'sm' }) {
+  const [hata, setHata] = useState(false)
+  return (
+    <span className={`${styles.thumb} ${styles[`thumb_${boyut}`]}`} aria-hidden="true">
+      {url && !hata
+        ? <img src={url} alt="" loading="lazy" onError={() => setHata(true)} />
+        : <PackageSearch size={boyut === 'lg' ? 22 : 13} className={styles.thumbIcon} />}
+    </span>
+  )
+}
+
+function SiparisOnizleme({ order }) {
+  const satirlar = Array.isArray(order.previewItems) ? order.previewItems : []
+  if (!satirlar.length) return null
+  return (
+    <span className={styles.onizleme} title={satirlar.map(s => `${s.quantity}× ${s.title}`).join(String.fromCharCode(10))}>
+      {satirlar.map((s, i) => <UrunGorseli key={i} url={s.imageUrl} />)}
+    </span>
+  )
+}
 import { useLocalization } from '@/context/LocalizationContext'
 import { formatCurrency, formatDate as formatDateValue } from '@/utils/formatters'
 import { captureAnalytics } from '@/services/analytics'
@@ -146,7 +174,23 @@ export default function Orders() {
     }
   }
 
-  const detail = detailId ? orders.find(order => order.id === detailId) : null
+  /*
+   * DETAY AYRI ÇEKİLİR (15.09.2026). Önceden detay, liste satırının
+   * kendisiydi; liste ucu satırları taşımadığı için modaldaki "Ürünler"
+   * başlığı hep boştu — kimse fark etmemiş. Liste açılır açılmaz liste
+   * verisi gösterilir, detay gelince satırlar (görselleriyle) dolar.
+   */
+  const [detayVeri, setDetayVeri] = useState(null)
+  useEffect(() => {
+    if (!detailId) { setDetayVeri(null); return undefined }
+    let iptal = false
+    api.marketplace.order(workspaceId, detailId)
+      .then(res => { if (!iptal) setDetayVeri(res?.order ?? null) })
+      .catch(() => { /* liste verisiyle kalınır; satırlar boş görünür ama modal açılır */ })
+    return () => { iptal = true }
+  }, [detailId, workspaceId])
+  const listeSatiri = detailId ? orders.find(order => order.id === detailId) : null
+  const detail = detailId ? (detayVeri && detayVeri.id === detailId ? detayVeri : listeSatiri) : null
 
   return (
     <div className={styles.page}>
@@ -228,8 +272,14 @@ export default function Orders() {
                 <tr key={order.id} onClick={() => setDetailId(order.id)} tabIndex={0}
                   onKeyDown={event => { if (event.key === 'Enter') setDetailId(order.id) }}>
                   <td className={styles.orderNo}>
-                    <span>{order.externalOrderNumber || order.externalId}</span>
-                    <small>{order.itemCount != null ? t('orders.items', { count: order.itemCount }) : ''}</small>
+                    <div className={styles.orderNoSatir}>
+                      <SiparisOnizleme order={order} />
+                      <div>
+                        <span>{order.externalOrderNumber || order.externalId}</span>
+                        <small>{order.itemCount != null ? t('orders.items', { count: order.itemCount }) : ''}</small>
+                        {order.previewItems?.[0]?.title && <small className={styles.ilkUrun}>{order.previewItems[0].title}</small>}
+                      </div>
+                    </div>
                   </td>
                   <td>
                     <span className={`${styles.sourceBadge} ${styles[`source_${order.provider}`] || ''}`}>
@@ -293,6 +343,7 @@ export default function Orders() {
             <ul className={styles.items}>
               {(detail.items || []).map(item => (
                 <li key={item.id}>
+                  <UrunGorseli url={item.imageUrl} boyut="lg" />
                   <div className={styles.itemMain}>
                     <strong>{item.title}</strong>
                     <small>{item.quantity} adet{item.sku ? ` · ${item.sku}` : ''}{item.barcode ? ` · ${item.barcode}` : ''}</small>
