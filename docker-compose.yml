@@ -91,6 +91,13 @@ services:
       # Ters vekil arkasındaysanız ayarlayın (ör. 1). Tanımsızsa
       # X-Forwarded-For yok sayılır — hız sınırları soket adresine göre işler.
       - TRUST_PROXY=${TRUST_PROXY:-}
+      # Ürün analitiği (PostHog, izinle). 🔴 .env'de 10.09.2026'dan beri
+      # doluydu ama bu listede olmadığı için konteynere hiç geçmedi;
+      # /app-config "enabled:false" döndürdü ve hiçbir olay gitmedi
+      # (14.09.2026'da fark edildi). Boşsa analitik kapalı kalır.
+      - PRODUCT_ANALYTICS_ENABLED=${PRODUCT_ANALYTICS_ENABLED:-false}
+      - POSTHOG_HOST=${POSTHOG_HOST:-}
+      - POSTHOG_PROJECT_TOKEN=${POSTHOG_PROJECT_TOKEN:-}
       # E-posta — şifre sıfırlama ve e-posta doğrulama buna bağlı.
       # Üretimde eksikse sunucu açılışta durur (bkz. mailer.ts).
       - RESEND_API_KEY=${RESEND_API_KEY:?RESEND_API_KEY tanimlanmali}
