@@ -51,6 +51,10 @@ export function publicConnectionView(connection: IntegrationConnection) {
     syncIntervalMinutes: connection.syncIntervalMinutes,
     /* Kullanicinin girdigi odeme vadesi; gizli bilgi degil. */
     payoutDelayDays: connection.payoutDelayDays,
+    /* Ortalama komisyon %; Decimal -> number (JSON'da string gitmesin). */
+    avgCommissionPercent: connection.avgCommissionPercent === null || connection.avgCommissionPercent === undefined
+      ? null
+      : Number(connection.avgCommissionPercent),
     createdAt: connection.createdAt
   }
 }

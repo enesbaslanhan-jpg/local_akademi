@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { siparisSatirlarinaGorselBagla } from './order-images.js'
-import type { PrismaClient } from '@prisma/client'
+import { Prisma, type PrismaClient } from '@prisma/client'
 import { z } from 'zod'
 import { prisma as sharedPrisma } from '../../lib/prisma.js'
 import { encryptSecret } from '../../lib/crypto.js'
@@ -1300,10 +1300,18 @@ export async function integrationRoutes(
     const govde = z.object({
       /* 0 = ayni gun oder. `null` = bilinmiyor, vade yazma. 365 ust
          siniri anlamsiz degerlerin takvimi kirletmesini onluyor. */
-      payoutDelayDays: z.number().int().min(0).max(365).nullable()
+      payoutDelayDays: z.number().int().min(0).max(365).nullable().optional(),
+      /*
+       * Ortalama komisyon % (Faz 3, 15.09.2026): sipariste komisyon alani
+       * gelmediyse hakedis tahmininde bu oran dusuluyor. Bos = bilinmiyor
+       * -> komisyon 0 sayilir ve rakam "tahmini" isaretlenir.
+       */
+      avgCommissionPercent: z.number().min(0).max(100).nullable().optional()
+    }).refine(g => g.payoutDelayDays !== undefined || g.avgCommissionPercent !== undefined, {
+      message: 'En az bir ayar gerekli'
     }).safeParse(request.body)
     if (!govde.success) {
-      return reply.status(422).send({ error: 'Ödeme vadesi 0-365 gün arasında bir sayı ya da boş olmalı' })
+      return reply.status(422).send({ error: 'Ödeme vadesi 0-365 gün arasında tam sayı, komisyon 0-100 arasında bir sayı ya da boş olmalı' })
     }
 
     const connection = await prisma.integrationConnection.findUnique({
@@ -1318,7 +1326,12 @@ export async function integrationRoutes(
 
     const guncel = await prisma.integrationConnection.update({
       where: { id: connectionId },
-      data: { payoutDelayDays: govde.data.payoutDelayDays }
+      data: {
+        ...(govde.data.payoutDelayDays !== undefined ? { payoutDelayDays: govde.data.payoutDelayDays } : {}),
+        ...(govde.data.avgCommissionPercent !== undefined
+          ? { avgCommissionPercent: govde.data.avgCommissionPercent === null ? null : new Prisma.Decimal(govde.data.avgCommissionPercent.toFixed(2)) }
+          : {})
+      }
     })
     return publicConnectionView(guncel)
   })

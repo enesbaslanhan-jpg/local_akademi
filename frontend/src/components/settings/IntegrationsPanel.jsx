@@ -80,6 +80,9 @@ export default function IntegrationsPanel() {
   /* Ödeme vadesi taslağı — sağlayıcı başına. Kaydedilene kadar sunucuya
      gitmez; her tuşta istek atmak gereksiz yük olurdu. */
   const [vadeTaslak, setVadeTaslak] = useState({})
+  /* Ortalama komisyon % taslağı (Faz 3, 15.09.2026): sipariş komisyonu
+     gelmediğinde hakediş tahmininde düşülür; boş = tahmini. */
+  const [komisyonTaslak, setKomisyonTaslak] = useState({})
   const [vadeKaydediliyor, setVadeKaydediliyor] = useState(null)
 
   async function vadeKaydet(providerKey, connectionId) {
@@ -92,9 +95,15 @@ export default function IntegrationsPanel() {
       setMessage({ type: 'err', text: t('payout.validation') })
       return
     }
+    const komHam = (komisyonTaslak[providerKey] ?? '').trim().replace(',', '.')
+    const komisyon = komHam === '' ? null : Number(komHam)
+    if (komisyon !== null && (!Number.isFinite(komisyon) || komisyon < 0 || komisyon > 100)) {
+      setMessage({ type: 'err', text: t('payout.commissionValidation') })
+      return
+    }
     setVadeKaydediliyor(providerKey)
     try {
-      await api.integrations.updateSettings(connectionId, { payoutDelayDays: deger })
+      await api.integrations.updateSettings(connectionId, { payoutDelayDays: deger, avgCommissionPercent: komisyon })
       setMessage({
         type: 'ok',
         text: deger === null
@@ -128,11 +137,15 @@ export default function IntegrationsPanel() {
       /* Kayıtlı vade alana yazılıyor; kullanıcı kaydettiği değeri geri
          görmeli, boş bir kutu "kaydedilmedi mi?" dedirtir. */
       const vadeler = {}
+      const komisyonlar = {}
       for (const [anahtar, durum] of Object.entries(durumlar)) {
         const gun = durum?.connections?.[0]?.payoutDelayDays
         vadeler[anahtar] = gun === null || gun === undefined ? '' : String(gun)
+        const oran = durum?.connections?.[0]?.avgCommissionPercent
+        komisyonlar[anahtar] = oran === null || oran === undefined ? '' : String(oran)
       }
       setVadeTaslak(vadeler)
+      setKomisyonTaslak(komisyonlar)
     } catch (error) {
       setMessage({ type: 'err', text: error.message || t('loadError') })
     } finally {
@@ -340,18 +353,29 @@ export default function IntegrationsPanel() {
                   */}
                   {connected && (
                     <div className={styles.vadeAlani}>
-                      <label htmlFor={`vade-${providerKey}`}>
-                        {t('payout.label')}
-                      </label>
                       <div className={styles.vadeSatir}>
-                        <input
-                          id={`vade-${providerKey}`}
-                          type="number" min="0" max="365"
-                          className={styles.vadeGiris}
-                          placeholder={t('payout.placeholder')}
-                          value={vadeTaslak[providerKey] ?? ''}
-                          onChange={e => setVadeTaslak(t => ({ ...t, [providerKey]: e.target.value }))}
-                        />
+                        <div className={styles.ayarAlan}>
+                          <label htmlFor={`vade-${providerKey}`}>{t('payout.label')}</label>
+                          <input
+                            id={`vade-${providerKey}`}
+                            type="number" min="0" max="365"
+                            className={styles.vadeGiris}
+                            placeholder={t('payout.placeholder')}
+                            value={vadeTaslak[providerKey] ?? ''}
+                            onChange={e => setVadeTaslak(t => ({ ...t, [providerKey]: e.target.value }))}
+                          />
+                        </div>
+                        <div className={styles.ayarAlan}>
+                          <label htmlFor={`komisyon-${providerKey}`}>{t('payout.commissionLabel')}</label>
+                          <input
+                            id={`komisyon-${providerKey}`}
+                            type="number" min="0" max="100" step="0.1"
+                            className={styles.vadeGiris}
+                            placeholder={t('payout.commissionPlaceholder')}
+                            value={komisyonTaslak[providerKey] ?? ''}
+                            onChange={e => setKomisyonTaslak(t => ({ ...t, [providerKey]: e.target.value }))}
+                          />
+                        </div>
                         <Button
                           type="button" variant="secondary"
                           onClick={() => vadeKaydet(providerKey, status?.connections?.[0]?.id)}

@@ -15,6 +15,7 @@ import IntegrationsPanel from '@/components/settings/IntegrationsPanel'
 
 const mocks = vi.hoisted(() => ({
   catalog: vi.fn(),
+  updateSettings: vi.fn(),
   trendyolStatus: vi.fn(),
   trendyolConnect: vi.fn(),
   trendyolSync: vi.fn(),
@@ -52,7 +53,8 @@ vi.mock('@/services/api', () => ({
       shopifyStatus: mocks.shopifyStatus,
       shopifyConnect: mocks.shopifyConnect,
       shopifySync: mocks.shopifySync,
-      shopifyDisconnect: mocks.shopifyDisconnect
+      shopifyDisconnect: mocks.shopifyDisconnect,
+      updateSettings: mocks.updateSettings
     }
   }
 }))
@@ -263,6 +265,24 @@ describe('Entegrasyonlar paneli', () => {
     expect(await within(n11Card).findByText('41 sipariş · 21 ürün')).toBeInTheDocument()
     expect(within(n11Card).getByText('QA N11 Magaza')).toBeInTheDocument()
     expect(within(n11Card).getByText('Bağlı')).toBeInTheDocument()
+  })
+
+  it('ödeme vadesi + ortalama komisyon birlikte kaydedilir (Faz 3)', async () => {
+    const user = userEvent.setup()
+    mocks.trendyolStatus.mockResolvedValue({
+      connected: true, syncing: false, counts: { orders: 1, products: 1 },
+      connections: [{ id: 'conn-1', externalAccountId: '123456', payoutDelayDays: 14, avgCommissionPercent: null }], latestRuns: []
+    })
+    mocks.updateSettings.mockResolvedValue({})
+    ciz()
+
+    const card = await screen.findByLabelText('Trendyol entegrasyonu')
+    const vade = await within(card).findByLabelText('Ödeme vadesi (gün)')
+    expect(vade).toHaveValue(14)
+    const komisyon = within(card).getByLabelText('Ortalama komisyon (%)')
+    await user.type(komisyon, '18.5')
+    await user.click(within(card).getByRole('button', { name: /^Kaydet$/ }))
+    await waitFor(() => expect(mocks.updateSettings).toHaveBeenCalledWith('conn-1', { payoutDelayDays: 14, avgCommissionPercent: 18.5 }))
   })
 
   it('disconnect onayı istenir', async () => {

@@ -552,6 +552,19 @@ describe('PATCH /integrations/:connectionId/settings', () => {
     expect(res.json().payoutDelayDays).toBeNull()
   })
 
+  it('ortalama komisyon % kaydediliyor, vadeye dokunmuyor (Faz 3)', async () => {
+    await patch(`/integrations/${connectionId}/settings`, { payoutDelayDays: 12 }, ownerToken)
+    const res = await patch(`/integrations/${connectionId}/settings`, { avgCommissionPercent: 18.5 }, ownerToken)
+    expect(res.statusCode).toBe(200)
+    expect(res.json().avgCommissionPercent).toBe(18.5)
+    expect(res.json().payoutDelayDays).toBe(12)
+
+    const temiz = await patch(`/integrations/${connectionId}/settings`, { avgCommissionPercent: null }, ownerToken)
+    expect(temiz.json().avgCommissionPercent).toBeNull()
+    expect((await patch(`/integrations/${connectionId}/settings`, { avgCommissionPercent: 101 }, ownerToken)).statusCode).toBe(422)
+    expect((await patch(`/integrations/${connectionId}/settings`, {}, ownerToken)).statusCode).toBe(422)
+  })
+
   it('anlamsiz deger 422 aliyor', async () => {
     expect((await patch(`/integrations/${connectionId}/settings`, { payoutDelayDays: -1 }, ownerToken)).statusCode).toBe(422)
     expect((await patch(`/integrations/${connectionId}/settings`, { payoutDelayDays: 400 }, ownerToken)).statusCode).toBe(422)
