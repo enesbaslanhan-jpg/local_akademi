@@ -351,14 +351,32 @@ describe('sync flow (first sync, duplicate sync, dedupe)', () => {
   })
 
   it('manual sync stores orders + products; duplicate sync does not duplicate', async () => {
+    const bitmisOnce = await prisma.integrationSyncRun.count({
+      where: { connection: { workspaceId }, status: { not: 'RUNNING' } }
+    })
     const trigger = await post('/integrations/trendyol/sync', { workspaceId }, ownerToken)
     expect(trigger.statusCode).toBe(200)
     expect(trigger.json().started).toBe(true)
 
-    // Fire-and-forget islemin bitmesini bekle.
-    await waitFor(async () =>
-      (await prisma.marketplaceOrder.count({ where: { workspaceId } })) === 2
-    )
+    /*
+     * Fire-and-forget islemin BITMESINI bekle — siparis sayisina degil,
+     * IntegrationSyncRun'in RUNNING'den cikmasina bak.
+     *
+     * 🔴 ARALIKLI KIRMIZI (CI 15.09.2026): siparisler yazildiktan sonra urun
+     * import'u ve run satirinin SUCCESS'e cekilmesi devam ediyor; o anda
+     * baslatilan ikinci sync DB kilidine (RUNNING satiri) carpip
+     * SKIPPED/SYNC_ALREADY_RUNNING donuyordu. Yerelde makine bosken
+     * gorunmuyor, CI runner'inda yakalandi.
+     */
+    await waitFor(async () => {
+      const running = await prisma.integrationSyncRun.count({
+        where: { connection: { workspaceId }, status: 'RUNNING' }
+      })
+      const bitmis = await prisma.integrationSyncRun.count({
+        where: { connection: { workspaceId }, status: { not: 'RUNNING' } }
+      })
+      return running === 0 && bitmis > bitmisOnce
+    })
 
     const ordersBefore = await prisma.marketplaceOrder.count({ where: { workspaceId } })
     const itemsBefore = await prisma.marketplaceOrderItem.count()
