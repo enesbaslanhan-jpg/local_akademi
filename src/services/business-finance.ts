@@ -4,6 +4,8 @@ import { z } from 'zod'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { access } from './business-tracker.js'
 import { syncAutomaticReminder } from './business-reminder-worker.js'
+import { gerceklesenKayitWhere } from './tracker-periods.js'
+import { IST_OFFSET_MS } from '../lib/istanbul-time.js'
 import { hesapBakiyeleri } from './kasa-bakiye.js'
 import { DEADLINE_SOURCES, RENEWAL_LABELS, RENEWAL_TEMPLATES } from '../config/business-deadlines.js'
 
@@ -226,13 +228,11 @@ export async function businessFinanceRoutes(app: FastifyInstance, opts?: { prism
     const { workspaceId } = request.params as { workspaceId: string }
     const start = new Date(`${parsed.data.month}-01T00:00:00+03:00`)
     const [year, month] = parsed.data.month.split('-').map(Number)
-    const boundary = (offset: number) => new Date(Date.UTC(year, month - 1 + offset, 1) - 3 * 3600000)
+    const boundary = (offset: number) => new Date(Date.UTC(year, month - 1 + offset, 1) - IST_OFFSET_MS)
     async function period(from: Date, to: Date) {
-      const now = new Date()
-      const groups = await prisma.businessRecord.groupBy({ by: ['currency', 'direction', 'category'], where: { workspaceId, archivedAt: null,
-        status: 'completed', loanId: null,
-        AND: [{ OR: [{ settlementAt: null, completedAt: { gte: from, lt: to, lte: now } }, { settlementAt: { gte: from, lt: to, lte: now } }] },
-          { OR: [{ category: null }, { category: { notIn: ['loan_repayment', 'transfer', 'capital'] } }] }] }, _sum: { amount: true } })
+      /* "Gerçekleşen" tanımı tracker-periods.ts'te tek yerde; Rapor ve
+         Genel Bakış aynı filtreyi kullanır, ay özeti onlardan sapmaz. */
+      const groups = await prisma.businessRecord.groupBy({ by: ['currency', 'direction', 'category'], where: gerceklesenKayitWhere(workspaceId, from, to), _sum: { amount: true } })
       const currencies: Record<string, { income: string; expense: string; net: string }> = {}
       for (const g of groups) {
         if (!['receivable', 'payable'].includes(g.direction)) continue

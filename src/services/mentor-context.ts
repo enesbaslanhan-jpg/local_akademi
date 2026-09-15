@@ -268,9 +268,15 @@ async function resolveWorkspaceTrackerContext(envelope: MentorContextEnvelope, u
     `- Kargo/Sevkiyat: ${ozet.counts.shipments}\n` +
     `- Ertelenen: ${ozet.counts.deferred}\n` +
     `- Yönü belirsiz: ${ozet.counts.awaitingDirection} (${tl(ozet.awaitingDirection.amount)} TL)\n` +
-    `- 30 günlük ödenecek: ${tl(ozet.nextThirtyDays.payable)} TL\n` +
-    `- 30 günlük tahsil edilecek: ${tl(ozet.nextThirtyDays.receivable)} TL\n` +
-    `- Net: ${tl(ozet.nextThirtyDays.net)} TL\n` +
+    /* 30 gün = [şimdi, +30]; geciken AYRI satırda (15.09.2026). Eskiden
+       geciken 30 günün içine karışıyordu; mentor "ödenecek yok" derken
+       ₺777 gecikmiş olabilirdi. Pazaryeri hakedişi de artık plandadır. */
+    `- 30 gün içinde ödenecek: ${tl(ozet.plan30.payable.amount)} TL\n` +
+    `- 30 gün içinde tahsil edilecek: ${tl(ozet.plan30.receivable.amount)} TL\n` +
+    `- 30 gün içinde beklenen pazaryeri hakedişi: ${tl(ozet.plan30.hakedis.net.amount)} TL (${ozet.plan30.hakedis.orderCount} sipariş${ozet.plan30.estimated ? ', tahmini' : ''})\n` +
+    `- 30 gün net: ${tl(ozet.plan30.net)} TL\n` +
+    `- Geciken ödeme: ${tl(ozet.overdueSplit.payable.amount)} TL; geciken tahsilat: ${tl(ozet.overdueSplit.receivable.amount)} TL\n` +
+    `- Bugün gerçekleşen: tahsilat ${tl(ozet.periods.today.tahsilat.amount)} TL, ödeme ${tl(ozet.periods.today.odeme.amount)} TL, pazaryeri satışı ${tl(ozet.periods.today.pazaryeriBrut.amount)} TL\n` +
     `\nNot: Bu özet yalnızca sayılar ve toplamlar içerir; müşteri adı, fatura numarası veya kayıt başlığı taşımaz.` +
     pazaryeriEki
 

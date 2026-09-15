@@ -210,7 +210,19 @@ export default function Dashboard() {
   }
 
   const overdue = tracker?.counts?.overdue ?? 0
-  const net = tracker?.nextThirtyDays?.net
+  /*
+   * 30 GÜN PLANI = [şimdi, +30] (15.09.2026). `plan30` sunucuda tek yerde
+   * hesaplanıyor (tracker-periods.ts): açık kayıtlar + beklenen pazaryeri
+   * hakedişi; geciken DIŞARIDA ve kendi satırında. Eski `nextThirtyDays`
+   * gecikeni de sayıyordu ve pazaryerini hiç görmüyordu. Alan yoksa
+   * (eski sunucu) eskisine düşer.
+   */
+  const plan = tracker?.plan30
+  const hakedis = plan?.hakedis?.net?.amount ?? 0
+  const planTahsilat = plan ? (plan.receivable?.amount ?? 0) + hakedis : (tracker?.nextThirtyDays?.receivable ?? 0)
+  const planOdeme = plan ? (plan.payable?.amount ?? 0) : (tracker?.nextThirtyDays?.payable ?? 0)
+  const net = plan ? plan.net : tracker?.nextThirtyDays?.net
+  const gecikenOdeme = tracker?.overdueSplit?.payable?.amount ?? 0
   const trackerReady = trackerState.workspaceId === activeWorkspaceId && trackerState.status === 'ready'
   const hasRecords = trackerReady && trackerState.total > 0
 
@@ -330,13 +342,19 @@ export default function Dashboard() {
             <div className={styles.statusKpis}>
               <div className={styles.statusKpi}>
                 <span className={styles.statusKpiLabel}>{t('receivables')}</span>
-                <strong className={styles.statusKpiValue}>{money.format(tracker.nextThirtyDays?.receivable ?? 0)}</strong>
-                <span className={styles.statusKpiHint}>{t('thirtyDays')}</span>
+                <strong className={styles.statusKpiValue}>{money.format(planTahsilat)}</strong>
+                <span className={styles.statusKpiHint}>
+                  {hakedis > 0
+                    ? t('dashboard:plan.withMarketplace', { amount: money.format(hakedis), estimated: plan?.estimated ? t('dashboard:plan.estimatedSuffix') : '' })
+                    : t('dashboard:plan.dueWithin30')}
+                </span>
               </div>
               <div className={styles.statusKpi}>
                 <span className={styles.statusKpiLabel}>{t('payments')}</span>
-                <strong className={styles.statusKpiValue}>{money.format(tracker.nextThirtyDays?.payable ?? 0)}</strong>
-                <span className={styles.statusKpiHint}>{t('thirtyDays')}</span>
+                <strong className={styles.statusKpiValue}>{money.format(planOdeme)}</strong>
+                <span className={styles.statusKpiHint}>
+                  {gecikenOdeme > 0 ? t('dashboard:plan.plusOverdue', { amount: money.format(gecikenOdeme) }) : t('dashboard:plan.dueWithin30')}
+                </span>
               </div>
               <div className={styles.statusKpi}>
                 <span className={styles.statusKpiLabel}>{t('netOutlook')}</span>

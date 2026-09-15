@@ -15,6 +15,8 @@ import type { Prisma, PrismaClient } from '@prisma/client'
 import { z } from 'zod'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { access } from './business-tracker.js'
+import { paraKovala } from './tracker-periods.js'
+import { istDayKey } from '../lib/istanbul-time.js'
 import { cariBakiye, listeBakiyesi } from './cari-hesap.js'
 import {
   recordsToCsv,
@@ -106,21 +108,24 @@ function safeFileSlug(name: string) {
     .slice(0, 40) || 'isletme'
 }
 
-/** `tracker/summary` ile aynı 30 günlük pencere mantığı. */
+/**
+ * Dışa aktarılan KÜMENİN özeti — `tracker/summary` ile aynı tanımlar
+ * (tracker-periods.ts): 30 gün = [şimdi, +30], geciken dışarıda; yalnız
+ * işletme para birimi toplanır; "bugün" İstanbul günü. Filtreli bir
+ * dışa aktarımda rakamlar panodan farklı olabilir — çünkü küme farklı,
+ * tanım değil.
+ */
 function buildSummary(records: ExportRecord[], currency: string): ExportSummary {
   const now = new Date()
   const horizon = new Date(now.getTime() + 30 * 86400000)
   const openish = records.filter(r => ['open', 'in_progress', 'deferred'].includes(r.status))
-  const payable = openish
-    .filter(r => r.direction === 'payable' && r.dueAt && r.dueAt <= horizon)
-    .reduce((s, r) => s + (r.amount ?? 0), 0)
-  const receivable = openish
-    .filter(r => r.direction === 'receivable' && r.dueAt && r.dueAt <= horizon)
-    .reduce((s, r) => s + (r.amount ?? 0), 0)
+  const planda = openish.filter(r => r.dueAt && r.dueAt >= now && r.dueAt <= horizon)
+  const payable = paraKovala(planda.filter(r => r.direction === 'payable'), currency).amount
+  const receivable = paraKovala(planda.filter(r => r.direction === 'receivable'), currency).amount
   return {
     open: openish.length,
     overdue: openish.filter(r => r.dueAt && r.dueAt < now).length,
-    dueToday: openish.filter(r => r.dueAt && r.dueAt.toDateString() === now.toDateString()).length,
+    dueToday: openish.filter(r => r.dueAt && istDayKey(r.dueAt) === istDayKey(now)).length,
     payable,
     receivable,
     net: receivable - payable,

@@ -4,7 +4,6 @@ import { decryptConnectionCredentials, safeErrorMessage } from './credentials.js
 import { upsertOrderWithItems, upsertNormalizedProduct, newOrderTransitionSink, type OrderTransitionSink } from './repository.js'
 import type { ProviderCode, ProviderCredentials } from './types.js'
 import { resolveLowStockThreshold } from './product-analytics.js'
-import { siparisOnerileriniUret } from './order-suggestions.js'
 import { pazaryeriBildirimleriniUret } from './marketplace-notifications.js'
 import { captureProductEvent } from '../product-analytics.js'
 
@@ -260,7 +259,6 @@ async function runConnectionSyncLocked(
     const failures: Array<{ errorCode: string; message: string }> = []
     /* Bu esitlemede yazilan/guncellenen siparislerin tarihleri. Dongu
        bitince gun bazinda tekillestirilip oneri uretilecek. */
-    const dokunulanTarihler: Date[] = []
 
     // --- SIPARISLER ---
     let ordersPage = 0
@@ -289,7 +287,6 @@ async function runConnectionSyncLocked(
           /* Bu turda dokunulan gunler toplaniyor; oneriler dongu
              bitince TEK SEFERDE uretilecek. Siparis basina uretmek
              hem gereksiz sorgu hem de gunluk ozet mantigina aykiri. */
-          if (normalized.orderDate) dokunulanTarihler.push(normalized.orderDate)
         } catch (error) {
           failures.push({
             errorCode: 'ORDER_UPSERT_FAILED',
@@ -305,29 +302,13 @@ async function runConnectionSyncLocked(
     }
 
     /*
-     * SIPARIS -> ONAY BEKLEYEN KAYIT ONERISI.
-     *
-     * Siparisler daha once yalniz `MarketplaceOrder`a dusuyordu ve
-     * Isletme Takibi'ne HIC girmiyordu. Burada gun bazinda ozet oneri
-     * uretiliyor; kullanici onaylayinca kayit, takvim ve tahsilat
-     * toplami dolar.
-     *
-     * ⚠️ Hata FIRLATILMIYOR: basariyla cekilmis siparis verisi, oneri
-     * uretimi tokezledi diye kaybedilmemeli.
+     * 🔴 SIPARIS -> KAYIT ONERISI KOPRUSU KALDIRILDI (15.09.2026).
+     * Burada gun basina "onay bekleyen tahsilat" onerisi uretiliyordu;
+     * oneri hicbir ucta listelenmedi, vade bilgisi yoksa toplama da
+     * girmiyordu. Siparisler artik dogrudan Isletme Takibi hesabina
+     * giriyor (services/tracker-periods.ts: beklenenHakedis). Kayit
+     * yazilmaz; iade/iptal kendiliginden duser.
      */
-    if (dokunulanTarihler.length > 0) {
-      try {
-        await siparisOnerileriniUret(
-          prisma, connection.workspaceId, connection.provider, dokunulanTarihler,
-          'TRY', connection.payoutDelayDays ?? null
-        )
-      } catch (error) {
-        failures.push({
-          errorCode: 'ORDER_SUGGESTION_FAILED',
-          message: safeErrorMessage((error as Error)?.message || 'order suggestion failed', credentials)
-        })
-      }
-    }
 
     // --- URUNLER ---
     let productsPage = 0

@@ -6,6 +6,7 @@ import {
   type MarketplaceProductOverview
 } from './product-analytics.js'
 import { CIRCUIT_BREAKER_THRESHOLD } from './sync-service.js'
+import { startOfDayIst } from '../../lib/istanbul-time.js'
 
 /*
  * MARKETPLACE OPERATIONS AGGREGATE SERVICE + ACTION ENGINE.
@@ -130,10 +131,10 @@ interface OpenActionCounts {
   stalePendingCount: number
 }
 
+/* "Bugün" = İstanbul günü. Sunucu UTC'de; `setHours(0)` gece 03:00'a kadar
+   dünü gösteriyordu ve Ana Sayfa ile Genel Bakış farklı sayı veriyordu. */
 function startOfToday(now = new Date()): Date {
-  const d = new Date(now)
-  d.setHours(0, 0, 0, 0)
-  return d
+  return startOfDayIst(now)
 }
 
 function statusCountsFromGroupBy(rows: Array<{ status: string; count: number }>): Map<string, number> {

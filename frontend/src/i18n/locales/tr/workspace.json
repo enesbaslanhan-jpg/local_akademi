@@ -207,7 +207,10 @@
       "awaitingDirection": "{{count}} kaydın yönü (borç/alacak) belirsiz — Kayıtlar'dan tamamlayın.",
       "taxSsi": "Vergi / SGK · 30 gün",
       "taxNoProfile": "Vergi profili ayarlardan",
-      "taxConfirm": "GİB / SGK’dan teyit edin"
+      "taxConfirm": "GİB / SGK’dan teyit edin",
+      "overdueSplit": "Ödeme {{payable}} · Tahsilat {{receivable}}",
+      "marketplacePayout": "{{amount}} pazaryeri hakedişi{{estimated}}",
+      "estimatedSuffix": " (tahmini)"
     },
     "mkt": {
       "todayOrders": "Bugünkü sipariş",

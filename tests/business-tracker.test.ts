@@ -749,7 +749,7 @@ describe('Mentor işletme özeti', () => {
       expect(metin).not.toContain('GIZLI')
       expect(metin).not.toContain('Sozlesmesi')
       /* Sayılar boş şablonla değil, GERÇEK hesapla gidiyor:
-         alanın TEK kaydı 777,55 TL -- toplam da tam olarak o. */
+         alanın TEK kaydı 777,55 TL ve vadesi geçmiş; "Geciken ödeme" satırında görünür. */
       expect(metin).toContain('777,55')
       expect(metin).toContain('- Açık kayıt: 1')
       expect(metin).toContain('- Vadesi geçmiş: 1')

@@ -2224,6 +2224,11 @@ model IntegrationConnection {
   // NULL = vade yazilmaz. Kayit yine olusur ve Kayitlar'da gorunur,
   // ama takvime ve 30 gunluk tahsilat toplamina girmez.
   payoutDelayDays         Int?
+  // Ortalama komisyon yuzdesi (kullanicinin bilgisi). Saglayici siparis
+  // API'sinde komisyon TUTARINI vermediginde beklenen hakedis bu oranla
+  // dusulur ve ekranda "tahmini" isaretlenir. NULL = 0 kabul edilir ve
+  // yine "tahmini" gorunur; oran uydurulmaz (15.09.2026).
+  avgCommissionPercent    Decimal?                    @db.Decimal(5, 2)
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt
 

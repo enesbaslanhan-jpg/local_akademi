@@ -208,6 +208,12 @@ export default function Overview() {
    * kendi KPI şeridinde görünüyor, gecikme ise artık tutar kutusunda.
    */
   const overdueCount = summary?.counts.overdue ?? 0
+  /* Geciken yön yön (15.09.2026): `overdueTotals.amount` borç+alacağı
+     topluyordu — ₺128.000 "geciken" yazıyor ama kaçı bizim ödememiz,
+     kaçı bize borç belli olmuyordu. Yeni alan yoksa eskisine düşer. */
+  const gecikenBorc = summary?.overdueSplit?.payable?.amount
+  const gecikenAlacak = summary?.overdueSplit?.receivable?.amount
+  const hakedis30 = summary?.plan30?.hakedis?.net?.amount ?? 0
 
   return (
     <section className={styles.overviewPage}>
@@ -231,8 +237,8 @@ export default function Overview() {
         */}
       <section className={`${styles.statusBand} ${styles.mktBand}`} aria-label={t('workspace:overview.title')}>
         <article><span>{t('workspace:overview.band.weekPayable')}</span><strong>{loading || !summary ? '—' : money(summary.thisWeek?.payable ?? 0)}</strong><small>{t('workspace:overview.band.records', { count: summary?.thisWeek?.payableCount ?? 0 })}</small></article>
-        <article><span>{t('workspace:overview.band.weekReceivable')}</span><strong>{loading || !summary ? '—' : money(summary.thisWeek?.receivable ?? 0)}</strong><small>{t('workspace:overview.band.records', { count: summary?.thisWeek?.receivableCount ?? 0 })}</small></article>
-        <article><span>{t('workspace:overview.band.overdueAmount')}</span><strong className={overdueCount > 0 ? styles.statusCritical : undefined}>{loading || !summary ? '—' : money(summary.overdueTotals?.amount ?? 0)}</strong><small>{overdueCount > 0 ? t('workspace:overview.band.overdueRecords', { count: overdueCount }) : t('workspace:overview.band.noOverdue')}</small></article>
+        <article><span>{t('workspace:overview.band.weekReceivable')}</span><strong>{loading || !summary ? '—' : money(summary.thisWeek?.receivable ?? 0)}</strong><small>{hakedis30 > 0 ? t('workspace:overview.band.marketplacePayout', { amount: money(hakedis30), estimated: summary?.plan30?.estimated ? t('workspace:overview.band.estimatedSuffix') : '' }) : t('workspace:overview.band.records', { count: summary?.thisWeek?.receivableCount ?? 0 })}</small></article>
+        <article><span>{t('workspace:overview.band.overdueAmount')}</span><strong className={overdueCount > 0 ? styles.statusCritical : undefined}>{loading || !summary ? '—' : money(summary.overdueTotals?.amount ?? 0)}</strong><small>{overdueCount > 0 && gecikenBorc !== undefined ? t('workspace:overview.band.overdueSplit', { payable: money(gecikenBorc), receivable: money(gecikenAlacak ?? 0) }) : overdueCount > 0 ? t('workspace:overview.band.overdueRecords', { count: overdueCount }) : t('workspace:overview.band.noOverdue')}</small></article>
         <Link to={`/app/workspaces/${workspaceId}/accounts`} className={styles.bantKarti}><span>{t('workspace:overview.band.cashToday')}</span><strong>{loading || !summary ? '—' : !summary.cash ? '—' : summary.cash.total === null ? t('workspace:overview.band.accounts', { count: summary.cash.accountCount }) : formatCurrency(summary.cash.total, { locale: formatLocale, currency: summary.cash.currency })}</strong><small>{!summary?.cash ? t('workspace:overview.band.noAccount') : t('workspace:overview.band.accounts', { count: summary.cash.accountCount })}</small></Link>
         <VergiSgkKarti />
       </section>

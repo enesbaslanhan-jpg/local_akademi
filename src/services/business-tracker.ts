@@ -7,6 +7,8 @@ import { atamaBildirimi, processDueBusinessReminders, syncAutomaticReminder } fr
 import { buildDocumentSuggestion, oneriKaydet } from './document-suggestions.js'
 import { yuklemeYoluCoz, exceljsYukle } from './documents.js'
 import { hesapBakiyeleri, kasaToplami } from './kasa-bakiye.js'
+import { donemOzetleri } from './tracker-periods.js'
+import { istDayKey } from '../lib/istanbul-time.js'
 
 /*
  * İNDİRME BAŞLIĞI — dosya adı kullanıcının verdiği ad olmalı.
@@ -357,11 +359,23 @@ export async function trackerOzetiHesapla(prisma: PrismaClient, workspaceId: str
     include: { contact: { select: { id: true, name: true } } }
   })
 
+  /*
+   * 🔴 30 GÜN = [ŞİMDİ, ŞİMDİ+30] — GECİKEN ARTIK DIŞARIDA (15.09.2026).
+   * Alt sınır yoktu; yıllar önce vadesi geçmiş bir kayıt "önümüzdeki 30
+   * gün"e giriyordu. Geciken kendi alanında (overdueTotals / plan.overdue).
+   *
+   * ⚠️ Para birimi: yalnız işletme para birimindeki kayıtlar toplanır;
+   * diğerleri `otherCurrencies`te. 1.000 USD + 1.000 TRY = 2.000 yazıyordu.
+   */
+  const donemler = await donemOzetleri(prisma, workspaceId, now)
+  const donem = donemler.today
+  const paraBirimi = donem.currency
+  const isletmeParasi = (r: { currency: string }) => (r.currency || paraBirimi).toUpperCase() === paraBirimi
   const payable = records
-    .filter(r => r.direction === 'payable' && r.dueAt && r.dueAt <= nextThirtyDays)
+    .filter(r => isletmeParasi(r) && r.direction === 'payable' && r.dueAt && r.dueAt >= now && r.dueAt <= nextThirtyDays)
     .reduce((sum, r) => sum + Number(r.amount ?? 0), 0)
   const receivable = records
-    .filter(r => r.direction === 'receivable' && r.dueAt && r.dueAt <= nextThirtyDays)
+    .filter(r => isletmeParasi(r) && r.direction === 'receivable' && r.dueAt && r.dueAt >= now && r.dueAt <= nextThirtyDays)
     .reduce((sum, r) => sum + Number(r.amount ?? 0), 0)
 
   /*
@@ -396,7 +410,7 @@ export async function trackerOzetiHesapla(prisma: PrismaClient, workspaceId: str
   const buHafta = records.filter(r => r.dueAt && r.dueAt >= now && r.dueAt <= haftaSonu)
   const gecikenler = records.filter(r => r.dueAt && r.dueAt < now)
   const topla = (liste: typeof records, yon: string) =>
-    liste.filter(r => r.direction === yon).reduce((s, r) => s + Number(r.amount ?? 0), 0)
+    liste.filter(r => isletmeParasi(r) && r.direction === yon).reduce((s, r) => s + Number(r.amount ?? 0), 0)
 
   const hesaplar = await hesapBakiyeleri(prisma, workspaceId)
 
@@ -418,12 +432,32 @@ export async function trackerOzetiHesapla(prisma: PrismaClient, workspaceId: str
     counts: {
       open: records.length,
       overdue: records.filter(r => r.dueAt && r.dueAt < now && r.status !== 'completed').length,
-      dueToday: records.filter(r => r.dueAt && r.dueAt.toDateString() === now.toDateString()).length,
+      /* İstanbul günü; sunucunun yerel günü değil (UTC sunucuda gece 03:00'a kadar "dün"dü). */
+      dueToday: records.filter(r => r.dueAt && istDayKey(r.dueAt) === istDayKey(now)).length,
       shipments: records.filter(r => r.type === 'shipment').length,
       deferred: records.filter(r => r.status === 'deferred' || r.type === 'deferred').length,
       awaitingDirection: yonBekleyenler.length
     },
+    /** @deprecated `plan30` kullan — aynı pencere, hakediş ve para birimi kırılımı dahil. */
     nextThirtyDays: { payable, receivable, net: receivable - payable },
+    /*
+     * YENİ ALANLAR (15.09.2026) — ekleme, şekil değiştirmeden. Kurulu mobil
+     * sürümler bilmedikleri alanları yok sayar.
+     *  currency        : toplamların para birimi (işletme)
+     *  plan30          : 30 gün planı; kayıtlar + beklenen pazaryeri hakedişi
+     *  overdueSplit    : geciken, yön yön (overdueTotals ikisini topluyor)
+     *  periods         : bugün / bu hafta / bu ay gerçekleşen (tahsil, ödeme, pazaryeri, iade)
+     *  marketplace     : plandaki hakedişin sağlayıcı kırılımı ve "tahmini" bayrağı
+     */
+    currency: paraBirimi,
+    plan30: donem.plan,
+    overdueSplit: donem.overdue,
+    periods: {
+      today: { ...donem.gerceklesen, range: donem.period },
+      week: { ...donemler.week.gerceklesen, range: donemler.week.period },
+      month: { ...donemler.month.gerceklesen, range: donemler.month.period }
+    },
+    marketplace: donem.plan.hakedis,
     awaitingDirection: {
       count: yonBekleyenler.length,
       amount: yonBekleyenler.reduce((sum, r) => sum + Number(r.amount ?? 0), 0)

@@ -17,7 +17,11 @@
   "positive": "Positive",
   "setupBusiness": "Set up business",
   "loadError": "Home could not be loaded",
-  "priority": { "low": "Low", "medium": "Medium", "high": "High" },
+  "priority": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High"
+  },
   "marketplace": "Marketplace",
   "learning": "Learning",
   "record": "Record",
@@ -76,5 +80,11 @@
     "headlinePlanning": "A cash plan is needed for the next 30 days.",
     "headlineBalanced": "Current records show no overdue items or net cash deficit.",
     "headlineSetup": "Start by setting up your business view."
+  },
+  "plan": {
+    "dueWithin30": "due within 30 days",
+    "withMarketplace": "incl. {{amount}} marketplace payout{{estimated}}",
+    "estimatedSuffix": " (estimated)",
+    "plusOverdue": "within 30 days · plus {{amount}} overdue"
   }
 }

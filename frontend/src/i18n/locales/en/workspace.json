@@ -207,7 +207,10 @@
       "awaitingDirection": "{{count}} records have no direction (payable/receivable) yet — complete them in Records.",
       "taxSsi": "Tax / SSI · 30 days",
       "taxNoProfile": "Tax profile in settings",
-      "taxConfirm": "Confirm with the tax office"
+      "taxConfirm": "Confirm with the tax office",
+      "overdueSplit": "Payable {{payable}} · Receivable {{receivable}}",
+      "marketplacePayout": "{{amount}} marketplace payout{{estimated}}",
+      "estimatedSuffix": " (estimated)"
     },
     "mkt": {
       "todayOrders": "Today's orders",

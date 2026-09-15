@@ -17,7 +17,11 @@
   "positive": "Olumlu",
   "setupBusiness": "İşletmeyi kur",
   "loadError": "Ana sayfa yüklenemedi",
-  "priority": { "low": "Düşük", "medium": "Orta", "high": "Yüksek" },
+  "priority": {
+    "low": "Düşük",
+    "medium": "Orta",
+    "high": "Yüksek"
+  },
   "marketplace": "Pazaryeri",
   "learning": "Öğrenme",
   "record": "Kayıt",
@@ -68,13 +72,19 @@
     "headlineLoading": "İşletme kayıtları kontrol ediliyor.",
     "headlineUnavailable": "İşletme durumu şu anda değerlendirilemiyor.",
     "unavailableHint": "Kayıtlar yüklenmeden nakit durumu hakkında değerlendirme yapılamaz.",
-    "cashDeficit": "önümüzdeki 30 günde {{amount}} nakit açığın görünüyor",
-    "cashPositive": "önümüzdeki 30 günde {{amount}} net nakit girişin görünüyor",
+    "cashDeficit": "30 gün içinde {{amount}} nakit açığın görünüyor",
+    "cashPositive": "30 gün içinde {{amount}} net nakit girişin görünüyor",
     "overdueRecords": "{{count}} kayıt gecikmiş durumda",
     "noOverdue": "geciken kaydın yok",
     "headlineIssues": "{{count}} konu dikkat istiyor.",
     "headlinePlanning": "Önümüzdeki 30 gün için nakit planı gerekiyor.",
     "headlineBalanced": "Mevcut kayıtlarda gecikme veya net nakit açığı görünmüyor.",
     "headlineSetup": "İşletme görünümünüzü kurarak başlayın."
+  },
+  "plan": {
+    "dueWithin30": "30 gün içinde vadesi gelen",
+    "withMarketplace": "{{amount}} pazaryeri hakedişi dahil{{estimated}}",
+    "estimatedSuffix": " (tahmini)",
+    "plusOverdue": "30 gün içinde · ayrıca {{amount}} gecikmiş"
   }
 }
