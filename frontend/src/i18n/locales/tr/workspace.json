@@ -14,7 +14,8 @@
     "team": "Ekip",
     "contacts": "Kişiler",
     "activity": "Aktiviteler",
-    "settings": "Ayarlar"
+    "settings": "Ayarlar",
+    "report": "Rapor"
   },
   "layout": {
     "allBusinesses": "Tüm İşletmeler",
@@ -210,7 +211,9 @@
       "taxConfirm": "GİB / SGK’dan teyit edin",
       "overdueSplit": "Ödeme {{payable}} · Tahsilat {{receivable}}",
       "marketplacePayout": "{{amount}} pazaryeri hakedişi{{estimated}}",
-      "estimatedSuffix": " (tahmini)"
+      "estimatedSuffix": " (tahmini)",
+      "planPayable": "30 gün içinde ödenecek",
+      "planReceivable": "30 gün içinde tahsil edilecek"
     },
     "mkt": {
       "todayOrders": "Bugünkü sipariş",
@@ -272,6 +275,10 @@
         "currency": "Para birimi",
         "employees": "Çalışan"
       }
+    },
+    "realized": {
+      "title": "Gerçekleşen",
+      "report": "Rapor"
     }
   },
   "tracker": {
@@ -920,5 +927,35 @@
     "statement": "Ekstre",
     "statementLoading": "Hazırlanıyor…",
     "statementError": "Ekstre indirilemedi."
+  },
+  "report": {
+    "title": "Rapor",
+    "subtitle": "Seçilen dönemde gerçekleşen tahsilat, ödeme ve pazaryeri satışı. Genel Bakış ile aynı tanımlar.",
+    "periodAria": "Dönem seçimi",
+    "period": {
+      "today": "Bugün",
+      "week": "Bu hafta",
+      "month": "Bu ay",
+      "custom": "Özel aralık"
+    },
+    "from": "Başlangıç",
+    "to": "Bitiş",
+    "day": "Gün",
+    "weekOf": "Hafta (Pzt)",
+    "rows": {
+      "collected": "Tahsil edilen",
+      "paid": "Ödenen",
+      "marketplaceGross": "Pazaryeri satışı",
+      "marketplaceNet": "Pazaryeri net",
+      "returns": "İade",
+      "net": "Net"
+    },
+    "recordCount": "{{count}} kayıt",
+    "orderCount": "{{count}} sipariş",
+    "netHint": "Tahsilat − ödeme + pazaryeri net",
+    "alsoOther": "(+ {{list}} ayrıca)",
+    "estimated": "Tahmini",
+    "estimatedHint": "Pazaryeri ödeme süresi veya komisyon oranı ayarlarda girilmemiş; sağlayıcı varsayılanı kullanıldı.",
+    "fixInSettings": "Ayarlardan düzelt"
   }
 }

@@ -155,3 +155,42 @@ describe('dönem özeti', () => {
     expect(oz.plan.estimated).toBe(false)
   })
 })
+
+describe('dönem raporu satırları', () => {
+  it('≤31 gün → günlük; boş günler de satır; toplamlar satırlarla tutar', async () => {
+    const { raporuKur } = await import('../src/services/tracker-periods')
+    const now = D('2026-09-15T10:00:00Z')
+    const r = raporuKur({
+      aralik: periodRange('month', now), paraBirimi: 'TRY', now,
+      baglantilar: new Map([['TRENDYOL', { provider: 'TRENDYOL', payoutDelayDays: 10, avgCommissionPercent: null }]]),
+      gerceklesen: [
+        { direction: 'payable', amount: 4400, currency: 'TRY', settlementAt: null, completedAt: D('2026-09-03T09:00:00Z') },
+        { direction: 'receivable', amount: 100, currency: 'USD', settlementAt: null, completedAt: D('2026-09-03T09:00:00Z') } // satıra girmez
+      ],
+      siparisler: [
+        { provider: 'TRENDYOL', status: 'DELIVERED', orderDate: D('2026-09-10T15:00:00Z'), currency: 'TRY', grossAmount: 1000, commissionAmount: 200, shippingAmount: 50 },
+        { provider: 'TRENDYOL', status: 'RETURNED', orderDate: D('2026-09-10T16:00:00Z'), currency: 'TRY', grossAmount: 300, commissionAmount: 60, shippingAmount: 50 }
+      ]
+    })
+    expect(r.granularity).toBe('day')
+    expect(r.rows.length).toBe(30) // Eylül
+    const g3 = r.rows.find(x => x.key === '2026-09-03')!
+    expect(g3.odeme).toBe(4400); expect(g3.tahsilat).toBe(0)
+    const g10 = r.rows.find(x => x.key === '2026-09-10')!
+    expect(g10.siparisSayisi).toBe(2); expect(g10.pazaryeriNet).toBe(750); expect(g10.iade).toBe(300)
+    expect(r.totals.net).toBe(750 - 4400)
+    expect(r.rows.reduce((a, x) => a + x.net, 0)).toBeCloseTo(r.totals.net, 2)
+    expect(r.totals.tahsilat.otherCurrencies).toEqual([{ currency: 'USD', amount: 100, count: 1 }])
+  })
+
+  it('>31 gün → haftalık, Pazartesi anahtarlı', async () => {
+    const { raporuKur } = await import('../src/services/tracker-periods')
+    const r = raporuKur({
+      aralik: customRange('2026-07-01', '2026-09-15'), paraBirimi: 'TRY', now: D('2026-09-15T10:00:00Z'),
+      baglantilar: new Map(), gerceklesen: [], siparisler: []
+    })
+    expect(r.granularity).toBe('week')
+    expect(r.rows[0].key).toBe('2026-06-29') // 1 Temmuz Çarşamba → haftanın Pazartesisi
+    expect(r.rows[r.rows.length - 1].key).toBe('2026-09-14')
+  })
+})

@@ -49,6 +49,7 @@ const WorkspaceNotifications = lazy(() => import('@/pages/Workspaces/Notificatio
 const WorkspaceTeam = lazy(() => import('@/pages/Workspaces/Team'))
 const WorkspaceContacts = lazy(() => import('@/pages/Workspaces/Contacts'))
 const WorkspaceKararRaporu = lazy(() => import('@/pages/Workspaces/KararRaporu'))
+const WorkspaceRapor = lazy(() => import('@/pages/Workspaces/Rapor'))
 const WorkspaceSettings = lazy(() => import('@/pages/Workspaces/Settings'))
 const WorkspaceActivity = lazy(() => import('@/pages/Workspaces/Activity'))
 const WorkspaceFinance = lazy(() => import('@/pages/Workspaces/Finance'))
@@ -193,6 +194,7 @@ export default function AppRoutes() {
               <Route path="documents" element={<SuspenseWrapper><WorkspaceDocuments /></SuspenseWrapper>} />
               <Route path="notifications" element={<SuspenseWrapper><WorkspaceNotifications /></SuspenseWrapper>} />
               <Route path="decisions" element={<SuspenseWrapper><WorkspaceKararRaporu /></SuspenseWrapper>} />
+              <Route path="report" element={<SuspenseWrapper><WorkspaceRapor /></SuspenseWrapper>} />
               <Route path="team" element={<SuspenseWrapper><WorkspaceTeam /></SuspenseWrapper>} />
               <Route path="contacts" element={<SuspenseWrapper><WorkspaceContacts /></SuspenseWrapper>} />
               <Route path="settings" element={<SuspenseWrapper><WorkspaceSettings /></SuspenseWrapper>} />

@@ -15,7 +15,7 @@ import type { Prisma, PrismaClient } from '@prisma/client'
 import { z } from 'zod'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { access } from './business-tracker.js'
-import { paraKovala } from './tracker-periods.js'
+import { paraKovala, donemRaporu } from './tracker-periods.js'
 import { istDayKey } from '../lib/istanbul-time.js'
 import { cariBakiye, listeBakiyesi } from './cari-hesap.js'
 import {
@@ -26,7 +26,10 @@ import {
   RECORD_STATUS_LABELS,
   type ExportRecord,
   type ExportMeta,
-  type ExportSummary
+  type ExportSummary,
+  keyValueToXlsx,
+  keyValueToPdf,
+  type KeyValueSection
 } from './report-formats.js'
 
 const RECORD_TYPES = [
@@ -240,6 +243,80 @@ export async function workspaceExportRoutes(
       .header('Cache-Control', 'no-store')
       .header('X-Export-Row-Count', String(records.length))
       .header('X-Export-Truncated', records.length >= MAX_EXPORT_ROWS ? 'true' : 'false')
+      .send(body)
+  })
+
+  /*
+   * DÖNEM RAPORU (xlsx | pdf) — Faz 2, 15.09.2026.
+   *
+   * Rapor sayfasındaki tablo ile aynı hesap (`donemRaporu`); dosya
+   * yalnız onun biçimlendirilmiş hâli. Özet bölümü + satır tablosu.
+   * Para birimi dışındakiler "ayrıca" ile; kur çevrimi yok.
+   */
+  fastify.get('/:workspaceId/exports/report.:fmt', async (request, reply) => {
+    const user = request.user as { id: number; name?: string; email: string }
+    const { workspaceId, fmt } = request.params as { workspaceId: string; fmt: string }
+    const format = fmt.toLowerCase()
+    if (format !== 'xlsx' && format !== 'pdf') return reply.status(422).send({ error: 'Format xlsx veya pdf olmalı' })
+    const member = await access(prisma, user.id, workspaceId, reply)
+    if (!member) return
+    const q = request.query as Record<string, string | undefined>
+    const tarih = /^\d{4}-\d{2}-\d{2}$/
+    const secim = q.period && ['today', 'week', 'month'].includes(q.period)
+      ? { period: q.period as 'today' | 'week' | 'month' }
+      : q.from && q.to && tarih.test(q.from) && tarih.test(q.to) && q.from <= q.to
+        ? { from: q.from, to: q.to }
+        : null
+    if (!secim) return reply.status(422).send({ error: 'period=today|week|month ya da from/to (YYYY-MM-DD) gerekir' })
+
+    const workspace = await prisma.businessWorkspace.findUnique({ where: { id: workspaceId }, select: { name: true } })
+    if (!workspace) return reply.status(404).send({ error: 'İşletme bulunamadı' })
+    const rapor = await donemRaporu(prisma, workspaceId, secim)
+
+    const tl = (n: number) => n.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + rapor.currency
+    const gun = (iso: string) => new Date(iso).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' })
+    const ayrica = (p: { otherCurrencies: Array<{ currency: string; amount: number }> }) =>
+      p.otherCurrencies.length ? ' (+ ' + p.otherCurrencies.map(o => o.amount.toLocaleString('tr-TR') + ' ' + o.currency).join(', ') + ' ayrıca)' : ''
+    const t = rapor.totals
+    const donemEtiketi = ({ today: 'Bugün', week: 'Bu hafta', month: 'Bu ay', custom: 'Özel aralık' } as Record<string, string>)[rapor.period.key]
+    const sonGun = gun(new Date(new Date(rapor.period.to).getTime() - 1).toISOString())
+    const sections: KeyValueSection[] = [
+      {
+        heading: donemEtiketi + ': ' + gun(rapor.period.from) + ' – ' + sonGun,
+        rows: [
+          ['Tahsil edilen', tl(t.tahsilat.amount) + ayrica(t.tahsilat)],
+          ['Ödenen', tl(t.odeme.amount) + ayrica(t.odeme)],
+          ['Pazaryeri satışı (brüt)', tl(t.pazaryeriBrut.amount) + ayrica(t.pazaryeriBrut)],
+          ['Pazaryeri net katkı', tl(t.pazaryeriNet.amount) + (rapor.estimated ? ' (tahmini)' : '')],
+          ['İade', tl(t.iade.amount)],
+          ['Net', tl(t.net)],
+          ['Sipariş sayısı', t.siparisSayisi]
+        ]
+      },
+      {
+        heading: rapor.granularity === 'day' ? 'Günlük dağılım' : 'Haftalık dağılım (Pazartesi başlangıç)',
+        rows: rapor.rows.map(r => [gun(r.from), 'Tahsilat ' + tl(r.tahsilat) + ' · Ödeme ' + tl(r.odeme) + ' · Pazaryeri ' + tl(r.pazaryeriNet) + ' · Net ' + tl(r.net)] as [string, string])
+      }
+    ]
+    if (rapor.estimated) {
+      sections.push({ heading: 'Not', rows: [['Tahmini', 'Pazaryeri ödeme süresi veya komisyon oranı ayarlarda girilmediği için sağlayıcı varsayılanı kullanıldı. Ayarlar → Entegrasyonlar bölümünden düzeltilebilir.']] })
+    }
+    const baslik = workspace.name + ' — Dönem raporu'
+    const body = format === 'xlsx' ? await keyValueToXlsx(baslik, sections) : await keyValueToPdf(baslik, sections)
+    const stamp = new Date().toISOString().slice(0, 10)
+    const filename = safeFileSlug(workspace.name) + '-rapor-' + rapor.period.key + '-' + stamp + '.' + format
+    try {
+      await prisma.generatedReport.create({
+        data: { userId: user.id, reportType: 'workspace_period_report:' + workspaceId, title: workspace.name + ' — dönem raporu (' + donemEtiketi + ')', format, storedName: filename }
+      })
+    } catch (err) {
+      fastify.log.warn({ err, workspaceId }, 'dönem raporu denetim kaydı yazılamadı')
+    }
+    return reply
+      .header('Content-Type', MEDIA_TYPES[format as 'xlsx' | 'pdf'])
+      .header('Content-Disposition', 'attachment; filename="' + filename + '"')
+      .header('Content-Length', body.length)
+      .header('Cache-Control', 'no-store')
       .send(body)
   })
 

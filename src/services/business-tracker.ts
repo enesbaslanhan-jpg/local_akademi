@@ -7,7 +7,7 @@ import { atamaBildirimi, processDueBusinessReminders, syncAutomaticReminder } fr
 import { buildDocumentSuggestion, oneriKaydet } from './document-suggestions.js'
 import { yuklemeYoluCoz, exceljsYukle } from './documents.js'
 import { hesapBakiyeleri, kasaToplami } from './kasa-bakiye.js'
-import { donemOzetleri } from './tracker-periods.js'
+import { donemOzetleri, donemOzeti, donemRaporu } from './tracker-periods.js'
 import { istDayKey } from '../lib/istanbul-time.js'
 
 /*
@@ -651,6 +651,41 @@ export async function businessTrackerRoutes(
     /* Hesap tek kaynakta: `trackerOzetiHesapla` (mentor bağlamı da onu
        kullanıyor; iki kopya ayrışırsa ekran ile mentor çelişirdi). */
     return trackerOzetiHesapla(prisma, workspaceId)
+  })
+
+  /*
+   * DÖNEM ÖZETİ VE RAPOR (Faz 2, 15.09.2026).
+   *
+   * ?period=today|week|month  → İstanbul takvimi
+   * ?from=YYYY-MM-DD&to=YYYY-MM-DD → özel aralık (to dahil)
+   * Tanımlar tracker-periods.ts'te; Genel Bakış, Rapor sayfası ve mobil
+   * aynı ucu okur, aynı sayıyı görür.
+   */
+  const donemSorgusu = z.union([
+    z.object({ period: z.enum(['today', 'week', 'month']) }),
+    z.object({ from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) })
+  ])
+  const donemSec = (query: unknown, reply: any) => {
+    const parsed = donemSorgusu.safeParse(query)
+    if (!parsed.success) { reply.status(422).send({ error: 'period=today|week|month ya da from/to (YYYY-MM-DD) gerekir' }); return null }
+    if ('from' in parsed.data && parsed.data.from > parsed.data.to) { reply.status(422).send({ error: 'Başlangıç bitişten sonra olamaz' }); return null }
+    return parsed.data
+  }
+
+  fastify.get('/:workspaceId/tracker/period', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId } = request.params as { workspaceId: string }
+    if (!await access(prisma, user.id, workspaceId, reply)) return
+    const secim = donemSec(request.query, reply); if (!secim) return
+    return donemOzeti(prisma, workspaceId, secim)
+  })
+
+  fastify.get('/:workspaceId/tracker/report', async (request, reply) => {
+    const user = request.user as { id: number }
+    const { workspaceId } = request.params as { workspaceId: string }
+    if (!await access(prisma, user.id, workspaceId, reply)) return
+    const secim = donemSec(request.query, reply); if (!secim) return
+    return donemRaporu(prisma, workspaceId, secim)
   })
 
   fastify.get('/:workspaceId/tracker/calendar', async (request, reply) => {

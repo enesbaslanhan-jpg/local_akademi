@@ -5,7 +5,9 @@ import {
   addDays,
   customRange,
   periodRange,
-  startOfDayIst
+  startOfDayIst,
+  startOfWeekIst,
+  istDayKey
 } from '../lib/istanbul-time.js'
 
 /*
@@ -434,4 +436,128 @@ export async function donemOzetleri(
     sonuc[key] = donemOzetiniKur({ aralik: a, paraBirimi, gerceklesen: donemdeki, acik, siparisler, baglantilar: b, now })
   }
   return sonuc
+}
+
+/* ---------- Rapor: dönem satırları ---------- */
+
+export type RaporSatiri = {
+  /** 'YYYY-MM-DD' (gün) ya da haftanın Pazartesi günü. */
+  key: string
+  from: string
+  to: string
+  tahsilat: number
+  odeme: number
+  pazaryeriBrut: number
+  pazaryeriNet: number
+  iade: number
+  /** tahsilat − odeme + pazaryeriNet. */
+  net: number
+  siparisSayisi: number
+}
+
+export type RaporOzeti = {
+  period: DonemOzeti['period']
+  currency: string
+  /** 'day' ≤ 31 gün, üstü 'week'. */
+  granularity: 'day' | 'week'
+  rows: RaporSatiri[]
+  totals: GerceklesenOzeti
+  /** Aralık dışı ama bilgi için: raporun kapsadığı sipariş/kayıt sayısı. */
+  estimated: boolean
+  estimatedReasons: TahminSebebi[]
+}
+
+/**
+ * Dönem raporu: aralık ≤ 31 gün ise gün, değilse hafta (Pzt) satırları.
+ * Tanımlar `donemOzetiniKur` ile aynı; satırlar bellekte kovalanır.
+ * Yalnız işletme para birimi satırlara girer (diğerleri toplamlarda
+ * "ayrıca" listesinde).
+ */
+export async function donemRaporu(
+  prisma: PrismaClient,
+  workspaceId: string,
+  secim: { period: DonemAnahtari } | { from: string; to: string },
+  now = new Date()
+): Promise<RaporOzeti> {
+  const aralik = 'period' in secim ? periodRange(secim.period, now) : customRange(secim.from, secim.to)
+  const ws = await prisma.businessWorkspace.findUnique({ where: { id: workspaceId }, select: { currency: true } })
+  const paraBirimi = (ws?.currency || 'TRY').toUpperCase()
+  const b = await baglantilar(prisma, workspaceId)
+  const [gerceklesen, siparisler] = await Promise.all([
+    prisma.businessRecord.findMany({
+      where: gerceklesenKayitWhere(workspaceId, aralik.from, aralik.to, now),
+      select: { direction: true, amount: true, currency: true, settlementAt: true, completedAt: true }
+    }),
+    prisma.marketplaceOrder.findMany({
+      where: { workspaceId, status: { not: 'CANCELLED' }, orderDate: { gte: aralik.from, lt: aralik.to } },
+      select: { provider: true, status: true, orderDate: true, currency: true, grossAmount: true, discountAmount: true, commissionAmount: true, shippingAmount: true, refundAmount: true }
+    })
+  ])
+  return raporuKur({ aralik, paraBirimi, gerceklesen, siparisler, baglantilar: b, now })
+}
+
+export function raporuKur(g: {
+  aralik: DonemAraligi
+  paraBirimi: string
+  gerceklesen: Array<{ direction: string; amount: Prisma.Decimal | number | null; currency: string; settlementAt: Date | null; completedAt: Date | null }>
+  siparisler: HakedisSiparisi[]
+  baglantilar: Map<string, HakedisBaglantisi>
+  now: Date
+}): RaporOzeti {
+  const { aralik, paraBirimi } = g
+  const gunSayisi = Math.round((aralik.to.getTime() - aralik.from.getTime()) / 86400_000)
+  const granularity: 'day' | 'week' = gunSayisi <= 31 ? 'day' : 'week'
+  const kovaBasi = (d: Date) => granularity === 'day' ? startOfDayIst(d) : startOfWeekIst(d)
+  const kovaSonu = (d: Date) => addDays(d, granularity === 'day' ? 1 : 7)
+
+  // Kovaları aralık üzerinde önceden aç ki boş günler de satır olsun.
+  const kovalar = new Map<string, RaporSatiri>()
+  for (let t = kovaBasi(aralik.from); t < aralik.to; t = kovaSonu(t)) {
+    kovalar.set(istDayKey(t), {
+      key: istDayKey(t), from: t.toISOString(), to: kovaSonu(t).toISOString(),
+      tahsilat: 0, odeme: 0, pazaryeriBrut: 0, pazaryeriNet: 0, iade: 0, net: 0, siparisSayisi: 0
+    })
+  }
+  const kova = (d: Date) => kovalar.get(istDayKey(kovaBasi(d)))
+  const anaPara = (c: string | null | undefined) => (c || paraBirimi).toUpperCase() === paraBirimi
+
+  for (const r of g.gerceklesen) {
+    const t = r.settlementAt ?? r.completedAt
+    if (!t || !anaPara(r.currency) || r.amount === null) continue
+    const k = kova(t); if (!k) continue
+    const tutar = Number(r.amount)
+    if (r.direction === 'receivable') k.tahsilat += tutar
+    else if (r.direction === 'payable') k.odeme += tutar
+  }
+  const satirlar = g.siparisler
+    .map(o => hakedisSatiri(o, g.baglantilar.get(o.provider.toUpperCase())))
+    .filter((s): s is HakedisSatiri => s !== null)
+  for (const s of satirlar) {
+    const k = kova(s.orderDate); if (!k) continue
+    k.siparisSayisi += 1
+    if (!anaPara(s.currency)) continue
+    k.pazaryeriBrut += Number(s.gross); k.pazaryeriNet += Number(s.net); k.iade += Number(s.refund)
+  }
+  const yuvarlaSayi = (n: number) => Math.round(n * 100) / 100
+  const rows = [...kovalar.values()].map(k => ({
+    ...k,
+    tahsilat: yuvarlaSayi(k.tahsilat), odeme: yuvarlaSayi(k.odeme),
+    pazaryeriBrut: yuvarlaSayi(k.pazaryeriBrut), pazaryeriNet: yuvarlaSayi(k.pazaryeriNet), iade: yuvarlaSayi(k.iade),
+    net: yuvarlaSayi(k.tahsilat - k.odeme + k.pazaryeriNet)
+  }))
+
+  const ozet = donemOzetiniKur({
+    aralik, paraBirimi, now: g.now, baglantilar: g.baglantilar, siparisler: g.siparisler, acik: [],
+    gerceklesen: g.gerceklesen.map(r => ({ direction: r.direction, amount: r.amount, currency: r.currency }))
+  })
+  const hak = hakedisOzeti(satirlar, paraBirimi)
+  return {
+    period: ozet.period,
+    currency: paraBirimi,
+    granularity,
+    rows,
+    totals: ozet.gerceklesen,
+    estimated: hak.estimated,
+    estimatedReasons: hak.estimatedReasons
+  }
 }

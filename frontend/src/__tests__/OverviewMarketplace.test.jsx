@@ -54,6 +54,20 @@ beforeEach(() => {
     /* Bant artık tutar söylüyor (11.09.2026); sunucu bu üç alanı da veriyor. */
     thisWeek: { payable: 1500, payableCount: 2, receivable: 300, receivableCount: 1 },
     overdueTotals: { amount: 7000, count: 3 },
+    /* 15.09.2026: bant 30 gün planını okur (hakediş dahil), geciken yön yön;
+       Gerçekleşen satırı periods'tan gelir. */
+    plan30: {
+      payable: { amount: 1500, currency: 'TRY', otherCurrencies: [] },
+      receivable: { amount: 300, currency: 'TRY', otherCurrencies: [] },
+      hakedis: { net: { amount: 700, currency: 'TRY', otherCurrencies: [] }, orderCount: 2, estimated: true },
+      net: -500, counts: { payable: 2, receivable: 1, hakedisOrders: 2 }, estimated: true, estimatedReasons: ['payoutDelay']
+    },
+    overdueSplit: { payable: { amount: 5000, currency: 'TRY', otherCurrencies: [] }, receivable: { amount: 2000, currency: 'TRY', otherCurrencies: [] }, count: 3 },
+    periods: {
+      today: { tahsilat: { amount: 0, currency: 'TRY', otherCurrencies: [] }, odeme: { amount: 0, currency: 'TRY', otherCurrencies: [] }, pazaryeriBrut: { amount: 0, currency: 'TRY', otherCurrencies: [] }, pazaryeriNet: { amount: 0, currency: 'TRY', otherCurrencies: [] }, iade: { amount: 0, currency: 'TRY', otherCurrencies: [] }, net: 0, kayitSayisi: { tahsilat: 0, odeme: 0 }, siparisSayisi: 0 },
+      week: { tahsilat: { amount: 900, currency: 'TRY', otherCurrencies: [{ currency: 'USD', amount: 100, count: 1 }] }, odeme: { amount: 400, currency: 'TRY', otherCurrencies: [] }, pazaryeriBrut: { amount: 2500, currency: 'TRY', otherCurrencies: [] }, pazaryeriNet: { amount: 2000, currency: 'TRY', otherCurrencies: [] }, iade: { amount: 300, currency: 'TRY', otherCurrencies: [] }, net: 2500, kayitSayisi: { tahsilat: 1, odeme: 1 }, siparisSayisi: 3 },
+      month: { tahsilat: { amount: 0, currency: 'TRY', otherCurrencies: [] }, odeme: { amount: 0, currency: 'TRY', otherCurrencies: [] }, pazaryeriBrut: { amount: 0, currency: 'TRY', otherCurrencies: [] }, pazaryeriNet: { amount: 0, currency: 'TRY', otherCurrencies: [] }, iade: { amount: 0, currency: 'TRY', otherCurrencies: [] }, net: 0, kayitSayisi: { tahsilat: 0, odeme: 0 }, siparisSayisi: 0 }
+    },
     cash: null
   })
   mocks.trackerList.mockResolvedValue({ records: [{ id: 'r1', title: 'Elektrik faturası', status: 'open', type: 'payment', dueAt: '2026-09-05' }] })
@@ -67,14 +81,22 @@ describe('Genel Bakış — pazaryeri bağlı değil', () => {
    * "3 geciken" karar verdirmez, "₺7.000 gecikmiş" verdirir. Kasa hesabı
    * yoksa "—": sıfır "kasa boş" demek olurdu.
    */
-  it('bant bu hafta, geciken tutarı ve kasayı gösterir', async () => {
+  it('bant 30 gün planı (hakediş dahil), geciken yön yön ve kasayı gösterir', async () => {
     mocks.marketplaceOperations.mockResolvedValue(null)
     renderOverview()
 
-    expect(await screen.findByText('Bu hafta ödenecek')).toBeInTheDocument()
+    expect(await screen.findByText('30 gün içinde ödenecek')).toBeInTheDocument()
     expect(screen.getByText('₺1.500,00')).toBeInTheDocument()
+    /* tahsilat 300 + hakediş 700 = 1.000; alt yazı hakedişi "tahmini" der */
+    expect(screen.getByText('₺1.000,00')).toBeInTheDocument()
+    expect(screen.getByText('₺700,00 pazaryeri hakedişi (tahmini)')).toBeInTheDocument()
     expect(screen.getByText('₺7.000,00')).toBeInTheDocument()
-    expect(screen.getByText('3 geciken kayıt')).toBeInTheDocument()
+    expect(screen.getByText('Ödeme ₺5.000,00 · Tahsilat ₺2.000,00')).toBeInTheDocument()
+    /* Gerçekleşen satırı varsayılan "Bu hafta": USD ayrıca, toplanmaz */
+    expect(screen.getByText('Gerçekleşen')).toBeInTheDocument()
+    expect(screen.getByText('₺900,00')).toBeInTheDocument()
+    expect(screen.getByText(/100 USD ayrıca/)).toBeInTheDocument()
+    expect(screen.getAllByText('₺2.500,00').length).toBeGreaterThan(0) // pazaryeri satışı ve net aynı tutar
     expect(screen.getByText('Hesap ekle')).toBeInTheDocument()
     expect(screen.queryByText('Pazaryeri Özeti')).not.toBeInTheDocument()
     expect(screen.queryByText('Bugünkü sipariş')).not.toBeInTheDocument()
@@ -104,7 +126,7 @@ describe('Genel Bakış — pazaryeri bağlı', () => {
     mocks.marketplaceOperations.mockResolvedValue(connectedOps())
     renderOverview()
 
-    expect(await screen.findByText('Bu hafta ödenecek')).toBeInTheDocument()
+    expect(await screen.findByText('30 gün içinde ödenecek')).toBeInTheDocument()
     // Marketplace istegi ana ozet isteklerinden bagimsiz tamamlanir. Yavas CI
     // makinesinde ilk bant gorunurken bu ikinci durum henuz render edilmemis
     // olabilir; gercek asenkron kullanici akisini bekle.
@@ -124,7 +146,7 @@ describe('Genel Bakış — pazaryeri bağlı', () => {
     renderOverview()
 
     expect((await screen.findAllByText('Bekleyen kargo')).length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('3 geciken kayıt')).toBeInTheDocument()
+    expect(screen.getByText('Ödeme ₺5.000,00 · Tahsilat ₺2.000,00')).toBeInTheDocument() // geciken yön yön (15.09.2026)
   })
 
   it('Pazaryeri Özeti kartı CTA ile doğru sayfaya derin bağlanır', async () => {

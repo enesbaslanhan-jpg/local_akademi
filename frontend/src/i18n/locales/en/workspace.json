@@ -14,7 +14,8 @@
     "team": "Team",
     "contacts": "Contacts",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "report": "Report"
   },
   "layout": {
     "allBusinesses": "All Businesses",
@@ -210,7 +211,9 @@
       "taxConfirm": "Confirm with the tax office",
       "overdueSplit": "Payable {{payable}} · Receivable {{receivable}}",
       "marketplacePayout": "{{amount}} marketplace payout{{estimated}}",
-      "estimatedSuffix": " (estimated)"
+      "estimatedSuffix": " (estimated)",
+      "planPayable": "Payable within 30 days",
+      "planReceivable": "Receivable within 30 days"
     },
     "mkt": {
       "todayOrders": "Today's orders",
@@ -272,6 +275,10 @@
         "currency": "Currency",
         "employees": "Employees"
       }
+    },
+    "realized": {
+      "title": "Realised",
+      "report": "Report"
     }
   },
   "tracker": {
@@ -920,5 +927,35 @@
     "statement": "Statement",
     "statementLoading": "Preparing…",
     "statementError": "Could not download the statement."
+  },
+  "report": {
+    "title": "Report",
+    "subtitle": "Collections, payments and marketplace sales realised in the selected period. Same definitions as Overview.",
+    "periodAria": "Period",
+    "period": {
+      "today": "Today",
+      "week": "This week",
+      "month": "This month",
+      "custom": "Custom range"
+    },
+    "from": "From",
+    "to": "To",
+    "day": "Day",
+    "weekOf": "Week of (Mon)",
+    "rows": {
+      "collected": "Collected",
+      "paid": "Paid",
+      "marketplaceGross": "Marketplace sales",
+      "marketplaceNet": "Marketplace net",
+      "returns": "Returns",
+      "net": "Net"
+    },
+    "recordCount": "{{count}} records",
+    "orderCount": "{{count}} orders",
+    "netHint": "Collected − paid + marketplace net",
+    "alsoOther": "(+ {{list}} separately)",
+    "estimated": "Estimated",
+    "estimatedHint": "Marketplace payout delay or commission rate is not set; provider default used.",
+    "fixInSettings": "Fix in settings"
   }
 }

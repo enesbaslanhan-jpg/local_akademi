@@ -207,6 +207,7 @@ export default function Overview() {
    * "Takip durumu" kutusu kaldırıldı: pazaryeri riskleri zaten bağlıyken
    * kendi KPI şeridinde görünüyor, gecikme ise artık tutar kutusunda.
    */
+  const [donem, setDonem] = useState('week')
   const overdueCount = summary?.counts.overdue ?? 0
   /* Geciken yön yön (15.09.2026): `overdueTotals.amount` borç+alacağı
      topluyordu — ₺128.000 "geciken" yazıyor ama kaçı bizim ödememiz,
@@ -236,12 +237,48 @@ export default function Overview() {
         * Yön bekleyen kayıt kutu değil; varsa listenin başında tek satır.
         */}
       <section className={`${styles.statusBand} ${styles.mktBand}`} aria-label={t('workspace:overview.title')}>
-        <article><span>{t('workspace:overview.band.weekPayable')}</span><strong>{loading || !summary ? '—' : money(summary.thisWeek?.payable ?? 0)}</strong><small>{t('workspace:overview.band.records', { count: summary?.thisWeek?.payableCount ?? 0 })}</small></article>
-        <article><span>{t('workspace:overview.band.weekReceivable')}</span><strong>{loading || !summary ? '—' : money(summary.thisWeek?.receivable ?? 0)}</strong><small>{hakedis30 > 0 ? t('workspace:overview.band.marketplacePayout', { amount: money(hakedis30), estimated: summary?.plan30?.estimated ? t('workspace:overview.band.estimatedSuffix') : '' }) : t('workspace:overview.band.records', { count: summary?.thisWeek?.receivableCount ?? 0 })}</small></article>
+        {/*
+          * PLAN (30 GÜN) — 15.09.2026. "Bu hafta" (kayan 7 gün) yerine
+          * Ana Sayfa ile aynı pencere: [şimdi, +30], geciken dışarıda,
+          * pazaryeri hakedişi tahsilata dahil. Sunucu alanı yoksa eskiye düşer.
+          */}
+        <article><span>{t('workspace:overview.band.planPayable')}</span><strong>{loading || !summary ? '—' : money(summary.plan30?.payable?.amount ?? summary.nextThirtyDays?.payable ?? 0)}</strong><small>{t('workspace:overview.band.records', { count: summary?.plan30?.counts?.payable ?? 0 })}</small></article>
+        <article><span>{t('workspace:overview.band.planReceivable')}</span><strong>{loading || !summary ? '—' : money((summary.plan30?.receivable?.amount ?? summary.nextThirtyDays?.receivable ?? 0) + hakedis30)}</strong><small>{hakedis30 > 0 ? t('workspace:overview.band.marketplacePayout', { amount: money(hakedis30), estimated: summary?.plan30?.estimated ? t('workspace:overview.band.estimatedSuffix') : '' }) : t('workspace:overview.band.records', { count: summary?.plan30?.counts?.receivable ?? 0 })}</small></article>
         <article><span>{t('workspace:overview.band.overdueAmount')}</span><strong className={overdueCount > 0 ? styles.statusCritical : undefined}>{loading || !summary ? '—' : money(summary.overdueTotals?.amount ?? 0)}</strong><small>{overdueCount > 0 && gecikenBorc !== undefined ? t('workspace:overview.band.overdueSplit', { payable: money(gecikenBorc), receivable: money(gecikenAlacak ?? 0) }) : overdueCount > 0 ? t('workspace:overview.band.overdueRecords', { count: overdueCount }) : t('workspace:overview.band.noOverdue')}</small></article>
         <Link to={`/app/workspaces/${workspaceId}/accounts`} className={styles.bantKarti}><span>{t('workspace:overview.band.cashToday')}</span><strong>{loading || !summary ? '—' : !summary.cash ? '—' : summary.cash.total === null ? t('workspace:overview.band.accounts', { count: summary.cash.accountCount }) : formatCurrency(summary.cash.total, { locale: formatLocale, currency: summary.cash.currency })}</strong><small>{!summary?.cash ? t('workspace:overview.band.noAccount') : t('workspace:overview.band.accounts', { count: summary.cash.accountCount })}</small></Link>
         <VergiSgkKarti />
       </section>
+
+      {/*
+        * GERÇEKLEŞEN — dönem çipleri (15.09.2026). Sunucu üç dönemi de
+        * summary.periods içinde veriyor (İstanbul takvimi: bugün / Pzt–Paz /
+        * ay); burada ek istek yok. Tam tablo ve dışa aktarım Rapor'da.
+        */}
+      {summary?.periods && (() => {
+        const d = summary.periods[donem]
+        if (!d) return null
+        const ayrica = pv => pv?.otherCurrencies?.length ? ' ' + t('workspace:report.alsoOther', { list: pv.otherCurrencies.map(o => o.amount.toLocaleString(formatLocale) + ' ' + o.currency).join(', ') }) : ''
+        return (
+          <section className={styles.gerceklesen} aria-label={t('workspace:overview.realized.title')}>
+            <div className={styles.gerceklesenBas}>
+              <strong>{t('workspace:overview.realized.title')}</strong>
+              <div className={styles.donemCipleri} role="tablist">
+                {['today', 'week', 'month'].map(k => (
+                  <button key={k} type="button" role="tab" aria-selected={donem === k} className={donem === k ? styles.cipSecili : ''} onClick={() => setDonem(k)}>{t('workspace:report.period.' + k)}</button>
+                ))}
+              </div>
+              <Link to={`/app/workspaces/${workspaceId}/report`} className={styles.raporLink}>{t('workspace:overview.realized.report')} →</Link>
+            </div>
+            <div className={`${styles.statusBand} ${styles.mktBand}`}>
+              <article><span>{t('workspace:report.rows.collected')}</span><strong>{money(d.tahsilat.amount)}</strong><small>{t('workspace:report.recordCount', { count: d.kayitSayisi?.tahsilat ?? 0 })}{ayrica(d.tahsilat)}</small></article>
+              <article><span>{t('workspace:report.rows.paid')}</span><strong>{money(d.odeme.amount)}</strong><small>{t('workspace:report.recordCount', { count: d.kayitSayisi?.odeme ?? 0 })}{ayrica(d.odeme)}</small></article>
+              <article><span>{t('workspace:report.rows.marketplaceGross')}</span><strong>{money(d.pazaryeriBrut.amount)}</strong><small>{t('workspace:report.orderCount', { count: d.siparisSayisi })}</small></article>
+              <article><span>{t('workspace:report.rows.marketplaceNet')}</span><strong>{money(d.pazaryeriNet.amount)}</strong><small>{t('workspace:report.rows.returns')}: {money(d.iade.amount)}</small></article>
+              <article><span>{t('workspace:report.rows.net')}</span><strong className={d.net < 0 ? styles.statusCritical : undefined}>{money(d.net)}</strong><small>{t('workspace:report.netHint')}</small></article>
+            </div>
+          </section>
+        )
+      })()}
 
       {summary?.counts?.awaitingDirection > 0 && (
         <p className={styles.inlineNotice}>{t('workspace:overview.band.awaitingDirection', { count: summary.counts.awaitingDirection })}</p>

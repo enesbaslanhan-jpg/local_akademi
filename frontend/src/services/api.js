@@ -1275,6 +1275,13 @@ export const api = {
       async summary(workspaceId) {
         return api.request(`/workspaces/${workspaceId}/tracker/summary`)
       },
+      /* Dönem özeti / raporu (Faz 2). secim: { period } ya da { from, to }. */
+      async period(workspaceId, secim) {
+        return api.request(`/workspaces/${workspaceId}/tracker/period${buildQuery(secim)}`)
+      },
+      async report(workspaceId, secim) {
+        return api.request(`/workspaces/${workspaceId}/tracker/report${buildQuery(secim)}`)
+      },
       /* Yalnız sahip/yönetici; diğer roller 403 alır ve panel hiç
          çizilmez. */
       async analysis(workspaceId) {
@@ -1339,6 +1346,24 @@ export const api = {
        * burada Blob okunup tarayıcıya indirtiliyor. Dosya adı sunucunun
        * gönderdiği Content-Disposition başlığından alınır.
        */
+      /** Dönem raporunu (xlsx|pdf) indirir; downloadRecords ile aynı akış. */
+      async downloadReport(workspaceId, format, secim) {
+        const token = localStorage.getItem('token')
+        const res = await fetch(
+          `${API_URL}/workspaces/${workspaceId}/exports/report.${format}${buildQuery(secim)}`,
+          { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+        )
+        if (!res.ok) {
+          let data = null
+          try { data = await res.json() } catch { /* ikili/boş yanıt */ }
+          throw new ApiError(data?.error || i18n.t('common:errors.exportFailed'), res.status, data)
+        }
+        const disposition = res.headers.get('Content-Disposition') || ''
+        const match = disposition.match(/filename="?([^";]+)"?/i)
+        const filename = match ? match[1] : `rapor.${format}`
+        tarayiciyaIndir(await res.blob(), filename)
+        return { filename }
+      },
       async downloadRecords(workspaceId, format, filters = {}) {
         const token = localStorage.getItem('token')
         const query = buildQuery(filters)

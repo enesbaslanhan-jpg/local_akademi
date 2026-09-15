@@ -198,3 +198,12 @@
 
 /* Yön bekleyen kayıt uyarısı: kutu değil, tek satır. */
 .inlineNotice { margin: 0; padding: 8px 14px; border-radius: 10px; background: var(--warning-bg); color: var(--warning); font-size: .78rem; }
+
+/* Gerçekleşen satırı (15.09.2026): dönem çipleri + aynı bant dili. */
+.gerceklesen { display: grid; gap: 8px; }
+.gerceklesenBas { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.gerceklesenBas strong { font-size: .86rem; }
+.donemCipleri { display: flex; gap: 6px; }
+.donemCipleri [role="tab"] { padding: 4px 11px; border: 1px solid var(--border); border-radius: 999px; background: var(--bg-secondary); color: var(--text); cursor: pointer; font-size: .76rem; font-weight: 600; }
+.donemCipleri .cipSecili { background: var(--primary); border-color: var(--primary); color: var(--on-primary, #fff); }
+.raporLink { margin-left: auto; font-size: .8rem; color: var(--primary); text-decoration: none; font-weight: 600; }
