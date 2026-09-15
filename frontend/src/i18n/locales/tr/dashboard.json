@@ -86,5 +86,8 @@
     "withMarketplace": "{{amount}} pazaryeri hakedişi dahil{{estimated}}",
     "estimatedSuffix": " (tahmini)",
     "plusOverdue": "30 gün içinde · ayrıca {{amount}} gecikmiş"
+  },
+  "realized": {
+    "marketplaceHint": "brüt {{gross}} · iade {{returns}} · {{count}} sipariş"
   }
 }

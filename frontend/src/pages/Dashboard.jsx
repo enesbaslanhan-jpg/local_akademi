@@ -67,6 +67,8 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [tracker, setTracker] = useState(null)
+  /* Gerçekleşen kartının dönemi; varsayılan bu hafta. */
+  const [donem, setDonem] = useState('week')
   const [trackerRecords, setTrackerRecords] = useState([])
   const [trackerState, setTrackerState] = useState({ workspaceId: null, status: 'loading', total: null })
   const trackerRequest = useRef(0)
@@ -431,53 +433,38 @@ export default function Dashboard() {
           </div>
         </Card>
 
-        {/* PAZARYERI ÖZETİ — ortak operations servisinden. Kahramanın
-            HEMEN ALTINDA, tam genişlik: sayfanın en altında duruyordu ve
-            kaydırmadan görünmüyordu (ürün sahibi, 15.09.2026). Bağlı
-            değilse yalnız ince CTA. */}
-        {activeWorkspaceId && (mktConnected ? (
-          <Card className={`${styles.operationPanel} ${styles.marketplacePanel}`}>
-            <div className={styles.panelHead}>
-              <h2>{t('dashboard:marketplacePanel.title')}</h2>
-              <span className={styles.mktProviders}>
-                {(mktSummary?.providers || []).filter(p => p.status !== 'DISABLED').map(provider => (
-                  <span key={provider.provider} className={styles.mktProviderChip}>
-                    <Store size={11} aria-hidden="true" />
-                    {({ TRENDYOL: 'Trendyol', HEPSIBURADA: 'Hepsiburada', N11: 'N11', SHOPIFY: 'Shopify', AMAZON: 'Amazon', WOOCOMMERCE: 'WooCommerce' })[provider.provider] || provider.provider}
-                  </span>
-                ))}
-              </span>
-              <button type="button" className={styles.panelLink} onClick={() => navigate(`/app/workspaces/${activeWorkspaceId}/orders`)}>{t('dashboard:marketplacePanel.orders')}</button>
-              <button type="button" className={styles.panelLink} onClick={() => navigate(`/app/workspaces/${activeWorkspaceId}/products`)}>{t('dashboard:marketplacePanel.products')}</button>
-            </div>
-            {mktSummary?.sync?.hasError && (
-              <p className={styles.mktSyncWarning}>{t('marketplacePanel.syncError', { time: relativeTime(mktSummary.sync.lastSyncedAt, t) })}</p>
-            )}
-            <div className={styles.mktStats}>
-              <div><span>{t('dashboard:marketplacePanel.todayOrders')}</span><strong>{mktSummary?.today?.orderCount ?? 0}</strong></div>
-              <div><span>{t('dashboard:marketplacePanel.todaySales')}</span><strong>{money.format(mktSummary?.today?.grossSales ?? 0)}</strong></div>
-              {/*
-                * 🔴 GENEL BAKIŞ İLE AYNI KAYNAK (15.09.2026). Burada
-                * `today.pendingShipmentCount` (yalnız BUGÜN oluşan kargosuz
-                * sipariş) okunuyordu; Genel Bakış ise PENDING_SHIPMENT
-                * aksiyonunu (bekleyen TÜM siparişler) gösteriyordu. Aynı
-                * işletme iki sayfada 0 ve 2 gösterdi (ürün sahibi bildirdi).
-                * İade satırı da bugünkü + aksiyon toplanarak çift sayılıyordu.
-                */}
-              <div><span>{t('dashboard:marketplacePanel.pendingShipment')}</span><strong>{mktActions.find(a => a.type === 'PENDING_SHIPMENT')?.count ?? mktSummary?.today?.pendingShipmentCount ?? 0}</strong></div>
-              <div><span>{t('dashboard:marketplacePanel.lowStock')}</span><strong>{mktSummary?.inventory?.lowStockCount ?? 0}</strong></div>
-              <div><span>{t('dashboard:marketplacePanel.return')}</span><strong>{mktActions.find(a => a.type === 'RETURN_PENDING')?.count ?? mktSummary?.today?.returnCount ?? 0}</strong></div>
-              <div><span>{t('marketplacePanel.lastSync')}</span><small>{relativeTime(mktSummary?.sync?.lastSyncedAt, t)}</small></div>
-              {mktSummary?.performance?.bestSeller && (
-                <div><span>{t('dashboard:marketplacePanel.bestSeller')}</span><em>{mktSummary.performance.bestSeller.title}</em></div>
-              )}
-            </div>
-          </Card>
-        ) : (
-          <button type="button" className={styles.marketplaceEmptyCta} onClick={() => navigate('/app/settings?bolum=integrations')}>
-            <Store size={13} aria-hidden="true" /> {t('dashboard:marketplacePanel.noConnection')}
-          </button>
-        ))}
+        {/*
+          * GERÇEKLEŞEN — Bugün / Bu hafta / Bu ay (ürün sahibi, 15.09.2026).
+          * "Pazaryeri Özeti" şeridinin YERİNE: o şerit aynı şeyi (bugünkü satış)
+          * anlatıyordu, günlük pazaryeri sayıları artık Siparişler ekranında.
+          * Sunucu üç dönemi summary.periods'ta veriyor (İstanbul takvimi);
+          * ek istek yok. Kutular Rapor sayfasıyla aynı: tahsil edilen, ödenen,
+          * pazaryeri net (alt: brüt · iade · N sipariş), net.
+          */}
+        {activeWorkspaceId && tracker?.periods && (() => {
+          const d = tracker.periods[donem]
+          if (!d) return null
+          const ayrica = pv => pv?.otherCurrencies?.length ? ' ' + t('workspace:report.alsoOther', { list: pv.otherCurrencies.map(o => o.amount.toLocaleString(formatLocale) + ' ' + o.currency).join(', ') }) : ''
+          return (
+            <Card className={`${styles.operationPanel} ${styles.marketplacePanel}`}>
+              <div className={styles.panelHead}>
+                <h2>{t('workspace:overview.realized.title')}</h2>
+                <span className={styles.donemCipleri} role="tablist">
+                  {['today', 'week', 'month'].map(k => (
+                    <button key={k} type="button" role="tab" aria-selected={donem === k} className={donem === k ? styles.cipSecili : ''} onClick={() => setDonem(k)}>{t('workspace:report.period.' + k)}</button>
+                  ))}
+                </span>
+                <button type="button" className={styles.panelLink} onClick={() => navigate(`/app/workspaces/${activeWorkspaceId}/report`)}>{t('workspace:overview.realized.report')}</button>
+              </div>
+              <div className={styles.mktStats}>
+                <div><span>{t('workspace:report.rows.collected')}</span><strong>{money.format(d.tahsilat.amount)}</strong><small>{t('workspace:report.recordCount', { count: d.kayitSayisi?.tahsilat ?? 0 })}{ayrica(d.tahsilat)}</small></div>
+                <div><span>{t('workspace:report.rows.paid')}</span><strong>{money.format(d.odeme.amount)}</strong><small>{t('workspace:report.recordCount', { count: d.kayitSayisi?.odeme ?? 0 })}{ayrica(d.odeme)}</small></div>
+                <div><span>{t('workspace:report.rows.marketplaceNet')}</span><strong>{money.format(d.pazaryeriNet.amount)}</strong><small>{t('dashboard:realized.marketplaceHint', { gross: money.format(d.pazaryeriBrut.amount), returns: money.format(d.iade.amount), count: d.siparisSayisi })}</small></div>
+                <div><span>{t('workspace:report.rows.net')}</span><strong className={d.net < 0 ? styles.kpiRisk : ''}>{money.format(d.net)}</strong></div>
+              </div>
+            </Card>
+          )
+        })()}
 
         <Card className={`${styles.operationPanel} ${styles.resumePanel}`}>
           <div className={styles.panelHead}><h2>{t('dashboard:resume.title')}</h2></div>

@@ -471,3 +471,9 @@
 /* Üyelik şeridi ile altındaki panel ızgarası arasındaki boşluk.
    `.page` flex değil, çocuklar kendi payını taşıyor. */
 .uyelikSerit { margin-bottom: var(--gap-panel); }
+
+
+/* Gerçekleşen kartı dönem çipleri (15.09.2026). */
+.donemCipleri { display: inline-flex; gap: 6px; margin-left: var(--space-2); }
+.donemCipleri [role="tab"] { padding: 3px 10px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--text); cursor: pointer; font-size: var(--font-micro); font-weight: 600; }
+.donemCipleri .cipSecili { background: var(--primary); border-color: var(--primary); color: var(--on-primary, #fff); }

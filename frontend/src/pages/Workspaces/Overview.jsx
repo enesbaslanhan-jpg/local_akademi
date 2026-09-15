@@ -11,7 +11,6 @@ import { useTranslation } from 'react-i18next'
 import { useLocalization } from '@/context/LocalizationContext'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 import { marketplaceActionLabel } from '@/utils/marketplaceActionLabels'
-import { VergiSgkKarti } from './FinancePanels'
 
 const QUICK_ACTIONS = [
   { id: 'payment', icon: Receipt },
@@ -201,13 +200,11 @@ export default function Overview() {
   const mktActions = mkt?.actions ?? []
   /* Yaklaşan/geciken listesi için aggregate aksiyon satırları:
      her sipariş TEK TEK listelenmez, kategori başına tek satır. */
-  const mktActionRows = mktActions.slice(0, 3)
 
   /*
    * "Takip durumu" kutusu kaldırıldı: pazaryeri riskleri zaten bağlıyken
    * kendi KPI şeridinde görünüyor, gecikme ise artık tutar kutusunda.
    */
-  const [donem, setDonem] = useState('week')
   const overdueCount = summary?.counts.overdue ?? 0
   /* Geciken yön yön (15.09.2026): `overdueTotals.amount` borç+alacağı
      topluyordu — ₺128.000 "geciken" yazıyor ama kaçı bizim ödememiz,
@@ -226,6 +223,12 @@ export default function Overview() {
       {error && <div className={styles.error}>{error}</div>}
 
       {/*
+        * PLAN · 30 GÜN — dört kutu, web ve mobilde aynı (ürün sahibi, 15.09.2026):
+        * tahsil edilecek (pazaryeri hakedişi dahil) / ödenecek / geciken (yön yön)
+        * / kasada bugün. Gerçekleşen Ana Sayfa'da, günlük pazaryeri şeridi
+        * Siparişler'de; burada tekrar etmez. Vergi/SGK kutusu kaldırıldı
+        * (Ödenecek zaten içeriyor).
+        *
         * 🔴 DURUM BANDI SAYI DEĞİL TUTAR SÖYLÜYOR (ürün sahibi, 11.09.2026).
         *
         * Önceki dört kutu (açık yükümlülük / belge / son değişiklik / takip
@@ -236,7 +239,7 @@ export default function Overview() {
         * ⚠️ Kasa hesabı yoksa "—", sıfır değil: sıfır "kasa boş" demek olurdu.
         * Yön bekleyen kayıt kutu değil; varsa listenin başında tek satır.
         */}
-      <section className={`${styles.statusBand} ${styles.mktBand}`} aria-label={t('workspace:overview.title')}>
+      <section className={styles.statusBand} aria-label={t('workspace:overview.title')}>
         {/*
           * PLAN (30 GÜN) — 15.09.2026. "Bu hafta" (kayan 7 gün) yerine
           * Ana Sayfa ile aynı pencere: [şimdi, +30], geciken dışarıda,
@@ -246,77 +249,44 @@ export default function Overview() {
         <article><span>{t('workspace:overview.band.planReceivable')}</span><strong>{loading || !summary ? '—' : money((summary.plan30?.receivable?.amount ?? summary.nextThirtyDays?.receivable ?? 0) + hakedis30)}</strong><small>{hakedis30 > 0 ? t('workspace:overview.band.marketplacePayout', { amount: money(hakedis30), estimated: summary?.plan30?.estimated ? t('workspace:overview.band.estimatedSuffix') : '' }) : t('workspace:overview.band.records', { count: summary?.plan30?.counts?.receivable ?? 0 })}</small></article>
         <article><span>{t('workspace:overview.band.overdueAmount')}</span><strong className={overdueCount > 0 ? styles.statusCritical : undefined}>{loading || !summary ? '—' : money(summary.overdueTotals?.amount ?? 0)}</strong><small>{overdueCount > 0 && gecikenBorc !== undefined ? t('workspace:overview.band.overdueSplit', { payable: money(gecikenBorc), receivable: money(gecikenAlacak ?? 0) }) : overdueCount > 0 ? t('workspace:overview.band.overdueRecords', { count: overdueCount }) : t('workspace:overview.band.noOverdue')}</small></article>
         <Link to={`/app/workspaces/${workspaceId}/accounts`} className={styles.bantKarti}><span>{t('workspace:overview.band.cashToday')}</span><strong>{loading || !summary ? '—' : !summary.cash ? '—' : summary.cash.total === null ? t('workspace:overview.band.accounts', { count: summary.cash.accountCount }) : formatCurrency(summary.cash.total, { locale: formatLocale, currency: summary.cash.currency })}</strong><small>{!summary?.cash ? t('workspace:overview.band.noAccount') : t('workspace:overview.band.accounts', { count: summary.cash.accountCount })}</small></Link>
-        <VergiSgkKarti />
       </section>
-
-      {/*
-        * GERÇEKLEŞEN — dönem çipleri (15.09.2026). Sunucu üç dönemi de
-        * summary.periods içinde veriyor (İstanbul takvimi: bugün / Pzt–Paz /
-        * ay); burada ek istek yok. Tam tablo ve dışa aktarım Rapor'da.
-        */}
-      {summary?.periods && (() => {
-        const d = summary.periods[donem]
-        if (!d) return null
-        const ayrica = pv => pv?.otherCurrencies?.length ? ' ' + t('workspace:report.alsoOther', { list: pv.otherCurrencies.map(o => o.amount.toLocaleString(formatLocale) + ' ' + o.currency).join(', ') }) : ''
-        return (
-          <section className={styles.gerceklesen} aria-label={t('workspace:overview.realized.title')}>
-            <div className={styles.gerceklesenBas}>
-              <strong>{t('workspace:overview.realized.title')}</strong>
-              <div className={styles.donemCipleri} role="tablist">
-                {['today', 'week', 'month'].map(k => (
-                  <button key={k} type="button" role="tab" aria-selected={donem === k} className={donem === k ? styles.cipSecili : ''} onClick={() => setDonem(k)}>{t('workspace:report.period.' + k)}</button>
-                ))}
-              </div>
-              <Link to={`/app/workspaces/${workspaceId}/report`} className={styles.raporLink}>{t('workspace:overview.realized.report')} →</Link>
-            </div>
-            <div className={`${styles.statusBand} ${styles.mktBand}`}>
-              <article><span>{t('workspace:report.rows.collected')}</span><strong>{money(d.tahsilat.amount)}</strong><small>{t('workspace:report.recordCount', { count: d.kayitSayisi?.tahsilat ?? 0 })}{ayrica(d.tahsilat)}</small></article>
-              <article><span>{t('workspace:report.rows.paid')}</span><strong>{money(d.odeme.amount)}</strong><small>{t('workspace:report.recordCount', { count: d.kayitSayisi?.odeme ?? 0 })}{ayrica(d.odeme)}</small></article>
-              <article><span>{t('workspace:report.rows.marketplaceGross')}</span><strong>{money(d.pazaryeriBrut.amount)}</strong><small>{t('workspace:report.orderCount', { count: d.siparisSayisi })}</small></article>
-              <article><span>{t('workspace:report.rows.marketplaceNet')}</span><strong>{money(d.pazaryeriNet.amount)}</strong><small>{t('workspace:report.rows.returns')}: {money(d.iade.amount)}</small></article>
-              <article><span>{t('workspace:report.rows.net')}</span><strong className={d.net < 0 ? styles.statusCritical : undefined}>{money(d.net)}</strong><small>{t('workspace:report.netHint')}</small></article>
-            </div>
-          </section>
-        )
-      })()}
 
       {summary?.counts?.awaitingDirection > 0 && (
         <p className={styles.inlineNotice}>{t('workspace:overview.band.awaitingDirection', { count: summary.counts.awaitingDirection })}</p>
       )}
 
-      {/* MARKETPLACE KPI ŞERİDİ — yalnız entegrasyon bağlıyken; mevcut
-          dört kartlık bandın düzeni korunur, şerit ayrı satırda akar. */}
-      {mktSummary && (
-        <section className={`${styles.statusBand} ${styles.mktBand}`} aria-label={t('workspace:overview.marketplaceSummary')}>
-          <article><span>{t('workspace:overview.mkt.todayOrders')}</span><strong>{mktSummary.today.orderCount}</strong><small>{t('workspace:overview.mkt.today')}</small></article>
-          <article><span>{t('workspace:overview.mkt.todayGrossSales')}</span><strong>{money(mktSummary.today.grossSales)}</strong><small>{t('workspace:overview.mkt.today')}</small></article>
-          <article><span>{t('workspace:overview.mkt.pendingShipment')}</span><strong>{mktActions.find(a => a.type === 'PENDING_SHIPMENT')?.count ?? 0}</strong><small>{t('workspace:overview.mkt.notShipped')}</small></article>
-          <article><span>{t('workspace:overview.mkt.lowStock')}</span><strong>{mktSummary.inventory.lowStockCount}</strong><small>{t('workspace:tracker.col.loading').replace('…', '')} ≤ {mktSummary.inventory.threshold}</small></article>
-          <article><span>{t('workspace:overview.mkt.return')}</span><strong>{mktActions.find(a => a.type === 'RETURN_PENDING')?.count ?? mktSummary.today.returnCount}</strong><small>{t('workspace:overview.mkt.processPending')}</small></article>
+      {/*
+        * PAZARYERİ İŞLERİ — yalnız bağlıysa; sayı şeridi değil, İŞ satırları
+        * (kargo bekleyen, geciden kargo, iade, düşük stok, eşitleme hatası).
+        * Her satır ilgili ekrana filtresiyle gider. Eskiden Takvim listesine
+        * karışıyordu; ayrı kart olduğu için mobil ile aynı yerde.
+        */}
+      {mkt && mktActions.length > 0 && (
+        <section className={styles.obligationsPanel} aria-label={t('workspace:overview.marketplaceTasks')}>
+          <div className={styles.panelTitle}><div><span>{providerChipLabel(mkt, t)}</span><h3>{t('workspace:overview.marketplaceTasks')}</h3></div></div>
+          <div className={styles.obligationList}>
+            {mktActions.map(action => {
+              const critical = action.severity === 'CRITICAL'
+              return (
+                <button key={`mkt-${action.type}`} onClick={() => navigate(operationsDeepLink(workspaceId, action))}>
+                  <span><strong>{marketplaceActionLabel(action, t)}</strong>{action.detail && <small>{action.detail}</small>}</span>
+                  <em className={critical ? styles.critical : styles.attention}>{severityLabel(action.severity, t)}</em>
+                  <ArrowRight size={14} />
+                </button>
+              )
+            })}
+          </div>
         </section>
       )}
 
       <div className={styles.operationsGrid}>
         <section className={styles.obligationsPanel}>
           <div className={styles.panelTitle}><div><span>{t('workspace:overview.calendar.title')}</span><h3>{t('workspace:overview.calendar.upcoming')}</h3></div><button onClick={() => navigate(`/app/workspaces/${workspaceId}/tracker`)}>{t('workspace:overview.calendar.viewAll')} <ArrowRight size={15} /></button></div>
-          {loading ? <p className={styles.inlineState}>{t('workspace:overview.calendar.preparing')}</p> : (upcomingRecords.length || mktActionRows.length) ? (
+          {loading ? <p className={styles.inlineState}>{t('workspace:overview.calendar.preparing')}</p> : upcomingRecords.length ? (
             <div className={styles.obligationList}>
               {upcomingRecords.map(record => {
                 const overdue = record.dueAt && new Date(record.dueAt) < new Date()
                 return <button key={record.id} onClick={() => navigate(`/app/workspaces/${workspaceId}/tracker`)}><span><strong>{record.title}</strong><small>{localDate(record.dueAt, t)}</small></span><span>{t(`workspace:type.${record.type}`) || record.type}</span><em className={overdue ? styles.attention : ''}>{overdue ? t('workspace:tracker.overdue') : t(`workspace:status.${record.status}`) || record.status}</em><ArrowRight size={14} /></button>
-              })}
-              {/* Marketplace aggregate aksiyonlari — kaynak etiketli,
-                  derin baglantili; manuel kayitlar asla bastirilmaz. */}
-              {mktActionRows.map(action => {
-                const critical = action.severity === 'CRITICAL'
-                return (
-                  <button key={`mkt-${action.type}`} onClick={() => navigate(operationsDeepLink(workspaceId, action))}>
-                    <span><strong>{marketplaceActionLabel(action, t)}</strong><small>{t('workspace:overview.marketplaceOp')}</small></span>
-                    <span className={styles.sourceTag}><i aria-hidden="true" />{providerChipLabel(mkt, t)}</span>
-                    <em className={critical ? styles.critical : styles.attention}>{severityLabel(action.severity, t)}</em>
-                    <ArrowRight size={14} />
-                  </button>
-                )
               })}
             </div>
           ) : <p className={styles.inlineState}>{t('workspace:overview.noUpcoming')}</p>}
@@ -370,33 +340,6 @@ export default function Overview() {
         </section>
       )}
 
-      {/* PAZARYERI ÖZETİ — kompakt kart; bağlantı yoksa hiç çizilmez. */}
-      {mktSummary && (
-        <section className={styles.mktPanel} aria-label={t('workspace:overview.marketplaceSummary')}>
-          <div className={styles.panelTitle}>
-            <div><span>{t('workspace:marketplace.label')}</span><h3>{t('workspace:overview.marketplaceSummary')}</h3></div>
-            <div className={styles.mktCtas}>
-              <button onClick={() => navigate(`/app/workspaces/${workspaceId}/orders`)}>{t('workspace:overview.viewOrders')} <ArrowRight size={14} /></button>
-              <button onClick={() => navigate(`/app/workspaces/${workspaceId}/products`)}>{t('workspace:overview.viewProducts')} <ArrowRight size={14} /></button>
-            </div>
-          </div>
-          {mktSummary.sync.hasError && (
-            <p className={styles.mktSyncWarning}>
-              {t('workspace:overview.syncError', { time: relativeTime(mktSummary.sync.lastSyncedAt, t) })}
-            </p>
-          )}
-          <dl className={styles.mktGrid}>
-            <div><dt>{t('workspace:provider')}</dt><dd>{(mktSummary.providers || []).filter(p => p.status !== 'DISABLED').map(p => PROVIDER_LABELS[p.provider] || p.provider).join(', ') || '—'}</dd></div>
-            <div><dt>{t('workspace:lastSync')}</dt><dd>{relativeTime(mktSummary.sync.lastSyncedAt, t)}</dd></div>
-            <div><dt>{t('workspace:overview.mkt.ordersToday')}</dt><dd>{mktSummary.today.orderCount}</dd></div>
-            <div><dt>{t('workspace:overview.mkt.grossSalesToday')}</dt><dd>{money(mktSummary.today.grossSales)}</dd></div>
-            <div><dt>{t('workspace:overview.mkt.pendingShipment')}</dt><dd>{mktSummary.today.pendingShipmentCount}</dd></div>
-            <div><dt>{t('workspace:overview.mkt.lowStock')}</dt><dd>{mktSummary.inventory.lowStockCount}</dd></div>
-            <div><dt>{t('workspace:overview.mkt.return')}</dt><dd>{mktActions.find(a => a.type === 'RETURN_PENDING')?.count ?? mktSummary.today.returnCount}</dd></div>
-            <div><dt>{t('workspace:overview.mkt.bestSeller')}</dt><dd>{mktSummary.performance.bestSeller?.title || '—'}</dd></div>
-          </dl>
-        </section>
-      )}
     </section>
   )
 

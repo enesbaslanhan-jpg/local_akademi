@@ -95,6 +95,13 @@ export default function Orders() {
   const [syncing, setSyncing] = useState(false)
   const [lastSyncedAt, setLastSyncedAt] = useState(null)
   const [connected, setConnected] = useState(false)
+  /*
+   * GÜNLÜK ŞERİT (15.09.2026): bugünkü sipariş / brüt satış / kargo bekleyen /
+   * iade bekleyen. Genel Bakış'tan buraya taşındı — pazaryerinin günlük
+   * durumu siparişlerin yanında okunur. Kaynak: /marketplace/operations
+   * (Ana Sayfa ve Genel Bakış'taki iş satırlarıyla aynı uç, aynı sayılar).
+   */
+  const [ops, setOps] = useState(null)
   const [detailId, setDetailId] = useState(null)
   // Provider filtresi: Trendyol + Hepsiburada ayni tabloda normalize
   // kolonlarla listelenir; filtre sunucuya iletilir.
@@ -124,10 +131,12 @@ export default function Orders() {
     setLoading(true)
     setError(null)
     try {
-      const [ordersData, statusData] = await Promise.all([
+      const [ordersData, statusData, opsData] = await Promise.all([
         api.marketplace.orders(workspaceId, { limit: 100, ...(providerFilter ? { provider: providerFilter } : {}) }),
-        api.integrations.trendyolStatus(workspaceId).catch(() => null)
+        api.integrations.trendyolStatus(workspaceId).catch(() => null),
+        api.marketplace.operations(workspaceId).catch(() => null)
       ])
+      setOps(opsData?.summary?.connected ? opsData : null)
       setOrders(ordersData.orders || [])
       setTotal(ordersData.total || 0)
       setLastSyncedAt(statusData?.connections?.[0]?.lastSyncedAt || null)
@@ -214,6 +223,15 @@ export default function Orders() {
           {syncing ? t('syncing') : t('common:buttons.sync')}
         </button>
       </header>
+
+      {ops && (
+        <section className={styles.gunlukSerit} aria-label={t('orders.daily.title')}>
+          <article><span>{t('orders.daily.orders')}</span><strong>{ops.summary.today.orderCount}</strong></article>
+          <article><span>{t('orders.daily.gross')}</span><strong>{money(ops.summary.today.grossSales, 'TRY')}</strong></article>
+          <article><span>{t('orders.daily.pendingShipment')}</span><strong>{ops.actions.find(a => a.type === 'PENDING_SHIPMENT')?.count ?? ops.summary.today.pendingShipmentCount}</strong></article>
+          <article><span>{t('orders.daily.returnPending')}</span><strong>{ops.actions.find(a => a.type === 'RETURN_PENDING')?.count ?? ops.summary.today.returnCount}</strong></article>
+        </section>
+      )}
 
       {error && (
         <div className={styles.errorState} role="alert">

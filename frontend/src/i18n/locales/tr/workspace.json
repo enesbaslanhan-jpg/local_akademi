@@ -279,7 +279,8 @@
     "realized": {
       "title": "Gerçekleşen",
       "report": "Rapor"
-    }
+    },
+    "marketplaceTasks": "Pazaryeri işleri"
   },
   "tracker": {
     "title": "İşletme Kayıtları",
@@ -337,6 +338,13 @@
       "noData": "Veri yok*",
       "notCalculable": "Hesaplanamaz*",
       "commissionNote": "Pazaryeri bu tutarı paylaşmıyor; tahmin uydurulmaz. Komisyon/kargo/iade bilgileri ileride mutabakat verisiyle tamamlanabilir."
+    },
+    "daily": {
+      "title": "Bugünkü pazaryeri durumu",
+      "orders": "Bugünkü sipariş",
+      "gross": "Bugünkü brüt satış",
+      "pendingShipment": "Kargo bekleyen",
+      "returnPending": "İade bekleyen"
     }
   },
   "products": {

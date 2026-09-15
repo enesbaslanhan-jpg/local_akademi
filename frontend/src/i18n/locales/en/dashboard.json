@@ -86,5 +86,8 @@
     "withMarketplace": "incl. {{amount}} marketplace payout{{estimated}}",
     "estimatedSuffix": " (estimated)",
     "plusOverdue": "within 30 days · plus {{amount}} overdue"
+  },
+  "realized": {
+    "marketplaceHint": "gross {{gross}} · returns {{returns}} · {{count}} orders"
   }
 }

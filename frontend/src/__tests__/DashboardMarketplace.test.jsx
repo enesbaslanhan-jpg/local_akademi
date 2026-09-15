@@ -82,7 +82,13 @@ beforeEach(() => {
   mocks.trackerSummary.mockResolvedValue({
     counts: { open: 1, overdue: 3 },
     nextThirtyDays: { payable: 100, receivable: 200, net: 100 },
-    awaitingDirection: null
+    awaitingDirection: null,
+    /* 15.09.2026: Gerçekleşen kartı Ana Sayfa'da; sunucu üç dönemi veriyor. */
+    periods: {
+      today: { tahsilat: { amount: 0, currency: 'TRY', otherCurrencies: [] }, odeme: { amount: 0, currency: 'TRY', otherCurrencies: [] }, pazaryeriBrut: { amount: 0, currency: 'TRY', otherCurrencies: [] }, pazaryeriNet: { amount: 0, currency: 'TRY', otherCurrencies: [] }, iade: { amount: 0, currency: 'TRY', otherCurrencies: [] }, net: 0, kayitSayisi: { tahsilat: 0, odeme: 0 }, siparisSayisi: 0 },
+      week: { tahsilat: { amount: 900, currency: 'TRY', otherCurrencies: [] }, odeme: { amount: 400, currency: 'TRY', otherCurrencies: [] }, pazaryeriBrut: { amount: 1235, currency: 'TRY', otherCurrencies: [] }, pazaryeriNet: { amount: 1000, currency: 'TRY', otherCurrencies: [] }, iade: { amount: 50, currency: 'TRY', otherCurrencies: [] }, net: 1500, kayitSayisi: { tahsilat: 1, odeme: 1 }, siparisSayisi: 5 },
+      month: { tahsilat: { amount: 0, currency: 'TRY', otherCurrencies: [] }, odeme: { amount: 0, currency: 'TRY', otherCurrencies: [] }, pazaryeriBrut: { amount: 0, currency: 'TRY', otherCurrencies: [] }, pazaryeriNet: { amount: 0, currency: 'TRY', otherCurrencies: [] }, iade: { amount: 0, currency: 'TRY', otherCurrencies: [] }, net: 0, kayitSayisi: { tahsilat: 0, odeme: 0 }, siparisSayisi: 0 }
+    }
   })
   mocks.trackerList.mockResolvedValue({ records: [{ id: 'r1', title: 'Kira ödemesi', status: 'open', priority: 'normal', dueAt: '2026-09-01', type: 'payment' }] })
 })
@@ -112,8 +118,9 @@ describe('Ana Sayfa — pazaryeri bağlı değil', () => {
     await waitFor(() => expect(screen.getByText('3 konu dikkat istiyor.')).toBeInTheDocument())
     expect(screen.queryByText('Pazaryeri Özeti')).not.toBeInTheDocument()
     expect(screen.queryByText('4 sipariş kargoya verilmeyi bekliyor')).not.toBeInTheDocument()
-    // Bagli degil CTA'si gorunur.
-    expect(screen.getByText(/Henüz pazaryeri bağlantısı yok/)).toBeInTheDocument()
+    /* 15.09.2026: bağlı değilken CTA yok; Gerçekleşen kartı bağlantıdan bağımsız durur. */
+    expect(screen.queryByText(/Henüz pazaryeri bağlantısı yok/)).not.toBeInTheDocument()
+    expect(screen.getByText('Gerçekleşen')).toBeInTheDocument()
   })
 
   it('operations endpoint hata verirse dashboard çökmez', async () => {
@@ -121,7 +128,7 @@ describe('Ana Sayfa — pazaryeri bağlı değil', () => {
     renderDashboard()
 
     await waitFor(() => expect(screen.getByText('3 konu dikkat istiyor.')).toBeInTheDocument())
-    expect(screen.getByText(/Henüz pazaryeri bağlantısı yok/)).toBeInTheDocument()
+    expect(screen.getByText('Gerçekleşen')).toBeInTheDocument()
   })
 })
 
@@ -154,13 +161,19 @@ describe('Ana Sayfa — pazaryeri bağlı', () => {
     expect(await screen.findByText('PROBE ORDERS')).toBeInTheDocument()
   })
 
-  it('Pazaryeri Özeti kompakt kartı bugünün aggregate değerlerini gösterir', async () => {
+  it('Gerçekleşen kartı "Pazaryeri Özeti" yerine gelir; dönem çipi değişince rakam değişir', async () => {
+    const { userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
     mocks.marketplaceOperations.mockResolvedValue(connectedOps())
     renderDashboard()
 
-    expect(await screen.findByText('Pazaryeri Özeti')).toBeInTheDocument()
-    expect(screen.getByText('₺1.235')).toBeInTheDocument()
-    expect(screen.getByText('En çok satan')).toBeInTheDocument()
-    expect(screen.getByText('Trendyol')).toBeInTheDocument()
+    expect(await screen.findByText('Gerçekleşen')).toBeInTheDocument()
+    expect(screen.queryByText('Pazaryeri Özeti')).not.toBeInTheDocument()
+    /* Varsayılan "Bu hafta": pazaryeri net 1.000, alt yazıda brüt/iade/sipariş. */
+    expect(screen.getByText('₺1.000')).toBeInTheDocument()
+    expect(screen.getByText(/brüt ₺1.235 · iade ₺50 · 5 sipariş/)).toBeInTheDocument()
+    expect(screen.getByText('₺1.500')).toBeInTheDocument()
+    await user.click(screen.getByRole('tab', { name: 'Bugün' }))
+    expect(screen.queryByText('₺1.500')).not.toBeInTheDocument()
   })
 })

@@ -15,12 +15,14 @@ const mocks = vi.hoisted(() => ({
   orders: vi.fn(),
   /* Detay ayrı uçtan çekilir (15.09.2026): liste satırları taşımaz. */
   order: vi.fn(),
+  /* Günlük şerit (15.09.2026): bugünkü sipariş/brüt/kargo/iade — operations ucundan. */
+  operations: vi.fn(),
   trendyolStatus: vi.fn()
 }))
 
 vi.mock('@/services/api', () => ({
   api: {
-    marketplace: { orders: mocks.orders, order: mocks.order },
+    marketplace: { orders: mocks.orders, order: mocks.order, operations: mocks.operations },
     integrations: { trendyolStatus: mocks.trendyolStatus, trendyolSync: vi.fn() }
   }
 }))
@@ -64,6 +66,7 @@ function ciz() {
 describe('Siparişler sekmesi', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.operations.mockResolvedValue(null)
     mocks.trendyolStatus.mockResolvedValue({
       connected: true,
       syncing: false,
@@ -140,5 +143,32 @@ describe('Siparişler sekmesi', () => {
     /* Ürün görseli satırda: sunucunun eşlediği URL. */
     expect(within(dialog).getByRole('listitem').querySelector('img')?.getAttribute('src')).toBe('https://example.com/tepsi.jpg')
     expect(within(dialog).getByText('Hesaplanamaz*')).toBeInTheDocument()
+  })
+
+  it('bağlıyken üstte günlük şerit: bugünkü sipariş, brüt, kargo bekleyen, iade bekleyen', async () => {
+    mocks.orders.mockResolvedValue({ orders: [], total: 0 })
+    mocks.operations.mockResolvedValue({
+      summary: { connected: true, providers: [], today: { orderCount: 3, grossSales: 1234.5, pendingShipmentCount: 1, returnCount: 0 }, inventory: {}, performance: {}, sync: {} },
+      actions: [
+        { type: 'PENDING_SHIPMENT', severity: 'ATTENTION', count: 4, title: '4 sipariş kargoya verilmeyi bekliyor', category: 'Operasyon', link: { page: 'orders', query: {} } },
+        { type: 'RETURN_PENDING', severity: 'ATTENTION', count: 2, title: '2 iade işlemi dikkat istiyor', category: 'İade', link: { page: 'orders', query: {} } }
+      ]
+    })
+    ciz()
+
+    expect(await screen.findByText('Bugünkü sipariş')).toBeInTheDocument()
+    expect(screen.getByText('3')).toBeInTheDocument()
+    expect(screen.getByText('₺1.234,50')).toBeInTheDocument()
+    /* Kargo/iade toplam bekleyenden (aksiyon), bugünküden değil — Genel Bakış ile aynı. */
+    expect(screen.getByText('4')).toBeInTheDocument()
+    expect(screen.getByText('2')).toBeInTheDocument()
+  })
+
+  it('bağlı değilken günlük şerit çizilmez', async () => {
+    mocks.orders.mockResolvedValue({ orders: [], total: 0 })
+    mocks.operations.mockResolvedValue({ summary: { connected: false }, actions: [] })
+    ciz()
+    await screen.findByText('Siparişler')
+    expect(screen.queryByText('Bugünkü sipariş')).not.toBeInTheDocument()
   })
 })

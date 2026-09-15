@@ -19,7 +19,9 @@ vi.mock('@/services/api', () => ({
   api: {
     marketplace: {
       orders: mocks.orders,
-      order: vi.fn()
+      order: vi.fn(),
+      /* Günlük şerit (15.09.2026): bağlı değil → çizilmez. */
+      operations: vi.fn().mockResolvedValue(null)
     },
     integrations: {
       trendyolStatus: mocks.trendyolStatus,

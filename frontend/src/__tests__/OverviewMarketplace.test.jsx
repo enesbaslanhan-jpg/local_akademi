@@ -92,14 +92,13 @@ describe('Genel Bakış — pazaryeri bağlı değil', () => {
     expect(screen.getByText('₺700,00 pazaryeri hakedişi (tahmini)')).toBeInTheDocument()
     expect(screen.getByText('₺7.000,00')).toBeInTheDocument()
     expect(screen.getByText('Ödeme ₺5.000,00 · Tahsilat ₺2.000,00')).toBeInTheDocument()
-    /* Gerçekleşen satırı varsayılan "Bu hafta": USD ayrıca, toplanmaz */
-    expect(screen.getByText('Gerçekleşen')).toBeInTheDocument()
-    expect(screen.getByText('₺900,00')).toBeInTheDocument()
-    expect(screen.getByText(/100 USD ayrıca/)).toBeInTheDocument()
-    expect(screen.getAllByText('₺2.500,00').length).toBeGreaterThan(0) // pazaryeri satışı ve net aynı tutar
     expect(screen.getByText('Hesap ekle')).toBeInTheDocument()
+    /* Sadeleştirme (15.09.2026): Gerçekleşen Ana Sayfa'da, günlük pazaryeri
+       şeridi Siparişler'de, Vergi/SGK kutusu kaldırıldı — burada hiçbiri yok. */
+    expect(screen.queryByText('Gerçekleşen')).not.toBeInTheDocument()
     expect(screen.queryByText('Pazaryeri Özeti')).not.toBeInTheDocument()
     expect(screen.queryByText('Bugünkü sipariş')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Vergi \/ SGK/)).not.toBeInTheDocument()
   })
 })
 
@@ -122,45 +121,43 @@ describe('Genel Bakış — pazaryeri bağlı', () => {
     }
   }
 
-  it('marketplace KPI şeridi mevcut bandın YANINA ayrı satırda gelir', async () => {
+  it('bağlıyken sayı şeridi DEĞİL, "Pazaryeri işleri" kartı gelir; bant kutuları yerinde', async () => {
     mocks.marketplaceOperations.mockResolvedValue(connectedOps())
     renderOverview()
 
     expect(await screen.findByText('30 gün içinde ödenecek')).toBeInTheDocument()
-    // Marketplace istegi ana ozet isteklerinden bagimsiz tamamlanir. Yavas CI
-    // makinesinde ilk bant gorunurken bu ikinci durum henuz render edilmemis
-    // olabilir; gercek asenkron kullanici akisini bekle.
-    expect(await screen.findByText('Bugünkü sipariş')).toBeInTheDocument()
-    expect(screen.getByText('Bugünkü brüt satış')).toBeInTheDocument()
-    // Aynı değer KPI şeridi ve Pazaryeri Özeti kartında da görünür.
-    expect(screen.getAllByText('₺1.234,56').length).toBeGreaterThanOrEqual(1)
-    // Bant kartları hâlâ yerinde.
+    expect(await screen.findByText('Pazaryeri işleri')).toBeInTheDocument()
+    expect(screen.getByText('4 sipariş kargoya verilmeyi bekliyor')).toBeInTheDocument()
+    expect(screen.getByText('2 ürün düşük stokta')).toBeInTheDocument()
+    /* Günlük sayılar burada yok; Siparişler ekranında. */
+    expect(screen.queryByText('Bugünkü sipariş')).not.toBeInTheDocument()
+    expect(screen.queryByText('₺1.234,56')).not.toBeInTheDocument()
     expect(screen.getByText('Geciken')).toBeInTheDocument()
     expect(screen.getByText('Kasada bugün')).toBeInTheDocument()
   })
 
   /* "Takip durumu" kutusu kaldırıldı; pazaryeri riskleri bağlıyken kendi
      KPI şeridinde, gecikme tutar kutusunda. Riskler kaybolmadı. */
-  it('pazaryeri riskleri KPI şeridinde görünmeye devam eder', async () => {
+  it('pazaryeri riskleri iş satırlarında, geciken yön yön', async () => {
     mocks.marketplaceOperations.mockResolvedValue(connectedOps())
     renderOverview()
 
-    expect((await screen.findAllByText('Bekleyen kargo')).length).toBeGreaterThanOrEqual(1)
+    expect(await screen.findByText('4 sipariş kargoya verilmeyi bekliyor')).toBeInTheDocument()
     expect(screen.getByText('Ödeme ₺5.000,00 · Tahsilat ₺2.000,00')).toBeInTheDocument() // geciken yön yön (15.09.2026)
   })
 
-  it('Pazaryeri Özeti kartı CTA ile doğru sayfaya derin bağlanır', async () => {
+  it('iş satırı tıklanınca filtreli Siparişler sayfasına derin bağlanır', async () => {
     const { userEvent } = await import('@testing-library/user-event')
     const user = userEvent.setup()
     mocks.marketplaceOperations.mockResolvedValue(connectedOps())
     renderOverview()
 
-    const cta = await screen.findByText('Siparişleri gör')
-    await user.click(cta)
+    const satir = await screen.findByText('4 sipariş kargoya verilmeyi bekliyor')
+    await user.click(satir)
     expect(await screen.findByText('PROBE ORDERS')).toBeInTheDocument()
   })
 
-  it('Yaklaşan listesi aggregate aksiyonları kaynak etiketiyle gösterir', async () => {
+  it('Pazaryeri işleri kartı aksiyonları kaynak etiketiyle gösterir', async () => {
     mocks.marketplaceOperations.mockResolvedValue(connectedOps())
     renderOverview()
 
@@ -215,7 +212,7 @@ describe('Genel Bakış — pazaryeri bağlı', () => {
     renderOverview()
 
     expect(await screen.findAllByText(/Pazaryeri verileri güncellenemedi/).then(rows => rows.length)).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText(/Son başarılı eşitleme:/)).toBeInTheDocument()
+    expect(screen.getByText(/Son başarılı eşitleme bir süredir yapılamıyor/)).toBeInTheDocument()
     expect(screen.queryByText(/TRENDYOL_AUTH|PrismaClient|stack/i)).not.toBeInTheDocument()
   })
 })

@@ -279,7 +279,8 @@
     "realized": {
       "title": "Realised",
       "report": "Report"
-    }
+    },
+    "marketplaceTasks": "Marketplace tasks"
   },
   "tracker": {
     "title": "Business Records",
@@ -337,6 +338,13 @@
       "noData": "No data*",
       "notCalculable": "Not calculable*",
       "commissionNote": "The marketplace does not share this amount; estimates are not fabricated. Commission/shipping/refund data may be completed later with reconciliation data."
+    },
+    "daily": {
+      "title": "Today's marketplace status",
+      "orders": "Orders today",
+      "gross": "Gross sales today",
+      "pendingShipment": "Awaiting shipment",
+      "returnPending": "Returns pending"
     }
   },
   "products": {
