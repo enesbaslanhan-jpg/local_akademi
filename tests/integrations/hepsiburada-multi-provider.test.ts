@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { startOfDayIst } from '../../src/lib/istanbul-time'
 import Fastify, { FastifyInstance } from 'fastify'
 import jwt from '@fastify/jwt'
 import { PrismaClient } from '@prisma/client'
@@ -270,7 +271,8 @@ describe('iki provider ayni workspace te', () => {
       where: {
         workspaceId,
         status: { notIn: ['CANCELLED'] as any[] },
-        orderDate: { gte: (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d })() }
+        /* Sunucu 'bugün'ü İstanbul gününe göre sayar (istanbul-time.ts); CI runner UTC. */
+        orderDate: { gte: startOfDayIst(new Date()) }
       }
     })
     expect(totalToday).toBe(dbToday)
