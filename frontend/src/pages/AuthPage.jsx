@@ -9,6 +9,7 @@ import { passwordChecks, passwordMeetsMinimum } from '@/constants/password'
 import { guvenliNext, VARSAYILAN_YOL } from '@/utils/safeNext'
 import AuthThemeToggle from './AuthThemeToggle'
 import LegalModal from '@/components/legal/LegalModal'
+import SosyalGiris from '@/components/auth/SosyalGiris'
 import styles from './AuthPage.module.css'
 import { useTranslation } from 'react-i18next'
 import PublicFooter from '@/components/layout/PublicFooter'
@@ -43,41 +44,10 @@ const VALUE_POINTS = [
   { icon: ClipboardList, labelKey: 'valuePoints.trackingMentor' }
 ]
 
-/**
- * Sosyal giriş düğmeleri.
- *
- * Apple ve Google hesapları henüz açılmadığı için BAĞLI DEĞİL. Tıklanınca
- * ne olacağını söylemek, sessizce hiçbir şey yapmaktan iyi: `disabled` +
- * açıklayıcı başlık kullanılıyor. Hesaplar geldiğinde yalnız `onClick`
- * bağlanacak.
- */
-function SocialButtons() {
-  const { t } = useTranslation('auth')
-  return (
-    <div className={styles.socialRow}>
-      <button type="button" className={styles.social} disabled title={t('social.comingSoon')}>
-        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.76c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" />
-          <path fill="#FBBC05" d="M5.84 14.11a6.6 6.6 0 0 1 0-4.22V7.05H2.18a11 11 0 0 0 0 9.9l3.66-2.84z" />
-          <path fill="#EA4335" d="M12 4.75c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.46 14.97.5 12 .5A11 11 0 0 0 2.18 7.05l3.66 2.84c.87-2.6 3.3-4.14 6.16-4.14z" />
-        </svg>
-        Google
-      </button>
-      <button type="button" className={styles.social} disabled title={t('social.comingSoon')}>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M17.05 12.53c-.02-2.2 1.8-3.26 1.88-3.31-1.02-1.5-2.62-1.7-3.19-1.72-1.36-.14-2.65.8-3.34.8-.69 0-1.75-.78-2.87-.76-1.48.02-2.84.86-3.6 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.25 2.75 2.2 1.1-.04 1.52-.71 2.85-.71 1.33 0 1.7.71 2.87.69 1.18-.02 1.93-1.08 2.65-2.14.83-1.22 1.18-2.4 1.2-2.46-.03-.01-2.3-.88-2.3-3.53z" />
-          <path d="M14.86 5.9c.6-.74 1.01-1.75.9-2.77-.87.04-1.93.58-2.56 1.31-.56.65-1.05 1.69-.92 2.68.97.08 1.96-.49 2.58-1.22z" />
-        </svg>
-        Apple
-      </button>
-    </div>
-  )
-}
 
 export default function AuthPage({ mode: initialMode }) {
   const { t } = useTranslation('auth')
-  const { login, register } = useAuth()
+  const { login, register, socialLogin } = useAuth()
   const navigate = useNavigate()
   const [mode, setMode] = useState(initialMode || 'login')
   const [form, setForm] = useState({ email: '', password: '', name: '' })
@@ -86,6 +56,14 @@ export default function AuthPage({ mode: initialMode }) {
   const [submitting, setSubmitting] = useState(false)
   /* Acik yasal metin penceresi: null | 'terms' | 'privacy' */
   const [yasalMetin, setYasalMetin] = useState(null)
+  /*
+   * SOSYAL GİRİŞ (16.09.2026). Sunucu ilk girişte 409 CONSENT_REQUIRED
+   * döner: belirteç `bekleyenSosyal`da tutulur, onay kutusu gösterilir,
+   * kullanıcı onaylayınca aynı belirteçle yeniden gönderilir. Kayıt
+   * sekmesinde kutu zaten işaretliyse ilk denemede acceptedLegal gider.
+   */
+  const [bekleyenSosyal, setBekleyenSosyal] = useState(null)
+  const [sosyalVar, setSosyalVar] = useState(false)
 
   const [searchParams] = useSearchParams()
   const isLogin = mode === 'login'
@@ -115,6 +93,28 @@ export default function AuthPage({ mode: initialMode }) {
       )
     } catch (err) {
       setError(err.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function sosyalGiris(kimlik, onay) {
+    setError('')
+    setSubmitting(true)
+    try {
+      const data = await socialLogin({ ...kimlik, acceptedLegal: onay ? true : undefined })
+      setBekleyenSosyal(null)
+      navigate(
+        guvenliNext(searchParams.get('next'), data.isNewUser ? '/app/hosgeldin' : VARSAYILAN_YOL),
+        { replace: true },
+      )
+    } catch (err) {
+      if (err?.status === 409 && err?.apiMessage === 'CONSENT_REQUIRED') {
+        setBekleyenSosyal(kimlik)
+        setError('')
+      } else {
+        setError(err?.apiMessage && err.apiMessage !== err.code ? err.apiMessage : (err.message || t('social.failed')))
+      }
     } finally {
       setSubmitting(false)
     }
@@ -280,9 +280,34 @@ export default function AuthPage({ mode: initialMode }) {
               : (isLogin ? t('login') : t('createAccount'))}
           </button>
 
-          <div className={styles.divider}><span>{t('or')}</span></div>
+          {sosyalVar && <div className={styles.divider}><span>{t('or')}</span></div>}
 
-          <SocialButtons />
+          {bekleyenSosyal ? (
+            /* İlk sosyal girişte yasal onay: kayıttaki kutunun aynısı. */
+            <div className={styles.sosyalOnay} role="group" aria-label={t('social.consentTitle')}>
+              <p className={styles.sosyalOnayBaslik}>{t('social.consentTitle')}</p>
+              <label className={styles.consent}>
+                <input type="checkbox" checked={legalOk} onChange={event => setLegalOk(event.target.checked)} />
+                <span>
+                  <button type="button" className={styles.legalLink} onClick={() => setYasalMetin('terms')}>{t('legal.terms')}</button>{t('legal.termsSuffix')}{' '}
+                  <button type="button" className={styles.legalLink} onClick={() => setYasalMetin('privacy')}>{t('legal.privacy')}</button>{t('legal.acceptSuffix')}
+                </span>
+              </label>
+              <div className={styles.sosyalOnayDugmeler}>
+                <button type="button" className={styles.submit} disabled={!legalOk || submitting} onClick={() => sosyalGiris(bekleyenSosyal, true)}>
+                  {submitting ? t('registering') : t('social.continue')}
+                </button>
+                <button type="button" className={styles.modeSwitch} onClick={() => setBekleyenSosyal(null)}>{t('social.cancel')}</button>
+              </div>
+            </div>
+          ) : (
+            <SosyalGiris
+              disabled={submitting}
+              onDurum={setSosyalVar}
+              onKimlik={kimlik => sosyalGiris(kimlik, !isLogin && legalOk)}
+              onHata={mesaj => setError(mesaj)}
+            />
+          )}
 
           <p className={styles.switchLine}>
             {isLogin ? t('noAccount') : t('hasAccount')}{' '}

@@ -318,13 +318,26 @@ async function build() {
 
   const analyticsKaynagi = analyticsBaglantiKaynagi()
 
+  /*
+   * SOSYAL GİRİŞ KAYNAKLARI (16.09.2026). Google Identity Services betiği
+   * accounts.google.com'dan, Apple JS appleid.cdn-apple.com'dan yüklenir;
+   * Google düğmesi bir iframe ve popup açar. Yalnız ilgili sağlayıcı
+   * yapılandırıldıysa eklenir — kapalıyken politika en katı hâlinde kalır.
+   */
+  const googleAcik = (process.env.GOOGLE_CLIENT_IDS || '').trim().length > 0
+  const appleAcik = (process.env.APPLE_CLIENT_IDS || '').trim().length > 0
+  const sosyalBetik = [googleAcik ? 'https://accounts.google.com/gsi/client' : '', appleAcik ? 'https://appleid.cdn-apple.com' : ''].filter(Boolean).join(' ')
+  const sosyalBaglanti = [googleAcik ? 'https://accounts.google.com/gsi/' : '', appleAcik ? 'https://appleid.apple.com' : ''].filter(Boolean).join(' ')
+  const sosyalCerceve = [googleAcik ? 'https://accounts.google.com/gsi/' : '', appleAcik ? 'https://appleid.apple.com' : ''].filter(Boolean).join(' ')
+  const sosyalStil = googleAcik ? ' https://accounts.google.com/gsi/style' : ''
+
   const CONTENT_SECURITY_POLICY = [
     "default-src 'self'",
-    scriptSrc,
-    "style-src 'self' 'unsafe-inline'",
+    sosyalBetik ? `${scriptSrc} ${sosyalBetik}` : scriptSrc,
+    `style-src 'self' 'unsafe-inline'${sosyalStil}`,
     "img-src 'self' data: blob:",
     "font-src 'self' data:",
-    `connect-src 'self'${analyticsKaynagi ? ` ${analyticsKaynagi}` : ''}`,
+    `connect-src 'self'${analyticsKaynagi ? ` ${analyticsKaynagi}` : ''}${sosyalBaglanti ? ` ${sosyalBaglanti}` : ''}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -351,7 +364,7 @@ async function build() {
      * açılıyor, yani onları bizim değil PayTR'nin sayfası yönetiyor.
      * Yine de tarayıcıda doğrulanacak.
      */
-    "frame-src 'self' https://www.paytr.com"
+    `frame-src 'self' https://www.paytr.com${sosyalCerceve ? ` ${sosyalCerceve}` : ''}`
   ].join('; ')
 
   server.addHook('onSend', async (_request, reply, payload) => {
@@ -360,7 +373,9 @@ async function build() {
     reply.header('Referrer-Policy', 'strict-origin-when-cross-origin')
     reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
     reply.header('Content-Security-Policy', CONTENT_SECURITY_POLICY)
-    reply.header('Cross-Origin-Opener-Policy', 'same-origin')
+    /* Google/Apple giriş penceresi (popup) açılan sayfayla konuşmak zorunda;
+       'same-origin' ile window.opener kopar ve düğme sessizce çalışmaz. */
+    reply.header('Cross-Origin-Opener-Policy', (googleAcik || appleAcik) ? 'same-origin-allow-popups' : 'same-origin')
     reply.header('Cross-Origin-Resource-Policy', 'same-origin')
     if (isProduction) {
       reply.header('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')

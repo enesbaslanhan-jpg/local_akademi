@@ -1,0 +1,41 @@
+/* Sosyal giriş düğmeleri — AuthPage .social ile aynı dil (--auth-* paleti). */
+.satir {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.satir[data-tek="1"] { grid-template-columns: 1fr; }
+
+.dugme {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: clamp(44px, 3.4vw, 52px);
+  border: 1px solid var(--auth-field-border);
+  border-radius: 10px;
+  background: var(--auth-field);
+  color: var(--auth-text);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dugme:hover:not(:disabled) { background: var(--auth-field-focus); }
+.dugme:focus-visible { outline: 2px solid var(--auth-accent); outline-offset: 2px; }
+.dugme:disabled { opacity: .55; cursor: not-allowed; }
+
+/* Google: GIS iframe düğmesi saydam olarak bizim düğmenin üstünde durur. */
+.googleKap { position: relative; }
+.googleUst {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.googleUst > div { transform: scale(1.15); }
+.googleKap[data-hazir="0"] .googleUst { pointer-events: none; }

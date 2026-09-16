@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { RELEASE_INFO } from '../config/release.js'
+import { appleIstemcileri, googleIstemcileri } from './social-auth.js'
 
 /*
  * MOBİL İSTEMCİ YAPILANDIRMASI VE UYGULAMA BAĞLANTI DOSYALARI
@@ -122,7 +123,17 @@ export async function appConfigRoutes(fastify: FastifyInstance) {
         projectToken: analyticsReady ? analyticsProjectToken : null,
         sessionReplay: false
       },
-      apiVersion: RELEASE_INFO.version
+      apiVersion: RELEASE_INFO.version,
+      /*
+       * SOSYAL GİRİŞ (16.09.2026). İstemci kimlikleri gizli değil (belirteçte
+       * açık `aud` alanı). Web, Google düğmesi için ilk Google ID'yi (web
+       * istemcisi) ve Apple için Services ID'yi kullanır; mobil kendi
+       * derleme zamanı kimliğini kullanır, yalnız `enabled` bayrağına bakar.
+       */
+      socialLogin: {
+        google: { enabled: googleIstemcileri().length > 0, webClientId: googleIstemcileri()[0] ?? null },
+        apple: { enabled: appleIstemcileri().length > 0, webServicesId: (process.env.APPLE_SERVICES_ID || '').trim() || null }
+      }
     }
   })
 

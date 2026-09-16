@@ -284,7 +284,9 @@
     },
     "securitySection": {
       "title": "Security",
-      "description": "Update your password regularly; the new password cannot match the old one."
+      "description": "Update your password regularly; the new password cannot match the old one.",
+      "noPassword": "This account was created with Google/Apple and has no password yet. Set one to also sign in with e-mail.",
+      "setPassword": "Set a password"
     },
     "sessions": {
       "title": "Active sessions",

@@ -98,6 +98,13 @@ services:
       - PRODUCT_ANALYTICS_ENABLED=${PRODUCT_ANALYTICS_ENABLED:-false}
       - POSTHOG_HOST=${POSTHOG_HOST:-}
       - POSTHOG_PROJECT_TOKEN=${POSTHOG_PROJECT_TOKEN:-}
+      # Sosyal giriş (16.09.2026). Boş = ilgili düğme gizli.
+      - GOOGLE_CLIENT_IDS=${GOOGLE_CLIENT_IDS:-}
+      - APPLE_CLIENT_IDS=${APPLE_CLIENT_IDS:-}
+      - APPLE_SERVICES_ID=${APPLE_SERVICES_ID:-}
+      - APPLE_TEAM_ID=${APPLE_TEAM_ID:-}
+      - APPLE_SIGNIN_KEY_ID=${APPLE_SIGNIN_KEY_ID:-}
+      - APPLE_SIGNIN_KEY_P8=${APPLE_SIGNIN_KEY_P8:-}
       # E-posta — şifre sıfırlama ve e-posta doğrulama buna bağlı.
       # Üretimde eksikse sunucu açılışta durur (bkz. mailer.ts).
       - RESEND_API_KEY=${RESEND_API_KEY:?RESEND_API_KEY tanimlanmali}

@@ -20,6 +20,15 @@ import { contentLanguage } from '../lib/content-language.js'
 import { sendMail } from './mailer.js'
 import { dogrulamaKoduMaili, sifreDegistiMaili, sifreSifirlamaMaili } from './mail-templates.js'
 import {
+  appleBelirteciIptalEt,
+  appleIstemcileri,
+  appleKoduDegistir,
+  SosyalBelirtecHatasi,
+  sosyalBelirteciDogrula,
+  type SocialProvider
+} from './social-auth.js'
+import { decryptSecret, encryptSecret } from '../lib/crypto.js'
+import {
   suresiGecenleriTemizle,
   tokenIptalEt,
   tokenYenile,
@@ -107,8 +116,28 @@ const changeEmailSchema = z.object({
 })
 
 const deleteAccountSchema = z.object({
-  currentPassword: z.string().min(1).max(128),
+  /* Sosyal girişle açılan hesapta parola yok (hasPassword=false); o zaman
+     bu alan gelmez, oturum JWT'si + onay metni yeter. */
+  currentPassword: z.string().min(1).max(128).optional(),
   confirmation: z.literal('HESABIMI SİL')
+})
+
+/*
+ * SOSYAL GİRİŞ gövdesi (16.09.2026). `idToken` sağlayıcının JWT'si;
+ * `authorizationCode` yalnız Apple'da (iptal için değişim). `name` yalnız
+ * ilk girişte, Apple adı belirtece koymadığı için istemciden gelir.
+ * `acceptedLegal` YENİ hesap açılacaksa zorunlu; mevcut hesaba bağlanmada
+ * gerekmez (onay zaten kayıtta alınmıştı).
+ */
+const socialSchema = z.object({
+  provider: z.enum(['google', 'apple']),
+  idToken: z.string().min(20).max(8192),
+  authorizationCode: z.string().min(1).max(2048).optional(),
+  name: z.string().trim().min(1).max(100).optional(),
+  acceptedLegal: z.boolean().optional(),
+  /* Web'de Services ID, mobilde bundle ID hedeflenir; sunucu `aud`ı zaten
+     doğruluyor, bu yalnız Apple iptal çağrısında client_id olarak kullanılır. */
+  appleClientId: z.string().min(1).max(200).optional()
 })
 
 const loginSchema = z.object({
@@ -383,6 +412,9 @@ export async function authRoutes(fastify: FastifyInstance) {
       onboardingCompleted: pref?.onboardingCompleted ?? false,
       uiLanguage: pref?.uiLanguage || 'tr',
       emailVerified: !!found.emailVerifiedAt,
+      /* Sosyal girişle açılan hesapta false: arayüz "şifre değiştir" yerine
+         "şifre belirle" (sıfırlama akışı) gösterir. */
+      hasPassword: found.hasPassword,
       /* Üyelik durumu SAKLANMIYOR, her istekte türetiliyor — ödeme
          kaydı dahil. Saklasaydık, callback aboneliği aktive ettiğinde
          kullanıcının kaydı bayat kalır ve ödediği hâlde salt okunur
@@ -1246,8 +1278,11 @@ export async function authRoutes(fastify: FastifyInstance) {
 
     const found = await prisma.user.findUnique({ where: { id: request.user.id } })
     if (!found || found.deletedAt) return reply.status(404).send({ error: 'User not found' })
-    const valid = await bcrypt.compare(parsed.data.currentPassword, found.password)
-    if (!valid) return reply.status(401).send({ error: 'INVALID_CREDENTIALS', message: 'Hesap silinemedi. Şifrenizi kontrol edin.' })
+    if (found.hasPassword) {
+      if (!parsed.data.currentPassword) return reply.status(422).send({ error: 'PASSWORD_REQUIRED', message: 'Hesabı silmek için şifrenizi girin.' })
+      const valid = await bcrypt.compare(parsed.data.currentPassword, found.password)
+      if (!valid) return reply.status(401).send({ error: 'INVALID_CREDENTIALS', message: 'Hesap silinemedi. Şifrenizi kontrol edin.' })
+    }
 
     if (found.role === 'admin') {
       const activeAdmins = await prisma.user.count({ where: { role: 'admin', deletedAt: null } })
@@ -1294,7 +1329,152 @@ export async function authRoutes(fastify: FastifyInstance) {
 
     if (found.avatarStoredName) await unlink(safeAvatarPath(found.avatarStoredName)).catch(() => {})
 
+    /*
+     * APPLE BELİRTEÇ İPTALİ (App Store 5.1.1(v)): Apple ile açılmış hesap
+     * silinirken Apple'a da "bu kullanıcı bağı bitti" denmeli. Başarısızlık
+     * silmeyi durdurmaz; kimlik satırı her durumda temizlenir.
+     */
+    const kimlikler = await prisma.userIdentity.findMany({ where: { userId: found.id } })
+    for (const k of kimlikler) {
+      if (k.provider === 'apple' && k.encryptedRefreshToken) {
+        const clientId = appleIstemcileri()[0]
+        if (clientId) await appleBelirteciIptalEt(clientId, decryptSecret(k.encryptedRefreshToken)).catch(() => false)
+      }
+    }
+    await prisma.userIdentity.deleteMany({ where: { userId: found.id } })
+
     return reply.status(204).send()
+  })
+
+  /*
+   * POST /auth/social — Google / Apple ile giriş veya kayıt (16.09.2026).
+   *
+   * Sıra:
+   *  1. Belirteç sağlayıcının anahtarlarıyla doğrulanır (aud = bizim istemci
+   *     kimlikleri). Doğrulanmamış e-posta reddedilir.
+   *  2. (provider, sub) UserIdentity'de varsa → o kullanıcı.
+   *  3. Yoksa aynı e-postalı kullanıcı varsa → kimlik ona BAĞLANIR. Güvenli,
+   *     çünkü e-posta sağlayıcı tarafından doğrulanmış; Google/Apple'a göre
+   *     bu adresin sahibi bu kişi.
+   *  4. O da yoksa → yeni hesap: parola alanına kullanılamaz rastgele özet,
+   *     hasPassword=false, e-posta doğrulanmış sayılır, yasal onay kaydı.
+   *     acceptedLegal gelmediyse 409 CONSENT_REQUIRED (istemci onay kutusunu
+   *     gösterip tekrar çağırır).
+   *  Kilitli/silinmiş hesap kontrolleri parola girişiyle aynı.
+   */
+  fastify.post('/social', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } }
+  }, async (request, reply) => {
+    const parsed = socialSchema.safeParse(request.body)
+    if (!parsed.success) return reply.status(422).send({ error: 'Geçersiz sosyal giriş isteği' })
+    const govde = parsed.data
+    const provider: SocialProvider = govde.provider
+
+    let kimlik
+    try {
+      kimlik = await sosyalBelirteciDogrula(provider, govde.idToken)
+    } catch (err) {
+      if (err instanceof SosyalBelirtecHatasi) {
+        const durum = err.kod === 'PROVIDER_DISABLED' ? 503 : err.kod === 'EMAIL_NOT_VERIFIED' ? 403 : 401
+        return reply.status(durum).send({ error: err.kod, message: err.message })
+      }
+      throw err
+    }
+
+    const mevcutKimlik = await prisma.userIdentity.findUnique({
+      where: { provider_subject: { provider, subject: kimlik.subject } },
+      include: { user: { include: { subscription: { select: { status: true, currentPeriodEnd: true } } } } }
+    })
+
+    let user = mevcutKimlik?.user ?? null
+    let yeniHesap = false
+    if (!user && kimlik.email) {
+      user = await prisma.user.findUnique({
+        where: { email: kimlik.email },
+        include: { subscription: { select: { status: true, currentPeriodEnd: true } } }
+      })
+    }
+
+    if (user?.deletedAt) return reply.status(401).send({ error: 'Invalid credentials' })
+    const now = new Date()
+    if (user?.lockedUntil && user.lockedUntil > now) {
+      return reply.status(429).send({
+        error: 'Çok fazla hatalı giriş denemesi yapıldı. Hesabınız geçici olarak kilitlendi.',
+        code: 'ACCOUNT_LOCKED',
+        retryAfterSeconds: Math.ceil((user.lockedUntil.getTime() - now.getTime()) / 1000)
+      })
+    }
+
+    if (!user) {
+      if (process.env.BETA_MODE === 'invite_only') {
+        return reply.status(403).send({ error: 'Registration is closed. Beta is invite-only.' })
+      }
+      if (!kimlik.email) {
+        // Apple bazı hatalı yapılandırmalarda e-postasız belirteç verebilir; e-postasız hesap açılmaz.
+        return reply.status(403).send({ error: 'EMAIL_REQUIRED', message: 'Sağlayıcı e-posta adresi vermedi.' })
+      }
+      if (govde.acceptedLegal !== true) {
+        return reply.status(409).send({ error: 'CONSENT_REQUIRED', message: 'Kullanım Koşulları ve Aydınlatma Metni onaylanmalı.' })
+      }
+      const ad = govde.name?.trim() || kimlik.name || kimlik.email.split('@')[0]
+      const kullanilamazParola = await bcrypt.hash(randomBytes(32).toString('hex'), 10)
+      user = await prisma.$transaction(async tx => {
+        const created = await tx.user.create({
+          data: { email: kimlik.email!, password: kullanilamazParola, name: ad.slice(0, 100), hasPassword: false, emailVerifiedAt: now },
+          include: { subscription: { select: { status: true, currentPeriodEnd: true } } }
+        })
+        await tx.userConsent.createMany({
+          data: requiredDocuments().map(doc => ({ userId: created.id, documentType: doc.type, version: doc.version }))
+        })
+        return created
+      })
+      yeniHesap = true
+    }
+
+    /* Apple: iptal için refresh token (yalnız .p8 yapılandırıldıysa). */
+    let sifreliYenileme: string | undefined
+    if (provider === 'apple' && govde.authorizationCode && !mevcutKimlik?.encryptedRefreshToken) {
+      const clientId = govde.appleClientId && appleIstemcileri().includes(govde.appleClientId) ? govde.appleClientId : appleIstemcileri()[0]
+      const rt = clientId ? await appleKoduDegistir(clientId, govde.authorizationCode) : null
+      if (rt) sifreliYenileme = encryptSecret(rt)
+    }
+
+    await prisma.userIdentity.upsert({
+      where: { provider_subject: { provider, subject: kimlik.subject } },
+      create: { userId: user.id, provider, subject: kimlik.subject, email: kimlik.email, encryptedRefreshToken: sifreliYenileme },
+      update: { lastLoginAt: now, email: kimlik.email ?? undefined, ...(sifreliYenileme ? { encryptedRefreshToken: sifreliYenileme } : {}) }
+    })
+
+    /* Sosyal giriş e-postayı doğrulamış sayar: sağlayıcı doğruladı. */
+    const guncelle: Record<string, unknown> = {}
+    if (!user.emailVerifiedAt && kimlik.emailVerified) guncelle.emailVerifiedAt = now
+    if (user.failedLoginCount !== 0 || user.lockedUntil !== null) { guncelle.failedLoginCount = 0; guncelle.lockedUntil = null }
+    if (Object.keys(guncelle).length > 0) {
+      user = await prisma.user.update({
+        where: { id: user.id }, data: guncelle,
+        include: { subscription: { select: { status: true, currentPeriodEnd: true } } }
+      })
+    }
+
+    await createAuditLog({
+      action: yeniHesap ? 'user.registered_social' : (mevcutKimlik ? 'auth.login_social' : 'auth.identity_linked'),
+      entityType: 'user',
+      entityId: user.id,
+      actorId: user.id,
+      metadata: { provider, privateRelay: kimlik.privateRelay }
+    }, prisma).catch(() => {})
+
+    const token = issueToken(fastify, user)
+    const preference = await prisma.userPreference.findUnique({ where: { userId: user.id } })
+    const yenileme = await yeniAileOlustur(prisma, user.id, user.tokenVersion)
+    suresiGecenleriTemizle(prisma).catch(() => {})
+
+    return {
+      token,
+      refreshToken: yenileme.rawToken,
+      isNewUser: yeniHesap,
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: avatarUrl(user.avatarStoredName), emailVerified: !!user.emailVerifiedAt, hasPassword: user.hasPassword, uiLanguage: preference?.uiLanguage || 'tr', membership: { ...hesaplaUyelikDurumu(user.createdAt, new Date(), undefined, user.subscription), testCheckout: testOdemesiYapabilir(user.role) } }
+    }
   })
 }
 

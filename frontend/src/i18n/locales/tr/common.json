@@ -284,7 +284,9 @@
     },
     "securitySection": {
       "title": "Güvenlik",
-      "description": "Parolanızı düzenli aralıklarla yenileyin; yeni parola eskisiyle aynı olamaz."
+      "description": "Parolanızı düzenli aralıklarla yenileyin; yeni parola eskisiyle aynı olamaz.",
+      "noPassword": "Bu hesap Google/Apple ile açıldı; henüz bir parolan yok. E-postayla giriş de yapabilmek için parola belirleyebilirsin.",
+      "setPassword": "Parola belirle"
     },
     "sessions": {
       "title": "Açık oturumlar",

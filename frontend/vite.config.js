@@ -55,6 +55,12 @@ export default defineConfig({
       '/auth': {
         ...backendProxy
       },
+      /* /app-config: sosyal giriş bayrakları, mağaza adresleri, analitik.
+         Üretimde aynı kaynak; geliştirmede proxy yoksa index.html döner ve
+         Google/Apple düğmeleri sessizce çizilmez (16.09.2026). */
+      '/app-config': {
+        ...backendProxy
+      },
       /* İletişim formu. Üretimde Caddy her şeyi arka uca iletiyor ve
          `/support` API önekleri arasında; burada da olmazsa yalnız
          geliştirmede 404 döner ve form çalışmaz. */

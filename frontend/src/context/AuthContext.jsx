@@ -53,6 +53,24 @@ export function AuthProvider({ children }) {
     return data
   }, [setUiLanguage])
 
+  /*
+   * SOSYAL GİRİŞ (16.09.2026). Sunucu yeni hesap açtıysa `isNewUser` döner;
+   * kayıt analitiği ve karşılama yönlendirmesi buna göre. Onay eksikse
+   * ApiError(409, CONSENT_REQUIRED) olduğu gibi fırlatılır; AuthPage yakalar.
+   */
+  const socialLogin = useCallback(async (payload) => {
+    const data = await api.auth.social(payload)
+    oturumTokenleriniYaz(data.token, data.refreshToken)
+    setToken(data.token)
+    setUser(data.user)
+    if (['tr', 'en'].includes(data.user.uiLanguage)) setUiLanguage(data.user.uiLanguage)
+    setOnboardingCompleted(data.user.onboardingCompleted ?? !data.isNewUser)
+    if (data.isNewUser) {
+      captureAnalytics('signup_completed', { platform: 'web', method: payload.provider })
+    }
+    return data
+  }, [setUiLanguage])
+
   const register = useCallback(async (email, password, name, acceptedLegal) => {
     captureAnalytics('signup_started', { platform: 'web' })
     const data = await api.auth.register(email, password, name, acceptedLegal)
@@ -113,10 +131,11 @@ export function AuthProvider({ children }) {
     completeOnboarding,
     login,
     register,
+    socialLogin,
     logout,
     replaceSession,
     updateUser
-  }), [token, user, loading, onboardingCompleted, completeOnboarding, login, register, logout, replaceSession, updateUser])
+  }), [token, user, loading, onboardingCompleted, completeOnboarding, login, register, socialLogin, logout, replaceSession, updateUser])
 
   return (
     <AuthContext.Provider value={value}>

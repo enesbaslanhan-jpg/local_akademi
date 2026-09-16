@@ -761,3 +761,8 @@
   outline-offset: 2px;
   border-radius: 3px;
 }
+
+/* İlk sosyal girişte yasal onay adımı (16.09.2026). */
+.sosyalOnay { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--auth-field-border); border-radius: 10px; background: var(--auth-field); }
+.sosyalOnayBaslik { margin: 0; font-size: .85rem; font-weight: 600; color: var(--auth-text); }
+.sosyalOnayDugmeler { display: grid; gap: 8px; }

@@ -31,6 +31,12 @@ model User {
   failedLoginCount          Int                      @default(0)
   /// Doluysa ve gelecekteyse giris reddediliyor.
   lockedUntil               DateTime?
+  /// SOSYAL GIRIS (16.09.2026). Google/Apple ile acilan hesapta kullanici
+  /// hic parola belirlemedi; `password` alaninda rastgele, kullanilamaz bir
+  /// ozet durur (sifreyle giris imkansiz). false ise: parola degistirme
+  /// yerine "parola belirle" (sifirlama akisi) gosterilir, hesap silme
+  /// parola istemez (oturum JWT'si yeter).
+  hasPassword               Boolean                  @default(true)
   createdAt                 DateTime                 @default(now())
   updatedAt                 DateTime                 @updatedAt
   deletedAt                 DateTime?
@@ -107,6 +113,7 @@ model User {
   passwordResetTokens       PasswordResetToken[]
   emailVerificationCodes    EmailVerificationCode[]
   consents                  UserConsent[]
+  identities                UserIdentity[]
   refreshTokens             RefreshToken[]
   addedInboxSenders         BusinessInboxSender[]
   createdIntegrations       IntegrationConnection[]  @relation("IntegrationConnections")
@@ -162,6 +169,29 @@ model UserConsent {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, documentType, version])
+  @@index([userId])
+}
+
+/// Sosyal giris kimligi (Google / Apple). Bir kullanicinin her saglayicida
+/// en fazla bir kimligi olur; ayni saglayici kimligi iki kullaniciya baglanamaz.
+/// `subject` saglayicinin degismez kullanici kimligidir (Google `sub`, Apple
+/// `sub`); e-posta degisebilir, o yuzden eslestirme buna gore yapilir.
+model UserIdentity {
+  id                    String   @id @default(uuid())
+  userId                Int
+  provider              String
+  subject               String
+  /// Saglayicinin verdigi e-posta (Apple'da gizli aktarma adresi olabilir).
+  email                 String?
+  /// Apple: hesap silinirken belirteci iptal etmek icin (App Store 5.1.1(v)).
+  /// Sifreli (encryptSecret); yalnizca token degisimi basardiysa dolu.
+  encryptedRefreshToken String?
+  createdAt             DateTime @default(now())
+  lastLoginAt           DateTime @default(now())
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, subject])
+  @@unique([userId, provider])
   @@index([userId])
 }
 

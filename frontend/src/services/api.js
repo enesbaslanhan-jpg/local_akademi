@@ -399,6 +399,12 @@ export const api = {
         body: JSON.stringify({ email, password, name, acceptedLegal })
       }, false);
     },
+    /* Google / Apple kimlik belirteciyle giriş ya da kayıt (16.09.2026).
+       İlk girişte sunucu 409 CONSENT_REQUIRED dönerse acceptedLegal:true ile
+       yeniden çağrılır. */
+    async social(payload) {
+      return api.request('/auth/social', { method: 'POST', body: JSON.stringify(payload) }, false);
+    },
     async getLegalDocuments() {
       return api.request('/auth/legal-documents', {}, false);
     },
@@ -483,9 +489,11 @@ export const api = {
       });
     },
     async deleteAccount(currentPassword, confirmation) {
+      /* Sosyal girişle açılan hesapta parola yok: alan boş gider, sunucu
+         oturum JWT'si + onay metniyle siler (hasPassword=false). */
       return api.request('/auth/account', {
         method: 'DELETE',
-        body: JSON.stringify({ currentPassword, confirmation })
+        body: JSON.stringify(currentPassword ? { currentPassword, confirmation } : { confirmation })
       });
     },
     async uploadAvatar(file) {
