@@ -69,6 +69,12 @@ services:
       - OMNIROUTE_BASE_URL=${OMNIROUTE_BASE_URL}
       - OMNIROUTE_API_KEY=${OMNIROUTE_API_KEY}
       - OMNIROUTE_MODEL=${OMNIROUTE_MODEL:-auto/best-free}
+      # Cevap uzunluğu sınırları (17.09.2026). PostHog'daki tuzağın aynısı: .env'e
+      # yazılsa bile bu listede yoksa konteynere ULAŞMAZ. Kod varsayılanı 2048;
+      # OmniRoute'ta düşünen modeller (Gemini) bütçeyi düşünmeye harcayınca uzun
+      # cevaplar yarıda kesiliyordu.
+      - AI_MAX_OUTPUT_TOKENS=${AI_MAX_OUTPUT_TOKENS:-}
+      - OMNIROUTE_MIN_OUTPUT_TOKENS=${OMNIROUTE_MIN_OUTPUT_TOKENS:-}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - GEMINI_MODEL=${GEMINI_MODEL:-}
       - NVIDIA_API_KEY=${NVIDIA_API_KEY:-}
