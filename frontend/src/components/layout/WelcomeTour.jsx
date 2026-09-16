@@ -17,8 +17,8 @@ import { useTranslation } from 'react-i18next'
  * ediyor ve orada ne yapıldığını anlatıyor.
  *
  * Anketten (OnboardingPage) ayrı bir şey: anket kullanıcıyı tanır, tur
- * ürünü tanıtır. Bayrakları da ayrı (`tourCompletedAt` ≠
- * `onboardingCompleted`).
+ * ürünü tanıtır. Bayrakları ayrıdır ve tur yalnız kullanıcı Dashboard
+ * ya da Ayarlar'dan açıkça başlattığında görünür.
  */
 
 const BASLANGIC_YOLU = '/app/dashboard'
@@ -88,7 +88,7 @@ function gorunurKutu(capa, kaydir = false) {
 
 export default function WelcomeTour() {
   const { t } = useTranslation('common')
-  const [durum, setDurum] = useState('bilinmiyor')   // bilinmiyor | gizli | acik
+  const [durum, setDurum] = useState('gizli')
   const [adim, setAdim] = useState(0)
   const [kutu, setKutu] = useState(null)
   const [bekliyor, setBekliyor] = useState(false)
@@ -96,18 +96,17 @@ export default function WelcomeTour() {
   const location = useLocation()
   const bittiRef = useRef(false)
 
+  /* Tur artık otomatik açılmaz. Hoş geldin + kısa anketten sonra beş
+     sayfalık zorunlu tur ikinci bir kapı yaratıyordu. Dashboard veya
+     Ayarlar'daki açık kullanıcı eylemi bu olayı gönderir. */
   useEffect(() => {
-    let iptal = false
-    api.onboarding.getStatus()
-      .then(s => {
-        if (iptal) return
-        /* Tur ancak ANKET BİTTİKTEN sonra; yoksa iki karşılama üst üste
-           binerdi. Durum okunamazsa da açılmaz — emin olmadan karşılama
-           ekranı açmak, turu bitirmiş kullanıcıya tekrar göstermektir. */
-        setDurum(s?.onboardingCompleted && !s?.tourCompleted ? 'acik' : 'gizli')
-      })
-      .catch(() => { if (!iptal) setDurum('gizli') })
-    return () => { iptal = true }
+    const ac = () => {
+      bittiRef.current = false
+      setAdim(0)
+      setDurum('acik')
+    }
+    window.addEventListener('localkarar:start-tour', ac)
+    return () => window.removeEventListener('localkarar:start-tour', ac)
   }, [])
 
   const guncel = ADIMLAR[adim]
@@ -179,6 +178,7 @@ export default function WelcomeTour() {
     if (!bittiRef.current) {
       bittiRef.current = true
       api.onboarding.completeTour().catch(() => {})
+      window.dispatchEvent(new CustomEvent('localkarar:tour-finished'))
     }
   }, [navigate])
 

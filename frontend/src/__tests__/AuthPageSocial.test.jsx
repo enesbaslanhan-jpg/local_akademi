@@ -45,6 +45,7 @@ describe('AuthPage sosyal giriş', () => {
     expect(screen.queryByRole('button', { name: /Apple/ })).toBeNull()
     expect(screen.queryByRole('button', { name: /Google/ })).toBeNull()
     expect(screen.queryByText('veya')).toBeNull()
+    expect(screen.getByRole('link', { name: 'Fiyatlar ve Kurucu Üye kampanyası' })).toHaveAttribute('href', '/fiyatlar')
   })
 
   it('Apple açık: düğme var, kimlik sunucuya gider, başarıda panoya yönlenir', async () => {

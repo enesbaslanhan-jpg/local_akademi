@@ -1,5 +1,13 @@
 {
   "title": "Control Center",
+  "starter": {
+    "title": "Complete your first steps",
+    "description": "Do them now or later. They never block access to the app.",
+    "profile": "Complete your business profile",
+    "record": "Create your first record",
+    "tour": "Start the 60-second tour",
+    "dismiss": "Dismiss the getting-started list"
+  },
   "firstRecord": "Add your first record",
   "subtitle": "What matters in your business today?",
   "calculate": "Calculate",

@@ -1,5 +1,13 @@
 {
   "title": "Kontrol Merkezi",
+  "starter": {
+    "title": "İlk adımlarını tamamla",
+    "description": "İstersen şimdi, istersen daha sonra. Uygulamayı kullanmana engel olmaz.",
+    "profile": "İşletme profilini tamamla",
+    "record": "İlk kaydını oluştur",
+    "tour": "60 saniyelik turu başlat",
+    "dismiss": "Başlangıç listesini kapat"
+  },
   "firstRecord": "İlk kaydı ekle",
   "subtitle": "Bugün işletmenizde ne önemli?",
   "calculate": "Hesapla",

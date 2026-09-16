@@ -58,6 +58,32 @@ async function durum(token: string) {
 }
 
 describe('karşılama turu', () => {
+  it('anket atlandığında profil olmadan tamamlanır ve çalışma alanı uydurmaz', async () => {
+    const u = await kullanici('anket-atla')
+    const res = await app.inject({
+      method: 'POST',
+      url: '/onboarding/complete',
+      headers: yetki(u.token),
+      payload: { onboardingCompleted: true, skipped: true }
+    })
+    expect(res.statusCode).toBe(200)
+    expect(res.json()).toMatchObject({ onboardingCompleted: true, skipped: true })
+    expect((await durum(u.token)).onboardingCompleted).toBe(true)
+    const membership = await prisma.businessMember.findFirst({ where: { userId: u.id } })
+    expect(membership).toBeNull()
+  })
+
+  it('kişiselleştirme seçilip profil oluşmadan tamamlanamaz', async () => {
+    const u = await kullanici('anket-bos')
+    const res = await app.inject({
+      method: 'POST',
+      url: '/onboarding/complete',
+      headers: yetki(u.token),
+      payload: { onboardingCompleted: true }
+    })
+    expect(res.statusCode).toBe(422)
+  })
+
   it('yeni kullanıcıda tur tamamlanmamış görünür', async () => {
     const u = await kullanici('yeni')
     expect((await durum(u.token)).tourCompleted).toBe(false)

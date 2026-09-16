@@ -43,6 +43,7 @@ export default function MembershipStrip({ className = '' }) {
   if (!membership) return null
 
   const s = uyelikSunumu(membership, { locale: i18n.resolvedLanguage || i18n.language })
+  const deger = olcu => olcu.degerAnahtar ? t(olcu.degerAnahtar) : olcu.deger
 
   return (
     <section
@@ -53,6 +54,14 @@ export default function MembershipStrip({ className = '' }) {
       <div className={styles.metin}>
         <strong className={styles.baslik}>{t(s.baslik.anahtar, s.baslik.degerler)}</strong>
         <span className={styles.alt}>{t(s.alt.anahtar, s.alt.degerler)}</span>
+      </div>
+      <div className={styles.olculer} aria-label={t('billing.serit.ozet')}>
+        {[s.sol, s.sag].map(olcu => (
+          <span className={styles.olcu} key={olcu.etiket}>
+            <small>{t(olcu.etiket)}</small>
+            <strong>{deger(olcu)}</strong>
+          </span>
+        ))}
       </div>
       {/* Tek eylem ve her durumda AYNI hedef: üyelik ekranı. Ürün
           sahibinin şikâyeti "taa ayarlara gideceğim sonra üyeliğe

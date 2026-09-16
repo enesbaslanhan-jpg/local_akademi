@@ -10,7 +10,8 @@ import MembershipStrip from '@/components/billing/MembershipStrip'
 import DecisionReceipt from '@/components/decision-checks/DecisionReceipt'
 import {
   BookOpen, ChevronRight, ArrowRight, AlertCircle,
-  Scale, Calculator, Bot, Square, CheckSquare, Store
+  Scale, Calculator, Bot, Square, CheckSquare, Store,
+  CheckCircle2, PlayCircle, UserRound, ListPlus, X
 } from 'lucide-react'
 import styles from './Dashboard.module.css'
 import { featureFlags } from '@/config/featureFlags'
@@ -78,6 +79,10 @@ export default function Dashboard() {
   const [receiptOpen, setReceiptOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [onboardingStatus, setOnboardingStatus] = useState(null)
+  const [starterDismissed, setStarterDismissed] = useState(() => (
+    window.localStorage.getItem('localkarar-starter-dismissed') === 'true'
+  ))
   const mountedRef = useRef(false)
 
   const fetchData = useCallback(async () => {
@@ -169,6 +174,14 @@ export default function Dashboard() {
   }, [fetchData, fetchDecisions])
 
   useEffect(() => { fetchTracker() }, [fetchTracker])
+
+  useEffect(() => {
+    const statusRequest = api.onboarding?.getStatus?.()
+    statusRequest?.then?.(setOnboardingStatus)?.catch?.(() => {})
+    const turBitti = () => setOnboardingStatus(current => current ? { ...current, tourCompleted: true } : current)
+    window.addEventListener('localkarar:tour-finished', turBitti)
+    return () => window.removeEventListener('localkarar:tour-finished', turBitti)
+  }, [])
 
   const resume = data?.resumeItem
   const tasks = data?.upcomingTasks || []
@@ -325,6 +338,49 @@ export default function Dashboard() {
           `billing_not_started` dahil — sessiz kalsaydı bugünkü tek
           gerçek durumda yine hiçbir şey görünmezdi. */}
       <MembershipStrip className={styles.uyelikSerit} />
+
+      {onboardingStatus?.onboardingCompleted && !starterDismissed && (
+        (!onboardingStatus.profileComplete || !hasRecords || !onboardingStatus.tourCompleted) && (
+          <section className={styles.starter} aria-labelledby="starter-title">
+            <div className={styles.starterIntro}>
+              <span className={styles.starterIcon}><CheckCircle2 size={18} aria-hidden="true" /></span>
+              <div>
+                <h2 id="starter-title">{t('starter.title')}</h2>
+                <p>{t('starter.description')}</p>
+              </div>
+            </div>
+            <div className={styles.starterSteps}>
+              <button type="button" className={onboardingStatus.profileComplete ? styles.starterDone : ''} onClick={() => navigate('/app/settings#isletme-profili')}>
+                {onboardingStatus.profileComplete ? <CheckCircle2 size={17} /> : <UserRound size={17} />}
+                <span>{t('starter.profile')}</span>
+              </button>
+              <button type="button" className={hasRecords ? styles.starterDone : ''} onClick={() => navigate(activeWorkspaceId ? `/app/workspaces/${activeWorkspaceId}/tracker?new=task` : '/app/workspaces')}>
+                {hasRecords ? <CheckCircle2 size={17} /> : <ListPlus size={17} />}
+                <span>{t('starter.record')}</span>
+              </button>
+              <button
+                type="button"
+                className={onboardingStatus.tourCompleted ? styles.starterDone : ''}
+                onClick={() => window.dispatchEvent(new CustomEvent('localkarar:start-tour'))}
+              >
+                {onboardingStatus.tourCompleted ? <CheckCircle2 size={17} /> : <PlayCircle size={17} />}
+                <span>{t('starter.tour')}</span>
+              </button>
+            </div>
+            <button
+              type="button"
+              className={styles.starterClose}
+              aria-label={t('starter.dismiss')}
+              onClick={() => {
+                window.localStorage.setItem('localkarar-starter-dismissed', 'true')
+                setStarterDismissed(true)
+              }}
+            >
+              <X size={16} aria-hidden="true" />
+            </button>
+          </section>
+        )
+      )}
 
       <div className={styles.workspaceGrid}>
         {/* data-tour: karsilama turunun tutundugu nokta (WelcomeTour.jsx) */}

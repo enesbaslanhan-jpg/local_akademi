@@ -1,404 +1,244 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { AlertCircle, ArrowLeft, ArrowRight, Bot, Check, Compass, Target } from 'lucide-react'
 import { api } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
-import { useNavigate } from 'react-router-dom'
-import { Select } from '@/components/ui'
-import styles from './OnboardingPage.module.css'
+import BrandMark from '@/components/ui/BrandMark'
 import { useTranslation } from 'react-i18next'
 import { captureAnalytics } from '@/services/analytics'
+import styles from './OnboardingPage.module.css'
 
-const STAGES = [
-  { value: 'startup', labelKey: 'onboarding.options.stages.startup' },
-  { value: 'growth', labelKey: 'onboarding.options.stages.growth' },
-  { value: 'mature', labelKey: 'onboarding.options.stages.mature' }
-]
+const TASLAK_ANAHTARI = 'localkarar-onboarding-draft-v2'
 
-const EMPLOYEE_RANGES = [
-  { value: '1', labelKey: 'onboarding.options.employees.solo' },
-  { value: '3', labelKey: 'onboarding.options.employees.twoToFive' },
-  { value: '10', labelKey: 'onboarding.options.employees.sixToTwenty' },
-  { value: '35', labelKey: 'onboarding.options.employees.twentyOneToFifty' },
-  { value: '51', labelKey: 'onboarding.options.employees.fiftyOnePlus' }
-]
+const SECTORS = ['retail', 'ecommerce', 'service', 'food', 'production', 'professional', 'other']
+const GOALS = ['increase_sales', 'operational', 'cash_flow', 'digital_transform', 'new_markets', 'product_dev']
+const CHALLENGES = ['cash_flow', 'customer_acquisition', 'cost_control', 'competition', 'employee_finding', 'technology_adoption', 'regulation', 'other']
 
-const CHANNELS = [
-  { value: 'retail_store', labelKey: 'onboarding.options.channels.retail' },
-  { value: 'ecommerce', labelKey: 'onboarding.options.channels.ecommerce' },
-  { value: 'marketplace', labelKey: 'onboarding.options.channels.marketplace' },
-  { value: 'other', labelKey: 'onboarding.options.channels.other' },
-  { value: 'wholesale', labelKey: 'onboarding.options.channels.wholesale' },
-  { value: 'service', labelKey: 'onboarding.options.channels.service' },
-  { value: 'export', labelKey: 'onboarding.options.channels.export' }
-]
-
-const GOALS = [
-  { value: 'increase_sales', labelKey: 'onboarding.options.goals.increaseSales' },
-  { value: 'digital_transform', labelKey: 'onboarding.options.goals.digitalTransform' },
-  { value: 'new_markets', labelKey: 'onboarding.options.goals.newMarkets' },
-  { value: 'brand_awareness', labelKey: 'onboarding.options.goals.brandAwareness' },
-  { value: 'operational', labelKey: 'onboarding.options.goals.operational' },
-  { value: 'product_dev', labelKey: 'onboarding.options.goals.productDevelopment' }
-]
-
-const CHALLENGES_LIST = [
-  { value: 'digital_skills', labelKey: 'onboarding.options.challenges.digitalSkills' },
-  { value: 'cash_flow', labelKey: 'onboarding.options.challenges.cashFlow' },
-  { value: 'employee_finding', labelKey: 'onboarding.options.challenges.employees' },
-  { value: 'customer_acquisition', labelKey: 'onboarding.options.challenges.customerAcquisition' },
-  { value: 'competition', labelKey: 'onboarding.options.challenges.competition' },
-  { value: 'regulation', labelKey: 'onboarding.options.challenges.regulation' },
-  { value: 'technology_adoption', labelKey: 'onboarding.options.challenges.technology' },
-  { value: 'other', labelKey: 'onboarding.options.challenges.other' }
-]
-
-const LEARNING_OPTIONS = [
-  { value: '30', labelKey: 'onboarding.options.learning.thirty' },
-  { value: '60', labelKey: 'onboarding.options.learning.sixty' },
-  { value: '120', labelKey: 'onboarding.options.learning.oneTwenty' },
-  { value: '300', labelKey: 'onboarding.options.learning.threeHundred' },
-  { value: '600', labelKey: 'onboarding.options.learning.sixHundred' }
-]
+function taslakOku() {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(TASLAK_ANAHTARI) || 'null')
+    return value && typeof value === 'object' ? value : null
+  } catch {
+    return null
+  }
+}
 
 export default function OnboardingPage() {
   const { t } = useTranslation('auth')
   const { completeOnboarding } = useAuth()
   const navigate = useNavigate()
+  const draft = useMemo(taslakOku, [])
   const [step, setStep] = useState(0)
   const [saving, setSaving] = useState(false)
+  const [skipping, setSkipping] = useState(false)
   const [error, setError] = useState('')
-  const [existing, setExisting] = useState(null)
+  const [profileNotice, setProfileNotice] = useState('')
+  const [loadAttempt, setLoadAttempt] = useState(0)
   const [form, setForm] = useState({
-    businessStage: '',
-    employeeCount: '',
-    salesChannels: [],
-    primaryGoal: '',
-    challenges: [],
-    weeklyLearningMinutes: '60',
-    businessName: '',
-    sector: '',
-    monthlySales: '',
-    monthlyExpenses: '',
-    description: ''
+    sector: draft?.sector || '',
+    primaryGoal: draft?.primaryGoal || '',
+    challenges: Array.isArray(draft?.challenges) ? draft.challenges.slice(0, 3) : []
   })
 
   useEffect(() => {
-    captureAnalytics('onboarding_started', { source: 'onboarding' })
-    api.onboarding.getProfile().then(data => {
-      if (data) {
-        setExisting(data)
-        setForm(prev => ({
-          ...prev,
-          businessStage: data.businessStage || '',
-          employeeCount: data.employeeCount?.toString() || '',
-          salesChannels: data.salesChannels || [],
-          primaryGoal: data.primaryGoal || '',
-          challenges: data.challenges || [],
-          weeklyLearningMinutes: data.weeklyLearningMinutes?.toString() || '60',
-          businessName: data.name || '',
-          sector: data.sector || '',
-          monthlySales: data.monthlySales || '',
-          monthlyExpenses: data.monthlyExpenses || ''
-        }))
-      }
-    }).catch(() => {})
+    captureAnalytics('onboarding_started', { source: 'onboarding_v2' })
   }, [])
 
-  function continueToNextStep() {
-    captureAnalytics('onboarding_step_completed', {
-      onboarding_step: String(step + 1),
-      source: 'onboarding'
-    })
-    setStep(previous => previous + 1)
-  }
+  useEffect(() => {
+    let cancelled = false
+    setProfileNotice('')
+    api.onboarding.getProfile()
+      .then(data => {
+        if (cancelled || !data) return
+        setForm(current => ({
+          sector: current.sector || data.sector || '',
+          primaryGoal: current.primaryGoal || data.primaryGoal || '',
+          challenges: current.challenges.length ? current.challenges : (data.challenges || []).slice(0, 3)
+        }))
+      })
+      .catch(() => {
+        if (!cancelled) setProfileNotice(t('onboarding.profileLoadError'))
+      })
+    return () => { cancelled = true }
+  }, [loadAttempt, t])
 
-  function toggleChannel(value) {
-    setForm(prev => ({
-      ...prev,
-      salesChannels: prev.salesChannels.includes(value)
-        ? prev.salesChannels.filter(c => c !== value)
-        : [...prev.salesChannels, value]
-    }))
+  useEffect(() => {
+    window.localStorage.setItem(TASLAK_ANAHTARI, JSON.stringify(form))
+  }, [form])
+
+  const steps = [
+    { key: 'sector', icon: Compass },
+    { key: 'goal', icon: Target },
+    { key: 'challenge', icon: AlertCircle }
+  ]
+
+  const valid = step === 0
+    ? Boolean(form.sector)
+    : step === 1
+      ? Boolean(form.primaryGoal)
+      : form.challenges.length > 0
+
+  function choose(field, value) {
+    setError('')
+    setForm(current => ({ ...current, [field]: value }))
   }
 
   function toggleChallenge(value) {
-    setForm(prev => ({
-      ...prev,
-      challenges: prev.challenges.includes(value)
-        ? prev.challenges.filter(c => c !== value)
-        : [...prev.challenges, value]
-    }))
+    setError('')
+    setForm(current => {
+      if (current.challenges.includes(value)) {
+        return { ...current, challenges: current.challenges.filter(item => item !== value) }
+      }
+      if (current.challenges.length >= 3) return current
+      return { ...current, challenges: [...current.challenges, value] }
+    })
   }
 
-  async function handleSave() {
+  function next() {
+    if (!valid) {
+      setError(t('onboarding.chooseOne'))
+      return
+    }
+    captureAnalytics('onboarding_step_completed', {
+      onboarding_step: String(step + 1),
+      source: 'onboarding_v2'
+    })
+    setError('')
+    setStep(current => Math.min(current + 1, 2))
+  }
+
+  async function skip() {
+    if (skipping || saving) return
+    setSkipping(true)
+    setError('')
+    try {
+      await completeOnboarding({ skipped: true })
+    } catch {
+      /* Ağ sorunu ilk değer anına erişimi engellemez. Sunucu bayrağı
+         yazılamasa bile bu oturumda kullanıcı panoya devam eder. */
+      captureAnalytics('onboarding_skip_failed', { platform: 'web' })
+    } finally {
+      window.localStorage.removeItem(TASLAK_ANAHTARI)
+      navigate('/app/dashboard', { replace: true })
+    }
+  }
+
+  async function finish() {
+    if (!valid || saving) {
+      if (!valid) setError(t('onboarding.chooseOne'))
+      return
+    }
     setSaving(true)
     setError('')
     try {
       await api.onboarding.updateProfile({
-        name: form.businessName,
         sector: form.sector,
-        businessStage: form.businessStage || null,
-        employeeCount: form.employeeCount ? Number.parseInt(form.employeeCount, 10) : null,
-        salesChannels: form.salesChannels,
-        primaryGoal: form.primaryGoal || null,
-        challenges: form.challenges,
-        weeklyLearningMinutes: parseInt(form.weeklyLearningMinutes) || 60,
-        ...(form.monthlySales !== '' && { monthlySales: Number(form.monthlySales) }),
-        ...(form.monthlyExpenses !== '' && { monthlyExpenses: Number(form.monthlyExpenses) })
+        primaryGoal: form.primaryGoal,
+        challenges: form.challenges
       })
       await completeOnboarding()
+      window.localStorage.removeItem(TASLAK_ANAHTARI)
       navigate('/app/dashboard', { replace: true })
-    } catch (err) {
-      setError(err.message || t('onboarding.saveError'))
+    } catch {
+      setError(t('onboarding.saveErrorRecovery'))
+      captureAnalytics('onboarding_save_failed', { platform: 'web', onboarding_step: '3' })
     } finally {
       setSaving(false)
     }
   }
 
-  const steps = [
-    { label: t('onboarding.steps.business'), description: t('onboarding.steps.businessDescription') },
-    { label: t('onboarding.steps.channels'), description: t('onboarding.steps.channelsDescription') },
-    { label: t('onboarding.steps.goals'), description: t('onboarding.steps.goalsDescription') },
-    { label: t('onboarding.steps.summary'), description: t('onboarding.steps.summaryDescription') }
-  ]
+  const StepIcon = steps[step].icon
+  const options = step === 0 ? SECTORS : step === 1 ? GOALS : CHALLENGES
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>{t('onboarding.title')}</h1>
-        <p className={styles.subtitle}>
-          {t('onboarding.subtitle')}
-        </p>
-      </div>
-
-      <div className={styles.actions}>
-        {/* Atla da anketi "bitmiş" sayar (16.09.2026): karşılama turu ancak
-            onboardingCompleted ise açılır; atlayan kullanıcı turu kaçırmasın. */}
-        <button
-          className={styles.btnSecondary}
-          onClick={async () => {
-            await completeOnboarding().catch(() => {})
-            navigate('/app/dashboard', { replace: true })
-          }}
-        >
-          {t('onboarding.skip')}
-        </button>
-      </div>
-
-      <div className={styles.progress}>
-        {steps.map((s, i) => (
-          <div
-            key={i}
-            className={`${styles.stepDot} ${i <= step ? styles.stepActive : ''} ${i < step ? styles.stepDone : ''}`}
-          >
-            <div className={styles.stepNumber}>{i < step ? '✓' : i + 1}</div>
-            <div className={styles.stepLabel}>
-              <span className={styles.stepName}>{s.label}</span>
-              <span className={styles.stepDesc}>{s.description}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className={styles.card}>
-        {step === 0 && (
-          <div className={styles.stepContent}>
-            <h2 className={styles.stepTitle}>{t('onboarding.business.title')}</h2>
-
-            <div className={styles.field}>
-              <label className={styles.label}>{t('onboarding.business.name')}</label>
-              <input
-                type="text"
-                className={styles.input}
-                placeholder={t('onboarding.business.namePlaceholder')}
-                value={form.businessName}
-                onChange={e => setForm(prev => ({ ...prev, businessName: e.target.value }))}
-              />
-            </div>
-
-            <div className={styles.field}>
-              <label className={styles.label}>{t('onboarding.business.sector')}</label>
-              <input
-                type="text"
-                className={styles.input}
-                placeholder={t('onboarding.business.sectorPlaceholder')}
-                value={form.sector}
-                onChange={e => setForm(prev => ({ ...prev, sector: e.target.value }))}
-              />
-            </div>
-
-            <div className={styles.field}>
-              <label className={styles.label}>{t('onboarding.business.stage')}</label>
-              <Select
-                className={styles.select}
-                aria-label={t('onboarding.business.stage')}
-                placeholder={t('onboarding.select')}
-                options={STAGES.map(s => ({ value: s.value, label: t(s.labelKey) }))}
-                value={form.businessStage}
-                onChange={v => setForm(prev => ({ ...prev, businessStage: v }))}
-              />
-            </div>
-
-            <div className={styles.field}>
-              <label className={styles.label}>{t('onboarding.business.employeeCount')}</label>
-              <Select
-                className={styles.select}
-                aria-label={t('onboarding.business.employeeCount')}
-                placeholder={t('onboarding.select')}
-                options={EMPLOYEE_RANGES.map(r => ({ value: r.value, label: t(r.labelKey) }))}
-                value={form.employeeCount}
-                onChange={v => setForm(prev => ({ ...prev, employeeCount: v }))}
-              />
-            </div>
-
-            <div className={styles.field}>
-              <label className={styles.label}>{t('onboarding.business.learningTime')}</label>
-              <Select
-                className={styles.select}
-                aria-label={t('onboarding.business.learningTimeAria')}
-                options={LEARNING_OPTIONS.map(o => ({ value: o.value, label: t(o.labelKey) }))}
-                value={form.weeklyLearningMinutes}
-                onChange={v => setForm(prev => ({ ...prev, weeklyLearningMinutes: v }))}
-              />
-            </div>
-
-            <div className={`${styles.field} ${styles.fieldFull}`}>
-              <label className={styles.label}>{t('onboarding.business.shortDescription')}</label>
-              <textarea
-                className={styles.textarea}
-                rows={3}
-                placeholder={t('onboarding.business.descriptionPlaceholder')}
-                value={form.description}
-                onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
-              />
-            </div>
-          </div>
-        )}
-
-        {step === 1 && (
-          <div className={styles.stepContent}>
-            <h2 className={styles.stepTitle}>{t('onboarding.channels.title')}</h2>
-
-            <div className={styles.field}>
-              <label className={styles.label}>{t('onboarding.channels.label')}</label>
-              <div className={styles.checkboxGroup}>
-                {CHANNELS.map(ch => (
-                  <label key={ch.value} className={styles.checkboxLabel}>
-                    <input
-                      type="checkbox"
-                      checked={form.salesChannels.includes(ch.value)}
-                      onChange={() => toggleChannel(ch.value)}
-                    />
-                    <span>{t(ch.labelKey)}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.row}>
-              <div className={styles.field}>
-                <label className={styles.label}>{t('onboarding.channels.monthlySales')}</label>
-                <input
-                  type="number"
-                  className={styles.input}
-                  placeholder={t('onboarding.channels.salesPlaceholder')}
-                  value={form.monthlySales}
-                  onChange={e => setForm(prev => ({ ...prev, monthlySales: e.target.value }))}
-                />
-              </div>
-              <div className={styles.field}>
-                <label className={styles.label}>{t('onboarding.channels.monthlyExpenses')}</label>
-                <input
-                  type="number"
-                  className={styles.input}
-                  placeholder={t('onboarding.channels.expensesPlaceholder')}
-                  value={form.monthlyExpenses}
-                  onChange={e => setForm(prev => ({ ...prev, monthlyExpenses: e.target.value }))}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className={styles.stepContent}>
-            <h2 className={styles.stepTitle}>{t('onboarding.goals.title')}</h2>
-
-            <div className={styles.field}>
-              <label className={styles.label}>{t('onboarding.goals.primary')}</label>
-              <Select
-                className={styles.select}
-                aria-label={t('onboarding.goals.primaryAria')}
-                placeholder={t('onboarding.select')}
-                options={GOALS.map(g => ({ value: g.value, label: t(g.labelKey) }))}
-                value={form.primaryGoal}
-                onChange={v => setForm(prev => ({ ...prev, primaryGoal: v }))}
-              />
-            </div>
-
-            <div className={styles.field}>
-              <label className={styles.label}>{t('onboarding.goals.challenges')}</label>
-              <div className={styles.checkboxGroup}>
-                {CHALLENGES_LIST.map(ch => (
-                  <label key={ch.value} className={styles.checkboxLabel}>
-                    <input
-                      type="checkbox"
-                      checked={form.challenges.includes(ch.value)}
-                      onChange={() => toggleChallenge(ch.value)}
-                    />
-                    <span>{t(ch.labelKey)}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className={styles.stepContent}>
-            <h2 className={styles.stepTitle}>{t('onboarding.summary.title')}</h2>
-            <div className={styles.summary}>
-              <div className={styles.summaryGroup}>
-                <h3>{t('onboarding.business.title')}</h3>
-                <p><strong>{t('onboarding.summary.name')}:</strong> {form.businessName || '—'}</p>
-                <p><strong>{t('onboarding.summary.sector')}:</strong> {form.sector || '—'}</p>
-                <p><strong>{t('onboarding.summary.stage')}:</strong> {STAGES.find(s => s.value === form.businessStage)?.labelKey ? t(STAGES.find(s => s.value === form.businessStage).labelKey) : '—'}</p>
-                <p><strong>{t('onboarding.summary.employees')}:</strong> {EMPLOYEE_RANGES.find(r => r.value === form.employeeCount)?.labelKey ? t(EMPLOYEE_RANGES.find(r => r.value === form.employeeCount).labelKey) : '—'}</p>
-                <p><strong>{t('onboarding.summary.weeklyLearning')}:</strong> {LEARNING_OPTIONS.find(o => o.value === form.weeklyLearningMinutes)?.labelKey ? t(LEARNING_OPTIONS.find(o => o.value === form.weeklyLearningMinutes).labelKey) : form.weeklyLearningMinutes}</p>
-              </div>
-              <div className={styles.summaryGroup}>
-                <h3>{t('onboarding.channels.title')}</h3>
-                <p>{form.salesChannels.length ? form.salesChannels.map(c => t(CHANNELS.find(ch => ch.value === c)?.labelKey)).join(', ') : '—'}</p>
-                <p><strong>{t('onboarding.summary.revenue')}:</strong> {form.monthlySales ? `${Number(form.monthlySales).toLocaleString()} ₺` : '—'}</p>
-                <p><strong>{t('onboarding.summary.expenses')}:</strong> {form.monthlyExpenses ? `${Number(form.monthlyExpenses).toLocaleString()} ₺` : '—'}</p>
-              </div>
-              <div className={styles.summaryGroup}>
-                <h3>{t('onboarding.summary.goalsAndChallenges')}</h3>
-                <p><strong>{t('onboarding.summary.goal')}:</strong> {GOALS.find(g => g.value === form.primaryGoal)?.labelKey ? t(GOALS.find(g => g.value === form.primaryGoal).labelKey) : '—'}</p>
-                <p><strong>{t('onboarding.summary.challenges')}:</strong> {form.challenges.length ? form.challenges.map(c => t(CHALLENGES_LIST.find(ch => ch.value === c)?.labelKey)).join(', ') : '—'}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {error && <p className={styles.error} role="alert">{error}</p>}
-
-        <div className={styles.actions}>
-          {step > 0 && (
-            <button className={styles.btnSecondary} onClick={() => setStep(prev => prev - 1)}>
-              {t('onboarding.back')}
-            </button>
-          )}
-          {step < 3 ? (
-            <button className={styles.btnPrimary} onClick={continueToNextStep}>
-              {t('onboarding.continue')}
-            </button>
-          ) : (
-            <button className={styles.btnPrimary} onClick={handleSave} disabled={saving}>
-              {saving ? t('onboarding.saving') : t('onboarding.finish')}
-            </button>
-          )}
+    <div className={styles.page}>
+      <aside className={styles.story}>
+        <div className={styles.brand}><BrandMark size={38} animated /><span>LocalKarar</span></div>
+        <div className={styles.storyCopy}>
+          <StepIcon size={28} aria-hidden="true" />
+          <h1>{t('onboarding.story.title')}</h1>
+          <p>{t('onboarding.story.description')}</p>
         </div>
-      </div>
+        <p className={styles.privacy}><Bot size={15} aria-hidden="true" /> {t('onboarding.story.privacy')}</p>
+      </aside>
+
+      <main className={styles.main}>
+        <header className={styles.topbar}>
+          <div className={styles.progress} aria-label={t('onboarding.progressAria')}>
+            {steps.map((item, index) => (
+              <span key={item.key} className={`${styles.progressItem} ${index === step ? styles.current : ''} ${index < step ? styles.done : ''}`}>
+                <span>{index < step ? <Check size={13} /> : index + 1}</span>
+                <small>{t(`onboarding.shortSteps.${item.key}`)}</small>
+              </span>
+            ))}
+          </div>
+          <button type="button" className={styles.skipTop} onClick={skip} disabled={skipping || saving}>
+            {skipping ? t('onboarding.skipping') : t('onboarding.skipShort')}
+          </button>
+        </header>
+
+        <section className={styles.question} aria-labelledby="onboarding-question">
+          <span className={styles.counter}>{t('onboarding.stepCounter', { current: step + 1, total: 3 })}</span>
+          <h2 id="onboarding-question">{t(`onboarding.questions.${steps[step].key}.title`)}</h2>
+          <p>{t(`onboarding.questions.${steps[step].key}.description`)}</p>
+
+          {profileNotice && (
+            <div className={styles.notice} role="status">
+              <span>{profileNotice}</span>
+              <button type="button" onClick={() => setLoadAttempt(value => value + 1)}>{t('onboarding.retry')}</button>
+            </div>
+          )}
+
+          <div className={styles.options} role={step === 2 ? 'group' : 'radiogroup'}>
+            {options.map(value => {
+              const selected = step === 0
+                ? form.sector === value
+                : step === 1
+                  ? form.primaryGoal === value
+                  : form.challenges.includes(value)
+              const disabled = step === 2 && !selected && form.challenges.length >= 3
+              return (
+                <button
+                  type="button"
+                  key={value}
+                  className={`${styles.option} ${selected ? styles.selected : ''}`}
+                  role={step === 2 ? 'checkbox' : 'radio'}
+                  aria-checked={selected}
+                  disabled={disabled}
+                  onClick={() => step === 2 ? toggleChallenge(value) : choose(step === 0 ? 'sector' : 'primaryGoal', value)}
+                >
+                  <span>{t(`onboarding.answers.${steps[step].key}.${value}`)}</span>
+                  <i aria-hidden="true">{selected && <Check size={15} />}</i>
+                </button>
+              )
+            })}
+          </div>
+          {step === 2 && <p className={styles.selectionHint}>{t('onboarding.challengeLimit', { count: form.challenges.length })}</p>}
+
+          {error && <div className={styles.error} role="alert"><AlertCircle size={16} /> {error}</div>}
+
+          <footer className={styles.actions}>
+            <button type="button" className={styles.back} onClick={() => { setError(''); setStep(current => Math.max(0, current - 1)) }} disabled={step === 0 || saving}>
+              <ArrowLeft size={16} /> {t('onboarding.back')}
+            </button>
+            {step < 2 ? (
+              <button type="button" className={styles.next} onClick={next} disabled={!valid}>
+                {t('onboarding.continue')} <ArrowRight size={16} />
+              </button>
+            ) : (
+              <button type="button" className={styles.next} onClick={finish} disabled={!valid || saving}>
+                {saving ? t('onboarding.saving') : t('onboarding.prepare')} {!saving && <ArrowRight size={16} />}
+              </button>
+            )}
+          </footer>
+
+          {error && step === 2 && (
+            <button type="button" className={styles.skipAfterError} onClick={skip} disabled={skipping}>
+              {t('onboarding.continueWithoutSaving')}
+            </button>
+          )}
+        </section>
+      </main>
     </div>
   )
 }

@@ -455,6 +455,7 @@ export default function SettingsPage() {
                   setTourSaving(true)
                   try {
                     await api.onboarding.resetTour()
+                    window.dispatchEvent(new CustomEvent('localkarar:start-tour'))
                     flash(setTourMsg, 'ok', t('settings.messages.tourReset'))
                   } catch (err) {
                     flash(setTourMsg, 'error', err.message || t('settings.messages.tourResetError'))

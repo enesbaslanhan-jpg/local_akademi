@@ -10,6 +10,9 @@ const ALLOWED_EVENTS = new Set([
   'onboarding_started',
   'onboarding_step_completed',
   'onboarding_completed',
+  'onboarding_skipped',
+  'onboarding_skip_failed',
+  'onboarding_save_failed',
   /* Karşılama ekranı (16.09.2026): Başlayalım → anket, Şimdilik geç → pano. */
   'welcome_started',
   'welcome_skipped',

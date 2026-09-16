@@ -537,6 +537,23 @@
 .modeSwitch:hover { text-decoration: underline; }
 .modeSwitch:focus-visible { outline: 2px solid var(--auth-accent); outline-offset: 2px; border-radius: 3px; }
 
+.pricingLink {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: -4px auto 0;
+  padding: 0 10px;
+  color: var(--auth-text-soft);
+  font-size: .76rem;
+  font-weight: var(--font-weight-semibold, 650);
+  text-decoration: none;
+}
+.pricingLink svg { color: var(--auth-accent); }
+.pricingLink:hover { color: var(--auth-text); text-decoration: underline; text-underline-offset: 3px; }
+.pricingLink:focus-visible { outline: 2px solid var(--auth-accent); outline-offset: 2px; border-radius: 5px; }
+
 .error {
   margin: 0;
   padding: 10px 12px;

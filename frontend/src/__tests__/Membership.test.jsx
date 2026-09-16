@@ -50,7 +50,7 @@ describe('karşılama ekranı', () => {
   it('kurucu üye programını anlatır ve kart bilgisi İSTEMEZ', () => {
     sar(<WelcomePage />)
 
-    expect(screen.getByRole('heading', { name: /hoş geldin/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /İşletmen için daha net kararlar/ })).toBeInTheDocument()
 
     /* 🔴 Ödeme alanı, kart formu ya da "öde" düğmesi OLMAMALI.
        Ürün sahibi kararı: ilk ay ücretsizken kart istemek vaatle
@@ -61,7 +61,7 @@ describe('karşılama ekranı', () => {
 
   it('atlanabilir: uygulamaya devam eden birincil eylem var', () => {
     sar(<WelcomePage />)
-    expect(screen.getByRole('button', { name: /başla/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /İşletmemi kişiselleştir/ })).toBeInTheDocument()
   })
 
   it('ücretlendirme AÇIK: "başlamadı" duyurusu yok', () => {

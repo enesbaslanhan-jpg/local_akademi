@@ -5,6 +5,18 @@
   --app-rail-width: var(--sidebar-width);
 }
 
+/* İlk kullanım yüzeyleri uygulama kabuğunun içinde ezilmez. Oturum ve
+   sağlayıcılar korunur; ray, üst bar, alt sekme ve Mentor balonu bu iki
+   kısa adımda dikkati bölmez. */
+.focusLayout {
+  min-height: 100dvh;
+  background: var(--auth-page);
+}
+
+.focusContent {
+  min-height: 100dvh;
+}
+
 .sidebarCollapsed { --app-rail-width: var(--sidebar-collapsed-width); }
 
 /*

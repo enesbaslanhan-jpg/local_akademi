@@ -20,6 +20,7 @@ export default function AppLayout() {
     return window.localStorage.getItem('localkarar-sidebar-collapsed') === 'true'
   })
   const location = useLocation()
+  const ilkKullanimAkisi = location.pathname === '/app/hosgeldin' || location.pathname === '/app/onboarding'
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
@@ -28,6 +29,18 @@ export default function AppLayout() {
   useEffect(() => {
     window.localStorage.setItem('localkarar-sidebar-collapsed', String(sidebarCollapsed))
   }, [sidebarCollapsed])
+
+  if (ilkKullanimAkisi) {
+    return (
+      <ContextPanelProvider>
+        <div className={styles.focusLayout}>
+          <main className={styles.focusContent}>
+            <Outlet />
+          </main>
+        </div>
+      </ContextPanelProvider>
+    )
+  }
 
   return (
     <ContextPanelProvider>

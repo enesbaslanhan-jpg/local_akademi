@@ -62,6 +62,9 @@ describe('ana sayfa üyelik şeridi', () => {
 
     expect(screen.getByText(/deneme sürüyor/i)).toBeInTheDocument()
     expect(screen.getByText(/12 gün/i)).toBeInTheDocument()
+    expect(screen.getByText(/bugün ödediğin/i)).toBeInTheDocument()
+    expect(screen.getByText(/[İi]lk tahsilat/)).toBeInTheDocument()
+    expect(screen.getByText(/149/)).toBeInTheDocument()
   })
 
   it('üyelik ekranına DOĞRUDAN gidiyor — kısa yol bu', () => {

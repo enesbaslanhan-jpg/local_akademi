@@ -2,7 +2,8 @@
    token'ları (`--auth-*` değil). */
 
 .serit {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
@@ -60,6 +61,34 @@
   overflow-wrap: anywhere;
 }
 
+.olculer {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.olcu {
+  display: grid;
+  min-width: 112px;
+  gap: 2px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-subtle, var(--surface));
+}
+
+.olcu small {
+  color: var(--text-muted, var(--text-light));
+  font-size: var(--font-micro, .69rem);
+  line-height: 1.25;
+}
+
+.olcu strong {
+  color: var(--text);
+  font-size: var(--font-meta, .75rem);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .baglanti {
   display: inline-flex;
   flex: 0 0 auto;
@@ -80,11 +109,17 @@
   border-radius: 5px;
 }
 
+@media (max-width: 820px) {
+  .serit { grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: 8px 10px; }
+  .olculer { grid-column: 2 / -1; flex-wrap: wrap; }
+  .olcu { flex: 1 1 120px; }
+}
+
 @media (max-width: 560px) {
-  .serit { align-items: flex-start; flex-wrap: wrap; gap: 8px 10px; }
+  .serit { grid-template-columns: auto minmax(0, 1fr); }
   /* Noktanın hizasında kalsın diye küçük bir girinti — ama TAM
      GENİŞLİK DEĞİL: tam genişlik bir bağlantı, düğme gibi okunuyor
      ve tıklanınca sayfa değiştirdiği için beklentiyi bozuyordu. */
-  .baglanti { margin-left: 18px; }
+  .baglanti { grid-column: 2; justify-self: start; }
   .nokta { margin-top: 6px; }
 }

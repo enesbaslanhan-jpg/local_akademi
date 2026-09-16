@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { BookOpen, Check, ClipboardList, LockKeyhole, Mail, Minus, Sheet, UserRound } from 'lucide-react'
+import { BadgePercent, BookOpen, Check, ClipboardList, LockKeyhole, Mail, Minus, Sheet, UserRound } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import BrandMark from '@/components/ui/BrandMark'
 import PasswordInput from '@/components/ui/PasswordInput'
@@ -319,6 +319,11 @@ export default function AuthPage({ mode: initialMode }) {
               {isLogin ? t('signUp') : t('login')}
             </button>
           </p>
+
+          <Link to="/fiyatlar" className={styles.pricingLink}>
+            <BadgePercent size={15} aria-hidden="true" />
+            <span>{t('pricingLink')}</span>
+          </Link>
         </form>
 
         {/* Kopya alt bilgi kaldırıldı — ortak `PublicFooter` sayfanın

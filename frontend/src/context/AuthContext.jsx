@@ -115,10 +115,10 @@ export function AuthProvider({ children }) {
     setUser(current => current ? { ...current, ...changes } : current)
   }, [])
 
-  const completeOnboarding = useCallback(async () => {
-    await api.onboarding.complete()
+  const completeOnboarding = useCallback(async (options = {}) => {
+    await api.onboarding.complete(options)
     setOnboardingCompleted(true)
-    captureAnalytics('onboarding_completed', { platform: 'web' })
+    captureAnalytics(options.skipped ? 'onboarding_skipped' : 'onboarding_completed', { platform: 'web' })
   }, [])
 
   const value = useMemo(() => ({

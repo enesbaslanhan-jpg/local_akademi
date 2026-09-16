@@ -121,7 +121,8 @@ const profileUpdateSchema = z.object({
 })
 
 const completeSchema = z.object({
-  onboardingCompleted: z.literal(true)
+  onboardingCompleted: z.literal(true),
+  skipped: z.boolean().optional().default(false)
 })
 
 export async function onboardingRoutes(fastify: FastifyInstance, opts?: { prisma?: PrismaClient }) {
@@ -310,11 +311,13 @@ export async function onboardingRoutes(fastify: FastifyInstance, opts?: { prisma
     }
 
     const profile = await prisma.businessProfile.findUnique({ where: { userId: user.id } })
-    if (!profile || (!profile.name && !profile.sector)) {
+    if (!validated.skipped && (!profile || (!profile.name && !profile.sector))) {
       return reply.status(422).send({ error: 'Profile must have at least name or sector before completing onboarding' })
     }
 
-    await ensureWorkspace(prisma, user.id, profile.name || undefined)
+    /* Anketi atlamak uygulamaya girişi asla engellemez. Çalışma alanı,
+       kullanıcı ilk gerçek işletme adımını attığında kurulabilir. */
+    if (!validated.skipped && profile) await ensureWorkspace(prisma, user.id, profile.name || undefined)
 
     await prisma.userPreference.upsert({
       where: { userId: user.id },
@@ -322,7 +325,7 @@ export async function onboardingRoutes(fastify: FastifyInstance, opts?: { prisma
       update: { onboardingCompleted: true }
     })
 
-    return { onboardingCompleted: true }
+    return { onboardingCompleted: true, skipped: validated.skipped }
   })
 
   fastify.post('/onboarding/reset', {

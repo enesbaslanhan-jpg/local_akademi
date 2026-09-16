@@ -1076,7 +1076,12 @@ export const api = {
     async getStatus() { return api.request('/onboarding/status'); },
     async getProfile() { return api.request('/onboarding/profile'); },
     async updateProfile(data) { return api.request('/onboarding/profile', { method: 'PUT', body: JSON.stringify(data) }); },
-    async complete() { return api.request('/onboarding/complete', { method: 'POST', body: JSON.stringify({ onboardingCompleted: true }) }); },
+    async complete({ skipped = false } = {}) {
+      return api.request('/onboarding/complete', {
+        method: 'POST',
+        body: JSON.stringify({ onboardingCompleted: true, skipped })
+      })
+    },
     async reset() { return api.request('/onboarding/reset', { method: 'POST' }); },
     async completeTour() { return api.request('/onboarding/tour/complete', { method: 'POST' }); },
     async resetTour() { return api.request('/onboarding/tour/reset', { method: 'POST' }); }
