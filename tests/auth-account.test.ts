@@ -174,14 +174,11 @@ describe('account management', () => {
     expect(deleted?.email).toContain('@deleted.local')
   })
   /*
-   * 🔴 ARŞİVLİ İŞLETME HESAP SİLMEYİ KİLİTLİYORDU (14.09.2026).
-   *
-   * Ölçüldü: kullanıcı işletmesini arşivledi, hesabını silmeye kalktı,
-   * "önce başka sahip atayın" aldı; arşivli işletmeye sahip atanamaz.
-   * KVKK'daki silme hakkı için çıkışsız döngü. Aktif işletmesi olan
-   * hâlâ engellenir (yukarıdaki kural korunuyor), arşivli olan engellemez.
+   * "SORGU SUAL YOK" (ürün sahibi, 16.09.2026): tek sahibi olduğu aktif
+   * işletme hesap silmeyi ENGELLEMEZ, aynı işlemde arşivlenir. Önceki
+   * 409 SOLE_WORKSPACE_OWNER kuralı kaldırıldı. Parola kontrolü duruyor.
    */
-  it('arşivlenmiş işletmenin tek sahibi hesabını silebilir', async () => {
+  it('tek sahibi olduğu aktif işletme arşivlenir ve hesap silinir', async () => {
     const email = `${marker}-arsiv@example.com`
     const user = await prisma.user.create({
       data: { email, password: await bcrypt.hash(password, 10), name: 'Arşiv Sahibi' }
@@ -193,15 +190,13 @@ describe('account management', () => {
     const t = app.jwt.sign({ id: user.id, email, role: user.role })
     const govde = { currentPassword: password, confirmation: 'HESABIMI SİL' }
 
-    /* Aktif işletme varken hâlâ engel. */
-    let res = await app.inject({ method: 'DELETE', url: '/auth/account', headers: { authorization: `Bearer ${t}` }, payload: govde })
-    expect(res.statusCode).toBe(409)
-    expect(res.json().error).toBe('SOLE_WORKSPACE_OWNER')
-
-    /* Arşivlenince engel kalkar. */
-    await prisma.businessWorkspace.update({ where: { id: aktif.id }, data: { status: 'archived', archivedAt: new Date() } })
-    res = await app.inject({ method: 'DELETE', url: '/auth/account', headers: { authorization: `Bearer ${t}` }, payload: govde })
+    const res = await app.inject({ method: 'DELETE', url: '/auth/account', headers: { authorization: `Bearer ${t}` }, payload: govde })
     expect(res.statusCode).toBe(204)
+
+    const isletme = await prisma.businessWorkspace.findUniqueOrThrow({ where: { id: aktif.id } })
+    expect(isletme.status).toBe('archived')
+    expect(isletme.archivedAt).toBeInstanceOf(Date)
+    expect((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).deletedAt).toBeInstanceOf(Date)
   })
 
 })

@@ -425,10 +425,14 @@
     "deleteAccount": {
       "title": "Hesabı sil",
       "description": "Bu işlem hesabınızı devre dışı bırakır, kişisel kimlik bilgilerinizi anonimleştirir ve oturumunuzu kapatır.",
-      "warning": "Tek sahibi olduğunuz bir işletme varsa önce başka bir üyeyi sahip yapmanız gerekir. Bu işlem geri alınamaz.",
+      "warning": "Hesabın, işletmelerin ve kayıtların kalıcı olarak silinir.",
       "confirmationLabel": "Onay",
       "deleting": "Hesap siliniyor…",
-      "action": "Hesabımı kalıcı olarak sil"
+      "action": "Hesabımı kalıcı olarak sil",
+      "confirmTitle": "Emin misin?",
+      "confirmBody": "Bu işlem geri alınamaz. Tek sahibi olduğun işletmeler arşivlenir, hesabın kapanır ve oturumun kapatılır.",
+      "confirmYes": "Evet, hesabımı sil",
+      "confirmNo": "Vazgeç"
     },
     "appInfo": {
       "title": "Uygulama bilgisi",
@@ -1109,8 +1113,24 @@
     "description_other": "LocalKarar’ın ilk kullanıcılarından birisin. İlk {{count}} ay tamamen ücretsiz — kart bilgisi istemiyoruz.",
     "discountNote": "Kurucu üye olarak standart fiyatın her zaman %{{percent}} altını ödersin. Bugün bu {{price}}/ay demek; fiyat ileride değişse bile indirim oranın aynı kalır.",
     "notStarted": "Ücretlendirme henüz başlamadı. Başlamadan önce bilgilendirileceksin.",
-    "start": "LocalKarar’a başla",
-    "seePricing": "Fiyatları incele"
+    "start": "Başlayalım",
+    "seePricing": "Fiyatları incele",
+    "titleNamed": "Hoş geldin, {{name}}",
+    "intro": "LocalKarar, küçük işletmenin parasını, kararlarını ve pazaryeri siparişlerini tek yerde toplar. İşte içinde ne var:",
+    "sectionsAria": "LocalKarar bölümleri",
+    "sections": {
+      "calculations": {
+        "title": "Hesaplamalar",
+        "description": "Kâr marjı, kredi, stok, fiyat — 24 hazır hesaplama; sayıyı gir, sonucu ve ne anlama geldiğini gör."
+      },
+      "courses": {
+        "title": "Kurslar",
+        "description": "Esnaf ve e-ticaret için 38 kısa kurs; her ders bir işletme sorusuna cevap verir, kaldığın yer hatırlanır."
+      }
+    },
+    "priceLine_one": "İlk {{count}} ay ücretsiz, kart bilgisi yok. Sonrası {{prices}}/ay; kurucu üye olarak her zaman %{{percent}} indirimli ({{founderPrice}}/ay).",
+    "priceLine_other": "İlk {{count}} ay ücretsiz, kart bilgisi yok. Sonrası {{prices}}/ay; kurucu üye olarak her zaman %{{percent}} indirimli ({{founderPrice}}/ay).",
+    "skip": "Şimdilik geç"
   },
   "tools": {
     "commission": {

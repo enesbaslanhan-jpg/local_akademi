@@ -15,7 +15,7 @@
 
 .kart {
   width: 100%;
-  max-width: 560px;
+  max-width: 720px;
   padding: 30px 30px 26px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -51,91 +51,60 @@
   line-height: 1.6;
 }
 
-/* ---------- Sade zaman çizgisi ---------- */
+/* ---------- Ne işe yarar: yedi bölüm ---------- */
 
-.cizgi {
-  display: flex;
+.ust { display: grid; gap: 0; justify-items: start; }
+
+.bolumler {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin: 22px 0 0;
   padding: 0;
   list-style: none;
 }
+@media (max-width: 560px) { .bolumler { grid-template-columns: 1fr; } }
 
-.cizgi li {
+.bolum {
   display: flex;
-  align-items: center;
-  gap: 9px;
-  /* Flex öğeleri varsayılan `min-width: auto` ile gelir ve
-     içeriğinden dar olmayı reddeder — 375px'te taşmanın sebebi bu. */
-  min-width: 0;
-  flex: 1;
-  padding: 11px 12px;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: var(--surface-sunken);
+  background: var(--surface);
 }
+.bolum h2 { margin: 0; color: var(--text); font-size: .92rem; font-weight: 700; }
+.bolum p { margin: 4px 0 0; color: var(--text-muted); font-size: .8rem; line-height: 1.5; }
 
-.asamaSon {
-  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
-  background: color-mix(in srgb, var(--primary) 8%, var(--surface-panel));
-}
-
-.asamaNo {
-  display: grid;
-  place-items: center;
+/* Simge kutusu: koyu petrol, uygulama kabuğundaki hero diliyle aynı; halka yok. */
+.bolumSimge {
   flex: 0 0 auto;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--surface-panel);
-  border: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(158deg, #0E2530, #275C72);
+  color: #94CEED;
+}
+
+.fiyat {
+  margin: 20px 0 0;
   color: var(--text-muted);
-  font-size: .72rem;
-  font-weight: 800;
-}
-
-.asamaSon .asamaNo {
-  border-color: transparent;
-  background: var(--primary);
-  color: #fff;
-}
-
-.asamaMetin {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.asamaMetin strong {
-  color: var(--text);
-  font-size: .88rem;
-  font-weight: 750;
-  white-space: nowrap;
-}
-
-.asamaMetin small {
-  color: var(--text-muted);
-  font-size: .72rem;
-}
-
-.indirim {
-  margin: 16px 0 0;
-  color: var(--text-muted);
-  font-size: .85rem;
-  line-height: 1.55;
+  font-size: .86rem;
+  line-height: 1.6;
 }
 
 .duyuru {
-  margin: 12px 0 0;
-  padding: 11px 14px;
+  margin: 10px 0 0;
+  padding: 10px 12px;
   border-radius: var(--radius-md);
-  background: var(--surface-sunken);
-  color: var(--text-muted);
-  font-size: .83rem;
-  line-height: 1.5;
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface-panel));
+  color: var(--text);
+  font-size: .85rem;
 }
-
-/* ---------- Eylemler ---------- */
 
 .eylemler {
   display: flex;
@@ -171,6 +140,18 @@
 }
 
 .ikincilLink:hover { color: var(--text); }
+
+.gecDugme {
+  padding: 12px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: .87rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.gecDugme:hover { color: var(--text); }
 
 .birincilDugme:focus-visible,
 .ikincilLink:focus-visible {

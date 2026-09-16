@@ -75,7 +75,7 @@
 @keyframes heroSweep { to { transform: translateX(90%); } }
 .heroGlow { position:absolute; width:340px; height:340px; right:-80px; top:-180px; border-radius:50%; background:rgba(255,255,255,.16); filter:blur(28px); }
 .heroContent, .heroWorkspace { position:relative; z-index:1; }
-.eyebrow, .panelEyebrow { color:var(--gold-300); font-size:.66rem; font-weight:800; letter-spacing:.15em; }
+.eyebrow, .panelEyebrow { color:#94CEED; /* sarı metin yok (16.09.2026) */ font-size:.66rem; font-weight:800; letter-spacing:.15em; }
 .hero h2 { margin:6px 0 5px; color:var(--on-dark-text); font-size:clamp(1.65rem,3vw,2.25rem); letter-spacing:-.035em; }
 .hero p { max-width:650px; margin:0; color:rgba(241,247,248,.78); font-size:.86rem; line-height:1.5; }
 .heroWorkspace { display:flex; align-items:center; gap:11px; min-width:190px; padding:14px 16px; border:1px solid rgba(255,255,255,.22); background:rgba(255,255,255,.08); backdrop-filter:blur(14px); }

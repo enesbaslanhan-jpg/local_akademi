@@ -488,12 +488,14 @@ export const api = {
         body: JSON.stringify({ newEmail, currentPassword })
       });
     },
-    async deleteAccount(currentPassword, confirmation) {
-      /* Sosyal girişle açılan hesapta parola yok: alan boş gider, sunucu
-         oturum JWT'si + onay metniyle siler (hasPassword=false). */
+    async deleteAccount(currentPassword) {
+      /* Onay sabitini ARAYÜZ gönderir (16.09.2026): kullanıcıya "HESABIMI SİL"
+         yazdırılmıyor, tek bir "emin misiniz" penceresi var. Sunucudaki sabit,
+         ucun yanlışlıkla çağrılmasına karşı mühür olarak duruyor. Parola yalnız
+         parolalı hesapta gider; sosyal hesapta oturum yeter. */
       return api.request('/auth/account', {
         method: 'DELETE',
-        body: JSON.stringify(currentPassword ? { currentPassword, confirmation } : { confirmation })
+        body: JSON.stringify(currentPassword ? { currentPassword, confirmation: 'HESABIMI SİL' } : { confirmation: 'HESABIMI SİL' })
       });
     },
     async uploadAvatar(file) {

@@ -25,7 +25,7 @@
 }
 
 .hero > div:first-child { max-width: 760px; min-width: 0; }
-.hero span { font-size: var(--font-size-page-eyebrow); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--brand-gold); }
+.hero span { font-size: var(--font-size-page-eyebrow); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #94CEED; /* sarı metin yok (16.09.2026) */ }
 .hero p { margin: 6px 0 0; color: var(--sidebar-text); font-size: var(--font-size-page-intro); line-height: 1.55; }
 
 /* Küçük istatistik şeridi — koyu panel değil */

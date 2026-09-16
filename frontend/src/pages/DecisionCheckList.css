@@ -44,7 +44,7 @@
 .decision-hero-eyebrow {
   position: relative;
   margin: 0;
-  color: var(--brand-gold);
+  color: #94CEED; /* sarı metin yok (16.09.2026) */
   font-size: var(--font-size-page-eyebrow);
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.16em;

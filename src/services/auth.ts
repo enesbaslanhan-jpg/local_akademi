@@ -1289,37 +1289,35 @@ export async function authRoutes(fastify: FastifyInstance) {
       if (activeAdmins <= 1) return reply.status(409).send({ error: 'LAST_ADMIN', message: 'Son yönetici hesabı silinemez.' })
     }
 
-    const soleOwnerMembership = await prisma.businessMember.findFirst({
+    /*
+     * TEK SAHİBİ OLDUĞU AKTİF İŞLETMELER ARŞİVLENİR (16.09.2026).
+     *
+     * Önceden 409 SOLE_WORKSPACE_OWNER ile "önce başka sahip atayın" deniyordu;
+     * ürün sahibi bu engeli kaldırdı ("sorgu sual olmayacak"). Veri silinmiyor:
+     * işletme arşive iner, başka üyesi varsa yönetici sonradan geri açabilir.
+     * Sahibi başka biri de olan işletmelere dokunulmaz.
+     */
+    const tekSahipIsletmeler = await prisma.businessMember.findMany({
       where: {
         userId: found.id,
         role: 'owner',
         status: 'active',
-        /*
-         * 🔴 ARŞİVLENMİŞ İŞLETME HESAP SİLMEYİ ENGELLEMEZ (14.09.2026).
-         *
-         * Ölçüldü: işletmesini arşivleyen kullanıcı hesabını silmeye
-         * kalkınca "önce başka sahip atayın" alıyordu -- arşivli işletmeye
-         * sahip atanamaz, kapı kilitleniyordu. KVKK'daki silme hakkı için
-         * bu çıkışsız bir döngü. Arşivli işletmenin sahibi kalmasının bir
-         * sonucu yok; yalnız AKTİF işletmeler sayılır.
-         */
         workspace: {
           status: { not: 'archived' },
           members: { none: { userId: { not: found.id }, role: 'owner', status: 'active' } }
         }
       },
-      select: { workspace: { select: { name: true } } }
+      select: { workspaceId: true }
     })
-    if (soleOwnerMembership) {
-      return reply.status(409).send({
-        error: 'SOLE_WORKSPACE_OWNER',
-        message: `Önce “${soleOwnerMembership.workspace.name}” işletmesine başka bir sahip atayın.`
-      })
-    }
+    const arsivlenecek = tekSahipIsletmeler.map(m => m.workspaceId)
 
     const deletedEmail = `deleted-${found.id}-${Date.now()}@deleted.local`
     const unusablePassword = await bcrypt.hash(randomBytes(32).toString('hex'), 10)
     await prisma.$transaction([
+      prisma.businessWorkspace.updateMany({
+        where: { id: { in: arsivlenecek } },
+        data: { status: 'archived', archivedAt: new Date() }
+      }),
       prisma.businessMember.updateMany({ where: { userId: found.id }, data: { status: 'inactive' } }),
       prisma.user.update({
         where: { id: found.id },
@@ -1342,6 +1340,14 @@ export async function authRoutes(fastify: FastifyInstance) {
       }
     }
     await prisma.userIdentity.deleteMany({ where: { userId: found.id } })
+
+    await createAuditLog({
+      action: 'user.deleted',
+      entityType: 'user',
+      entityId: found.id,
+      actorId: found.id,
+      metadata: { archivedWorkspaces: arsivlenecek.length }
+    }, prisma).catch(() => {})
 
     return reply.status(204).send()
   })

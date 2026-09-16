@@ -425,10 +425,14 @@
     "deleteAccount": {
       "title": "Delete account",
       "description": "This disables your account, anonymizes your personal identity information, and signs you out.",
-      "warning": "If you are the sole owner of a business, assign another member as owner first. This action cannot be undone.",
+      "warning": "Your account, businesses and records are permanently deleted.",
       "confirmationLabel": "Confirmation",
       "deleting": "Deleting account…",
-      "action": "Permanently delete my account"
+      "action": "Permanently delete my account",
+      "confirmTitle": "Are you sure?",
+      "confirmBody": "This cannot be undone. Businesses you solely own are archived, your account is closed and you are signed out.",
+      "confirmYes": "Yes, delete my account",
+      "confirmNo": "Cancel"
     },
     "appInfo": {
       "title": "Application information",
@@ -1109,8 +1113,24 @@
     "description_other": "You are one of the first people using LocalKarar. Your first {{count}} months are completely free — we do not ask for card details.",
     "discountNote": "As a founding member you always pay {{percent}}% below the standard price. Today that means {{price}}/month; even if the price changes later, your discount rate stays the same.",
     "notStarted": "Billing has not started yet. You will be notified before it does.",
-    "start": "Start using LocalKarar",
-    "seePricing": "See pricing"
+    "start": "Let’s start",
+    "seePricing": "See pricing",
+    "titleNamed": "Welcome, {{name}}",
+    "intro": "LocalKarar brings your small business’s money, decisions and marketplace orders together in one place. Here is what’s inside:",
+    "sectionsAria": "LocalKarar sections",
+    "sections": {
+      "calculations": {
+        "title": "Calculations",
+        "description": "Margin, loan, stock, pricing — 24 ready calculators; enter the numbers, see the result and what it means."
+      },
+      "courses": {
+        "title": "Courses",
+        "description": "38 short courses for shop owners and e-commerce sellers; each lesson answers one business question and remembers where you left off."
+      }
+    },
+    "priceLine_one": "First {{count}} month free, no card. Then {{prices}}/month; as a founding member you always get {{percent}}% off ({{founderPrice}}/month).",
+    "priceLine_other": "First {{count}} months free, no card. Then {{prices}}/month; as a founding member you always get {{percent}}% off ({{founderPrice}}/month).",
+    "skip": "Skip for now"
   },
   "tools": {
     "commission": {

@@ -171,7 +171,15 @@ export default function OnboardingPage() {
       </div>
 
       <div className={styles.actions}>
-        <button className={styles.btnSecondary} onClick={() => navigate('/app/dashboard', { replace: true })}>
+        {/* Atla da anketi "bitmiş" sayar (16.09.2026): karşılama turu ancak
+            onboardingCompleted ise açılır; atlayan kullanıcı turu kaçırmasın. */}
+        <button
+          className={styles.btnSecondary}
+          onClick={async () => {
+            await completeOnboarding().catch(() => {})
+            navigate('/app/dashboard', { replace: true })
+          }}
+        >
           {t('onboarding.skip')}
         </button>
       </div>

@@ -300,12 +300,15 @@ export default function SettingsPage() {
     finally { setEmailSaving(false) }
   }
 
+  /* Onay penceresi: "Emin misiniz? Geri alınamaz." — metin yazdırma yok (16.09.2026). */
+  const [silOnayAcik, setSilOnayAcik] = useState(false)
+
   async function deleteAccount(event) {
     event.preventDefault(); setDeleteMsg(null)
-    if (deleteForm.confirmation !== 'HESABIMI SİL') return flash(setDeleteMsg, 'err', t('settings.messages.deleteConfirmation'))
+    if (!silOnayAcik) { setSilOnayAcik(true); return }
     setDeleteSaving(true)
     try {
-      await api.auth.deleteAccount(deleteForm.password, deleteForm.confirmation)
+      await api.auth.deleteAccount(user?.hasPassword === false ? '' : deleteForm.password)
       logout()
       navigate('/login', { replace: true })
     } catch (error) { flash(setDeleteMsg, 'err', error.message || t('settings.messages.deleteError')) }
@@ -591,7 +594,7 @@ export default function SettingsPage() {
           {/* Onay bölümündeki "Metni oku" bağlantısının penceresi. */}
           <LegalModal type={okunanBelge} open={Boolean(okunanBelge)} onClose={() => setOkunanBelge(null)} />
 
-          <section id="hesap-sil" className={`${styles.card} ${styles.dangerCard}`}><header className={styles.cardHeader}><span><Trash2 /></span><div><h2>{t('settings.deleteAccount.title')}</h2><p>{t('settings.deleteAccount.description')}</p></div></header><div className={styles.cardBody}><form onSubmit={deleteAccount}><div className={styles.dangerNotice}>{t('settings.deleteAccount.warning')}</div>{user?.hasPassword !== false && (<Field label={t('settings.fields.currentPassword')}><PasswordInput overlay wrapClassName={styles.pwWrap} autoComplete="current-password" value={deleteForm.password} onChange={event => setDeleteForm(current => ({ ...current, password: event.target.value }))} required /></Field>)}<Field label={t('settings.deleteAccount.confirmationLabel')}><input value={deleteForm.confirmation} onChange={event => setDeleteForm(current => ({ ...current, confirmation: event.target.value }))} placeholder="HESABIMI SİL" required /></Field><Footer message={<Message msg={deleteMsg} />}><button type="submit" className={styles.deleteButton} disabled={deleteSaving}>{deleteSaving ? t('settings.deleteAccount.deleting') : t('settings.deleteAccount.action')}</button></Footer></form></div></section>
+          <section id="hesap-sil" className={`${styles.card} ${styles.dangerCard}`}><header className={styles.cardHeader}><span><Trash2 /></span><div><h2>{t('settings.deleteAccount.title')}</h2><p>{t('settings.deleteAccount.description')}</p></div></header><div className={styles.cardBody}><form onSubmit={deleteAccount}><div className={styles.dangerNotice}>{t('settings.deleteAccount.warning')}</div>{user?.hasPassword !== false && (<Field label={t('settings.fields.currentPassword')}><PasswordInput overlay wrapClassName={styles.pwWrap} autoComplete="current-password" value={deleteForm.password} onChange={event => setDeleteForm(current => ({ ...current, password: event.target.value }))} required /></Field>)}{silOnayAcik ? (<div className={styles.dangerNotice} role="alertdialog" aria-labelledby="hesap-sil-onay"><p id="hesap-sil-onay" style={{ margin: 0, fontWeight: 700 }}>{t('settings.deleteAccount.confirmTitle')}</p><p style={{ margin: '6px 0 12px' }}>{t('settings.deleteAccount.confirmBody')}</p><div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}><button type="submit" className={styles.deleteButton} disabled={deleteSaving}>{deleteSaving ? t('settings.deleteAccount.deleting') : t('settings.deleteAccount.confirmYes')}</button><Button type="button" variant="secondary" onClick={() => setSilOnayAcik(false)}>{t('settings.deleteAccount.confirmNo')}</Button></div></div>) : (<Footer message={<Message msg={deleteMsg} />}><button type="submit" className={styles.deleteButton} disabled={deleteSaving}>{t('settings.deleteAccount.action')}</button></Footer>)}</form></div></section>
 
           <SettingsSection id="uygulama" icon={<Info />} title={t('settings.appInfo.title')} description={t('settings.appInfo.description')}><Readonly label={t('settings.appInfo.version')} value={systemInfo?.version || t('states.loading')} /><Readonly label={t('settings.appInfo.server')} value="Node.js + Fastify" /><Readonly label={t('settings.appInfo.database')} value={systemInfo?.database?.label || t('states.loading')} /><Readonly label={t('settings.appInfo.connection')} value={systemInfo?.database?.connected ? t('states.connected') : t('settings.appInfo.checking')} /></SettingsSection>
         </div>
