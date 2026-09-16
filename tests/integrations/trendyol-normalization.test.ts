@@ -115,19 +115,43 @@ describe('financial normalization rules', () => {
     const normalized = mapTrendyolPackageToNormalizedOrder(basePackage())
     expect(normalized.grossAmount).toBeCloseTo(498.9, 2)
     expect(normalized.discountAmount).toBeCloseTo(20, 2)
-    // Provider komisyon/kargo/iade TUTARI vermiyor -> uydurma yok.
-    expect(normalized.commissionAmount).toBeNull()
+    // Tek satirda oran (13) var -> commissionAmount gercek tutar: 498.9 * 13 / 100 = 64.857 -> 64.86.
+    expect(normalized.commissionAmount).toBeCloseTo(64.86, 2)
+    // Provider kargo/iade TUTARI vermiyor -> uydurma yok.
     expect(normalized.shippingAmount).toBeNull()
     expect(normalized.refundAmount).toBeNull()
-    // netContribution bilesenleri eksik -> null.
+    // netContribution bilesenleri (kargo/iade) eksik -> null.
     expect(normalized.netContribution).toBeNull()
   })
 
-  it('keeps commission as PERCENT in item metadata, not as an amount', () => {
+  it('keeps commission as PERCENT in item metadata, satir tutari hala null', () => {
     const normalized = mapTrendyolPackageToNormalizedOrder(basePackage())
     const item = normalized.items[0]
     expect(item.metadata?.commissionPercent).toBe(13)
     expect(item.commissionAmount).toBeNull()
+  })
+
+  it('computes order-level commissionAmount as the sum of all lines when every line has a percent', () => {
+    const pkg = basePackage({
+      lines: [
+        { quantity: 2, amount: 200, lineGrossAmount: 200, commission: 10 },
+        { quantity: 1, amount: 100, lineGrossAmount: 100, commission: 20 }
+      ] as any
+    })
+    const normalized = mapTrendyolPackageToNormalizedOrder(pkg)
+    // 200 * 10/100 + 100 * 20/100 = 20 + 20 = 40
+    expect(normalized.commissionAmount).toBeCloseTo(40, 2)
+  })
+
+  it('leaves order-level commissionAmount null when any single line lacks a percent (no partial guessing)', () => {
+    const pkg = basePackage({
+      lines: [
+        { quantity: 2, amount: 200, lineGrossAmount: 200, commission: 10 },
+        { quantity: 1, amount: 100, lineGrossAmount: 100 } // oran yok
+      ] as any
+    })
+    const normalized = mapTrendyolPackageToNormalizedOrder(pkg)
+    expect(normalized.commissionAmount).toBeNull()
   })
 
   it('normalizes currency fallback to TRY', () => {
