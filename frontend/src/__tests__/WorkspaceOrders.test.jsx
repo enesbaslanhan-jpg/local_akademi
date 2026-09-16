@@ -119,6 +119,28 @@ describe('Siparişler sekmesi', () => {
     expect(screen.getByText(/Pazaryeri bağlı değil/)).toBeInTheDocument()
   })
 
+  it('Trendyol bağlı değilken başka bir pazaryeri bağlıysa "Pazaryeri bağlı değil" yazmaz', async () => {
+    mocks.trendyolStatus.mockResolvedValue({ connected: false, syncing: false, connections: [] })
+    mocks.operations.mockResolvedValue({
+      summary: { connected: true, providers: [], today: { orderCount: 0, grossSales: 0, pendingShipmentCount: 0, returnCount: 0 }, inventory: {}, performance: {}, sync: {} },
+      actions: []
+    })
+    mocks.orders.mockResolvedValue({ orders: [], total: 0 })
+    ciz()
+
+    await screen.findByText('Siparişler')
+    expect(screen.queryByText(/Pazaryeri bağlı değil/)).not.toBeInTheDocument()
+  })
+
+  it('hiçbir pazaryeri bağlı değilken "Pazaryeri bağlı değil" yazar', async () => {
+    mocks.trendyolStatus.mockResolvedValue({ connected: false, syncing: false, connections: [] })
+    mocks.operations.mockResolvedValue({ summary: { connected: false }, actions: [] })
+    mocks.orders.mockResolvedValue({ orders: [], total: 0 })
+    ciz()
+
+    expect(await screen.findByText(/Pazaryeri bağlı değil/)).toBeInTheDocument()
+  })
+
   it('hata durumunda tekrar deneme sunar', async () => {
     mocks.orders.mockRejectedValue(new Error('Sunucuya ulaşılamadı'))
     ciz()

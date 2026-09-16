@@ -209,7 +209,11 @@ export default function Orders() {
           <p className={styles.subtitle}>
             <Clock size={13} aria-hidden="true" />{' '}
             {t('lastSync')}: {formatDate(lastSyncedAt)}
-            {!connected && <em> · {t('notConnected')}</em>}
+            {/* Başlıktaki "bağlı değil" tüm pazaryerlerini kapsamalı: Trendyol
+                bağlı olmasa bile Hepsiburada/N11/Shopify bağlıysa yanlış
+                uyarı gösterilmemeli. "Şimdi eşitle" ve boş durum metni
+                Trendyol'a özgü kaldığı için `connected` orada değişmedi. */}
+            {!(connected || ops) && <em> · {t('notConnected')}</em>}
           </p>
         </div>
         <button

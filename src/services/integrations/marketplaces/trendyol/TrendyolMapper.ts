@@ -19,8 +19,11 @@ import type {
  * Kurallar:
  * - Raw provider JSON'u ana veri olarak DB'ye YAZILMAZ; asagidaki
  *   ortak modele cevrilir.
- * - Provider gercek komisyon TUTARI vermiyor (yalnizca satir bazli
- *   yuzde verir). Yuzdeden tutar uydurulmaz: commissionAmount null.
+ * - Provider gercek komisyon TUTARI vermiyor, yalnizca satir bazli
+ *   YUZDE verir. Siparis duzeyindeki commissionAmount bu yuzdeden
+ *   hesaplanir: her satir icin satirBrutu * yuzde / 100, toplanir.
+ *   Herhangi bir satirda yuzde (veya satir brutu) yoksa KISMEN
+ *   UYDURULMAZ: toplam commissionAmount null kalir.
  * - Kargo/iade tutarlari siparis payload'inda yok: null. Iadeler
  *   ayri claims API'sindedir (ileride eklenebilir).
  * - netContribution bilesenlerden herhangi biri yoksa null.
@@ -133,13 +136,36 @@ export function mapTrendyolLineToNormalizedItem(line: TrendyolOrderLine): Normal
     unitPrice: unitPrice ?? null,
     grossAmount: grossAmount ?? null,
     discountAmount: pickFinite(line.lineTotalDiscount, line.discount) ?? null,
-    // Provider komisyon TUTARI vermiyor -> null (uydurma yok).
+    // Satir duzeyinde tutar hala yok (yalnizca yuzde) -> null; gercek
+    // TUTAR siparis duzeyinde hesaplanir (computeTrendyolCommissionAmount).
     commissionAmount: null,
     shippingAllocation: null,
     refundAmount: null,
     netContribution: null,
     metadata: Object.keys(metadata).length ? metadata : undefined
   }
+}
+
+/**
+ * Siparis duzeyinde komisyon TUTARI: her satirin brutu * yuzdesi / 100,
+ * toplanir. Herhangi bir satirda yuzde ya da brut eksikse null (kismi
+ * uydurma yok) — bkz. dosya basi aciklama.
+ */
+function computeTrendyolCommissionAmount(
+  lines: TrendyolOrderLine[],
+  items: NormalizedOrderItem[]
+): number | null {
+  if (lines.length === 0) return null
+  let total = new Prisma.Decimal(0)
+  for (let i = 0; i < lines.length; i++) {
+    const percent = lines[i].commission
+    const gross = items[i]?.grossAmount
+    if (!Number.isFinite(percent) || gross === null || gross === undefined || !Number.isFinite(gross)) {
+      return null
+    }
+    total = total.plus(new Prisma.Decimal(gross).times(percent as number).dividedBy(100))
+  }
+  return total.toDecimalPlaces(2).toNumber()
 }
 
 export function mapTrendyolPackageToNormalizedOrder(pkg: TrendyolShipmentPackage): NormalizedOrder {
@@ -153,16 +179,18 @@ export function mapTrendyolPackageToNormalizedOrder(pkg: TrendyolShipmentPackage
   const discount = pickFinite(pkg.totalDiscount, pkg.packageTotalDiscount) ?? 0
 
   const items = (pkg.lines ?? []).map(mapTrendyolLineToNormalizedItem)
+  const commissionAmount = computeTrendyolCommissionAmount(pkg.lines ?? [], items)
 
-  // netContribution: komisyon/kargo/iade TUTARLARI olmadigi icin bu
-  // akista her zaman null kalir; hesap yine de deterministik yazildi
-  // ki ileride settlements verisi geldiginde ayni fonksiyon kullanilsin.
+  // netContribution: kargo/iade TUTARLARI olmadigi icin bu akista her
+  // zaman null kalir (komisyon artik varsa dahil edilir); hesap yine de
+  // deterministik yazildi ki ileride settlements verisi geldiginde ayni
+  // fonksiyon kullanilsin.
   let netContribution: Prisma.Decimal | null = null
   if (externalId) {
     netContribution = computeNetContribution({
       gross: new Prisma.Decimal(gross.toFixed(2)),
       discount: new Prisma.Decimal(discount.toFixed(2)),
-      commission: null,
+      commission: commissionAmount !== null ? new Prisma.Decimal(commissionAmount.toFixed(2)) : null,
       shipping: null,
       refund: null
     })
@@ -176,7 +204,7 @@ export function mapTrendyolPackageToNormalizedOrder(pkg: TrendyolShipmentPackage
     currency: normalizeCurrency(pkg.currencyCode),
     grossAmount: gross,
     discountAmount: discount,
-    commissionAmount: null,
+    commissionAmount,
     shippingAmount: null,
     refundAmount: null,
     taxAmount: null,
