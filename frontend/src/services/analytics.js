@@ -178,6 +178,10 @@ export async function startAnalytics() {
         capture_heatmaps: false,
         capture_performance: false,
         disable_session_recording: true,
+        /* PostHog, kayıt/anket gibi ek betikleri eu-assets.i.posthog.com'dan
+           yüklemeye kalkıyordu; CSP script-src 'self' engelliyor ve konsola hata
+           düşüyordu (17.09.2026). Hepsi zaten kapalı; dış betik hiç istenmesin. */
+        disable_external_dependency_loading: true,
         disable_surveys: true,
         advanced_disable_feature_flags: true,
         mask_all_text: true,
