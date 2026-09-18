@@ -1417,7 +1417,17 @@ export async function authRoutes(fastify: FastifyInstance) {
       }
       if (!kimlik.email) {
         // Apple bazı hatalı yapılandırmalarda e-postasız belirteç verebilir; e-postasız hesap açılmaz.
-        return reply.status(403).send({ error: 'EMAIL_REQUIRED', message: 'Sağlayıcı e-posta adresi vermedi.' })
+        /*
+         * Görüldü (TestFlight 106, 18.09.2026): Apple ikinci yetkilendirmede
+         * e-postasız belirteç verdi; kullanıcı yalnız "yetkiniz yok" gördü.
+         * Mesaj artık çözüm yolunu söyler; mobil 403'te bu metni aynen gösterir.
+         */
+        return reply.status(403).send({
+          error: 'EMAIL_REQUIRED',
+          message: provider === 'apple'
+            ? 'Apple e-posta adresini paylaşmadı. iPhone’da Ayarlar → adın → Oturum Açma ve Güvenlik → Apple ile Giriş Yap → LocalKarar → "Apple Hesabı Kullanmayı Durdur" deyip tekrar dene; e-postayı paylaşmayı seç.'
+            : 'Google hesabı e-posta adresi vermedi. Başka bir hesapla dene.'
+        })
       }
       if (govde.acceptedLegal !== true) {
         return reply.status(409).send({ error: 'CONSENT_REQUIRED', message: 'Kullanım Koşulları ve Aydınlatma Metni onaylanmalı.' })
