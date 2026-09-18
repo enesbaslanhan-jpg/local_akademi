@@ -160,7 +160,8 @@ describe('Normal chat — callAiProviderWithRetry receives knowledgeObjects', ()
       body: { message: 'Gelir modeli nasıl oluşturulur?' },
     })
 
-    expect(msgRes.statusCode).toBe(200)
+    /* 500 gelirse sebebi görünür olsun (tam pakette bir kez 500 görüldü, 18.09.2026). */
+    expect(msgRes.statusCode, msgRes.body).toBe(200)
     expect(mockCallAiProviderWithRetry).toHaveBeenCalled()
     const calls = mockCallAiProviderWithRetry.mock.calls
     const koCall = calls.find(c => c.length >= 2 && Array.isArray(c[1]))
