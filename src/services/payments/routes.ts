@@ -598,7 +598,20 @@ export async function paymentRoutes(
       },
     }, prisma)
 
-    await bildirimYaz({
+    /*
+     * VAZGEÇME BİLDİRİM DEĞİL (18.09.2026). PayTR, kullanıcı ödeme sayfasını
+     * kapatıp çıktığında da callback'i "başarısız" olarak gönderiyor
+     * (failed_reason_code 6 / "Müşteri ödeme yapmaktan vazgeçti"). Bu bir
+     * kart hatası değil, kullanıcının kendi kararı; "Ödeme alınamadı"
+     * bildirimi yanıltıyordu (ürün sahibi bir haftada 4 kez gördü, ikisi
+     * kendi denemesiydi). Kayıt ve denetim izi yine tutulur; yalnız
+     * bildirim yazılmaz.
+     */
+    const vazgecme = !basarili && (
+      String(govde.failed_reason_code || '') === '6' ||
+      /vazgeçti|vazgecti/i.test(String(govde.failed_reason_msg || ''))
+    )
+    if (!vazgecme) await bildirimYaz({
       userId,
       type: basarili ? 'payment_succeeded' : 'payment_failed',
       title: basarili ? 'Ödemeniz alındı' : 'Ödeme alınamadı',

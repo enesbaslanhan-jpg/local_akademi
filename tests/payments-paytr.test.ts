@@ -383,6 +383,28 @@ describe('callback rotası', () => {
     expect(cagrilar.bildirim).toBe(1)
   })
 
+  /* Ödeme sayfasından vazgeçme kart hatası değildir; bildirim yazılmaz (18.09.2026). */
+  it('sayfadan vazgeçmede kayıt FAILED olur ama bildirim yazılmaz', async () => {
+    const { prisma, cagrilar } = sahtePrisma()
+    const app = await sunucuKur(prisma)
+
+    const yanit = await app.inject({
+      method: 'POST', url: '/payments/paytr/callback',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      payload: urlencoded({
+        merchant_oid: 'ABC123', status: 'failed', total_amount: '29900',
+        failed_reason_code: '6',
+        failed_reason_msg: 'Müşteri ödeme yapmaktan vazgeçti ve ödeme sayfasından ayrıldı.',
+        hash: gecerliHash('ABC123', 'failed', '29900'),
+      }),
+    })
+
+    expect(yanit.body).toBe('OK')
+    expect(cagrilar.paymentUpdate).toBe(1)
+    expect(cagrilar.subscriptionUpdate).toBe(0)
+    expect(cagrilar.bildirim, 'vazgeçmede bildirim yok').toBe(0)
+  })
+
   it('bilinmeyen sipariş numarasına da OK dönülüyor', async () => {
     const { prisma, cagrilar } = sahtePrisma()
     const app = await sunucuKur(prisma)
