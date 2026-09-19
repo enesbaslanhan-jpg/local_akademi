@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, Clock, CreditCard, Sparkles } from 'lucide-react'
 import MembershipModal from './MembershipModal'
 import { uyelikSunumu } from './uyelik-sunumu'
-import { FOUNDER_STAGES, kuruculIndirimYuzdesi, fiyatYaz } from '@/config/billing'
+import { BILLING_STARTS_AT, FOUNDER_STAGES, kuruculIndirimYuzdesi, fiyatYaz } from '@/config/billing'
 import styles from './MembershipSettings.module.css'
 
 /*
@@ -116,7 +116,9 @@ export default function MembershipSettings({ membership }) {
           <Clock size={16} aria-hidden="true" />
           <strong>{t(s.planBaslik)}</strong>
         </div>
-        <ol className={styles.planListe}>
+        {/* Ücretlendirme kapalıyken (19.09.2026) fiyat kademeleri YAZILMAZ; yalnız
+            başlangıç vaadi ve oransal kurucu avantajı. */}
+        {BILLING_STARTS_AT && <ol className={styles.planListe}>
           {FOUNDER_STAGES.map(asama => (
             <li key={asama.code}>
               <strong className={asama.monthlyPrice === 0 ? styles.bedava : ''}>
@@ -127,7 +129,7 @@ export default function MembershipSettings({ membership }) {
               <span>{t(`billing.settings.stage.${asama.code}`, { count: asama.months ?? 0 })}</span>
             </li>
           ))}
-        </ol>
+        </ol>}
         <p className={styles.planNotu}>
           {t(s.planNotu, { count: FOUNDER_STAGES[0].months ?? 0, percent: kuruculIndirimYuzdesi() })}
         </p>

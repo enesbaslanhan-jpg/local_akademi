@@ -418,6 +418,9 @@ export default function PricingPage() {
         <Acilis as="section" className={styles.sss} aria-labelledby="sss-baslik">
           <h2 id="sss-baslik" className={styles.bolumBaslik}>{t('pricing.faqTitle')}</h2>
 
+          {/* Ücretlendirme kapalıyken (19.09.2026) SSS de kapalı hâli anlatır:
+              rakam yok, "ücretsiz ay bitince salt okunur" yok. */}
+          {BILLING_STARTS_AT ? (<>
           <details>
             <summary>{t('pricing.faq.affordable.question')}</summary>
             <p>{t('pricing.faq.affordable.answer')}</p>
@@ -451,6 +454,27 @@ export default function PricingPage() {
             <summary>{t('pricing.faq.invoice.question')}</summary>
             <p>{t('pricing.faq.invoice.answer')}</p>
           </details>
+          </>) : (<>
+          <details>
+            <summary>{t('pricing.faqFree.whyFree.question')}</summary>
+            <p>{t('pricing.faqFree.whyFree.answer')}</p>
+          </details>
+
+          <details>
+            <summary>{t('pricing.faqFree.untilWhen.question')}</summary>
+            <p>{t('pricing.faqFree.untilWhen.answer')}</p>
+          </details>
+
+          <details>
+            <summary>{t('pricing.faqFree.whenStarts.question')}</summary>
+            <p>{t('pricing.faqFree.whenStarts.answer', { percent: kuruculIndirimYuzdesi() })}</p>
+          </details>
+
+          <details>
+            <summary>{t('pricing.faqFree.data.question')}</summary>
+            <p>{t('pricing.faqFree.data.answer')}</p>
+          </details>
+          </>)}
         </Acilis>
       </div>
 

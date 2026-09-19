@@ -1055,7 +1055,25 @@
     "freeNowTitle": "Şu an ücretsiz.",
     "freeNowDescription": "Kart bilgisi istemiyoruz, deneme süresi yok. Ücretli üyelik başlamadan önce e-postayla bilgilendirilirsin; o güne kadar kaydolan herkes kurucu üye sayılır ve standart fiyatın en az %{{percent}} altını öder.",
     "freeNowLabel": "Şu an",
-    "freeNowUnit": "tüm özellikler"
+    "freeNowUnit": "tüm özellikler",
+    "faqFree": {
+      "whyFree": {
+        "question": "Neden ücretsiz?",
+        "answer": "Erken dönemdeyiz. Şu an önceliğimiz ürünü sizinle birlikte doğru yere getirmek; kullanırken verdiğin geri bildirim, bugün ödeyeceğin bir ücretten daha değerli."
+      },
+      "untilWhen": {
+        "question": "Ne zamana kadar ücretsiz?",
+        "answer": "Ücretli üyelik için henüz bir tarih yok. Başlayacağı zaman en az bir ay önceden e-postayla ve uygulama içinden bilgilendirilirsin; o güne kadar hiçbir ücret alınmaz, kart bilgisi de istenmez."
+      },
+      "whenStarts": {
+        "question": "Ücretlendirme başlayınca ne olur?",
+        "answer": "O güne kadar kaydolan herkes kurucu üye sayılır: standart fiyatın her zaman en az %{{percent}} altını ödersin ve bu avantaj kalıcıdır. İstemezsen üyelik başlatmadan verilerini dışa aktarıp ayrılabilirsin."
+      },
+      "data": {
+        "question": "Verilerim güvende mi?",
+        "answer": "Evet. Verilerin sana ait; istediğin zaman dışa aktarabilir, hesabını silebilirsin. Ücretsiz dönemde girdiğin hiçbir kayıt ücretlendirme başlayınca silinmez."
+      }
+    }
   },
   "publicFooter": {
     "corporateAria": "Kurumsal bağlantılar",

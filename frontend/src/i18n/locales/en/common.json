@@ -1055,7 +1055,25 @@
     "freeNowTitle": "Free for now.",
     "freeNowDescription": "No card, no trial clock. We will email you before paid membership starts; everyone who signs up until then counts as a founder member and pays at least {{percent}}% below the standard price.",
     "freeNowLabel": "Right now",
-    "freeNowUnit": "all features"
+    "freeNowUnit": "all features",
+    "faqFree": {
+      "whyFree": {
+        "question": "Why is it free?",
+        "answer": "We are early. Right now the priority is getting the product right together with you; the feedback you give while using it is worth more than a fee today."
+      },
+      "untilWhen": {
+        "question": "Free until when?",
+        "answer": "There is no date for paid membership yet. When it starts you will be notified by email and in the app at least a month ahead; until then nothing is charged and no card is requested."
+      },
+      "whenStarts": {
+        "question": "What happens when billing starts?",
+        "answer": "Everyone who signed up until then counts as a founder member: you always pay at least {{percent}}% below the standard price, permanently. If you prefer not to join, you can export your data and leave without starting a membership."
+      },
+      "data": {
+        "question": "Is my data safe?",
+        "answer": "Yes. Your data is yours; you can export it or delete your account at any time. Nothing you entered during the free period is deleted when billing starts."
+      }
+    }
   },
   "publicFooter": {
     "corporateAria": "Company links",
