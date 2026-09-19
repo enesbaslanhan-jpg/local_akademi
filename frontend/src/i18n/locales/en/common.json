@@ -1050,7 +1050,12 @@
     "dueTodayLabel": "Due today",
     "dueTodayUnit": "first month",
     "dueTodayNote": "No card details required. The first charge is {{price}} at the start of month 2.",
-    "includedTitle": "What's included"
+    "includedTitle": "What's included",
+    "heroDescriptionFree": "Everything is free for now. When billing starts, early members become founder members and always pay at least {{percent}}% below the standard price.",
+    "freeNowTitle": "Free for now.",
+    "freeNowDescription": "No card, no trial clock. We will email you before paid membership starts; everyone who signs up until then counts as a founder member and pays at least {{percent}}% below the standard price.",
+    "freeNowLabel": "Right now",
+    "freeNowUnit": "all features"
   },
   "publicFooter": {
     "corporateAria": "Company links",

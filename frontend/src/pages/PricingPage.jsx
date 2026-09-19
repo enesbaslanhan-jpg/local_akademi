@@ -221,11 +221,13 @@ export default function PricingPage() {
             <span className={styles.eyebrow}>{t('pricing.eyebrow')}</span>
             <h1>{t('pricing.title')}</h1>
             <p className={styles.kahramanMetin}>
-              {t('pricing.heroDescription', {
+              {/* Ücretlendirme kapalıyken (19.09.2026) RAKAM YOK: ürün sahibi
+                  "kullanıcı olmadan fiyat saçma" dedi; kurucu üye vaadi oransal kalır. */}
+              {BILLING_STARTS_AT ? t('pricing.heroDescription', {
                 launchPrice: fiyatYaz(FOUNDER_STAGES[1].monthlyPrice, dil),
                 founderPrice: fiyatYaz(kuruculUyeFiyati(), dil),
                 percent: kuruculIndirimYuzdesi(),
-              })}
+              }) : t('pricing.heroDescriptionFree', { percent: kuruculIndirimYuzdesi() })}
             </p>
           </section>
         </div>
@@ -270,7 +272,16 @@ export default function PricingPage() {
               * onay kutusu taşıyor. Üçü (burası, `abonelik.js` 4. bölüm,
               * `billing.modal.recurringConsent`) aynı şeyi söylemeli.
               */}
-            <ZamanCizgisi />
+            {!BILLING_STARTS_AT && (
+              <div className={styles.kilit}>
+                <Percent size={17} aria-hidden="true" />
+                <p>
+                  <strong>{t('pricing.freeNowTitle')}</strong>{' '}
+                  {t('pricing.freeNowDescription', { percent: kuruculIndirimYuzdesi() })}
+                </p>
+              </div>
+            )}
+            {BILLING_STARTS_AT && <ZamanCizgisi />}
 
             {/*
               * İLK 12 AYIN DÖKÜMÜ.
@@ -288,7 +299,7 @@ export default function PricingPage() {
               * kararıdır ve kurucu indirimini ORANSAL anlatan yasal
               * metinlerle ayrıca hizalanması gerekir.
               */}
-            <div className={styles.dokum}>
+            {BILLING_STARTS_AT && <div className={styles.dokum}>
               <div className={styles.dokumBaslik}>{t('pricing.breakdownTitle')}</div>
               {ilkYilDokumu().map(kalem => (
                 <div key={kalem.kod} className={styles.dokumSatir}>
@@ -300,7 +311,7 @@ export default function PricingPage() {
                 <strong>{t('pricing.breakdownTotal')}</strong>
                 <strong>{fiyatYaz(ilkYilToplami(), dil)}</strong>
               </div>
-            </div>
+            </div>}
 
             {/*
               * FİYAT AVANTAJI — oransal ve kalıcı.
@@ -309,22 +320,22 @@ export default function PricingPage() {
               * oranla bağlamak. Metin bunu aynen söylemeli; abonelik
               * sözleşmesindeki ifadeyle birebir örtüşmesi gerekiyor.
               */}
-            <div className={styles.kilit}>
+            {BILLING_STARTS_AT && <div className={styles.kilit}>
               <Percent size={17} aria-hidden="true" />
               <p>
                 <strong>{t('pricing.discountTitle', { percent: kuruculIndirimYuzdesi() })}</strong>{' '}
                 {t('pricing.discountDescription', { month: gecisAyi, percent: kuruculIndirimYuzdesi() })}
               </p>
-            </div>
+            </div>}
           </section>
 
           {/* EYLEM KARTI — "nerden başlatacağım" sorusunun cevabı. */}
           <aside className={styles.eylemKarti} aria-labelledby="eylem-baslik">
             <div className={styles.eylemUst}>
-              <span className={styles.eylemEtiket} id="eylem-baslik">{t('pricing.dueTodayLabel')}</span>
+              <span className={styles.eylemEtiket} id="eylem-baslik">{BILLING_STARTS_AT ? t('pricing.dueTodayLabel') : t('pricing.freeNowLabel')}</span>
               <div className={styles.eylemFiyat}>
                 <strong>{fiyatYaz(0, dil)}</strong>
-                <span>{t('pricing.dueTodayUnit')}</span>
+                <span>{BILLING_STARTS_AT ? t('pricing.dueTodayUnit') : t('pricing.freeNowUnit')}</span>
               </div>
               <p className={styles.eylemAciklama}>
                 {/* Ücretlendirme kapalıyken "ilk tahsilat 2. ayın başında" demek yanlış vaat olur (19.09.2026). */}

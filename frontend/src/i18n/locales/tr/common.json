@@ -1050,7 +1050,12 @@
     "dueTodayLabel": "Bugün ödeyeceğin",
     "dueTodayUnit": "ilk ay",
     "dueTodayNote": "Kart bilgisi istemiyoruz. İlk tahsilat 2. ayın başında {{price}} olarak yapılacak.",
-    "includedTitle": "Üyelikle neler geliyor"
+    "includedTitle": "Üyelikle neler geliyor",
+    "heroDescriptionFree": "Şu an tüm özellikler ücretsiz. Ücretlendirme başladığında erken katılanlar kurucu üye olur ve standart fiyatın her zaman en az %{{percent}} altını öder.",
+    "freeNowTitle": "Şu an ücretsiz.",
+    "freeNowDescription": "Kart bilgisi istemiyoruz, deneme süresi yok. Ücretli üyelik başlamadan önce e-postayla bilgilendirilirsin; o güne kadar kaydolan herkes kurucu üye sayılır ve standart fiyatın en az %{{percent}} altını öder.",
+    "freeNowLabel": "Şu an",
+    "freeNowUnit": "tüm özellikler"
   },
   "publicFooter": {
     "corporateAria": "Kurumsal bağlantılar",
