@@ -44,7 +44,17 @@ export const BILLING_CURRENCY = 'TRY' as const
  * kaydolanı anında "süresi dolmuş" düşürmemek için), yeni kayıt
  * olanın kendi kayıt tarihinde.
  */
-export const BILLING_STARTS_AT: string | null = '2026-09-14T00:00:00.000Z'
+/*
+ * 🔴 19.09.2026 — ÜRÜN SAHİBİ KARARI: ÜCRETLENDİRME ERTELENDİ (null).
+ * Gerekçe: (1) kullanıcı kitlesi oluşmadan deneme sayacı ve "süren doluyor"
+ * uyarıları yalnız kaçırıyor; (2) App Store, uygulama içi dijital abonelikte
+ * IAP şart koşuyor (3.1.1) — fiyat gösterip PayTR'ye yönlendiren uygulama
+ * reddedilir. Mobilde fiyat zaten yok; sunucudan üyelik bilgisi gelmeyince
+ * mobil şeritler de kapanır. Kod duruyor; açmak = buraya tarih yazmak +
+ * sunucu .env PAYTR_TEST_MODE=false aynı yayında. Canlıdaki 1 aktif (test)
+ * abonelik dokunulmadan kalır.
+ */
+export const BILLING_STARTS_AT: string | null = null
 
 /** Ücretsiz deneme uzunluğu (gün). */
 export const TRIAL_DAYS = 30

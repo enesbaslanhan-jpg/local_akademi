@@ -64,13 +64,14 @@ describe('karşılama ekranı', () => {
     expect(screen.getByRole('button', { name: /İşletmemi kişiselleştir/ })).toBeInTheDocument()
   })
 
-  it('ücretlendirme AÇIK: "başlamadı" duyurusu yok', () => {
-    /* 13.09.2026: config açıldı, bu test de onunla değişti — önceki sürüm
-       "başlamadı" yazısını arıyordu. Şimdi o yazı OLMAMALI: fiyatlar
-       gösteriliyor ve gerçekten tahsil edilecek. */
-    expect(BILLING_STARTS_AT).toBe('2026-09-14T00:00:00.000Z')
+  it('ücretlendirme ERTELENDİ: rakam yok, erken kullanıcı cümlesi var', () => {
+    /* 19.09.2026: ücretlendirme ertelendi (null). Hoş geldin ekranı 149/299
+       gibi rakam göstermez; "şu an ücretsiz, erken katılan kurucu üye olur" der.
+       Kurucu üye ayrıntı bağlantısı (/fiyatlar) durur — orada da "başlamadı" notu var. */
+    expect(BILLING_STARTS_AT).toBeNull()
     sar(<WelcomePage />)
-    expect(screen.queryByText(/başlamadı/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/Şu an tüm özellikler ücretsiz/)).toBeInTheDocument()
+    expect(screen.queryByText(/149|299|₺/)).not.toBeInTheDocument()
   })
 })
 
@@ -156,7 +157,7 @@ describe('ödeme paneli', () => {
     expect(screen.getByText(new RegExp(kuruculUyeFiyati().toLocaleString('tr-TR')))).toBeInTheDocument()
   })
 
-  it('ücretlendirme AÇIK: "ödeme alınmıyor" notu panelde yok', () => {
+  it('ücretlendirme ERTELENDİ: "ödeme alınmıyor" notu panelde görünür', () => {
     sar(<MembershipModal open onClose={() => {}} />)
 
     /*
@@ -170,9 +171,9 @@ describe('ödeme paneli', () => {
      * istemci kodu değiştirilebilir. Burada sınanan şey KULLANICIYA
      * NE SÖYLENDİĞİ.
      */
-    /* 13.09.2026: anahtar açık; not kalsaydı ödeme alan bir panelde
-       "ödeme alınmıyor" yazardı — yanlış beyan. */
-    expect(screen.queryByText(/ödeme alınmıyor/i)).not.toBeInTheDocument()
+    /* 19.09.2026: anahtar kapalı; kullanıcıya bugün ücret alınmadığı
+       açıkça söylenir (13.09'da açılırken tersine çevrilmişti). */
+    expect(screen.getByText(/ödeme alınmıyor/i)).toBeInTheDocument()
   })
 
   /*

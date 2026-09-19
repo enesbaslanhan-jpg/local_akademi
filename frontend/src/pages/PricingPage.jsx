@@ -327,7 +327,8 @@ export default function PricingPage() {
                 <span>{t('pricing.dueTodayUnit')}</span>
               </div>
               <p className={styles.eylemAciklama}>
-                {t('pricing.dueTodayNote', { price: fiyatYaz(ilkUcretliTutar(), dil) })}
+                {/* Ücretlendirme kapalıyken "ilk tahsilat 2. ayın başında" demek yanlış vaat olur (19.09.2026). */}
+                {BILLING_STARTS_AT ? t('pricing.dueTodayNote', { price: fiyatYaz(ilkUcretliTutar(), dil) }) : t('pricing.notStartedDescription')}
               </p>
 
               {girisli ? (

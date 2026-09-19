@@ -1165,7 +1165,8 @@
     },
     "priceLine_one": "First {{count}} month free, no card. Then {{prices}}/month; as a founding member you always get {{percent}}% off ({{founderPrice}}/month).",
     "priceLine_other": "First {{count}} months free, no card. Then {{prices}}/month; as a founding member you always get {{percent}}% off ({{founderPrice}}/month).",
-    "skip": "Skip for now"
+    "skip": "Skip for now",
+    "campaignFreeNow": "Everything is free for now. Early members get the founder-member advantage when billing starts."
   },
   "tools": {
     "commission": {

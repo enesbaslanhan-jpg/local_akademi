@@ -4,7 +4,7 @@ import { ArrowRight, BadgePercent, Bot, CheckCircle2, Scale, Sparkles, WalletCar
 import BrandMark from '@/components/ui/BrandMark'
 import { useAuth } from '@/context/AuthContext'
 import { captureAnalytics } from '@/services/analytics'
-import { FOUNDER_STAGES, fiyatYaz, kuruculIndirimYuzdesi, kuruculUyeFiyati } from '@/config/billing'
+import { BILLING_STARTS_AT, FOUNDER_STAGES, fiyatYaz, kuruculIndirimYuzdesi, kuruculUyeFiyati } from '@/config/billing'
 import styles from './WelcomePage.module.css'
 
 /* Kayıt sonrası ilk temas. Bu yüzey ürün kataloğu değildir: kullanıcı
@@ -73,14 +73,16 @@ export default function WelcomePage() {
             <span className={styles.kampanyaIkon}><BadgePercent size={18} aria-hidden="true" /></span>
             <span className={styles.kampanyaMetni}>
               <strong>{t('welcome.campaignTitle')}</strong>
-              <small>{t('welcome.campaignSummary', {
+              {/* Ücretlendirme kapalıyken (19.09.2026) RAKAM YOK: yeni kullanıcıya
+                  fiyat göstermek erken; erken katılım vaadi yeter. */}
+              <small>{BILLING_STARTS_AT ? t('welcome.campaignSummary', {
                 count: ucretsiz.months,
                 freeMonths: ucretsiz.months,
                 launchMonths: lansman.months,
                 launchPrice: fiyatYaz(lansman.monthlyPrice, dil),
                 founderPrice: fiyatYaz(kuruculUyeFiyati(), dil),
                 percent: kuruculIndirimYuzdesi(),
-              })}</small>
+              }) : t('welcome.campaignFreeNow')}</small>
             </span>
             <span className={styles.kampanyaEylemi}>{t('welcome.campaignCta')} <ArrowRight size={15} aria-hidden="true" /></span>
           </Link>

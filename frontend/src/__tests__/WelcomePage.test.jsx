@@ -33,7 +33,9 @@ describe('karşılama ekranı — tanıtım', () => {
     ciz()
     expect(screen.queryByText(/kart numaras/i)).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Kurucu üye avantajını incele' })).toHaveAttribute('href', '/fiyatlar')
-    expect(screen.getByText(/sonraki 3 ay.*149.*ardından.*299/i)).toBeInTheDocument()
+    /* Ücretlendirme ertelendi (19.09.2026): rakam yerine erken kullanıcı cümlesi. */
+    expect(screen.getByText(/Şu an tüm özellikler ücretsiz/)).toBeInTheDocument()
+    expect(screen.queryByText(/149|299/)).not.toBeInTheDocument()
   })
 
   it('"Başlayalım" ankete, "Şimdilik geç" panoya götürür ve olayları yazar', async () => {

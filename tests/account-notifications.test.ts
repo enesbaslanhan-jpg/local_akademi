@@ -56,16 +56,15 @@ function sahtePrisma(kullanicilar: Array<{ id: number; email: string; name: stri
 const KULLANICI = { id: 1, email: 'olcum@example.com', name: 'Ölçüm', createdAt: new Date(ACILIS) }
 
 describe('üyelik bildirimleri', () => {
-  it('ÜRETİMDEKİ HÂL: ücretlendirme açık, üretici kullanıcıları inceliyor', async () => {
-    const { istemci } = sahtePrisma([KULLANICI])
-
-    /* 13.09.2026: `BILLING_STARTS_AT` dolu; üretici artık ilk satırda
-       kesmiyor, kullanıcı listesini okuyor. Ne üreteceği aşağıdaki
-       açık-anahtar senaryolarında tek tek sınanıyor. */
-    await uyelikBildirimleriniUret(istemci, new Date('2026-12-01'))
-
+  it('ÜRETİMDEKİ HÂL: ücretlendirme ertelendi (19.09.2026), hiçbir bildirim üretilmez', async () => {
+    const { istemci, yazilanlar } = sahtePrisma([KULLANICI])
+    /* `BILLING_STARTS_AT` null; üretici ilk satırda kesiyor. */
+    const sonuc = await uyelikBildirimleriniUret(istemci, new Date('2026-12-01'))
+    expect(sonuc).toEqual({ incelenen: 0, uretilen: 0 })
+    expect(yazilanlar).toHaveLength(0)
+    /* Kullanıcı listesi HİÇ sorgulanmamalı: boşuna veritabanı turu. */
     expect((istemci as unknown as { user: { findMany: ReturnType<typeof vi.fn> } }).user.findMany)
-      .toHaveBeenCalled()
+      .not.toHaveBeenCalled()
   })
 })
 

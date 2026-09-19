@@ -114,24 +114,22 @@ describe('rota muafiyeti (saf mantık)', () => {
   })
 })
 
-describe('ÜRETİMDEKİ HÂL: ücretlendirme 14.09.2026\'da açık', () => {
-  it('BILLING_STARTS_AT dolu — çoktan kayıtlı kullanıcı açılış gününden deneme alır, engellenmez', async () => {
-    expect(BILLING_STARTS_AT).toBe('2026-09-14T00:00:00.000Z')
+describe('ÜRETİMDEKİ HÂL: ücretlendirme ertelendi (19.09.2026)', () => {
+  it('BILLING_STARTS_AT null — kapı hiçbir şey yapmıyor', async () => {
+    /* 19.09.2026: ürün sahibi ücretlendirmeyi erteledi (kullanıcı kitlesi +
+       App Store IAP). Süresi dolmuş görünen kullanıcı bile engellenmez. */
+    expect(BILLING_STARTS_AT).toBeNull()
 
     const { app, token } = await sunucuKur(COKTAN_KAYITLI)
     const yanit = await app.inject({
       method: 'POST', url: '/workspaces/1/records', headers: basliklar(token),
     })
 
-    /* Kayıt tarihi eski olsa da deneme açılış gününden başlıyor;
-       açılıştan sonraki 30 gün içinde kapı geçirir. Bu test 14.10.2026'dan
-       sonra sabit tarih yüzünden "süresi doldu" verecek; o zaman
-       senaryo `ucretlendirmeBaslangici` parametresiyle kurulmalı. */
     expect(yanit.statusCode).toBe(200)
     await app.close()
   })
 
-  it.skip('kapalıyken veritabanına HİÇ gitmiyor — anahtar açık, senaryo artık üretimi anlatmıyor', async () => {
+  it('kapalıyken veritabanına HİÇ gitmiyor', async () => {
     const prisma = sahtePrisma(COKTAN_KAYITLI)
     const app = Fastify()
     await app.register(jwt, { secret: SIR })

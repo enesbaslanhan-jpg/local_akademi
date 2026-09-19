@@ -1165,7 +1165,8 @@
     },
     "priceLine_one": "İlk {{count}} ay ücretsiz, kart bilgisi yok. Sonrası {{prices}}/ay; kurucu üye olarak her zaman %{{percent}} indirimli ({{founderPrice}}/ay).",
     "priceLine_other": "İlk {{count}} ay ücretsiz, kart bilgisi yok. Sonrası {{prices}}/ay; kurucu üye olarak her zaman %{{percent}} indirimli ({{founderPrice}}/ay).",
-    "skip": "Şimdilik geç"
+    "skip": "Şimdilik geç",
+    "campaignFreeNow": "Şu an tüm özellikler ücretsiz. Erken katılanlar, ücretlendirme başladığında kurucu üye avantajı alır."
   },
   "tools": {
     "commission": {
