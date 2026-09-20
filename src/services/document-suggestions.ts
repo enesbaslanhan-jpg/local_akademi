@@ -411,3 +411,43 @@ export async function oneriKaydet(
     }
   })
 }
+
+/*
+ * 🔴 AI DESTEKLİ ÖNERİ (20.09.2026). Sezgisel motor tek başına fiş/fatura
+ * fotoğraflarında güvenilmez çıktı (bkz. belge-anlama.ts başındaki canlı
+ * örnekler). Bu sarmalayıcı: e-Fatura varsa dokunmaz (yapılandırılmış veri
+ * her zaman üstün); yoksa OCR metnini dil modeline verir, geçerli alanlar
+ * gelirse sezgisel yükün üstüne yazar ve güveni modelin verdiği değere
+ * çeker; model yoksa/başarısızsa sezgisel sonuç aynen döner. Tutar bulunan
+ * ama sezgiselin hiç öneri üretmediği belgede (ör. tür kelimesi geçmeyen
+ * fiş) öneriyi sıfırdan kurar.
+ */
+export async function buildDocumentSuggestionAi(
+  document: SuggestionDocument,
+  isletmeVergiNo?: string | null,
+  opts: { requestId?: string } = {}
+) {
+  const sezgisel = buildDocumentSuggestion(document, isletmeVergiNo)
+  if (document.eFatura) return sezgisel
+  const { belgeAlanlariniCikar, alanlardanOneri } = await import('./belge-anlama.js')
+  const alanlar = await belgeAlanlariniCikar(document.extractedText, { dosyaAdi: document.originalName, requestId: opts.requestId })
+  if (!alanlar || alanlar.toplam_tutar == null) return sezgisel
+
+  const taban: RecordSuggestionPayload = sezgisel?.payload ?? {
+    type: 'payment',
+    title: document.originalName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim() || 'Belgeden oluşturulan kayıt',
+    description: '',
+    direction: 'payable',
+    amount: null,
+    currency: 'TRY',
+    dueAt: null,
+    priority: 'normal',
+  }
+  const payload = alanlardanOneri(alanlar, taban, document.originalName)
+  const evidence = [
+    `Yapay zeka okuması (güven %${Math.round(alanlar.guven * 100)})`,
+    alanlar.gerekce ? `Dayanak: ${alanlar.gerekce}` : null,
+    ...(sezgisel?.evidence ?? []),
+  ].filter(Boolean) as string[]
+  return { suggestionType: 'business_record' as const, payload, confidence: Math.max(alanlar.guven, sezgisel?.confidence ?? 0), evidence }
+}

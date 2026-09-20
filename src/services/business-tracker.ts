@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { readFile } from 'fs/promises'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { atamaBildirimi, processDueBusinessReminders, syncAutomaticReminder } from './business-reminder-worker.js'
-import { buildDocumentSuggestion, oneriKaydet } from './document-suggestions.js'
+import { buildDocumentSuggestion, buildDocumentSuggestionAi, oneriKaydet } from './document-suggestions.js'
 import { yuklemeYoluCoz, exceljsYukle } from './documents.js'
 import { hesapBakiyeleri, kasaToplami } from './kasa-bakiye.js'
 import { donemOzetleri, donemOzeti, donemRaporu } from './tracker-periods.js'
@@ -1264,9 +1264,10 @@ export async function businessTrackerRoutes(
         where: { id: workspaceId },
         select: { taxNumber: true }
       })
-      const generated = buildDocumentSuggestion(
+      const generated = await buildDocumentSuggestionAi(
         { ...result, eFatura: cozumlenmis?.eFatura ?? null },
-        isletme?.taxNumber ?? null
+        isletme?.taxNumber ?? null,
+        { requestId: request.id }
       )
       if (!existing && generated) {
         await oneriKaydet(tx, { workspaceId, documentId, generated })

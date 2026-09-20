@@ -35,7 +35,10 @@ export default defineConfig({
       /* Testler dış sağlayıcı kod yollarını (nvidia/openai/deepseek) bilerek
          çalıştırıyor. Üretimde bu bayrak KAPALIDIR — bkz. ai-gateway.ts
          `assertProviderAllowedByPolicy`. */
-      AI_ALLOW_EXTERNAL_PROVIDERS: 'true'
+      AI_ALLOW_EXTERNAL_PROVIDERS: 'true',
+      /* Belge anlama (dil modeliyle tutar çıkarımı) testlerde kapalı:
+         sezgisel yol sınanır, ağ beklenmez. Kendi testi kapıyı açıp kapatır. */
+      BELGE_ANLAMA_KAPALI: '1'
     },
     hookTimeout: 60000,
     testTimeout: 30000
