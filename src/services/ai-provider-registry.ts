@@ -125,8 +125,13 @@ export function resolveCandidates(resolve: ResolveConfig, profile: LogicalProfil
   if (process.env.AI_PROVIDER_CANDIDATES_JSON) {
     try {
       const mapping = z.record(z.enum(PROFILES), z.array(schema).max(12)).parse(JSON.parse(process.env.AI_PROVIDER_CANDIDATES_JSON))
-      if (!mapping[profile]) throw new Error()
-      return mapping[profile]!
+      if (mapping[profile]) return mapping[profile]!
+      /* Özel haritada BELGE_HIZLI tanımlı değilse standart zinciri kısa
+         zaman aşımıyla kullan; haritayı her kurulumda genişletmek gerekmesin. */
+      if (profile === 'BELGE_HIZLI' && mapping.MENTOR_STANDARD) {
+        return mapping.MENTOR_STANDARD.map(c => ({ ...c, timeoutMs: Math.min(c.timeoutMs, 6000), maxRetries: 0 }))
+      }
+      throw new Error()
     } catch { throw new ProviderFailure('CONFIG') }
   }
   const ids = ['gemini', 'omniroute', 'nvidia', process.env.MENTOR_AI_PROVIDER || process.env.AI_PROVIDER || '', 'openai', 'deepseek', 'ollama']
@@ -136,7 +141,14 @@ export function resolveCandidates(resolve: ResolveConfig, profile: LogicalProfil
     if (id === 'ollama') enabled = !!(process.env.OLLAMA_MODEL || process.env.OLLAMA_API_URL)
     if (id !== 'gemini') { try { const c = resolve({ provider: id }); model ||= c.model } catch { enabled = false } }
     if (['gemini', 'nvidia', 'openai', 'deepseek'].includes(id) && process.env.AI_ALLOW_EXTERNAL_PROVIDERS !== 'true') enabled = false
-    return { enabled: enabled && !!model, providerId: id, model, priority, timeoutMs: 15000, maxRetries: 1, supportsReasoning: false }
+    /*
+     * BELGE_HIZLI (20.09.2026): belge çıkarımı yükleme isteğinin içinde koşar;
+     * sohbetin 15 sn + 1 tekrar bütçesi orada ilk sağlayıcı 503 verince
+     * zinciri ikinciye taşıyamıyordu. 6 sn / tekrar yok: 9 sn'lik toplam
+     * bütçede iki sağlayıcı denenebilir. Aynı sağlayıcılar, aynı sıra.
+     */
+    const hizli = profile === 'BELGE_HIZLI'
+    return { enabled: enabled && !!model, providerId: id, model, priority, timeoutMs: hizli ? 6000 : 15000, maxRetries: hizli ? 0 : 1, supportsReasoning: false }
   })
 }
 let router: ProviderRouter | undefined

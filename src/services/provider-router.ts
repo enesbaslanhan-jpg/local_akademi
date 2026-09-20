@@ -3,7 +3,9 @@ import type { ChatMessage, TokenUsage } from './ai-provider'
 
 export const UNAVAILABLE = 'AI_MENTOR_TEMPORARILY_UNAVAILABLE'
 export const UNAVAILABLE_MESSAGE = 'AI Mentor şu anda yanıt veremiyor. Birkaç dakika sonra tekrar deneyebilirsin.'
-export const PROFILES = ['MENTOR_FAST', 'MENTOR_STANDARD', 'MENTOR_REASONING', 'MENTOR_FALLBACK'] as const
+/* BELGE_HIZLI: belge alan çıkarımı (fiş/fatura) — sağlayıcı başına kısa zaman
+   aşımı, tekrar yok; ilk cevap veren kazanır. Bkz. belge-anlama.ts. */
+export const PROFILES = ['MENTOR_FAST', 'MENTOR_STANDARD', 'MENTOR_REASONING', 'MENTOR_FALLBACK', 'BELGE_HIZLI'] as const
 export type LogicalProfile = typeof PROFILES[number]
 export interface Candidate {
   enabled: boolean; providerId: string; model: string; priority: number

@@ -1237,6 +1237,28 @@ export async function businessTrackerRoutes(
     const parsed = documentMetadataInput.safeParse(request.body)
     if (!parsed.success) return reply.status(422).send({ error: 'Validation failed', details: parsed.error.errors })
     if (!await validateReferences(prisma, workspaceId, parsed.data.contactId, undefined, reply)) return
+    /*
+     * 🔴 ÖNERİ ÜRETİMİ İŞLEMİN DIŞINDA (canlı 500'ler, 20.09.2026).
+     * Dil modeli çağrısı (12 sn'ye kadar) `$transaction` içindeydi; Prisma
+     * etkileşimli işlemi 5 sn'de kapatır → "Transaction already closed" →
+     * her fotoğraf yüklemesi 500. Çıkarım burada, güncellenmiş alanlarla
+     * ama işlem açılmadan yapılır; işlem yalnız kısa yazma sorgularını tutar.
+     */
+    const isletme = await prisma.businessWorkspace.findUnique({
+      where: { id: workspaceId },
+      select: { taxNumber: true }
+    })
+    const cozumlenmis = ((): any => {
+      try { return JSON.parse(document.analysis || '{}') } catch { return {} }
+    })()
+    const oneriGirdisi = {
+      originalName: document.originalName,
+      extractedText: document.extractedText,
+      category: parsed.data.category !== undefined ? parsed.data.category : document.category,
+      dueDate: parsed.data.dueDate !== undefined ? (parsed.data.dueDate ? new Date(parsed.data.dueDate) : null) : document.dueDate,
+      eFatura: cozumlenmis?.eFatura ?? null,
+    }
+    const generated = await buildDocumentSuggestionAi(oneriGirdisi, isletme?.taxNumber ?? null, { requestId: request.id })
     const updated = await prisma.$transaction(async tx => {
       const result = await tx.uploadedDocument.update({
         where: { id: documentId },
@@ -1251,24 +1273,8 @@ export async function businessTrackerRoutes(
       const existing = await tx.documentSuggestion.findFirst({
         where: { workspaceId, documentId, suggestionType: 'business_record', status: 'proposed' }
       })
-      /*
-       * e-Fatura yükleme anında ayrıştırılıp `analysis.eFatura` içine
-       * yazılıyor (bkz. `documents.ts`). Buradan yeniden ayrıştırma
-       * YAPILMIYOR: `extractedText` 100.000 karakterde kırpıldığı için
-       * büyük bir fatura burada zaten yarım okunurdu.
-       */
-      const cozumlenmis = ((): any => {
-        try { return JSON.parse(result.analysis || '{}') } catch { return {} }
-      })()
-      const isletme = await tx.businessWorkspace.findUnique({
-        where: { id: workspaceId },
-        select: { taxNumber: true }
-      })
-      const generated = await buildDocumentSuggestionAi(
-        { ...result, eFatura: cozumlenmis?.eFatura ?? null },
-        isletme?.taxNumber ?? null,
-        { requestId: request.id }
-      )
+      /* e-Fatura ayrıştırması yükleme anında yapılmış (`analysis.eFatura`);
+         öneri işlem dışında üretildi (yukarı bak). */
       if (!existing && generated) {
         await oneriKaydet(tx, { workspaceId, documentId, generated })
       }

@@ -90,10 +90,10 @@ export async function belgeAlanlariniCikar(
    * ZAMAN BÜTÇESİ: bu çağrı belge yükleme isteğinin İÇİNDE koşar. Sohbet
    * yönlendiricisi yedek sağlayıcılarla 50+ sn bekleyebiliyor (ölçüldü:
    * Gemini 503 → omniroute → nvidia zaman aşımları, 56 sn). Yükleme o kadar
-   * beklemez: BELGE_ANLAMA_SURE_MS (varsayılan 12 sn) dolunca iptal edilir ve
+   * beklemez: BELGE_ANLAMA_SURE_MS (varsayılan 9 sn; ölçülen yanıtlar 5–8 sn) dolunca iptal edilir ve
    * sezgisel sonuç kullanılır.
    */
-  const butceMs = Number(process.env.BELGE_ANLAMA_SURE_MS) || 12000
+  const butceMs = Number(process.env.BELGE_ANLAMA_SURE_MS) || 9000
   const denetleyici = new AbortController()
   const zamanlayici = setTimeout(() => denetleyici.abort(), butceMs)
   try {
@@ -102,6 +102,7 @@ export async function belgeAlanlariniCikar(
     const yanit = await Promise.race([
       generateCompletion({
       abortSignal: denetleyici.signal,
+      profile: 'BELGE_HIZLI',
       messages: [
         { role: 'system', content: SISTEM },
         { role: 'user', content: `Dosya adı: ${opts.dosyaAdi ?? '-'}\n\nOCR metni:\n"""\n${metniKirp(metin)}\n"""` },

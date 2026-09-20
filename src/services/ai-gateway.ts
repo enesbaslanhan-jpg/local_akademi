@@ -1,6 +1,6 @@
 import { maskChatMessages } from './sensitive-data-masker'
 import { getProviderRouter, resolveCandidates, mentorProfile, prepareProviderMessages } from './ai-provider-registry'
-import { UNAVAILABLE, UNAVAILABLE_MESSAGE, ProviderFailure } from './provider-router'
+import { UNAVAILABLE, UNAVAILABLE_MESSAGE, ProviderFailure, type LogicalProfile } from './provider-router'
 import { reviewInput, reviewOutput, type ReviewResult } from './review-gate'
 import { secureLog, secureLogError } from './secure-logger'
 import type { AiProvider, ChatMessage, TokenUsage } from './ai-provider'
@@ -56,6 +56,8 @@ export interface GatewayRequest {
   keepAlive?: string | null
   provider?: string
   model?: string
+  /** Yönlendirme profili; verilmezse AI_MENTOR_PROFILE. */
+  profile?: LogicalProfile
 }
 
 export interface GatewayResponse {
@@ -1342,7 +1344,7 @@ export async function* generateStream(req: GatewayRequest): AsyncGenerator<Gatew
 
 async function routeCompletion(messages: ChatMessage[], req: GatewayRequest): Promise<GatewayResponse> {
   try {
-    const profile = mentorProfile()
+    const profile = req.profile ?? mentorProfile()
     return await getProviderRouter(getProviderConfig, buildRequestBody).generate(
       prepareProviderMessages(messages), resolveCandidates(getProviderConfig, profile), profile,
       { temperature: req.temperature, maxOutputTokens: req.maxOutputTokens, keepAlive: req.keepAlive }, req.abortSignal,
