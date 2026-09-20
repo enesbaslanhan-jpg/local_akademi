@@ -60,7 +60,41 @@ export async function exceljsYukle() {
 const MAX_OCR_PAGES = 5
 const turData = require('@tesseract.js-data/tur') as { code: string; gzip: boolean; langPath: string }
 
-async function recognizeTurkishPages(pages: Array<{ data: Uint8Array }>) {
+/*
+ * 🔴 FOTOĞRAF ÖN İŞLEME (20.09.2026). Telefon kamerasından gelen fiş/fatura
+ * fotoğrafı Tesseract'a HAM gidiyordu; canlıda okunan metin çöptü
+ * ("IOPLAM 510.00" — 810 TL'lik fiş). PDF'ler iyi okunuyordu çünkü metin
+ * katmanı var ya da 1800px temiz render geliyor. Fotoğrafta: EXIF'e göre
+ * döndür, uzun kenar 2200px (Tesseract 300 dpi civarı sever), gri ton,
+ * normalize (kontrast), hafif keskinleştirme, orta eşik. Renkli fiş/ışık
+ * farkları böyle bastırılıyor. PDF render yolu değişmez.
+ */
+/*
+ * Ölçüldü (20.09.2026, canlıdaki iki fiş fotoğrafı): eşiklenmiş görüntü
+ * ürün adlarını, eşiksiz gri görüntü rakamları daha iyi okuyor. İkisi de
+ * çalıştırılır ve metinler art arda verilir; tutar çıkarımı tekrar eden
+ * rakamı yakalar. Ham görüntü tek başına "TOPLAM" satırını hiç bulamıyordu.
+ */
+async function fotografiOcrIcinHazirla(veri: Uint8Array): Promise<Buffer[]> {
+  try {
+    const sharp = (await import('sharp')).default
+    const temel = () => sharp(Buffer.from(veri), { failOn: 'none' })
+      .rotate()
+      .resize({ width: 2200, height: 2200, fit: 'inside', withoutEnlargement: false })
+      .grayscale()
+      .normalize()
+      .sharpen({ sigma: 1 })
+    return await Promise.all([
+      temel().png().toBuffer(),
+      temel().threshold(160).png().toBuffer(),
+    ])
+  } catch (error) {
+    /* Ön işleme düşerse ham görüntüyle devam: hiç okumamaktan iyidir. */
+    return [Buffer.from(veri)]
+  }
+}
+
+async function recognizeTurkishPages(pages: Array<{ data: Uint8Array }>, opts: { fotograf?: boolean } = {}) {
   const worker = await createWorker(turData.code, OEM.LSTM_ONLY, {
     langPath: turData.langPath,
     gzip: turData.gzip,
@@ -68,10 +102,19 @@ async function recognizeTurkishPages(pages: Array<{ data: Uint8Array }>) {
     logger: () => {}
   })
   try {
+    /*
+     * Fiş/fatura tek sütun metin bloğu: PSM 6 (uniform block) satırları
+     * sütunlara bölmeye çalışan varsayılandan (PSM 3) daha az karıştırır.
+     * Türkçe fiş karakter kümesi korunur; whitelist verilmez (₺, ü, ş).
+     */
+    if (opts.fotograf) await worker.setParameters({ tessedit_pageseg_mode: '6' as any, preserve_interword_spaces: '1' })
     const text: string[] = []
     for (const page of pages.slice(0, MAX_OCR_PAGES)) {
-      const result = await worker.recognize(Buffer.from(page.data))
-      if (result.data.text.trim()) text.push(result.data.text.trim())
+      const girdiler = opts.fotograf ? await fotografiOcrIcinHazirla(page.data) : [Buffer.from(page.data)]
+      for (const girdi of girdiler) {
+        const result = await worker.recognize(girdi)
+        if (result.data.text.trim()) text.push(result.data.text.trim())
+      }
     }
     return text.join('\n\n')
   } finally {
@@ -166,7 +209,7 @@ export async function belgeyiKaydet(opts: {
         await parser.destroy()
       }
     } else if (['png', 'jpg', 'jpeg'].includes(ext)) {
-      extractedText = await recognizeTurkishPages([{ data: buffer }])
+      extractedText = await recognizeTurkishPages([{ data: buffer }], { fotograf: true })
       extractionMethod = 'ocr_tur'
     } else if (ext === 'xlsx') {
       /*

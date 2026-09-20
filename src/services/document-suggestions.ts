@@ -174,7 +174,17 @@ const CATEGORY_TYPE: Record<string, Pick<RecordSuggestionPayload, 'type' | 'dire
  * ⚠️ Sıra ÖNEMLİ: 'ödenecek tutar' en spesifik olan, başta. Yalnız
  * 'toplam' en sonda, çünkü 'ara toplam' da onu içerir.
  */
+/*
+ * 🔴 KREDİ KARTI EKSTRESİ (canlı, 20.09.2026): "Toplam Faiz ve Ücretler
+ * 141.99" satırı yalın 'toplam' etiketine yakalandı; doğru tutar
+ * "Dönem Borcunuz 3.614,33" idi. İki düzeltme: ekstre etiketleri en başa
+ * eklendi; yalın 'toplam' artık ancak hemen ardında ayraç/boşluk ve
+ * rakam geliyorsa eşleşir ("Toplam: 810,00"), araya kelime girince
+ * ("Toplam Faiz…", "Toplam KDV", "Toplam Puan") eşleşmez.
+ */
 const TOPLAM_ETIKETLERI = [
+  'dönem borcunuz',
+  'dönem borcu',
   'ödenecek tutar',
   'vergiler dahil toplam tutar',
   'genel toplam',
@@ -182,24 +192,44 @@ const TOPLAM_ETIKETLERI = [
   'toplam tutar',
   'toplam'
 ]
+const YALIN_ETIKET_ARA = String.raw`[\s:.\-–]{0,12}`
 
 /* Etiketlerin hepsi düz metin (nokta, yıldız vb. yok); bu yüzden
    RegExp'e doğrudan gömülüyorlar, kaçış gerekmiyor. */
-const PARA_DESENI = String.raw`(\d{1,3}(?:\.\d{3})*(?:,\d{1,2})|\d+(?:[.,]\d{1,2})?)`
+/*
+ * Hem Türk (3.614,33) hem ABD/banka (3,614.33) biçimi yakalanır; ayracı
+ * `paraSayisi` çözer: iki ayraç da varsa SON gelen ondalıktır. Ekstre
+ * (VakıfBank) 3,614.33 yazıyordu ve 3,61 okunmuştu (20.09.2026).
+ */
+const PARA_DESENI = String.raw`(\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?)`
+
+function paraSayisi(ham: string): number {
+  const sonNokta = ham.lastIndexOf('.'), sonVirgul = ham.lastIndexOf(',')
+  let duz: string
+  if (sonNokta >= 0 && sonVirgul >= 0) {
+    /* İki ayraç: sondaki ondalık, diğeri binlik. */
+    duz = sonVirgul > sonNokta
+      ? ham.replace(/\./g, '').replace(',', '.')
+      : ham.replace(/,/g, '')
+  } else if (sonVirgul >= 0) {
+    /* Yalnız virgül: 3'lü gruplar binlik ("1,250"), yoksa ondalık ("810,00"). */
+    duz = /^\d{1,3}(,\d{3})+$/.test(ham) ? ham.replace(/,/g, '') : ham.replace(',', '.')
+  } else if (sonNokta >= 0) {
+    duz = /^\d{1,3}(\.\d{3})+$/.test(ham) ? ham.replace(/\./g, '') : ham
+  } else duz = ham
+  return Number(duz)
+}
 
 function findLabelledAmount(text: string) {
   for (const etiket of TOPLAM_ETIKETLERI) {
+    const ara = etiket === 'toplam' ? YALIN_ETIKET_ARA : String.raw`[^\d]{0,20}`
     const kalip = new RegExp(
-      etiket + String.raw`[^\d]{0,20}` + PARA_DESENI + String.raw`\s*(?:₺|TL|TRY)?`,
+      etiket + ara + PARA_DESENI + String.raw`\s*(?:₺|TL|TRY)?`,
       'i'
     )
     const eslesme = kalip.exec(text)
     if (!eslesme) continue
-    const ham = eslesme[1]
-    const duz = ham.includes(',')
-      ? ham.replace(/\./g, '').replace(',', '.')
-      : ham.replace(/,(?=\d{3}\b)/g, '')
-    const tutar = Number(duz)
+    const tutar = paraSayisi(eslesme[1])
     if (Number.isFinite(tutar) && tutar > 0 && tutar <= 1e15) {
       return { amount: tutar, evidence: eslesme[0].trim() }
     }
@@ -208,13 +238,9 @@ function findLabelledAmount(text: string) {
 }
 
 function findAmount(text: string) {
-  const matches = [...text.matchAll(/(?:₺|TL|TRY)?\s*(\d{1,3}(?:\.\d{3})*(?:,\d{1,2})|\d+(?:[.,]\d{1,2})?)\s*(?:₺|TL|TRY)\b/gi)]
+  const matches = [...text.matchAll(new RegExp(String.raw`(?:₺|TL|TRY)?\s*` + PARA_DESENI + String.raw`\s*(?:₺|TL|TRY)\b`, 'gi'))]
   for (const match of matches) {
-    const raw = match[1]
-    const normalized = raw.includes(',')
-      ? raw.replace(/\./g, '').replace(',', '.')
-      : raw.replace(/,(?=\d{3}\b)/g, '')
-    const amount = Number(normalized)
+    const amount = paraSayisi(match[1])
     if (Number.isFinite(amount) && amount >= 0 && amount <= 1e15) {
       return { amount, evidence: match[0].trim() }
     }

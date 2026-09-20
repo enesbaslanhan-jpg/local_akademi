@@ -127,6 +127,23 @@ describe('belge önerisi uydurmuyor', () => {
     expect(oneri!.payload.amount).toBe(282.04)
   })
 
+  it('kredi kartı ekstresinde dönem borcu alınıyor, "Toplam Faiz" değil', () => {
+    /* Canlı, 20.09.2026: "Toplam Faiz ve Ücretler 141.99" yalın toplam
+       etiketine yakalanıp 141,99 önerilmişti; doğru tutar dönem borcu. */
+    const oneri = buildDocumentSuggestion(belge(
+      'Kredi Kartı Hesap Özeti (TL)\nDönem Borcunuz : 3,614.33 TL\nAsgari Ödeme Tutarı : 723.00 TL\n' +
+      'Son Ödeme Tarihi : 10.08.2026\nToplam Faiz ve Ücretler 141.99\nToplam Puanınız 1.250'
+    ))
+    expect(oneri!.payload.amount).toBe(3614.33)
+  })
+
+  it('"Toplam KDV" satırı toplam sanılmıyor, fiş toplamı alınıyor', () => {
+    const oneri = buildDocumentSuggestion(belge(
+      'FİŞ\nPAKET ETLİ EKMEK 810,00\nTOPLAM KDV 23,64 TL\nTOPLAM 810,00 TL\n20.09.2026'
+    ))
+    expect(oneri!.payload.amount).toBe(810)
+  })
+
   it('etiket yoksa tek tutar yine bulunuyor', () => {
     /* Dekont ve fişte etiketli toplam olmayabilir; eski davranış korunuyor. */
     const oneri = buildDocumentSuggestion(belge(
