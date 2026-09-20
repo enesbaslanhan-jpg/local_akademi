@@ -670,6 +670,16 @@ export async function start() {
   }
 
   await ensureFinancialModelCatalog(prisma)
+  /*
+   * AI zinciri kapalıysa açılışta bağır (20.09.2026): canlıda
+   * AI_GATEWAY_ENABLED=false aylarca fark edilmedi — tek sağlayıcı, tek
+   * model, devre kesici yok; Gemini 503 verince Mentor "AI yanıtı
+   * alınamadı" dedi. Uyarı testte/dev'de gürültü olmasın diye yalnız
+   * production'da.
+   */
+  if (process.env.NODE_ENV === 'production' && process.env.AI_GATEWAY_ENABLED !== 'true') {
+    server.log.warn('[AIGW] AI_GATEWAY_ENABLED=true değil: sağlayıcı zinciri ve devre kesici KAPALI; Mentor tek sağlayıcıya bağlı (bkz. ai-provider-registry.ts).')
+  }
   let stopReminderWorker = () => {}
   let stopNewsWorker = () => {}
   let stopMarketplaceWorker = () => {}

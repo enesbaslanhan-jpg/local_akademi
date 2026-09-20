@@ -43,7 +43,18 @@ function validateEndpoint(raw: string) {
   // Docker Desktop exposes services running on the same workstation through
   // this stable hostname. Treat it like loopback so the server container can
   // reach a host-side OmniRoute daemon without enabling arbitrary HTTP URLs.
-  const local = ['localhost', '127.0.0.1', '[::1]', 'host.docker.internal'].includes(url.hostname)
+  /*
+   * 🔴 AI_INTERNAL_HOSTS (20.09.2026): canlıda OmniRoute ayrı bir Compose
+   * container'ı, adresi `http://omniroute:20128/v1`. Bu ad yukarıdaki
+   * listede olmadığı için zincir (AI_GATEWAY_ENABLED=true) her adayı CONFIG
+   * ile reddediyordu — kapı bu yüzden kapalı kalmış, tek model çalışıp
+   * Gemini 503 verince "AI yanıtı alınamadı" oluyordu. Çözüm keyfi http'yi
+   * açmak DEĞİL: işletmeci hangi iç ağ adlarına düz http ile gidileceğini
+   * AÇIKÇA sayar (virgülle; ör. `AI_INTERNAL_HOSTS=omniroute`). Sayılmayan
+   * her ad için https şartı aynen sürer.
+   */
+  const icAglar = (process.env.AI_INTERNAL_HOSTS || '').split(',').map(h => h.trim().toLowerCase()).filter(Boolean)
+  const local = ['localhost', '127.0.0.1', '[::1]', 'host.docker.internal'].includes(url.hostname) || icAglar.includes(url.hostname.toLowerCase())
   if (url.username || url.password || url.search || url.hash || (!local && url.protocol !== 'https:') || (local && !['http:', 'https:'].includes(url.protocol))) throw new ProviderFailure('CONFIG')
   return url.toString()
 }

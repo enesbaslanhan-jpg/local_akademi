@@ -111,6 +111,25 @@ describe('privacy and adapters', () => {
     const provider = new OpenAICompatibleProvider('nvidia',()=>({provider:'nvidia',apiUrl:'https://example.com/v1/chat/completions',apiKey:'test-only',model:'test',timeout:10,maxTokens:10}),()=>({messages}))
     await expect(provider.generate(messages,candidate('nvidia'),new AbortController().signal,{})).rejects.toMatchObject({code:'CONFIG',status:401,message:'CONFIG'})
   })
+  /*
+   * Canlı hata (20.09.2026): OmniRoute Compose servisi `http://omniroute:20128`
+   * — düz http, noktasız ad. Listede olmadığı için zincir açılınca her aday
+   * CONFIG düşüyordu. AI_INTERNAL_HOSTS ile açıkça sayılan ad kabul edilir;
+   * sayılmayan noktasız/https-dışı adres yine reddedilir.
+   */
+  it('AI_INTERNAL_HOSTS ile sayılan Compose servis adı düz http ile kabul edilir', async () => {
+    const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({choices:[{message:{content:'ok'}}],usage:{}})))
+    vi.stubGlobal('fetch',fetch)
+    const yap = () => new OpenAICompatibleProvider('omniroute',()=>({provider:'omniroute',apiUrl:'http://omniroute:20128/v1/chat/completions',apiKey:'test-only',model:'localkarar-mentor',timeout:10,maxTokens:10}),()=>({messages}))
+    await expect(yap().generate(messages,candidate('omniroute'),new AbortController().signal,{})).rejects.toMatchObject({code:'CONFIG'})
+    expect(fetch).not.toHaveBeenCalled()
+    vi.stubEnv('AI_INTERNAL_HOSTS','omniroute, baska-servis')
+    await expect(yap().generate(messages,candidate('omniroute'),new AbortController().signal,{})).resolves.toMatchObject({content:'ok',provider:'omniroute'})
+    expect(fetch.mock.calls[0][0]).toBe('http://omniroute:20128/v1/chat/completions')
+    vi.stubEnv('AI_INTERNAL_HOSTS','omniroute')
+    const uzak = new OpenAICompatibleProvider('omniroute',()=>({provider:'omniroute',apiUrl:'http://uzak.example.com/v1/chat/completions',apiKey:'test-only',model:'m',timeout:10,maxTokens:10}),()=>({messages}))
+    await expect(uzak.generate(messages,candidate('omniroute'),new AbortController().signal,{})).rejects.toMatchObject({code:'CONFIG'})
+  })
   it('classifies explicit invalid-model metadata as configuration, not a bad prompt', async () => {
     vi.stubGlobal('fetch',vi.fn().mockResolvedValue(new Response(JSON.stringify({error:{param:'model',message:'private upstream body'}}),{status:400})))
     const provider = new OpenAICompatibleProvider('nvidia',()=>({provider:'nvidia',apiUrl:'https://example.com/v1/chat/completions',model:'test',timeout:10,maxTokens:10}),()=>({messages}))
