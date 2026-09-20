@@ -66,6 +66,10 @@ services:
       - AI_GATEWAY_ENABLED=${AI_GATEWAY_ENABLED:-false}
       - AI_MENTOR_PROFILE=${AI_MENTOR_PROFILE:-MENTOR_STANDARD}
       - AI_PROVIDER_CANDIDATES_JSON=${AI_PROVIDER_CANDIDATES_JSON:-}
+      # Zincirin düz http ile gidebileceği iç ağ adları (20.09.2026): OmniRoute
+      # Compose servisi. Bu satır olmadan .env'deki değer konteynere ULAŞMAZ
+      # (canlıda ilk deploy'da boş geldi) ve zincir her adayı CONFIG ile reddeder.
+      - AI_INTERNAL_HOSTS=${AI_INTERNAL_HOSTS:-}
       - OMNIROUTE_BASE_URL=${OMNIROUTE_BASE_URL}
       - OMNIROUTE_API_KEY=${OMNIROUTE_API_KEY}
       - OMNIROUTE_MODEL=${OMNIROUTE_MODEL:-auto/best-free}
