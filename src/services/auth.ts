@@ -19,6 +19,7 @@ import { LEGAL_DOCUMENTS, missingConsents, requiredDocuments } from '../config/l
 import { contentLanguage } from '../lib/content-language.js'
 import { sendMail } from './mailer.js'
 import { dogrulamaKoduMaili, sifreDegistiMaili, sifreSifirlamaMaili } from './mail-templates.js'
+import { yeniKullaniciBildir } from './yeni-kullanici-bildirimi.js'
 import {
   appleBelirteciIptalEt,
   appleIstemcileri,
@@ -262,6 +263,8 @@ export async function authRoutes(fastify: FastifyInstance) {
       actorId: user.id,
       actorName: email
     })
+    /* İşletmeciye "yeni kullanıcı" postası; beklenmez, hata kaydı bozmaz. */
+    void yeniKullaniciBildir(user, 'e-posta')
 
     const yenileme = await yeniAileOlustur(prisma, user.id, user.tokenVersion)
 
@@ -1479,6 +1482,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       actorId: user.id,
       metadata: { provider, privateRelay: kimlik.privateRelay }
     }, prisma).catch(() => {})
+    if (yeniHesap) void yeniKullaniciBildir(user, provider === 'apple' ? 'apple' : 'google')
 
     const token = issueToken(fastify, user)
     const preference = await prisma.userPreference.findUnique({ where: { userId: user.id } })

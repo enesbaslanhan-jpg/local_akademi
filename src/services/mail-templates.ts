@@ -267,6 +267,42 @@ export function destekTalebiMaili(
  */
 
 /** Ücretsiz kullanım süresi dolmak üzere. */
+/*
+ * İşletmeciye "yeni kullanıcı" bildirimi (bkz. yeni-kullanici-bildirimi.ts).
+ * Konu satırında kullanıcının yazdığı bir şey YOK (ad/e-posta gövdede):
+ * konu satırı başlık enjeksiyonunun en kolay yolu.
+ */
+export function yeniKullaniciMaili(
+  alici: string,
+  ad: string,
+  eposta: string,
+  kaynak: string,
+  toplam: number
+): MailMesaji {
+  const dipnot = 'Bu bildirimi kapatmak için sunucuda YENI_KULLANICI_BILDIRIMI=0 verin.'
+  return {
+    to: alici,
+    subject: konuGuvenli(`LocalKarar — yeni kullanıcı (toplam ${toplam})`),
+    text: cerceve(
+      'Yeni kullanıcı',
+      [
+        `Ad      : ${ad}`,
+        `E-posta : ${eposta}`,
+        `Kayıt   : ${kaynak}`,
+        `Toplam  : ${toplam} kullanıcı`
+      ].join('\n'),
+      dipnot
+    ),
+    html: htmlCerceve('Yeni kullanıcı', [
+      `<strong>Ad:</strong> ${htmlKacir(ad)}`,
+      `<strong>E-posta:</strong> ${htmlKacir(eposta)}`,
+      `<strong>Kayıt:</strong> ${htmlKacir(kaynak)}`,
+      `<strong>Toplam:</strong> ${toplam} kullanıcı`,
+      `<span style="color:#6b7780;font-size:13px">${dipnot}</span>`
+    ])
+  }
+}
+
 export function denemeBitiyorMaili(to: string, ad: string, kalanGun: number): MailMesaji {
   const link = `${uygulamaAdresi()}/app/settings#uyelik`
   const gun = `${kalanGun} gün`

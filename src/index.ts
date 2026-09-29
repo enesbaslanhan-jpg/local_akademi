@@ -27,6 +27,7 @@ import { uyelikKapisi } from './services/membership-guard'
 import { formulaRoutes } from './services/formulas'
 import { adminRoutes } from './services/admin'
 import { supportRoutes } from './services/support'
+import { geriBildirimRoutes } from './services/geri-bildirim'
 import { practicalCardRoutes } from './services/practical-cards'
 import { reportRoutes } from './services/reports'
 import { knowledgeV2Routes } from './services/knowledge-v2'
@@ -505,6 +506,7 @@ async function build() {
      ayristiricisini EKLENTI KAPSAMINDA kaydeder. */
   server.register(paymentRoutes, { prefix: '/payments' })
   server.register(supportRoutes, { prefix: '/support' })
+  server.register(geriBildirimRoutes, { prefix: '/support' })
   server.register(accountNotificationRoutes, { prefix: '/account/notifications' })
   server.register(courseRoutes, { prefix: '/courses' })
   server.register(lessonRoutes, { prefix: '/lessons' })

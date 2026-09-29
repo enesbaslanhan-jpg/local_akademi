@@ -70,6 +70,14 @@ services:
       # Compose servisi. Bu satır olmadan .env'deki değer konteynere ULAŞMAZ
       # (canlıda ilk deploy'da boş geldi) ve zincir her adayı CONFIG ile reddeder.
       - AI_INTERNAL_HOSTS=${AI_INTERNAL_HOSTS:-}
+      # Mağaza adresleri (/app-config → storeUrls): env listede olmazsa
+      # konteynere ULAŞMAZ. iOS için kodda varsayılan var; Android Play
+      # yayına çıkınca STORE_URL_ANDROID .env'e yazılır.
+      - STORE_URL_ANDROID=${STORE_URL_ANDROID:-}
+      - STORE_URL_IOS=${STORE_URL_IOS:-}
+      # İşletmeci bildirimi: yeni kayıtta e-posta (kapatmak için =0).
+      - YENI_KULLANICI_BILDIRIMI=${YENI_KULLANICI_BILDIRIMI:-}
+      - YENI_KULLANICI_BILDIRIMI_ALICI=${YENI_KULLANICI_BILDIRIMI_ALICI:-}
       - OMNIROUTE_BASE_URL=${OMNIROUTE_BASE_URL}
       - OMNIROUTE_API_KEY=${OMNIROUTE_API_KEY}
       - OMNIROUTE_MODEL=${OMNIROUTE_MODEL:-auto/best-free}

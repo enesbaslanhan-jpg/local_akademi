@@ -92,6 +92,9 @@ function aasaIcerigi(): unknown | null {
   }
 }
 
+/* LocalKarar'ın App Store sayfası (uygulama kimliği App Store Connect'ten). */
+const APP_STORE_ADRESI = 'https://apps.apple.com/tr/app/id6813127954'
+
 export async function appConfigRoutes(fastify: FastifyInstance) {
   /**
    * GET /app-config — mobil istemcinin açılışta okuduğu yapılandırma.
@@ -109,7 +112,8 @@ export async function appConfigRoutes(fastify: FastifyInstance) {
       minAppVersion: minimum,
       storeUrls: {
         android: (process.env.STORE_URL_ANDROID || '').trim() || null,
-        ios: (process.env.STORE_URL_IOS || '').trim() || null
+        /* App Store'da yayında (28.09.2026): adres sabit varsayılan, env ile değiştirilebilir. */
+        ios: (process.env.STORE_URL_IOS || '').trim() || APP_STORE_ADRESI
       },
       // Bakım kipi: mobil istemci sunucunun geçici olarak kapalı olduğunu
       // istek başına 503 toplamadan öğrenebilsin.
