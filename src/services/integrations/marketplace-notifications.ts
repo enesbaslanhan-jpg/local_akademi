@@ -30,12 +30,19 @@ async function alicilar(prisma: PrismaClient, workspaceId: string): Promise<numb
 
 async function bildirimYaz(
   prisma: PrismaClient,
-  input: { workspaceId: string; userId: number; dedupeKey: string; type: string; title: string; body: string }
+  input: {
+    workspaceId: string; userId: number; dedupeKey: string; type: string; title: string; body: string
+    /** Telefon bildiriminin açacağı adres; `null` = telefona GÖNDERME (yalnız zil). */
+    pushUrl?: string | null
+  }
 ) {
+  const { pushUrl, ...veri } = input
   try {
-    await prisma.businessNotification.create({ data: { ...input, recordId: null } })
+    await prisma.businessNotification.create({ data: { ...veri, recordId: null } })
     /* Telefon bildirimi: yalnız YENİ yazılan satır için (dedupeKey çakışırsa aşağıdaki catch'e düşer). */
-    void pushBildir(input.userId, { baslik: input.title, govde: input.body, url: PUSH_ADRESLERI.isletmeBildirimleri(input.workspaceId) })
+    if (pushUrl !== null) {
+      void pushBildir(input.userId, { baslik: input.title, govde: input.body, url: pushUrl ?? PUSH_ADRESLERI.isletmeBildirimleri(input.workspaceId) })
+    }
     return true
   } catch (hata: any) {
     /* P2002 = ayni `dedupeKey` zaten var. Beklenen durum; sessizce
@@ -141,4 +148,42 @@ export async function pazaryeriBildirimleriniUret(
     gecikenKargoBildirimi(prisma, workspaceId, now).catch(() => 0)
   ])
   return { dusukStok, gecikenKargo }
+}
+
+const PAZARYERI_ADI: Record<string, string> = {
+  TRENDYOL: 'Trendyol', HEPSIBURADA: 'Hepsiburada', N11: 'N11', SHOPIFY: 'Shopify',
+  AMAZON: 'Amazon', WOOCOMMERCE: 'WooCommerce'
+}
+
+/*
+ * YENİ SİPARİŞ BİLDİRİMİ (29.09.2026).
+ *
+ * Eşitleme bu çalıştırmada `adet` yeni sipariş yazdıysa işletmenin sahip ve
+ * yöneticilerine TEK özet bildirim: 20 sipariş = 1 satır, 20 telefon titremesi
+ * değil (bkz. dosya başındaki gürültü kuralları).
+ *
+ * 🔴 İLK ESİTLEMEDE ÇAĞRILMAZ (çağıran karar verir): ilk eşitleme son 30
+ * günün siparişini içeri alır; "30 yeni sipariş geldi" demek yalan olurdu.
+ * `dedupeKey` çalıştırma numarasını içerir: aynı çalıştırma iki kez bildirim
+ * üretemez. `telefona=false` (elle eşitleme): kullanıcı zaten ekrana bakıyor,
+ * yalnız zilde görünür.
+ */
+export async function yeniSiparisBildir(
+  prisma: PrismaClient,
+  girdi: { workspaceId: string; connectionId: string; runId: string; provider: string; adet: number; telefona: boolean }
+): Promise<void> {
+  if (girdi.adet <= 0) return
+  const ad = PAZARYERI_ADI[girdi.provider] ?? girdi.provider
+  const govde = girdi.adet === 1 ? `1 yeni ${ad} siparişi geldi.` : `${girdi.adet} yeni ${ad} siparişi geldi.`
+  for (const userId of await alicilar(prisma, girdi.workspaceId)) {
+    await bildirimYaz(prisma, {
+      workspaceId: girdi.workspaceId,
+      userId,
+      dedupeKey: `marketplace_new_orders:${girdi.connectionId}:${girdi.runId}`,
+      type: 'marketplace_new_orders',
+      title: 'Yeni sipariş',
+      body: govde,
+      pushUrl: girdi.telefona ? PUSH_ADRESLERI.isletmeSiparisleri(girdi.workspaceId) : null
+    })
+  }
 }

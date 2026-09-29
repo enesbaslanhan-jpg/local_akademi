@@ -51,5 +51,6 @@ export async function pushBildir(userId: number, yuk: PushYuku): Promise<void> {
 export const PUSH_ADRESLERI = {
   bildirimler: 'https://localkarar.com/app/bildirimler',
   sohbetler: 'https://localkarar.com/app/community/sohbetler',
+  isletmeSiparisleri: (workspaceId: string) => `https://localkarar.com/app/workspaces/${encodeURIComponent(workspaceId)}/orders`,
   isletmeBildirimleri: (workspaceId: string) => `https://localkarar.com/app/workspaces/${encodeURIComponent(workspaceId)}/notifications`
 } as const

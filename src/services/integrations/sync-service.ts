@@ -4,7 +4,7 @@ import { decryptConnectionCredentials, safeErrorMessage } from './credentials.js
 import { upsertOrderWithItems, upsertNormalizedProduct, newOrderTransitionSink, type OrderTransitionSink } from './repository.js'
 import type { ProviderCode, ProviderCredentials } from './types.js'
 import { resolveLowStockThreshold } from './product-analytics.js'
-import { pazaryeriBildirimleriniUret } from './marketplace-notifications.js'
+import { pazaryeriBildirimleriniUret, yeniSiparisBildir } from './marketplace-notifications.js'
 import { captureProductEvent } from '../product-analytics.js'
 
 /*
@@ -409,6 +409,24 @@ async function runConnectionSyncLocked(
      */
     if (finalStatus === 'SUCCESS') {
       void pazaryeriBildirimleriniUret(prisma, connection.workspaceId).catch(() => {})
+    }
+
+    /*
+     * YENİ SİPARİŞ (29.09.2026). İlk eşitleme (INITIAL ya da bağlantının daha
+     * önce hiç başarılı eşitlemesi yoksa) 30 günlük GEÇMİŞİ içeri alır; onun
+     * için bildirim üretilmez. Telefon yalnız zamanlanmış eşitlemede: elle
+     * eşitleyen kullanıcı zaten ekrana bakıyor.
+     */
+    const ilkEsitleme = options.syncType === 'INITIAL' || !connection.lastSuccessfulSyncAt
+    if ((finalStatus === 'SUCCESS' || finalStatus === 'PARTIAL') && counters.created > 0 && !ilkEsitleme) {
+      void yeniSiparisBildir(prisma, {
+        workspaceId: connection.workspaceId,
+        connectionId,
+        runId: run.id,
+        provider: String(connection.provider),
+        adet: counters.created,
+        telefona: options.syncType === 'SCHEDULED'
+      }).catch(() => {})
     }
 
     await captureProductEvent(
