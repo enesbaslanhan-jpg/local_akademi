@@ -28,6 +28,7 @@ import { formulaRoutes } from './services/formulas'
 import { adminRoutes } from './services/admin'
 import { supportRoutes } from './services/support'
 import { geriBildirimRoutes } from './services/geri-bildirim'
+import { cihazRoutes } from './services/push/cihaz-routes'
 import { practicalCardRoutes } from './services/practical-cards'
 import { reportRoutes } from './services/reports'
 import { knowledgeV2Routes } from './services/knowledge-v2'
@@ -508,6 +509,7 @@ async function build() {
   server.register(supportRoutes, { prefix: '/support' })
   server.register(geriBildirimRoutes, { prefix: '/support' })
   server.register(accountNotificationRoutes, { prefix: '/account/notifications' })
+  server.register(cihazRoutes, { prefix: '/account/devices' })
   server.register(courseRoutes, { prefix: '/courses' })
   server.register(lessonRoutes, { prefix: '/lessons' })
   server.register(enrollmentRoutes, { prefix: '/enrollments' })

@@ -78,6 +78,12 @@ services:
       # İşletmeci bildirimi: yeni kayıtta e-posta (kapatmak için =0).
       - YENI_KULLANICI_BILDIRIMI=${YENI_KULLANICI_BILDIRIMI:-}
       - YENI_KULLANICI_BILDIRIMI_ALICI=${YENI_KULLANICI_BILDIRIMI_ALICI:-}
+      # Telefon bildirimi (Apple APNs). Değerler .env'de; yoksa gönderim sessizce kapalı.
+      - APNS_KEY_ID=${APNS_KEY_ID:-}
+      - APNS_TEAM_ID=${APNS_TEAM_ID:-}
+      - APNS_KEY_P8_BASE64=${APNS_KEY_P8_BASE64:-}
+      - APNS_BUNDLE_ID=${APNS_BUNDLE_ID:-}
+      - APNS_ENABLED=${APNS_ENABLED:-}
       - OMNIROUTE_BASE_URL=${OMNIROUTE_BASE_URL}
       - OMNIROUTE_API_KEY=${OMNIROUTE_API_KEY}
       - OMNIROUTE_MODEL=${OMNIROUTE_MODEL:-auto/best-free}

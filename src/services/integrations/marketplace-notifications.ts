@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@prisma/client'
 import { resolveLowStockThreshold } from './product-analytics.js'
+import { pushBildir, PUSH_ADRESLERI } from '../push/push-gonder.js'
 
 /*
  * PAZARYERI BILDIRIMLERI.
@@ -33,6 +34,8 @@ async function bildirimYaz(
 ) {
   try {
     await prisma.businessNotification.create({ data: { ...input, recordId: null } })
+    /* Telefon bildirimi: yalnız YENİ yazılan satır için (dedupeKey çakışırsa aşağıdaki catch'e düşer). */
+    void pushBildir(input.userId, { baslik: input.title, govde: input.body, url: PUSH_ADRESLERI.isletmeBildirimleri(input.workspaceId) })
     return true
   } catch (hata: any) {
     /* P2002 = ayni `dedupeKey` zaten var. Beklenen durum; sessizce

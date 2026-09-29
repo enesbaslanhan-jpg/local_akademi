@@ -1,4 +1,5 @@
 import type { Prisma, PrismaClient } from '@prisma/client'
+import { pushBildir, PUSH_ADRESLERI } from './push/push-gonder.js'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { DEADLINE_SOURCES } from '../config/business-deadlines.js'
 
@@ -176,6 +177,8 @@ export async function processDueBusinessReminders(
 
   let sent = 0
   for (const reminder of due) {
+    /* İşlem içinde doldurulur, İŞLEM BİTİNCE gönderilir: geri alınan bir işlem için telefona bildirim gitmemeli. */
+    let gonderilecek: { userId: number; title: string; body: string; workspaceId: string } | null = null
     await prisma.$transaction(async tx => {
       const current = await tx.businessReminder.findUnique({ where: { id: reminder.id } })
       if (!current || current.status !== 'pending') return
@@ -211,6 +214,12 @@ export async function processDueBusinessReminders(
         : 'belirlenen tarih'
       /* Tür dedupeKey önekinden okunuyor (bkz. YAKLASAN_ONEK). */
       const geciken = reminder.dedupeKey.startsWith(GECIKEN_ONEK)
+      const zatenVar = await tx.businessNotification.findUnique({
+        where: { dedupeKey: `reminder:${reminder.id}` },
+        select: { id: true }
+      })
+      const baslik = geciken ? 'Geciken işletme kaydı' : 'Yaklaşan işletme kaydı'
+      const govde = bildirimGovdesi(reminder.record, dueLabel, geciken)
       await tx.businessNotification.upsert({
         where: { dedupeKey: `reminder:${reminder.id}` },
         update: {},
@@ -220,16 +229,21 @@ export async function processDueBusinessReminders(
           recordId: reminder.recordId,
           dedupeKey: `reminder:${reminder.id}`,
           type: geciken ? 'record_overdue' : 'record_due',
-          title: geciken ? 'Geciken işletme kaydı' : 'Yaklaşan işletme kaydı',
-          body: bildirimGovdesi(reminder.record, dueLabel, geciken)
+          title: baslik,
+          body: govde
         }
       })
+      if (!zatenVar) gonderilecek = { userId: reminder.recipientId, title: baslik, body: govde, workspaceId: reminder.workspaceId }
       await tx.businessReminder.update({
         where: { id: reminder.id },
         data: { status: 'sent', sentAt: now }
       })
       sent += 1
     })
+    if (gonderilecek) {
+      const g = gonderilecek as { userId: number; title: string; body: string; workspaceId: string }
+      void pushBildir(g.userId, { baslik: g.title, govde: g.body, url: PUSH_ADRESLERI.isletmeBildirimleri(g.workspaceId) })
+    }
   }
   return { processed: due.length, sent }
 }

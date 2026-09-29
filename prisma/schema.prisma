@@ -114,6 +114,7 @@ model User {
   emailVerificationCodes    EmailVerificationCode[]
   consents                  UserConsent[]
   identities                UserIdentity[]
+  deviceTokens              DeviceToken[]
   refreshTokens             RefreshToken[]
   addedInboxSenders         BusinessInboxSender[]
   createdIntegrations       IntegrationConnection[]  @relation("IntegrationConnections")
@@ -176,6 +177,22 @@ model UserConsent {
 /// en fazla bir kimligi olur; ayni saglayici kimligi iki kullaniciya baglanamaz.
 /// `subject` saglayicinin degismez kullanici kimligidir (Google `sub`, Apple
 /// `sub`); e-posta degisebilir, o yuzden eslestirme buna gore yapilir.
+/// Telefon bildirimi (push) için cihaz kodu — 29.09.2026. Bir kullanıcının birden çok
+/// cihazı olabilir; aynı cihaz başka hesaba geçerse kayıt yeni kullanıcıya taşınır
+/// (`token` benzersiz). Apple "410 Unregistered" derse satır silinir.
+model DeviceToken {
+  id         String   @id @default(uuid())
+  userId     Int
+  platform   String
+  token      String   @unique
+  appVersion String?
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
 model UserIdentity {
   id                    String   @id @default(uuid())
   userId                Int

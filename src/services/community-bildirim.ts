@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma.js'
+import { pushBildir, PUSH_ADRESLERI } from './push/push-gonder.js'
 
 /*
  * TOPLULUK BİLDİRİMLERİ — tek kaynak.
@@ -27,6 +28,27 @@ interface BildirimEkleri {
   threadId?: string
 }
 
+/*
+ * TELEFON BİLDİRİMİ (29.09.2026). Beğeni gönderilmez: en sık olay, en düşük
+ * değer; bir gönderi 30 beğeni alırsa kilit ekranı dolar ve kullanıcı
+ * bildirimleri tümden kapatır. MESAJ İÇERİĞİ bildirime KONMAZ (kilit ekranı
+ * herkese açık); yalnız kim yazdığı söylenir.
+ */
+const TELEFON_METINLERI: Partial<Record<BildirimTuru, { baslik: string; govde: (ad: string) => string; url: string }>> = {
+  follow: { baslik: 'Yeni takipçi', govde: ad => `${ad} sizi takip etmeye başladı.`, url: PUSH_ADRESLERI.bildirimler },
+  reply: { baslik: 'Yeni yanıt', govde: ad => `${ad} gönderinize yanıt verdi.`, url: PUSH_ADRESLERI.bildirimler },
+  quote: { baslik: 'Gönderiniz alıntılandı', govde: ad => `${ad} gönderinizi alıntıladı.`, url: PUSH_ADRESLERI.bildirimler },
+  message: { baslik: 'Yeni mesaj', govde: ad => `${ad} size mesaj gönderdi.`, url: PUSH_ADRESLERI.sohbetler },
+  thread_invite: { baslik: 'Sohbete eklendiniz', govde: ad => `${ad} sizi bir sohbete ekledi.`, url: PUSH_ADRESLERI.sohbetler }
+}
+
+async function telefonaBildir(alanKullaniciId: number, aktorId: number, tur: BildirimTuru): Promise<void> {
+  const metin = TELEFON_METINLERI[tur]
+  if (!metin) return
+  const aktor = await prisma.user.findUnique({ where: { id: aktorId }, select: { name: true } })
+  await pushBildir(alanKullaniciId, { baslik: metin.baslik, govde: metin.govde(aktor?.name || 'Bir kullanıcı'), url: metin.url })
+}
+
 /**
  * Bildirim yazar.
  *
@@ -52,6 +74,7 @@ export async function bildirimYaz(
     await prisma.communityNotification.create({
       data: { userId: alanKullaniciId, actorId: aktorId, type: tur, ...ekler },
     })
+    void telefonaBildir(alanKullaniciId, aktorId, tur)
   } catch {
     /* Sessiz — yukarıdaki 2. maddeye bakınız. */
   }
