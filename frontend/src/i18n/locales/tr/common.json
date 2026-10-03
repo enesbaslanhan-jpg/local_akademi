@@ -1193,8 +1193,8 @@
   },
   "tools": {
     "commission": {
-      "metaTitle": "Pazaryeri Komisyon Hesaplayıcı — Trendyol, Hepsiburada, N11 | LocalKarar",
-      "metaDescription": "Trendyol, Hepsiburada veya N11'de sattığın ürün komisyon, kargo ve iade sonrası gerçekten kâr ediyor mu? Ücretsiz, kayıt istemez, sonucu anında gör.",
+      "metaTitle": "Pazaryeri Komisyon Oranı ve Kâr Hesaplama | LocalKarar",
+      "metaDescription": "Pazaryeri komisyon oranını ve ürün maliyetlerini gir; kargo ve iade giderleri sonrası satış başına net katkını ücretsiz hesapla. Oranını satıcı panelinden doğrula.",
       "eyebrow": "Ücretsiz araç",
       "title": "Pazaryeri komisyonundan sonra elinde ne kalıyor?",
       "description": "Satış fiyatını, komisyon oranını ve maliyetlerini gir; ürün başına net katkını, marjını ve zarara girmeden inebileceğin en düşük fiyatı anında gör. Kayıt gerekmez.",
