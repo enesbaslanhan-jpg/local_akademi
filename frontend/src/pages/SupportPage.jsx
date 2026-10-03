@@ -10,6 +10,7 @@ import { api } from '@/services/api'
 import { MODULLER } from './AboutPage'
 import styles from './SupportPage.module.css'
 import PublicFooter from '@/components/layout/PublicFooter'
+import useSayfaMeta from '@/hooks/useSayfaMeta'
 
 /*
  * Destek ve Yardım.
@@ -75,6 +76,21 @@ export default function SupportPage() {
   const [konuTuru, setKonuTuru] = useState('')
   const [durum, setDurum] = useState({ tur: null, mesaj: '' })
   const [gonderiliyor, setGonderiliyor] = useState(false)
+
+  useSayfaMeta({
+    baslik: 'LocalKarar Yardım Merkezi ve Kullanma Kılavuzu',
+    aciklama: 'LocalKarar hesabı, işletme takibi, belge yükleme, pazaryeri bağlantıları ve AI Mentor hakkında sık sorulan sorular ve adım adım kullanım kılavuzu.',
+    yol: '/yardim',
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: SSS.map(key => ({
+        '@type': 'Question',
+        name: t(`support.faq.${key}.question`),
+        acceptedAnswer: { '@type': 'Answer', text: t(`support.faq.${key}.answer`) },
+      })),
+    },
+  })
 
   const guncelle = alan => olay => setForm(o => ({ ...o, [alan]: olay.target.value }))
 

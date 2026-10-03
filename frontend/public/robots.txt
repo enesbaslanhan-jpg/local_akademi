@@ -6,7 +6,12 @@ User-agent: *
 Allow: /
 Disallow: /app/
 Disallow: /admin/
+Disallow: /forgot-password
 Disallow: /reset-password
 Disallow: /verify-email
+
+# GPTBot, ChatGPT-User, ClaudeBot, PerplexityBot ve Google-Extended
+# ayrıca engellenmez; yukarıdaki ortak kuralları izler. Böylece herkese
+# açık ürün içeriği okunabilir, özel uygulama alanları taranmaz.
 
 Sitemap: https://localkarar.com/sitemap.xml

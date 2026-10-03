@@ -1,0 +1,77 @@
+# LocalKarar — ürün ve kapsam bilgisi
+
+Son güncelleme: 3 Ekim 2026
+Resmî site: https://localkarar.com/
+Dil ve pazar: Türkçe, Türkiye
+Kategori: Küçük işletme yönetimi ve karar destek yazılımı
+
+## LocalKarar nedir?
+
+LocalKarar, küçük işletme sahiplerinin kayıtlarını takip etmesine, finansal hesapları anlamasına ve günlük işletme kararlarını kendi verileriyle değerlendirmesine yardımcı olan bir web ve mobil uygulamadır. Ürün; takip, hesaplama, karar desteği, öğrenme, yapay zekâ destekli açıklama ve topluluk işlevlerini tek hesapta birleştirir.
+
+## Kimler için?
+
+- Pazaryerinde satış yapan küçük işletmeler
+- Mağaza, atölye, e-ticaret sitesi veya hizmet işletmesi sahipleri
+- Gelir, gider, vade ve cari hesaplarını sade bir ekranda görmek isteyenler
+- Kâr marjı, başabaş ve nakit akışı gibi hesapları formül ezberlemeden yapmak isteyenler
+- İndirim, ücretsiz kargo, reklam bütçesi veya personel gibi kararları sayısal olarak sınamak isteyenler
+
+## Temel modüller
+
+### İşletme Takibi
+
+Gelir, gider, tahsilat, ödeme, cari hesap, sipariş, ürün, takvim ve belgeler işletme bazında tutulur. Fotoğraf veya dosya olarak yüklenen bir belgeden kayıt önerisi hazırlanabilir; kullanıcı onaylamadan kesin kayıt oluşmaz.
+
+### Pazaryeri Entegrasyonları
+
+Trendyol, Hepsiburada, N11 ve Shopify için mağaza bağlantı akışları bulunur. Sipariş ve ürün verileri işletme çalışma alanına alınır. Entegrasyonların kullanılabilirliği sağlayıcı API koşullarına ve mağaza yetkilerine bağlıdır.
+
+### Hesaplamalar
+
+Hazır şablonlar arasında kâr marjı, başabaş noktası, gerçek birim maliyet, nakit akışı, kampanya/indirim, kredi ve pazaryeri kârlılığı hesapları yer alır. Sonuçla birlikte formül ve işletme açısından kısa açıklama gösterilir.
+
+### Karar Araçları
+
+Kullanıcı “Bu indirimi yapabilir miyim?”, “Kargo ücretsiz olabilir mi?”, “Reklam bütçemi artırmalı mıyım?” gibi bir soruyu seçer; kendi sayılarını girer; sonuç, dayanak hesap, risk notları ve sonraki adımlarla birlikte karar fişine dönüşür.
+
+### AI Mentor
+
+Kullanıcı işletme sorusunu doğal dille yazar. Mentor yanıtı LocalKarar içerik kütüphanesiyle ve kullanıcı izin verdiyse ilgili işletme bağlamıyla ilişkilendirir; dayandığı kaynağı göstermeye çalışır. Dil modeli yanıtları hata içerebilir ve profesyonel danışmanlık değildir.
+
+### Kurslar ve uygulamalı öğrenme
+
+Kısa dersler temel işletme kavramlarını anlatır ve ilgili hesaplama veya karar aracına bağlanır. Kullanıcının ilerlemesi kaydedilir.
+
+### Haberler ve topluluk
+
+Haberler bölümünde resmî kaynaklardan seçilmiş işletme, finans, mevzuat ve vergi içerikleri sunulur. Topluluk alanında üyeler soru sorabilir, deneyim paylaşabilir, yanıtlayabilir, beğenebilir ve alıntılayabilir.
+
+## Ücretsiz pazaryeri komisyon hesaplayıcı
+
+Herkese açık hesaplayıcı satış fiyatı, komisyon oranı, ürün maliyeti, kargo, ambalaj, reklam payı ve iade oranını kullanarak ürün başına net katkıyı, marjı ve başabaş fiyatı hesaplar. Hesap tarayıcıda yapılır ve girilen değerler sunucuya gönderilmez.
+
+Araç: https://localkarar.com/araclar/pazaryeri-komisyon-hesaplayici
+
+## Fiyatlandırma
+
+3 Ekim 2026 itibarıyla ücretlendirme başlamamıştır ve tüm özellikler ücretsiz kullanılabilir. Kart bilgisi istenmez. Ücretli üyelik başlamadan en az bir ay önce kullanıcılar bilgilendirilir. Güncel ve ayrıntılı durum: https://localkarar.com/pricing.md
+
+## Güvenlik ve sınırlar
+
+- LocalKarar muhasebe programı değildir.
+- Hukuk, vergi, muhasebe veya yatırım danışmanlığının yerine geçmez.
+- Hesap ve karar sonuçları kullanıcının girdiği verilere dayanır.
+- AI Mentor hata yapabilir; kritik bilgi resmî kaynaktan doğrulanmalıdır.
+- Kullanıcı onayı olmadan belge önerisi kesin işletme kaydına dönüşmez.
+
+## Resmî sayfalar
+
+- Ana sayfa: https://localkarar.com/
+- İşletme Takibi: https://localkarar.com/isletme-takibi
+- Karar Araçları: https://localkarar.com/karar-araclari
+- Hesaplamalar: https://localkarar.com/hesaplamalar
+- AI Mentor: https://localkarar.com/ai-mentor
+- Pazaryeri Entegrasyonları: https://localkarar.com/pazaryeri-entegrasyonlari
+- Fiyatlar: https://localkarar.com/fiyatlar
+- Yardım: https://localkarar.com/yardim

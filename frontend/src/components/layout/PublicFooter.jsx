@@ -39,9 +39,16 @@ const YASAL = [
 const KURUMSAL = [
   { to: '/fiyatlar', key: 'pricing' },
   { to: '/araclar/pazaryeri-komisyon-hesaplayici', key: 'tools' },
+  { to: '/isletme-takibi', label: 'İşletme Takibi' },
+  { to: '/karar-araclari', label: 'Karar Araçları' },
+  { to: '/hesaplamalar', label: 'Hesaplamalar' },
+  { to: '/ai-mentor', label: 'AI Mentor' },
+  { to: '/pazaryeri-entegrasyonlari', label: 'Pazaryeri Entegrasyonları' },
   { to: '/hakkinda', key: 'about' },
   { to: '/yardim', key: 'help' },
 ]
+
+const baglantiEtiketi = (b, t) => b.label ?? t(`publicFooter.links.${b.key}`)
 
 /* Kimlik satırı etiketleri. Değerler `config/seller.js`ten geliyor;
    doldurulmamış olanlar oraya hiç girmiyor. */
@@ -72,7 +79,7 @@ function KompaktAltBilgi({ t }) {
     <footer className={styles.kompakt}>
       <nav className={styles.kompaktBaglantilar} aria-label={t('publicFooter.legalAria')}>
         {[...KURUMSAL, ...YASAL].map(b => (
-          <Link key={b.to} to={b.to}>{t(`publicFooter.links.${b.key}`)}</Link>
+          <Link key={b.to} to={b.to}>{baglantiEtiketi(b, t)}</Link>
         ))}
       </nav>
       <span className={styles.kompaktSatici}>
@@ -94,7 +101,7 @@ export default function PublicFooter({ compact = false }) {
         <nav className={styles.sutun} aria-label={t('publicFooter.corporateAria')}>
           <h2 className={styles.baslik}>LocalKarar</h2>
           {KURUMSAL.map(b => (
-            <Link key={b.to} to={b.to}>{t(`publicFooter.links.${b.key}`)}</Link>
+            <Link key={b.to} to={b.to}>{baglantiEtiketi(b, t)}</Link>
           ))}
         </nav>
 

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Bot, ClipboardList, GraduationCap, MessagesSquare, Scale, Sheet } from 'lucide-react'
 import BrandMark from '@/components/ui/BrandMark'
@@ -10,6 +10,7 @@ import AuthThemeToggle from './AuthThemeToggle'
 import styles from './AboutPage.module.css'
 import PublicFooter from '@/components/layout/PublicFooter'
 import { useGirisli } from '@/hooks/useGirisli'
+import useSayfaMeta from '@/hooks/useSayfaMeta'
 
 /*
  * Hakkında / tanıtım sayfası.
@@ -78,6 +79,15 @@ export const MODULLER = [
 export default function AboutPage() {
   const { t } = useTranslation('common')
   const girisli = useGirisli()
+  const { pathname } = useLocation()
+  const hakkindaSayfasi = pathname === '/hakkinda'
+  useSayfaMeta({
+    baslik: hakkindaSayfasi ? 'LocalKarar Hakkında — Küçük İşletmeler İçin Karar Desteği' : 'Küçük İşletmeler İçin Karar Destek ve Takip Uygulaması | LocalKarar',
+    aciklama: hakkindaSayfasi
+      ? 'LocalKarar’ın küçük işletmeler için işletme takibi, hesaplamalar, karar araçları ve kaynaklı AI Mentor yaklaşımını keşfet.'
+      : 'İşletme takibi, kâr hesaplamaları, karar araçları, pazaryeri siparişleri, kaynaklı AI Mentor, kurslar ve topluluk tek yerde.',
+    yol: hakkindaSayfasi ? '/hakkinda' : '/',
+  })
   return (
     <div className={styles.page}>
       <AuthThemeToggle />

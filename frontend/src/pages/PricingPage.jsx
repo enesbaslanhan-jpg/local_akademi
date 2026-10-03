@@ -7,6 +7,7 @@ import BrandMark from '@/components/ui/BrandMark'
 import AuthThemeToggle from './AuthThemeToggle'
 import PublicFooter from '@/components/layout/PublicFooter'
 import { useGirisli } from '@/hooks/useGirisli'
+import useSayfaMeta from '@/hooks/useSayfaMeta'
 import {
   FOUNDER_STAGES,
   BILLING_STARTS_AT,
@@ -189,6 +190,22 @@ export default function PricingPage() {
   const dil = i18n.resolvedLanguage
   const gecisAyi = nihaiFiyataGecisAyi()
   const girisli = useGirisli()
+  const pricingFaq = BILLING_STARTS_AT ? ['affordable', 'freeMonth', 'cancel', 'invoice', 'increase', 'yearly'] : ['whyFree', 'untilWhen', 'whenStarts', 'data']
+  const faqPrefix = BILLING_STARTS_AT ? 'pricing.faq' : 'pricing.faqFree'
+  useSayfaMeta({
+    baslik: 'LocalKarar Fiyatları — Şu Anda Ücretsiz',
+    aciklama: 'LocalKarar’ın tüm özellikleri şu anda ücretsiz. Kart bilgisi gerekmez; ücretlendirme başlamadan en az bir ay önce bilgi verilir.',
+    yol: '/fiyatlar',
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: pricingFaq.map(key => ({
+        '@type': 'Question',
+        name: t(`${faqPrefix}.${key}.question`),
+        acceptedAnswer: { '@type': 'Answer', text: t(`${faqPrefix}.${key}.answer`, { percent: kuruculIndirimYuzdesi() }) },
+      })),
+    },
+  })
 
   return (
     <div className={styles.page}>

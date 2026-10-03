@@ -118,6 +118,30 @@ export default function KomisyonHesaplayiciPage() {
     baslik: t('tools.commission.metaTitle'),
     aciklama: t('tools.commission.metaDescription'),
     yol: '/araclar/pazaryeri-komisyon-hesaplayici',
+    schema: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'WebApplication',
+          name: t('tools.commission.title'),
+          url: 'https://localkarar.com/araclar/pazaryeri-komisyon-hesaplayici',
+          description: t('tools.commission.metaDescription'),
+          applicationCategory: 'BusinessApplication',
+          operatingSystem: 'Any',
+          browserRequirements: 'JavaScript',
+          isAccessibleForFree: true,
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'TRY' },
+        },
+        {
+          '@type': 'FAQPage',
+          mainEntity: ['rate', 'vat', 'returns', 'free'].map(k => ({
+            '@type': 'Question',
+            name: t(`tools.commission.faq.${k}.q`),
+            acceptedAnswer: { '@type': 'Answer', text: t(`tools.commission.faq.${k}.a`) },
+          })),
+        },
+      ],
+    },
   })
 
   const s = useMemo(() => hesapla(g), [g])

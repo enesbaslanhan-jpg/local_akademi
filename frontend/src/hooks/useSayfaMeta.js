@@ -18,7 +18,7 @@ import { useEffect } from 'react'
  */
 const VARSAYILAN = {
   baslik: 'LocalKarar — İşletmen için doğru kararlar',
-  aciklama: 'Küçük işletmeler için kayıt, cari hesap, pazaryeri siparişi, kâr hesaplama ve AI Mentor tek uygulamada. 30 gün ücretsiz.',
+  aciklama: 'Küçük işletmeler için işletme takibi, pazaryeri siparişleri, kâr hesaplamaları, karar araçları ve AI Mentor tek yerde.',
 }
 
 function etiket(secici, olustur) {
@@ -30,24 +30,46 @@ function etiket(secici, olustur) {
   return el
 }
 
-function yaz({ baslik, aciklama, yol }) {
+function meta(nitelik, deger) {
+  const secici = `meta[${nitelik.ad}="${nitelik.deger}"]`
+  return etiket(secici, () => {
+    const m = document.createElement('meta')
+    m.setAttribute(nitelik.ad, nitelik.deger)
+    return m
+  }).setAttribute('content', deger)
+}
+
+function sayfaSemasiYaz(schema) {
+  document.head.querySelectorAll('script[data-localkarar-page-schema]').forEach(el => el.remove())
+  if (!schema) return
+
+  const script = document.createElement('script')
+  script.type = 'application/ld+json'
+  script.dataset.localkararPageSchema = 'true'
+  /* `<` kaçışı, ileride şema metni dış kaynaktan gelirse script
+     etiketinin erken kapanmasını önler. */
+  script.textContent = JSON.stringify(schema).replace(/</g, '\\u003c')
+  document.head.appendChild(script)
+}
+
+function yaz({ baslik, aciklama, yol, robots = 'index,follow', schema = null }) {
   document.title = baslik
-  etiket('meta[name="description"]', () => Object.assign(document.createElement('meta'), { name: 'description' }))
-    .setAttribute('content', aciklama)
-  etiket('meta[property="og:title"]', () => { const m = document.createElement('meta'); m.setAttribute('property', 'og:title'); return m })
-    .setAttribute('content', baslik)
-  etiket('meta[property="og:description"]', () => { const m = document.createElement('meta'); m.setAttribute('property', 'og:description'); return m })
-    .setAttribute('content', aciklama)
+  meta({ ad: 'name', deger: 'description' }, aciklama)
+  meta({ ad: 'name', deger: 'robots' }, robots)
+  meta({ ad: 'name', deger: 'twitter:title' }, baslik)
+  meta({ ad: 'name', deger: 'twitter:description' }, aciklama)
+  meta({ ad: 'property', deger: 'og:title' }, baslik)
+  meta({ ad: 'property', deger: 'og:description' }, aciklama)
   const adres = `https://localkarar.com${yol}`
   etiket('link[rel="canonical"]', () => Object.assign(document.createElement('link'), { rel: 'canonical' }))
     .setAttribute('href', adres)
-  etiket('meta[property="og:url"]', () => { const m = document.createElement('meta'); m.setAttribute('property', 'og:url'); return m })
-    .setAttribute('content', adres)
+  meta({ ad: 'property', deger: 'og:url' }, adres)
+  sayfaSemasiYaz(schema)
 }
 
-export default function useSayfaMeta({ baslik, aciklama, yol }) {
+export default function useSayfaMeta({ baslik, aciklama, yol, robots, schema }) {
   useEffect(() => {
-    yaz({ baslik, aciklama, yol })
+    yaz({ baslik, aciklama, yol, robots, schema })
     return () => yaz({ ...VARSAYILAN, yol: '/' })
-  }, [baslik, aciklama, yol])
+  }, [baslik, aciklama, yol, robots, schema])
 }

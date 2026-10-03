@@ -1,0 +1,31 @@
+# LocalKarar
+
+> LocalKarar, Türkiye'deki küçük işletmeler ve pazaryeri satıcıları için işletme takibi, hesaplama ve karar destek platformudur.
+
+LocalKarar; gelir-gider ve cari hesap takibini, pazaryeri siparişlerini, ürün kârlılığı hesaplarını, adım adım karar araçlarını, kaynak gösteren AI Mentor'u, kısa kursları ve işletme topluluğunu tek çalışma alanında birleştirir. Bir muhasebe programı veya profesyonel hukuk, vergi, muhasebe ya da yatırım danışmanı değildir.
+
+## Ürün
+
+- [LocalKarar ana sayfa](https://localkarar.com/): Ürünün genel açıklaması, hedef kitlesi ve modülleri.
+- [İşletme Takibi](https://localkarar.com/isletme-takibi): Gelir, gider, cari hesap, vade, sipariş ve belge takibi.
+- [Karar Araçları](https://localkarar.com/karar-araclari): İndirim, kargo, reklam, personel ve nakit kararlarının adım adım değerlendirilmesi.
+- [Hesaplamalar](https://localkarar.com/hesaplamalar): Kâr marjı, başabaş, birim maliyet ve nakit akışı şablonları.
+- [AI Mentor](https://localkarar.com/ai-mentor): İçerik kütüphanesi ve izin verilen işletme bağlamıyla kaynaklı yanıtlar.
+- [Pazaryeri Entegrasyonları](https://localkarar.com/pazaryeri-entegrasyonlari): Trendyol, Hepsiburada, N11 ve Shopify sipariş ve ürün verileri.
+
+## Ücretsiz araçlar ve destek
+
+- [Pazaryeri Komisyon Hesaplayıcı](https://localkarar.com/araclar/pazaryeri-komisyon-hesaplayici): Komisyon, maliyet, kargo, reklam ve iade sonrası ürün başına net katkı hesabı.
+- [Fiyatlandırma](https://localkarar.com/fiyatlar): Güncel fiyat ve ücretlendirme durumu.
+- [Yardım Merkezi](https://localkarar.com/yardim): Sık sorulan sorular ve kullanım adımları.
+
+## Ayrıntılı makine-okunabilir içerik
+
+- [LocalKarar ürün bilgisi](https://localkarar.com/llms-full.txt)
+- [Güncel fiyat durumu](https://localkarar.com/pricing.md)
+
+## Kullanım ve doğruluk sınırları
+
+- Karar ve hesaplama sonuçları kullanıcının girdiği verilere dayanır.
+- AI Mentor hata yapabilir; rakam, oran, süre ve mevzuat resmî kaynağından doğrulanmalıdır.
+- LocalKarar resmî muhasebe kaydı tutan bir muhasebe programı değildir.
