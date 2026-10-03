@@ -103,7 +103,7 @@ const isProduction = process.env.NODE_ENV === 'production'
  * (tests/rate-limit-client-key.test.ts) onu '../src/index.js' uzerinden
  * ice aktariyor.
  */
-import { hizSiniriAnahtari, resolveTrustProxy } from './lib/client-ip.js'
+import { hizSiniriAnahtari } from './lib/client-ip.js'
 export { hizSiniriAnahtari }
 
 /**
@@ -210,7 +210,12 @@ async function build() {
       }
     },
     bodyLimit: 1048576,
-    trustProxy: resolveTrustProxy()
+    // Do not enable Fastify's hop-count trustProxy mode. Newer Fastify
+    // versions disable that mode for security; our rate-limit key reads the
+    // Cloudflare-authored CF-Connecting-IP header only when TRUST_PROXY is
+    // explicitly configured, and the production firewall restricts ingress
+    // to Cloudflare. Keep request.ip tied to the actual socket.
+    trustProxy: false
   })
 
   const corsOriginRaw = process.env.CORS_ORIGIN || (isProduction ? 'http://localhost:5173' : true)

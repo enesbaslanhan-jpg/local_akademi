@@ -111,7 +111,7 @@ describe('sınır gerçekten uygulanıyor mu', () => {
    */
   it('kenar IP her istekte değişse bile aynı kullanıcı sınıra takılır', async () => {
     process.env.TRUST_PROXY = '2'
-    const app = Fastify({ trustProxy: 2 })
+    const app = Fastify({ trustProxy: false })
     await app.register(rateLimit, {
       global: true,
       max: 3,
@@ -142,7 +142,7 @@ describe('sınır gerçekten uygulanıyor mu', () => {
 
   it('FARKLI kullanıcılar birbirinin kovasını doldurmaz', async () => {
     process.env.TRUST_PROXY = '2'
-    const app = Fastify({ trustProxy: 2 })
+    const app = Fastify({ trustProxy: false })
     await app.register(rateLimit, {
       global: true, max: 2, timeWindow: '1 minute',
       keyGenerator: hizSiniriAnahtari as never

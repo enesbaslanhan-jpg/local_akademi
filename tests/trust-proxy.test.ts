@@ -37,13 +37,16 @@ async function sunucuKur(trustProxy?: string): Promise<FastifyInstance> {
   return instance
 }
 
-/** Her istekte FARKLI bir sahte IP göndererek sınırı aşmayı dener. */
-async function sahteIplerleDene(instance: FastifyInstance, adet: number): Promise<number[]> {
+/** Her istekte FARKLI bir sahte XFF göndererek sınırı aşmayı dener. */
+async function sahteIplerleDene(instance: FastifyInstance, adet: number, cloudflare = false): Promise<number[]> {
   const kodlar: number[] = []
   for (let i = 0; i < adet; i++) {
     const r = await instance.inject({
       method: 'POST', url: HEDEF,
-      headers: { 'x-forwarded-for': `198.51.100.${i + 1}` },
+      headers: {
+        'x-forwarded-for': `198.51.100.${i + 1}`,
+        ...(cloudflare ? { 'cf-connecting-ip': `198.51.100.${i + 1}` } : {})
+      },
       payload: { email: `yok-${i}@test.local` }
     })
     kodlar.push(r.statusCode)
@@ -66,7 +69,7 @@ describe('varsayılan yapılandırma (TRUST_PROXY tanımsız)', () => {
 describe('açık vekil yapılandırması (TRUST_PROXY=1)', () => {
   it('gerçek vekil arkasında istemci IP’si dikkate alınır', async () => {
     app = await sunucuKur('1')
-    const kodlar = await sahteIplerleDene(app, 6)
+    const kodlar = await sahteIplerleDene(app, 6, true)
 
     /* Ters vekil arkasında bu DOĞRU davranış: farklı istemciler ayrı
        kotaya sahip olmalı. Güvenliği sağlayan şey, vekilin başlığı
