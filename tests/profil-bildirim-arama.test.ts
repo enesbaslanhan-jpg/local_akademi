@@ -41,7 +41,7 @@ beforeAll(async () => {
   await app.ready()
 
   const kur = (ad: string, ek: any = {}) => prisma.user.create({
-    data: { email: `${isaret}-${ad}@test.local`, password: 'x', name: `${ad} ${isaret}`, role: 'student', ...ek },
+    data: { email: `${isaret}-${ad}@test.local`, password: 'x', name: `${ad} ${isaret}`, role: 'student', emailVerifiedAt: new Date(), ...ek },
   })
   ali = await kur('ali', { bio: 'Bakkal işletiyorum', location: 'Ankara' })
   ayse = await kur('ayse')

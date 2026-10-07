@@ -623,7 +623,7 @@ describe('E2E: Admin KO Lifecycle (V2 API)', () => {
   })
 
   it('Admin can see lifecycle events in audit log', async () => {
-    const res = await get('/admin/audit-logs', adminToken)
+    const res = await get('/api/admin/audit-logs', adminToken)
     expect(res.statusCode).toBe(200)
     const logs = Array.isArray(res.json()) ? res.json() : res.json().logs || []
     const lifecycleActions = logs.filter((l: any) =>
@@ -635,8 +635,8 @@ describe('E2E: Admin KO Lifecycle (V2 API)', () => {
 })
 
 describe('E2E: Admin & Audit', () => {
-  it('GET /admin/stats returns stats (admin)', async () => {
-    const res = await get('/admin/stats', adminToken)
+  it('GET /api/admin/stats returns stats (admin)', async () => {
+    const res = await get('/api/admin/stats', adminToken)
     expect(res.statusCode).toBe(200)
     const body = res.json()
     expect(body.kpi).toBeDefined()
@@ -644,35 +644,35 @@ describe('E2E: Admin & Audit', () => {
     expect(body.kpi.totalKOs).toBeDefined()
   })
 
-  it('GET /admin/stats rejects non-admin', async () => {
-    const res = await get('/admin/stats', studentToken)
+  it('GET /api/admin/stats rejects non-admin', async () => {
+    const res = await get('/api/admin/stats', studentToken)
     expect(res.statusCode).toBe(403)
   })
 
-  it('GET /admin/users lists users (admin)', async () => {
-    const res = await get('/admin/users', adminToken)
+  it('GET /api/admin/users lists users (admin)', async () => {
+    const res = await get('/api/admin/users', adminToken)
     expect(res.statusCode).toBe(200)
     const users = Array.isArray(res.json()) ? res.json() : res.json().users || res.json().data || []
     expect(users.length).toBeGreaterThan(0)
   })
 
-  it('GET /admin/users rejects unauthenticated', async () => {
-    const res = await get('/admin/users')
+  it('GET /api/admin/users rejects unauthenticated', async () => {
+    const res = await get('/api/admin/users')
     expect(res.statusCode).toBe(401)
   })
 
-  it('GET /admin/audit-logs returns logs (admin)', async () => {
-    const res = await get('/admin/audit-logs', adminToken)
+  it('GET /api/admin/audit-logs returns logs (admin)', async () => {
+    const res = await get('/api/admin/audit-logs', adminToken)
     expect(res.statusCode).toBe(200)
   })
 
-  it('GET /admin/audit-logs supports pagination', async () => {
-    const res = await get('/admin/audit-logs?page=1&limit=10', adminToken)
+  it('GET /api/admin/audit-logs supports pagination', async () => {
+    const res = await get('/api/admin/audit-logs?page=1&limit=10', adminToken)
     expect(res.statusCode).toBe(200)
   })
 
-  it('GET /admin/audit-logs filters by action', async () => {
-    const res = await get('/admin/audit-logs?action=knowledge_object.created', adminToken)
+  it('GET /api/admin/audit-logs filters by action', async () => {
+    const res = await get('/api/admin/audit-logs?action=knowledge_object.created', adminToken)
     expect(res.statusCode).toBe(200)
   })
 })

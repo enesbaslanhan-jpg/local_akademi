@@ -870,54 +870,54 @@ export const api = {
 
   admin: {
     async getStats(period) {
-      return api.request(`/admin/stats?period=${period}`);
+      return api.request(`/api/admin/stats?period=${period}`);
     },
     async getReviewerMetrics() {
-      return api.request('/admin/ai-reviewer/metrics');
+      return api.request('/api/admin/ai-reviewer/metrics');
     },
     async getReviewerHealth() {
-      return api.request('/admin/ai-reviewer/health');
+      return api.request('/api/admin/ai-reviewer/health');
     },
     async generateQuizDraft(koId) {
-      return api.request(`/admin/quiz-generator/${koId}/draft`, {
+      return api.request(`/api/admin/quiz-generator/${koId}/draft`, {
         method: 'POST'
       });
     },
     async publishQuizDraft(quizId) {
-      return api.request(`/admin/quiz-generator/${quizId}/publish`, {
+      return api.request(`/api/admin/quiz-generator/${quizId}/publish`, {
         method: 'POST'
       });
     },
     async listUsers(filters = {}) {
       const query = buildQuery(filters);
-      return api.request(`/admin/users${query}`);
+      return api.request(`/api/admin/users${query}`);
     },
     async updateUserRole(userId, role) {
-      return api.request(`/admin/users/${userId}/role`, {
+      return api.request(`/api/admin/users/${userId}/role`, {
         method: 'PATCH', body: JSON.stringify({ role })
       });
     },
     /* Askıya alma: hesap kapanır, açık oturumlar ölür. Geri alınabilir. */
     async suspendUser(userId, reason = '') {
-      return api.request(`/admin/users/${userId}/suspend`, {
+      return api.request(`/api/admin/users/${userId}/suspend`, {
         method: 'POST', body: JSON.stringify({ reason })
       });
     },
     async unsuspendUser(userId) {
-      return api.request(`/admin/users/${userId}/unsuspend`, {
+      return api.request(`/api/admin/users/${userId}/unsuspend`, {
         method: 'POST', body: JSON.stringify({})
       });
     },
     /* Anonimleştirme: kişisel alanlar temizlenir, kayıt silinmez.
        GERİ ALINAMAZ — denetim izleri ve ilişkiler için kayıt durur. */
     async anonymizeUser(userId) {
-      return api.request(`/admin/users/${userId}/anonymize`, {
+      return api.request(`/api/admin/users/${userId}/anonymize`, {
         method: 'POST', body: JSON.stringify({})
       });
     },
     async getAuditLogs(filters = {}) {
       const query = buildQuery(filters);
-      return api.request(`/admin/audit-logs${query}`);
+      return api.request(`/api/admin/audit-logs${query}`);
     }
   },
 

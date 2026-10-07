@@ -3,6 +3,8 @@ import type { PrismaClient } from '@prisma/client'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
 import { z } from 'zod'
 import { bildirimYaz, gonderiSahibineBildir } from './community-bildirim.js'
+import { requireVerifiedCommunityWriter } from './community-security.js'
+import { createAuditLog } from './audit.js'
 import { imzayiDogrula, medyaCikti } from './community-medya-adres.js'
 import fastifyMultipart from '@fastify/multipart'
 import { createReadStream, createWriteStream } from 'fs'
@@ -281,7 +283,7 @@ export async function communityRoutes(
   }
 
   fastify.post('/media', {
-    preHandler: [fastify.authenticate],
+    preHandler: [fastify.authenticate, requireVerifiedCommunityWriter(prisma)],
     config: { rateLimit: { max: 12, timeWindow: '1 hour' } },
   }, async (request, reply) => {
     let upload
@@ -617,7 +619,7 @@ export async function communityRoutes(
   })
 
   fastify.post('/posts', {
-    preHandler: [fastify.authenticate],
+    preHandler: [fastify.authenticate, requireVerifiedCommunityWriter(prisma)],
     config: {
       rateLimit: { max: 5, timeWindow: '1 hour' },
     },
@@ -700,6 +702,10 @@ export async function communityRoutes(
       await gonderiSahibineBildir(parsed.data.quotedPostId, request.user.id, 'quote')
     }
 
+    await createAuditLog({
+      action: 'community.post.created', entityType: 'community_post', entityId: post.id,
+      actorId: request.user.id
+    }, prisma).catch(() => {})
     return reply.status(201).send({
       post: {
         id: post.id,
@@ -1080,6 +1086,10 @@ export async function communityRoutes(
       },
       select: { id: true, status: true, createdAt: true },
     })
+    await createAuditLog({
+      action: 'community.post.reported', entityType: 'community_post', entityId: postId,
+      actorId: request.user.id, metadata: { reason: parsed.data.reason }
+    }, prisma).catch(() => {})
     return reply.status(201).send({ report })
   })
 

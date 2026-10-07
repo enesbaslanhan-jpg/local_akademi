@@ -29,7 +29,7 @@ afterAll(async () => { await app.close() })
 /* Her biri gerçek bir ön ek; sonuna var olmayan bir parça ekleniyor. */
 const OLMAYAN_API_YOLLARI = [
   '/auth/boyle-bir-uc-nokta-yok',
-  '/admin/users/1/olmayan-eylem',
+  '/api/admin/users/1/olmayan-eylem',
   '/api/v2/olmayan',
   '/courses/999/olmayan',
   '/enrollments/olmayan',
@@ -59,7 +59,7 @@ describe('bilinmeyen API yolları', () => {
 
   it('POST için de 404 döner', async () => {
     const r = await app.inject({
-      method: 'POST', url: '/admin/users/1/olmayan-eylem',
+      method: 'POST', url: '/api/admin/users/1/olmayan-eylem',
       payload: {}
     })
     expect(r.statusCode).toBe(404)

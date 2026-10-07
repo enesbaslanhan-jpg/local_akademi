@@ -19,7 +19,7 @@ export default function AdminAuditLog() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
-  const [filters, setFilters] = useState({ entityType: '', action: '' })
+  const [filters, setFilters] = useState({ entityType: '', action: '', actorId: '' })
   const limit = 20
 
   const loadLogs = useCallback(async () => {
@@ -28,6 +28,7 @@ export default function AdminAuditLog() {
       const params = { page, limit }
       if (filters.entityType) params.entityType = filters.entityType
       if (filters.action) params.action = filters.action
+      if (filters.actorId) params.actorId = filters.actorId
       const data = await api.admin.getAuditLogs(params)
       setLogs(data.logs || [])
       setTotal(data.total || 0)
@@ -69,10 +70,18 @@ export default function AdminAuditLog() {
             onChange={e => { setFilters(f => ({ ...f, action: e.target.value })); setPage(1) }}
           />
         </div>
-        {(filters.entityType || filters.action) && (
+        <div>
+          <label className={`text-xs text-gray-500 mb-1 block ${styles.filterLabel}`} htmlFor="audit-user-id">{t('audit.table.user')} ID</label>
+          <input id="audit-user-id" type="number" min="1" step="1" placeholder="17"
+            className={`border rounded px-3 py-1.5 text-sm ${styles.filterInput}`}
+            value={filters.actorId}
+            onChange={e => { setFilters(f => ({ ...f, actorId: /^\d+$/.test(e.target.value) ? e.target.value : '' })); setPage(1) }}
+          />
+        </div>
+        {(filters.entityType || filters.action || filters.actorId) && (
           <button
             className={`text-sm text-indigo-600 px-3 py-1.5 ${styles.clearBtn}`}
-            onClick={() => { setFilters({ entityType: '', action: '' }); setPage(1) }}
+            onClick={() => { setFilters({ entityType: '', action: '', actorId: '' }); setPage(1) }}
           >
             {t('audit.filters.clear')}
           </button>

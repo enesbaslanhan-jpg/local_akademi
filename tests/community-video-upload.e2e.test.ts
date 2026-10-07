@@ -27,7 +27,7 @@ ffmpegDescribe('topluluk videosu HTTP -> ffmpeg -> sunum', () => {
     await app.register(communityRoutes, { prefix: '/community', prisma })
     await app.ready()
     const user = await prisma.user.create({
-      data: { email: `${marker}@test.local`, password: 'test', name: 'Video E2E', role: 'learner' },
+      data: { email: `${marker}@test.local`, password: 'test', name: 'Video E2E', role: 'learner', emailVerifiedAt: new Date() },
     })
     userId = user.id
     token = app.jwt.sign({ id: user.id, email: user.email, role: user.role })

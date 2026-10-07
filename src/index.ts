@@ -147,7 +147,7 @@ export function genelHizSiniriAnahtari(server: FastifyInstance) {
  * oydu. Yeni bir rota oneki eklenirse bu liste de guncellenmeli.
  */
 const API_ONEKLERI = [
-  '/admin', '/api', '/auth', '/business', '/community', '/courses',
+  '/api', '/auth', '/business', '/community', '/courses',
   '/dashboard', '/documents', '/enrollments', '/flashcards', '/knowledge',
   '/learning-path', '/lessons', '/mentor', '/practical-cards', '/quizzes',
   '/reports', '/support', '/tasks', '/videos', '/workspaces',
@@ -530,7 +530,8 @@ async function build() {
   server.register(businessFinanceRoutes, { prefix: '/workspaces' })
   server.register(workspaceExportRoutes, { prefix: '/workspaces' })
   server.register(formulaRoutes)
-  server.register(adminRoutes, { prefix: '/admin' })
+  // /admin belongs to the SPA. API routes must never shadow its documents.
+  server.register(adminRoutes, { prefix: '/api/admin' })
   server.register(reportRoutes, { prefix: '/reports' })
   server.register(knowledgeV2Routes)
   server.register(learnerDashboardRoutes, { prefix: '/dashboard' })
@@ -591,7 +592,7 @@ async function build() {
    * Bilinen API ön ekleri artık dürüstçe 404 döner. Geri kalan her yol
    * (SPA rotaları) index.html almaya devam eder.
    */
-  const API_PREFIXES = ['/api', '/auth', '/admin', '/courses', '/lessons', '/enrollments',
+  const API_PREFIXES = ['/api', '/auth', '/courses', '/lessons', '/enrollments',
     '/knowledge', '/learning', '/community', '/business', '/workspaces', '/mentor',
     '/conversations', '/formulas', '/reports', '/quiz', '/flashcards', '/news',
     '/decision-checks', '/health', '/memory', '/feed', '/assessment', '/onboarding',
@@ -603,7 +604,10 @@ async function build() {
   }
 
   server.setNotFoundHandler(async (request, reply) => {
-    if (isApiPath(request.url)) {
+    const path = request.url.split('?')[0]
+    const oldAdminApiRequest = (path === '/admin' || path.startsWith('/admin/'))
+      && !spaBelgeIstegiMi(request)
+    if (isApiPath(request.url) || oldAdminApiRequest) {
       return reply.status(404).send({ error: 'Route not found', path: request.url.split('?')[0] })
     }
     if (hasPublicDir && process.env.NODE_ENV !== 'test') {

@@ -45,7 +45,7 @@ beforeAll(async () => {
   await app.ready()
 
   const olustur = (ad: string) => prisma.user.create({
-    data: { email: `${isaret}-${ad}@test.local`, password: 'test', name: ad, role: 'learner' },
+    data: { email: `${isaret}-${ad}@test.local`, password: 'test', name: ad, role: 'learner', emailVerifiedAt: new Date() },
   })
   const ali = await olustur('ali')
   const ayse = await olustur('ayse')

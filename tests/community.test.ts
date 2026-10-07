@@ -48,6 +48,7 @@ beforeAll(async () => {
       password: 'test',
       name: 'Learner',
       role: 'learner',
+      emailVerifiedAt: new Date(),
     },
   })
   const admin = await prisma.user.create({
@@ -56,6 +57,7 @@ beforeAll(async () => {
       password: 'test',
       name: 'Admin',
       role: 'admin',
+      emailVerifiedAt: new Date(),
     },
   })
   learnerId = learner.id

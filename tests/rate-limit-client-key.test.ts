@@ -181,12 +181,14 @@ describe('spaBelgeIstegiMi', () => {
     expect(spaBelgeIstegiMi(istek('/', 'text/html'))).toBe(true)
     expect(spaBelgeIstegiMi(istek('/app/dashboard', 'text/html,application/xhtml+xml'))).toBe(true)
     expect(spaBelgeIstegiMi(istek('/hakkinda', 'text/html'))).toBe(true)
+    expect(spaBelgeIstegiMi(istek('/admin/audit-logs', 'text/html'))).toBe(true)
   })
 
   it('API rotasini sahte Accept basligiyla muaf tutmaz', () => {
     expect(spaBelgeIstegiMi(istek('/auth/legal-documents', 'text/html'))).toBe(false)
     expect(spaBelgeIstegiMi(istek('/community/feed', 'text/html'))).toBe(false)
     expect(spaBelgeIstegiMi(istek('/api/v1/feed', 'text/html'))).toBe(false)
+    expect(spaBelgeIstegiMi(istek('/api/admin/audit-logs', 'text/html'))).toBe(false)
   })
 
   it('sorgu dizesi API yolunu gizleyemez', () => {

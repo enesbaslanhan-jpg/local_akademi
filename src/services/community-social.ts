@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { prisma } from '../lib/prisma.js'
 import { bildirimYaz } from './community-bildirim.js'
 import { medyaCikti } from './community-medya-adres.js'
+import { requireVerifiedCommunityWriter } from './community-security.js'
+import { createAuditLog } from './audit.js'
 
 const threadSchema = z.object({
   name: z.string().trim().min(2).max(80).optional(),
@@ -295,7 +297,7 @@ export async function communitySocialRoutes(fastify: FastifyInstance) {
     })
     return { durum: 'joined' }
   })
-  fastify.post('/threads', { preHandler: [fastify.authenticate], config: YAZMA_SINIRI }, async (request, reply) => {
+  fastify.post('/threads', { preHandler: [fastify.authenticate, requireVerifiedCommunityWriter()], config: YAZMA_SINIRI }, async (request, reply) => {
     const parsed = threadSchema.safeParse(request.body); if (!parsed.success) return reply.status(422).send({ error: 'Geçersiz sohbet bilgisi.' })
     const ids = [...new Set([request.user.id, ...parsed.data.memberIds.filter(id => id !== request.user.id)])]
 
@@ -358,7 +360,7 @@ export async function communitySocialRoutes(fastify: FastifyInstance) {
     }
     return { messages: await prisma.communityMessage.findMany({ where: { threadId }, include: { sender: { select: { id: true, name: true } } }, orderBy: { createdAt: 'asc' }, take: 200 }) }
   })
-  fastify.post('/threads/:threadId/messages', { preHandler: [fastify.authenticate], config: MESAJ_SINIRI }, async (request, reply) => {
+  fastify.post('/threads/:threadId/messages', { preHandler: [fastify.authenticate, requireVerifiedCommunityWriter()], config: MESAJ_SINIRI }, async (request, reply) => {
     const threadId = (request.params as { threadId: string }).threadId
     const parsed = messageSchema.safeParse(request.body); if (!parsed.success) return reply.status(422).send({ error: 'Mesaj boş olamaz.' })
     const member = await prisma.communityThreadMember.findUnique({ where: { threadId_userId: { threadId, userId: request.user.id } } })
@@ -383,6 +385,10 @@ export async function communitySocialRoutes(fastify: FastifyInstance) {
     }
 
     const message = await prisma.communityMessage.create({ data: { threadId, senderId: request.user.id, body: parsed.data.body } })
+    await createAuditLog({
+      action: 'community.message.created', entityType: 'community_thread', entityId: threadId,
+      actorId: request.user.id
+    }).catch(() => {})
     /* Sohbetteki HERKESE, gonderen haric. `bildirimYaz` kendine
        gondermeyi zaten engelliyor ama liste yine de filtreleniyor:
        gereksiz veritabani cagrisi acmayalim. */
@@ -501,6 +507,10 @@ export async function communitySocialRoutes(fastify: FastifyInstance) {
           details: parsed.data.details,
         },
       })
+      await createAuditLog({
+        action: 'community.user.reported', entityType: 'user', entityId: personId,
+        actorId: request.user.id, metadata: { reason: parsed.data.reason }
+      }).catch(() => {})
       return reply.status(201).send({ report: { id: kayit.id, status: kayit.status } })
     } catch {
       /*

@@ -20,6 +20,7 @@ import { contentLanguage } from '../lib/content-language.js'
 import { sendMail } from './mailer.js'
 import { dogrulamaKoduMaili, sifreDegistiMaili, sifreSifirlamaMaili } from './mail-templates.js'
 import { yeniKullaniciBildir } from './yeni-kullanici-bildirimi.js'
+import { observeSecurityEvent } from './security-alerts.js'
 import {
   appleBelirteciIptalEt,
   appleIstemcileri,
@@ -213,7 +214,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     return target
   }
   fastify.post('/register', {
-    config: { rateLimit: { max: 5, timeWindow: '1 hour' } }
+    config: { rateLimit: { max: 5, timeWindow: '1 hour', keyGenerator: hizSiniriAnahtari } }
   }, async (request, reply) => {
     if (process.env.BETA_MODE === 'invite_only') {
       return reply.status(403).send({ error: 'Registration is closed. Beta is invite-only.' })
@@ -261,7 +262,8 @@ export async function authRoutes(fastify: FastifyInstance) {
       entityType: 'user',
       entityId: user.id,
       actorId: user.id,
-      actorName: email
+      actorName: email,
+      metadata: { ip: hizSiniriAnahtari(request), userAgent: request.headers['user-agent'] }
     })
     /* İşletmeciye "yeni kullanıcı" postası; beklenmez, hata kaydı bozmaz. */
     void yeniKullaniciBildir(user, 'e-posta')
@@ -276,7 +278,7 @@ export async function authRoutes(fastify: FastifyInstance) {
   })
 
   fastify.post('/login', {
-    config: { rateLimit: { max: 10, timeWindow: '1 minute' } }
+    config: { rateLimit: { max: 10, timeWindow: '1 minute', keyGenerator: hizSiniriAnahtari } }
   }, async (request, reply) => {
     const parsed = loginSchema.safeParse(request.body)
     if (!parsed.success) {
@@ -292,6 +294,8 @@ export async function authRoutes(fastify: FastifyInstance) {
       return reply.status(401).send({ error: 'Invalid credentials' })
     }
     if (!user) {
+      request.log.warn({ event: 'AUTH_LOGIN_REJECTED', ip: hizSiniriAnahtari(request) }, 'Login rejected')
+      observeSecurityEvent('auth.login_failed', { ip: hizSiniriAnahtari(request) })
       return reply.status(401).send({ error: 'Invalid credentials' })
     }
 
@@ -375,6 +379,12 @@ export async function authRoutes(fastify: FastifyInstance) {
 
     const token = issueToken(fastify, user)
     const preference = await prisma.userPreference.findUnique({ where: { userId: user.id } })
+
+    await createAuditLog({
+      action: 'auth.login', entityType: 'user', entityId: user.id,
+      actorId: user.id, actorName: user.name,
+      metadata: { ip: hizSiniriAnahtari(request), userAgent: request.headers['user-agent'] }
+    }, prisma).catch(() => {})
 
     const yenileme = await yeniAileOlustur(prisma, user.id, user.tokenVersion)
     /* Fırsatçı temizlik: tablo yalnız giriş/yenileme ile büyüdüğü için
@@ -1013,7 +1023,7 @@ export async function authRoutes(fastify: FastifyInstance) {
    *    ham değer sadece e-postaya gider.
    */
   fastify.post('/password-reset/request', {
-    config: { rateLimit: { max: 3, timeWindow: '1 hour' } }
+    config: { rateLimit: { max: 3, timeWindow: '1 hour', keyGenerator: hizSiniriAnahtari } }
   }, async (request, reply) => {
     const parsed = resetRequestSchema.safeParse(request.body)
     /* Geçersiz gövdede bile ayırt edilebilir bir cevap vermiyoruz. */
@@ -1056,7 +1066,7 @@ export async function authRoutes(fastify: FastifyInstance) {
   })
 
   fastify.post('/password-reset/confirm', {
-    config: { rateLimit: { max: 10, timeWindow: '1 hour' } }
+    config: { rateLimit: { max: 10, timeWindow: '1 hour', keyGenerator: hizSiniriAnahtari } }
   }, async (request, reply) => {
     const parsed = resetConfirmSchema.safeParse(request.body)
     if (!parsed.success) {
@@ -1372,7 +1382,7 @@ export async function authRoutes(fastify: FastifyInstance) {
    *  Kilitli/silinmiş hesap kontrolleri parola girişiyle aynı.
    */
   fastify.post('/social', {
-    config: { rateLimit: { max: 10, timeWindow: '1 minute' } }
+    config: { rateLimit: { max: 10, timeWindow: '1 minute', keyGenerator: hizSiniriAnahtari } }
   }, async (request, reply) => {
     const parsed = socialSchema.safeParse(request.body)
     if (!parsed.success) return reply.status(422).send({ error: 'Geçersiz sosyal giriş isteği' })
@@ -1384,6 +1394,8 @@ export async function authRoutes(fastify: FastifyInstance) {
       kimlik = await sosyalBelirteciDogrula(provider, govde.idToken)
     } catch (err) {
       if (err instanceof SosyalBelirtecHatasi) {
+        request.log.warn({ event: 'SOCIAL_AUTH_REJECTED', provider, code: err.kod, ip: hizSiniriAnahtari(request) }, 'Social authentication rejected')
+        if (err.kod !== 'PROVIDER_DISABLED') observeSecurityEvent('auth.social_rejected', { ip: hizSiniriAnahtari(request) })
         const durum = err.kod === 'PROVIDER_DISABLED' ? 503 : err.kod === 'EMAIL_NOT_VERIFIED' ? 403 : 401
         return reply.status(durum).send({ error: err.kod, message: err.message })
       }
@@ -1480,7 +1492,8 @@ export async function authRoutes(fastify: FastifyInstance) {
       entityType: 'user',
       entityId: user.id,
       actorId: user.id,
-      metadata: { provider, privateRelay: kimlik.privateRelay }
+      actorName: user.name,
+      metadata: { provider, privateRelay: kimlik.privateRelay, ip: hizSiniriAnahtari(request), userAgent: request.headers['user-agent'] }
     }, prisma).catch(() => {})
     if (yeniHesap) void yeniKullaniciBildir(user, provider === 'apple' ? 'apple' : 'google')
 

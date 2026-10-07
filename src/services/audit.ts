@@ -1,5 +1,6 @@
 import { Prisma, type PrismaClient } from '@prisma/client'
 import { prisma as sharedPrisma } from '../lib/prisma.js'
+import { observeSecurityEvent } from './security-alerts.js'
 
 const ALLOWED_METADATA_KEYS = new Set([
   'fromStatus', 'toStatus', 'reason', 'note', 'notes',
@@ -7,6 +8,7 @@ const ALLOWED_METADATA_KEYS = new Set([
   'importJobId', 'rowsImported', 'sourceId', 'sourceTitle',
   'entityTitle', 'entityCode', 'versionNumber',
   'verificationStatus', 'provider', 'model',
+  'ip', 'userAgent', 'attempt', 'privateRelay',
   /* Odeme (31.08.2026). Bu liste bir IZIN LISTESI ve listede olmayan
      her alani SESSIZCE siliyor; eklenmezlerse odeme denetim kaydi
      tutar ve siparis numarasi olmadan yaziliyor, yani ise yaramiyor. */
@@ -18,7 +20,9 @@ function sanitizeMetadata(raw: Record<string, unknown>): Record<string, unknown>
   for (const [key, value] of Object.entries(raw)) {
     if (ALLOWED_METADATA_KEYS.has(key)) {
       if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-        clean[key] = value
+        clean[key] = typeof value === 'string' && (key === 'ip' || key === 'userAgent')
+          ? value.slice(0, key === 'ip' ? 64 : 500)
+          : value
       } else if (value === null) {
         clean[key] = null
       }
@@ -45,16 +49,24 @@ export async function createAuditLog(params: {
  */
 prismaIstemcisi: PrismaClient = sharedPrisma) {
   const sanitized = sanitizeMetadata(params.metadata || {})
-  return prismaIstemcisi.auditLog.create({
-    data: {
-      action: params.action,
-      entityType: params.entityType,
-      entityId: params.entityId != null ? String(params.entityId) : null,
-      actorId: params.actorId,
-      actorName: params.actorName || null,
-      metadata: JSON.stringify(sanitized)
-    }
-  })
+  try {
+    const entry = await prismaIstemcisi.auditLog.create({
+      data: {
+        action: params.action,
+        entityType: params.entityType,
+        entityId: params.entityId != null ? String(params.entityId) : null,
+        actorId: params.actorId,
+        actorName: params.actorName || null,
+        metadata: JSON.stringify(sanitized)
+      }
+    })
+    observeSecurityEvent(params.action, sanitized)
+    return entry
+  } catch (error) {
+    // Never include tokens, metadata or database error text in this diagnostic.
+    console.error(JSON.stringify({ event: 'SECURITY_AUDIT_WRITE_FAILED', action: params.action }))
+    throw error
+  }
 }
 
 export async function queryAuditLogs(params: {

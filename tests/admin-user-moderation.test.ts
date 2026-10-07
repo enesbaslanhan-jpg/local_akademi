@@ -76,24 +76,24 @@ describe('yetki', () => {
   it('admin olmayan askıya alamaz', async () => {
     const u = await prisma.user.findUnique({ where: { id: hedefId } })
     const learnerToken = app.jwt.sign({ id: u!.id, email: u!.email, role: 'learner', tv: u!.tokenVersion })
-    const r = await istek(`/admin/users/${ikinciAdminId}/suspend`, learnerToken)
+    const r = await istek(`/api/admin/users/${ikinciAdminId}/suspend`, learnerToken)
     expect(r.statusCode).toBe(403)
   })
 
   it('kimlik doğrulaması olmadan reddedilir', async () => {
-    const r = await app.inject({ method: 'POST', url: `/admin/users/${hedefId}/suspend`, payload: {} })
+    const r = await app.inject({ method: 'POST', url: `/api/admin/users/${hedefId}/suspend`, payload: {} })
     expect(r.statusCode).toBe(401)
   })
 
   it('admin KENDİNİ askıya alamaz', async () => {
     /* Kendini askıya alan admin sistemden kilitlenir ve geri dönemez. */
-    const r = await istek(`/admin/users/${adminId}/suspend`)
+    const r = await istek(`/api/admin/users/${adminId}/suspend`)
     expect(r.statusCode).toBe(403)
     expect(r.json().error).toBe('SELF_ACTION_FORBIDDEN')
   })
 
   it('var olmayan kullanıcı 404', async () => {
-    const r = await istek('/admin/users/99999999/suspend')
+    const r = await istek('/api/admin/users/99999999/suspend')
     expect(r.statusCode).toBe(404)
   })
 })
@@ -106,7 +106,7 @@ describe('askıya alma açık oturumları ÖLDÜRÜR', () => {
     const once = await app.inject({ method: 'GET', url: '/auth/me', headers: { authorization: `Bearer ${hedefToken}` } })
     expect(once.statusCode).toBe(200)
 
-    const r = await istek(`/admin/users/${hedefId}/suspend`, adminToken, { reason: 'kötüye kullanım' })
+    const r = await istek(`/api/admin/users/${hedefId}/suspend`, adminToken, { reason: 'kötüye kullanım' })
     expect(r.statusCode).toBe(200)
 
     /* ASIL İDDİA: token artık ölü. */
@@ -130,7 +130,7 @@ describe('askıya alma açık oturumları ÖLDÜRÜR', () => {
   })
 
   it('zaten askıdaysa 409', async () => {
-    const r = await istek(`/admin/users/${hedefId}/suspend`)
+    const r = await istek(`/api/admin/users/${hedefId}/suspend`)
     expect(r.statusCode).toBe(409)
   })
 })
@@ -156,8 +156,8 @@ describe('askıdan çıkarma', () => {
       method: 'GET', url: '/auth/me', headers: { authorization: `Bearer ${askiOncesiToken}` }
     })).statusCode).toBe(200)
 
-    expect((await istek(`/admin/users/${kisi.id}/suspend`)).statusCode).toBe(200)
-    expect((await istek(`/admin/users/${kisi.id}/unsuspend`)).statusCode).toBe(200)
+    expect((await istek(`/api/admin/users/${kisi.id}/suspend`)).statusCode).toBe(200)
+    expect((await istek(`/api/admin/users/${kisi.id}/unsuspend`)).statusCode).toBe(200)
 
     /* ASIL İDDİA: askı kalktı ama eski token hâlâ ölü. */
     const sonuc = await app.inject({
@@ -172,14 +172,14 @@ describe('askıdan çıkarma', () => {
   })
 
   it('hedef hesabı geri getirir', async () => {
-    const r = await istek(`/admin/users/${hedefId}/unsuspend`)
+    const r = await istek(`/api/admin/users/${hedefId}/unsuspend`)
     expect(r.statusCode).toBe(200)
     const u = await prisma.user.findUnique({ where: { id: hedefId } })
     expect(u!.deletedAt).toBeNull()
   })
 
   it('zaten aktifse 409', async () => {
-    const r = await istek(`/admin/users/${hedefId}/unsuspend`)
+    const r = await istek(`/api/admin/users/${hedefId}/unsuspend`)
     expect(r.statusCode).toBe(409)
   })
 })
@@ -187,7 +187,7 @@ describe('askıdan çıkarma', () => {
 describe('son yönetici korunur', () => {
   it('tek aktif admin kalınca askıya alınamaz', async () => {
     /* İkinci admini askıya al → geriye tek aktif admin (çağıran) kalır. */
-    expect((await istek(`/admin/users/${ikinciAdminId}/suspend`)).statusCode).toBe(200)
+    expect((await istek(`/api/admin/users/${ikinciAdminId}/suspend`)).statusCode).toBe(200)
 
     /* Şimdi üçüncü bir admin oluşturup onun tek admini askıya almasını
        deneyelim: hedef, kalan tek aktif admin olan `adminId`. */
@@ -195,7 +195,7 @@ describe('son yönetici korunur', () => {
     const ucuncuToken = app.jwt.sign({ id: ucuncu.id, email: ucuncu.email, role: 'admin', tv: ucuncu.tokenVersion })
 
     /* Artık iki aktif admin var (adminId, ucuncu) — kural devrede değil. */
-    const r = await istek(`/admin/users/${adminId}/suspend`, ucuncuToken)
+    const r = await istek(`/api/admin/users/${adminId}/suspend`, ucuncuToken)
     expect(r.statusCode).toBe(200)
 
     /* Geri al, sonraki testler adminToken kullanıyor. */
@@ -211,7 +211,7 @@ describe('anonimleştirme', () => {
   it('kişisel alanları temizler, kaydı silmez', async () => {
     const oncekiEmail = (await prisma.user.findUnique({ where: { id: hedefId } }))!.email
 
-    const r = await istek(`/admin/users/${hedefId}/anonymize`)
+    const r = await istek(`/api/admin/users/${hedefId}/anonymize`)
     expect(r.statusCode).toBe(200)
 
     const sonra = await prisma.user.findUnique({ where: { id: hedefId } })
@@ -235,13 +235,13 @@ describe('anonimleştirme', () => {
   })
 
   it('anonimleştirilmiş hesap geri alınamaz', async () => {
-    const r = await istek(`/admin/users/${hedefId}/unsuspend`)
+    const r = await istek(`/api/admin/users/${hedefId}/unsuspend`)
     expect(r.statusCode).toBe(409)
     expect(r.json().error).toBe('ANONYMIZED')
   })
 
   it('ikinci kez anonimleştirme 409', async () => {
-    const r = await istek(`/admin/users/${hedefId}/anonymize`)
+    const r = await istek(`/api/admin/users/${hedefId}/anonymize`)
     expect(r.statusCode).toBe(409)
   })
 })

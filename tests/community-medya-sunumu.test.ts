@@ -51,7 +51,7 @@ beforeAll(async () => {
   await app.ready()
 
   const kullanici = await prisma.user.create({
-    data: { email: `${isaret}@test.local`, password: 'test', name: 'Medya', role: 'learner' },
+    data: { email: `${isaret}@test.local`, password: 'test', name: 'Medya', role: 'learner', emailVerifiedAt: new Date() },
   })
   kullaniciId = kullanici.id
   token = app.jwt.sign({ id: kullanici.id, email: kullanici.email, role: kullanici.role })

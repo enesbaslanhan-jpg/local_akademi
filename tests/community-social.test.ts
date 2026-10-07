@@ -14,9 +14,9 @@ beforeAll(async () => {
   app = Fastify(); await app.register(jwt, { secret: 'community-social-test-secret-32-byte' })
   app.decorate('authenticate', async (request: any, reply: any) => { try { await request.jwtVerify() } catch { return reply.status(401).send() } })
   await app.register(communitySocialRoutes, { prefix: '/community/social' }); await app.ready()
-  ali = await prisma.user.create({ data: { email: `${mark}-ali@test.local`, password: 'x', name: 'Ali Test', role: 'student' } })
-  ayse = await prisma.user.create({ data: { email: `${mark}-ayse@test.local`, password: 'x', name: 'Ayşe Test', role: 'student' } })
-  admin = await prisma.user.create({ data: { email: `${mark}-admin@test.local`, password: 'x', name: 'Admin Test', role: 'admin' } })
+  ali = await prisma.user.create({ data: { email: `${mark}-ali@test.local`, password: 'x', name: 'Ali Test', role: 'student', emailVerifiedAt: new Date() } })
+  ayse = await prisma.user.create({ data: { email: `${mark}-ayse@test.local`, password: 'x', name: 'Ayşe Test', role: 'student', emailVerifiedAt: new Date() } })
+  admin = await prisma.user.create({ data: { email: `${mark}-admin@test.local`, password: 'x', name: 'Admin Test', role: 'admin', emailVerifiedAt: new Date() } })
   const sign = (u: any) => app.jwt.sign({ id: u.id, email: u.email, role: u.role })
   aliToken = sign(ali); ayseToken = sign(ayse); adminToken = sign(admin)
 })
@@ -85,7 +85,7 @@ describe('engelleme ÖZEL MESAJDA da geçerli', () => {
 
   beforeAll(async () => {
     engelli = await prisma.user.create({
-      data: { email: `${mark}-engelli@test.local`, password: 'x', name: 'Engelli Test', role: 'student' },
+      data: { email: `${mark}-engelli@test.local`, password: 'x', name: 'Engelli Test', role: 'student', emailVerifiedAt: new Date() },
     })
     engelliToken = app.jwt.sign({ id: engelli.id, email: engelli.email, role: engelli.role })
     /* Ali engelliyor; aşağıdaki denemeleri ENGELLENEN taraf yapıyor. */
@@ -169,7 +169,7 @@ describe('grup daveti kabul ister', () => {
 
   beforeAll(async () => {
     uc = await prisma.user.create({
-      data: { email: `${mark}-uc@test.local`, password: 'x', name: 'Uc Test', role: 'student' },
+      data: { email: `${mark}-uc@test.local`, password: 'x', name: 'Uc Test', role: 'student', emailVerifiedAt: new Date() },
     })
     ucToken = app.jwt.sign({ id: uc.id, email: uc.email, role: uc.role })
 
