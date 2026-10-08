@@ -43,9 +43,9 @@ describe('GET /app-config', () => {
     expect(typeof govde.minAppVersion.android).toBe('string')
     expect(typeof govde.minAppVersion.ios).toBe('string')
     expect(govde).toHaveProperty('storeUrls')
-    /* App Store'da yayında (28.09.2026): web ve mobil düğmesi bu adresi okur; Play yayına çıkana dek null. */
+    /* İki mağazada da yayında (iOS 28.09, Android 08.10.2026): web ve mobil düğmeler bu adresleri okur. */
     expect(govde.storeUrls.ios).toBe('https://apps.apple.com/tr/app/id6813127954')
-    expect(govde.storeUrls.android).toBeNull()
+    expect(govde.storeUrls.android).toBe('https://play.google.com/store/apps/details?id=com.localkarar.app')
     expect(govde).toHaveProperty('maintenance')
     expect(govde.analytics).toEqual({
       enabled: false,

@@ -94,6 +94,8 @@ function aasaIcerigi(): unknown | null {
 
 /* LocalKarar'ın App Store sayfası (uygulama kimliği App Store Connect'ten). */
 const APP_STORE_ADRESI = 'https://apps.apple.com/tr/app/id6813127954'
+/* Google Play'de yayında (08.10.2026, sürüm 164/1.0.2): sayfa 200 dönüyor, var olmayan kimlik 404. */
+const GOOGLE_PLAY_ADRESI = 'https://play.google.com/store/apps/details?id=com.localkarar.app'
 
 export async function appConfigRoutes(fastify: FastifyInstance) {
   /**
@@ -111,7 +113,7 @@ export async function appConfigRoutes(fastify: FastifyInstance) {
     return {
       minAppVersion: minimum,
       storeUrls: {
-        android: (process.env.STORE_URL_ANDROID || '').trim() || null,
+        android: (process.env.STORE_URL_ANDROID || '').trim() || GOOGLE_PLAY_ADRESI,
         /* App Store'da yayında (28.09.2026): adres sabit varsayılan, env ile değiştirilebilir. */
         ios: (process.env.STORE_URL_IOS || '').trim() || APP_STORE_ADRESI
       },
