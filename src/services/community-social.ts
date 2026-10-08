@@ -72,6 +72,64 @@ const YAZMA_SINIRI = { rateLimit: { max: 120, timeWindow: '1 hour' } }
 const MESAJ_SINIRI = { rateLimit: { max: 240, timeWindow: '1 hour' } }
 
 export async function communitySocialRoutes(fastify: FastifyInstance) {
+  fastify.get('/people/suggestions', { preHandler: [fastify.authenticate] }, async request => {
+    const userId = request.user.id
+    const [following, blocks] = await Promise.all([
+      prisma.communityFollow.findMany({ where: { followerId: userId }, select: { followingId: true } }),
+      prisma.communityBlock.findMany({
+        where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
+        select: { blockerId: true, blockedId: true },
+      }),
+    ])
+    const followedIds = following.map(row => row.followingId)
+    const excludedIds = [...new Set([...followedIds, ...blocks.flatMap(row => [row.blockerId, row.blockedId]), userId])]
+    const mutualCounts = new Map<number, number>()
+    if (followedIds.length) {
+      const connections = await prisma.communityFollow.findMany({
+        where: { followerId: { in: followedIds }, followingId: { notIn: excludedIds } },
+        select: { followingId: true },
+      })
+      for (const { followingId } of connections) mutualCounts.set(followingId, (mutualCounts.get(followingId) ?? 0) + 1)
+    }
+    const rankedIds = [...mutualCounts.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id)
+    const [mutualPeople, fill] = await Promise.all([
+      rankedIds.length
+        ? prisma.user.findMany({
+          where: { id: { in: rankedIds }, deletedAt: null },
+          select: { id: true, name: true, role: true, bio: true },
+        })
+        : Promise.resolve([]),
+      prisma.user.findMany({
+        where: { id: { notIn: excludedIds }, deletedAt: null },
+        select: { id: true, name: true, role: true, bio: true },
+        take: 40,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ])
+    const byId = new Map(mutualPeople.map(person => [person.id, person]))
+    const ranked = rankedIds.flatMap(id => {
+      const person = byId.get(id)
+      return person ? [{ ...person, mutualCount: mutualCounts.get(id) ?? 0 }] : []
+    })
+    const picked = [...ranked, ...fill.filter(person => !rankedIds.includes(person.id)).map(person => ({ ...person, mutualCount: 0 }))].slice(0, 20)
+    return {
+      people: picked.map(({ mutualCount, ...person }) => ({ ...person, avatarUrl: null, mutualCount })),
+      followingIds: followedIds,
+      blockedIds: blocks.filter(row => row.blockerId === userId).map(row => row.blockedId),
+    }
+  })
+
+  fastify.get('/people/blocked', { preHandler: [fastify.authenticate] }, async request => {
+    const rows = await prisma.communityBlock.findMany({
+      where: { blockerId: request.user.id },
+      select: { blocked: { select: { id: true, name: true, role: true, bio: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 500,
+    })
+    const people = rows.map(row => ({ ...row.blocked, avatarUrl: null }))
+    return { people, followingIds: [], blockedIds: people.map(person => person.id) }
+  })
+
   fastify.get('/people', { preHandler: [fastify.authenticate] }, async request => {
     const q = String((request.query as { q?: string }).q || '').trim().slice(0, 60)
     const userId = request.user.id
