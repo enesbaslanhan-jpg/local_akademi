@@ -128,7 +128,7 @@ afterAll(async () => {
 describe('operations summary — no integration', () => {
   it('returns connected:false with no actions and no external calls', async () => {
     const res = await get(`/marketplace/operations?workspaceId=${workspaceId}`, ownerToken)
-    expect(res.statusCode).toBe(200)
+    expect(res.statusCode, res.body).toBe(200)
     const body = res.json()
     expect(body.summary.connected).toBe(false)
     expect(body.summary.providers).toHaveLength(0)

@@ -102,7 +102,8 @@
     "ops:logs:rotate": "node dist/ops/rotate-operational-logs.js",
     "sql:scan": "node scripts/raw-sql-scan.js",
     "i18n:check": "node scripts/check-i18n.mjs",
-    "logo:uret": "node scripts/logo-uret.mjs"
+    "logo:uret": "node scripts/logo-uret.mjs",
+    "kapi": "bash scripts/yerel-kapi.sh"
   },
   "dependencies": {
     "@fastify/cors": "^10.1.0",
