@@ -11,6 +11,7 @@ import styles from './AboutPage.module.css'
 import PublicFooter from '@/components/layout/PublicFooter'
 import { useGirisli } from '@/hooks/useGirisli'
 import useSayfaMeta from '@/hooks/useSayfaMeta'
+import { SAYFA_META } from '@/config/sayfa-meta'
 
 /*
  * Hakkında / tanıtım sayfası.
@@ -82,9 +83,9 @@ export default function AboutPage() {
   const { pathname } = useLocation()
   const hakkindaSayfasi = pathname === '/hakkinda'
   useSayfaMeta({
-    baslik: hakkindaSayfasi ? 'LocalKarar Hakkında — Küçük İşletmeler İçin Karar Desteği' : 'Küçük İşletmeler İçin Karar Destek ve Takip Uygulaması | LocalKarar',
+    baslik: hakkindaSayfasi ? SAYFA_META['/hakkinda'].baslik : 'Küçük İşletmeler İçin Karar Destek ve Takip Uygulaması | LocalKarar',
     aciklama: hakkindaSayfasi
-      ? 'LocalKarar’ın küçük işletmeler için işletme takibi, hesaplamalar, karar araçları ve kaynaklı AI Mentor yaklaşımını keşfet.'
+      ? SAYFA_META['/hakkinda'].aciklama
       : 'İşletme takibi, kâr hesaplamaları, karar araçları, pazaryeri siparişleri, kaynaklı AI Mentor, kurslar ve topluluk tek yerde.',
     yol: hakkindaSayfasi ? '/hakkinda' : '/',
   })

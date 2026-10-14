@@ -8,6 +8,7 @@ import AuthThemeToggle from './AuthThemeToggle'
 import PublicFooter from '@/components/layout/PublicFooter'
 import { useGirisli } from '@/hooks/useGirisli'
 import useSayfaMeta from '@/hooks/useSayfaMeta'
+import { SAYFA_META } from '@/config/sayfa-meta'
 import {
   FOUNDER_STAGES,
   BILLING_STARTS_AT,
@@ -193,8 +194,8 @@ export default function PricingPage() {
   const pricingFaq = BILLING_STARTS_AT ? ['affordable', 'freeMonth', 'cancel', 'invoice', 'increase', 'yearly'] : ['whyFree', 'untilWhen', 'whenStarts', 'data']
   const faqPrefix = BILLING_STARTS_AT ? 'pricing.faq' : 'pricing.faqFree'
   useSayfaMeta({
-    baslik: 'LocalKarar Fiyatları — Şu Anda Ücretsiz',
-    aciklama: 'LocalKarar’ın tüm özellikleri şu anda ücretsiz. Kart bilgisi gerekmez; ücretlendirme başlamadan en az bir ay önce bilgi verilir.',
+    baslik: SAYFA_META['/fiyatlar'].baslik,
+    aciklama: SAYFA_META['/fiyatlar'].aciklama,
     yol: '/fiyatlar',
     schema: {
       '@context': 'https://schema.org',

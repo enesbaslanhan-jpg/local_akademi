@@ -4,6 +4,7 @@ import BrandMark from '@/components/ui/BrandMark'
 import PublicFooter from '@/components/layout/PublicFooter'
 import AuthThemeToggle from './AuthThemeToggle'
 import useSayfaMeta from '@/hooks/useSayfaMeta'
+import { SAYFA_META } from '@/config/sayfa-meta'
 import styles from './FeaturePage.module.css'
 
 const OZELLIKLER = {
@@ -11,8 +12,6 @@ const OZELLIKLER = {
     eyebrow: 'İşletme takibi',
     title: 'Gelir, gider, cari hesap ve vadeleri tek yerde takip et',
     description: 'LocalKarar İşletme Takibi; tahsilatları, ödemeleri, cari hesapları, siparişleri ve belgeleri dağınık tablolardan çıkarıp tek çalışma alanında toplar.',
-    metaTitle: 'Küçük İşletme Takip Programı | LocalKarar',
-    metaDescription: 'Gelir, gider, cari hesap, tahsilat, ödeme, sipariş ve belgeleri tek yerde takip et. Küçük işletmeler için sade işletme takip uygulaması.',
     problem: 'İşletme takibi, yalnızca gelir ve gider toplamını görmek değildir. Yaklaşan vadeyi, geciken ödemeyi, müşteriden alınacağı ve kasaya etkisini aynı bağlamda izleyebilmektir.',
     outcomes: [
       ['Vadeleri kaçırma', 'Ödeme ve tahsilat kayıtlarını tarihleriyle gör; yaklaşan ve geciken işleri ayır.'],
@@ -32,8 +31,6 @@ const OZELLIKLER = {
     eyebrow: 'Karar araçları',
     title: 'İşletme kararlarını tahminle değil, kendi rakamlarınla ver',
     description: 'İndirim, ücretsiz kargo, reklam bütçesi, personel, nakit akışı ve pazaryeri komisyonu gibi kararları adım adım hesapla; sonucu gerekçesiyle gör.',
-    metaTitle: 'Küçük İşletmeler İçin Karar Araçları | LocalKarar',
-    metaDescription: 'İndirim, ücretsiz kargo, reklam bütçesi, personel ve nakit akışı kararlarını kendi rakamlarınla değerlendir. Sonucu ve riskleri birlikte gör.',
     problem: 'Bir karar aracı “evet” ya da “hayır” demekle yetinmemeli. Hangi verinin sonucu değiştirdiğini, başabaş noktasını ve dikkat edilmesi gereken riski de görünür kılmalıdır.',
     outcomes: [
       ['İndirimi test et', 'İndirim sonrası birim katkıyı ve aynı kârı korumak için gereken satış artışını hesapla.'],
@@ -53,8 +50,6 @@ const OZELLIKLER = {
     eyebrow: 'Hesaplamalar',
     title: 'Kâr, başabaş ve nakit hesabını formül ezberlemeden yap',
     description: 'Küçük işletmeler için hazır hesaplama şablonlarıyla birim maliyet, kâr marjı, başabaş satış adedi, nakit akışı ve kampanya etkisini anlaşılır biçimde hesapla.',
-    metaTitle: 'Kâr Marjı ve Başabaş Hesaplama Araçları | LocalKarar',
-    metaDescription: 'Kâr marjı, başabaş noktası, birim maliyet, nakit akışı ve kampanya kârlılığını hazır şablonlarla hesapla; sonucun ne anlama geldiğini gör.',
     problem: 'Hesaplamanın değeri yalnızca doğru formülde değil, sonucun işletme açısından ne anlama geldiğini açıklamasındadır. LocalKarar girdileri, formülü ve yorumu aynı akışta gösterir.',
     outcomes: [
       ['Gerçek birim maliyeti bul', 'Ürüne ait doğrudan ve paylaştırılmış maliyetleri aynı hesapta birleştir.'],
@@ -74,8 +69,6 @@ const OZELLIKLER = {
     eyebrow: 'AI Mentor',
     title: 'İşletme sorunu bağlamıyla anlat, kaynağı görünen yanıt al',
     description: 'LocalKarar AI Mentor; sorunu kendi cümlelerinle anlatmana, ilgili eğitim içeriğini ve izin verdiğin işletme bağlamını kullanarak konuyu anlamlandırmana yardım eder.',
-    metaTitle: 'Küçük İşletmeler İçin Kaynaklı AI Mentor | LocalKarar',
-    metaDescription: 'İşletme sorularını kendi cümlelerinle sor. LocalKarar AI Mentor, içerik kütüphanesine ve izin verdiğin işletme bağlamına dayanarak kaynaklı yanıt verir.',
     problem: 'Genel bir yapay zekâ, işletmenin hangi verisine baktığını bilmez. LocalKarar’ın yaklaşımı; yanıtı ürün içindeki öğrenme içeriği ve kullanıcının izin verdiği bağlamla ilişkilendirmek, dayanağı görünür tutmaktır.',
     outcomes: [
       ['Sorunu doğal dille anlat', 'Formül veya menü adı bilmeden “Bu ürün neden kârlı görünmüyor?” gibi sorular sor.'],
@@ -95,8 +88,6 @@ const OZELLIKLER = {
     eyebrow: 'Pazaryeri entegrasyonları',
     title: 'Pazaryeri siparişlerini ve ürünlerini tek işletme görünümünde topla',
     description: 'Trendyol, Hepsiburada, N11 ve Shopify mağazalarını LocalKarar’a bağlayarak sipariş ve ürün verilerini işletme takibiyle aynı yerde görüntüle.',
-    metaTitle: 'Pazaryeri Entegrasyonları: Trendyol, Hepsiburada, N11 | LocalKarar',
-    metaDescription: 'Trendyol, Hepsiburada, N11 ve Shopify siparişlerini ve ürünlerini tek yerde takip et; satışları işletme kayıtları ve kârlılık hesaplarıyla birleştir.',
     problem: 'Farklı satıcı panelleri satışın yalnızca bir bölümünü gösterir. İşletme kararı için sipariş, komisyon, ürün maliyeti, kargo, iade ve nakit hareketinin aynı resimde okunması gerekir.',
     outcomes: [
       ['Siparişleri merkezileştir', 'Bağlı kanallardan gelen siparişleri tek listede görüntüle.'],
@@ -149,7 +140,10 @@ function schemaFor(slug, content) {
 }
 
 export default function FeaturePage({ slug }) {
-  const content = OZELLIKLER[slug]
+  /* Başlık ve açıklama sunucunun ham HTML'e yazdığıyla AYNI tablodan gelir
+     (config/sayfa-meta.js); sayfada ikinci bir kopya tutulmuyor. */
+  const meta = SAYFA_META[`/${slug}`]
+  const content = { ...OZELLIKLER[slug], metaTitle: meta.baslik, metaDescription: meta.aciklama }
   const schema = schemaFor(slug, content)
 
   useSayfaMeta({

@@ -69,6 +69,8 @@ function yaz({ baslik, aciklama, yol, robots = 'index,follow', schema = null }) 
 
 export default function useSayfaMeta({ baslik, aciklama, yol, robots, schema }) {
   useEffect(() => {
+    /* Başlık yoksa (tabloda olmayan sayfa) varsayılanlara dokunma: `document.title = undefined` sekmeye "undefined" yazardı. */
+    if (!baslik) return undefined
     yaz({ baslik, aciklama, yol, robots, schema })
     return () => yaz({ ...VARSAYILAN, yol: '/' })
   }, [baslik, aciklama, yol, robots, schema])

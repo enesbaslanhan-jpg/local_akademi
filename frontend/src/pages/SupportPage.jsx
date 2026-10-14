@@ -11,6 +11,7 @@ import { MODULLER } from './AboutPage'
 import styles from './SupportPage.module.css'
 import PublicFooter from '@/components/layout/PublicFooter'
 import useSayfaMeta from '@/hooks/useSayfaMeta'
+import { SAYFA_META } from '@/config/sayfa-meta'
 
 /*
  * Destek ve Yardım.
@@ -78,8 +79,8 @@ export default function SupportPage() {
   const [gonderiliyor, setGonderiliyor] = useState(false)
 
   useSayfaMeta({
-    baslik: 'LocalKarar Yardım Merkezi ve Kullanma Kılavuzu',
-    aciklama: 'LocalKarar hesabı, işletme takibi, belge yükleme, pazaryeri bağlantıları ve AI Mentor hakkında sık sorulan sorular ve adım adım kullanım kılavuzu.',
+    baslik: SAYFA_META['/yardim'].baslik,
+    aciklama: SAYFA_META['/yardim'].aciklama,
     yol: '/yardim',
     schema: {
       '@context': 'https://schema.org',

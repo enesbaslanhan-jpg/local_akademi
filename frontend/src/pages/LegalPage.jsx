@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom'
 import BrandMark from '@/components/ui/BrandMark'
 import PublicFooter from '@/components/layout/PublicFooter'
 import { api } from '@/services/api'
+import useSayfaMeta from '@/hooks/useSayfaMeta'
+import { SAYFA_META } from '@/config/sayfa-meta'
 import privacy from '@/content/legal/privacy'
 import privacyEn from '@/content/legal/privacy.en'
 import terms from '@/content/legal/terms'
@@ -158,6 +160,11 @@ export default function LegalPage({ type = 'privacy' }) {
   }, [type])
 
   const tarih = surumuTarihEt(surum, i18n.resolvedLanguage || i18n.language)
+
+  /* Yalnız tabloda olan belgeler (gizlilik, kullanım şartları) sayfaya özel
+     başlık/canonical yazar; diğer yasal metinler eskisi gibi kalır. */
+  const sayfaMeta = SAYFA_META[`/${type}`]
+  useSayfaMeta({ baslik: sayfaMeta?.baslik, aciklama: sayfaMeta?.aciklama, yol: `/${type}` })
 
   return (
     <>

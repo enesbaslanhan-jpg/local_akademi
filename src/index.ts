@@ -104,6 +104,7 @@ const isProduction = process.env.NODE_ENV === 'production'
  * ice aktariyor.
  */
 import { hizSiniriAnahtari, resolveTrustProxy } from './lib/client-ip.js'
+import { sayfaMetaUygula, sayfaMetaYolu } from './lib/sayfa-meta-html.js'
 export { hizSiniriAnahtari }
 
 /**
@@ -603,6 +604,24 @@ async function build() {
     return API_PREFIXES.some(p => path === p || path.startsWith(p + '/'))
   }
 
+  /* index.html bir dağıtımda değişmez: şablon ve sayfa başına üretilen HTML bellekte tutulur. */
+  let anaHtmlOnbellek: string | null | undefined
+  function anaHtmlSablonu(): string | null {
+    if (anaHtmlOnbellek === undefined) {
+      try { anaHtmlOnbellek = readFileSync(join(publicPath, 'index.html'), 'utf8') } catch { anaHtmlOnbellek = null }
+    }
+    return anaHtmlOnbellek
+  }
+  const sayfaHtmlOnbellek = new Map<string, string>()
+  function sayfaMetaHtmli(yol: string, sablon: string): string {
+    let html = sayfaHtmlOnbellek.get(yol)
+    if (html === undefined) {
+      html = sayfaMetaUygula(sablon, yol)
+      sayfaHtmlOnbellek.set(yol, html)
+    }
+    return html
+  }
+
   server.setNotFoundHandler(async (request, reply) => {
     const path = request.url.split('?')[0]
     const oldAdminApiRequest = (path === '/admin' || path.startsWith('/admin/'))
@@ -611,6 +630,22 @@ async function build() {
       return reply.status(404).send({ error: 'Route not found', path: request.url.split('?')[0] })
     }
     if (hasPublicDir && process.env.NODE_ENV !== 'test') {
+      /*
+       * Herkese açık sayfalarda (araç, fiyatlar, yardım…) HAM HTML'in başlık,
+       * açıklama ve canonical etiketleri sayfaya özel yazılır; yoksa Google
+       * her adresi ana sayfanın kopyası görüyordu (bkz. lib/sayfa-meta-html.ts).
+       * Yalnız GET/HEAD; diğer her şey eskisi gibi düz index.html.
+       */
+      if (request.method === 'GET' || request.method === 'HEAD') {
+        const metaYolu = sayfaMetaYolu(request.url)
+        const sablon = metaYolu ? anaHtmlSablonu() : null
+        if (metaYolu && sablon) {
+          return reply
+            .type('text/html; charset=utf-8')
+            .header('cache-control', 'public, max-age=0')
+            .send(sayfaMetaHtmli(metaYolu, sablon))
+        }
+      }
       return reply.sendFile('index.html', publicPath)
     }
     return reply.status(404).send({ error: 'Route not found' })
