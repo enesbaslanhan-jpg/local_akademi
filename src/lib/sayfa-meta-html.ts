@@ -43,6 +43,26 @@ export const SAYFA_META: Record<string, { baslik: string; aciklama: string }> = 
     baslik: 'Küçük İşletmeler İçin Karar Araçları | LocalKarar',
     aciklama: 'İndirim, ücretsiz kargo, reklam bütçesi, personel ve nakit akışı kararlarını kendi rakamlarınla değerlendir. Sonucu ve riskleri birlikte gör.',
   },
+  '/karar-araclari/indirim-yapabilir-miyim': {
+    baslik: 'Bu İndirimi Yapabilir miyim? İndirim Kâr Hesabı | LocalKarar',
+    aciklama: 'İndirim sonrası ürün başı katkıyı, maksimum güvenli indirim oranını ve kampanya başabaş adedini çözümlü örnekle öğren; kendi rakamlarınla hesapla.',
+  },
+  '/karar-araclari/ucretsiz-kargo-hesaplama': {
+    baslik: 'Ücretsiz Kargo Kârlı mı? Sepet Eşiği Hesabı | LocalKarar',
+    aciklama: 'Ücretsiz kargonun sepet katkısına etkisini ve güvenli minimum sepet tutarını çözümlü örnekle öğren; alt limiti kendi rakamlarınla belirle.',
+  },
+  '/karar-araclari/reklam-butcesi-artirma': {
+    baslik: 'Reklam Bütçesini Artırmalı mıyım? ROAS Hesabı | LocalKarar',
+    aciklama: 'ROAS’ı başabaş ROAS ile karşılaştır, ek bütçenin katkısını çözümlü örnekle gör; reklam kararını kendi rakamlarınla ver.',
+  },
+  '/karar-araclari/nakit-akisi-riskli-mi': {
+    baslik: 'Nakit Akışım Riskli mi? Vade Etkisi Hesabı | LocalKarar',
+    aciklama: 'Aylık net akış, tahsilat ve ödeme vadesi farkı ile nakit tamponunu çözümlü örnekle öğren; kârlıyken neden nakit sıkıştığını gör.',
+  },
+  '/karar-araclari/yeni-personel-maliyeti': {
+    baslik: 'Yeni Personel Maliyeti ve Başabaş Ciro Hesabı | LocalKarar',
+    aciklama: 'Bir çalışanın tam aylık maliyetini, başabaş ek cirosunu ve nakit rezerv dayanıklılığını çözümlü örnekle öğren; işe alım kararını rakamla ver.',
+  },
   '/hesaplamalar': {
     baslik: 'Kâr Marjı ve Başabaş Hesaplama Araçları | LocalKarar',
     aciklama: 'Kâr marjı, başabaş noktası, birim maliyet, nakit akışı ve kampanya kârlılığını hazır şablonlarla hesapla; sonucun ne anlama geldiğini gör.',

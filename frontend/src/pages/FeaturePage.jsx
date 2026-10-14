@@ -5,6 +5,7 @@ import PublicFooter from '@/components/layout/PublicFooter'
 import AuthThemeToggle from './AuthThemeToggle'
 import useSayfaMeta from '@/hooks/useSayfaMeta'
 import { SAYFA_META } from '@/config/sayfa-meta'
+import { KARAR_REHBERLERI, KARAR_REHBERI_ONEK } from '@/content/karar-rehberleri'
 import styles from './FeaturePage.module.css'
 
 const OZELLIKLER = {
@@ -220,6 +221,22 @@ export default function FeaturePage({ slug }) {
               </details>
             ))}
           </section>
+
+          {slug === 'karar-araclari' && (
+            <section aria-labelledby="rehber-baslik">
+              <span className={styles.sectionLabel}>Rehberler</span>
+              <h2 id="rehber-baslik">Karar sorularına çözümlü örneklerle bak</h2>
+              <div className={styles.grid}>
+                {Object.entries(KARAR_REHBERLERI).map(([rehberSlug, r], index) => (
+                  <Link key={rehberSlug} to={`${KARAR_REHBERI_ONEK}${rehberSlug}`} className={styles.card}>
+                    <span className={styles.cardNo}>{String(index + 1).padStart(2, '0')}</span>
+                    <h3>{r.baslik}</h3>
+                    <p>{r.etiket}: formül, çözümlü örnek ve sık hatalar.</p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
 
           <aside className={styles.related} aria-labelledby="ilgili-baslik">
             <div>

@@ -60,6 +60,7 @@ const Unauthorized = lazy(() => import('@/pages/Unauthorized'))
 const LegalPage = lazy(() => import('@/pages/LegalPage'))
 const SupportPage = lazy(() => import('@/pages/SupportPage'))
 const FeaturePage = lazy(() => import('@/pages/FeaturePage'))
+const KararRehberPage = lazy(() => import('@/pages/KararRehberPage'))
 
 const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'))
 const AdminKnowledge = lazy(() => import('@/pages/admin/AdminKnowledge'))
@@ -134,6 +135,7 @@ export default function AppRoutes() {
         <Route path="/araclar/pazaryeri-komisyon-hesaplayici" element={<SuspenseWrapper><KomisyonHesaplayiciPage /></SuspenseWrapper>} />
         <Route path="/isletme-takibi" element={<SuspenseWrapper><FeaturePage slug="isletme-takibi" /></SuspenseWrapper>} />
         <Route path="/karar-araclari" element={<SuspenseWrapper><FeaturePage slug="karar-araclari" /></SuspenseWrapper>} />
+        <Route path="/karar-araclari/:slug" element={<SuspenseWrapper><KararRehberPage /></SuspenseWrapper>} />
         <Route path="/hesaplamalar" element={<SuspenseWrapper><FeaturePage slug="hesaplamalar" /></SuspenseWrapper>} />
         <Route path="/ai-mentor" element={<SuspenseWrapper><FeaturePage slug="ai-mentor" /></SuspenseWrapper>} />
         <Route path="/pazaryeri-entegrasyonlari" element={<SuspenseWrapper><FeaturePage slug="pazaryeri-entegrasyonlari" /></SuspenseWrapper>} />
