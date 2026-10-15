@@ -24,9 +24,9 @@ import styles from './MobilUygulama.module.css'
  * (DESIGN.md §23.3).
  */
 const EKRANLAR = [
-  { dosya: 'mobil-ana-sayfa.png', anahtar: 'home' },
-  { dosya: 'mobil-isletme-takibi.png', anahtar: 'business' },
-  { dosya: 'mobil-cari-hesap.png', anahtar: 'account' }
+  { dosya: 'mobil-ana-sayfa.webp', anahtar: 'home' },
+  { dosya: 'mobil-isletme-takibi.webp', anahtar: 'business' },
+  { dosya: 'mobil-cari-hesap.webp', anahtar: 'account' }
 ]
 
 /* Sıra i18n'deki `about.mobile.items` ile birebir. */

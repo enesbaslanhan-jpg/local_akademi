@@ -20,12 +20,12 @@ import styles from './EkranCizimi.module.css'
  * görselle kalıyor; dosya eklendiğinde burada tanımlanması yeterli.
  */
 const EKRANLAR = {
-  'karar-araclari': { kaynak: '/about-screens/karar-araclari.png?v=5', etiketKey: 'about.modules.decisionTools.title' },
-  'isletme-takibi': { kaynak: '/about-screens/isletme-takibi.png?v=5', detay: '/about-screens/isletme-takibi-detay.png?v=5', etiketKey: 'about.modules.businessTracking.title' },
-  'ai-mentor': { kaynak: '/about-screens/ai-mentor.png?v=5', detay: '/about-screens/ai-mentor-detay.png?v=5', etiketKey: 'about.modules.mentor.title' },
-  hesaplamalar: { kaynak: '/about-screens/hesaplamalar.png?v=5', detay: '/about-screens/hesaplamalar-detay.png?v=5', etiketKey: 'about.modules.calculations.title' },
-  kurslar: { kaynak: '/about-screens/kurslar.png?v=5', detay: '/about-screens/kurslar-detay.png?v=5', etiketKey: 'about.modules.courses.title' },
-  topluluk: { kaynak: '/about-screens/topluluk.png?v=5', detay: '/about-screens/topluluk-detay.png?v=5', etiketKey: 'about.modules.community.title' }
+  'karar-araclari': { kaynak: '/about-screens/karar-araclari.webp?v=6', etiketKey: 'about.modules.decisionTools.title' },
+  'isletme-takibi': { kaynak: '/about-screens/isletme-takibi.webp?v=6', detay: '/about-screens/isletme-takibi-detay.webp?v=6', etiketKey: 'about.modules.businessTracking.title' },
+  'ai-mentor': { kaynak: '/about-screens/ai-mentor.webp?v=6', detay: '/about-screens/ai-mentor-detay.webp?v=6', etiketKey: 'about.modules.mentor.title' },
+  hesaplamalar: { kaynak: '/about-screens/hesaplamalar.webp?v=6', detay: '/about-screens/hesaplamalar-detay.webp?v=6', etiketKey: 'about.modules.calculations.title' },
+  kurslar: { kaynak: '/about-screens/kurslar.webp?v=6', detay: '/about-screens/kurslar-detay.webp?v=6', etiketKey: 'about.modules.courses.title' },
+  topluluk: { kaynak: '/about-screens/topluluk.webp?v=6', detay: '/about-screens/topluluk-detay.webp?v=6', etiketKey: 'about.modules.community.title' }
 }
 
 export default function EkranCizimi({ tur }) {

@@ -2,6 +2,7 @@ import { chromium } from 'playwright'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
+import sharp from 'sharp'
 
 /*
  * TANITIM SAYFASI EKRAN GÖRÜNTÜLERİNİ ÇEKER.
@@ -286,6 +287,20 @@ async function yakinCekim(s, yakin, hedefDizin) {
   const kb = (fs.statSync(cikti).size / 1024).toFixed(0)
   console.log(`  ${yakin.dosya.padEnd(28)} ${Math.round(clip.width)}x${Math.round(clip.height)} @2x   ${kb} KB`)
 }
+/**
+ * Çekilen PNG'ler WebP'ye çevrilir ve PNG silinir: tanıtım sayfası 2,8 MB PNG yerine
+ * 1,1 MB WebP indiriyor (PageSpeed "resim yayınlamayı kolaylaştırın", 15.10.2026).
+ * Kodda dosya adları .webp; PNG repoda tutulmaz.
+ */
+async function webpeCevir() {
+  for (const f of fs.readdirSync(HEDEF).filter((x) => x.endsWith('.png'))) {
+    const png = path.join(HEDEF, f)
+    await sharp(png).webp({ quality: 82, effort: 6 }).toFile(png.replace(/\.png$/, '.webp'))
+    fs.unlinkSync(png)
+  }
+  console.log('  PNG -> WebP çevrildi.')
+}
+
 /** 2. aşama: 2x headless, çekim. */
 async function cekimAsamasi() {
   fs.mkdirSync(HEDEF, { recursive: true })
@@ -332,6 +347,7 @@ async function main() {
   else await girisAsamasi()
 
   await cekimAsamasi()
+  await webpeCevir()
 
   console.log(`\nBitti. Dosyalar: ${HEDEF}`)
   console.log('Önbellek damgasını yükselt: EkranCizimi.jsx içindeki ?v=')

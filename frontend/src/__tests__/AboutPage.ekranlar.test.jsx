@@ -37,7 +37,7 @@ describe('Hakkında — modül ekranları', () => {
       const baslik = modul.querySelector('h3')?.textContent
       const ekran = modul.querySelector('img[src^="/about-screens/"]')
       expect(ekran, `"${baslik}" modülünün ekran görüntüsü yok`).not.toBeNull()
-      expect(ekran.getAttribute('src')).toMatch(/\.png\?v=\d+$/)
+      expect(ekran.getAttribute('src')).toMatch(/\.webp\?v=\d+$/)
     }
   })
 

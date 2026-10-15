@@ -105,6 +105,7 @@ const isProduction = process.env.NODE_ENV === 'production'
  */
 import { hizSiniriAnahtari, resolveTrustProxy } from './lib/client-ip.js'
 import { sayfaMetaUygula, sayfaMetaYolu } from './lib/sayfa-meta-html.js'
+import { statikOnbellekBasligi } from './lib/statik-onbellek.js'
 export { hizSiniriAnahtari }
 
 /**
@@ -441,7 +442,11 @@ async function build() {
     await server.register(fastifyStatic, {
       root: publicPath,
       prefix: '/',
-      index: 'index.html'
+      index: 'index.html',
+      setHeaders: (res, dosyaYolu) => {
+        const onbellek = statikOnbellekBasligi(dosyaYolu)
+        if (onbellek) res.header('Cache-Control', onbellek)
+      }
     })
   }
 
