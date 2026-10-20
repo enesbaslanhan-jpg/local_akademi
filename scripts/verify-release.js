@@ -144,13 +144,20 @@ async function main() {
     if (content.includes('EXPOSE') || content.includes('PORT')) checks.push('EXPOSE/PORT')
     pass(`Dockerfile static: ${checks.join(', ')}`)
 
+    const skipDockerImageBuild = process.env.SKIP_DOCKER_IMAGE_BUILD === 'true'
     let dockerAvailable = false
-    try {
-      execSync('docker info', { stdio: 'pipe', timeout: 10000 })
-      dockerAvailable = true
-    } catch (_) {}
+    if (skipDockerImageBuild) {
+      skipped('Docker image build/container smoke test (delegated to publish-image and production deploy workflows)')
+    } else {
+      try {
+        execSync('docker info', { stdio: 'pipe', timeout: 10000 })
+        dockerAvailable = true
+      } catch (_) {}
+    }
 
-    if (dockerAvailable) {
+    if (skipDockerImageBuild) {
+      // Publish-image builds the immutable artifact; production deploy checks its health.
+    } else if (dockerAvailable) {
       const tag = `localakademi-e2e-${Date.now()}`
       console.log(`\n--- Docker image build (tag: ${tag}) ---`)
       try {

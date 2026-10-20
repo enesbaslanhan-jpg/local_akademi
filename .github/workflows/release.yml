@@ -139,6 +139,9 @@ jobs:
         env:
           SKIP_NPM_INSTALL: 'true'
           SKIP_UNIT_TESTS: 'true'
+          # Docker has already been tested locally; CI's publish-image job builds
+          # the immutable image once, and production deploy performs its health check.
+          SKIP_DOCKER_IMAGE_BUILD: 'true'
 
       # Adi "Frontend smoke test" idi ama betik BACKEND uc noktalarini
       # deniyor (/health, /auth/register, /business/business-profile,
