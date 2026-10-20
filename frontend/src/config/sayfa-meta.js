@@ -39,6 +39,30 @@ export const SAYFA_META = {
     baslik: 'Pazaryeri Komisyon Oranı ve Kâr Hesaplama | LocalKarar',
     aciklama: 'Pazaryeri komisyon oranını ve ürün maliyetlerini gir; kargo ve iade giderleri sonrası satış başına net katkını ücretsiz hesapla. Oranını satıcı panelinden doğrula.',
   },
+  '/araclar/trendyol-komisyon-hesaplama': {
+    baslik: 'Trendyol Komisyon ve Sipariş Kârlılığı Hesaplama | LocalKarar',
+    aciklama: 'Trendyol siparişinde kendi komisyon oranını, ürün maliyetini, kargo ve diğer giderleri girerek tahmini sipariş katkını hesapla.',
+  },
+  '/araclar/hepsiburada-komisyon-hesaplama': {
+    baslik: 'Hepsiburada Komisyon ve Sipariş Kârlılığı Hesaplama | LocalKarar',
+    aciklama: 'Hepsiburada siparişindeki kendi komisyon oranını, ürün maliyetini, kargo ve ek giderleri girerek yaklaşık katkını hesapla.',
+  },
+  '/araclar/kdv-dahil-haric-hesaplama': {
+    baslik: 'KDV Dahil Hariç Hesaplama Aracı | LocalKarar',
+    aciklama: 'Tutarı ve uygulaman gereken KDV oranını girerek KDV hariç bedeli, vergi tutarını ve KDV dahil toplamı hesapla.',
+  },
+  '/araclar/kar-marji-hesaplama': {
+    baslik: 'Kâr Marjı Hesaplama: Satıştan Kalan Oranı Bul | LocalKarar',
+    aciklama: 'Satış geliri ve maliyetleri girerek katkıyı ve satışa göre kâr marjını hesapla; marj ile maliyet üzerine kâr ekleme oranını ayır.',
+  },
+  '/araclar/satis-fiyati-hesaplama': {
+    baslik: 'Hedef Kâr Marjına Göre Satış Fiyatı Hesaplama | LocalKarar',
+    aciklama: 'Ürün maliyeti, satışa bağlı giderler ve hedef marjı girerek gereken yaklaşık satış fiyatını bul.',
+  },
+  '/araclar/basabas-noktasi-hesaplama': {
+    baslik: 'Başabaş Noktası Hesaplama: Gerekli Satış Adedi | LocalKarar',
+    aciklama: 'Dönem sabit giderlerini ve satış başına katkıyı girerek başabaş için gereken tahmini satış adedini ve ciroyu hesapla.',
+  },
   '/isletme-takibi': {
     baslik: 'Küçük İşletme Takip Programı | LocalKarar',
     aciklama: 'Gelir, gider, cari hesap, tahsilat, ödeme, sipariş ve belgeleri tek yerde takip et. Küçük işletmeler için sade işletme takip uygulaması.',

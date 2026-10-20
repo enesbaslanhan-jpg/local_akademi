@@ -6,6 +6,7 @@ import AuthThemeToggle from './AuthThemeToggle'
 import useSayfaMeta from '@/hooks/useSayfaMeta'
 import { SAYFA_META } from '@/config/sayfa-meta'
 import { KARAR_REHBERLERI, KARAR_REHBERI_ONEK } from '@/content/karar-rehberleri'
+import { SEO_CALCULATORS, SEO_CALCULATOR_PATHS } from '@/content/seo-calculators'
 import styles from './FeaturePage.module.css'
 
 const OZELLIKLER = {
@@ -234,6 +235,21 @@ export default function FeaturePage({ slug }) {
                     <p>{r.etiket}: formül, çözümlü örnek ve sık hatalar.</p>
                   </Link>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {slug === 'hesaplamalar' && (
+            <section aria-labelledby="seo-hesaplamalar-baslik">
+              <span className={styles.sectionLabel}>Ücretsiz araçlar</span>
+              <h2 id="seo-hesaplamalar-baslik">İşletme hesaplarını kendi rakamlarınla yap</h2>
+              <div className={styles.grid}>
+                {SEO_CALCULATOR_PATHS.map((path, index) => {
+                  const calculator = SEO_CALCULATORS[path.split('/').at(-1)]
+                  return <Link key={path} to={path} className={styles.card}><span className={styles.cardNo}>{String(index + 1).padStart(2, '0')}</span><h3>{calculator.h1}</h3><p>{calculator.intro}</p></Link>
+                })}
+                <Link to="/araclar/pazaryeri-komisyon-hesaplayici" className={styles.card}><span className={styles.cardNo}>07</span><h3>Pazaryeri komisyon hesaplayıcı</h3><p>Komisyon, ürün maliyeti, kargo ve iade sonrası tahmini sipariş katkını gör.</p></Link>
+                <Link to="/karar-araclari" className={styles.card}><span className={styles.cardNo}>08</span><h3>Karar araçları</h3><p>İndirim, ücretsiz kargo ve reklam kararlarını çözümlü örneklerle incele.</p></Link>
               </div>
             </section>
           )}

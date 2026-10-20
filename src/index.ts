@@ -643,6 +643,22 @@ async function build() {
        */
       if (request.method === 'GET' || request.method === 'HEAD') {
         const metaYolu = sayfaMetaYolu(request.url)
+        if (metaYolu) {
+          const prerenderAdi = metaYolu === '/'
+            ? null
+            : `${metaYolu.slice(1).replaceAll('/', '--')}.html`
+          if (prerenderAdi) {
+            try {
+              const prerender = readFileSync(join(publicPath, 'seo-pages', prerenderAdi), 'utf8')
+              return reply
+                .type('text/html; charset=utf-8')
+                .header('cache-control', 'public, max-age=0')
+                .send(prerender)
+            } catch {
+              /* Build/dev fallback: keep the existing page-specific meta template. */
+            }
+          }
+        }
         const sablon = metaYolu ? anaHtmlSablonu() : null
         if (metaYolu && sablon) {
           return reply

@@ -98,6 +98,9 @@ jobs:
         working-directory: frontend
         run: npm ci --prefer-offline --no-audit --no-fund
 
+      - name: Install Chromium for public-page prerender
+        run: npx playwright install --with-deps chromium
+
       - name: Build frontend for integrity check
         working-directory: frontend
         run: npm run build
@@ -197,6 +200,12 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+
+      - name: Install shared Playwright runtime
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Install Chromium for public-page prerender
+        run: npx playwright install --with-deps chromium
 
       - name: Install
         working-directory: frontend

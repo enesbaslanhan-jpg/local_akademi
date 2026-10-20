@@ -28,12 +28,14 @@ FROM node:20-alpine AS frontend-build
 
 WORKDIR /app
 
-RUN apk add --no-cache openssl
+RUN apk add --no-cache openssl chromium nss freetype harfbuzz ca-certificates ttf-freefont
 
 COPY frontend/package*.json ./
 RUN npm ci
 
 COPY frontend/ ./
+COPY --from=backend-build /app/node_modules/playwright ./node_modules/playwright
+COPY --from=backend-build /app/node_modules/playwright-core ./node_modules/playwright-core
 RUN npm run build
 
 # Stage 3: Production runtime

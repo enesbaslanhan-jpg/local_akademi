@@ -1,0 +1,30 @@
+.page { margin-top: 0; }
+.calculatorGrid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(300px, .92fr); gap: 22px; align-items: start; }
+.note { display: flex; gap: 8px; align-items: flex-start; margin: 16px 0 0; color: var(--auth-text-soft); font-size: .82rem; line-height: 1.55; }
+.note svg { flex: 0 0 auto; margin-top: 2px; color: var(--auth-accent); }
+.mode { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.mode button { padding: 8px 12px; border: 1px solid var(--auth-field-border); border-radius: 9px; background: var(--auth-field); color: var(--auth-text); cursor: pointer; font: inherit; font-size: .82rem; }
+.mode button[aria-pressed="true"] { border-color: var(--auth-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--auth-accent) 18%, transparent); }
+.stores { display: flex; gap: 16px; }
+.stores a { color: var(--auth-text-soft); text-decoration: underline; text-underline-offset: 3px; font-size: .8rem; }
+.article { max-width: 780px; margin: clamp(52px, 7vw, 90px) auto 0; color: var(--auth-text); }
+.article h2 { margin: 42px 0 15px; font-size: clamp(1.45rem, 2.8vw, 2rem); line-height: 1.2; letter-spacing: -.025em; }
+.article h3 { margin: 30px 0 9px; font-size: 1.12rem; line-height: 1.35; }
+.article p, .article li { color: var(--auth-text-soft); font-size: .97rem; line-height: 1.8; }
+.article p { margin: 0 0 16px; }
+.article ol { padding-left: 22px; display: grid; gap: 8px; }
+.article li::marker { color: var(--auth-accent); font-weight: 800; }
+.toc { padding: 18px 20px; border: 1px solid var(--auth-card-border); border-radius: 14px; background: var(--auth-card); }
+.toc strong { display: block; margin-bottom: 10px; }
+.toc nav { display: flex; flex-wrap: wrap; gap: 12px 18px; }
+.toc a { color: var(--auth-accent); font-size: .87rem; }
+.faq details { padding: 16px 0; border-top: 1px solid var(--auth-divider); }
+.faq details:last-child { border-bottom: 1px solid var(--auth-divider); }
+.faq summary { cursor: pointer; font-weight: 700; line-height: 1.5; }
+.faq details p { margin: 10px 0 0; }
+.related { margin: 44px 0 12px; padding: 24px; border: 1px solid var(--auth-card-border); border-radius: 16px; background: var(--auth-card); }
+.related span { display: block; margin-bottom: 12px; font-weight: 750; }
+.related nav { display: flex; flex-wrap: wrap; gap: 10px; }
+.related a { padding: 8px 11px; border-radius: 8px; background: var(--auth-field); color: var(--auth-text); text-decoration: none; font-size: .84rem; }
+.related a:hover { color: var(--auth-accent); }
+@media (max-width: 860px) { .calculatorGrid { grid-template-columns: 1fr; } }

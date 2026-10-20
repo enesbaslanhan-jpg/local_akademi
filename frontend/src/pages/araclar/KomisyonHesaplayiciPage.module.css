@@ -239,6 +239,8 @@
 }
 .cagriDugme:hover { background: var(--auth-accent-hover); }
 .cagriNot { color: var(--auth-text-soft); font-size: .76rem; }
+.storeLinks { display: flex; flex-wrap: wrap; gap: 14px; }
+.storeLinks a { color: var(--auth-text-soft); font-size: .78rem; text-underline-offset: 3px; }
 
 /* ---------- Açıklama ve SSS ---------- */
 

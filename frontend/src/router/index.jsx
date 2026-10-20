@@ -14,6 +14,7 @@ const EmailVerifyPage = lazy(() => import('@/pages/PasswordResetPage').then(m =>
 const AboutPage = lazy(() => import('@/pages/AboutPage'))
 const PricingPage = lazy(() => import('@/pages/PricingPage'))
 const KomisyonHesaplayiciPage = lazy(() => import('@/pages/araclar/KomisyonHesaplayiciPage'))
+const SeoCalculatorPage = lazy(() => import('@/pages/araclar/SeoCalculatorPage'))
 /* Kayıt sonrası karşılama — yalnız kayıttan yönlendiriliyor. */
 const WelcomePage = lazy(() => import('@/pages/WelcomePage'))
 const OdemeSonucPage = lazy(() => import('@/pages/OdemeSonucPage'))
@@ -133,6 +134,12 @@ export default function AppRoutes() {
             reklamdan gelen ziyaretçinin ilk durağı. Yeni araç eklenince
             public/sitemap.xml de güncellenmeli. */}
         <Route path="/araclar/pazaryeri-komisyon-hesaplayici" element={<SuspenseWrapper><KomisyonHesaplayiciPage /></SuspenseWrapper>} />
+        <Route path="/araclar/trendyol-komisyon-hesaplama" element={<SuspenseWrapper><SeoCalculatorPage /></SuspenseWrapper>} />
+        <Route path="/araclar/hepsiburada-komisyon-hesaplama" element={<SuspenseWrapper><SeoCalculatorPage /></SuspenseWrapper>} />
+        <Route path="/araclar/kdv-dahil-haric-hesaplama" element={<SuspenseWrapper><SeoCalculatorPage /></SuspenseWrapper>} />
+        <Route path="/araclar/kar-marji-hesaplama" element={<SuspenseWrapper><SeoCalculatorPage /></SuspenseWrapper>} />
+        <Route path="/araclar/satis-fiyati-hesaplama" element={<SuspenseWrapper><SeoCalculatorPage /></SuspenseWrapper>} />
+        <Route path="/araclar/basabas-noktasi-hesaplama" element={<SuspenseWrapper><SeoCalculatorPage /></SuspenseWrapper>} />
         <Route path="/isletme-takibi" element={<SuspenseWrapper><FeaturePage slug="isletme-takibi" /></SuspenseWrapper>} />
         <Route path="/karar-araclari" element={<SuspenseWrapper><FeaturePage slug="karar-araclari" /></SuspenseWrapper>} />
         <Route path="/karar-araclari/:slug" element={<SuspenseWrapper><KararRehberPage /></SuspenseWrapper>} />

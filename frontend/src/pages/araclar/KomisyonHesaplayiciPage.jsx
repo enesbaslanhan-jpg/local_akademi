@@ -275,6 +275,10 @@ export default function KomisyonHesaplayiciPage() {
                 </Link>
               )}
               <span className={styles.cagriNot}>{t('tools.commission.ctaNote')}</span>
+              <div className={styles.storeLinks} aria-label="LocalKarar uygulama mağazaları">
+                <a href="https://apps.apple.com/app/localkarar/id6813127954" rel="noopener noreferrer">App Store</a>
+                <a href="https://play.google.com/store/apps/details?id=com.localkarar.app" rel="noopener noreferrer">Google Play</a>
+              </div>
             </div>
           </section>
         </div>
@@ -292,6 +296,19 @@ export default function KomisyonHesaplayiciPage() {
             <ShieldCheck size={16} aria-hidden="true" /> {t('tools.commission.privacyNote')}
           </p>
         </section>
+
+        <article className={styles.aciklama}>
+          <h2 className={styles.bolumBaslik}>Sipariş başına kârlılığı doğru yorumla</h2>
+          <p>Komisyon yüzdesi tek başına pazaryeri siparişinin kârlılığını açıklamaz. Gerçek katkıyı görmek için satış fiyatından ürünün tedarik maliyetini, satıcıya kalan kargo tutarını, ambalajı, siparişe düşen reklam giderini ve ilgili diğer kesintileri ayırmak gerekir. Bu hesaplayıcı her kalemi görünür tutar; hangi sayıyı nereden aldığını kontrol edebilirsin. Sonuç, girdiğin giderlerin ardından kalan yaklaşık sipariş katkısıdır. Dönem net kârı değildir; kira, maaş, vergi ve finansman gibi giderleri içermeyebilir.</p>
+          <h3>Oran ve kesintileri satıcı panelinden al</h3>
+          <p>Trendyol, Hepsiburada veya başka bir satış kanalında komisyon; ürün kategorisi, sözleşme, kampanya ve zaman içindeki güncellemeler nedeniyle değişebilir. Buradaki örnek oranlar resmi tarife olarak sunulmaz. Güncel ürün oranını ve komisyonun hesaplandığı matrahı satıcı panelinden kontrol et. Satış raporunda görünen hizmet bedeli, kampanya katkısı, ödeme kesintisi veya kargo bedelini ayrıca gözden geçir. Bir kesintiyi oran içine kattıysan aynı tutarı başka bir gider alanında tekrar yazma.</p>
+          <h3>Çözümlü örnek: birim katkı</h3>
+          <p>1.800 TL satış, 750 TL ürün maliyeti, %15 örnek komisyon, 78 TL kargo ve 8 TL ambalaj varsayalım. Komisyon 270 TL’dir. %5 iade oranı için iki yönlü 78 TL kargo üzerinden basit risk tahmini 7,80 TL olur. Reklam gideri hariç yaklaşık katkı 686,20 TL, satışa göre katkı marjı yaklaşık %38,1’dir. Bu örnek hiçbir platformun güncel oranını veya senin gerçek sipariş sonucunu göstermez. Ek kesintileri ve KDV etkisini mutabakat raporunla doğrula.</p>
+          <h3>İade gideri bir varsayımdır</h3>
+          <p>Hesaplayıcı, girdiğin kargo tutarının iki yönünü iade oranıyla ağırlıklandırır. Bu yaklaşım yalnızca başlangıç senaryosudur: iade edilen ürünün yeniden satılabilmesi, kargo sorumluluğu, hasar ve platformun ücret iadesi politikası sonucu değiştirebilir. Ürün bedelinin tamamını iade kaybı saymaz. Son birkaç aylık kayıtlarından ürün ve kanal bazında iade oranı ile ortalama gerçek maliyeti çıkarmak daha anlamlıdır.</p>
+          <h3>Sonucu fiyat ve kampanya kararına bağla</h3>
+          <p>Aynı ürünü normal fiyat, kampanya fiyatı ve reklamla gelen satış senaryolarında hesapla. Birim katkıyı beklenen adetle çarparak ilk toplam katkı tahminini al; ancak fiyat değişince talebin ve sipariş adedinin de değişebileceğini unutma. Başabaş fiyatını başka giderleri dahil etmeden kesin alt limit olarak kullanma. İlgili detay için <Link to="/araclar/trendyol-komisyon-hesaplama">Trendyol komisyon hesaplama</Link>, <Link to="/araclar/hepsiburada-komisyon-hesaplama">Hepsiburada komisyon hesaplama</Link>, <Link to="/araclar/kar-marji-hesaplama">kâr marjı hesaplama</Link> veya <Link to="/araclar/satis-fiyati-hesaplama">hedef satış fiyatı</Link> sayfalarına geçebilirsin.</p>
+        </article>
 
         <section className={styles.sss} aria-labelledby="sss-baslik">
           <h2 id="sss-baslik" className={styles.bolumBaslik}>{t('tools.commission.faqTitle')}</h2>
