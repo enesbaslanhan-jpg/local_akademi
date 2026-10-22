@@ -193,7 +193,9 @@ jobs:
   # bir hata oldugunda hangi tarafta oldugu adindan belli oluyor.
   frontend:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Frontend Vitest suite was still passing tests when the 10-minute job
+    # limit cancelled it on Node 22. Match the release gate's runtime budget.
+    timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@v4
