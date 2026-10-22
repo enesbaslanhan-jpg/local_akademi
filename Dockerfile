@@ -1,5 +1,5 @@
 # Stage 1: Backend build
-FROM node:20-alpine AS backend-build
+FROM node:22-alpine AS backend-build
 
 WORKDIR /app
 
@@ -24,7 +24,7 @@ RUN npm run build
 RUN npm run build:ops
 
 # Stage 2: Frontend build
-FROM node:20-alpine AS frontend-build
+FROM node:22-alpine AS frontend-build
 
 WORKDIR /app
 
@@ -39,7 +39,7 @@ COPY --from=backend-build /app/node_modules/playwright-core ./node_modules/playw
 RUN npm run build
 
 # Stage 3: Production runtime
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 # openssl: Prisma icin.

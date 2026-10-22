@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
   JWT_SECRET: ci-secret-that-is-at-least-32-bytes-long-for-testing
   JWT_EXPIRES_IN: 1h
   AI_PROVIDER: nvidia

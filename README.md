@@ -5,7 +5,7 @@ AI destekli kişiselleştirilmiş eğitim platformu. Öğrencilere özel mentor 
 ## Teknoloji Stack
 
 ### Backend
-- **Runtime:** Node.js 20+
+- **Runtime:** Node.js 22+
 - **Framework:** Fastify 5.x
 - **Language:** TypeScript 5.x
 - **Database:** SQLite (Prisma ORM)
@@ -24,7 +24,7 @@ AI destekli kişiselleştirilmiş eğitim platformu. Öğrencilere özel mentor 
 ## Kurulum
 
 ### Gereksinimler
-- Node.js 20+
+- Node.js 22+
 - npm veya pnpm
 - Docker & Docker Compose (opsiyonel)
 
